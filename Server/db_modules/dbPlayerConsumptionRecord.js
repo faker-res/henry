@@ -1604,6 +1604,44 @@ var dbPlayerConsumptionRecord = {
             }
         })
     },
+    getProviderLatestTimeRecord: function(providerId,platformObjId) {
+        let platform;
+
+        let gameProviderProm = dbconfig.collection_gameProvider.findOne({providerId: providerId}).lean();
+        let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+
+        return Promise.all([gameProviderProm, platformProm]).then(
+            data => {
+                let gameProviderData = data[0];
+                platform = data[1];
+                return dbconfig.collection_playerConsumptionRecord.findOne({providerId: gameProviderData._id}).sort({_id: -1}).limit(1).lean();
+            }
+        ).then(
+            lastestConsumptionRecord => {
+                if (!lastestConsumptionRecord) return
+
+                var currentDate = new Date();
+                var latestCreateTime = new Date(lastestConsumptionRecord.createTime);
+                var difference = currentDate - latestCreateTime ;
+                var resultInMinutes = Math.round(difference / 60000);
+                var recordStatus = {createTime: latestCreateTime};
+
+                let consumptionTimeConfig = platform.consumptionTimeConfig;
+
+                consumptionTimeConfig = consumptionTimeConfig.sort(function(configA, configB){
+                    return configA.duration - configB.duration;
+                });
+
+
+                for(let i =0; i < consumptionTimeConfig.length; i ++) {
+                    recordStatus.delayStatusColor = consumptionTimeConfig[i].color;
+                    if (resultInMinutes <= consumptionTimeConfig[i].duration) break;
+                }
+
+                return recordStatus;
+            }
+        );
+    },
     getConsumptionTotalAmountForProvider: function (startTime, endTime, providerId) {
         const matchObj = {
             createTime: {$gte: startTime, $lt: endTime},
