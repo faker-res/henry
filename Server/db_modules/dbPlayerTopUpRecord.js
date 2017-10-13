@@ -1564,11 +1564,11 @@ var dbPlayerTopUpRecord = {
                             proposalId: proposalData.proposalId,
                             platformId: player.platform.platformId,
                             userName: player.name,
-                            realName: alipayName,//player.realName || "",
+                            realName: player.realName || "",
                             aliPayAccount: 1,
                             amount: amount,
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
-                            remark: remark,
+                            remark: alipayName || remark,
                             createTime: cTimeString,
                             operateType: entryType == "ADMIN" ? 1 : 0
                         };
