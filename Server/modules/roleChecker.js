@@ -403,7 +403,7 @@ var roleChecker = {
                 promoCodeAnalysis: ['getPromoCodeTypeByObjId']
             },
             "RegistrationUrlConfig": {
-                Read: ['getAllOfficer', 'getAllPromoteWay', 'getAllUrl'],
+                Read: ['getAllOfficer', 'getAllPromoteWay', 'getAllUrl', 'getAdminNameByDepartment'],
                 Create: ['createOfficer', 'addPromoteWay', 'addUrl'],
                 Delete: ['deletePromoteWay', 'deleteOfficer', 'deleteUrl'],
                 Update: ['updateUrl']
