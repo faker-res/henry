@@ -844,6 +844,13 @@
   "Qty_Min":"Min",
   "Qty_Max":"Max",
 
+  "promoCode":"Promo Code",
+  "PROMO_CODE_USER_GROUP_CONFIG":"Promo Code User Group Config",
+  "promoCode_Group":"Group",
+  "COLOR_CODE":"Color Code",
+  "INLINE_EDIT":"Inline Edit",
+  "ADD_GROUP":"Add Group",
+
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
   "SMS_VERIFICATION": "SMS Verification",
