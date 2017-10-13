@@ -499,8 +499,22 @@ define(['js/app'], function (myApp) {
                     // Get Departments Detail
                     socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
                         console.log('getDepartmentTreeById', data);
-                        vm.queryDepartments = data.data;
+                        let parentId;
+                        vm.queryDepartments = [];
                         vm.queryRoles = [];
+
+                        data.data.map(e => {
+                            if (e.departmentName == vm.selectedPlatform.name) {
+                                vm.queryDepartments.push(e);
+                                parentId = e._id;
+                            }
+                        });
+
+                        data.data.map(e => {
+                            if (String(parentId) == String(e.parent)) {
+                                vm.queryDepartments.push(e);
+                            }
+                        });
 
                         $scope.$digest();
                         if (typeof(callback) == 'function') {

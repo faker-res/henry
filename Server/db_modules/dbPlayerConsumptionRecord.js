@@ -1624,18 +1624,20 @@ var dbPlayerConsumptionRecord = {
                 var latestCreateTime = new Date(lastestConsumptionRecord.createTime);
                 var difference = currentDate - latestCreateTime ;
                 var resultInMinutes = Math.round(difference / 60000);
-                var recordStatus = {createTime: latestCreateTime};
+                var recordStatus = {createTime: latestCreateTime, delayStatusColor:"rgb(255,255,255)" };
 
-                let consumptionTimeConfig = platform.consumptionTimeConfig;
+                if(platform){
+                    let consumptionTimeConfig = platform.consumptionTimeConfig;
+                    if(consumptionTimeConfig && consumptionTimeConfig.length > 0){
+                        consumptionTimeConfig = consumptionTimeConfig.sort(function(configA, configB){
+                            return configA.duration - configB.duration;
+                        });
 
-                consumptionTimeConfig = consumptionTimeConfig.sort(function(configA, configB){
-                    return configA.duration - configB.duration;
-                });
-
-
-                for(let i =0; i < consumptionTimeConfig.length; i ++) {
-                    recordStatus.delayStatusColor = consumptionTimeConfig[i].color;
-                    if (resultInMinutes <= consumptionTimeConfig[i].duration) break;
+                        for(let i =0; i < consumptionTimeConfig.length; i ++) {
+                            recordStatus.delayStatusColor = consumptionTimeConfig[i].color;
+                            if (resultInMinutes <= consumptionTimeConfig[i].duration) break;
+                        }
+                    }
                 }
 
                 return recordStatus;

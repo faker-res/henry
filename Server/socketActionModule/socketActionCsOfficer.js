@@ -13,17 +13,17 @@ function socketActionCsOfficer(socketIO, socket) {
         //     var isValidData = Boolean(true);
         //     socketUtil.emitter(self.socket, dbCsOfficer.testNewApi, [], actionName, isValidData);
         // },
-        createOfficer: function createOfficer(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId && data.name);
-            socketUtil.emitter(self.socket, dbCsOfficer.createOfficer, [data.platformId, data.name], actionName, isValidData);
-        },
+        // createOfficer: function createOfficer(data) {
+        //     let actionName = arguments.callee.name;
+        //     let isValidData = Boolean(data && data.platformId && data.name);
+        //     socketUtil.emitter(self.socket, dbCsOfficer.createOfficer, [data.platformId, data.name], actionName, isValidData);
+        // },
 
-        getAllOfficer: function getAllOfficer(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId);
-            socketUtil.emitter(self.socket, dbCsOfficer.getAllOfficer, [data.platformId], actionName, isValidData);
-        },
+        // getAllOfficer: function getAllOfficer(data) {
+        //     let actionName = arguments.callee.name;
+        //     let isValidData = Boolean(data && data.platformId);
+        //     socketUtil.emitter(self.socket, dbCsOfficer.getAllOfficer, [data.platformId], actionName, isValidData);
+        // },
 
         addPromoteWay: function addPromoteWay(data) {
             let actionName = arguments.callee.name;

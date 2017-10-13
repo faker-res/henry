@@ -75,7 +75,7 @@
                                 a {{'SELECT' | translate}}
                         tr(ng-if="vm.urlTableEdit")
                             td
-                                select.form-control#officerOption(ng-model='vm.currentUrlEditSelect.admin', ng-disabled="!vm.urlTableEdit", required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.departmentUsers')
+                                select.form-control#officerOption(ng-model='vm.currentUrlEditSelect.admin', ng-disabled="!vm.urlTableEdit", required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.adminList')
                             td
                                 select.form-control#officerPromoteOption(ng-model='vm.currentUrlEditSelect.way', ng-disabled="!vm.urlTableEdit", required)
                                     option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
@@ -83,7 +83,7 @@
                                 input.form-control(type="text", ng-model="vm.currentUrlEditSelect.domain", ng-disabled="!vm.urlTableEdit", required)
                         tr(ng-if="vm.urlTableAdd")
                             td
-                                select.form-control#officerOption(ng-model='vm.addOfficerUrl.officer', required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.departmentUsers')
+                                select.form-control#officerOption(ng-model='vm.addOfficerUrl.officer', required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.adminList')
                                     option(value='') {{'CHOOSE_OFFICER' | translate}}
                             td
                                 select.form-control#officerPromoteOption(ng-model='vm.addOfficerUrl.promoteWay')
