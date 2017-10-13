@@ -13518,6 +13518,11 @@ define(['js/app'], function (myApp) {
             });
 
         vm.initPlatformOfficer = function () {
+            vm.csUrlSearchQuery = {
+                admin: "",
+                promoteWay: "",
+                url: ""
+            };
             vm.platformOfficer = {};
             vm.officerPromoteMessage = "";
             vm.officerCreateMessage = "";
@@ -13756,28 +13761,57 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getAllUrl = function () {
-            vm.allUrl = {};
+            vm.allUrl = [];
             let query = {
                 platformId: vm.selectedPlatform.id
             };
             socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
-                    vm.allUrl = data.data;
-                    vm.allUrl = vm.allUrl.map(url => {
-                        for (let i = 0, len = vm.adminList.length; i < len; i++) {
-                            let admin = vm.adminList[i];
-                            if (url.admin.toString() === admin._id.toString()) {
-                                url.adminName$ = admin.adminName;
-                                break;
-                            }
+                vm.allUrl = data.data;
+                vm.allUrl = vm.allUrl.map(url => {
+                    for (let i = 0, len = vm.departmentUsers.length; i < len; i++) {
+                        let admin = vm.departmentUsers[i];
+                        if (url.admin.toString() === admin._id.toString()) {
+                            url.adminName$ = admin.adminName;
+                            break;
                         }
-                        return url;
-                    });
-                    console.log("vm.allUrl", vm.allUrl);
-                    $scope.safeApply();
-                },
-                function (err) {
-                    console.log(err);
+                    }
+                    return url;
                 });
+                console.log("vm.allUrl", vm.allUrl);
+                $scope.safeApply();
+            },
+            function (err) {
+                console.log(err);
+            });
+        };
+
+        vm.searchCsUrl = function () {
+            vm.allUrl = [];
+            let query = {
+                platformId: vm.selectedPlatform.id,
+                admin: vm.csUrlSearchQuery.admin || "",
+                domain: vm.csUrlSearchQuery.url || "",
+                way: vm.csUrlSearchQuery.promoteWay || ""
+            };
+
+            socketService.$socket($scope.AppSocket, 'searchUrl', query, function (data) {
+                vm.allUrl = data.data;
+                vm.allUrl = vm.allUrl.map(url => {
+                    for (let i = 0, len = vm.departmentUsers.length; i < len; i++) {
+                        let admin = vm.departmentUsers[i];
+                        if (url.admin.toString() === admin._id.toString()) {
+                            url.adminName$ = admin.adminName;
+                            break;
+                        }
+                    }
+                    return url;
+                });
+                console.log("vm.allUrl", vm.allUrl);
+                $scope.safeApply();
+            },
+            function (err) {
+                console.log(err);
+            });
         };
 
         vm.getPlayerCredibilityComment = function () {
@@ -13786,22 +13820,22 @@ define(['js/app'], function (myApp) {
                 playerObjId: vm.selectedSinglePlayer._id
             };
             socketService.$socket($scope.AppSocket, 'getUpdateCredibilityLog', query, function (data) {
-                    vm.playerCredibilityComment = data.data;
-                    for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
-                        let log = vm.playerCredibilityComment[i];
-                        log.remarks$ = "";
-                        for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
-                            log.remarks$ += log.credibilityRemarkNames[j];
-                            j < (len - 1) ? log.remarks$ += ", " : null;
-                        }
-                        log.createTime = new Date(log.createTime).toLocaleString();
+                vm.playerCredibilityComment = data.data;
+                for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
+                    let log = vm.playerCredibilityComment[i];
+                    log.remarks$ = "";
+                    for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
+                        log.remarks$ += log.credibilityRemarkNames[j];
+                        j < (len - 1) ? log.remarks$ += ", " : null;
                     }
-                    console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
-                    $scope.safeApply();
-                },
-                function (err) {
-                    console.log(err);
-                });
+                    log.createTime = new Date(log.createTime).toLocaleString();
+                }
+                console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
+                $scope.safeApply();
+            },
+            function (err) {
+                console.log(err);
+            });
         };
 
         vm.setupRemarksMultiInput = function () {
