@@ -13768,8 +13768,8 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
                 vm.allUrl = data.data;
                 vm.allUrl = vm.allUrl.map(url => {
-                    for (let i = 0, len = vm.departmentUsers.length; i < len; i++) {
-                        let admin = vm.departmentUsers[i];
+                    for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                        let admin = vm.adminList[i];
                         if (url.admin.toString() === admin._id.toString()) {
                             url.adminName$ = admin.adminName;
                             break;
@@ -13797,8 +13797,8 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'searchUrl', query, function (data) {
                 vm.allUrl = data.data;
                 vm.allUrl = vm.allUrl.map(url => {
-                    for (let i = 0, len = vm.departmentUsers.length; i < len; i++) {
-                        let admin = vm.departmentUsers[i];
+                    for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                        let admin = vm.adminList[i];
                         if (url.admin.toString() === admin._id.toString()) {
                             url.adminName$ = admin.adminName;
                             break;
