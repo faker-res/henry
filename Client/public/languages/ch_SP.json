@@ -1205,6 +1205,7 @@
   "PROMO_CODE_USER_GROUP_CONFIG": "代码用户分组设置",
   "userGroupConfig": "代码用户分组设置",
   "GROUP": "群组",
+  "promoCode_Group":"群组",
   "ADD_GROUP": "添加群组",
   "DELETE_GROUP": "删除群组",
   "Are you sure you want to delete group": "你确定要删除群组",
