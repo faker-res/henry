@@ -344,7 +344,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 let applyAmount = 0;
 
                                                 if (getProp.data.applyAmount) {
-                                                    applyAmount = getProp.data.returnDetail ? 0 : getProp.data.applyAmount;
+                                                    applyAmount = getProp.data.returnDetail || getProp.from_old_system ? 0 : getProp.data.applyAmount;
                                                 }
 
                                                 checkResult.push({
