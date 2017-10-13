@@ -231,7 +231,14 @@ function socketActionAdmin(socketIO, socket) {
             var randomPSW = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
             var isValidData = Boolean(data && data.adminId);
             socketUtil.emitter(self.socket, dbAdminInfo.resetAdminPassword, [data.adminId, randomPSW], actionName, isValidData);
-        }
+        },
+
+        getAdminNameByDepartment: function getAdminNameByDepartment(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.departmentId);
+            socketUtil.emitter(self.socket, dbAdminInfo.getAdminNameByDepartment, [data.departmentId], actionName, isValidData);
+        },
+
     };
 
     socketActionAdmin.actions = this.actions;

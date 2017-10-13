@@ -381,7 +381,7 @@
                             tbody
                                 // before edit enabled
                                 tr(ng-repeat='config in vm.userGroupConfig', ng-if='!vm.promoCodeUserGroupInlineEdit')
-                                    td(style="background-color:{{config.color}}", ng-click="vm.selectedPromoCodeUserGroup=config; vm.promoCodeUserGroupEdit=!vm.promoCodeUserGroupEdit") {{config.name}}
+                                    td(style="background-color:{{config.color}}", ng-click="vm.selectedPromoCodeUserGroup=config;") {{config.name}}
                                     td(style="background-color:{{config.color}}") {{config.color}}
                                     td(style="background-color:{{config.color}}")
                                         button.btn.btn-primary.common-button(ng-click="vm.promoCodeUserGroupInlineEdit=true")
@@ -427,7 +427,7 @@
                                         button.btn.btn-primary.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=true")
                                             i.fa.fa-pencil-square-o
                                             text {{'EDIT' | translate}}
-                                        button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeletePromoCodeUserGroupPlayer' ng-click="vm.PlayerDeleteIndex = $index")
+                                        button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeletePromoCodeUserGroupPlayer' ng-click="vm.PlayerDeleteIndex = $index; vm.promoCodeUserGroupEdit=null; vm.promoCodeUserGroupEdit=!vm.promoCodeUserGroupEdit")
                                             i.fa.fa-trash
                                             text {{'DELETE' | translate}}
                                 // after edit enabled
