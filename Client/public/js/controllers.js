@@ -359,7 +359,8 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
     $scope.merchantTargetDeviceJson = {
         '1': "clientType_Web",
         '2': "clientType_Application",
-        '3': 'clientType_Both'
+        '3': 'clientType_Both',
+        '4': 'clientType_H5'
     };
     $scope.constProposalEntryType = {
         0: "ENTRY_TYPE_CLIENT",

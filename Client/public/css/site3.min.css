@@ -3737,14 +3737,11 @@ input[type='number'].leftALignNumber {
     -moz-border-radius-topleft: 9px !important;
     -moz-border-radius-topright: 9px !important;
     border-top-left-radius: 9px !important;
-  border-top-right-radius-radius: 9px !important;
+    border-top-right-radius-radius: 9px !important;
 }
-#modalUpdatePlatform .nav-tabs>li {
-    cursor: pointer;
-}
-#modalUpdatePlatform .nav-tabs>li.active>a {
-    border: 1px solid #337AB7;
-    border-bottom: none;
+
+.text-disabled{
+    color: red;
 }
 .navbar-right {
     padding-right: 10px !important;
