@@ -1626,21 +1626,19 @@ var dbPlayerConsumptionRecord = {
                 var resultInMinutes = Math.round(difference / 60000);
                 var recordStatus = {createTime: latestCreateTime, delayStatusColor:"rgb(255,255,255)" };
 
-
-
-                let consumptionTimeConfig = platform.consumptionTimeConfig;
-
                 if(platform){
-                    consumptionTimeConfig = consumptionTimeConfig.sort(function(configA, configB){
-                        return configA.duration - configB.duration;
-                    });
+                    let consumptionTimeConfig = platform.consumptionTimeConfig;
+                    if(consumptionTimeConfig.length > 0){
+                        consumptionTimeConfig = consumptionTimeConfig.sort(function(configA, configB){
+                            return configA.duration - configB.duration;
+                        });
 
-                    for(let i =0; i < consumptionTimeConfig.length; i ++) {
-                        recordStatus.delayStatusColor = consumptionTimeConfig[i].color;
-                        if (resultInMinutes <= consumptionTimeConfig[i].duration) break;
+                        for(let i =0; i < consumptionTimeConfig.length; i ++) {
+                            recordStatus.delayStatusColor = consumptionTimeConfig[i].color;
+                            if (resultInMinutes <= consumptionTimeConfig[i].duration) break;
+                        }
                     }
                 }
-
 
                 return recordStatus;
             }
