@@ -504,8 +504,8 @@ let dbPlayerReward = {
             let yerTime = dbUtility.getYesterdayConsumptionReturnSGTime();
 
             return dbConfig.collection_players.findOne({
-                _id: playerObjId,
-                isNewSystem: true
+                _id: playerObjId
+                // isNewSystem: true
             }).populate(
                 {path: "platform", model: dbConfig.collection_platform}
             ).then(
