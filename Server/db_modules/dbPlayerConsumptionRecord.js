@@ -1628,7 +1628,7 @@ var dbPlayerConsumptionRecord = {
 
                 if(platform){
                     let consumptionTimeConfig = platform.consumptionTimeConfig;
-                    if(consumptionTimeConfig.length > 0){
+                    if(consumptionTimeConfig && consumptionTimeConfig.length > 0){
                         consumptionTimeConfig = consumptionTimeConfig.sort(function(configA, configB){
                             return configA.duration - configB.duration;
                         });
