@@ -47,6 +47,13 @@ define(['js/app'], function (myApp) {
             3: 'Counter'
         };
 
+        vm.topUpField = {
+          "ManualPlayerTopUp": 'bankCardNo',
+          "PlayerAlipayTopUp": 'alipayAccount',
+          "PlayerWechatTopUp": 'weChatAccount',
+          "PlayerTopUp": 'merchantNo'
+        }
+
         //get all platform data from server
         vm.setPlatform = function (platObj) {
             vm.operSelPlatform = false;
@@ -92,7 +99,8 @@ define(['js/app'], function (myApp) {
             $('#modalProposal').on('shown.bs.modal', function (e) {
               $scope.safeApply();
             })
-            vm.loadTodayTopupQuota(playerName, typeName);
+            let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
+            vm.loadTodayTopupQuota(typeName, cardNo);
             vm.getUserCardGroup(vm.selectedProposal.type.name,vm.selectedPlatform._id, playerId )
             vm.getCardLimit(vm.selectedProposal.type.name);
           })
@@ -142,7 +150,7 @@ define(['js/app'], function (myApp) {
               }
             }else if(typeName=="PlayerWechatTopUp"){
               vm.getAllWechatpaysByWechatpayGroup();
-              let　merchantNo = vm.selectedProposal.merchantNo$;
+              let　merchantNo = vm.selectedProposal.data.weChatAccount;
               if(merchantNo){
                   vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0];
               }
@@ -156,8 +164,6 @@ define(['js/app'], function (myApp) {
             }
             return vm.selectedProposal;
         }
-
-
 
         vm.getUserCardGroup = function(typeName, platformId, playerId){
           var myQuery = {
@@ -187,33 +193,28 @@ define(['js/app'], function (myApp) {
               console.error("cannot get player level", data);
           });
         }
-        vm.loadTodayTopupQuota = function(playerName, typeName){
-          var selectedStatus =  ["Success", "Fail", "Pending"];
+        vm.loadTodayTopupQuota = function(typeName, cardNo){
           var start = new Date();
           start.setHours(0,0,0,0);
           var end = new Date();
           end.setHours(23,59,59,999);
-
+          let cardField = vm.topUpField[typeName]
           var sendData = {
               adminId: authService.adminId,
               platformId: vm.selectedPlatform._id,
-              type: typeName,
+              type: typeName[0],
               startDate: start,
               endDate: end,
-              name: playerName,
+              card: cardNo,
+              cardField: cardField,
               size: 10,
               index: 0
           }
-          if (selectedStatus && selectedStatus != "") {
-              sendData.status = selectedStatus
-          } else {
-              sendData.status = ["Success", "Fail", "Pending"];
-          }
-
-          socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
+          sendData.status = ["Success"];
+          socketService.$socket($scope.AppSocket, 'getProposalAmountSum', sendData, function (data) {
                console.log(data.data.data);
-               if(data.data.summary.amount){
-                  vm.selectedProposal.quota = data.data.summary.amount;
+               if(data.data){
+                 vm.selectedProposal.cardSumToday = data.data[0].totalAmount||0;
                }
           });
         }

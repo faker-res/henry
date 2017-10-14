@@ -2239,6 +2239,37 @@ var proposal = {
             }
         );
     },
+    getProposalAmountSum: (data, index, limit) => {
+      // return dbconfig.collection_proposal.
+      let queryObj = {}
+
+
+      queryObj['data.platformId'] = ObjectId(data.platformId);
+      // if(data.type){
+      //   queryObj['type.name'] = data.type;
+      // }
+      queryObj.mainType = 'TopUp'
+      if(data.cardField){
+        let cardField = 'data.'+data.cardField;
+        queryObj[cardField]= data.card;
+      }
+
+      // queryObj["data.validTime"] = {};
+      // queryObj["data.validTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
+      // queryObj["data.validTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
+
+
+      return dbconfig.collection_proposal.aggregate(
+         {
+             $match: queryObj
+         }, {
+             $group: {
+                 _id: null,
+                 totalAmount: {$sum: "$data.amount"},
+             }
+         }
+     );
+    },
 
     getPaymentMonitorResult: (data, index, limit) => {
         let query = {};
