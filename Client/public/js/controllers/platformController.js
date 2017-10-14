@@ -3505,6 +3505,8 @@ define(['js/app'], function (myApp) {
                             content: function () {
                                 var data = JSON.parse(this.dataset.row);
                                 vm.prohibitGamePopover = data;
+                                vm.forbidGameDisable = true;
+                                vm.forbidGameRemark = '';
                                 $scope.safeApply();
                                 return $compile($('#prohibitGamePopover').html())($scope);
                             },
@@ -3512,6 +3514,29 @@ define(['js/app'], function (myApp) {
                                 let thisPopover = utilService.$getPopoverID(this);
                                 let rowData = JSON.parse(this.dataset.row);
                                 $scope.safeApply();
+
+                                $("button.forbidGameCancel").on('click', function () {
+                                    $(".prohibitGamePopover").popover('hide');
+                                });
+
+                                $("button.showForbidGame").on('click', function () {
+                                    $(".prohibitGamePopover").popover('hide');
+                                });
+
+                                $("input.playerStatusProviderForbid").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidProviderList = $(thisPopover).find('.playerStatusProviderForbid');
+                                    let forbidProviders = [];
+                                    $.each(forbidProviderList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidProviders.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    vm.forbidGameDisable = vm.isForbidChanged(forbidProviders, vm.prohibitGamePopover.forbidProviders);
+                                    $scope.safeApply();
+                                });
 
                                 $("button.forbidGameConfirm").on('click', function () {
                                     if ($(this).hasClass('disabled')) {
@@ -3541,6 +3566,8 @@ define(['js/app'], function (myApp) {
                             content: function () {
                                 var data = JSON.parse(this.dataset.row);
                                 vm.forbidTopUpPopover = data;
+                                vm.forbidTopUpDisable = true;
+                                vm.forbidTopUpRemark = '';
                                 $scope.safeApply();
                                 return $compile($('#forbidTopUpPopover').html())($scope);
                             },
@@ -3548,6 +3575,29 @@ define(['js/app'], function (myApp) {
                                 let thisPopover = utilService.$getPopoverID(this);
                                 let rowData = JSON.parse(this.dataset.row);
                                 $scope.safeApply();
+
+                                $("button.forbidTopUpCancel").on('click', function () {
+                                    $(".forbidTopUpPopover").popover('hide');
+                                });
+
+                                $("button.showForbidTopUp").on('click', function () {
+                                    $(".forbidTopUpPopover").popover('hide');
+                                });
+
+                                $("input.playerTopUpTypeForbid").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidTopUpList = $(thisPopover).find('.playerTopUpTypeForbid');
+                                    let forbidTopUpTypes = [];
+                                    $.each(forbidTopUpList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidTopUpTypes.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    vm.forbidTopUpDisable = vm.isForbidChanged(forbidTopUpTypes, vm.forbidTopUpPopover.forbidTopUpType);
+                                    $scope.safeApply();
+                                });
 
                                 $("button.forbidTopUpConfirm").on('click', function () {
                                     if ($(this).hasClass('disabled')) {
@@ -3577,6 +3627,8 @@ define(['js/app'], function (myApp) {
                             content: function () {
                                 var data = JSON.parse(this.dataset.row);
                                 vm.forbidRewardEventPopover = data;
+                                vm.forbidRewardEvents = [];
+                                vm.forbidRewardDisable = true;
                                 $scope.safeApply();
                                 return $compile($('#forbidRewardEventPopover').html())($scope);
                             },
@@ -3584,6 +3636,26 @@ define(['js/app'], function (myApp) {
                                 let thisPopover = utilService.$getPopoverID(this);
                                 let rowData = JSON.parse(this.dataset.row);
                                 $scope.safeApply();
+
+                                $("input.playerRewardEventForbid").on('click', function () {
+                                    let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
+                                    let forbidRewardEvents = [];
+                                    $.each(forbidRewardEventList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidRewardEvents.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
+                                    $scope.safeApply();
+                                });
+
+                                $("button.forbidRewardEventCancel").on('click', function () {
+                                    $(".forbidRewardEventPopover").popover('hide');
+                                });
+
+                                $("button.showForbidreward").on('click', function () {
+                                    $(".forbidRewardEventPopover").popover('hide');
+                                });
 
                                 $("button.forbidRewardEventConfirm").on('click', function () {
                                     if ($(this).hasClass('disabled')) {
@@ -6881,6 +6953,11 @@ define(['js/app'], function (myApp) {
                 console.log('sendData', sendData)
                 socketService.$socket($scope.AppSocket, 'updatePlayerPayment', sendData, function (data) {
                     vm.getPlatformPlayersData();
+                    let forbidTopUpNames = [];
+                    for (let  i = 0; i < data.data.forbidTopUpType.length; i++){
+                        forbidTopUpNames[i] = vm.merchantTopupTypeJson[data.data.forbidTopUpType[i]];
+                    }
+                    vm.updateForbidTopUpLog(data.data._id, forbidTopUpNames);
                     $scope.safeApply();
                 });
             }
@@ -7594,6 +7671,7 @@ define(['js/app'], function (myApp) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updatePlayerForbidProviders', sendData, function (data) {
                     vm.getPlatformPlayersData();
+                    vm.updateForbidGameLog(data.data._id, vm.findForbidCheckedName(data.data.forbidProviders, vm.allGameProvider));
                 });
             };
 
@@ -7601,6 +7679,7 @@ define(['js/app'], function (myApp) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardEvents', sendData, function (data) {
                     vm.getPlatformPlayersData();
+                    vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent));
                 });
             };
 
@@ -10142,6 +10221,7 @@ define(['js/app'], function (myApp) {
             }
         }
             vm.rewardTabClicked = function (callback) {
+                vm.forbidRewardRemark = '';
                 vm.dayHrs = {};
                 vm.dayMin = {};
                 for (var i = 0; i < 24; i++) {
@@ -14391,6 +14471,316 @@ define(['js/app'], function (myApp) {
                 vm.advancedPlayerQuery(true);
             }
         };
+
+        vm.isForbidChanged = function (newForbid, oldForbid){
+            var disableSubmit = true;
+            if (newForbid.length == oldForbid.length) {
+                for (let i = 0; i < newForbid.length; i++) {
+                    if (oldForbid.indexOf(newForbid[i]) > -1) {
+                        disableSubmit = true;
+                    } else {
+                        return disableSubmit = false;
+                    }
+                }
+            }else{
+                disableSubmit = false;
+            }
+            return disableSubmit;
+        }
+
+        vm.findForbidCheckedName = function (forbidArray, forbidObj){
+            var forbidNames = [];
+            for (let i = 0; i < forbidArray.length; i++){
+                for (let j = 0; j < forbidObj.length; j++){
+                    if (forbidArray[i] == forbidObj[j]._id){
+                        forbidNames[i] = forbidObj[j].name;
+                    }
+                }
+            }
+            return forbidNames;
+        }
+
+        //region forbidGame
+        vm.updateForbidGameLog = function (playerId,forbidGame){
+            let queryData = {
+                playerId: playerId,
+                remark: vm.forbidGameRemark,
+                adminId: authService.adminId,
+                forbidGameNames: forbidGame
+            };
+
+            socketService.$socket($scope.AppSocket, 'createForbidGameLog', queryData, function (created) {
+                vm.forbidGameRemark = '';
+                console.log('Forbid game log created', created);
+            });
+        }
+
+        $("button.forbidGameConfirm").on('click', function () {
+            vm.getForbidGame();
+        });
+        vm.getForbidGame = function () {
+            vm.forbidGameLog = {};
+            utilService.actionAfterLoaded('#modalForbidGameLog.in #forbidGameSearch .endTime', function () {
+                vm.forbidGameLog.startTime = utilService.createDatePicker('#forbidGameSearch .startTime');
+                vm.forbidGameLog.endTime = utilService.createDatePicker('#forbidGameSearch .endTime');
+                vm.forbidGameLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.forbidGameLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                vm.forbidGameLog.pageObj = utilService.createPageForPagingTable("#forbidGameTblPage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "forbidGameLog", vm.getForbidGameLog)
+                });
+                vm.getForbidGameLog(true);
+            });
+        }
+        vm.getForbidGameLog = function (newSearch) {
+            var sendQuery = {
+                startTime: vm.forbidGameLog.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.forbidGameLog.endTime.data('datetimepicker').getLocalDate(),
+                playerId: vm.prohibitGamePopover._id,
+                limit: newSearch ? 10 : vm.forbidGameLog.limit,
+                index: newSearch ? 0 : vm.forbidGameLog.index,
+                sortCol: vm.forbidGameLog.sortCol || undefined
+            };
+            if (vm.forbidGameLog.status) {
+                sendQuery.status = vm.forbidGameLog.status;
+            }
+            vm.forbidGameLog.isSearching = true;
+            console.log("Second:Query:", sendQuery);
+            $scope.safeApply();
+            socketService.$socket($scope.AppSocket, 'getForbidGameLog', sendQuery, function (data) {
+                var showData = data.data ? data.data.data.map(item => {
+                    item.createTime$ = vm.dateReformat(item.createTime);
+                    item.curAmount$ = item.data && item.data.curAmount ? item.data.curAmount.toFixed(2) : 0;
+                    for (let i = 0; i < item.forbidGameNames.length; i++){
+                        if (i > 0)
+                            item.forbidGameNames[i] = " " + item.forbidGameNames[i];
+                    }
+                    return item;
+                }) : [];
+                vm.forbidGameLog.totalCount = data.data ? data.data.total : 0;
+                let summary = data.data ? data.data.summary : {sumAmt: 0};
+                console.log("ForbidGameLog:length:", showData);
+                vm.drawForbidGameLogTbl(showData, vm.forbidGameLog.totalCount, newSearch, summary);
+                vm.forbidGameLog.isSearching = false;
+                $scope.safeApply();
+            });
+        }
+        vm.drawForbidGameLogTbl = function (showData, size, newSearch, summary) {
+            var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: showData,
+                "aaSorting": vm.forbidGameLog.aaSorting || [],
+                aoColumnDefs: [
+                    {'sortCol': 'createTime$', bSortable: true, 'aTargets': [0]},
+                    {'sortCol': 'admin.adminName', bSortable: true, 'aTargets': [1]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('date'), data: "createTime$"},
+                    {title: $translate('OPERATOR_NAME'), data: "admin.adminName"},
+                    {title: $translate('BANNED_FROM_THESE_PROVIDERS'), data: "forbidGameNames"},
+                    {title: $translate('REMARK'), data: "remark"},
+                ],
+                "paging": false,
+            });
+            utilService.createDatatableWithFooter("#forbidGameTbl", tableOptions, {});
+
+            // var aTable = $("#forbidRewardTbl").DataTable(tableOptions);
+            vm.forbidGameLog.pageObj.init({maxCount: size}, newSearch);
+            $("#forbidGameTbl").off('order.dt');
+            $("#forbidGameTbl").on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'forbidGameLog', vm.getForbidGameLog);
+            });
+            $('#forbidGameTbl').resize();
+            $scope.safeApply();
+        }
+        //endregion
+
+        //region forbidTopUp
+        vm.updateForbidTopUpLog = function (playerId,forbidTopUp){
+            let queryData = {
+                playerId: playerId,
+                remark: vm.forbidTopUpRemark,
+                adminId: authService.adminId,
+                forbidTopUpNames: forbidTopUp
+            };
+
+            socketService.$socket($scope.AppSocket, 'createForbidTopUpLog', queryData, function (created) {
+                vm.forbidTopUpRemark = '';
+                console.log('Forbid topup log created', created);
+            });
+        }
+
+        $("button.forbidTopUpConfirm").on('click', function () {
+            vm.getForbidTopUp();
+        });
+        vm.getForbidTopUp = function () {
+            vm.forbidTopUpLog = {};
+            utilService.actionAfterLoaded('#modalForbidTopUpLog.in #forbidTopUpSearch .endTime', function () {
+                vm.forbidTopUpLog.startTime = utilService.createDatePicker('#forbidTopUpSearch .startTime');
+                vm.forbidTopUpLog.endTime = utilService.createDatePicker('#forbidTopUpSearch .endTime');
+                vm.forbidTopUpLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.forbidTopUpLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                vm.forbidTopUpLog.pageObj = utilService.createPageForPagingTable("#forbidTopUpTblPage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "forbidTopUpLog", vm.getForbidTopUpLog)
+                });
+                vm.getForbidTopUpLog(true);
+            });
+        }
+        vm.getForbidTopUpLog = function (newSearch) {
+            var sendQuery = {
+                startTime: vm.forbidTopUpLog.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.forbidTopUpLog.endTime.data('datetimepicker').getLocalDate(),
+                playerId: vm.forbidTopUpPopover._id,
+                limit: newSearch ? 10 : vm.forbidTopUpLog.limit,
+                index: newSearch ? 0 : vm.forbidTopUpLog.index,
+                sortCol: vm.forbidTopUpLog.sortCol || undefined
+            };
+            if (vm.forbidTopUpLog.status) {
+                sendQuery.status = vm.forbidTopUpLog.status;
+            }
+            vm.forbidTopUpLog.isSearching = true;
+            console.log("Second:Query:", sendQuery);
+            $scope.safeApply();
+            socketService.$socket($scope.AppSocket, 'getForbidTopUpLog', sendQuery, function (data) {
+                var showData = data.data ? data.data.data.map(item => {
+                    item.createTime$ = vm.dateReformat(item.createTime);
+                    item.curAmount$ = item.data && item.data.curAmount ? item.data.curAmount.toFixed(2) : 0;
+                    for (let i = 0; i < item.forbidTopUpNames.length; i++){
+                        if (i > 0)
+                            item.forbidTopUpNames[i] = " " + item.forbidTopUpNames[i];
+                    }
+                    return item;
+                }) : [];
+                vm.forbidTopUpLog.totalCount = data.data ? data.data.total : 0;
+                let summary = data.data ? data.data.summary : {sumAmt: 0};
+                console.log("ForbidTopUpLog:length:", showData);
+                vm.drawForbidTopUpLogTbl(showData, vm.forbidTopUpLog.totalCount, newSearch, summary);
+                vm.forbidTopUpLog.isSearching = false;
+                $scope.safeApply();
+            });
+        }
+        vm.drawForbidTopUpLogTbl = function (showData, size, newSearch, summary) {
+            var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: showData,
+                "aaSorting": vm.forbidTopUpLog.aaSorting || [],
+                aoColumnDefs: [
+                    {'sortCol': 'createTime$', bSortable: true, 'aTargets': [0]},
+                    {'sortCol': 'admin.adminName', bSortable: true, 'aTargets': [1]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('date'), data: "createTime$"},
+                    {title: $translate('OPERATOR_NAME'), data: "admin.adminName"},
+                    {title: $translate('ForbidTopupTypes'), data: "forbidTopUpNames"},
+                    {title: $translate('REMARK'), data: "remark"},
+                ],
+                "paging": false,
+            });
+            utilService.createDatatableWithFooter("#forbidTopUpTbl", tableOptions, {});
+
+            // var aTable = $("#forbidRewardTbl").DataTable(tableOptions);
+            vm.forbidTopUpLog.pageObj.init({maxCount: size}, newSearch);
+            $("#forbidTopUpTbl").off('order.dt');
+            $("#forbidTopUpTbl").on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'forbidTopUpLog', vm.getForbidTopUpLog);
+            });
+            $('#forbidTopUpTbl').resize();
+            $scope.safeApply();
+        }
+        //endregion
+
+        //region forbidReward
+        vm.updateForbidRewardLog = function (playerId,forbidReward){
+            let queryData = {
+                playerId: playerId,
+                remark: vm.forbidRewardRemark,
+                adminId: authService.adminId,
+                forbidRewardNames: forbidReward
+            };
+
+            socketService.$socket($scope.AppSocket, 'createForbidRewardLog', queryData, function (created) {
+                vm.forbidRewardRemark = '';
+                console.log('Forbid reward log created', created);
+            });
+        }
+
+        $("button.forbidRewardEventConfirm").on('click', function () {
+            vm.getForbidReward();
+        });
+        vm.getForbidReward = function () {
+            vm.forbidRewardLog = {};
+            utilService.actionAfterLoaded('#modalForbidRewardLog.in #forbidRewardSearch .endTime', function () {
+                vm.forbidRewardLog.startTime = utilService.createDatePicker('#forbidRewardSearch .startTime');
+                vm.forbidRewardLog.endTime = utilService.createDatePicker('#forbidRewardSearch .endTime');
+                vm.forbidRewardLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.forbidRewardLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                vm.forbidRewardLog.pageObj = utilService.createPageForPagingTable("#forbidRewardTblPage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "forbidRewardLog", vm.getForbidRewardLog)
+                });
+                vm.getForbidRewardLog(true);
+            });
+        }
+        vm.getForbidRewardLog = function (newSearch) {
+            var sendQuery = {
+                startTime: vm.forbidRewardLog.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.forbidRewardLog.endTime.data('datetimepicker').getLocalDate(),
+                playerId: vm.forbidRewardEventPopover._id,
+                limit: newSearch ? 10 : vm.forbidRewardLog.limit,
+                index: newSearch ? 0 : vm.forbidRewardLog.index,
+                sortCol: vm.forbidRewardLog.sortCol || undefined
+            };
+            if (vm.forbidRewardLog.status) {
+                sendQuery.status = vm.forbidRewardLog.status;
+            }
+            vm.forbidRewardLog.isSearching = true;
+            console.log("Second:Query:", sendQuery);
+            $scope.safeApply();
+            socketService.$socket($scope.AppSocket, 'getForbidRewardLog', sendQuery, function (data) {
+                var showData = data.data ? data.data.data.map(item => {
+                    item.createTime$ = vm.dateReformat(item.createTime);
+                    item.curAmount$ = item.data && item.data.curAmount ? item.data.curAmount.toFixed(2) : 0;
+                    for (let i = 0; i < item.forbidRewardNames.length; i++){
+                        if (i > 0)
+                            item.forbidRewardNames[i] = " " + item.forbidRewardNames[i];
+                    }
+                    return item;
+                }) : [];
+                vm.forbidRewardLog.totalCount = data.data ? data.data.total : 0;
+                let summary = data.data ? data.data.summary : {sumAmt: 0};
+                console.log("ForbidRewardLog:length:", showData);
+                vm.drawForbidRewardLogTbl(showData, vm.forbidRewardLog.totalCount, newSearch, summary);
+                vm.forbidRewardLog.isSearching = false;
+                $scope.safeApply();
+            });
+        }
+        vm.drawForbidRewardLogTbl = function (showData, size, newSearch, summary) {
+            var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: showData,
+                "aaSorting": vm.forbidRewardLog.aaSorting || [],
+                aoColumnDefs: [
+                    {'sortCol': 'createTime$', bSortable: true, 'aTargets': [0]},
+                    {'sortCol': 'admin.adminName', bSortable: true, 'aTargets': [1]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('date'), data: "createTime$"},
+                    {title: $translate('OPERATOR_NAME'), data: "admin.adminName"},
+                    {title: $translate('FORBID_REWARD'), data: "forbidRewardNames"},
+                    {title: $translate('REMARK'), data: "remark"},
+                ],
+                "paging": false,
+            });
+            utilService.createDatatableWithFooter("#forbidRewardTbl", tableOptions, {});
+
+            // var aTable = $("#forbidRewardTbl").DataTable(tableOptions);
+            vm.forbidRewardLog.pageObj.init({maxCount: size}, newSearch);
+            $("#forbidRewardTbl").off('order.dt');
+            $("#forbidRewardTbl").on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'forbidRewardLog', vm.getForbidRewardLog);
+            });
+            $('#forbidRewardTbl').resize();
+            $scope.safeApply();
+        }
+        //endregion here
 
         vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);
 

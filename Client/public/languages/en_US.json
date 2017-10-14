@@ -981,5 +981,7 @@
   "EDIT_PROVIDER_PASS": "Edit Provider Password",
   "TOPUP_GROUP_RECORD": "Top Up Group Record",
   "OPERATOR_NAME": "Operator Name",
-  "OPERATOR_ACTION": "Operation"
+  "OPERATOR_ACTION": "Operation",
+  "CHANGES_RECORD": "Changes Log",
+  "FORBID_REWARD": "Forbidden Reward "
 }

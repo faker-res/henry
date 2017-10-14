@@ -282,6 +282,15 @@ let playerCredibilityUpdateLogModel = dbLogs.model('playerCredibilityUpdateLog',
 let playerTopUpGroupUpdateLogSchema = require('./../schema/logs/playerTopUpGroupUpdateLog');
 let playerTopUpGroupUpdateLogModel = dbLogs.model('playerTopUpGroupUpdateLog', playerTopUpGroupUpdateLogSchema, 'playerTopUpGroupUpdateLog');
 
+let playerForbidRewardLogSchema = require('./../schema/logs/playerForbidRewardLog');
+let playerForbidRewardLogModel = dbLogs.model('playerForbidRewardLog', playerForbidRewardLogSchema, 'playerForbidRewardLog');
+
+let playerForbidGameLogSchema = require('./../schema/logs/playerForbidGameLog');
+let playerForbidGameLogModel = dbLogs.model('playerForbidGameLog', playerForbidGameLogSchema, 'playerForbidGameLog');
+
+let playerForbidTopUpLogSchema = require('./../schema/logs/playerForbidTopUpLog');
+let playerForbidTopUpLogModel = dbLogs.model('playerForbidTopUpLog', playerForbidTopUpLogSchema, 'playerForbidTopUpLog');
+
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -417,6 +426,9 @@ var dbProperties = {
     collection_playerState: playerStateModel,
     collection_playerCredibilityUpdateLog: playerCredibilityUpdateLogModel,
     collection_playerTopUpGroupUpdateLog: playerTopUpGroupUpdateLogModel,
+    collection_playerForbidRewardLog: playerForbidRewardLogModel,
+    collection_playerForbidGameLog: playerForbidGameLogModel,
+    collection_playerForbidTopUpLog: playerForbidTopUpLogModel,
 
     //unique
     collection_playerName: playerNameModal,
