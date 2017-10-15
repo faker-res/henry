@@ -96,13 +96,14 @@ define(['js/app'], function (myApp) {
             }
             // vm.selectedProposal.data.cityId;
             $('#modalProposal').modal('show');
-            $('#modalProposal').on('shown.bs.modal', function (e) {
+            $('#modalProposal').on('show.bs.modal', function (e) {
+              let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
+              vm.loadTodayTopupQuota(typeName, cardNo);
+              vm.getUserCardGroup(vm.selectedProposal.type.name, vm.selectedPlatform._id, playerId )
+              vm.getCardLimit(vm.selectedProposal.type.name);
               $scope.safeApply();
             })
-            let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
-            vm.loadTodayTopupQuota(typeName, cardNo);
-            vm.getUserCardGroup(vm.selectedProposal.type.name,vm.selectedPlatform._id, playerId )
-            vm.getCardLimit(vm.selectedProposal.type.name);
+
           })
         }
         vm.getAllBankCard = function(){

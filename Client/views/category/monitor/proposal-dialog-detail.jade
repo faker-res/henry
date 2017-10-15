@@ -72,7 +72,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{'DEPOSITTIME' | translate}}
                     td {{ vm.selectedProposal.data.validTime  | date : 'yyyy-MM-dd hh:mm:ss'}}
 
-                //onlineTopupType
+                //onlineTopupType only
                 tr(ng-if="vm.selectedProposal.data.mainTopupType")
                     td {{'OnlineTopUpType' | translate}}
                     td {{ vm.selectedProposal.data.mainTopupType }}
@@ -82,20 +82,19 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                 tr(ng-if="vm.selectedProposal.data.merchantNo")
                     td {{'merchantNo' | translate}}
                     td {{ vm.selectedProposal.data.merchantNo }}
-                tr(ng-if="vm.selectedProposal.data.merchantNo")
+                // undefined yet
+                tr(ng-if="vm.selectedProposal.data.mainTopupType")
                     td {{'MerchantBackendId' | translate }}
                     td
                 tr(ng-if="vm.selectedProposal.data.merchantNo")
                     td {{'SINGLELIMIT' | translate }}
                     td {{vm.selectedProposal.card.singleLimit}}
+
                 tr(ng-if="vm.selectedProposal.data.merchantNo")
                     td {{'DAYLIMIT' | translate }}
                     td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
 
                 // manual topup
-                tr(ng-if="vm.selectedProposal.data.validTime")
-                    td {{'DEPOSITTIME' | translate}}
-                    td {{ vm.selectedProposal.data.validTime | date : 'yyyy-MM-dd hh:mm:ss' }}
                 tr(ng-if="vm.selectedProposal.data.depositMethod")
                     td {{'DEPOSIT_METHOD' | translate}}
                     td {{ vm.depositMethodList[vm.selectedProposal.data.depositMethod] || "" }}
@@ -126,6 +125,9 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{'AliPayAccName' | translate }}
                     td {{ vm.selectedProposal.data.alipayName }}
                 tr(ng-if="vm.selectedProposal.data.alipayAccount")
+                    td {{'Member AliPayAcc' | translate }}
+                    td {{ vm.selectedProposal.data.alipayAccount }}
+                tr(ng-if="vm.selectedProposal.data.alipayAccount")
                     td {{'AliPayAcc' | translate }}
                     td {{ vm.selectedProposal.data.alipayAccount }}
                 tr(ng-if="vm.selectedProposal.data.alipayAccount")
@@ -143,10 +145,11 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
 
                 //wechat
                 tr(ng-if="vm.selectedProposal.data.weChatAccount")
-                    td {{'WeChatACC' | translate }}
+                    td {{'Our WeChatACC' | translate }}
                     td {{ vm.selectedProposal.data.weChatAccount }}
+                //undefined yet
                 tr(ng-if="vm.selectedProposal.data.weChatAccount")
-                    td {{'WeChatNick' | translate }}
+                    td {{'Our WeChatNick' | translate }}
                     td ""
                 tr(ng-if="vm.selectedProposal.data.weChatAccount")
                     td {{'SINGLELIMIT' | translate }}
@@ -160,12 +163,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                 tr(ng-if="vm.selectedProposal.data.weChatAccount")
                     td {{'validTime' | translate }}
                     td {{ vm.selectedProposal.data.validTime }}
-                tr(ng-if="vm.selectedProposal.card.quota && vm.selectedProposal.data.weChatAccount")
-                    td {{'DAYLIMIT' | translate }}
-                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
-                tr(ng-if="vm.selectedProposal.card.singleLimit && vm.selectedProposal.data.weChatAccount")
-                    td {{'SINGLELIMIT' | translate }}
-                    td  {{ vm.selectedProposal.card.singleLimit }}
+
 
             //tr(ng-repeat='(i,v) in vm.selectedProposalDetailForDisplay')
             //tr(ng-repeat='(i,v) in vm.selectedProposal.data')
