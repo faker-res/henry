@@ -824,6 +824,7 @@
   "clientType_Web":"Web",
   "clientType_Application":"APP",
   "clientType_Both":"Web & APP",
+  "clientType_H5":"H5",
   "partnerBindPlayerText":"Can only bind player once, not modifiable",
 
   "Level Up Conditions": "Level Up Conditions",

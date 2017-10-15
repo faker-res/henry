@@ -156,6 +156,10 @@ var platformSchema = new Schema({
         // default score for credibility remark criteria
         credibilityScoreDefault: {type: Number, default: 5}
     },
+    consumptionTimeConfig: [{
+        duration: {type: Number},
+        color: {type: String},
+    }],
     jiguangAppKey: {type: String},
     jiguangMasterKey: {type: String},
     bonusSetting: {type: JSON,default:{}}

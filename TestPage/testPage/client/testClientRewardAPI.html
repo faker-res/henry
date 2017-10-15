@@ -333,6 +333,32 @@
         <textarea></textarea>
     </div>
 </div>
+<h3>GET LIMITED OFFERS BONUS LIST ()</h3>
+<div class="test-container">
+    <div>
+        <label>Platform ID
+            <input name="platformId">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="getLimitedOfferBonus">GET</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+<h3>SET LIMITED OFFER SHOW INFO ()</h3>
+<div class="test-container">
+    <div>
+        <label>showInfo
+            <input name="showInfo">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="setLimitedOfferShowInfo">GET</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientRewardAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {

@@ -529,6 +529,18 @@
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
                             tr
+                                td {{'SMS_VERIFICATION' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerification', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'SMS_VERIFICATION_FOR_PASSWORD_UPDATE' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerificationForPasswordUpdate', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'SMS_VERIFICATION_FOR_PAYMENT_UPDATE' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerificationForPaymentUpdate', ng-disabled='!vm.configTableEdit')
+                            tr
                                 td {{'CAPTCHA_VERIFICATION_FOR_LOGIN' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.requireLogInCaptcha', ng-disabled='!vm.configTableEdit')
@@ -551,6 +563,61 @@
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("platformBasic")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("platformBasic")') {{"CONFIRM" | translate}}
+
+                    /// start of 投注记录收录报告
+
+                    br
+                    br
+                    <label class="ng-binding">投注记录收录报告</label>
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th(width="40%") {{'Provider Delay Duration' | translate}}
+                                th(width="40%") {{'COLOR_CODE' | translate}}
+                                th(width="20%") {{'INLINE_EDIT' | translate}}
+                        tbody
+                            // before edit enabled
+                            tr(ng-repeat='config in vm.durationGroupConfig', ng-if='!vm.delayDurationGroupInlineEdit')
+                                td(style="background-color:{{config.color}}", ng-click="vm.selectedDelayDurationGroup=config;") {{config.duration}}
+                                td(style="background-color:{{config.color}}") {{config.color}}
+                                td(style="background-color:{{config.color}}")
+                                    button.btn.btn-primary.common-button(ng-click="vm.delayDurationGroupInlineEdit=true")
+                                        i.fa.fa-pencil-square-o
+                                        text {{'EDIT' | translate}}
+                                    button.btn.btn-danger.common-button(ng-click=" vm.durationGroupConfig.splice($index, 1);vm.saveDelayDurationGroup();")
+                                        i.fa.fa-trash
+                                        text {{'DELETE' | translate}}
+                            // after edit enabled
+                            tr(ng-repeat='config in vm.durationGroupConfig', ng-if='vm.delayDurationGroupInlineEdit')
+                                td(style="background-color:{{config.color}}", ng-click="vm.selectedDelayDurationGroup=config;")
+                                    input.form-control(type="text", ng-model="config.duration")
+                                td(style="background-color:{{config.color}}")
+                                    input.form-control(colorpicker="rgb", type="text", ng-model="config.color")
+                                td(style="background-color:{{config.color}}")
+                                    button.btn.btn-success.common-button(ng-click="vm.delayDurationGroupInlineEdit=false; vm.saveDelayDurationGroup();")
+                                        i.fa.fa-floppy-o
+                                        text {{'SAVE' | translate}}
+                                    button.btn.btn-danger.common-button(ng-click="vm.delayDurationGroupInlineEdit=false; vm.saveDelayDurationGroup();")
+                                        i.fa.fa-times
+                                        text {{'CANCEL' | translate}}
+                            tr(ng-if='vm.delayDurationGroupEdit')
+                                td(colspan="3")
+                                    strong {{'Add Provider Delay Duration' | translate}}
+                            tr(ng-if='vm.delayDurationGroupEdit')
+                                td
+                                    input(type='number' , ng-model='vm.newDelayDurationGroup.duration')
+                                td
+                                    input(colorpicker="rgb", style="background-color:{{vm.newDelayDurationGroup.color}}", type="text", ng-model="vm.newDelayDurationGroup.color")
+                                td(colspan="2")
+                                    i.fa.fa-plus(ng-click='vm.durationGroupConfig.push(vm.newDelayDurationGroup); vm.newDelayDurationGroup={};')
+                .pull-right
+                    button.btn.btn-primary.common-button(ng-if="!vm.delayDurationGroupEdit", ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.delayDurationGroupEdit', ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit;') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.delayDurationGroupEdit', ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit;vm.saveDelayDurationGroup()') {{"CONFIRM" | translate}}
+
+                /// end of 投注记录收录报告
 
                 div(ng-if='vm.selectedConfigTab=="bonusBasic"')
                     //bonus basic

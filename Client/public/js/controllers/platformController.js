@@ -146,6 +146,52 @@ define(['js/app'], function (myApp) {
                 vm.selectedPlatformDetailTab = tabName == null ? "backstage-settings" : tabName;
             };
 
+            //////////Lin Hao:: Provider List Delay Popup
+            utilService.setupPopover({
+                context: ulMenu,
+                elem: '.providerListPopover',
+                content: function () {
+                    // vm.getProviderLatestTimeRecord();
+                    $scope.safeApply();
+                    return $compile($('#providerListPopover').html())($scope);
+                },
+                callback: function () {
+                    let thisPopover = utilService.$getPopoverID(this);
+                    $scope.safeApply();
+                }
+            });
+
+            vm.getProviderLatestTimeRecord = function () {
+                console.log("should show twice")
+                vm.providerLatestTime = {};
+                vm.delayStatus = {};
+
+                let counter = 1;
+
+                let p = Promise.resolve();
+
+                vm.platformProviderList.forEach(providerId => {
+                    p = p.then(() => {
+                        return $scope.$socketPromise('getProviderLatestTimeRecord', {providerId: providerId.providerId,platformObjId: vm.selectedPlatform.id}).then(function (data) {
+                            console.log('getPlatformProviderTime', providerId.providerId, data);
+
+                            if(data.data){
+                                vm.providerLatestTime[counter] = vm.dateReformat(data.data.createTime);
+                                vm.delayStatus[counter] = data.data.delayStatusColor;
+                            }
+                            else
+                            {
+                                vm.providerLatestTime[counter] = "";
+                                vm.delayStatus[counter] = "rgb(255,255,255)";
+                            }
+                            counter ++;
+                            $scope.safeApply();
+                        })
+                    })
+                })
+                return p;
+            }
+
             vm.setPlatformFooter = function(platformAction) {
                 vm.platformAction = platformAction;
             };
@@ -328,7 +374,9 @@ define(['js/app'], function (myApp) {
                 vm.advancedPartnerQueryObj = {limit: 10, index: 0};
                 vm.getCredibilityRemarks();
                 vm.playerAdvanceSearchQuery = {creditOperator: ">="};
-                vm.getDepartmentUsers();
+                vm.advancedQueryObj = {};
+                if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read'))
+                    vm.getAdminNameByDepartment(vm.selectedPlatform.data.department);
 
                 //load partner
                 utilService.actionAfterLoaded("#partnerTablePage", function () {
@@ -2523,77 +2571,7 @@ define(['js/app'], function (myApp) {
 
             };
 
-            let getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(function (playerQuery) {
-                // NOTE: If the response is ignoring your field filter and returning all players, please check that the
-                // field is whitelisted in buildPlayerQueryString() in encrypt.js
-                utilService.hideAllPopoversExcept();
-                vm.advancedQueryObj = $.extend({}, vm.advancedQueryObj, playerQuery);
-                for (let k in playerQuery) {
-                    if (!playerQuery[k] || $.isEmptyObject(playerQuery)) {
-                        delete vm.advancedQueryObj[k];
-                    }
-                }
-                if (playerQuery.playerId) {
-                    var te = $("#playerTable-search-filters > div").not(":nth-child(1)").find(".form-control");
-                    te.prop("disabled", true).css("background-color", "#eee");
-                    te.find("input").prop("disabled", true).css("background-color", "#eee")
-                } else if (playerQuery.name) {
-                    var te = $("#playerTable-search-filters > div").not(":nth-child(1)").find(".form-control");
-                    te.prop("disabled", true).css("background-color", "#eee");
-                    te.find("input").prop("disabled", true).css("background-color", "#eee")
-                } else if (playerQuery.phoneNumber) {
-                    var te = $("#playerTable-search-filters > div").not(":nth-child(10)").find(".form-control");
-                    te.prop("disabled", true).css("background-color", "#eee");
-                    te.find("input").prop("disabled", true).css("background-color", "#eee")
-                } else if (playerQuery.bankAccount) {
-                    let te = $("#playerTable-search-filters > div").not(":nth-child(11)").find(".form-control");
-                    te.prop("disabled", true).css("background-color", "#eee");
-                    te.find("input").prop("disabled", true).css("background-color", "#eee")
-                } else if (playerQuery.email) {
-                    let te = $("#playerTable-search-filters > div").not(":nth-child(12)").find(".form-control");
-                    te.prop("disabled", true).css("background-color", "#eee");
-                    te.find("input").prop("disabled", true).css("background-color", "#eee")
-                } else {
-                    $("#playerTable-search-filters .form-control").prop("disabled", false).css("background-color", "#fff");
-                    $("#playerTable-search-filters .form-control input").prop("disabled", false).css("background-color", "#fff");
-                }
-                if (playerQuery.playerId || playerQuery.name || playerQuery.phoneNumber || playerQuery.bankAccount || playerQuery.email) {
-                    var sendQuery = {
-                        platformId: vm.selectedPlatform.id,
-                        query: playerQuery,
-                        index: 0,
-                        limit: 100
-                    };
-                    socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', sendQuery, function (data) {
-                        console.log('playerData', data);
-                        var size = data.data.size || 0;
-                        var result = data.data.data || [];
-                        setPlayerTableData(result);
-                        utilService.hideAllPopoversExcept();
-                        vm.searchPlayerCount = size;
-                        vm.playerTableQuery.pageObj.init({maxCount: size}, true);
 
-                        var found = false;
-                        if (size == 1) {
-                            vm.playerTable.rows(function (idx, rowData, node) {
-                                if (rowData._id == result[0]._id) {
-                                    vm.playerTableRowClicked(rowData);
-                                    vm.selectedPlayersCount = 1;
-                                    $(node).addClass('selected');
-                                    found = true;
-                                }
-                            })
-                        }
-                        if (!found) {
-                            vm.selectedSinglePlayer = null;
-                            vm.selectedPlayersCount = 0;
-                        }
-                        $scope.safeApply();
-                    });
-                } else {
-                    vm.advancedPlayerQuery(true);
-                }
-            });
 
             vm.advancedPlayerQuery = function (newSearch) {
                 if (vm.advancedQueryObj.credibilityRemarks && (vm.advancedQueryObj.credibilityRemarks.constructor !== Array || vm.advancedQueryObj.credibilityRemarks.length === 0)) {
@@ -2606,6 +2584,9 @@ define(['js/app'], function (myApp) {
                     limit: vm.playerTableQuery.limit,
                     sortCol: vm.playerTableQuery.sortCol
                 };
+                $("#playerTable-search-filter .form-control").prop("disabled", false).css("background-color", "#fff");
+                $("#playerTable-search-filter .form-control input").prop("disabled", false).css("background-color", "#fff");
+                $("select#selectCredibilityRemark").multipleSelect("enable");
                 console.log(apiQuery);
                 $('#loadingPlayerTableSpin').show();
                 socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', apiQuery, function (reply) {
@@ -3552,7 +3533,7 @@ define(['js/app'], function (myApp) {
                     createPlayerAdvancedSearchFilters({
                         tableOptions: tableOptions,
                         filtersElement: '#playerTable-search-filters',
-                        queryFunction: getPlayersByAdvanceQueryDebounced
+                        queryFunction: vm.getPlayersByAdvanceQueryDebounced
                     });
                 }
 
@@ -4134,11 +4115,12 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     console.log('updated info');
+                    if (!vm.selectedSinglePlayer) return;
                     if (player._id != vm.selectedSinglePlayer._id) {
                         console.log('click rowId is not equal to resultId');
                         //the result should be same with the click , if some condition like network not stable ,
                         //then we would rather use the pre-load data.
-                        return
+                        return;
                     }
                     vm.selectedPlayers[player._id] = player;
                     vm.selectedSinglePlayer = player;
@@ -10404,6 +10386,7 @@ define(['js/app'], function (myApp) {
             vm.configTabClicked = function (choice) {
                 vm.selectedConfigTab = choice;
                 vm.configTableEdit = false;
+                vm.delayDurationGroupProviderEdit = false;
                 switch (choice) {
                     case 'player':
                         //vm.playerTableShowCol = {};
@@ -10434,6 +10417,10 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'platformBasic':
                         vm.getPlatformBasic();
+                        vm.getDelayDurationGroup();
+                        loadDelayDurationGroup();
+
+                        vm.newDelayDurationGroup = {};
                         break;
                     case 'bonusBasic':
                         vm.getBonusBasic();
@@ -10457,9 +10444,11 @@ define(['js/app'], function (myApp) {
                 vm.selectedPromoCodeTab = choice;
                 vm.promoCodeEdit = false;
                 vm.promoCodeSMSContentEdit = false;
+                vm.delayDurationGroupEdit = false;
                 vm.promoCodeUserGroupEdit = false;
-                vm.promoCodeUserGroupInlineEdit = false;
+                vm.promoCodeUserGroupAdd = false;
                 vm.promoCodeUserGroupPlayerEdit = false;
+                vm.promoCodeUserGroupPlayerAdd = false;
 
                 vm.newPromoCode1 = [];
                 vm.newPromoCode2 = [];
@@ -10470,6 +10459,7 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeType3 = [];
 
                 vm.userGroupConfig = [];
+                vm.durationGroupConfig = [];
                 vm.modalYesNo = {};
 
                 loadPromoCodeTypes();
@@ -10591,6 +10581,12 @@ define(['js/app'], function (myApp) {
                 vm.selectedPromoCodeUserGroup = null;
 
                 vm.getPromoCodeUserGroup();
+            }
+
+            function loadDelayDurationGroup() {
+                vm.selectedDelayDurationGroup = null;
+
+                vm.getDelayDurationGroup();
             }
 
             vm.checkPlayerName = function (el, id) {
@@ -11374,8 +11370,19 @@ define(['js/app'], function (myApp) {
                     };
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
                 } else {
-                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
+                        socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
                 }
+            };
+
+            vm.saveDelayDurationGroup = function (isDelete, index) {
+                console.log('durationGroupConfig', vm.durationGroupConfig);
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    groupData: vm.durationGroupConfig
+                };
+
+                socketService.$socket($scope.AppSocket, 'saveDelayDurationGroup', sendData);
             };
 
             vm.searchPromoCodeUserGroup = function (s, isRet) {
@@ -11414,8 +11421,17 @@ define(['js/app'], function (myApp) {
                         vm.newUserPromoCodeUserGroup.newGroup.playerNames.push(data);
                         vm.newUserPromoCodeUserGroup = null;
                     } else {
-                        vm.selectedPromoCodeUserGroup.playerNames.push(data);
-                        vm.newUserPromoCodeUserGroup = null;
+                        vm.countNewLinesInString = (vm.newUserPromoCodeUserGroup.name.match(/\n/g)||[]).length;
+                        console.log('vm.countNewLinesInString',vm.countNewLinesInString);
+
+                        vm.splitNewLine = vm.newUserPromoCodeUserGroup.name.split("\n");
+                        console.log('vm.splitNewLine',vm.splitNewLine);
+
+                        for(var i = 0; i < vm.splitNewLine.length; i++) {
+                            console.log(vm.splitNewLine[i]);
+                            vm.selectedPromoCodeUserGroup.playerNames.push(vm.splitNewLine[i].trim());
+                            vm.newUserPromoCodeUserGroup = null;
+                        }
                     }
 
                     data = null;
@@ -11430,6 +11446,18 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             };
+
+            vm.getDelayDurationGroup = function(){
+                socketService.$socket($scope.AppSocket, 'getDelayDurationGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                    console.log('getDelayDurationGroup', data);
+
+                    if(data.data[0].consumptionTimeConfig){
+                        vm.durationGroupConfig = data.data[0].consumptionTimeConfig;
+                        $scope.safeApply();
+                    }
+
+                });
+            }
 
             vm.getAllPartnerLevels = function () {
 
@@ -11657,6 +11685,9 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.requireCaptchaInSMS = vm.selectedPlatform.data.requireCaptchaInSMS;
                 vm.platformBasic.onlyNewCanLogin = vm.selectedPlatform.data.onlyNewCanLogin;
                 vm.platformBasic.useLockedCredit = vm.selectedPlatform.data.useLockedCredit;
+                vm.platformBasic.requireSMSVerification = vm.selectedPlatform.data.requireSMSVerification;
+                vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
+                vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
                 $scope.safeApply();
             }
 
@@ -12075,7 +12106,10 @@ define(['js/app'], function (myApp) {
                         useLockedCredit: srcData.useLockedCredit,
                         playerNameMaxLength: srcData.playerNameMaxLength,
                         playerNameMinLength: srcData.playerNameMinLength,
-                        bonusSetting: srcData.bonusSetting
+                        bonusSetting: srcData.bonusSetting,
+                        requireSMSVerification: srcData.requireSMSVerification,
+                        requireSMSVerificationForPasswordUpdate: srcData.requireSMSVerificationForPasswordUpdate,
+                        requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
@@ -12225,6 +12259,39 @@ define(['js/app'], function (myApp) {
                 }
             };
             // partner level codes==============end===============================
+
+            vm.getDepartmentUserIds = function (departmentId) {
+                var userIds = [];
+
+                if (!vm.departmentListObj) {
+                    vm.departmentListObj = {};
+                    for (let i = 0; i < vm.departments.length; i++) {
+                        vm.departmentListObj[vm.departments[i]._id] = vm.departments[i];
+                    }
+                }
+
+                if (!vm.departmentListObj[departmentId]) {
+                    return [];
+                }
+
+                let currentDepartment = vm.departmentListObj[departmentId];
+                userIds = userIds.concat(currentDepartment.users);
+                if (currentDepartment.children && currentDepartment.children.length > 0) {
+                    for (let i = 0; i < currentDepartment.children.length; i++) {
+                        let childDepartmentId = currentDepartment.children[i];
+                        userIds = userIds.concat(vm.getDepartmentUserIds(childDepartmentId));
+                    }
+                }
+
+                return userIds;
+            };
+
+            vm.getAdminNameByDepartment = function (departmentId) {
+                socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId}, function (data) {
+                    console.log('getAdminsData', data);
+                    vm.adminList = data.data;
+                });
+            };
 
             vm.getPlatformAnnouncements = function () {
                 if (!vm.selectedPlatform) return;
@@ -13452,8 +13519,12 @@ define(['js/app'], function (myApp) {
             });
 
         vm.initPlatformOfficer = function () {
+            vm.csUrlSearchQuery = {
+                admin: "",
+                promoteWay: "",
+                url: ""
+            };
             vm.platformOfficer = {};
-            // vm.addOfficerUrl = {};
             vm.officerPromoteMessage = "";
             vm.officerCreateMessage = "";
             vm.officerUrlMessage = "";
@@ -13461,7 +13532,6 @@ define(['js/app'], function (myApp) {
             vm.deleteOfficer = {};
             vm.currentUrlEditSelect = {};
             vm.urlTableEdit = false;
-            vm.getAllOfficer();
             vm.getAllPromoteWay();
             vm.getAllUrl();
         };
@@ -13596,21 +13666,6 @@ define(['js/app'], function (myApp) {
                 });
         };
 
-        vm.getAllOfficer = function () {
-            vm.allOfficer = {};
-            let query = {
-                platformId: vm.selectedPlatform.id
-            };
-            socketService.$socket($scope.AppSocket, 'getAllOfficer', query, function (data) {
-                    vm.allOfficer = data.data;
-                    console.log("vm.allOfficer", vm.allOfficer);
-                    $scope.safeApply();
-                },
-                function (err) {
-                    console.log(err);
-                });
-        };
-
         vm.pickOfficer = function () {
             vm.platformOfficer.url = '';
             $scope.safeApply();
@@ -13618,22 +13673,9 @@ define(['js/app'], function (myApp) {
 
         vm.getDepartmentUsers = function () {
             let departmentID = vm.selectedPlatform.data.department;
-            if (departmentID) {
-                socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIdWithUser', {departmentId: vm.selectedPlatform.data.department}, function (data) {
-                    var result = [];
-                    data.data.forEach(function (userData) {
-                        userData.users.forEach(function (user) {
-                            var singleRecord = {}
-                            singleRecord.departmentName = userData.departmentName;
-                            singleRecord.adminName = user.adminName;
-                            singleRecord._id = user._id;
-                            result.push(singleRecord);
-                        })
-                    });
-                    vm.departmentUsers = result;
-                    $scope.safeApply();
-                });
-            }
+
+            let departmentUsers = vm.getDepartmentUserIds(departmentID);
+            vm.getAdminsData(departmentUsers);
         };
 
         vm.addUrl = function () {
@@ -13670,7 +13712,7 @@ define(['js/app'], function (myApp) {
             let officeraddUrlMessageId = $("#officer-addUrl-message");
             vm.initClearMessage();
             let sendData = {
-                urlId: vm.currentUrlEditSelect.url._id,
+                urlId: vm.currentUrlEditSelect._id,
             };
             vm.selectedOfficerUrl = null;
             socketService.$socket($scope.AppSocket, 'deleteUrl', sendData, function () {
@@ -13694,12 +13736,12 @@ define(['js/app'], function (myApp) {
             let officeraddUrlMessageId = $("#officer-addUrl-message");
             vm.initClearMessage();
             let sendData = {
-                urlId: vm.currentUrlEditSelect.url._id,
-                domain: vm.currentUrlEditSelect.url.domain,
-                officerId: vm.currentUrlEditSelect._id,
-                way: vm.currentUrlEditSelect.url.way,
+                urlId: vm.currentUrlEditSelect._id,
+                domain: vm.currentUrlEditSelect.domain,
+                officerId: vm.currentUrlEditSelect.admin,
+                way: vm.currentUrlEditSelect.way,
             };
-            console.log("IAM HERE", sendData)
+            console.log("sendData", sendData);
             vm.selectedOfficerUrl = null;
             socketService.$socket($scope.AppSocket, 'updateUrl', sendData, function () {
                     console.log("Url updated");
@@ -13720,18 +13762,57 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getAllUrl = function () {
-            vm.allUrl = {};
+            vm.allUrl = [];
             let query = {
                 platformId: vm.selectedPlatform.id
             };
             socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
-                    vm.allUrl = data.data;
-                    console.log("vm.allUrl", vm.allUrl);
-                    $scope.safeApply();
-                },
-                function (err) {
-                    console.log(err);
+                vm.allUrl = data.data;
+                vm.allUrl = vm.allUrl.map(url => {
+                    for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                        let admin = vm.adminList[i];
+                        if (url.admin.toString() === admin._id.toString()) {
+                            url.adminName$ = admin.adminName;
+                            break;
+                        }
+                    }
+                    return url;
                 });
+                console.log("vm.allUrl", vm.allUrl);
+                $scope.safeApply();
+            },
+            function (err) {
+                console.log(err);
+            });
+        };
+
+        vm.searchCsUrl = function () {
+            vm.allUrl = [];
+            let query = {
+                platformId: vm.selectedPlatform.id,
+                admin: vm.csUrlSearchQuery.admin || "",
+                domain: vm.csUrlSearchQuery.url || "",
+                way: vm.csUrlSearchQuery.promoteWay || ""
+            };
+
+            socketService.$socket($scope.AppSocket, 'searchUrl', query, function (data) {
+                vm.allUrl = data.data;
+                vm.allUrl = vm.allUrl.map(url => {
+                    for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                        let admin = vm.adminList[i];
+                        if (url.admin.toString() === admin._id.toString()) {
+                            url.adminName$ = admin.adminName;
+                            break;
+                        }
+                    }
+                    return url;
+                });
+                console.log("vm.allUrl", vm.allUrl);
+                $scope.safeApply();
+            },
+            function (err) {
+                console.log(err);
+            });
         };
 
         vm.getPlayerCredibilityComment = function () {
@@ -13789,7 +13870,7 @@ define(['js/app'], function (myApp) {
             })
         })
 
-        vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(function (playerQuery) {
+        vm.getPlayersByAdvanceQuery = function (playerQuery) {
             // NOTE: If the response is ignoring your field filter and returning all players, please check that the
             // field is whitelisted in buildPlayerQueryString() in encrypt.js
             utilService.hideAllPopoversExcept();
@@ -13903,7 +13984,9 @@ define(['js/app'], function (myApp) {
             } else {
                 vm.advancedPlayerQuery(true);
             }
-        });
+        };
+
+        vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);
 
         $('body').on('click','#permissionRecordButton',function(){
             vm.getPlayerPermissionChange("new")

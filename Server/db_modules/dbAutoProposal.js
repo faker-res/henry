@@ -280,7 +280,7 @@ function checkProposalConsumption(proposal, platformObj) {
                         switch (getProp.mainType) {
                             case "TopUp":
                                 // Get real amount left before top up, if there's any top up before transfer in after last withdrawal
-                                if (!isCheckedInitialAmount && initialTransferTime.getTime() > getProp.settleTime.getTime() && Number(initialAmount) >= Number(getProp.data.amount)) {
+                                if (!isCheckedInitialAmount && initialTransferTime && initialTransferTime.getTime() > getProp.settleTime.getTime() && Number(initialAmount) >= Number(getProp.data.amount)) {
                                     initialAmount -= getProp.data.amount;
                                     isCheckedInitialAmount = true;
                                 }
@@ -345,6 +345,11 @@ function checkProposalConsumption(proposal, platformObj) {
 
                                                 if (getProp.data.applyAmount) {
                                                     applyAmount = getProp.data.returnDetail ? 0 : getProp.data.applyAmount;
+
+                                                    // Special Handling - Old EU Migration XI MA proposal
+                                                    if (getProp.type.executionType == "executePlayerConsumptionReturn" && getProp.from_old_system) {
+                                                        applyAmount = 0;
+                                                    }
                                                 }
 
                                                 checkResult.push({

@@ -504,8 +504,8 @@ let dbPlayerReward = {
             let yerTime = dbUtility.getYesterdayConsumptionReturnSGTime();
 
             return dbConfig.collection_players.findOne({
-                _id: playerObjId,
-                isNewSystem: true
+                _id: playerObjId
+                // isNewSystem: true
             }).populate(
                 {path: "platform", model: dbConfig.collection_platform}
             ).then(
@@ -980,7 +980,17 @@ let dbPlayerReward = {
         return Promise.all(saveArr);
     },
 
+    saveDelayDurationGroup: (platformObjId, data) => {
+        let saveObj = {consumptionTimeConfig: data};
+
+        return dbConfig.collection_platform.findOneAndUpdate({
+            _id: platformObjId
+        }, saveObj);
+
+    },
+
     getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
+    getDelayDurationGroup: (platformObjId,duration) => dbConfig.collection_platform.find({_id: platformObjId}).lean(),
 
     applyPromoCode: (platformObjId, playerName, promoCode, adminInfo) => {
         let promoCodeObj, playerObj, topUpProp;
@@ -1341,11 +1351,12 @@ let dbPlayerReward = {
         })
     },
 
-    getLimitedOffers: (platformId, playerObjId, status) => {
+    getLimitedOffers: (platformId, playerId, status) => {
         let platformObj;
         let intPropTypeObj;
         let timeSet;
         let rewards;
+        let playerObj;
 
         return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -1357,8 +1368,11 @@ let dbPlayerReward = {
                         platformId: platformObj._id,
                         name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
                     }).lean();
+                    let playerProm = dbConfig.collection_players.findOne({
+                        playerId: playerId
+                    }).lean();
 
-                    return Promise.all([rewardTypeProm, intentionTypeProm]);
+                    return Promise.all([rewardTypeProm, intentionTypeProm, playerProm]);
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Platform Not Found"});
@@ -1368,6 +1382,7 @@ let dbPlayerReward = {
             res => {
                 let rewardTypeData = res[0];
                 intPropTypeObj = res[1];
+                playerObj = res[2];
 
                 if (rewardTypeData) {
                     let rewardEventQuery = {
@@ -1410,37 +1425,39 @@ let dbPlayerReward = {
                                 }
                             }, {
                                 $project: {
-                                    "data.playerObjId": 1,
+                                    "data.playerId": 1,
                                     paidCount: {$cond: [{$not: ['$data.topUpProposalId']}, 0, 1]}
                                 }
                             }, {
                                 $group: {
-                                    _id: "$data.playerObjId",
+                                    _id: "$data.playerId",
                                     count: {$sum: 1},
                                     paidCount: {$sum: "$paidCount"}
                                 }
                             }).then(
                                 summ => {
-                                    let totalPromoCount = 0;
+                                    if (playerId) {
+                                        let totalPromoCount = 0;
 
-                                    summ.map(f => {
-                                        if (String(f._id) == String(playerObjId)) {
-                                            status = 2;
+                                        summ.map(f => {
+                                            if (String(f._id) == String(playerId)) {
+                                                status = 2;
 
-                                            if (f.paidCount > 0) {
-                                                status = 3;
+                                                if (f.paidCount > 0) {
+                                                    status = 3;
+                                                }
                                             }
+
+                                            totalPromoCount += f.count;
+                                        });
+
+                                        if (totalPromoCount >= e.limitTime) {
+                                            status = 4;
                                         }
 
-                                        totalPromoCount += f.count;
-                                    });
-
-                                    if (totalPromoCount >= e.limitTime) {
-                                        status = 4;
-                                    }
-
-                                    if (status == 2 && new Date().getTime() > dbUtility.getLocalTime(e.downTime).getTime()) {
-                                        status = 5;
+                                        if (status == 2 && new Date().getTime() > dbUtility.getLocalTime(e.downTime).getTime()) {
+                                            status = 5;
+                                        }
                                     }
 
                                     e.status = status;
@@ -1485,6 +1502,7 @@ let dbPlayerReward = {
 
                 return {
                     time: [...timeSet].join("/"),
+                    showInfo: playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
                     secretList: rewards.filter(e => Boolean(e.displayOriPrice) === false),
                     normalList: rewards.filter(e => Boolean(e.displayOriPrice) === true)
                 }
@@ -1492,7 +1510,7 @@ let dbPlayerReward = {
         );
     },
 
-    applyLimitedOffers: (playerObjId, limitedOfferObjId, adminInfo) => {
+    applyLimitedOffers: (playerId, limitedOfferObjId, adminInfo) => {
         let playerObj;
         let limitedOfferObj;
         let platformObj;
@@ -1500,7 +1518,7 @@ let dbPlayerReward = {
         let proposalTypeObj;
 
         return dbConfig.collection_players.findOne({
-            _id: playerObjId
+            playerId: playerId
         }).populate({
             path: "platform", model: dbConfig.collection_platform
         }).lean().then(
@@ -1652,6 +1670,52 @@ let dbPlayerReward = {
         ).then(
             intProps => intProps
         )
+    },
+
+    getLimitedOfferBonus: (platformId) => {
+        let platformObj;
+        let intPropTypeObj;
+
+        return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+
+                    return dbConfig.collection_proposalType.findOne({
+                        platformId: platformObj._id,
+                        name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+                    }).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Platform Not Found"});
+                }
+            }
+        ).then(
+            res => {
+                intPropTypeObj = res;
+
+                let startTime = moment().subtract(4, "hours");
+
+                return dbConfig.collection_proposal.find({
+                    'data.platformObjId': platformObj._id,
+                    type: intPropTypeObj._id,
+                    createTime: {$gte: startTime},
+                    'data.topUpProposalId': {$exists: true}
+                }).lean();
+            }
+        ).then(
+            res => {
+                return res.map(e => {
+                    return {
+                        accountNo: e.data.playerName,
+                        bonus: e.data.applyAmount + e.data.rewardAmount,
+                        time: e.createTime
+                    }
+                })
+            }
+        )
+
+
     }
 };
 
