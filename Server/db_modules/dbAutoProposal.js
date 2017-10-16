@@ -473,6 +473,12 @@ function checkProposalConsumption(proposal, platformObj) {
                             }
                         }
 
+                        // If there is lastTopUpResult but cleared before reaching related reward, set the flag to true
+                        // to get back missing consumption requirement
+                        if (isClearCycle && lastTopUpResult) {
+                            lastTopUpResult.isCleared = isClearCycle;
+                        }
+
                         // dev log for debugging auto audit
                         devCheckMsg += currentProposal + ": " + "Bonus: " + bonusAmount + "/" + initBonusAmount + ", Consumption: " + validConsumptionAmount + "/" + spendingAmount
                             + ", isClearCycle:" + isClearCycle + "; ";
