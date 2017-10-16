@@ -394,94 +394,99 @@ function checkProposalConsumption(proposal, platformObj) {
                     checkResult.sort((a, b) => a.settleTime.getTime() - b.settleTime.getTime());
 
                     // Compare consumption and spendingAmount
-                    for (let i = 0; i < checkResult.length; i++) {
-                        // reset the amounts if consumption > spending or lost all credit in previous cycle
-                        // do not reset if this reward require previous top up's consumption
-                        if (isClearCycle) {
-                            validConsumptionAmount = 0;
-                            spendingAmount = 0;
-                            bonusAmount = 0;
-                            initBonusAmount = 0;
-                            totalBonusAmount = 0;
-                            totalTopUpAmount = 0;
-                        }
-
-                        currentProposal = checkResult[i].proposalId;
-
-                        validConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
-                        spendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
-
-                        totalConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
-                        totalSpendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
-
-                        if (checkResult[i].initBonusAmount) {
-                            initBonusAmount += checkResult[i].initBonusAmount ? checkResult[i].initBonusAmount : 0;
-                            bonusAmount += checkResult[i].bonusAmount ? checkResult[i].bonusAmount : 0;
-                        }
-
-                        // include previous top up record result if required
-                        if (checkResult[i].isIncludePreviousConsumption) {
-                            currentProposal = lastTopUpResult.proposalId ? lastTopUpResult.proposalId : currentProposal;
-
-                            if (lastTopUpResult && lastTopUpResult.isCleared) {
-                                validConsumptionAmount += lastTopUpResult.curConsumption ? lastTopUpResult.curConsumption : 0;
-                                spendingAmount += lastTopUpResult.requiredConsumption ? lastTopUpResult.requiredConsumption : 0;
-                                initBonusAmount += lastTopUpResult.initBonusAmount ? lastTopUpResult.initBonusAmount : 0;
-                                bonusAmount += lastTopUpResult.bonusAmount ? lastTopUpResult.bonusAmount : 0;
+                    try {
+                        for (let i = 0; i < checkResult.length; i++) {
+                            // reset the amounts if consumption > spending or lost all credit in previous cycle
+                            // do not reset if this reward require previous top up's consumption
+                            if (isClearCycle) {
+                                validConsumptionAmount = 0;
+                                spendingAmount = 0;
+                                bonusAmount = 0;
+                                initBonusAmount = 0;
+                                totalBonusAmount = 0;
+                                totalTopUpAmount = 0;
                             }
-                        }
 
-                        // Check consumption for each cycle
-                        if (initBonusAmount && initBonusAmount != 0 && initBonusAmount + bonusAmount <= lostThreshold) {
-                            // User lost all bonus amount
-                            isApprove = true;
-                            isClearCycle = true;
-                            checkMsg = "";
-                            checkMsgChinese = "";
-                        }
-                        else if (validConsumptionAmount + consumptionOffset < spendingAmount) {
-                            isApprove = false;
-                            isClearCycle = false;
+                            currentProposal = checkResult[i].proposalId;
 
-                            if (checkMsg == "") {
-                                checkMsg += "LOW Bet from " + currentProposal + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
-                                checkMsgChinese += "提案 " + currentProposal + "：流水 " + validConsumptionAmount + " ，所需流水 " + spendingAmount + "; ";
+                            validConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
+                            spendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
+
+                            totalConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
+                            totalSpendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
+
+                            if (checkResult[i].initBonusAmount) {
+                                initBonusAmount += checkResult[i].initBonusAmount ? checkResult[i].initBonusAmount : 0;
+                                bonusAmount += checkResult[i].bonusAmount ? checkResult[i].bonusAmount : 0;
                             }
-                        }
-                        else {
-                            // Consumption has fulfilled requirement during this cycle
-                            // reset from current cycle
-                            isApprove = true;
-                            isClearCycle = true;
-                            checkMsg = "";
-                            checkMsgChinese = "";
-                        }
 
-                        // Sum up bonus amount for overall profit calculation
-                        totalBonusAmount += checkResult[i].bonusAmount;
+                            // include previous top up record result if required
+                            if (checkResult[i].isIncludePreviousConsumption) {
+                                currentProposal = lastTopUpResult.proposalId ? lastTopUpResult.proposalId : currentProposal;
 
-                        // save current checkResult if it is top up
-                        if (checkResult[i].isTopUp) {
-                            totalTopUpAmount += checkResult[i].initBonusAmount;
-                            lastTopUpResult = {
-                                proposalId: checkResult[i].proposalId,
-                                curConsumption: checkResult[i].curConsumption,
-                                requiredConsumption: checkResult[i].requiredConsumption,
-                                initBonusAmount: checkResult[i].initBonusAmount,
-                                bonusAmount: checkResult[i].bonusAmount,
-                                isCleared: isClearCycle
+                                if (lastTopUpResult && lastTopUpResult.isCleared) {
+                                    validConsumptionAmount += lastTopUpResult.curConsumption ? lastTopUpResult.curConsumption : 0;
+                                    spendingAmount += lastTopUpResult.requiredConsumption ? lastTopUpResult.requiredConsumption : 0;
+                                    initBonusAmount += lastTopUpResult.initBonusAmount ? lastTopUpResult.initBonusAmount : 0;
+                                    bonusAmount += lastTopUpResult.bonusAmount ? lastTopUpResult.bonusAmount : 0;
+                                }
                             }
-                        }
 
-                        // If there is lastTopUpResult but cleared before reaching related reward, set the flag to true
-                        // to get back missing consumption requirement
-                        if (isClearCycle && lastTopUpResult) {
-                            lastTopUpResult.isCleared = isClearCycle;
-                        }
+                            // Check consumption for each cycle
+                            if (initBonusAmount && initBonusAmount != 0 && initBonusAmount + bonusAmount <= lostThreshold) {
+                                // User lost all bonus amount
+                                isApprove = true;
+                                isClearCycle = true;
+                                checkMsg = "";
+                                checkMsgChinese = "";
+                            }
+                            else if (validConsumptionAmount + consumptionOffset < spendingAmount) {
+                                isApprove = false;
+                                isClearCycle = false;
 
-                        // dev log for debugging auto audit
-                        devCheckMsg += currentProposal + ": " + "Bonus: " + bonusAmount + "/" + initBonusAmount + ", Consumption: " + validConsumptionAmount + "/" + spendingAmount
-                            + ", isClearCycle:" + isClearCycle + "; ";
+                                if (checkMsg == "") {
+                                    checkMsg += "LOW Bet from " + currentProposal + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
+                                    checkMsgChinese += "提案 " + currentProposal + "：流水 " + validConsumptionAmount + " ，所需流水 " + spendingAmount + "; ";
+                                }
+                            }
+                            else {
+                                // Consumption has fulfilled requirement during this cycle
+                                // reset from current cycle
+                                isApprove = true;
+                                isClearCycle = true;
+                                checkMsg = "";
+                                checkMsgChinese = "";
+                            }
+
+                            // Sum up bonus amount for overall profit calculation
+                            totalBonusAmount += checkResult[i].bonusAmount;
+
+                            // save current checkResult if it is top up
+                            if (checkResult[i].isTopUp) {
+                                totalTopUpAmount += checkResult[i].initBonusAmount;
+                                lastTopUpResult = {
+                                    proposalId: checkResult[i].proposalId,
+                                    curConsumption: checkResult[i].curConsumption,
+                                    requiredConsumption: checkResult[i].requiredConsumption,
+                                    initBonusAmount: checkResult[i].initBonusAmount,
+                                    bonusAmount: checkResult[i].bonusAmount,
+                                    isCleared: isClearCycle
+                                }
+                            }
+
+                            // If there is lastTopUpResult but cleared before reaching related reward, set the flag to true
+                            // to get back missing consumption requirement
+                            if (isClearCycle && lastTopUpResult) {
+                                lastTopUpResult.isCleared = isClearCycle;
+                            }
+
+                            // dev log for debugging auto audit
+                            devCheckMsg += currentProposal + ": " + "Bonus: " + bonusAmount + "/" + initBonusAmount + ", Consumption: " + validConsumptionAmount + "/" + spendingAmount
+                                + ", isClearCycle:" + isClearCycle + "; ";
+                        }
+                    }
+                    catch (ex) {
+                        devCheckMsg += "ERROR (2): " + ex.toString() + "; ";
                     }
 
                     if ((validConsumptionAmount + lostThreshold) < spendingAmount) {
