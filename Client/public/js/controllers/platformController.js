@@ -3004,7 +3004,7 @@ define(['js/app'], function (myApp) {
                                 if ($scope.checkViewPermission('Platform', 'Player', 'ApplyManualTopup')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-plus-circle',
-                                        'ng-click': 'vm.showTopupTab(null);vm.initPlayerManualTopUp();',
+                                        'ng-click': 'vm.showTopupTab(null);vm.onClickPlayerCheck("'+ playerObjId +'", vm.initPlayerManualTopUp);',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerTopUp',
@@ -6243,8 +6243,8 @@ define(['js/app'], function (myApp) {
                     bonusAmount: 0,
                 };
                 vm.drawPlayerTopupRecordsTable([], 0, true, {});
-                $('#modalPlayerTopUp').modal().show();
-                utilService.actionAfterLoaded("#modalPlayerTopUp.in #playerTopUp .endTime", function () {
+                $('#modalPlayerTopUpReport').modal().show();
+                utilService.actionAfterLoaded("#modalPlayerTopUpReport.in #playerTopUp .endTime", function () {
                     vm.playerTopUpLog.startTime = utilService.createDatePicker('#playerTopUp .startTime');
                     vm.playerTopUpLog.endTime = utilService.createDatePicker('#playerTopUp .endTime');
                     if (startTime) {
