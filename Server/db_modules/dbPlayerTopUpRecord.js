@@ -122,7 +122,7 @@ var dbPlayerTopUpRecord = {
                     };
                     queryObj['$or'] = [];
                     query.topupType ? queryObj['$or'].push({
-                        'data.topupType': {$in: [String(query.topupType), Number(query.topupType)]
+                        'data.topupType': {$in: [String(query.topupType), Number(query.topupType)]}
                     }) : queryObj['$or'].push({
                         'data.topupType': {$exists: true}
                     });
@@ -1568,7 +1568,7 @@ var dbPlayerTopUpRecord = {
                             aliPayAccount: 1,
                             amount: amount,
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
-                            remark: alipayName || remark,
+                            remark: entryType == "ADMIN" ? remark : (alipayName || remark),
                             createTime: cTimeString,
                             operateType: entryType == "ADMIN" ? 1 : 0
                         };

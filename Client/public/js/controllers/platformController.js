@@ -6792,7 +6792,7 @@ define(['js/app'], function (myApp) {
                     "providerId": vm.gameCreditLog.query.status || "41",
                     "startDate": vm.gameCreditLog.query.startTime.data('datetimepicker').getLocalDate(),
                     "endDate": vm.gameCreditLog.query.endTime.data('datetimepicker').getLocalDate(),
-                    "page": newSearch ? "1" : "1",
+                    "page": newSearch ? "1" : vm.gameCreditLog.pageObj.curPage,
                     "platformId": vm.selectedPlatform.data.platformId,
                 };
                 requestData.startDate = $filter('date')(requestData.startDate, 'yyyy-MM-dd HH:mm:ss');
@@ -10444,10 +10444,11 @@ define(['js/app'], function (myApp) {
                 vm.selectedPromoCodeTab = choice;
                 vm.promoCodeEdit = false;
                 vm.promoCodeSMSContentEdit = false;
-                vm.promoCodeUserGroupEdit = false;
                 vm.delayDurationGroupEdit = false;
-                vm.promoCodeUserGroupInlineEdit = false;
+                vm.promoCodeUserGroupEdit = false;
+                vm.promoCodeUserGroupAdd = false;
                 vm.promoCodeUserGroupPlayerEdit = false;
+                vm.promoCodeUserGroupPlayerAdd = false;
 
                 vm.newPromoCode1 = [];
                 vm.newPromoCode2 = [];
@@ -13518,6 +13519,11 @@ define(['js/app'], function (myApp) {
             });
 
         vm.initPlatformOfficer = function () {
+            vm.csUrlSearchQuery = {
+                admin: "",
+                promoteWay: "",
+                url: ""
+            };
             vm.platformOfficer = {};
             vm.officerPromoteMessage = "";
             vm.officerCreateMessage = "";
@@ -13756,28 +13762,57 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getAllUrl = function () {
-            vm.allUrl = {};
+            vm.allUrl = [];
             let query = {
                 platformId: vm.selectedPlatform.id
             };
             socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
-                    vm.allUrl = data.data;
-                    vm.allUrl = vm.allUrl.map(url => {
-                        for (let i = 0, len = vm.adminList.length; i < len; i++) {
-                            let admin = vm.adminList[i];
-                            if (url.admin.toString() === admin._id.toString()) {
-                                url.adminName$ = admin.adminName;
-                                break;
-                            }
+                vm.allUrl = data.data;
+                vm.allUrl = vm.allUrl.map(url => {
+                    for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                        let admin = vm.adminList[i];
+                        if (url.admin.toString() === admin._id.toString()) {
+                            url.adminName$ = admin.adminName;
+                            break;
                         }
-                        return url;
-                    });
-                    console.log("vm.allUrl", vm.allUrl);
-                    $scope.safeApply();
-                },
-                function (err) {
-                    console.log(err);
+                    }
+                    return url;
                 });
+                console.log("vm.allUrl", vm.allUrl);
+                $scope.safeApply();
+            },
+            function (err) {
+                console.log(err);
+            });
+        };
+
+        vm.searchCsUrl = function () {
+            vm.allUrl = [];
+            let query = {
+                platformId: vm.selectedPlatform.id,
+                admin: vm.csUrlSearchQuery.admin || "",
+                domain: vm.csUrlSearchQuery.url || "",
+                way: vm.csUrlSearchQuery.promoteWay || ""
+            };
+
+            socketService.$socket($scope.AppSocket, 'searchUrl', query, function (data) {
+                vm.allUrl = data.data;
+                vm.allUrl = vm.allUrl.map(url => {
+                    for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                        let admin = vm.adminList[i];
+                        if (url.admin.toString() === admin._id.toString()) {
+                            url.adminName$ = admin.adminName;
+                            break;
+                        }
+                    }
+                    return url;
+                });
+                console.log("vm.allUrl", vm.allUrl);
+                $scope.safeApply();
+            },
+            function (err) {
+                console.log(err);
+            });
         };
 
         vm.getPlayerCredibilityComment = function () {

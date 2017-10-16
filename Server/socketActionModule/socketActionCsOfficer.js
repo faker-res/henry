@@ -71,6 +71,12 @@ function socketActionCsOfficer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.urlId && data.domain && data.officerId && data.way);
             socketUtil.emitter(self.socket, dbCsOfficer.updateUrl, [data.urlId, data.domain, data.officerId, data.way], actionName, isValidData);
+        },
+
+        searchUrl: function searchUrl(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbCsOfficer.searchUrl, [data.platformId, data.domain, data.admin, data.way], actionName, isValidData);
         }
     };
 

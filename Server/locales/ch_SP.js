@@ -178,7 +178,8 @@ var simplifiedChinese = {
     "Please Set the Bonus PercentageCharges First": "请先设置提款手续费",
     "Name already existed": "客服名重复",
     "Cant find player current reward.": "游戏正在维护中，请稍后再试",
-    "SMS is not available": "短信发送失败，请再次尝试"
+    "SMS is not available": "短信发送失败，请再次尝试",
+    "Cant apply this reward, contact cs": "不符合领取条件，请联系客服"
     //todo::add missing messages here
 
     /*
