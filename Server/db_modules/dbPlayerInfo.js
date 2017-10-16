@@ -1021,6 +1021,15 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne({_id: playerObjId}).then(
             playerData => {
                 if (playerData) {
+
+                    if (playerData.permission && playerData.permission.phoneCallFeedback === false) {
+                        Q.reject({
+                            status: constServerCode.PLAYER_NO_PERMISSION,
+                            name: "DataError",
+                            message: "Player does not have this permission"
+                        });
+                    }
+
                     if (playerData.phoneNumber) {
                         if (playerData.phoneNumber.length > 20) {
                             try {
