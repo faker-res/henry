@@ -1568,7 +1568,7 @@ var dbPlayerTopUpRecord = {
                             aliPayAccount: 1,
                             amount: amount,
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
-                            remark: alipayName || remark,
+                            remark: entryType == "ADMIN" ? remark : (alipayName || remark),
                             createTime: cTimeString,
                             operateType: entryType == "ADMIN" ? 1 : 0
                         };

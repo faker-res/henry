@@ -162,9 +162,10 @@ define(['js/app'], function (myApp) {
             });
 
             vm.getProviderLatestTimeRecord = function () {
-                console.log("should show twice")
                 vm.providerLatestTime = {};
                 vm.delayStatus = {};
+                vm.longestDelayDate = "";
+                vm.longestDelayStatus = "rgb(0,180,0)";
 
                 let counter = 1;
 
@@ -176,6 +177,12 @@ define(['js/app'], function (myApp) {
                             console.log('getPlatformProviderTime', providerId.providerId, data);
 
                             if(data.data){
+                                if(data.data.createTime > vm.longestDelayDate)
+                                {
+                                    vm.longestDelayDate = data.data.createTime
+                                    vm.longestDelayStatus = data.data.delayStatusColor;
+                                }
+
                                 vm.providerLatestTime[counter] = vm.dateReformat(data.data.createTime);
                                 vm.delayStatus[counter] = data.data.delayStatusColor;
                             }
@@ -190,7 +197,7 @@ define(['js/app'], function (myApp) {
                     })
                 })
                 return p;
-            }
+            };
 
             vm.setPlatformFooter = function(platformAction) {
                 vm.platformAction = platformAction;
@@ -1858,6 +1865,9 @@ define(['js/app'], function (myApp) {
                     $.each(vm.platformPaymentChList, function (i, v) {
                         vm.paymentListCheck[v._id] = true;
                     })
+
+                    //provider delay status init
+                    vm.getProviderLatestTimeRecord();
                     $scope.safeApply();
                 })
             };
@@ -6792,7 +6802,7 @@ define(['js/app'], function (myApp) {
                     "providerId": vm.gameCreditLog.query.status || "41",
                     "startDate": vm.gameCreditLog.query.startTime.data('datetimepicker').getLocalDate(),
                     "endDate": vm.gameCreditLog.query.endTime.data('datetimepicker').getLocalDate(),
-                    "page": newSearch ? "1" : "1",
+                    "page": newSearch ? "1" : vm.gameCreditLog.pageObj.curPage,
                     "platformId": vm.selectedPlatform.data.platformId,
                 };
                 requestData.startDate = $filter('date')(requestData.startDate, 'yyyy-MM-dd HH:mm:ss');
@@ -10444,10 +10454,11 @@ define(['js/app'], function (myApp) {
                 vm.selectedPromoCodeTab = choice;
                 vm.promoCodeEdit = false;
                 vm.promoCodeSMSContentEdit = false;
-                vm.promoCodeUserGroupEdit = false;
                 vm.delayDurationGroupEdit = false;
-                vm.promoCodeUserGroupInlineEdit = false;
+                vm.promoCodeUserGroupEdit = false;
+                vm.promoCodeUserGroupAdd = false;
                 vm.promoCodeUserGroupPlayerEdit = false;
+                vm.promoCodeUserGroupPlayerAdd = false;
 
                 vm.newPromoCode1 = [];
                 vm.newPromoCode2 = [];
@@ -13820,22 +13831,22 @@ define(['js/app'], function (myApp) {
                 playerObjId: vm.selectedSinglePlayer._id
             };
             socketService.$socket($scope.AppSocket, 'getUpdateCredibilityLog', query, function (data) {
-                vm.playerCredibilityComment = data.data;
-                for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
-                    let log = vm.playerCredibilityComment[i];
-                    log.remarks$ = "";
-                    for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
-                        log.remarks$ += log.credibilityRemarkNames[j];
-                        j < (len - 1) ? log.remarks$ += ", " : null;
+                    vm.playerCredibilityComment = data.data;
+                    for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
+                        let log = vm.playerCredibilityComment[i];
+                        log.remarks$ = "";
+                        for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
+                            log.remarks$ += log.credibilityRemarkNames[j];
+                            j < (len - 1) ? log.remarks$ += ", " : null;
+                        }
+                        log.createTime = new Date(log.createTime).toLocaleString();
                     }
-                    log.createTime = new Date(log.createTime).toLocaleString();
-                }
-                console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
-                $scope.safeApply();
-            },
-            function (err) {
-                console.log(err);
-            });
+                    console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log(err);
+                });
         };
 
         vm.setupRemarksMultiInput = function () {
