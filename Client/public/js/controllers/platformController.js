@@ -6792,7 +6792,7 @@ define(['js/app'], function (myApp) {
                     "providerId": vm.gameCreditLog.query.status || "41",
                     "startDate": vm.gameCreditLog.query.startTime.data('datetimepicker').getLocalDate(),
                     "endDate": vm.gameCreditLog.query.endTime.data('datetimepicker').getLocalDate(),
-                    "page": newSearch ? "1" : "1",
+                    "page": newSearch ? "1" : vm.gameCreditLog.pageObj.curPage,
                     "platformId": vm.selectedPlatform.data.platformId,
                 };
                 requestData.startDate = $filter('date')(requestData.startDate, 'yyyy-MM-dd HH:mm:ss');
