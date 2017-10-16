@@ -96,14 +96,13 @@ define(['js/app'], function (myApp) {
             }
             // vm.selectedProposal.data.cityId;
             $('#modalProposal').modal('show');
-            $('#modalProposal').on('show.bs.modal', function (e) {
-              let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
-              vm.loadTodayTopupQuota(typeName, cardNo);
-              vm.getUserCardGroup(vm.selectedProposal.type.name, vm.selectedPlatform._id, playerId )
-              vm.getCardLimit(vm.selectedProposal.type.name);
+            $('#modalProposal').on('shown.bs.modal', function (e) {
               $scope.safeApply();
             })
-
+            let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
+            vm.loadTodayTopupQuota(typeName, cardNo);
+            vm.getUserCardGroup(vm.selectedProposal.type.name, vm.selectedPlatform._id, playerId )
+            vm.getCardLimit(vm.selectedProposal.type.name);
           })
         }
         vm.getAllBankCard = function(){
@@ -114,55 +113,29 @@ define(['js/app'], function (myApp) {
             });
         }
 
-        vm.getAllAlipaysByAlipayGroup = function(){
-            socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroup', {platform: vm.selectedPlatform.platformId},
-                data => {
-                    var data = data.data;
-                    vm.allAlipaysAcc = data.data ? data.data : false;
-            });
-        }
-        vm.getAllWechatpaysByWechatpayGroup = function(){
-            socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroup', {platform: vm.selectedPlatform.platformId},
-                data => {
-                    var data = data.data;
-                    vm.allWechatpaysAcc = data.data ? data.data : false;
-                });
-        }
-        vm.getAllMerchants = function(){
-            socketService.$socket($scope.AppSocket, 'getMerchantList', {platform: vm.selectedPlatform.platformId},
-                data => {
-                    var data = data.data;
-                    vm.merchantLists = data.data ? data.data : false;
-                });
-        }
-
-
         vm.getCardLimit = function(typeName){
             let acc = '';
             if(typeName=='ManualPlayerTopUp'){
-              vm.getAllBankCard();
               let bankCardNo = vm.selectedProposal.data.bankCardNo;
               vm.selectedProposal.card = vm.bankCards.filter(item=>{ return item.accountNumber == bankCardNo })[0];
             }else if(typeName=="PlayerAlipayTopUp"){
-              vm.getAllAlipaysByAlipayGroup();
               let　merchantNo = vm.selectedProposal.data.alipayAccount;
               if(merchantNo){
                   vm.selectedProposal.card = vm.allAlipaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0];
               }
             }else if(typeName=="PlayerWechatTopUp"){
-              vm.getAllWechatpaysByWechatpayGroup();
               let　merchantNo = vm.selectedProposal.data.weChatAccount;
               if(merchantNo){
                   vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0];
               }
 
             }else if(typeName=="PlayerTopUp"){
-              vm.getAllMerchants();
               let　merchantNo = vm.selectedProposal.data.merchantNo;
               if(merchantNo){
                   vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0];
               }
             }
+            $scope.safeApply();
             return vm.selectedProposal;
         }
 
@@ -586,6 +559,20 @@ define(['js/app'], function (myApp) {
                 // }, function (data) {
                 //     console.log("cannot find proposal status", data);
                 // });
+                socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+                    if (data && data.data && data.data.data) {
+                        vm.allBankTypeList = {};
+                        console.log('banktype', data.data.data);
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId) {
+                                vm.allBankTypeList[item.id] = item.name;
+                            }
+                        })
+                    }
+                    $scope.safeApply();
+                });
+
+
                 socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
                     data.data.merchantTypes.forEach(mer => {
                         merGroupName[mer.merchantTypeId] = mer.name;
@@ -620,7 +607,7 @@ define(['js/app'], function (myApp) {
                         })
                         vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
                     }
-
+                    vm.initAccs();
 
                     $scope.safeApply();
                 }, function (data) {
@@ -629,18 +616,6 @@ define(['js/app'], function (myApp) {
 
 
 
-                socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
-                    if (data && data.data && data.data.data) {
-                        vm.allBankTypeList = {};
-                        console.log('banktype', data.data.data);
-                        data.data.data.forEach(item => {
-                            if (item && item.bankTypeId) {
-                                vm.allBankTypeList[item.id] = item.name;
-                            }
-                        })
-                    }
-                    $scope.safeApply();
-                });
 
 
                 utilService.actionAfterLoaded("#topupTablePage", function () {
@@ -1435,7 +1410,7 @@ define(['js/app'], function (myApp) {
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch
                 );
-                // $scope.safeApply();
+                $scope.safeApply();
             }, function (err) {
                 console.log(err);
             }, true);
@@ -1452,6 +1427,24 @@ define(['js/app'], function (myApp) {
             result = '';
           }
           return result;
+        }
+
+        vm.initAccs = function(){
+            socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroup', {platform: vm.selectedPlatform.platformId},
+                data => {
+                    var data = data.data;
+                    vm.allAlipaysAcc = data.data ? data.data : false;
+            });
+            socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroup', {platform: vm.selectedPlatform.platformId},
+                data => {
+                    var data = data.data;
+                    vm.allWechatpaysAcc = data.data ? data.data : false;
+                });
+            socketService.$socket($scope.AppSocket, 'getMerchantList', {platform: vm.selectedPlatform.platformId},
+                data => {
+                    var data = data.data;
+                    vm.merchantLists = data.data ? data.data : false;
+                });
         }
 
         vm.drawTopupReport = function (data, size, summary, newSearch) {
@@ -1527,6 +1520,9 @@ define(['js/app'], function (myApp) {
                 "paging": false,
                 createdRow: function(row, data, dataIndex){
                   $compile(angular.element(row).contents())($scope);
+                },
+                fnDrawCallback: function () {
+                  $scope.safeApply();
                 }
 
             }

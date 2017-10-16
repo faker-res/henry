@@ -125,7 +125,6 @@ define(['js/app'], function (myApp) {
         vm.loadPage = function () {
             socketService.clearValue();
             vm.preparePaymentMonitorPage();
-
         };
 
         vm.preparePaymentMonitorPage = function () {
@@ -133,6 +132,8 @@ define(['js/app'], function (myApp) {
             vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
             vm.paymentMonitorQuery = {};
             vm.paymentMonitorQuery.totalCount = 0;
+            vm.getAllPaymentAcc();
+
             Promise.all([getMerchantList(), getMerchantTypeList()]).then(
                 data => {
                     vm.merchants = data[0];
@@ -180,61 +181,44 @@ define(['js/app'], function (myApp) {
             }
           })
         }
-        vm.getAllBankCard = function(){
+        vm.getAllPaymentAcc = function(){
             socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedPlatform.platformId},
                 data => {
                     var data = data.data;
                     vm.bankCards = data.data ? data.data : false;
             });
-        }
-
-        vm.getAllAlipaysByAlipayGroup = function(){
             socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroup', {platform: vm.selectedPlatform.platformId},
                 data => {
                     var data = data.data;
                     vm.allAlipaysAcc = data.data ? data.data : false;
             });
-        }
-        vm.getAllWechatpaysByWechatpayGroup = function(){
             socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroup', {platform: vm.selectedPlatform.platformId},
                 data => {
                     var data = data.data;
                     vm.allWechatpaysAcc = data.data ? data.data : false;
-                });
-        }
-        vm.getAllMerchants = function(){
-            socketService.$socket($scope.AppSocket, 'getMerchantList', {platform: vm.selectedPlatform.platformId},
-                data => {
-                    var data = data.data;
-                    vm.merchantLists = data.data ? data.data : false;
-                });
-        }
+            });
 
-
+        }
         vm.getCardLimit = function(typeName){
             let acc = '';
             if(typeName=='ManualPlayerTopUp'){
-              vm.getAllBankCard();
               let bankCardNo = vm.selectedProposal.data.bankCardNo;
               vm.selectedProposal.card = vm.bankCards.filter(item=>{ return item.accountNumber == bankCardNo })[0];
             }else if(typeName=="PlayerAlipayTopUp"){
-              vm.getAllAlipaysByAlipayGroup();
               let　merchantNo = vm.selectedProposal.data.alipayAccount;
               if(merchantNo){
                   vm.selectedProposal.card = vm.allAlipaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0];
               }
             }else if(typeName=="PlayerWechatTopUp"){
-              vm.getAllWechatpaysByWechatpayGroup();
               let　merchantNo = vm.selectedProposal.data.weChatAccount;
               if(merchantNo){
                   vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0];
               }
 
             }else if(typeName=="PlayerTopUp"){
-              vm.getAllMerchants();
               let　merchantNo = vm.selectedProposal.data.merchantNo;
               if(merchantNo){
-                  vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0];
+                  vm.selectedProposal.card = vm.merchants.filter(item=>{ return item.accountNumber == merchantNo })[0] || {singleLimit:'-', quota:'-'};
               }
             }
             return vm.selectedProposal;
@@ -295,11 +279,6 @@ define(['js/app'], function (myApp) {
                }
           });
         }
-
-
-
-
-
 
         vm.getPaymentMonitorRecord = function (isNewSearch) {
             if (isNewSearch) {
@@ -460,14 +439,13 @@ define(['js/app'], function (myApp) {
             }
             // vm.selectedProposal.data.cityId;
             $('#modalProposal').modal('show');
-            $('#modalProposal').on('show.bs.modal', function (e) {
-                let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
-                vm.loadTodayTopupQuota(typeName, cardNo);
-                vm.getUserCardGroup(vm.selectedProposal.type.name,vm.selectedPlatform._id, playerId )
-                vm.getCardLimit(vm.selectedProposal.type.name);
+            $('#modalProposal').on('shown.bs.modal', function (e) {
                 $scope.safeApply();
             })
-
+            let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
+            vm.loadTodayTopupQuota(typeName, cardNo);
+            vm.getUserCardGroup(vm.selectedProposal.type.name,vm.selectedPlatform._id, playerId )
+            vm.getCardLimit(vm.selectedProposal.type.name);
           })
         }
         vm.drawPaymentRecordTable = function (data, size, summary, newSearch) {
