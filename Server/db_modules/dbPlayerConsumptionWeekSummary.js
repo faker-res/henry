@@ -435,6 +435,16 @@ var dbPlayerConsumptionWeekSummary = {
                         });
                         return;
                     }
+
+                    if (playerData.forbidRewardEvents && playerData.forbidRewardEvents.indexOf("advanceConsumptionReward") !== -1) {
+                        deferred.reject({
+                            status: constServerCode.PLAYER_NO_PERMISSION,
+                            name: "DataError",
+                            errorMessage: "Player does not have this permission"
+                        });
+                        return;
+                    }
+
                     platformData = data.platform;
                     if (platformData.settlementStatus == constPlatformStatus.READY) {
                         return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
