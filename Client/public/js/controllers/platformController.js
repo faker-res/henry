@@ -3703,22 +3703,25 @@ define(['js/app'], function (myApp) {
                                 var row = JSON.parse(this.dataset.row);
                                 vm.playerPermissionTypes = {
                                     applyBonus: {imgType: 'i', iconClass: "fa fa-gift"},
-                                    transactionReward: {imgType: 'i', iconClass: "fa fa-share-square"},
+                                    // transactionReward: {imgType: 'i', iconClass: "fa fa-share-square"},
                                     topupOnline: {imgType: 'i', iconClass: "fa fa-pencil-square"},
                                     topupManual: {imgType: 'i', iconClass: "fa fa-folder-open"},
-                                    banReward: {imgType: 'i', iconClass: "fa fa-ban"},
                                     alipayTransaction: {imgType: 'img', src: "images/icon/aliPayBlue.png"},
                                     disableWechatPay: {imgType: 'i', iconClass: "fa fa-comments"},
-                                    forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"},
-                                    forbidPlayerConsumptionIncentive: {imgType: 'i', iconClass: "fa fa-ambulance"},
-                                    advanceConsumptionReward: {imgType: 'i', iconClass: "fa fa-tint"},
-                                    PlayerTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square"},
-                                    PlayerDoubleTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square-o"},
+                                    topUpCard: {imgType: 'i', iconClass: "fa fa-credit-card"},
                                     forbidPlayerFromLogin: {imgType: 'i', iconClass: "fa fa-sign-in"},
                                     forbidPlayerFromEnteringGame: {imgType: 'i', iconClass: "fa fa-gamepad"},
-                                    playerConsecutiveConsumptionReward: {imgType: 'i', iconClass: "fa fa-forward"},
-                                    PlayerPacketRainReward: {imgType: 'i', iconClass: "fa fa-umbrella"},
-                                    PlayerLimitedOfferReward: {imgType: 'i', iconClass: "fa fa-bullseye"}
+                                    // forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"},
+                                    // forbidPlayerConsumptionIncentive: {imgType: 'i', iconClass: "fa fa-ambulance"},
+                                    // advanceConsumptionReward: {imgType: 'i', iconClass: "fa fa-tint"},
+                                    // PlayerTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square"},
+                                    // PlayerDoubleTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square-o"},
+                                    // playerConsecutiveConsumptionReward: {imgType: 'i', iconClass: "fa fa-forward"},
+                                    // PlayerPacketRainReward: {imgType: 'i', iconClass: "fa fa-umbrella"},
+                                    phoneCallFeedback: {imgType: 'i', iconClass: "fa fa-volume-control-phone"},
+                                    SMSFeedBack: {imgType: 'i', iconClass: "fa fa-comment"},
+                                    PlayerLimitedOfferReward: {imgType: 'i', iconClass: "fa fa-bullseye"},
+                                    banReward: {imgType: 'i', iconClass: "fa fa-ban"},
                                 };
                                 $("#playerPermissionTable td").removeClass('hide');
 
@@ -14522,7 +14525,11 @@ define(['js/app'], function (myApp) {
                 for (let j = 0; j < forbidObj.length; j++){
                     if (forbidArray[i] == forbidObj[j]._id){
                         forbidNames[i] = forbidObj[j].name;
+                        break;
                     }
+                }
+                if (!forbidNames[i]){
+                    forbidNames[i] = $translate(forbidArray[i]);
                 }
             }
             return forbidNames;

@@ -100,7 +100,7 @@
   "APPLY_BONUS": "申请提款",
   "advanceConsumptionReward": "提前洗码",
   "transactionReward": "转账优惠",
-  "alipayTransaction": "支付宝转账",
+  "alipayTransaction": "个人支付宝",
   "CREATE_GROUP": "创建组",
   "SAVE_AS_NEW_GROUP": "另存为新组",
   "UPDATE_GROUP": "更新组",
@@ -1359,8 +1359,8 @@
   "FORBID_GAME": "禁登游戏",
   "FORBID": "禁用",
   "LOGOFF": "注销",
-  "forbidPlayerFromLogin": "禁用",
-  "forbidPlayerFromEnteringGame" : "禁登游戏",
+  "forbidPlayerFromLogin": "登入网站",
+  "forbidPlayerFromEnteringGame" : "登入游戏",
   "CHEAT_NEW_ACCOUNT_REWARD": "骗开户优惠",
   "TOPUP_ATTENTION": "存款留意",
   "HEDGING": "对冲投注",
@@ -2019,7 +2019,7 @@
   "PlayerDoubleTopUpReward": "玩家多次充值",
   "rejectPlayerDoubleTopUpReward": "玩家多次充值未通过",
   "PlayerDoubleTopUpReturn": "玩家多次充值奖励",
-  "banReward": "申请奖励",
+  "banReward": "所有优惠",
   "DEPOSIT_TIME": "存款时间",
   "TOTAL_TOP_UP": "总存款",
   "fixed": "已修复",
@@ -2454,5 +2454,8 @@
   "OPERATOR_ACTION": "操作内容",
   "SMS Notify Settings": "短信通知设定",
   "CHANGES_RECORD": "更改记录",
-  "FORBID_REWARD": "禁用优惠"
+  "FORBID_REWARD": "禁用优惠",
+  "topUpCard": "点卡充值",
+  "phoneCallFeedback": "电话回访",
+  "SMSFeedBack": "短信回访"
 }
