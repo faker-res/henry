@@ -105,34 +105,34 @@ define(['js/app'], function (myApp) {
             vm.getCardLimit(vm.selectedProposal.type.name);
           })
         }
-        vm.getAllBankCard = function(){
-            socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedPlatform.platformId},
-                data => {
-                    var data = data.data;
-                    vm.bankCards = data.data ? data.data : false;
-            });
-        }
+        // vm.getAllBankCard = function(){
+        //     socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedPlatform.platformId},
+        //         data => {
+        //             var data = data.data;
+        //             vm.bankCards = data.data ? data.data : false;
+        //     });
+        // }
 
         vm.getCardLimit = function(typeName){
             let acc = '';
             if(typeName=='ManualPlayerTopUp'){
               let bankCardNo = vm.selectedProposal.data.bankCardNo;
-              vm.selectedProposal.card = vm.bankCards.filter(item=>{ return item.accountNumber == bankCardNo })[0];
+              vm.selectedProposal.card = vm.bankCards.filter(item=>{ return item.accountNumber == bankCardNo })[0] || [];
             }else if(typeName=="PlayerAlipayTopUp"){
               let　merchantNo = vm.selectedProposal.data.alipayAccount;
               if(merchantNo){
-                  vm.selectedProposal.card = vm.allAlipaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0];
+                  vm.selectedProposal.card = vm.allAlipaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] || [];
               }
             }else if(typeName=="PlayerWechatTopUp"){
               let　merchantNo = vm.selectedProposal.data.weChatAccount;
               if(merchantNo){
-                  vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0];
+                  vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] || [];
               }
 
             }else if(typeName=="PlayerTopUp"){
               let　merchantNo = vm.selectedProposal.data.merchantNo;
               if(merchantNo && vm.merchantLists){
-                  vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0];
+                  vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0] || [];
               }
             }
             $scope.safeApply();
@@ -1435,6 +1435,11 @@ define(['js/app'], function (myApp) {
         }
 
         vm.initAccs = function(){
+            socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedPlatform.platformId},
+                data => {
+                    var data = data.data;
+                    vm.bankCards = data.data ? data.data : false;
+            });
             socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroup', {platform: vm.selectedPlatform.platformId},
                 data => {
                     var data = data.data;

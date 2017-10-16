@@ -233,6 +233,12 @@ define(['js/app'], function (myApp) {
           socketService.$socket($scope.AppSocket, 'getOnePlayerCardGroup', myQuery, function (data) {
               console.log('playerData', data);
               vm.proposalPlayer = data.data;
+              if(vm.proposalPlayer.credibilityRemarks.length > 0){
+                  vm.proposalPlayer.credibilityRemarksName = vm.credibilityRemarks.filter(item => {
+                      return item._id == vm.proposalPlayer.credibilityRemarks[0]
+                  })[0]
+              }
+              $scope.safeApply();
               $scope.safeApply();
           });
 
