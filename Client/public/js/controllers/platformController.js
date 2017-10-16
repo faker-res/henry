@@ -19,6 +19,7 @@ define(['js/app'], function (myApp) {
             vm.provinceList = [];
             vm.cityList = [];
             vm.districtList = [];
+            vm.creditChange = {};
 
             // constants declaration
             vm.allPlayerCreditTransferStatus = {
@@ -2749,7 +2750,7 @@ define(['js/app'], function (myApp) {
                                 if ($scope.checkViewPermission('Platform', 'Player', 'Edit')) {
                                     return $('<a style="z-index: auto" data-toggle="modal" data-container="body" ' +
                                         'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
-                                        'ng-click="vm.onEditPlayerCheck(\'' + row._id + '\');"></a>')
+                                        'ng-click="vm.onClickPlayerCheck(\'' + row._id + '\', vm.openEditPlayerDialog, \'basicInfo\');"></a>')
                                         .attr('data-row', JSON.stringify(row))
                                         .text($translate(data.name))
                                         .prop('outerHTML');
@@ -3041,22 +3042,33 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'left',
                                     }));
                                 }
-                                link.append($('<a>', {
-                                    'class': 'fa fa-volume-control-phone margin-right-5',
-                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
-                                    'data-row': JSON.stringify(row),
-                                    'data-toggle': 'tooltip',
-                                    'title': $translate("PHONE"),
-                                    'data-placement': 'right',
-                                }));
-                                link.append($('<a>', {
-                                    'class': 'fa fa-volume-control-phone margin-right-5',
-                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
-                                    'data-row': JSON.stringify(row),
-                                    'data-toggle': 'tooltip',
-                                    'title': $translate("PHONE"),
-                                    'data-placement': 'right',
-                                }));
+                                if($scope.checkViewPermission('Platform', 'Player', 'RepairPayment') || $scope.checkViewPermission('Platform', 'Player', 'RepairTransaction')) {
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5',
+                                        'src': "images/icon/reapplyBlue.png",
+                                        'height': "14px",
+                                        'width': "14px",
+                                        'ng-click': 'vm.showReapplyLostOrderTab(null);vm.prepareShowPlayerCredit();vm.prepareShowRepairPayment(\'#modalReapplyLostOrder\');',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'title': $translate("ALL_REAPPLY_ORDER"),
+                                        'data-placement': 'right',
+                                    }));
+                                }
+                                if ($scope.checkViewPermission('Platform', 'Player', 'CreditAdjustment')) {
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5',
+                                        'src': "images/icon/creditAdjustBlue.png",
+                                        'height': "14px",
+                                        'width': "14px",
+                                        'ng-click': 'vm.onClickPlayerCheck("'+ playerObjId +'", vm.prepareShowPlayerCreditAdjustment, \'adjust\')',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalPlayerCreditAdjustment',
+                                        'title': $translate("CREDIT_ADJUSTMENT"),
+                                        'data-placement': 'right',
+                                    }));
+                                }
                                 return link.prop('outerHTML');
                             },
                             "sClass": "alignLeft"
@@ -4389,6 +4401,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedPlayers = {};
                 vm.selectedPlayers[rowData._id] = rowData;
                 vm.selectedSinglePlayer = rowData;
+                vm.currentSelectedPlayerObjId = '';
 
                 var sendData = {_id: rowData._id};
                 socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', sendData, function (retData) {
@@ -4401,6 +4414,7 @@ define(['js/app'], function (myApp) {
                         //then we would rather use the pre-load data.
                         return;
                     }
+                    vm.currentSelectedPlayerObjId = player._id;
                     vm.selectedPlayers[player._id] = player;
                     vm.selectedSinglePlayer = player;
                     vm.editPlayer = {
@@ -4545,15 +4559,15 @@ define(['js/app'], function (myApp) {
                 if (isChange) return searchFunc.call(this);
             };
 
-            //check if value is pass in before openEditPlayerDialog is call
-            vm.onEditPlayerCheck = function (recordId){
+            //check if value is pass in before data table function is call
+            vm.onClickPlayerCheck = function (recordId, callback, param){
                 var timeOut;
                 function recall() {
-                    vm.onEditPlayerCheck(recordId);
+                    vm.onClickPlayerCheck(recordId, callback, param);
                 }
 
-                if (vm.isOneSelectedPlayer() && recordId === vm.isOneSelectedPlayer()._id){
-                    vm.openEditPlayerDialog('basicInfo');
+                if (vm.currentSelectedPlayerObjId && recordId === vm.currentSelectedPlayerObjId){
+                    callback(param);
                 }else {
                     timeOut = setTimeout(recall, 50);
                 }
@@ -6059,12 +6073,19 @@ define(['js/app'], function (myApp) {
                 });
             };
             vm.prepareShowPlayerCreditAdjustment = function (type) {
-                vm.creditChange = {
-                    finalValidAmount: vm.isOneSelectedPlayer().validCredit,
-                    finalLockedAmount: null,
-                    remark: '',
-                    updateAmount: 0
-                };
+                // vm.creditChange = {
+                //     finalValidAmount: vm.isOneSelectedPlayer().validCredit,
+                //     finalLockedAmount: null,
+                //     remark: '',
+                //     updateAmount: 0
+                // };
+
+                vm.creditChange.finalValidAmount = vm.isOneSelectedPlayer().validCredit;
+                vm.creditChange.finalLockedAmount = null;
+                vm.creditChange.remark = '';
+                vm.creditChange.updateAmount = 0;
+
+
                 vm.linkedPlayerTransferId = null;
                 vm.playerTransferErrorLog = null;
                 if (type == "adjust") {
@@ -6074,6 +6095,8 @@ define(['js/app'], function (myApp) {
                     vm.creditChange.socketStr = "createReturnFixProposal";
                     vm.creditChange.modaltitle = "ConsumptionReturnFix";
                 }
+
+                $scope.safeApply();
             };
 
             vm.prepareModifyPlayerGamePassword = () => {

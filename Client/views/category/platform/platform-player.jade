@@ -902,7 +902,7 @@ include modalGameCreditLog
     table.simple-table
         tr
             td(style='text-align:left')
-                //label {{"BANNED_FROM_THESE_PROVIDERS" | translate}}
+                label {{"FORBID_REWARD" | translate}}
                 div(ng-repeat='(i,v) in vm.allRewardEvent')
                     label {{v.name}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf(v._id)>-1')
