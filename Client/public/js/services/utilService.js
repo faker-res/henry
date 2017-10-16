@@ -434,10 +434,14 @@ define([], function () {
             $(tableId).append($tfoot);
             option.footerCallback = function (row, data, start, end, display) {
                 var api = this.api();
+
+                // Special variable for dxNewPlayerReport
+                let totalWinLoss = 0;
+                let totalConsumption = 0;
+
                 api.columns().every(function (i, v) {
                     var classes = (this.nodes() && this.nodes()[0]) ? this.nodes()[0].className : '';
                     var htmlStr = null;
-
                     var totalValue = null, pageValue = null;
                     if (classes.indexOf('sumFloat') > -1) {
                         if (sumData && sumData[i]) {
@@ -453,6 +457,13 @@ define([], function () {
                         totalValue = getFloat(totalValue).toFixed(2);
                         pageValue = getFloat(pageValue).toFixed(2);
                         htmlStr = gethtmlStr(pageValue, totalValue);
+
+                        // Special handling for dxNewPlayerReport
+                        if (i == 16) {
+                            totalConsumption = pageValue;
+                        } else if (i == 17) {
+                            totalWinLoss = pageValue;
+                        }
                     } else if (classes.indexOf('sumInt') > -1) {
                         if (sumData && sumData[i]) {
                             totalValue = sumData[i]
@@ -467,6 +478,12 @@ define([], function () {
                         htmlStr = gethtmlStr(pageValue, totalValue);
                     } else if (classes.indexOf('sumText') > -1) {
                         htmlStr = gethtmlStr($trans('Page Total'), $trans('All Pages'));
+                    } else if (classes.indexOf('sumProfit') > -1) {
+                        totalValue = (-totalWinLoss) / totalConsumption * 100;
+                        totalValue = getFloat(totalValue).toFixed(2);
+                        totalValue = "".concat(totalValue, "%");
+                        pageValue = totalValue;
+                        htmlStr = gethtmlStr(pageValue, totalValue);
                     } else {
                         $(this.footer()).html('');
                         return true;
