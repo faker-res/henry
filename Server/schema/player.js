@@ -101,6 +101,8 @@ var playerSchema = new Schema({
         transactionReward: {type: Boolean, default: true},
         topupOnline: {type: Boolean, default: true},
         topupManual: {type: Boolean, default: true},
+        phoneCallFeedback: {type: Boolean, default: true},
+        SMSFeedBack: {type: Boolean, default: true},
         alipayTransaction: {type: Boolean, default: true},
         quickpayTransaction: {type: Boolean, default: true},
         banReward: {type: Boolean, default: false},
@@ -201,7 +203,7 @@ var playerSchema = new Schema({
     //forbid top up types
     forbidTopUpType: [{type: String}],
     // forbid reward events by player
-    forbidRewardEvents: [{type: Schema.ObjectId, ref: 'rewardEvent'}],
+    forbidRewardEvents: [{type: String}],
     //reward info
     //if this player has been rewarded for first time top up event
     bFirstTopUpReward: {type: Boolean, default: false},
