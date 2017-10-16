@@ -164,6 +164,10 @@ define(['js/app'], function (myApp) {
             vm.showRewardSettingsTab = function(tabName) {
                 vm.selectedRewardSettingsTab = tabName == null ? "manual-reward" : tabName;
             };
+            
+            vm.showReapplyLostOrderTab = function(tabName) {
+                vm.selectedReapplyLostOrderTab = tabName == null ? "credit" : tabName;
+            };
 
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
@@ -6742,7 +6746,7 @@ define(['js/app'], function (myApp) {
                                 } else {
                                     tbl.$('tr.selected').removeClass('selected');
                                     $(this).addClass('selected');
-                                    vm.repairProposalId = tbl.row(this).data()[1]
+                                    vm.repairProposalId = tbl.row(this).data()[1];
                                 }
                                 $scope.safeApply();
                             });
@@ -13807,6 +13811,7 @@ define(['js/app'], function (myApp) {
                         vm.showPlatformDropDownList = false;
                         vm.showPlatformDetailTab(null);
                         vm.showRewardSettingsTab(null);
+                        vm.showReapplyLostOrderTab(null);
                         vm.platformAction = null;
                         vm.showTopupTab(null);
                         // vm.allGameStatusString = {};

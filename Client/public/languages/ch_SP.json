@@ -16,6 +16,12 @@
   "ALIPAY": "个人支付宝",
   "WECHATPAY": "个人微信",
   "REWARD_ACTION": "优惠操作",
+
+  "ALL_REAPPLY_ORDER":"各种补单",
+  "PAYMENT_ORDER_LOST": "在线掉单",
+  "CREDIT_ORDER_LOST": "额度丢失",
+
+
   "SYSTEM_SETTLEMENT": "系统结算",
   "LOGIN_TITLE": "请登录",
   "USER_NAME": "用户名",

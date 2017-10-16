@@ -168,7 +168,8 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ManualUnlockRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.initManualUnlockRewardTask();')
             text {{"Manual Unlock Reward Task" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'RepairPayment')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowRepairPayment("#modalRepairPayment")')
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'RepairPayment')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowRepairPayment("#modalRepairPayment")')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'RepairPayment') || checkViewPermission('Platform', 'Player', 'RepairTransaction')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.showReapplyLostOrderTab(null);vm.prepareShowPlayerCredit();vm.prepareShowRepairPayment('#modalReapplyLostOrder');")
             text {{"Repair Payment" | translate}}
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'RepairTransaction')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowPlayerCredit()' data-target='#modalPlayerCredit')
@@ -351,7 +352,86 @@ include modalGameCreditLog
                                     .topupGroupRecordTablePage
 
 
-#modalPlayerCredit.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+#modalReapplyLostOrder.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:90%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ALL_REAPPLY_ORDER" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                ul.nav.nav-tabs.common-nav-tabs
+                    li(ng-class="vm.selectedReapplyLostOrderTab == 'credit' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RepairTransaction')")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showReapplyLostOrderTab('credit');vm.prepareShowPlayerCredit();") {{"CREDIT_ORDER_LOST" | translate}}
+                    li(ng-class="vm.selectedReapplyLostOrderTab == 'payment' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RepairPayment')")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showReapplyLostOrderTab('payment');") {{"PAYMENT_ORDER_LOST" | translate}}
+                .panel.panel-primary(style="border-radius:0 !important;")
+                    .panel-body
+                        .well(ng-show="vm.selectedReapplyLostOrderTab == 'credit'")
+                            table.col-md-10.col-md-offset-1.paddingTbl.text-center.datatable-sm
+                                tbody
+                                    tr
+                                        td {{'LOCKED_CREDIT' | translate}}
+                                        td {{vm.selectedSinglePlayer.lockedCredit | number:2}} ({{'curData' | translate}})
+                                        td --->
+                                        td
+                                            label.text-danger {{vm.creditChange.finalLockedAmount}} ({{'updateData' | translate}})
+                                    tr
+                                        td {{'VALID_CREDIT' | translate}}
+                                        td {{vm.selectedSinglePlayer.validCredit | number:2}} ({{'curData' | translate}})
+                                        td --->
+                                        td
+                                            label.text-danger {{vm.creditChange.finalValidAmount}} ({{'updateData' | translate}})
+                            .row
+                                .col-md-12
+                                    label.control-label {{"PLEASE_CHOOSE" | translate}} {{'Link Transfer Record' | translate}} :
+                                    label.inlineBlk.text-danger.margin-left-5 {{vm.linkedPlayerTransferId || 'NONE' | translate}}
+                            .row
+                                .col-md-12
+                                    table#playerCreditAdjustTbl.display.common-table(style='min-width:100%;width:100%', ng-show='vm.playerTransferErrorLog!=null')
+                                    i.fa.fa-refresh.fa-spin.fa-2x.text-danger(ng-show='vm.playerTransferErrorLog===null')
+                            .row
+                                .col-md-6
+                                    label.control-label {{'REMARKS' | translate}}
+                                .col-md-12.textareaDetail
+                                    textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
+
+                        .well(ng-show="vm.selectedReapplyLostOrderTab == 'payment'")
+                            label {{'Select a payment request' | translate}}
+                            table#playerRepairPaymentTbl.noWrap.text-center.display(style='width:100%')
+                                thead
+                                    tr
+                                        th {{'TIME' | translate}}
+                                        th {{'proposalId' | translate}}
+                                        th {{'requestId' | translate}}
+                                        th {{'CREDIT' | translate}}
+                                        th {{'Merchant' | translate}}
+                                        th {{'merchantUseType' | translate}}
+                                        th {{'topupType' | translate}}
+                                        th {{'STATUS' | translate}}
+                                tbody
+                                    tr(ng-repeat='(i,v) in vm.allPendingRequest')
+                                        td {{v.createTime$}}
+                                        td {{v.proposalId}}
+                                        td {{v.data.requestId}}
+                                        td {{v.data.amount}}
+                                        td {{v.data.merchantNo}}
+                                        td {{v.merchantUseType$ | translate}}
+                                        td {{v.topupType$ | translate}}
+                                        td {{v.status | translate}}
+
+            .modal-footer
+                div(ng-show="vm.selectedReapplyLostOrderTab == 'credit'")
+                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.repairTransaction();") {{"UPDATE" | translate}}
+                    button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+                div(ng-show="vm.selectedReapplyLostOrderTab == 'payment'")
+                    button.common-button.margin-right-5.btn.btn-success(ng-if="vm.repairProposalId && vm.submitRepairePayementStep!=2" ng-click='vm.submitRepairPayment()')
+                        | {{'Repair Payment' | translate}} {{vm.repairProposalId}}
+                        i.fa.fa-spin.fa-refresh(ng-show='vm.submitRepairePayementStep==1')
+                    button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Platform','Player','RepairPayment')",ng-show='!vm.repairProposalId', disabled) {{'Repair Payment' | translate}}
+                    button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal', ng-show='vm.submitRepairePayementStep!=2') {{"CANCEL" | translate}}
+                    button.common-button.margin-right-5.btn.btn-success(data-dismiss='modal', ng-show='vm.submitRepairePayementStep==2') {{"Completed" | translate}} {{vm.repairProposalId}}
+
+//#modalPlayerCredit.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
         .modal-content
             .modal-header
@@ -365,13 +445,13 @@ include modalGameCreditLog
                                 tr
                                     td {{'LOCKED_CREDIT' | translate}}
                                     td {{vm.selectedSinglePlayer.lockedCredit | number:2}} ({{'curData' | translate}})
-                                    td --->
+                                    td ==>
                                     td
                                         label.text-danger {{vm.creditChange.finalLockedAmount}} ({{'updateData' | translate}})
                                 tr
                                     td {{'VALID_CREDIT' | translate}}
                                     td {{vm.selectedSinglePlayer.validCredit | number:2}} ({{'curData' | translate}})
-                                    td --->
+                                    td ==>
                                     td
                                         label.text-danger {{vm.creditChange.finalValidAmount}} ({{'updateData' | translate}})
                         .row
@@ -390,6 +470,7 @@ include modalGameCreditLog
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.repairTransaction();") {{"UPDATE" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+
 #modalPlayerCreditAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')
         .modal-content
@@ -2483,7 +2564,7 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Platform','Player','applyReward') && !vm.playerApplyEventResult",ng-disabled='form_player_reward.$invalid || form_player_reward.$pristine || !vm.playerApplyRewardPara.code || (vm.playerApplyRewardShow.showReferral && !vm.playerApplyRewardPara.referPlayer)', ng-click='vm.applyPlayerReward()') {{'APPLY' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
 
-#modalRepairPayment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//#modalRepairPayment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:90%;')
         .modal-content
             .modal-header
