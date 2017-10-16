@@ -271,7 +271,9 @@ let dbPlayerReward = {
                     }
 
                     let rewardAmount = (Number(topUpProposalData.data.amount) * promotionDetail.rewardPercentage / 100);
-
+                    if( rewardAmount > 500 ){
+                        rewardAmount = 500;
+                    }
                     let proposalData = {
                         type: promoEventDetail.executeProposal,
 
