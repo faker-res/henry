@@ -55,10 +55,10 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{ vm.proposalPlayer.bankCardGroup.displayName}}
                 tr
                     td {{'playerLevelName' | translate}}
-                    td {{vm.selectedProposal.data.playerLevelName}}
+                    td {{vm.selectedProposal.data.playerLevelName || '-'}}
                 tr
                     td {{'PlayerCredibilityStatus' | translate}}
-                    td {{vm.selectedProposal.data.credibilityRemarks || '-'}}
+                    td {{vm.proposalPlayer.credibilityRemarksName.name || '-'}}
                 tr
                     td {{'PlayerValue' | translate}}
                     td {{vm.selectedProposal.data.proposalPlayerLevelValue}}

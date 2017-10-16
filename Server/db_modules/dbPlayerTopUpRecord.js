@@ -123,7 +123,10 @@ var dbPlayerTopUpRecord = {
                         ]
                     };
                     queryObj['$or'] = [];
-                    query.topupType = Number(query.topupType);
+                    if(query.topupType){
+                        query.topupType = Number(query.topupType);
+                    }
+
                     query.topupType ? queryObj['$or'].push({
                         'data.topupType': {$in: [String(query.topupType), Number(query.topupType)]}
                     }) : queryObj['$or'].push({
