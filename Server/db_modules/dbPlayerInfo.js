@@ -83,7 +83,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData, bypassSMSVerify) {
+    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName) {
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -322,6 +322,10 @@ let dbPlayerInfo = {
 
                     if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
                         inputData.loginTimes = 1;
+                    }
+                    else if (adminName) {
+                        // insert related CS name when account is opened from backstage
+                        inputData.accAdmin = adminName;
                     }
 
                     return dbPlayerInfo.createPlayerInfo(inputData);
@@ -10590,7 +10594,12 @@ let dbPlayerInfo = {
                     result.endTime = endTime;
 
                     let csOfficerDetail = data[6];
-                    if (csOfficerDetail) {
+
+                    // related admin
+                    if (playerDetail.accAdmin) {
+                        result.csOfficer = playerDetail.accAdmin;
+                    }
+                    else if (csOfficerDetail) {
                         result.csOfficer = csOfficerDetail.admin ? csOfficerDetail.admin.adminName : "";
                         result.csPromoteWay = csOfficerDetail.way;
                     }

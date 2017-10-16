@@ -245,7 +245,9 @@ var playerSchema = new Schema({
     // UI Help Info View
     viewInfo: {
         limitedOfferInfo: {type: Number, default: 1}
-    }
+    },
+    // admin name who opened this account from backstage
+    accAdmin: {type: String}
 });
 
 //record is unique by name and platform
