@@ -497,29 +497,25 @@ define(['js/app'], function (myApp) {
                         });
 
                     // Get Departments Detail
-                    socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, function success(data) {
-                        let parentObjId;
+                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
+                        console.log('getDepartmentTreeById', data);
+                        let parentId;
                         vm.queryDepartments = [];
                         vm.queryRoles = [];
 
-                        // Get department
                         data.data.map(e => {
-                            e.platforms.map(f => {
-                                if (String(f) == String(vm.selectedPlatform._id)) {
-                                    parentObjId = e._id;
-                                }
-                            })
+                            if (e.departmentName == vm.selectedPlatform.name) {
+                                vm.queryDepartments.push(e);
+                                parentId = e._id;
+                            }
                         });
 
-                        // Get department childrens
                         data.data.map(e => {
-                            if (String(e.parent) == String(parentObjId)) {
+                            if (String(parentId) == String(e.parent)) {
                                 vm.queryDepartments.push(e);
                             }
                         });
 
-                        //vm.drawDepartmentTree();
-                        //vm.getAllUserData();
                         $scope.$digest();
                         if (typeof(callback) == 'function') {
                             callback(data.data);
@@ -2323,7 +2319,7 @@ define(['js/app'], function (myApp) {
                                         }
                                     }
                                 }
-                                vm.drawPlatformTable(data, id, data.providerArr.length, newSearch);
+                                vm.drawPlatformTable(data, id, data.providerArr.length, newSearch, vm.playerQuery);
                             }
                         )
                     }
@@ -2461,12 +2457,12 @@ define(['js/app'], function (myApp) {
         vm.drawDXNewPlayerReport = function (data, size, newSearch) {
             var tableOptions = {
                 data: data,
-                "order": vm.dxNewPlayerQuery.aaSorting || [[15, 'desc']],
+                "order": vm.dxNewPlayerQuery.aaSorting || [[2, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'name', 'aTargets': [0], bSortable: true},
                     {'sortCol': 'playerLevel', 'aTargets': [1], bSortable: true},
-                    // {'sortCol': 'credibilityRemarks', 'aTargets': [2], bSortable: true},
-                    // {'sortCol': 'provider', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'registrationTime', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'endTime', 'aTargets': [3], bSortable: true},
                     {'sortCol': 'manualTopUpAmount', 'aTargets': [4], bSortable: true},
                     {'sortCol': 'weChatTopUpAmount', 'aTargets': [5], bSortable: true},
                     {'sortCol': 'aliPayTopUpAmount', 'aTargets': [6], bSortable: true},
@@ -2569,7 +2565,7 @@ define(['js/app'], function (myApp) {
                                         }
                                     }
                                 }
-                                vm.drawPlatformTable(data, id, data.providerArr.length, newSearch);
+                                vm.drawPlatformTable(data, id, data.providerArr.length, newSearch, vm.dxNewPlayerQuery);
                             }
                         )
                     }
@@ -2584,11 +2580,11 @@ define(['js/app'], function (myApp) {
         };
 
         ///////draw Platform table inside player start///////
-        vm.drawPlatformTable = function (data, id, size, newSearch){
+        vm.drawPlatformTable = function (data, id, size, newSearch, qObj) {
             let holder = data;
             var tableOptions = {
                 data: data.providerArr,
-                "order": vm.playerQuery.aaSorting,
+                "order": qObj.aaSorting,
                 aoColumnDefs: [
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
@@ -2651,7 +2647,7 @@ define(['js/app'], function (myApp) {
                         }
                     }
 
-                    vm.drawPlatformGameTable(gameDetail, id, gameDetail.length, newSearch);
+                    vm.drawPlatformGameTable(gameDetail, id, gameDetail.length, newSearch, qObj);
                     tr.addClass('shown');
                 }
             });
@@ -2661,10 +2657,10 @@ define(['js/app'], function (myApp) {
         //////draw game table inside player end /////
 
         ///////draw Platform table inside player start///////
-        vm.drawPlatformGameTable = function (data, id, size, newSearch){
+        vm.drawPlatformGameTable = function (data, id, size, newSearch, qObj) {
             var tableOptions = {
                 data: data,
-                "order": vm.playerQuery.aaSorting,
+                "order": qObj.aaSorting,
                 aoColumnDefs: [
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],

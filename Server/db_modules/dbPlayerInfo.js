@@ -7964,7 +7964,8 @@ let dbPlayerInfo = {
                 }
 
                 //get player's platform reward event data
-                if (data && data[0] && data[1] && !data[1].bDirty && String(data[1].playerId) == String(data[0]._id)) {
+                if (data && data[0] && data[1] && !data[1].bDirty && String(data[1].playerId) == String(data[0]._id)
+                    && !(data[1].proposalId && data[1].proposalId.length > 10)) {
                     player = data[0];
                     record = data[1];
                     platformId = player.platform;
@@ -8000,7 +8001,7 @@ let dbPlayerInfo = {
                         return Q.reject({
                             status: constServerCode.INVALID_DATA,
                             name: "DataError",
-                            message: "Invalid data"
+                            message: "Cant apply this reward, contact cs"
                         });
                     }
                 }
@@ -10367,7 +10368,7 @@ let dbPlayerInfo = {
 
             // Promise domain CS and promote way
             let promoteWayProm = domain ?
-                dbconfig.collection_csOfficerUrl.findOne({domain: domain}).populate({
+                dbconfig.collection_csOfficerUrl.findOne({domain: {$regex: domain, $options: "x"}}).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
                 }).lean() : Promise.resolve(false);

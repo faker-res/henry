@@ -1,5 +1,24 @@
-.row
-    .col-md-12
+.row.row-eq-height
+    .col-md-6
+        .well
+            label {{'SEARCH' | translate}}
+            div
+                label.control-label {{'OFFICER_NAME' | translate}}&nbsp;
+                .inlineBlk
+                    select.form-control(ng-model='vm.csUrlSearchQuery.admin', ng-options='a._id as a.adminName group by a.departmentName for a in vm.adminList')
+                        option(value='') {{'CHOOSE_OFFICER' | translate}}
+            div
+                label.control-label {{'PROMOTE_WAY' | translate}}&nbsp;
+                .inlineBlk
+                    select.form-control(ng-model='vm.csUrlSearchQuery.promoteWay')
+                        option(value='') {{'CHOOSE_PROMOTE_WAY' | translate}}
+                        option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
+            div
+                label.control-label {{'URL' | translate}}&nbsp;
+                .inlineBlk
+                    input.form-control(type="text", ng-model="vm.csUrlSearchQuery.url")
+            button.btn.btn-success(ng-click="vm.searchCsUrl()") {{"SEARCH" | translate}}
+    .col-md-6
         .well#Officer
             //div.createOfficer(ng-show = "checkViewPermission('Platform', 'RegistrationUrlConfig','Create')" )
             //    label.control-label {{'Create Officer' | translate}} &nbsp
@@ -33,7 +52,8 @@
                 button.btn.btn-primary(ng-click='vm.deletePromoteWay();vm.getAllPromoteWay()') {{"DELETE" | translate}}
                 span#delete-promote-message &nbsp{{vm.deletePromoteMessage}}
 
-
+.row
+    .col-md-12
         div(style="height:265px;overflow:auto;margin-bottom:5px")
             form(name="officerUrlForm")
                 table.simple-table(style='width:auto;min-width:99.9%')
@@ -55,7 +75,7 @@
                                 a {{'SELECT' | translate}}
                         tr(ng-if="vm.urlTableEdit")
                             td
-                                select.form-control#officerOption(ng-model='vm.currentUrlEditSelect.admin', ng-disabled="!vm.urlTableEdit", required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.departmentUsers')
+                                select.form-control#officerOption(ng-model='vm.currentUrlEditSelect.admin', ng-disabled="!vm.urlTableEdit", required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.adminList')
                             td
                                 select.form-control#officerPromoteOption(ng-model='vm.currentUrlEditSelect.way', ng-disabled="!vm.urlTableEdit", required)
                                     option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
@@ -63,7 +83,7 @@
                                 input.form-control(type="text", ng-model="vm.currentUrlEditSelect.domain", ng-disabled="!vm.urlTableEdit", required)
                         tr(ng-if="vm.urlTableAdd")
                             td
-                                select.form-control#officerOption(ng-model='vm.addOfficerUrl.officer', required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.departmentUsers')
+                                select.form-control#officerOption(ng-model='vm.addOfficerUrl.officer', required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.adminList')
                                     option(value='') {{'CHOOSE_OFFICER' | translate}}
                             td
                                 select.form-control#officerPromoteOption(ng-model='vm.addOfficerUrl.promoteWay')

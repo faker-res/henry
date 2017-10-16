@@ -1960,6 +1960,9 @@
   "General Settings": "普通设置",
   "Default Credibility Score": "默认初始价值",
   "Player Level Score": "会员等级评分",
+  "REGISTRATION_DEPARTMENT": "开户部门",
+  "REGISTRATION_ROLE": "开户组别",
+  "REGISTRATION_ADMIN": "开户客服",
 
   "totalTopUpAmount": "下线玩家总充值额",
   "totalBonusAmount": "下线玩家总提款额",

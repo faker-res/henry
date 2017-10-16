@@ -345,6 +345,11 @@ function checkProposalConsumption(proposal, platformObj) {
 
                                                 if (getProp.data.applyAmount) {
                                                     applyAmount = getProp.data.returnDetail ? 0 : getProp.data.applyAmount;
+
+                                                    // Special Handling - Old EU Migration XI MA proposal
+                                                    if (getProp.type.executionType == "executePlayerConsumptionReturn" && getProp.from_old_system) {
+                                                        applyAmount = 0;
+                                                    }
                                                 }
 
                                                 checkResult.push({
@@ -499,7 +504,7 @@ function checkProposalConsumption(proposal, platformObj) {
                         checkMsgChinese += " 失败：日限;";
                         canApprove = false;
                     }
-                    if (proposal.data.playerStatus !== constPlayerStatus.NORMAL || bNoBonusPermission) {
+                    if (proposal.data.playerStatus == constPlayerStatus.BAN_PLAYER_BONUS || bNoBonusPermission) {
                         checkMsg += " Denied: Not allowed;";
                         checkMsgChinese += " 失败：禁提;";
                         canApprove = false;
