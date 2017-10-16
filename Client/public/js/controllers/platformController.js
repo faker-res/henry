@@ -6804,6 +6804,7 @@ define(['js/app'], function (myApp) {
                     "endDate": vm.gameCreditLog.query.endTime.data('datetimepicker').getLocalDate(),
                     "page": newSearch ? "1" : vm.gameCreditLog.pageObj.curPage,
                     "platformId": vm.selectedPlatform.data.platformId,
+                    "pageSize": vm.gameCreditLog.pageObj.pageSize
                 };
                 requestData.startDate = $filter('date')(requestData.startDate, 'yyyy-MM-dd HH:mm:ss');
                 requestData.endDate = $filter('date')(requestData.endDate, 'yyyy-MM-dd HH:mm:ss');
