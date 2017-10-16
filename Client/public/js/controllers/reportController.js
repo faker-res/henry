@@ -477,7 +477,7 @@ define(['js/app'], function (myApp) {
                     vm.searchNewPlayerRecord(true);
                 });
             } else if (choice == 'DX_NEWACCOUNT_REPORT') {
-                utilService.actionAfterLoaded('#dxNewPlayerReportTablePage', function () {
+                utilService.actionAfterLoaded('#dxNewPlayerReportTable', function () {
                     let yesterday = utilService.setNDaysAgo(new Date(), 1);
                     let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                     let todayEndTime = utilService.getTodayEndTime();
@@ -533,9 +533,6 @@ define(['js/app'], function (myApp) {
                     vm.dxNewPlayerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                     vm.dxNewPlayerQuery.end = utilService.createDatePicker('#dxNewPlayerReportQuery .endTime');
                     vm.dxNewPlayerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                    vm.dxNewPlayerQuery.pageObj = utilService.createPageForPagingTable("#dxNewPlayerReportTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "dxNewPlayerQuery", vm.searchDXNewPlayerReport);
-                    });
                     $scope.safeApply();
                 })
             } else if (choice == "WINRATE_REPORT") {
@@ -2490,20 +2487,24 @@ define(['js/app'], function (myApp) {
                             return "<a>" + data + "</a>";
                         }
                     },
-                    {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$"},
-                    {title: $translate('TOPUP_WECHAT'), data: "weChatTopUpAmount$"},
-                    {title: $translate('PlayerAlipayTopUp'), data: "aliPayTopUpAmount$"},
-                    {title: $translate('TOPUPONLINE'), data: "onlineTopUpAmount$"},
-                    {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
-                    {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$"},
-                    {title: $translate('WITHDRAW_COUNT'), data: "bonusTimes"},
-                    {title: $translate('WITHDRAW_AMOUNT'), data: "bonusAmount$"},
-                    {title: $translate('PROMOTION'), data: "rewardAmount$"},
-                    {title: $translate('CONSUMPTION_RETURN_AMOUNT'), data: "consumptionReturnAmount$"},
-                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes"},
-                    {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$"},
-                    {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$"},
-                    {title: $translate('COMPANY_PROFIT'), data: "profit$"},
+                    {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$", sClass: "sumFloat"},
+                    {title: $translate('TOPUP_WECHAT'), data: "weChatTopUpAmount$", sClass: "sumFloat"},
+                    {title: $translate('PlayerAlipayTopUp'), data: "aliPayTopUpAmount$", sClass: "sumFloat"},
+                    {title: $translate('TOPUPONLINE'), data: "onlineTopUpAmount$", sClass: "sumFloat"},
+                    {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes", sClass: "sumInt"},
+                    {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$", sClass: "sumFloat"},
+                    {title: $translate('WITHDRAW_COUNT'), data: "bonusTimes", sClass: "sumInt"},
+                    {title: $translate('WITHDRAW_AMOUNT'), data: "bonusAmount$", sClass: "sumFloat"},
+                    {title: $translate('PROMOTION'), data: "rewardAmount$", sClass: "sumFloat"},
+                    {
+                        title: $translate('CONSUMPTION_RETURN_AMOUNT'),
+                        data: "consumptionReturnAmount$",
+                        sClass: "sumFloat"
+                    },
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: "sumInt"},
+                    {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$", sClass: "sumFloat"},
+                    {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$", sClass: "sumFloat"},
+                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: "sumProfit"},
                     {title: $translate('csOfficer'), data: "csOfficer"},
                     {title: $translate('csPromoteWay'), data: "csPromoteWay"},
                     {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"}
@@ -2519,10 +2520,8 @@ define(['js/app'], function (myApp) {
             if (playerTbl) {
                 playerTbl.clear();
             }
-            var playerTbl = utilService.createDatatableWithFooter('#dxNewPlayerReportTable', tableOptions, {});
+            var playerTbl = utilService.createDatatableWithFooter('#dxNewPlayerReportTable', tableOptions, {}, true);
             utilService.setDataTablePageInput('dxNewPlayerReportTable', playerTbl, $translate);
-
-            vm.dxNewPlayerQuery.pageObj.init({maxCount: size}, newSearch);
 
             $('#dxNewPlayerReportTable').resize();
             $('#dxNewPlayerReportTable tbody').off('click', 'td.expandPlayerReport');
