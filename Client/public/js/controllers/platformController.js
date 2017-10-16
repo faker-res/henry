@@ -164,7 +164,7 @@ define(['js/app'], function (myApp) {
             vm.getProviderLatestTimeRecord = function () {
                 vm.providerLatestTime = {};
                 vm.delayStatus = {};
-                vm.longestDelayDate = "";
+                vm.longestDelayDate = new Date().toString();
                 vm.longestDelayStatus = "rgb(0,180,0)";
 
                 let counter = 1;
@@ -177,7 +177,7 @@ define(['js/app'], function (myApp) {
                             console.log('getPlatformProviderTime', providerId.providerId, data);
 
                             if(data.data){
-                                if(data.data.createTime > vm.longestDelayDate)
+                                if(data.data.createTime < vm.longestDelayDate)
                                 {
                                     vm.longestDelayDate = data.data.createTime
                                     vm.longestDelayStatus = data.data.delayStatusColor;
