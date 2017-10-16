@@ -1463,6 +1463,21 @@ let dbPlayerReward = {
                                     }
 
                                     e.status = status;
+
+                                    if (status == 2) {
+                                        return dbConfig.collection_proposal.findOne({
+                                            'data.platformObjId': platformObj._id,
+                                            'data.limitedOfferObjId': e._id,
+                                            type: intPropTypeObj._id,
+                                            'data.playerId': playerId
+                                        }).lean();
+                                    }
+                                }
+                            ).then(
+                                intProp => {
+                                    if (intProp) {
+                                        e.expirationTime = new Date(dbUtility.getLocalTime(intProp.data.expirationTime));
+                                    }
                                 }
                             )
                         );
@@ -1498,13 +1513,24 @@ let dbPlayerReward = {
                         e.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(e.startTime).getTime()) / 1000));
                     }
 
+                    // Get time left till expire
+                    // set expiry status if no payment is made
+                    if (e.status == 2) {
+                        if (new Date(e.expirationTime).getTime() >= (new Date().getTime())) {
+                            e.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(e.expirationTime).getTime()) / 1000));
+                        }
+                        else {
+                            e.status = 5;
+                        }
+                    }
+
                     // Interpret providers
                     e.providers = e.providers && e.providers.length > 0 ? [...e.providers].join(",") : "所有平台"
                 });
 
                 return {
                     time: [...timeSet].join("/"),
-                    showInfo: playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
+                    showInfo: playerObj && playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
                     secretList: rewards.filter(e => Boolean(e.displayOriPrice) === false),
                     normalList: rewards.filter(e => Boolean(e.displayOriPrice) === true)
                 }
