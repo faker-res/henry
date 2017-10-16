@@ -10444,10 +10444,11 @@ define(['js/app'], function (myApp) {
                 vm.selectedPromoCodeTab = choice;
                 vm.promoCodeEdit = false;
                 vm.promoCodeSMSContentEdit = false;
-                vm.promoCodeUserGroupEdit = false;
                 vm.delayDurationGroupEdit = false;
-                vm.promoCodeUserGroupInlineEdit = false;
+                vm.promoCodeUserGroupEdit = false;
+                vm.promoCodeUserGroupAdd = false;
                 vm.promoCodeUserGroupPlayerEdit = false;
+                vm.promoCodeUserGroupPlayerAdd = false;
 
                 vm.newPromoCode1 = [];
                 vm.newPromoCode2 = [];
@@ -13820,22 +13821,22 @@ define(['js/app'], function (myApp) {
                 playerObjId: vm.selectedSinglePlayer._id
             };
             socketService.$socket($scope.AppSocket, 'getUpdateCredibilityLog', query, function (data) {
-                vm.playerCredibilityComment = data.data;
-                for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
-                    let log = vm.playerCredibilityComment[i];
-                    log.remarks$ = "";
-                    for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
-                        log.remarks$ += log.credibilityRemarkNames[j];
-                        j < (len - 1) ? log.remarks$ += ", " : null;
+                    vm.playerCredibilityComment = data.data;
+                    for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
+                        let log = vm.playerCredibilityComment[i];
+                        log.remarks$ = "";
+                        for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
+                            log.remarks$ += log.credibilityRemarkNames[j];
+                            j < (len - 1) ? log.remarks$ += ", " : null;
+                        }
+                        log.createTime = new Date(log.createTime).toLocaleString();
                     }
-                    log.createTime = new Date(log.createTime).toLocaleString();
-                }
-                console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
-                $scope.safeApply();
-            },
-            function (err) {
-                console.log(err);
-            });
+                    console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log(err);
+                });
         };
 
         vm.setupRemarksMultiInput = function () {
