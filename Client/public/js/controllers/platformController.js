@@ -2992,7 +2992,9 @@ define(['js/app'], function (myApp) {
                                 }));
                                 link.append($('<a>', {
                                     'class': 'fa fa-comment margin-right-5',
-                                    'ng-click': 'vm.initSMSModal();vm.telorMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
+                                    'ng-click': 'vm.initSMSModal();' + "vm.onClickPlayerCheck('" +
+                                        playerObjId + "', " + "vm.telorMessageToPlayerBtn" +
+                                        ", " + "[" + '"msg"' + ", " +  JSON.stringify(row) + "]);",
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'tooltip',
                                     'title': $translate("Send SMS to Player"),
@@ -4374,7 +4376,7 @@ define(['js/app'], function (myApp) {
                     vm.sendSMSResult = {};
                     $scope.safeApply();
                     $('#smsPlayerModal').modal('show');
-
+                    vm.showSmsTab(null);
                 } else if (type == 'tel') {
                     var phoneCall = {
                         playerId: data.playerId,
@@ -4396,7 +4398,6 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }, true);
                 }
-                vm.showSmsTab(null);
             }
             vm.sendSMSToPlayer = function () {
                 vm.sendSMSResult = {sent: "sending"};
@@ -4582,18 +4583,19 @@ define(['js/app'], function (myApp) {
 
             //check if value is pass in before data table function is call
             vm.onClickPlayerCheck = function (recordId, callback, param){
-                var timeOut;
-                function recall() {
-                    vm.onClickPlayerCheck(recordId, callback, param);
+                if (!(param instanceof Array)) {
+                    param = param ? [param] : [];
                 }
 
-                if (vm.currentSelectedPlayerObjId && recordId === vm.currentSelectedPlayerObjId){
-                    callback(param);
-                }else {
-                    timeOut = setTimeout(recall, 50);
+                if (vm.currentSelectedPlayerObjId && recordId === vm.currentSelectedPlayerObjId) {
+                    callback.apply(null, param);
+                }
+                else {
+                    setTimeout(function () {
+                        vm.onClickPlayerCheck(recordId, callback, param);
+                    }, 50);
                 }
             };
-            // }
 
             vm.openEditPlayerDialog = function (selectedTab) {
                 vm.editSelectedTab = "";
@@ -7195,8 +7197,6 @@ define(['js/app'], function (myApp) {
             }
 
             vm.filterBankname = function (which) {
-                console.log("walao",vm.currentSelectedPlayerObjId);
-                console.log("walao2",event);
                 var key = '';
                 if (event && event.target) {
                     key = event.target.value || '';
