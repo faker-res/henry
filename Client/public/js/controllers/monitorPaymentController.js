@@ -54,6 +54,7 @@ define(['js/app'], function (myApp) {
             vm.getPlatformProvider(vm.selectedPlatform._id);
             vm.getProposalTypeByPlatformId(vm.selectedPlatform._id);
             vm.getPlayerLevelByPlatformId(vm.selectedPlatform._id);
+            vm.getCredibilityRemarksByPlatformId(vm.selectedPlatform._id);
             vm.getRewardList();
             $cookies.put("platform", vm.selectedPlatform.name);
             console.log('vm.selectedPlatform', vm.selectedPlatform);
@@ -200,38 +201,38 @@ define(['js/app'], function (myApp) {
 
         }
         vm.getCardLimit = function(typeName){
-            let acc = '';
-            if(typeName=='ManualPlayerTopUp'){
-              let bankCardNo = vm.selectedProposal.data.bankCardNo;
-              if(bankCardNo){
-                  vm.selectedProposal.card = vm.bankCards.filter(item=>{ return item.accountNumber == bankCardNo })[0] || {singleLimit:'-', quota:'-'};
-              }else{
-                  vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
-              }
-            }else if(typeName=="PlayerAlipayTopUp"){
-              let　merchantNo = vm.selectedProposal.data.alipayAccount;
-              if(merchantNo){
-                  vm.selectedProposal.card = vm.allAlipaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0];
-              }else{
-                  vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
-              }
-            }else if(typeName=="PlayerWechatTopUp"){
-              let　merchantNo = vm.selectedProposal.data.weChatAccount;
-              if(merchantNo){
-                  vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0];
-              }else{
-                  vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
-              }
-
-            }else if(typeName=="PlayerTopUp"){
-              let　merchantNo = vm.selectedProposal.data.merchantNo;
-              if(merchantNo){
-                  vm.selectedProposal.card = vm.merchants.filter(item=>{ return item.accountNumber == merchantNo })[0] || {singleLimit:'-', quota:'-'};
-              }else{
-                  vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
-              }
+          let acc = '';
+          if(typeName=='ManualPlayerTopUp'){
+            let bankCardNo = vm.selectedProposal.data.bankCardNo;
+            if(bankCardNo && vm.bankCards.length > 0){
+                vm.selectedProposal.card = vm.bankCards.filter(item=>{ return item.accountNumber == bankCardNo })[0] ||  {singleLimit:'-', quota:'-'};
+            }else{
+                vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
             }
-            return vm.selectedProposal;
+          }else if(typeName=="PlayerAlipayTopUp"){
+            let　merchantNo = vm.selectedProposal.data.alipayAccount;
+            if(merchantNo && vm.allAlipaysAcc.length > 0){
+                vm.selectedProposal.card = vm.allAlipaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'-', quota:'-'};
+            }else{
+                vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
+            }
+          }else if(typeName=="PlayerWechatTopUp"){
+            let　merchantNo = vm.selectedProposal.data.weChatAccount;
+            if(merchantNo && vm.allWechatpaysAcc.length > 0){
+                vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'-', quota:'-'};
+            }else{
+                vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
+            }
+          }else if(typeName=="PlayerTopUp"){
+            let　merchantNo = vm.selectedProposal.data.merchantNo;
+            if(merchantNo && vm.merchantLists.length > 0){
+                vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'-', quota:'-'};
+            }else{
+                vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
+            }
+          }
+          $scope.safeApply();
+          return vm.selectedProposal;
         }
 
 
@@ -244,9 +245,16 @@ define(['js/app'], function (myApp) {
               console.log('playerData', data);
               vm.proposalPlayer = data.data;
               if(vm.proposalPlayer.credibilityRemarks.length > 0){
-                  vm.proposalPlayer.credibilityRemarksName = vm.credibilityRemarks.filter(item => {
-                      return item._id == vm.proposalPlayer.credibilityRemarks[0]
-                  })[0]
+                   let credibilityRemarksName = vm.credibilityRemarks.filter(item => {
+                      return vm.proposalPlayer.credibilityRemarks.includes(item._id);
+                  });
+                  let txt = '';
+                  let colon = ',';
+                  credibilityRemarksName.forEach(function(value, index){
+                    if(index == (credibilityRemarksName.length-1)){ colon = ''}
+                      txt += value.name + colon;
+                  })
+                  vm.proposalPlayer.credibilityRemarksName = txt;
               }
               $scope.safeApply();
           });
@@ -269,7 +277,7 @@ define(['js/app'], function (myApp) {
               console.error("cannot get player level", data);
           });
         }
-        vm.loadTodayTopupQuota = function(typeName, cardNo){
+        vm.loadTodayTopupQuota = function(typeId, typeName, cardNo){
           var start = new Date();
           start.setHours(0,0,0,0);
           var end = new Date();
@@ -278,7 +286,7 @@ define(['js/app'], function (myApp) {
           var sendData = {
               adminId: authService.adminId,
               platformId: vm.selectedPlatform._id,
-              type: typeName[0],
+              typeId: typeId,
               startDate: start,
               endDate: end,
               card: cardNo,
@@ -288,13 +296,27 @@ define(['js/app'], function (myApp) {
           }
           sendData.status = ["Success"];
           socketService.$socket($scope.AppSocket, 'getProposalAmountSum', sendData, function (data) {
-               console.log(data.data.data);
-               if(data.data){
+              if(data.data.length>0){
                  vm.selectedProposal.cardSumToday = data.data[0].totalAmount||0;
-               }
+              }else{
+                 vm.selectedProposal.cardSumToday = 0;
+              }
           });
         }
-
+        vm.getCredibilityRemarksByPlatformId = function (id) {
+            return new Promise(function (resolve) {
+                socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: id}, function (data) {
+                    vm.credibilityRemarks = data.data;
+                    console.log("vm.credibilityRemarks", vm.credibilityRemarks);
+                    resolve(vm.credibilityRemarks);
+                    $scope.safeApply();
+                }, function (data) {
+                    console.log("cannot get credibility remarks", data);
+                    vm.credibilityRemarks = {};
+                    resolve(vm.credibilityRemarks);
+                });
+            });
+        };
         vm.getPaymentMonitorRecord = function (isNewSearch) {
             if (isNewSearch) {
                 $('#autoRefreshProposalFlag').attr('checked', false);
@@ -441,6 +463,7 @@ define(['js/app'], function (myApp) {
           }, function (data) {
             vm.selectedProposal = data.data;
             let playerName = vm.selectedProposal.data.playerName;
+            let typeId = vm.selectedProposal.type._id;
             let typeName = [vm.selectedProposal.type.name];
             let playerId = vm.selectedProposal.data.playerId;
 
@@ -458,7 +481,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             })
             let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
-            vm.loadTodayTopupQuota(typeName, cardNo);
+            vm.loadTodayTopupQuota(typeId, typeName, cardNo);
             vm.getUserCardGroup(vm.selectedProposal.type.name,vm.selectedPlatform._id, playerId )
             vm.getCardLimit(vm.selectedProposal.type.name);
           })
@@ -507,6 +530,7 @@ define(['js/app'], function (myApp) {
                         "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
                         render: function (data, type, row) {
                             var text = $translate(data ? vm.getDepositMethodbyId[data]: "");
+                            console.log(text);
                             return "<div>" + text + "</div>";
                         }
                     },

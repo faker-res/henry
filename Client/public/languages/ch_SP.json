@@ -2464,6 +2464,8 @@
   "ToBankCardNo": "收款银行帐号",
   "ToCardOwner":"收款银行姓名",
   "Member AliPayAcc":"会员支付宝昵称/帐号",
+  "Player AliPayGroup":"个人支付宝组",
+  "Player WeChatPayGroup":"个人微信组",
   "Our AliPayAccName":"我方支付宝姓名",
   "Our AliPayAcc":"我方支付宝账号",
   "alipayQRCode":"支付宝QR码",

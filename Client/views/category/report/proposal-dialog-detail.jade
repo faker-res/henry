@@ -48,17 +48,27 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{'PLAYER_NAME' | translate}}
                     td {{ vm.selectedProposal.data.playerName}}
                 tr
-                    td {{'REAL_NAME' | translate}}
+                    td {{'Real Name' | translate}}
                     td {{ vm.proposalPlayer.realName}}
                 tr(ng-if='vm.proposalPlayer.bankCardGroup.displayName && vm.selectedProposal.type.name=="ManualPlayerTopUp"')
                     td {{'BankCardGroup' | translate}}
                     td {{ vm.proposalPlayer.bankCardGroup.displayName}}
+                tr(ng-if='vm.proposalPlayer.alipayGroup.displayName && vm.selectedProposal.type.name=="PlayerAlipayTopUp"')
+                    td {{'BankCardGroup' | translate}}
+                    td {{ vm.proposalPlayer.alipayGroup.displayName}}
+                tr(ng-if='vm.proposalPlayer.wechatPayGroup.displayName && vm.selectedProposal.type.name=="PlayerWechatTopUp"')
+                    td {{'BankCardGroup' | translate}}
+                    td {{ vm.proposalPlayer.wechatPayGroup.displayName}}
+                tr(ng-if='vm.proposalPlayer.merchantGroup.displayName && vm.selectedProposal.type.name=="PlayerTopUp"')
+                    td {{'BankCardGroup' | translate}}
+                    td {{ vm.proposalPlayer.merchantGroup.displayName}}
+
                 tr
                     td {{'playerLevelName' | translate}}
                     td {{vm.selectedProposal.data.playerLevelName || '-'}}
                 tr
                     td {{'PlayerCredibilityStatus' | translate}}
-                    td {{vm.proposalPlayer.credibilityRemarksName.name || '-'}}
+                    td {{vm.proposalPlayer.credibilityRemarksName || '-'}}
                 tr
                     td {{'PlayerValue' | translate}}
                     td {{vm.selectedProposal.data.proposalPlayerLevelValue}}
@@ -73,31 +83,31 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{ vm.selectedProposal.data.validTime  | date : 'yyyy-MM-dd hh:mm:ss'}}
 
                 //onlineTopupType only
-                tr(ng-if="vm.selectedProposal.data.mainTopupType")
+                tr(ng-if="vm.selectedProposal.data.topupType")
                     td {{'OnlineTopUpType' | translate}}
-                    td {{ vm.selectedProposal.data.mainTopupType }}
-                tr(ng-if="vm.selectedProposal.data.merchantGroup")
+                    td {{ merchantTopupTypeJson[vm.selectedProposal.data.topupType] }}
+                tr(ng-if="vm.selectedProposal.data.merchantNo")
                     td {{'3rdPartyPlatform' | translate}}
-                    td {{ vm.selectedProposal.data.merchantGroup }}
+                    td {{ vm.getMerchantName(vm.selectedProposal.data.merchantNo) || '' }}
                 tr(ng-if="vm.selectedProposal.data.merchantNo")
                     td {{'merchantNo' | translate}}
                     td {{ vm.selectedProposal.data.merchantNo }}
                 // undefined yet
-                tr(ng-if="vm.selectedProposal.data.mainTopupType")
+                tr(ng-if="vm.selectedProposal.data.topupType=='2'")
                     td {{'MerchantBackendId' | translate }}
                     td
-                //tr(ng-if="vm.selectedProposal.data.merchantNo && vm.selectedProposal.data.topupType")
+                tr(ng-if="vm.selectedProposal.data.topupType=='2' || vm.selectedProposal.data.topupType==2")
                     td {{'SINGLELIMIT' | translate }}
                     td {{vm.selectedProposal.card.singleLimit}}
 
-                //tr(ng-if="vm.selectedProposal.data.merchantNo && vm.selectedProposal.data.topupType")
+                tr(ng-if="vm.selectedProposal.data.topupType=='2' || vm.selectedProposal.data.topupType==2")
                     td {{'DAYLIMIT' | translate }}
                     td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
 
                 // manual topup
                 tr(ng-if="vm.selectedProposal.data.depositMethod")
                     td {{'DEPOSIT_METHOD' | translate}}
-                    td {{ vm.depositMethodList[vm.selectedProposal.data.depositMethod] || "" }}
+                    td {{ vm.getDepositMethodbyId[vm.selectedProposal.data.depositMethod] | translate }}
                 tr(ng-if="vm.selectedProposal.data.inputData.realName")
                     td {{'ACCNAME' | translate}}
                     td {{ vm.selectedProposal.data.inputData.realName }}
@@ -116,26 +126,26 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                 tr(ng-if="vm.selectedProposal.data.cardOwner")
                     td {{'ToCardOwner' | translate}}
                     td {{ vm.selectedProposal.data.cardOwner }}
-                tr(ng-if="!vm.selectedProposal.data.topupType")
-                    td {{'DAYLIMIT' | translate }}
-                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
-                tr(ng-if="vm.selectedProposal.data.topupType")
+               tr(ng-if="vm.selectedProposal.data.topupType=='1' || vm.selectedProposal.data.topupType==1")
+                  td {{'SINGLELIMIT' | translate }}
+                  td {{vm.selectedProposal.card.singleLimit}}
+                tr(ng-if="vm.selectedProposal.data.topupType=='1' || vm.selectedProposal.data.topupType==1")
                     td {{'DAYLIMIT' | translate }}
                     td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
                 //alipay
                 tr(ng-if="vm.selectedProposal.data.alipayName")
-                    td {{'AliPayAccName' | translate }}
-                    td {{ vm.selectedProposal.data.alipayName }}
-                tr(ng-if="vm.selectedProposal.data.alipayAccount")
                     td {{'Member AliPayAcc' | translate }}
-                    td {{ vm.selectedProposal.data.alipayAccount }}
+                    td {{ vm.selectedProposal.data.alipayName }}
+                tr(ng-if="vm.selectedProposal.card.name")
+                    td {{'Our AliPayAccName' | translate }}
+                    td {{ vm.selectedProposal.card.name }}
                 tr(ng-if="vm.selectedProposal.data.alipayAccount")
-                    td {{'AliPayAcc' | translate }}
+                    td {{'Our AliPayAcc' | translate }}
                     td {{ vm.selectedProposal.data.alipayAccount }}
-                tr(ng-if="vm.selectedProposal.data.alipayAccount")
+                tr(ng-if="vm.selectedProposal.data.alipayAccount && (vm.selectedProposal.data.topupType=='3' || vm.selectedProposal.data.topupType==3)")
                     td {{'SINGLELIMIT' | translate }}
                     td {{vm.selectedProposal.card.singleLimit}}
-                tr(ng-if="vm.selectedProposal.data.alipayAccount")
+                tr(ng-if="vm.selectedProposal.data.alipayAccount && (vm.selectedProposal.data.topupType=='3' || vm.selectedProposal.data.topupType==3)")
                     td {{'DAYLIMIT' | translate }}
                     td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
                 tr(ng-if="vm.selectedProposal.data.alipayQRCode")
@@ -152,21 +162,25 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                 //undefined yet
                 tr(ng-if="vm.selectedProposal.data.weChatAccount")
                     td {{'Our WeChatNick' | translate }}
-                    td ""
-                tr(ng-if="vm.selectedProposal.data.weChatAccount")
+                    td {{m.selectedProposal.card.name}}
+                tr(ng-if="vm.selectedProposal.data.weChatAccount &&  (vm.selectedProposal.data.topupType=='4' || vm.selectedProposal.data.topupType==4)")
                     td {{'SINGLELIMIT' | translate }}
                     td {{vm.selectedProposal.card.singleLimit}}
-                tr(ng-if="vm.selectedProposal.data.weChatAccount")
+                tr(ng-if="vm.selectedProposal.data.weChatAccount &&  (vm.selectedProposal.data.topupType=='4' || vm.selectedProposal.data.topupType==4)")
                     td {{'DAYLIMIT' | translate }}
-                    td {{vm.selectedProposal}} / {{vm.selectedProposal.card.quota}}
+                    td {{vm.selectedProposa.cardSumTodayl}} / {{vm.selectedProposal.card.quota}}
                 tr(ng-if="vm.selectedProposal.data.weChatQRCode")
                     td {{'weChatQRCode' | translate }}
                     td {{ vm.selectedProposal.data.validTime }}
                 tr(ng-if="vm.selectedProposal.data.validTime  && vm.selectedProposal.data.weChatAccount")
                     td {{'validTime' | translate }}
                     td {{ vm.selectedProposal.data.validTime }}
-
-
+                tr(ng-if="!vm.selectedProposal.data.topupType")
+                    td {{'SINGLELIMIT' | translate }}
+                    td {{vm.selectedProposal.card.singleLimit}}
+                tr(ng-if="!vm.selectedProposal.data.topupType")
+                    td {{'DAYLIMIT' | translate }}
+                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
             //tr(ng-repeat='(i,v) in vm.selectedProposalDetailForDisplay')
             //tr(ng-repeat='(i,v) in vm.selectedProposal.data')
                 td {{ i | translate}}
