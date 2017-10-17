@@ -412,7 +412,6 @@
             .clearfix
             label {{"Total" | translate}} {{vm.dxNewPlayerQuery.totalCount}} {{"records" | translate}}
             table.common-table#dxNewPlayerReportTable.display(style="width:100% ;overflow-x: scroll")
-            #dxNewPlayerReportTablePage
 
         div(ng-if='vm.showPageName=="PLAYERPARTNER_REPORT"')
             #playerPartnerReportQuery.block-query.col-md-12.well
@@ -857,7 +856,7 @@
                         td {{el.data.topUpProposalId}}
                         td {{el.data.topUpAmount}}
                         td {{el.data.rewardProposalId}}
-                        td {{el.data.rewardProposalId ? el.data.rewardAmount}}
+                        td {{el.data.rewardProposalId ? el.data.rewardAmount : ""}}
                         td {{el.data.spendingAmount}}
 
 include ../common-widget/telephone-popover

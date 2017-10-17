@@ -121,6 +121,10 @@ var dbPlayerTopUpRecord = {
                         ]
                     };
                     queryObj['$or'] = [];
+                    if(query.topupType){
+                      query.topupType = Number(query.topupType);
+                    }
+
                     query.topupType ? queryObj['$or'].push({
                         'data.topupType': {$in: [String(query.topupType), Number(query.topupType)]}
                     }) : queryObj['$or'].push({
@@ -1600,7 +1604,7 @@ var dbPlayerTopUpRecord = {
                         if (requestData.result.validTime) {
                             updateData.data.validTime = new Date(requestData.result.validTime);
                         }
-                        requestData.result.alipayName = alipayName;
+                        // requestData.result.alipayName = alipayName;
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},
                             updateData,
