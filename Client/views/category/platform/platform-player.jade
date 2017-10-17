@@ -661,7 +661,7 @@ include modalGameCreditLog
                                                 td(style = "background-color:white;border: 1px solid #0099CC")
                                                     text {{data.comment}}
 
-#modalPlayerExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//#modalPlayerExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:95%;')
         .modal-content
             .modal-header
@@ -892,22 +892,29 @@ include modalGameCreditLog
                 div(ng-repeat='(i,v) in vm.showPlatform.gameProviders')
                     label {{vm.getProviderText(v)}}
                         input.playerStatusProviderForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v}}', ng-checked='vm.prohibitGamePopover.forbidProviders.indexOf(v)>-1')
-                button.common-button.margin-right-5.btn.btn-success.forbidGameConfirm {{'CONFIRM' | translate}}
+                .textareaDetail.margin-top-bottom-small
+                    textarea.forbidRewardRemark(ng-model='vm.forbidGameRemark', placeholder='{{"Please add remark." | translate}}')
+                button.common-button.margin-right-5.btn.btn-success.forbidGameConfirm(ng-disabled='vm.forbidGameDisable') {{'CONFIRM' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning.forbidGameCancel {{'CANCEL' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidGame(data-toggle="modal", data-target="#modalForbidGameLog", ng-click="vm.getForbidGame();") {{'CHANGES_RECORD' | translate}}
 
 #forbidRewardEventPopover.hide(style="width: 600px", ng-non-bindable)
     table.simple-table
         tr
             td(style='text-align:left')
-                //label {{"BANNED_FROM_THESE_PROVIDERS" | translate}
+
+                label {{"FORBID_REWARD" | translate}}
                 div
                     label {{"advanceConsumptionReward" | translate}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='advanceConsumptionReward', ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf("advanceConsumptionReward")>-1')
                 div(ng-repeat='(i,v) in vm.allRewardEvent')
                     label {{v.name}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf(v._id)>-1')
-                button.common-button.margin-right-5.btn.btn-success.forbidRewardEventConfirm {{'CONFIRM' | translate}}
-                button.common-button.margin-right-5.btn.btn-warning.forbidRewardEventCancel {{'CANCEL' | translate}}
+                .textareaDetail.margin-top-bottom-small
+                    textarea.forbidRewardRemark(ng-model='vm.forbidRewardRemark', placeholder='{{"Please add remark." | translate}}')
+                button.common-button.margin-right-5.btn.btn-success.forbidRewardEventConfirm(ng-disabled='vm.forbidRewardDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning.forbidRewardEventCancel(data-dismiss='popover') {{'CANCEL' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidreward(data-toggle="modal", data-target="#modalForbidRewardLog", ng-click="vm.getForbidReward();") {{'CHANGES_RECORD' | translate}}
 
 #forbidTopUpPopover.hide(style="width: 600px", ng-non-bindable)
     table.simple-table
@@ -917,9 +924,11 @@ include modalGameCreditLog
                 div(ng-repeat='(i,v) in merchantTopupTypeJson')
                     label {{v}}
                         input.playerTopUpTypeForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{i}}', ng-checked='vm.forbidTopUpPopover.forbidTopUpType.indexOf(i)>-1')
-                button.common-button.margin-right-5.btn.btn-success.forbidTopUpConfirm {{'CONFIRM' | translate}}
+                .textareaDetail.margin-top-bottom-small
+                    textarea.forbidRewardRemark(ng-model='vm.forbidTopUpRemark', placeholder='{{"Please add remark." | translate}}')
+                button.common-button.margin-right-5.btn.btn-success.forbidTopUpConfirm(ng-disabled='vm.forbidTopUpDisable') {{'CONFIRM' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning.forbidTopUpCancel {{'CANCEL' | translate}}
-
+                button.common-button.margin-right-5.btn.btn-primary.showForbidTopUp(data-toggle="modal", data-target="#modalForbidTopUpLog", ng-click="vm.getForbidTopUp();") {{'CHANGES_RECORD' | translate}}
 
 #partnerLevelPopover.hide
     //- label The level for {{vm.partnerLevelPopover.name}}
@@ -962,7 +971,7 @@ include modalGameCreditLog
                 //-     .progress-bar.progress-bar-success(style="width:0%")
                 //- td {{vm.nextPlayerLevelData.topupLimit}}
 
-#modalPlayerCreditChangeLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//#modalPlayerCreditChangeLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:96%;')
         .modal-content
             .modal-header
@@ -1121,7 +1130,210 @@ include modalGameCreditLog
                     td {{v.result | translate}}
                     td(style='white-space: normal;word-wrap: break-word;max-width: 300px;') {{v.content}}
 
-#modalPlayerGameProviderCredit.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+#modalPlayerAccountingDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', ng-click='vm.closeCreditTransferLog("#modalPlayerAccountingDetail")')
+                h4.modal-title {{'PLAYER' | translate}} : {{vm.gameProviderCreditPlayerName}} ({{"LOCAL_CREDIT"|translate}} : {{vm.creditTransfer.showValidCredit || 0 | number : 3}} ) ({{"REWARDAMOUNT"|translate}} : {{vm.selectedSinglePlayer.lockedCredit || 0 | number : 3}} )
+            .modal-body
+                //button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.transferAllCredit.isProcessing', ng-click='vm.transferAllCreditToPlayer()') {{'Transfer All from Providers' | translate}}
+                //button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.fixPlayerRewardAmount.rewardInfo.length > 0 || vm.fixPlayerRewardAmount.isProcessing', ng-click='vm.sendFixPlayerRewardAmount()') {{'Fix Player RewardAmount' | translate}}
+                ul.nav.nav-tabs.common-nav-tabs
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'current-credit' ? 'active' : null")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('current-credit')") {{"PLAYER_CURRENT_CREDIT" | translate}}
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'proposal-log' ? 'active' : null")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('proposal-log')") {{"PLAYER_PROPOSAL_LOG" | translate}}
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'bet-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'PlayerExpenses');")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('bet-log');vm.prepareShowPlayerExpense();") {{"PLAYER_BET_LOG" | translate}}
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'credit-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'CreditChangeLog')")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('credit-log');vm.showPagedPlayerCreditChangeLog();") {{"PLAYER_CREDIT_LOG" | translate}}
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'platform-transfer-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('platform-transfer-log');vm.showPlatformCreditTransferLog();") {{"PLAYER_PLATFORM_TRANSFER_LOG" | translate}}
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'playerCreditDailyLog')")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('midnight-balance-log');vm.initPlayerCreditLog();") {{"PLAYER_MIDNIGHT_BALANCE_LOG" | translate}}
+
+                .panel.panel-primary(style="border-radius:0 !important;")
+                    .panel-body
+                        div(ng-show="vm.selectedPlayerAccountingDetailTab == 'current-credit'")
+                            label#fixedRewardAmountResult.margin-left-5
+                            label.pull-right.blink(ng-show='vm.creditTransfer.needClose') {{'Please close the dialog to refresh the data.' | translate}}
+                            table.simple-table
+                                thead
+                                    tr
+                                        th {{'PROVIDER' | translate}}
+                                        th {{'PROVIDER_ID' | translate}}
+                                        th {{'CREDIT' | translate}}
+                                        th {{'TRANSFER' | translate}}
+                                tbody(style='max-height:500px;overflow-y:auto')
+                                    tr(ng-repeat='(i,v) in vm.platformProviderList')
+                                        td {{v.name}}
+                                        td {{v.providerId}}
+                                        td
+                                            i.fa.fa-spinner.fa-spin(ng-if='!vm.playerCredit[v.providerId]')
+                                            text(ng-if='vm.playerCredit[v.providerId]') {{vm.playerCredit[v.providerId].gameCredit}}
+                                        td(class='prov{{v.providerId}}', ng-if='!vm.transferAllCredit.isProcessing')
+                                            i.fa.fa-spinner.fa-spin(ng-if='!vm.playerCredit[v.providerId]')
+                                            div(ng-if='vm.playerCredit[v.providerId]')
+                                                div(ng-show='!vm.creditTransfer.transferResult')
+                                                    label.radio-inline(ng-show='vm.playerCredit[v.providerId].gameCredit>=1') {{'from Provider' | translate}}
+                                                        input.pull-left.relative(type='radio', data-provider='{{v}}', name='credit_transfer_type', ng-click='vm.transferCreditFromProviderClicked(v.providerId)', value='in')
+                                                    label.radio-inline(ng-show='vm.creditTransfer.showValidCredit + vm.creditTransfer.showRewardAmount>=1') {{'to Provider' | translate}}
+                                                        input.pull-left.relative(type='radio', data-provider='{{v}}', name='credit_transfer_type', ng-click='vm.transferCreditToProviderClicked(v.providerId)', value='out')
+                                                p
+                                                div(ng-show='vm.creditTransfer.focusProvider==v.providerId')
+                                                    div(ng-show='!vm.creditTransfer.transferResult')
+                                                        button.common-button.margin-right-5.btn.btn-success(ng-click='vm.confirmCreditTransfer(v.providerId)') {{'CONFIRM' | translate}}
+                                                        button.common-button.margin-right-5.btn.btn-warning(ng-click='vm.closeCreditTransferLog("#modalPlayerGameProviderCredit")') {{'CANCEL' | translate}}
+                                                        i.fa.fa-spin.fa-spinner.text-danger(ng-show='vm.creditTransfer.isProcessing')
+                                                    div(ng-show='vm.creditTransfer.transferResult')
+                                                        button.common-button.margin-right-5.btn.btn-success(ng-click='vm.closeCreditTransferLog("#modalPlayerGameProviderCredit")') {{'OK' | translate}}
+                                                        label {{vm.creditTransfer.transferResult | translate}}
+                                        td(class='prov{{v.providerId}}', ng-if='vm.transferAllCredit.isProcessing')
+                                            text.text-danger {{vm.transferAllCredit[v.providerId].text | translate}}
+                                            i.fa.fa-spinner.fa-spin(ng-if='vm.transferAllCredit[v.providerId].finished== false')
+                        div(ng-show="vm.selectedPlayerAccountingDetailTab == 'proposal-log'")
+                        div(ng-show="vm.selectedPlayerAccountingDetailTab == 'bet-log'")
+                            #playerExpense.adminLogQueryDiv
+                                .inlineBlk
+                                    label {{'START_DATE' | translate}}
+                                    .startTime
+                                .inlineBlk
+                                    label {{'END_DATE' | translate}}
+                                    .endTime
+                                .inlineBlk
+                                    label {{'Game' | translate}}
+                                    input.form-control(ng-model='vm.queryPara.playerExpense.gameName')
+                                .inlineBlk
+                                    label {{'GAME_PROVIDER' | translate}}
+                                    select.form-control(ng-model='vm.queryPara.playerExpense.providerId', ng-options='a._id as a.name for (i,a) in vm.platformProviderList')
+                                        option(value='') {{'any' | translate}}
+                                .inlineBlk
+                                    label {{'CONSUMPTION_RETURN_ABILITY' | translate}}
+                                    select.form-control.limit(ng-model='vm.queryPara.playerExpense.dirty', required)
+                                        option(value='') {{'any' | translate}}
+                                        option(value='N') {{'ABLE' | translate}}
+                                        option(value='Y') {{'UNABLE' | translate}}
+                                .inlineBlk
+                                    button.btn.btn-primary(ng-click='vm.getPlayerExpenseByFilter(true)') {{'SEARCH' | translate}}
+                            .well
+                                .row
+                                    .col-md-12
+                                        pre
+                                            text {{"Total Amount"|translate}}:
+                                            label {{vm.totalConsumptionAmount}}&nbsp
+                                            text {{"Total Valid Amount"|translate}}:
+                                            label {{vm.totalConsumptionValidAmount}}&nbsp
+                                            text {{"Total Bonus Amount"|translate}}:
+                                            label {{vm.totalConsumptionBonusAmount}}
+                                        p
+                                        label {{"Total" | translate}} {{vm.playerExpenseLog.totalCount}} {{"records" | translate}}
+                                        i.fa.fa-spin.fa-spinner(ng-show='vm.playerExpenseLog.loading')
+                                        table#playerExpenseTable.common-table.display(style='width:100%')
+                                        #playerExpenseTablePage
+                        div(ng-show="vm.selectedPlayerAccountingDetailTab == 'credit-log'")
+                            #playerCreditChangeLog.adminLogQueryDiv
+                                .inlineBlk
+                                    label {{'START_DATE' | translate}}
+                                    .startTime
+                                .inlineBlk
+                                    label {{'END_DATE' | translate}}
+                                    .endTime
+                                .inlineBlk
+                                    label {{'Type' | translate}}
+                                    select.form-control.limit(ng-model='vm.playerCreditChangeLog.type', required)
+                                        option(value='none') {{'any' | translate}}
+                                        option(ng-repeat='(i,v) in creditChangeTypeStrings', value='{{v}}') {{v | translate}}
+                                .inlineBlk
+                                    button.btn.btn-primary(ng-click='vm.getPagedPlayerCreditChangeLog(true)') {{'SEARCH' | translate}}
+                                .inlineBlk(ng-if='vm.playerCreditChangeLog.loading')
+                                    i.fa.fa-spin.fa-spinner
+                            label {{"Total" | translate}} {{vm.playerCreditChangeLog.totalCount}} {{"records" | translate}}
+                            table#playerCreditChangeLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                            #playerCreditChangeLogTablePage
+                        div(ng-show="vm.selectedPlayerAccountingDetailTab == 'platform-transfer-log'")
+                            #platformCreditTransferLog.adminLogQueryDiv
+                                .inlineBlk
+                                    label {{ 'playerName' | translate }}
+                                    input.form-control(ng-model='vm.queryPlatformCreditTransferPlayerName')
+                                .inlineBlk
+                                    label {{ 'START_DATE' | translate }}
+                                    .startTime
+                                .inlineBlk
+                                    label {{ 'END_DATE' | translate }}
+                                    .endTime
+                                .inlineBlk
+                                    label {{ 'Type' | translate }}
+                                    select.form-control(ng-model='vm.queryPlatformCreditTransferType')
+                                        option(value='') {{'any' | translate}}
+                                        option(value='transferin') {{'TransferIn' | translate}}
+                                        option(value='transferout') {{'TransferOut' | translate}}
+                                .inlineBlk
+                                    label {{ 'provider' | translate }}
+                                    select.form-control(ng-model='vm.queryPlatformCreditTransferProvider', ng-options='a.providerId as a.name for a in vm.platformProviderList')
+                                        option(value='') {{'any' | translate}}
+
+                                .inlineBlk
+                                    label {{ 'STATUS' | translate }}
+                                    select.form-control(ng-model='vm.queryPlatformCreditTransferStatus', style='min-width:100px;height:34px;')
+                                        option(value='') {{'all' | translate}}
+                                        option(ng-repeat='(i,v) in vm.allPlayerCreditTransferStatus', value='{{v}}') {{i | translate}}
+                                .inlineBlk
+                                    button.btn.btn-primary(ng-click='vm.getPagedPlatformCreditTransferLog(true)') {{'SEARCH' | translate}}
+                                .inlineBlk(ng-if='vm.platformCreditTransferLog.loading')
+                                    i.fa.fa-spin.fa-spinner
+                            table#platformCreditTransferLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                            #platformCreditTransferLogTablePage
+
+                            .clearfix
+                            button.common-button.margin-right-5.btn.btn-success(ng-click="vm.prepareRepairTransfer()") {{'RepairTransaction' | translate}}
+                            div(ng-show='vm.showPlatformRepair')
+                                table.col-md-10.col-md-offset-1.paddingTbl.text-center.datatable-sm(ng-show='vm.linkedPlayerTransferId')
+                                    tbody
+                                        tr
+                                            td(style='width:25%') {{'playerName' | translate}} : {{vm.selectedThisPlayer.name}}
+                                            td {{'LOCKED_CREDIT' | translate}}
+                                            td {{vm.selectedThisPlayer.lockedCredit | number:2}} ({{'curData' | translate}})
+                                            td --->
+                                            td
+                                                label.text-danger {{vm.creditChange.finalLockedAmount}} ({{'updateData' | translate}})
+                                        tr
+                                            td(style='width:25%') {{'transferID' | translate}} : {{vm.linkedPlayerTransferId}}
+                                            td {{'VALID_CREDIT' | translate}}
+                                            td {{vm.selectedThisPlayer.validCredit | number:2}} ({{'curData' | translate}})
+                                            td --->
+                                            td
+                                                label.text-danger {{vm.creditChange.finalValidAmount}} ({{'updateData' | translate}})
+                                .row
+                                    .col-md-6
+                                        label.control-label {{'REMARKS' | translate}}
+                                    .col-md-12.textareaDetail
+                                        textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
+                                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
+
+                        div(ng-show="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log'")
+                            #playerCreditLogQuery.well
+                                .inlineBlk
+                                    label {{"Start date" | translate}}
+                                    .startTime
+                                .inlineBlk
+                                    label {{"End date" | translate}}
+                                    .endTime
+                                button.btn.btn-primary.common-button(ng-click='vm.getPlayerCreditLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
+                            div
+                                label {{"Total" | translate}} {{vm.playerCreditLog.totalCount}} {{"records" | translate}}
+                                table#playerCreditLogTbl.common-table.display(style='min-width:100%')
+                                #playerCreditLogTblPage.height30
+            .modal-footer
+                div(ng-show="vm.selectedPlayerAccountingDetailTab == 'current-credit'")
+                    button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.transferAllCredit.isProcessing', ng-click='vm.transferAllCreditToPlayer()') {{'Transfer All from Providers' | translate}}
+                div(ng-show="vm.selectedPlayerAccountingDetailTab == 'proposal-log'")
+                div(ng-show="vm.selectedPlayerAccountingDetailTab == 'bet-log'")
+                div(ng-show="vm.selectedPlayerAccountingDetailTab == 'credit-log'")
+                div(ng-show="vm.selectedPlayerAccountingDetailTab == 'platform-transfer-log'")
+                div(ng-show="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log'")
+
+//#modalPlayerGameProviderCredit.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')
         .modal-content
             .modal-header
@@ -1709,6 +1921,71 @@ include modalGameCreditLog
                                             text(class='{{v.newData[k] ? "text-primary" : "text-danger"}}') {{v.newData[k]}}
                             .col-md-2.text-center {{v.admin.adminName || ' '}}
                             .col-md-3.text-center {{v.remark}}
+
+#modalForbidRewardLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Player' | translate}} : {{vm.forbidRewardEventPopover.name}}
+            .modal-body
+                #forbidRewardSearch.adminLogQueryDiv
+                    .inlineBlk
+                        label {{'START_DATE' | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{'END_DATE' | translate}}
+                        .endTime
+                    .inlineBlk
+                        button.btn.btn-primary(ng-click='vm.getForbidRewardLog(true)') {{'SEARCH' | translate}}
+                    .inlineBlk(ng-show='vm.forbidRewardLog.isSearching')
+                        i.fa.fa-spin.fa-spinner
+                label {{"Total" | translate}} {{vm.forbidRewardLog.totalCount}} {{"records" | translate}}
+                table#forbidRewardTbl.common-table(style='min-width:100%')
+                #forbidRewardTblPage.height30
+#modalForbidGameLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Player' | translate}} : {{vm.prohibitGamePopover.name}}
+            .modal-body
+                #forbidGameSearch.adminLogQueryDiv
+                    .inlineBlk
+                        label {{'START_DATE' | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{'END_DATE' | translate}}
+                        .endTime
+                    .inlineBlk
+                        button.btn.btn-primary(ng-click='vm.getForbidGameLog(true)') {{'SEARCH' | translate}}
+                    .inlineBlk(ng-show='vm.forbidGameLog.isSearching')
+                        i.fa.fa-spin.fa-spinner
+                label {{"Total" | translate}} {{vm.forbidGameLog.totalCount}} {{"records" | translate}}
+                table#forbidGameTbl.common-table(style='min-width:100%')
+                #forbidGameTblPage.height30
+#modalForbidTopUpLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Player' | translate}} : {{vm.forbidTopUpPopover.name}}
+            .modal-body
+                #forbidTopUpSearch.adminLogQueryDiv
+                    .inlineBlk
+                        label {{'START_DATE' | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{'END_DATE' | translate}}
+                        .endTime
+                    .inlineBlk
+                        button.btn.btn-primary(ng-click='vm.getForbidTopUpLog(true)') {{'SEARCH' | translate}}
+                    .inlineBlk(ng-show='vm.forbidTopUpLog.isSearching')
+                        i.fa.fa-spin.fa-spinner
+                label {{"Total" | translate}} {{vm.forbidTopUpLog.totalCount}} {{"records" | translate}}
+                table#forbidTopUpTbl.common-table(style='min-width:100%')
+                #forbidTopUpTblPage.height30
+
 #modalPlayerRewardHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
         .modal-content
@@ -1785,7 +2062,7 @@ include modalGameCreditLog
                 table#playerBonusHistoryTbl.common-table(style='min-width:100%')
                 #playerBonusHistoryTblPage.height30
 
-#modalPlayerCreditLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//#modalPlayerCreditLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:90%;')
         .modal-content
             .modal-header
@@ -2853,7 +3130,7 @@ include modalGameCreditLog
                 label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
 
 // Platform related sub-views
-#modalPlatformCreditTransferLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+//#modalPlatformCreditTransferLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
         .modal-content
             .modal-header
@@ -2905,14 +3182,14 @@ include modalGameCreditLog
                                         td(style='width:25%') {{'playerName' | translate}} : {{vm.selectedThisPlayer.name}}
                                         td {{'LOCKED_CREDIT' | translate}}
                                         td {{vm.selectedThisPlayer.lockedCredit | number:2}} ({{'curData' | translate}})
-                                        td --->
+                                        td ===>
                                         td
                                             label.text-danger {{vm.creditChange.finalLockedAmount}} ({{'updateData' | translate}})
                                     tr
                                         td(style='width:25%') {{'transferID' | translate}} : {{vm.linkedPlayerTransferId}}
                                         td {{'VALID_CREDIT' | translate}}
                                         td {{vm.selectedThisPlayer.validCredit | number:2}} ({{'curData' | translate}})
-                                        td --->
+                                        td ===>
                                         td
                                             label.text-danger {{vm.creditChange.finalValidAmount}} ({{'updateData' | translate}})
                             .row

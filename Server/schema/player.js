@@ -101,6 +101,7 @@ var playerSchema = new Schema({
         transactionReward: {type: Boolean, default: true},
         topupOnline: {type: Boolean, default: true},
         topupManual: {type: Boolean, default: true},
+        topUpCard: {type: Boolean, default: true},
         phoneCallFeedback: {type: Boolean, default: true},
         SMSFeedBack: {type: Boolean, default: true},
         alipayTransaction: {type: Boolean, default: true},

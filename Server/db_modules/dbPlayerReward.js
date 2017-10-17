@@ -1510,7 +1510,7 @@ let dbPlayerReward = {
 
                 return {
                     time: [...timeSet].join("/"),
-                    showInfo: showInfo === 0 ? 0 : 1,
+                    showInfo: String(showInfo) === '0' ? 0 : 1,
                     secretList: rewards.filter(e => Boolean(e.displayOriPrice) === false),
                     normalList: rewards.filter(e => Boolean(e.displayOriPrice) === true)
                 }

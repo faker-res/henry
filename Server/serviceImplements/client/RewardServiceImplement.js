@@ -124,7 +124,7 @@ let RewardServiceImplement = function () {
     this.getLimitedOffers.expectsData = 'platformId: String';
     this.getLimitedOffers.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId);
-        let limitedOfferInfo = conn.viewInfo && conn.viewInfo.limitedOfferInfo ? conn.viewInfo.limitedOfferInfo : 1;
+        let limitedOfferInfo = conn.viewInfo && String(conn.viewInfo.limitedOfferInfo) === '0' ? conn.viewInfo.limitedOfferInfo : 1;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getLimitedOffers, [data.platformId, conn.playerId, data.status, limitedOfferInfo], isValidData, false, false, true);
     };
     this.applyLimitedOffers.expectsData = 'limitedOfferObjId: String';
@@ -139,9 +139,9 @@ let RewardServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getLimitedOfferBonus, [data.platformId], isValidData, false, false, true);
     };
 
-    this.setLimitedOfferShowInfo.expectsData = 'showInfo: Number';
+    this.setLimitedOfferShowInfo.expectsData = 'showInfo: Number|String';
     this.setLimitedOfferShowInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.showInfo);
+        let isValidData = Boolean(data);
 
         if (conn.viewInfo) {
             conn.viewInfo.limitedOfferInfo = data.showInfo;

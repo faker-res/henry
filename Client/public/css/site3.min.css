@@ -4727,6 +4727,7 @@ input[type='number'].leftALignNumber {
   }
 }
 
+
 #modalPlayerTopUp .nav-tabs>li {
     cursor: pointer;
     z-index: 9;
@@ -4748,6 +4749,13 @@ input[type='number'].leftALignNumber {
     cursor: pointer;
 }
 #modalReapplyLostOrder .nav-tabs>li.active>a {
+    border: 1px solid #337AB7;
+    border-bottom: none;
+}
+#modalPlayerAccountingDetail .nav-tabs>li {
+    cursor: pointer;
+}
+#modalPlayerAccountingDetail .nav-tabs>li.active>a {
     border: 1px solid #337AB7;
     border-bottom: none;
 }
