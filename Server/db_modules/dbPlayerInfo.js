@@ -2997,12 +2997,17 @@ let dbPlayerInfo = {
                         .sort(sortObj).skip(index).limit(limit)
                         .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
                         .populate({path: "partner", model: dbconfig.collection_partner})
-                        // .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
+                        .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
                         .lean().then(
                             playerData => {
                                 var players = [];
                                 for (var ind in playerData) {
                                     if (playerData[ind]) {
+                                        if (playerData[ind].referral) {
+                                            playerData[ind].referralName$ = playerData[ind].referral.name;
+                                            playerData[ind].referral = playerData[ind].referral._id;
+                                        }
+
                                         var newInfo = getRewardData(playerData[ind]);
                                         players.push(Q.resolve(newInfo));
                                     }

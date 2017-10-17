@@ -3251,7 +3251,7 @@ define(['js/app'], function (myApp) {
                             "sClass": "alignLeft"
                         },
                         {title: $translate('partner'), orderable: false, data: "partner.partnerName", "sClass": "alignRight"},
-                        {title: $translate('REFERRAL'), orderable: false, data: "referral.name", "sClass": "alignRight"},
+                        {title: $translate('REFERRAL'), orderable: false, data: "referralName$", "sClass": "alignRight"},
 
                         // {
                         //     title: "<div>" + $translate('FEEDBACK') + "</div><div>" + $translate('TIMES') + "</div>",
