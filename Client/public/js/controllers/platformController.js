@@ -169,6 +169,16 @@ define(['js/app'], function (myApp) {
                 vm.selectedReapplyLostOrderTab = tabName == null ? "credit" : tabName;
             };
 
+            vm.showSmsTab = function(tabName) {
+                if(!tabName && (vm.selectedSinglePlayer && vm.selectedSinglePlayer.permission && vm.selectedSinglePlayer.permission.SMSFeedBack === false)) {
+                    vm.smsModalTab = "smsLogPanel";
+                    vm.initSMSLog("single");
+                }
+                else
+                {
+                    vm.smsModalTab = tabName ? tabName : "smsToPlayerPanel";
+                }
+            };
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
                 window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
@@ -4271,6 +4281,7 @@ define(['js/app'], function (myApp) {
                     vm.sendSMSResult = {};
                     $scope.safeApply();
                     $('#smsPlayerModal').modal('show');
+
                 } else if (type == 'tel') {
                     var phoneCall = {
                         playerId: data.playerId,
@@ -4292,6 +4303,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }, true);
                 }
+                vm.showSmsTab(null);
             }
             vm.sendSMSToPlayer = function () {
                 vm.sendSMSResult = {sent: "sending"};
@@ -7335,7 +7347,7 @@ define(['js/app'], function (myApp) {
                     index: newSearch ? 0 : vm.rewardTaskLog.index,
                     limit: newSearch ? 10 : vm.rewardTaskLog.limit,
                     sortCol: vm.rewardTaskLog.sortCol || null
-                }
+                };
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardTask', sendQuery, function (data) {
                     console.log('getPlayerRewardTask', data);
                     var tblData = data && data.data ? data.data.data.map(item => {
