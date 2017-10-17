@@ -226,7 +226,7 @@ var dbPlayerFeedback = {
 
     getPlayerFeedbackQuery: function (query, index) {
         index = index || 0;
-        query.noMoreFeedback = {$ne: false};
+        query.noMoreFeedback = {$ne: true};
         // query["$where"] = "(this.lastAccessTime > this.lastFeedbackTime || !this.lastFeedbackTime )&& !this.noMoreFeedback";
         var a = dbconfig.collection_players.find(query).skip(index).limit(1)
             .populate({path: "partner", model: dbconfig.collection_partner});
