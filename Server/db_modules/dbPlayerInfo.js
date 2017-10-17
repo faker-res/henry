@@ -5030,7 +5030,7 @@ let dbPlayerInfo = {
         ).then(
             function (player) {
                 if (player) {
-                    queryObject["data.playerObjId"] = player._id;
+                    queryObject["data.playerObjId"] = {$in: [String(player._id), player._id]};
                     playerName = player.name;
                     if (rewardType) {
                         return dbconfig.collection_proposalType.findOne({
