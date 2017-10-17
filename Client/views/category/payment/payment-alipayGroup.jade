@@ -46,14 +46,16 @@
                 .well
                     .inlineBlk.margin-right-5
                         .control-label {{"alipayAccount" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterAlipayAccount', style='max-width:200px', ng-init='vm.filterAlipayAccount="all"' ng-change='vm.AlipayAccChanged();')
-                            option(value='all') {{'any' | translate}}
-                            option(ng-repeat='(i,v) in vm.allAlipayList', value='{{i}}') {{v.accountNumber | translate}}
+                        select.input-sm.form-control.merchantNoList(ng-model='vm.filterAlipayAccount',ng-options="a.accountNumber for a in vm.allAlipayList", style='max-width:200px', ng-init='vm.filterAlipayAccount="all"' ng-change='vm.AlipayAccChanged();',multiple,bsp,rddl)
+                        //select.input-sm.form-control(ng-model='vm.filterAlipayAccount', style='max-width:200px', ng-init='vm.filterAlipayAccount="all"' ng-change='vm.AlipayAccChanged();')
+                            //option(value='all') {{'any' | translate}}
+                            //option(ng-repeat='(i,v) in vm.allAlipayList', value='{{i}}') {{v.accountNumber | translate}}
                     .inlineBlk.margin-right-5
                         .control-label {{"alipayName" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterAlipayName', style='max-width:200px', ng-init='vm.filterAlipayName="all"' ng-change='vm.AlipayNameChanged();')
-                            option(value='all') {{'any' | translate}}
-                            option(ng-repeat='(i,v) in vm.allAlipayList', value='{{i}}') {{v.name | translate}}
+                        select.input-sm.form-control.merchantNoList(ng-model='vm.filterAlipayName',ng-options="a.name for a in vm.allAlipayList", style='max-width:200px', ng-init='vm.filterAlipayName="all"' ng-change='vm.AlipayNameChanged();',multiple,bsp,rddl)
+                        //select.input-sm.form-control(ng-model='vm.filterAlipayName', style='max-width:200px', ng-init='vm.filterAlipayName="all"' ng-change='vm.AlipayNameChanged();')
+                        //    option(value='all') {{'any' | translate}}
+                        //    option(ng-repeat='(i,v) in vm.allAlipayList', value='{{i}}') {{v.name | translate}}
                     //.inlineBlk.margin-right-5
                     //    .control-label {{"alipayAccount" | translate}}
                     //    input.input-sm.form-control(type='text', ng-model='vm.filterAlipayAcc')
@@ -77,7 +79,7 @@
                             option(value='all') all
                             option(ng-repeat='(i,v) in vm.allAlipayTypeList', value='{{i}}') {{v.name | translate}}
                     .inlineBlk
-                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.alipayGroupClicked(1,vm.SelectedAlipayGroupNode)") {{"FILTER" | translate}}
+                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.alipayFilter(1,vm.SelectedAlipayGroupNode)") {{"FILTER" | translate}}
                 #AlipayList.panel-group(ng-if='vm.SelectedAlipayGroupNode')
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#AlipayList", href='#includedAlipays', ng-click='vm.showAlipayCate="include";vm.toggleBankType()')
