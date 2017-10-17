@@ -6845,7 +6845,7 @@ define(['js/app'], function (myApp) {
                         item.typeText = $translate(item.typeText);
                         return item;
                     });
-                    vm.gameCreditLog.totalCount = (result.data.pageSize || 20) * result.data.totalPages;
+                    vm.gameCreditLog.totalCount = (vm.gameCreditLog.pageObj.pageSize || 20) * result.data.totalPages;
                     vm.gameCreditLog.pageObj.init({maxCount: vm.gameCreditLog.totalCount}, newSearch);
                     $scope.safeApply();
                 }).catch(console.error);
