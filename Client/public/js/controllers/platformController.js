@@ -3114,14 +3114,23 @@ define(['js/app'], function (myApp) {
 
                                 let perm = (row && row.permission) ? row.permission : {};
 
-                                link.append($('<i>', {
-                                    'class': 'fa fa-gift margin-right-5 ' + (perm.applyBonus === true ? "text-primary" : "text-danger"),
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.applyBonus === true ? "withdrawBlue.png" : "withdrawRed.png"),
+                                    height: "14px",
+                                    width: "14px",
                                 }));
-                                link.append($('<i>', {
-                                    'class': 'fa fa-pencil-square margin-right-5 ' + (perm.topupOnline === true ? "text-primary" : "text-danger"),
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.topupOnline === true ? "onlineTopUpBlue.png" : "onlineTopUpRed.png"),
+                                    height: "13px",
+                                    width: "15px",
                                 }));
-                                link.append($('<i>', {
-                                    'class': 'fa fa-folder-open margin-right-5 ' + (perm.topupManual === true ? "text-primary" : "text-danger"),
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.topupManual === true ? "manualTopUpBlue.png" : "manualTopUpRed.png"),
+                                    height: "14px",
+                                    width: "14px",
                                 }));
 
                                 link.append($('<img>', {
@@ -3135,8 +3144,11 @@ define(['js/app'], function (myApp) {
                                     'class': 'fa fa-comments margin-right-5 ' + (perm.disableWechatPay === true ? "text-danger" : "text-primary"),
                                 }));
 
-                                link.append($('<i>', {
-                                    'class': 'fa fa-credit-card margin-right-5 ' + (perm.topUpCard === true ? "text-danger" : "text-primary"),
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.topUpCard === true ? "cardTopUpBlue.png" : "cardTopUpRed.png"),
+                                    height: "14px",
+                                    width: "14px",
                                 }));
 
                                 link.append($('<i>', {
@@ -3155,12 +3167,15 @@ define(['js/app'], function (myApp) {
                                     'class': 'fa fa-comment margin-right-5 ' + (perm.SMSFeedBack === false ? "text-danger" : "text-primary"),
                                 }));
 
-                                link.append($('<i>', {
-                                    'class': 'fa fa-bullseye margin-right-5 ' + (perm.PlayerLimitedOfferReward === false ? "text-danger" : "text-primary"),
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.PlayerLimitedOfferReward === true ? "limitedRewardBlue.png" : "limitedRewardRed.png"),
+                                    height: "14px",
+                                    width: "14px",
                                 }));
 
                                 link.append($('<i>', {
-                                    'class': 'fa fa-ban margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
+                                    'class': 'fa fa-gift margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
                                 }));
 
 
@@ -3222,7 +3237,7 @@ define(['js/app'], function (myApp) {
                                 var playerObjId = row._id ? row._id : "";
 
                                 link.append($('<a>', {
-                                    'class': 'forbidRewardEventPopover fa fa-ban margin-right-5' + (row.forbidRewardEvents && row.forbidRewardEvents.length > 0?" text-danger":""),
+                                    'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && row.forbidRewardEvents.length > 0?" text-danger":""),
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
@@ -3265,7 +3280,7 @@ define(['js/app'], function (myApp) {
                                     'href': '#',
                                     // 'style': "z-index: auto; min-width:23px",
                                     'data-container': "body",
-                                    'html': '<img width="15px" height="12px" src="images/icon/'+(row.forbidTopUpType && row.forbidTopUpType.length > 0?"topUpRed.png":"topUpBlue.png")+'"></img>'
+                                    'html': '<img width="15px" height="12px" src="images/icon/'+(row.forbidTopUpType && row.forbidTopUpType.length > 0?"onlineTopUpRed.png":"onlineTopUpBlue.png")+'"></img>'
                                     + (row.forbidTopUpType && row.forbidTopUpType.length > 0?'<sup>'+ row.forbidTopUpType.length +'</sup>':''),
                                     'style': "z-index: auto; width:23px",
                                 }));
@@ -3745,13 +3760,13 @@ define(['js/app'], function (myApp) {
                                 var that = this;
                                 var row = JSON.parse(this.dataset.row);
                                 vm.playerPermissionTypes = {
-                                    applyBonus: {imgType: 'i', iconClass: "fa fa-gift"},
+                                    applyBonus: {imgType: 'img', src: "images/icon/withdrawBlue.png", width:"26px", height:'26px'},
                                     // transactionReward: {imgType: 'i', iconClass: "fa fa-share-square"},
-                                    topupOnline: {imgType: 'i', iconClass: "fa fa-pencil-square"},
-                                    topupManual: {imgType: 'i', iconClass: "fa fa-folder-open"},
-                                    alipayTransaction: {imgType: 'img', src: "images/icon/aliPayBlue.png"},
+                                    topupOnline: {imgType: 'img', src: "images/icon/onlineTopUpBlue.png", width:"26px", height:'20px'},
+                                    topupManual: {imgType: 'img', src: "images/icon/manualTopUpBlue.png", width:"26px", height:'26px'},
+                                    alipayTransaction: {imgType: 'img', src: "images/icon/aliPayBlue.png", width:"26px", height:'26px'},
                                     disableWechatPay: {imgType: 'i', iconClass: "fa fa-comments"},
-                                    topUpCard: {imgType: 'i', iconClass: "fa fa-credit-card"},
+                                    topUpCard: {imgType: 'img', src: "images/icon/cardTopUpBlue.png", width:"26px", height:'26px'},
                                     forbidPlayerFromLogin: {imgType: 'i', iconClass: "fa fa-sign-in"},
                                     forbidPlayerFromEnteringGame: {imgType: 'i', iconClass: "fa fa-gamepad"},
                                     // forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"},
@@ -3763,8 +3778,8 @@ define(['js/app'], function (myApp) {
                                     // PlayerPacketRainReward: {imgType: 'i', iconClass: "fa fa-umbrella"},
                                     phoneCallFeedback: {imgType: 'i', iconClass: "fa fa-volume-control-phone"},
                                     SMSFeedBack: {imgType: 'i', iconClass: "fa fa-comment"},
-                                    PlayerLimitedOfferReward: {imgType: 'i', iconClass: "fa fa-bullseye"},
-                                    banReward: {imgType: 'i', iconClass: "fa fa-ban"},
+                                    PlayerLimitedOfferReward: {imgType: 'img', src: "images/icon/limitedRewardBlue.png", width:"26px", height:'26px'},
+                                    banReward: {imgType: 'i', iconClass: "fa fa-gift"},
                                 };
                                 $("#playerPermissionTable td").removeClass('hide');
 

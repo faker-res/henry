@@ -1869,7 +1869,7 @@ include modalGameCreditLog
                 tr(ng-repeat='(key,v) in vm.playerPermissionTypes')
                     td
                         i.text-primary(ng-show='v.imgType=="i"', ng-class='v.iconClass+" fa-2x"')
-                        img(ng-show='v.imgType=="img"', src='{{v.src}}')
+                        img(ng-show='v.imgType=="img"', src='{{v.src}}', width='{{v.width}}', height='{{v.height}}')
                     td {{key | translate}}
                     td.permitOn(ng-class='vm.permissionPlayer.permission[key] === false  ? "hide":""', class='{{key}}')
                         i.fa.fa-toggle-on.text-primary.margin-right-5.togglePlayer(data-which='{{key}}', data-on=true)
