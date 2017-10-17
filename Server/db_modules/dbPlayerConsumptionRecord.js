@@ -130,7 +130,8 @@ var dbPlayerConsumptionRecord = {
             createTime: {
                 $gte: startTime,
                 $lt: endTime
-            }
+            },
+            isDuplicate: {$ne: true}
         };
         if (providerObjId) {
             matchObj.providerId = providerObjId
