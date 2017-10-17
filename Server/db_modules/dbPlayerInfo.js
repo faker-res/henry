@@ -978,12 +978,13 @@ let dbPlayerInfo = {
 
     getPlayerInfo: function (query) {
         return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
-            .populate({path: "platform", model: dbconfig.collection_platform}).then(
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
                 playerData => {
                     if (!playerData) {
                         return false;
                     }
                     return {
+                        _id: playerData._id,
                         name: playerData.name,
                         platformId: playerData.platform.platformId
                     }
@@ -5029,7 +5030,7 @@ let dbPlayerInfo = {
         ).then(
             function (player) {
                 if (player) {
-                    queryObject["data.playerObjId"] = player._id;
+                    queryObject["data.playerObjId"] = {$in: [String(player._id), player._id]};
                     playerName = player.name;
                     if (rewardType) {
                         return dbconfig.collection_proposalType.findOne({
