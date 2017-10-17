@@ -4574,7 +4574,7 @@ define(['js/app'], function (myApp) {
                 }else {
                     timeOut = setTimeout(recall, 50);
                 }
-            }
+            };
             // }
 
             vm.openEditPlayerDialog = function (selectedTab) {
@@ -7173,7 +7173,13 @@ define(['js/app'], function (myApp) {
             }
 
             vm.filterBankname = function (which) {
-                var key = event.target.value || '';
+                console.log("walao",vm.currentSelectedPlayerObjId);
+                console.log("walao2",event);
+                var key = '';
+                if (event && event.target) {
+                    key = event.target.value || '';
+                }
+                console.log('key', key)
                 vm.filteredBankTypeList = {};
                 vm[which].bankName = '';
                 $.each(vm.allBankTypeList, function (i, v) {
