@@ -824,6 +824,7 @@
   "clientType_Web":"Web",
   "clientType_Application":"APP",
   "clientType_Both":"Web & APP",
+  "clientType_H5":"H5",
   "partnerBindPlayerText":"Can only bind player once, not modifiable",
 
   "Level Up Conditions": "Level Up Conditions",
@@ -842,6 +843,13 @@
   "proposalStepShow":"Proposal Status：Pending， Department：",
   "Qty_Min":"Min",
   "Qty_Max":"Max",
+
+  "promoCode":"Promo Code",
+  "PROMO_CODE_USER_GROUP_CONFIG":"Promo Code User Group Config",
+  "promoCode_Group":"Group",
+  "COLOR_CODE":"Color Code",
+  "INLINE_EDIT":"Inline Edit",
+  "ADD_GROUP":"Add Group",
 
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",

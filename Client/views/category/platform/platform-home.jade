@@ -8,18 +8,38 @@
         .padding-all-5
             .panel.panel-primary
                 .panel-heading.common-left-panel-heading
-                    ul.nav.nav-tabs.common-nav-tabs
+                    ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
                         //.pull-left.padding-all-5
                             a.fa.fa-chevron-circle-left.contractIcon(ng-show='vm.showPlatformList', ng-click='vm.toggleShowPlatformList(false)')
                             a.fa.fa-chevron-circle-right.contractIcon(ng-show='!vm.showPlatformList', ng-click='vm.toggleShowPlatformList(true)')
 
                         li.padding-all-5(style='margin:5px 10px; margin-top:8px;')
-                            .text-success(ng-show='vm.selectedPlatform.data.settlementStatus=="Ready"' style='color:rgb(0,180,0)')
+                            //.text-success(ng-show='vm.selectedPlatform.data.settlementStatus=="Ready"' style='color:rgb(0,180,0)')
+                            a.text-success(class="providerListPopover" data-toggle="popover" data-container="body" data-placement="right" data-trigger="focus" type="button" data-html="true" href="#" ng-show='vm.selectedPlatform.data.settlementStatus=="Ready"' style='color:{{vm.longestDelayStatus}};z-index: auto' ng-click="vm.getProviderLatestTimeRecord();")
                                 i.fa.fa-lg.fa-circle
                             .text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="DailyError"')
                                 i.fa.fa-lg.fa-circle.margin-right-5
                             .text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="WeeklyError"')
                                 i.fa.fa-lg.fa-circle.margin-right-5
+
+                        #providerListPopover.hide(style="width: 400px", ng-non-bindable)
+                            table.simple-table
+                                thead
+                                    tr
+                                        th(width="10%") {{'Delay Status' | translate}}
+                                        th(width="30%") {{'Game Type' | translate}}
+                                        th(width="40%") {{'Latest Recorded Time' | translate}}
+                                tr
+                                    td(style='text-align: center')
+                                        div(ng-repeat='(i,v) in vm.delayStatus' style="height:24px;")
+                                            div(style="color: {{v}}")
+                                                i.fa.fa-lg.fa-circle
+                                    td(style='text-align: center')
+                                        div(ng-repeat='(i,v) in vm.platformProviderList' style="height:24px;")
+                                            label {{vm.getProviderText(v.providerId)}}
+                                    td(style='text-align: center')
+                                        div(ng-repeat='(i,v) in vm.providerLatestTime' style="height:24px;")
+                                            label {{v}}
 
                         li(ng-if='!vm.curPlatformText', style='margin-right: 0;')
                             div.platformName(style='border-radius: 9px 0 0 9px;')
@@ -220,7 +240,7 @@
                                     div.form-group.col-md-7
                                         label.control-label {{"RETYPE_QQ" | translate}}
                                         input.form-control(type="text", name="repeatqq", placeholder='{{"RETYPE_QQ" | translate}}', ng-model="qqConfirmation", match="vm.modifyCritical.newQQ", required)
-                                        span.help-block(ng-show="form_edit_critical_qq.repeatqq.$dirty && form_edit_critical_qq.repeatqq.$error.match"){{"QQ_DO_NOT_MATCH" | translate}}
+                                        span.help-block(ng-show="form_edit_critical_qq.repeatqq.$dirty && form_edit_critical_qq.repeatqq.$error.match") {{"QQ_DO_NOT_MATCH" | translate}}
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal',ng-show='vm.modifyCritical.changeType=="email"', ng-disabled='form_edit_critical_email.$invalid || form_edit_critical_email.$pristine', ng-click="vm.submitCriticalUpdate();") {{"CREATE" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal',ng-show='vm.modifyCritical.changeType=="phone"', ng-disabled='form_edit_critical_phone.$invalid || form_edit_critical_phone.$pristine', ng-click="vm.submitCriticalUpdate();") {{"CREATE" | translate}}
