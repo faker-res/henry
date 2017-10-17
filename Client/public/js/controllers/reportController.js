@@ -117,22 +117,31 @@ define(['js/app'], function (myApp) {
             let acc = '';
             if(typeName=='ManualPlayerTopUp'){
               let bankCardNo = vm.selectedProposal.data.bankCardNo;
-              vm.selectedProposal.card = vm.bankCards.filter(item=>{ return item.accountNumber == bankCardNo })[0] || [];
+              if(bankCardNo){
+                  vm.selectedProposal.card = vm.bankCards.filter(item=>{ return item.accountNumber == bankCardNo })[0] ||  {singleLimit:'-', quota:'-'};
+              }else{
+                  vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
+              }
             }else if(typeName=="PlayerAlipayTopUp"){
               let　merchantNo = vm.selectedProposal.data.alipayAccount;
               if(merchantNo){
-                  vm.selectedProposal.card = vm.allAlipaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] || [];
+                  vm.selectedProposal.card = vm.allAlipaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'-', quota:'-'};
+              }else{
+                  vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
               }
             }else if(typeName=="PlayerWechatTopUp"){
               let　merchantNo = vm.selectedProposal.data.weChatAccount;
               if(merchantNo){
-                  vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] || [];
+                  vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'-', quota:'-'};
+              }else{
+                  vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
               }
-
             }else if(typeName=="PlayerTopUp"){
               let　merchantNo = vm.selectedProposal.data.merchantNo;
               if(merchantNo && vm.merchantLists){
-                  vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0] || [];
+                  vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'-', quota:'-'};
+              }else{
+                  vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
               }
             }
             $scope.safeApply();
@@ -1490,7 +1499,7 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        "title": $translate('Online Topup Type'), "data": "data.topUpType",
+                        "title": $translate('Online Topup Type'), "data": "data.topupType",
                         render: function (data, type, row) {
                             var text = $translate(data ? $scope.merchantTopupTypeJson[data]: "");
                             return "<div>" + text + "</div>";

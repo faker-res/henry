@@ -2343,7 +2343,7 @@ var proposal = {
                     ]
                 };
         }
-
+        data.topupType = Number(data.topupType)
         if (data.topupType) {
             query['data.topupType'] = data.topupType;
         }

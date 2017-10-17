@@ -86,11 +86,11 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                 tr(ng-if="vm.selectedProposal.data.mainTopupType")
                     td {{'MerchantBackendId' | translate }}
                     td
-                tr(ng-if="vm.selectedProposal.data.merchantNo")
+                //tr(ng-if="vm.selectedProposal.data.merchantNo && vm.selectedProposal.data.topupType")
                     td {{'SINGLELIMIT' | translate }}
                     td {{vm.selectedProposal.card.singleLimit}}
 
-                tr(ng-if="vm.selectedProposal.data.merchantNo")
+                //tr(ng-if="vm.selectedProposal.data.merchantNo && vm.selectedProposal.data.topupType")
                     td {{'DAYLIMIT' | translate }}
                     td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
 

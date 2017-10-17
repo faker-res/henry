@@ -1,7 +1,7 @@
 //div(ng-if='vm.pageName === "Payment Monitor"')
 div
     #paymentMonitorQuery.block-query.col-md-12.well
-        div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
+        div(style='max-width:125px')
             label {{'PLAYER_NAME' | translate}}
             input.form-control(type='text', ng-model='vm.paymentMonitorQuery.playerName')
         div(style='max-width:125px')
