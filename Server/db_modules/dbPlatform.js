@@ -1372,6 +1372,15 @@ var dbPlatform = {
                     // return Q.reject(Error("Error when finding phone number"));
                     return Q.reject({message: "Error when finding phone number", data: data});
                 }
+
+                if (playerData.permission && playerData.permission.SMSFeedBack === false) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        errorMessage: "Player does not have this permission"
+                    });
+                }
+
                 if (playerData.phoneNumber && playerData.phoneNumber.length > 20) {
                     try {
                         playerData.phoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
