@@ -4647,6 +4647,10 @@ let dbPlayerInfo = {
                                         creditData => {
                                             returnObj.gameCredit = creditData ? parseFloat(creditData.credit) : 0;
                                             return returnObj;
+                                        },
+                                        error => {
+                                            //if can't query credit use 0 for game credit
+                                            return returnObj;
                                         }
                                     );
                                 }
