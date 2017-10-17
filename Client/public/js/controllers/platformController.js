@@ -7201,7 +7201,6 @@ define(['js/app'], function (myApp) {
                 if (event && event.target) {
                     key = event.target.value || '';
                 }
-                console.log('key', key)
                 vm.filteredBankTypeList = {};
                 vm[which].bankName = '';
                 $.each(vm.allBankTypeList, function (i, v) {
