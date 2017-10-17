@@ -2669,7 +2669,6 @@ define(['js/app'], function (myApp) {
                 // jQuery.fn.dataTableExt.oSort["Credit-asc"] = function (x, y) {
                 //     return jQuery.fn.dataTableExt.oSort["Credit-desc"](y, x);
                 // };
-
                 var tableOptions = {
                     data: data,
                     columnDefs: [
@@ -2991,7 +2990,7 @@ define(['js/app'], function (myApp) {
                                     'data-placement': 'left',   // because top and bottom got hidden behind the table edges
                                 }));
                                 link.append($('<a>', {
-                                    'class': 'fa fa-comment margin-right-5',
+                                    'class': 'fa fa-comment margin-right-5' + (row.permission.SMSFeedBack === false ? " text-danger" : ""),
                                     'ng-click': 'vm.initSMSModal();' + "vm.onClickPlayerCheck('" +
                                         playerObjId + "', " + "vm.telorMessageToPlayerBtn" +
                                         ", " + "[" + '"msg"' + ", " +  JSON.stringify(row) + "]);",
@@ -3001,7 +3000,7 @@ define(['js/app'], function (myApp) {
                                     'data-placement': 'left',
                                 }));
                                 link.append($('<a>', {
-                                    'class': 'fa fa-volume-control-phone margin-right-5',
+                                    'class': 'fa fa-volume-control-phone margin-right-5' + (row.permission.phoneCallFeedback === false ? " text-danger" : ""),
                                     'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'tooltip',
@@ -3136,7 +3135,9 @@ define(['js/app'], function (myApp) {
                                     'class': 'fa fa-comments margin-right-5 ' + (perm.disableWechatPay === true ? "text-danger" : "text-primary"),
                                 }));
 
-                                // todo :: 点卡充值
+                                link.append($('<i>', {
+                                    'class': 'fa fa-credit-card margin-right-5 ' + (perm.topUpCard === true ? "text-danger" : "text-primary"),
+                                }));
 
                                 link.append($('<i>', {
                                     'class': 'fa margin-right-5 ' + (perm.forbidPlayerFromLogin === true ? "fa-sign-out text-danger" : "fa-sign-in  text-primary"),
@@ -3147,14 +3148,20 @@ define(['js/app'], function (myApp) {
                                 }));
 
                                 link.append($('<i>', {
+                                    'class': 'fa fa-volume-control-phone margin-right-5 ' + (perm.phoneCallFeedback === false ? "text-danger" : "text-primary"),
+                                }));
+
+                                link.append($('<i>', {
+                                    'class': 'fa fa-comment margin-right-5 ' + (perm.SMSFeedBack === false ? "text-danger" : "text-primary"),
+                                }));
+
+                                link.append($('<i>', {
                                     'class': 'fa fa-bullseye margin-right-5 ' + (perm.PlayerLimitedOfferReward === false ? "text-danger" : "text-primary"),
                                 }));
 
                                 link.append($('<i>', {
                                     'class': 'fa fa-ban margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
                                 }));
-
-
 
 
                                 // link.append($('<i>', {
@@ -3215,7 +3222,7 @@ define(['js/app'], function (myApp) {
                                 var playerObjId = row._id ? row._id : "";
 
                                 link.append($('<a>', {
-                                    'class': 'forbidRewardEventPopover fa fa-ils margin-right-5' + (row.forbidRewardEvents && row.forbidRewardEvents.length > 0?" text-danger":""),
+                                    'class': 'forbidRewardEventPopover fa fa-ban margin-right-5' + (row.forbidRewardEvents && row.forbidRewardEvents.length > 0?" text-danger":""),
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
@@ -3224,19 +3231,14 @@ define(['js/app'], function (myApp) {
                                     'type': 'button',
                                     'data-html': true,
                                     'href': '#',
-                                    'style': "z-index: auto",
+                                    'style': "z-index: auto; min-width:23px",
                                     'data-container': "body",
+                                    'html': (row.forbidRewardEvents && row.forbidRewardEvents.length > 0?'<sup>'+ row.forbidRewardEvents.length +'</sup>':''),
                                 }));
-
-                                link.append($('<a class="prohibitGamePopover fa fa-gg margin-right-5 ' +
-                                    (row.forbidProviders && row.forbidProviders.length > 0?" text-danger":"") +
-                                    '" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                                    .attr('data-row', JSON.stringify(row)));
 
 
                                 link.append($('<a>', {
-                                    'class': 'forbidTopUpPopover fa fa-krw margin-right-5' + (row.forbidTopUpType && row.forbidTopUpType.length > 0?" text-danger":""),
+                                    'class': 'prohibitGamePopover fa fa-gamepad margin-right-5 ' + (row.forbidProviders && row.forbidProviders.length > 0?" text-danger":""),
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
@@ -3245,9 +3247,29 @@ define(['js/app'], function (myApp) {
                                     'type': 'button',
                                     'data-html': true,
                                     'href': '#',
-                                    'style': "z-index: auto",
+                                    'style': "z-index: auto; min-width:23px",
                                     'data-container': "body",
+                                    'html': (row.forbidProviders && row.forbidProviders.length > 0?'<sup>'+ row.forbidProviders.length +'</sup>':''),
                                 }));
+
+
+                                link.append($('<a>', {
+                                    'class': 'forbidTopUpPopover margin-right-5' + (row.forbidTopUpType && row.forbidTopUpType.length > 0?" text-danger":""),
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'popover',
+                                    // 'title': $translate("PHONE"),
+                                    'data-placement': 'right',
+                                    'data-trigger': 'focus',
+                                    'type': 'button',
+                                    'data-html': true,
+                                    'href': '#',
+                                    // 'style': "z-index: auto; min-width:23px",
+                                    'data-container': "body",
+                                    'html': '<img width="15px" height="12px" src="images/icon/'+(row.forbidTopUpType && row.forbidTopUpType.length > 0?"topUpRed.png":"topUpBlue.png")+'"></img>'
+                                    + (row.forbidTopUpType && row.forbidTopUpType.length > 0?'<sup>'+ row.forbidTopUpType.length +'</sup>':''),
+                                    'style': "z-index: auto; width:23px",
+                                }));
+
 
                                 return link.prop('outerHTML');
                             },

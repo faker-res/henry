@@ -980,6 +980,7 @@ let dbPlayerInfo = {
                         return false;
                     }
                     return {
+                        _id: playerData._id,
                         name: playerData.name,
                         platformId: playerData.platform.platformId
                     }
