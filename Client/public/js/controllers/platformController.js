@@ -3202,7 +3202,7 @@ define(['js/app'], function (myApp) {
                                 var playerObjId = row._id ? row._id : "";
 
                                 link.append($('<a>', {
-                                    'class': 'forbidRewardEventPopover fa fa-ils margin-right-5',
+                                    'class': 'forbidRewardEventPopover fa fa-ils margin-right-5' + (row.forbidRewardEvents && row.forbidRewardEvents.length > 0?" text-danger":""),
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
@@ -3215,12 +3215,15 @@ define(['js/app'], function (myApp) {
                                     'data-container': "body",
                                 }));
 
-                                link.append($('<a class="prohibitGamePopover fa fa-gg margin-right-5" style="z-index: auto" data-toggle="popover" data-container="body" ' +
+                                link.append($('<a class="prohibitGamePopover fa fa-gg margin-right-5 ' +
+                                    (row.forbidProviders && row.forbidProviders.length > 0?" text-danger":"") +
+                                    '" style="z-index: auto" data-toggle="popover" data-container="body" ' +
                                     'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
                                     .attr('data-row', JSON.stringify(row)));
 
+
                                 link.append($('<a>', {
-                                    'class': 'forbidTopUpPopover fa fa-krw margin-right-5',
+                                    'class': 'forbidTopUpPopover fa fa-krw margin-right-5' + (row.forbidTopUpType && row.forbidTopUpType.length > 0?" text-danger":""),
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
@@ -7182,8 +7185,6 @@ define(['js/app'], function (myApp) {
             }
 
             vm.filterBankname = function (which) {
-                console.log("walao",vm.currentSelectedPlayerObjId);
-                console.log("walao2",event);
                 var key = '';
                 if (event && event.target) {
                     key = event.target.value || '';
