@@ -112,34 +112,46 @@
         //    text(ng-if="vm.selectedSinglePlayer.status != 1 ") {{"ENABLE" | translate}}
         //    img.img-delete
         //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalEditPlayer')
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ResetPassword')",ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initResetPlayerPasswordModal()', data-target='#modalPlayerPasswordReset')
-            text {{"RESET_PASSWORD" | translate}}
-            img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'UpdatePlayerCredibility')",ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerCredibility()', data-target='#modalPlayerCredibilityRemarks')
-            text {{"UPDATE_PLAYER_CREDIBILITY_REMARK" | translate}}
-            img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ForbidTopupTypes')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowPlayerForbidTopUpType()' data-target='#modalPlayerForbidTopupTypes')
-            text {{"Forbid TopUp Types" | translate}}
-            img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click="vm.openEditPlayerDialog()")
-            text {{"EDIT" | translate}}
-            img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'EditContact')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareEditCritical("player")', data-target='#modalEditCritical')
-            text {{"EDIT_CRITICAL_INFO" | translate}}
-            img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformation')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareEditPlayerPayment()', data-target='#modalEditPlayerPayment')
-            text {{"PAYMENT" | translate}}
-            img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformationHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.getPaymentInfoHistory()')
-            text {{"Payment Info History" | translate}}
-            img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'AddFeedback')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalAddPlayerFeedback', ng-click='vm.initFeedbackModal()')
-            text {{"FEEDBACK_PLAYER" | translate}}
-            i.fa.fa-retweet
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ResetPassword')",ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initResetPlayerPasswordModal()', data-target='#modalPlayerPasswordReset')
+        //    text {{"RESET_PASSWORD" | translate}}
+        //    img.img-edit
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'UpdatePlayerCredibility')",ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerCredibility()', data-target='#modalPlayerCredibilityRemarks')
+        //    text {{"UPDATE_PLAYER_CREDIBILITY_REMARK" | translate}}
+        //    img.img-edit
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ForbidTopupTypes')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowPlayerForbidTopUpType()' data-target='#modalPlayerForbidTopupTypes')
+        //    text {{"Forbid TopUp Types" | translate}}
+        //    img.img-edit
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click="vm.openEditPlayerDialog()")
+        //    text {{"EDIT" | translate}}
+        //    img.img-edit
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'EditContact')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareEditCritical("player")', data-target='#modalEditCritical')
+        //    text {{"EDIT_CRITICAL_INFO" | translate}}
+        //    img.img-edit
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformation')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareEditPlayerPayment()', data-target='#modalEditPlayerPayment')
+        //    text {{"PAYMENT" | translate}}
+        //    img.img-edit
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformationHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.getPaymentInfoHistory()')
+        //    text {{"Payment Info History" | translate}}
+        //    img.img-edit
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'AddFeedback')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalAddPlayerFeedback', ng-click='vm.initFeedbackModal()')
+        //    text {{"FEEDBACK_PLAYER" | translate}}
+        //    i.fa.fa-retweet
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'referrals')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", ng-click='vm.initPlayerReferral()')
             text {{"REFERRAL" | translate}}
             img.img-edit
-.col-md-12.playerBtn
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ClearProposalLimit')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalClearProposalLimit', ng-click='vm.prepareClearPlayerProposalLimit()')
+            text {{"ClearProposalLimit" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'CreditChangeLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initGameCreditLog()', data-target='#modalGameCreditLog')
+            text {{"GAME_CREDIT_LOG" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog()')
+            text {{"Platform Credit Transfer Log" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.newPlayerList()', data-target='#modalNewPlayerList')
+            text {{"new player list" | translate}}
+            img.img-edit
+//.col-md-12.playerBtn
     hr.margin-top-bottom-small
     .btn-group.margin-small
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ApplyManualTopup')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerTopUp', ng-click='vm.initPlayerManualTopUp();')
@@ -187,7 +199,7 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ClearProposalLimit')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalClearProposalLimit', ng-click='vm.prepareClearPlayerProposalLimit()')
             text {{"ClearProposalLimit" | translate}}
             img.img-edit
-.col-md-12.playerBtn
+//.col-md-12.playerBtn
     hr.margin-top-bottom-small
     .btn-group.margin-small
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'TopupRecord')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.prepareShowPagePlayerTopup()')
@@ -243,7 +255,7 @@
             img.img-edit
 
 // All Players Query
-.col-md-12.playerBtn
+//.col-md-12.playerBtn
     hr.margin-top-bottom-small
     .btn-group.margin-small
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog()')
