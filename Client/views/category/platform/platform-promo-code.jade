@@ -377,7 +377,7 @@
                             thead
                                 tr
                                     th
-                                    th(width="40%") {{'GROUP' | translate}}
+                                    th(width="40%") {{'promoCode_Group' | translate}}
                                     th(width="40%") {{'COLOR_CODE' | translate}}
                                     th(width="20%") {{'INLINE_EDIT' | translate}}
                             tbody
@@ -442,10 +442,10 @@
                                     th(width="20%", style="background-color:{{vm.selectedPromoCodeUserGroup.color}}") {{'INLINE_EDIT' | translate}}
                             tbody
                                 // before edit enabled
-                                tr(ng-repeat='name in vm.selectedPromoCodeUserGroup.playerNames', ng-if='!vm.promoCodeUserGroupPlayerEdit')
+                                tr(ng-repeat='playerName in vm.selectedPromoCodeUserGroup.playerNames', ng-if='!vm.promoCodeUserGroupPlayerEdit')
                                     td {{ $index + 1 }}
-                                    td(ng-if="$odd" style="background-color:#ddd") {{name}}
-                                    td(ng-if="$even") {{name}}
+                                    td(ng-if="$odd" style="background-color:#ddd") {{playerName}}
+                                    td(ng-if="$even") {{playerName}}
                                     td(ng-if="$odd" style="background-color:#ddd")
                                         button.btn.btn-primary.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=true")
                                             i.fa.fa-pencil-square-o
@@ -461,12 +461,12 @@
                                             i.fa.fa-trash
                                             text {{'DELETE' | translate}}
                                 // after edit enabled
-                                tr(ng-repeat='name in vm.selectedPromoCodeUserGroup.playerNames', ng-if='vm.promoCodeUserGroupPlayerEdit')
+                                tr(ng-repeat='playerName in vm.selectedPromoCodeUserGroup.playerNames', ng-if='vm.promoCodeUserGroupPlayerEdit')
                                     td {{ $index + 1 }}
                                     td(ng-if="$odd" style="background-color:#ddd")
-                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="vm.selectedPromoCodeUserGroup.playerNames[$index]")
+                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="playerName")
                                     td(ng-if="$even")
-                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="vm.selectedPromoCodeUserGroup.playerNames[$index]")
+                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="playerName")
                                     td(ng-if="$odd" style="background-color:#ddd")
                                         button.btn.btn-success.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false; vm.savePromoCodeUserGroup();")
                                             i.fa.fa-floppy-o
