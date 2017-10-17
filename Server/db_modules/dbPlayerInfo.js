@@ -5067,7 +5067,7 @@ let dbPlayerInfo = {
                             path: "process",
                             model: dbconfig.collection_proposalProcess
                         })
-                        .lean().skip(startIndex).limit(count);
+                        .lean().sort({createTime: 1}).skip(startIndex).limit(count);
                     return Q.all([countProm, rewardProm]).catch(
                         error => Q.reject({name: "DBError", message: "Error in finding proposal", error: error})
                     );
@@ -5098,7 +5098,7 @@ let dbPlayerInfo = {
                                 createTime: proposals[i].createTime,
                                 rewardType: proposals[i].type ? proposals[i].type.name : "",
                                 rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : 0,
-                                eventName: proposals[i].data.eventName,
+                                eventName: proposals[i].data.eventName || proposals[i].data.type,
                                 eventCode: proposals[i].data.eventCode,
                                 status: status
                             }
