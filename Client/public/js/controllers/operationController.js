@@ -1691,8 +1691,8 @@ define(['js/app'], function (myApp) {
                     }
                 );
                 console.log("vm.allProposalType", vm.allProposalType);
+                $scope.safeApply();
                 deferred.resolve(true);
-                vm.renderMultipleSelectDropDownList();
             }, function (error) {
                 deferred.reject(error);
             });
