@@ -986,7 +986,9 @@ let dbPlayerInfo = {
                     return {
                         _id: playerData._id,
                         name: playerData.name,
-                        platformId: playerData.platform.platformId
+                        platformId: playerData.platform.platformId,
+                        validCredit: playerData.validCredit,
+                        realName: playerData.realName
                     }
                 }
             );
