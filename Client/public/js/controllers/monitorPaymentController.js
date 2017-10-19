@@ -205,28 +205,28 @@ define(['js/app'], function (myApp) {
           if(typeName=='ManualPlayerTopUp'){
             let bankCardNo = vm.selectedProposal.data.bankCardNo;
             if(bankCardNo && vm.bankCards.length > 0){
-                vm.selectedProposal.card = vm.bankCards.filter(item=>{ return item.accountNumber == bankCardNo })[0] ||  {singleLimit:'-', quota:'-'};
+                vm.selectedProposal.card = vm.bankCards.filter(item=>{ return item.accountNumber == bankCardNo })[0] ||  {singleLimit:'0', quota:'0'};
             }else{
-                vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
+                vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
             }
           }else if(typeName=="PlayerAlipayTopUp"){
             let　merchantNo = vm.selectedProposal.data.alipayAccount;
             if(merchantNo && vm.allAlipaysAcc.length > 0){
-                vm.selectedProposal.card = vm.allAlipaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'-', quota:'-'};
+                vm.selectedProposal.card = vm.allAlipaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
             }else{
-                vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
+                vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
             }
           }else if(typeName=="PlayerWechatTopUp"){
             let　merchantNo = vm.selectedProposal.data.wechatAccount;
             if(merchantNo && vm.allWechatpaysAcc.length > 0){
-                vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'-', quota:'-'};
+                vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
             }else{
-                vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
+                vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
             }
           }else if(typeName=="PlayerTopUp"){
             let　merchantNo = vm.selectedProposal.data.merchantNo;
             if(merchantNo && vm.merchantLists.length > 0){
-                vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'-', quota:'-'};
+                vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
             }else{
                 vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
             }
