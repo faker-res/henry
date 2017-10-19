@@ -851,6 +851,11 @@
   "INLINE_EDIT":"Inline Edit",
   "ADD_GROUP":"Add Group",
 
+  "phoneNumFilter":"Phone Number Filter",
+  "SUPPORTED_FILE_FORMAT":"Supported file format",
+  "ADD_PHONE_NUMBER_FILTER":"Add phone numbers to filter",
+  "ADD_PHONE_NUMBER_FILTER_INSTRUCTION":"The phone numbers must be separated by commas",
+
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
   "SMS_VERIFICATION": "SMS Verification",
