@@ -421,6 +421,59 @@ var dbAdminInfo = {
         return deferred.promise;
     },
 
+    getAdminNameByDepartment: function (departmentId) {
+        return getAllAdminFromChildDepartments([departmentId]);
+    },
+
 };
+
+function getAllAdminFromChildDepartments (departmentIds) {
+    let admins = [];
+    let department;
+    return dbconfig.collection_department.find({_id:{$in: departmentIds}}, {departmentName:1, children:1, users:1})
+            .populate({path: "users", model: dbconfig.collection_admin, select: "adminName"})
+            .lean().then(
+        departments => {
+            let childDeparmentProms = [];
+            for (let i = 0, len = departments.length; i < len; i++) {
+                department = departments[i];
+
+                for (let j = 0, jLen = department.users.length; j < jLen; j++) {
+                    let admin = department.users[j];
+                    if (admin && admin._id) {
+                        admins.push({
+                            adminName: admin.adminName,
+                            _id: admin._id,
+                            department: department._id,
+                            departmentName: department.departmentName,
+                        });
+                    }
+                    else if (admin && admin[0] && admin[0]._id) {
+                        // have no idea why this kind of data appear in my local db
+                        admins.push({
+                            adminName: admin[0].adminName,
+                            _id: admin[0]._id,
+                            department: department._id,
+                            departmentName: department.departmentName,
+                        });
+                    }
+                }
+
+                if (department.children && department.children.length > 0) {
+                    let childDepartmentProm = getAllAdminFromChildDepartments(department.children);
+                    childDeparmentProms.push(childDepartmentProm);
+                }
+            }
+            return Promise.all(childDeparmentProms);
+        }
+    ).then(
+        childDepartmentAdminData => {
+            for (let i = 0, len = childDepartmentAdminData.length; i < len; i++) {
+                admins = admins.concat(childDepartmentAdminData[i]);
+            }
+            return admins;
+        }
+    );
+}
 
 module.exports = dbAdminInfo;

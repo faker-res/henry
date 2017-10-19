@@ -59,7 +59,7 @@ function socketActionPlayer(socketIO, socket) {
                     data.phoneType = queryRes.type;
                 }
             }
-            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerInfoAPI, [data, true], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerInfoAPI, [data, true, getAdminName()], actionName, isValidData);
         },
 
         /**
@@ -103,6 +103,11 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && (data.name || data._id || data.playerId));
             socketUtil.emitter(self.socket, dbPlayerInfo.getOnePlayerInfo, [data], actionName, isValidData);
+        },
+        getOnePlayerCardGroup: function getOnePlayerCardGroup(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && (data.name || data._id || data.playerId));
+            socketUtil.emitter(self.socket, dbPlayerInfo.getOnePlayerCardGroup, [data], actionName, isValidData);
         },
 
         /**
@@ -613,7 +618,8 @@ function socketActionPlayer(socketIO, socket) {
         applyManualTopUpRequest: function applyManualTopUpRequest(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId && data.amount && data.amount > 0 && data.depositMethod && data.lastBankcardNo && data.provinceId && data.cityId);
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.addManualTopupRequest, [data.playerId, data, "ADMIN", getAdminId(), getAdminName(), data.fromFPMS], actionName, isValidData);
+            let userAgent = '';
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.addManualTopupRequest, [userAgent, data.playerId, data, "ADMIN", getAdminId(), getAdminName(), data.fromFPMS], actionName, isValidData);
         },
         /**
          *  Get deposit methods
@@ -732,7 +738,8 @@ function socketActionPlayer(socketIO, socket) {
         applyAlipayTopUpRequest: function applyAlipayTopUpRequest(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.amount && data.alipayName && data.alipayAccount);
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestAlipayTopup, [data.playerId, data.amount, data.alipayName, data.alipayAccount, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
+            let userAgent = '';
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestAlipayTopup, [userAgent, data.playerId, data.amount, data.alipayName, data.alipayAccount, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
         },
 
         cancelAlipayTopup: function cancelAlipayTopup(data) {
@@ -751,7 +758,8 @@ function socketActionPlayer(socketIO, socket) {
         applyWechatPayTopUpRequest: function applyWechatPayTopUpRequest(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.amount && data.wechatPayAccount);
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestWechatTopup, [data.playerId, data.amount, data.wechatPayName, data.wechatPayAccount, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
+            let userAgent = '';
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestWechatTopup, [userAgent, data.playerId, data.amount, data.wechatPayName, data.wechatPayAccount, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
         },
 
         cancelWechatPayTopup: function cancelWechatPayTopup(data) {

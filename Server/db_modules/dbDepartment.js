@@ -400,7 +400,14 @@ var dbDepartment = {
      */
     getDepartmentTreeById: function(departmentId){
         var deferred = Q.defer();
-        dbconfig.collection_department.find().then(
+        dbconfig.collection_department.find().populate({
+            path: "roles",
+            model: dbconfig.collection_role,
+            populate: {
+                path: "users",
+                model: dbconfig.collection_admin
+            }
+        }).then(
             function(data){
                 if( data && data.length > 0 ){
                     var allDepartments = {};
@@ -485,6 +492,32 @@ var dbDepartment = {
                 platforms: platformId
             }
         ).exec();
+    },
+
+    getDepartmentDetailsByPlatformObjId: (platformObjId) => {
+        return dbconfig.collection_department.find({
+            platforms: platformObjId,
+            parent: {$exists: true}
+        }).populate({
+            path: "roles",
+            model: dbconfig.collection_role,
+            populate: {
+                path: "users",
+                model: dbconfig.collection_admin
+            }
+        }).then(
+            data => {
+                if (data && data.length > 0) {
+                    return data
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can't find all departments"});
+                }
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Failed to find all departments", error: error});
+            }
+        );
     }
 
 };

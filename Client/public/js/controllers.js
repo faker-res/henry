@@ -359,8 +359,14 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
     $scope.merchantTargetDeviceJson = {
         '1': "clientType_Web",
         '2': "clientType_Application",
-        '3': 'clientType_Both'
+        '3': 'clientType_Both',
+        '4': 'clientType_H5'
     };
+    $scope.userAgentType = {
+        '1': "WEB",
+        '2': "APP",
+        '3': "H5",
+    }
     $scope.constProposalEntryType = {
         0: "ENTRY_TYPE_CLIENT",
         1: "ENTRY_TYPE_ADMIN",
@@ -536,58 +542,65 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
                 return;
             }
 
-            let url = "http://eu.tel400.me/cti/previewcallout.action";//http://101.78.133.213/cti/previewcallout.action";
-            let now = new Date();
-            let formattedNow = $filter('date')(now, "yyyyMMdd");
-            let firstLevelMd5 = convertToMD5(adminData.callerId + "");
-            let password = convertToMD5(firstLevelMd5 + formattedNow);
-            //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
-            let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
+            // let url = "http://eu.tel400.me/cti/previewcallout.action";//http://101.78.133.213/cti/previewcallout.action";
 
-            $.ajax({
-                url: urlWithParams,
-                dataType: "jsonp",
-                type: "get",
-                success: function (e) {
-                    console.log("ok", e);
-                    //{“result”:”1”}
-                    // 1：成功
-                    // -1：失败，入参的参数不合法
-                    // -2：失败，坐席工号不存在
-                    // -3：失败，密码错误
-                    // -4：失败，系统错误
-                    // -5: 失败，URL错误
-                    if (e.result && e.result == "1") {
-                        alert("正在呼叫。。。");
-                    }
-                    else if (e.result && e.result == "-1") {
-                        alert("失败，入参的参数不合法。");
-                    }
-                    else if (e.result && e.result == "-2") {
-                        alert("失败，坐席工号不存在。");
-                    }
-                    else if (e.result && e.result == "-3") {
-                        alert("失败，密码错误。");
-                    }
-                    else if (e.result && e.result == "-4") {
-                        alert("失败，系统错误。");
-                    }
-                    else if (e.result && e.result == "-5") {
-                        alert("失败，URL错误。");
-                    }
-                    else {
-                        alert("失败，Uknown错误。" + e);
-                    }
-                },
-                error: function (e) {
-                    console.log("error", e);
-                    if (e && e.status == 200) {
-                        alert("正在呼叫。。。");
-                    } else {
-                        alert("呼叫超时请重试");
-                    }
+            let urls = ["http://eu.tel400.me/cti/previewcallout.action", "http://jinbailitw.tel400.me/cti/previewcallout.action"];
+
+            urls.forEach(
+                url => {
+                    let now = new Date();
+                    let formattedNow = $filter('date')(now, "yyyyMMdd");
+                    let firstLevelMd5 = convertToMD5(adminData.callerId + "");
+                    let password = convertToMD5(firstLevelMd5 + formattedNow);
+                    //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
+                    let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
+
+                    $.ajax({
+                        url: urlWithParams,
+                        dataType: "jsonp",
+                        type: "get",
+                        success: function (e) {
+                            console.log("ok", e);
+                            //{“result”:”1”}
+                            // 1：成功
+                            // -1：失败，入参的参数不合法
+                            // -2：失败，坐席工号不存在
+                            // -3：失败，密码错误
+                            // -4：失败，系统错误
+                            // -5: 失败，URL错误
+                            if (e.result && e.result == "1") {
+                                alert("正在呼叫。。。");
+                            }
+                            else if (e.result && e.result == "-1") {
+                                alert("失败，入参的参数不合法。");
+                            }
+                            else if (e.result && e.result == "-2") {
+                                alert("失败，坐席工号不存在。");
+                            }
+                            else if (e.result && e.result == "-3") {
+                                alert("失败，密码错误。");
+                            }
+                            else if (e.result && e.result == "-4") {
+                                alert("失败，系统错误。");
+                            }
+                            else if (e.result && e.result == "-5") {
+                                alert("失败，URL错误。");
+                            }
+                            else {
+                                alert("失败，Uknown错误。" + e);
+                            }
+                        },
+                        error: function (e) {
+                            console.log("error", e);
+                            if (e && e.status == 200) {
+                                alert("正在呼叫。。。");
+                            } else {
+                                alert("呼叫超时请重试");
+                            }
+                        }
+                    });
                 }
-            });
+            );
         }
 
         function onFail(error) {

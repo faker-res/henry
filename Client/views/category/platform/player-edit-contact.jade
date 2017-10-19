@@ -50,7 +50,7 @@
                     div.form-group.col-md-7
                         label.control-label {{"RETYPE_QQ" | translate}}
                         input.form-control(type="text", name="repeatqq", placeholder='{{"RETYPE_QQ" | translate}}', ng-model="qqConfirmation", match="modifyCritical.newQQ", required)
-                        span.help-block(ng-show="form_edit_critical_qq.repeatqq.$dirty && form_edit_critical_qq.repeatqq.$error.match"){{"QQ_DO_NOT_MATCH" | translate}}
+                        span.help-block(ng-show="form_edit_critical_qq.repeatqq.$dirty && form_edit_critical_qq.repeatqq.$error.match") {{"QQ_DO_NOT_MATCH" | translate}}
 button.btn.btn-primary.common-button(data-dismiss='dialog',ng-show='modifyCritical.changeType=="email"', ng-disabled='form_edit_critical_email.$invalid || form_edit_critical_email.$pristine', ng-click="submitCriticalUpdate();") {{"CREATE" | translate}}
 button.btn.btn-primary.common-button(data-dismiss='dialog',ng-show='modifyCritical.changeType=="phone"', ng-disabled='form_edit_critical_phone.$invalid || form_edit_critical_phone.$pristine', ng-click="submitCriticalUpdate();") {{"CREATE" | translate}}
 button.btn.btn-primary.common-button(data-dismiss='dialog',ng-show='modifyCritical.changeType=="qq"', ng-disabled='form_edit_critical_qq.$invalid || form_edit_critical_qq.$pristine', ng-click="submitCriticalUpdate();") {{"CREATE" | translate}}

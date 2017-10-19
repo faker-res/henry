@@ -315,7 +315,7 @@ include modalGameCreditLog
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.enableDisablePlayer();") {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
 
-#dialogEditPlayer.dialog-dialog(ng-non-bindable).hidden(style='width:60%;max-width:800px;')
+#dialogEditPlayer.dialog-dialog.hidden(ng-non-bindable style='width:60%;max-width:800px;')
     .dialog-content(style="overflow: scroll;height:600px;")
         .dialog-header
             a.fa.fa-times.close.btn.btn-sm(type='button', data-dismiss='dialog')
@@ -2609,7 +2609,7 @@ include modalGameCreditLog
                                 label {{'WechatPay' | translate}}
                                 select.form-control#wechatpayOption(ng-model='vm.wechatpaysAcc',ng-change='vm.pickWechatPayAcc(vm.wechatpaysAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc', value='{{v}}') {{v.name}}({{v.state | translate}})
+                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc', value='{{v}}') {{v.name}} {{v.accountNumber}} ({{v.state | translate}})
                             .form-group.col-md-6
                                 .control-label
                                 label {{'wechatPayName' | translate}}
