@@ -10175,6 +10175,7 @@ define(['js/app'], function (myApp) {
                 $('.spicker').selectpicker('refresh');
             }, 0);
         };
+
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
                 if (type == 'add') {
                     switch (configType) {
@@ -10186,6 +10187,9 @@ define(['js/app'], function (myApp) {
                             break;
                         case 'WinRatio':
                             vm.playerValueBasic.winRatioScores.push({name: data.name, score: data.score});
+                            break;
+                        case 'gameProviderGroup':
+                            vm.gameProviderGroup.push({name: data.name, providers: data.providers});
                             break;
                     }
                 } else if (type == 'remove') {
@@ -10446,6 +10450,11 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'credibility':
                         vm.prepareCredibilityConfig();
+                        break;
+                    case 'providerGroup':
+                        vm.gameProviderGroup = [];
+                        vm.availableGameProviders = vm.allGameProvider;
+                        vm.providerGroupConfig = {showWarning: false};
                         break;
                 }
             };
@@ -11997,6 +12006,9 @@ define(['js/app'], function (myApp) {
                     case 'promoSMSContent':
                         updatePromoSMSContent();
                         break;
+                    case 'providerGroup':
+                        updateProviderGroup();
+                        break;
                 }
             };
 
@@ -12238,6 +12250,36 @@ define(['js/app'], function (myApp) {
                     vm.loadPlatformData({loadAll: false});
                 });
             }
+
+        function updateProviderGroup() {
+            let totalProviderCount = vm.allGameProvider.length;
+            let localProviderCount = vm.gameProviderGroup.reduce(
+                (a, b) => {
+                    let legnthB = b.providers && b.providers.length || 0;
+                    return a + legnthB;
+                }, 0
+            );
+
+            if (totalProviderCount != localProviderCount) {
+                vm.providerGroupConfig.showWarning = true;
+            }
+            else {
+                vm.providerGroupConfig.showWarning = false;
+                vm.configTableEdit = false;
+            }
+        }
+
+        vm.checkProviderGrouped = (providerId, curCollection) => {
+            let isUsed = false;
+
+            vm.gameProviderGroup.map((e) => {
+                if (e.providers && e.providers.indexOf(String(providerId)) > -1 && (!curCollection || curCollection.indexOf(String(providerId)) < 0)) {
+                    isUsed = true;
+                }
+            });
+
+            return isUsed;
+        };
 
             vm.ensurePlayerLevelOrder = function () {
                 vm.sortPlayerLevels();
