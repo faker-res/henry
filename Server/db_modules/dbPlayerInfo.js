@@ -10002,6 +10002,23 @@ let dbPlayerInfo = {
         let endDate = new Date(query.end);
         let getPlayerProm = Promise.resolve("");
         let result = [];
+        let resultSum = {
+            manualTopUpAmount : 0,
+            weChatTopUpAmount : 0,
+            aliPayTopUpAmount : 0,
+            onlineTopUpAmount : 0,
+            topUpTimes : 0,
+            topUpAmount : 0,
+            bonusTimes : 0,
+            bonusAmount : 0,
+            rewardAmount : 0,
+            consumptionReturnAmount : 0,
+            consumptionTimes : 0,
+            validConsumptionAmount : 0,
+            consumptionBonusAmount : 0,
+            profit : 0,
+            consumptionAmount : 0,
+        };
 
         if (query.name) {
             getPlayerProm = dbconfig.collection_players.findOne({name: query.name}, {_id: 1}).lean();
@@ -10048,9 +10065,29 @@ let dbPlayerInfo = {
                         )
                     );
                 });
+
             }
         ).then(
             () => {
+                //handle sum of field here
+                for (let z = 0; z < result.length; z++) {
+                    resultSum.manualTopUpAmount += result[z].manualTopUpAmount;
+                    resultSum.weChatTopUpAmount += result[z].weChatTopUpAmount;
+                    resultSum.aliPayTopUpAmount += result[z].aliPayTopUpAmount;
+                    resultSum.onlineTopUpAmount += result[z].onlineTopUpAmount;
+                    resultSum.topUpTimes += result[z].topUpTimes;
+                    resultSum.topUpAmount += result[z].topUpAmount;
+                    resultSum.bonusTimes += result[z].bonusTimes;
+                    resultSum.bonusAmount += result[z].bonusAmount;
+                    resultSum.rewardAmount += result[z].rewardAmount;
+                    resultSum.consumptionReturnAmount += result[z].consumptionReturnAmount;
+                    resultSum.consumptionTimes += result[z].consumptionTimes;
+                    resultSum.validConsumptionAmount += result[z].validConsumptionAmount;
+                    resultSum.consumptionBonusAmount += result[z].consumptionBonusAmount;
+                    resultSum.profit += (result[z].consumptionBonusAmount/ result[z].validConsumptionAmount * -100).toFixed(2)/1;
+                    resultSum.consumptionAmount += result[z].consumptionAmount;
+                }
+
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
                     result.sort(function (a, b) {
@@ -10078,7 +10115,7 @@ let dbPlayerInfo = {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
 
-                return {size: result.length, data: outputResult};
+                return {size: result.length, data: outputResult, total: resultSum};
             }
         );
     },
