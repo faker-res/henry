@@ -372,93 +372,138 @@
                     div(style="margin-bottom:5px")
                         input.form-control(type="text", ng-model="vm.spcug", placeholder="Search", ng-change="vm.searchPromoCodeUserGroup(vm.spcug)")
                         br
+                        // Group table
                         table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                             thead
                                 tr
-                                    th(width="40%") {{'GROUP' | translate}}
+                                    th
+                                    th(width="40%") {{'promoCode_Group' | translate}}
                                     th(width="40%") {{'COLOR_CODE' | translate}}
                                     th(width="20%") {{'INLINE_EDIT' | translate}}
                             tbody
                                 // before edit enabled
-                                tr(ng-repeat='config in vm.userGroupConfig', ng-if='!vm.promoCodeUserGroupInlineEdit')
+                                tr(ng-repeat='config in vm.userGroupConfig', ng-if='!vm.promoCodeUserGroupEdit')
+                                    td {{ $index + 1 }}
                                     td(style="background-color:{{config.color}}", ng-click="vm.selectedPromoCodeUserGroup=config;") {{config.name}}
                                     td(style="background-color:{{config.color}}") {{config.color}}
                                     td(style="background-color:{{config.color}}")
-                                        button.btn.btn-primary.common-button(ng-click="vm.promoCodeUserGroupInlineEdit=true")
+                                        button.btn.btn-primary.common-button(ng-click="vm.promoCodeUserGroupEdit=true")
                                             i.fa.fa-pencil-square-o
                                             text {{'EDIT' | translate}}
-                                        button.btn.btn-danger.common-button(ng-click="vm.savePromoCodeUserGroup(true, vm.userGroupConfig[$index]._id); vm.userGroupConfig.splice($index, 1);")
+                                        button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeletePromoCodeUserGroup' ng-click="vm.userGroupConfigDeleteIndex = $index")
                                             i.fa.fa-trash
                                             text {{'DELETE' | translate}}
                                 // after edit enabled
-                                tr(ng-repeat='config in vm.userGroupConfig', ng-if='vm.promoCodeUserGroupInlineEdit')
+                                tr(ng-repeat='config in vm.userGroupConfig', ng-if='vm.promoCodeUserGroupEdit')
+                                    td {{ $index + 1 }}
                                     td(style="background-color:{{config.color}}", ng-click="vm.selectedPromoCodeUserGroup=config;")
-                                        input.form-control(type="text", ng-model="config.name")
+                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="config.name")
                                     td(style="background-color:{{config.color}}")
-                                        input.form-control(colorpicker="rgb", type="text", ng-model="config.color")
+                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", colorpicker="rgb", type="text", ng-model="config.color")
                                     td(style="background-color:{{config.color}}")
-                                        button.btn.btn-success.common-button(ng-click="vm.promoCodeUserGroupInlineEdit=false; vm.savePromoCodeUserGroup();")
+                                        button.btn.btn-success.common-button(ng-click="vm.promoCodeUserGroupEdit=false; vm.savePromoCodeUserGroup();")
                                             i.fa.fa-floppy-o
                                             text {{'SAVE' | translate}}
-                                        button.btn.btn-danger.common-button(ng-click="vm.promoCodeUserGroupInlineEdit=false; vm.savePromoCodeUserGroup();")
+                                        button.btn.btn-danger.common-button(ng-click="vm.promoCodeUserGroupEdit=false")
                                             i.fa.fa-times
                                             text {{'CANCEL' | translate}}
-                                tr(ng-if='vm.promoCodeUserGroupEdit')
-                                    td(colspan="3")
+                                tr(ng-if='vm.promoCodeUserGroupAdd')
+                                    td(colspan="4")
                                         strong {{'ADD_GROUP' | translate}}
-                                tr(ng-if='vm.promoCodeUserGroupEdit')
+                                tr(ng-if='vm.promoCodeUserGroupAdd')
+                                    td {{ 1 }}
                                     td
-                                        input(type='text' , ng-model='vm.newPromoCodeUserGroup.name')
+                                        input(type='text', placeholder="{{'GROUP' | translate}}", ng-model='vm.newPromoCodeUserGroup.name', required)
                                     td
-                                        input(colorpicker="rgb", style="background-color:{{vm.newPromoCodeUserGroup.color}}", type="text", ng-model="vm.newPromoCodeUserGroup.color")
-                                    td(colspan="2")
-                                        i.fa.fa-plus(ng-click='vm.newPromoCodeUserGroup.playerNames = []; vm.userGroupConfig.push(vm.newPromoCodeUserGroup); vm.newPromoCodeUserGroup={};')
+                                        input(colorpicker="rgb", style="background-color:{{vm.newPromoCodeUserGroup.color}}", type="text", placeholder="{{'COLOR_CODE' | translate}}", ng-model="vm.newPromoCodeUserGroup.color", required)
+                                    td(ng-click='vm.newPromoCodeUserGroup.playerNames = []; vm.userGroupConfig.push(vm.newPromoCodeUserGroup); vm.newPromoCodeUserGroup={};')
+                                        i.fa.fa-plus(style="font-size:2em", ng-show='vm.newPromoCodeUserGroup.name && vm.newPromoCodeUserGroup.color')
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if="!vm.promoCodeUserGroupAdd", ng-click='vm.promoCodeUserGroupAdd=!vm.promoCodeUserGroupAdd')
+                            i.fa.fa-plus
+                            text {{'ADD_GROUP' | translate}}
+                        button.btn.btn-danger.common-button(ng-if='vm.promoCodeUserGroupAdd', ng-click='vm.promoCodeUserGroupAdd=!vm.promoCodeUserGroupAdd;')
+                            i.fa.fa-ban
+                            text {{"CANCEL" | translate}}
+                        button.btn.btn-success.common-button(ng-if='vm.promoCodeUserGroupAdd', ng-click='vm.promoCodeUserGroupAdd=!vm.promoCodeUserGroupAdd;vm.savePromoCodeUserGroup()')
+                            i.fa.fa-check
+                            text {{"SAVE" | translate}}
+
+                    div(style="margin-bottom:5px", ng-if="vm.selectedPromoCodeUserGroup")
                         br
-                        table.common-table.playerLvlTable(style='width:auto;min-width:99.9%', ng-if="vm.selectedPromoCodeUserGroup")
+                        br
+                        br
+                        // Player table
+                        table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                             thead
                                 tr
+                                    th(style="background-color:{{vm.selectedPromoCodeUserGroup.color}}")
                                     th(width="80%", style="background-color:{{vm.selectedPromoCodeUserGroup.color}}") {{'PLAYER' | translate}} - {{vm.selectedPromoCodeUserGroup.name}}
                                     th(width="20%", style="background-color:{{vm.selectedPromoCodeUserGroup.color}}") {{'INLINE_EDIT' | translate}}
                             tbody
                                 // before edit enabled
-                                tr(ng-repeat='name in vm.selectedPromoCodeUserGroup.playerNames', ng-if='!vm.promoCodeUserGroupPlayerEdit')
-                                    td {{name}}
-                                    td
+                                tr(ng-repeat='playerName in vm.selectedPromoCodeUserGroup.playerNames', ng-if='!vm.promoCodeUserGroupPlayerEdit')
+                                    td {{ $index + 1 }}
+                                    td(ng-if="$odd" style="background-color:#ddd") {{playerName}}
+                                    td(ng-if="$even") {{playerName}}
+                                    td(ng-if="$odd" style="background-color:#ddd")
                                         button.btn.btn-primary.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=true")
                                             i.fa.fa-pencil-square-o
                                             text {{'EDIT' | translate}}
-                                        button.btn.btn-danger.common-button(ng-click="vm.selectedPromoCodeUserGroup.playerNames.splice($index, 1)")
+                                        button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeletePromoCodeUserGroupPlayer' ng-click="vm.PlayerDeleteIndex = $index; vm.promoCodeUserGroupPlayerAdd=null; vm.promoCodeUserGroupPlayerAdd=!vm.promoCodeUserGroupPlayerAdd")
+                                            i.fa.fa-trash
+                                            text {{'DELETE' | translate}}
+                                    td(ng-if="$even")
+                                        button.btn.btn-primary.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=true")
+                                            i.fa.fa-pencil-square-o
+                                            text {{'EDIT' | translate}}
+                                        button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeletePromoCodeUserGroupPlayer' ng-click="vm.PlayerDeleteIndex = $index; vm.promoCodeUserGroupPlayerAdd=null; vm.promoCodeUserGroupPlayerAdd=!vm.promoCodeUserGroupPlayerAdd")
                                             i.fa.fa-trash
                                             text {{'DELETE' | translate}}
                                 // after edit enabled
-                                tr(ng-repeat='name in vm.selectedPromoCodeUserGroup.playerNames', ng-if='vm.promoCodeUserGroupPlayerEdit')
-                                    td
-                                        input.form-control(type="text", ng-model="vm.selectedPromoCodeUserGroup.playerNames[$index]")
-                                    td
+                                tr(ng-repeat='playerName in vm.selectedPromoCodeUserGroup.playerNames', ng-if='vm.promoCodeUserGroupPlayerEdit')
+                                    td {{ $index + 1 }}
+                                    td(ng-if="$odd" style="background-color:#ddd")
+                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="playerName")
+                                    td(ng-if="$even")
+                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="playerName")
+                                    td(ng-if="$odd" style="background-color:#ddd")
                                         button.btn.btn-success.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false; vm.savePromoCodeUserGroup();")
                                             i.fa.fa-floppy-o
                                             text {{'SAVE' | translate}}
-                                        button.btn.btn-danger.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false; vm.savePromoCodeUserGroup();")
+                                        button.btn.btn-danger.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false")
                                             i.fa.fa-times
                                             text {{'CANCEL' | translate}}
-                                tr(ng-if='vm.promoCodeUserGroupEdit')
-                                    td(colspan=2)
+                                    td(ng-if="$even")
+                                        button.btn.btn-success.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false; vm.savePromoCodeUserGroup();")
+                                            i.fa.fa-floppy-o
+                                            text {{'SAVE' | translate}}
+                                        button.btn.btn-danger.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false")
+                                            i.fa.fa-times
+                                            text {{'CANCEL' | translate}}
+                                tr(ng-if='vm.promoCodeUserGroupPlayerAdd')
+                                    td(colspan="3")
                                         strong {{'ADD_PLAYER' | translate}}
-                                tr(ng-if='vm.promoCodeUserGroupEdit')
+                                tr(ng-if='vm.promoCodeUserGroupPlayerAdd')
+                                    td {{ 1 }}
                                     td
-                                        textarea(ng-model='vm.newUserPromoCodeUserGroup.name')
-                                    td
-                                        i.fa.fa-plus(ng-click='vm.addUserToPromoCodeGroup(vm.newUserPromoCodeUserGroup.name);')
-                    .pull-right
-                        button.btn.btn-primary.common-button(ng-if="!vm.promoCodeUserGroupEdit", ng-click='vm.promoCodeUserGroupEdit=!vm.promoCodeUserGroupEdit')
-                            text {{'EDIT' | translate}}
-                            img.img-edit
-                        button.btn.btn-danger.common-button(ng-if='vm.promoCodeUserGroupEdit', ng-click='vm.promoCodeUserGroupEdit=!vm.promoCodeUserGroupEdit;') {{"CANCEL" | translate}}
-                        button.btn.btn-primary.common-button(ng-if='vm.promoCodeUserGroupEdit', ng-click='vm.promoCodeUserGroupEdit=!vm.promoCodeUserGroupEdit;vm.savePromoCodeUserGroup()') {{"CONFIRM" | translate}}
+                                        textarea(rows='4', placeholder="{{'PLAYER' | translate}} 1\n{{'PLAYER' | translate}} 2\n{{'PLAYER' | translate}} 3..", ng-model='vm.newUserPromoCodeUserGroup.name', required)
+                                    td(ng-click='vm.addUserToPromoCodeGroup(vm.newUserPromoCodeUserGroup.name);')
+                                        i.fa.fa-plus(style="font-size:3em", ng-show='vm.newUserPromoCodeUserGroup.name')
+                    .pull-right(ng-if="vm.selectedPromoCodeUserGroup")
+                        button.btn.btn-primary.common-button(ng-if="!vm.promoCodeUserGroupPlayerAdd", ng-click='vm.promoCodeUserGroupPlayerAdd=!vm.promoCodeUserGroupPlayerAdd')
+                            i.fa.fa-plus
+                            text {{'ADD_PLAYER' | translate}}
+                        button.btn.btn-danger.common-button(ng-if='vm.promoCodeUserGroupPlayerAdd', ng-click='vm.promoCodeUserGroupPlayerAdd=!vm.promoCodeUserGroupPlayerAdd;')
+                            i.fa.fa-ban
+                            text {{"CANCEL" | translate}}
+                        button.btn.btn-success.common-button(ng-if='vm.promoCodeUserGroupPlayerAdd', ng-click='vm.promoCodeUserGroupPlayerAdd=!vm.promoCodeUserGroupPlayerAdd;vm.savePromoCodeUserGroup()')
+                            i.fa.fa-check
+                            text {{"SAVE" | translate}}
 
                 // Tab - Activate Promo Code
                 div(ng-if='vm.selectedPromoCodeTab=="activatePromoCode" && checkViewPermission("Platform", "promoCode", "activatePromoCode")')
-                    label {{"SET_PROMO_CODE_FLAG" | tramslate}}
+                    label {{"SET_PROMO_CODE_FLAG" | translate}}
                     .pull-right
                         button.btn.btn-primary.common-button(ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("validActive")') {{"SET" | translate}}
 
@@ -515,3 +560,49 @@
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.modalYesNo.actionYes()") {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalDeletePromoCodeUserGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE_GROUP" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"Are you sure you want to delete group"|translate}}
+                                    strong.text-danger &nbsp;{{vm.userGroupConfig[vm.userGroupConfigDeleteIndex].name}}
+                                    label ?
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.savePromoCodeUserGroup(true, vm.userGroupConfig[vm.userGroupConfigDeleteIndex]._id); vm.userGroupConfig.splice(vm.userGroupConfigDeleteIndex, 1);")
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal')
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}
+
+#modalDeletePromoCodeUserGroupPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE_PLAYER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"Are you sure you want to delete player"|translate}}
+                                    strong.text-danger &nbsp;{{vm.selectedPromoCodeUserGroup.playerNames[vm.PlayerDeleteIndex]}}
+                                    label ?
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.selectedPromoCodeUserGroup.playerNames.splice(vm.PlayerDeleteIndex, 1)")
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                bbutton.btn.btn-danger.common-button(data-dismiss='modal')
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}

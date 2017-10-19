@@ -57,12 +57,20 @@ let dbCsOfficer = {
         return dbconfig.collection_csOfficerUrl.find({platform: platformId}).lean();
     },
 
+    searchUrl: (platform, domain, admin, way) => {
+        let query = {platform: ObjectId(platform)};
+        domain ? query.domain = new RegExp('.*' + domain + '.*') : "";
+        admin ? query.admin = admin : "";
+        way ? query.way = way : "";
+        return dbconfig.collection_csOfficerUrl.find(query).lean();
+    },
+
     updateUrl: (urlId, domain, admin, way) => {
         return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way}).lean();
     },
 
     deleteUrl: (urlId) => {
-        return dbconfig.collection_csOfficerUrl.findOneAndDelete({_id: urlId}).lean();
+        return dbconfig.collection_csOfficerUrl.remove({_id: urlId});
     },
 
 };

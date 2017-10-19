@@ -228,7 +228,36 @@ angular.module('myApp.directives', [])
     };
   })
 
-  .directive('ezNormalButton', function () {
+  .directive('bsp', function($timeout){
+      return  {
+          restrict : 'A',
+          link: function(scope, element, attrs){
+              if (attrs.ngOptions && / in /.test(attrs.ngOptions)) {
+                  scope.$watch(attrs.ngOptions.split(' in ')[1], function() {
+                      scope.$applyAsync(function () {
+                          $(element).selectpicker('refresh');
+                      });
+                  }, true);
+              }
+          }
+      };
+  })
+
+  .directive('rddl', function($timeout){
+      return  {
+          restrict : 'A',
+          link: function(scope, element, attrs){
+              if (attrs.ngModel){
+                  scope.$watch(attrs.ngModel,function(){
+                      $(element).selectpicker('destroy');
+                      $(element).selectpicker();
+                  },true)
+              }
+          }
+      };
+  })
+
+    .directive('ezNormalButton', function () {
     return {
       restrict: 'E',
       replace: true,

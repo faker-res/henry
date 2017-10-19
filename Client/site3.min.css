@@ -3746,6 +3746,10 @@ input[type='number'].leftALignNumber {
     border: 1px solid #337AB7;
     border-bottom: none;
 }
+
+.text-disabled{
+    color: red;
+}
 .navbar-right {
     padding-right: 10px !important;
 }

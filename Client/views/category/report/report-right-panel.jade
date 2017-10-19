@@ -8,13 +8,12 @@
     .panel-body
         div(ng-if='vm.showPageName=="TOPUP_REPORT"')
             #topUpReportQuery.block-query.col-md-12.well
-                div
+                //div
                     label &nbsp;
                     button.btn.btn-primary(ng-click='vm.resetTopupRecord()') {{'Reset' | translate}}
-                div
-                    label {{'STATUS' | translate}}
-                    select.form-control(ng-model='vm.queryTopup.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList')
-                        option(value='') {{'any' | translate}}
+                div(style='max-width:125px')
+                    label {{'PLAYER_NAME' | translate}}
+                    input.form-control(type='text', ng-model='vm.queryTopup.playerName')
                 div(style='max-width:125px')
                     label {{'Proposal No' | translate}}
                     input.form-control(type='text', ng-model='vm.queryTopup.proposalID')
@@ -23,7 +22,15 @@
                     select.form-control(ng-model='vm.queryTopup.mainTopupType', required)
                         option(value='') {{"any" | translate}}
                         option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{"TOPUP"+i | translate}}
-                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:180px')
+                div(style='max-width:125px')
+                    label {{'DEVICE' | translate}}
+                    select.form-control(ng-model='vm.queryTopup.userAgent', required)
+                        option(value='') {{"any" | translate}}
+                        option(value='1') WEB
+                        option(value='2') APP
+                        option(value='3') H5
+
+                div(style='max-width:180px')
                     label {{'Online Topup Type' | translate}}
                     select.form-control(ng-model='vm.queryTopup.topupType')
                         option(value='') {{'any' | translate}}
@@ -34,31 +41,31 @@
                         option(value='5') 支付宝App支付(AlipayApp)
                         option(value='6') 快捷支付(FASTPAY)
                         option(value='7') QQ扫码(QQPAYQR)
-                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
-                    label {{'Merchant Group' | translate}}
+                div(style='max-width:125px')
+                    label {{'3rd Party Platform' | translate}}
                     select.form-control(ng-model='vm.queryTopup.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroupObj')
                         option(value='') {{'any' | translate}}
-                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
-                    label {{'Merchant No' | translate}}
-                    select.form-control(ng-model='vm.queryTopup.merchantNo',ng-options='mer.merchantNo as mer.name for mer in vm.merchantNoList')
-                        option(value='') {{'any' | translate}}
-                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
-                    label {{'DINGDAN_ID' | translate}}
-                    input.form-control(type='text', ng-model='vm.queryTopup.dingdanID')
-                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="1"',style='max-width:125px')
-                    label {{'depositMethod' | translate}}
+                div(style='max-width:125px')
+                    label {{'DEPOSIT_METHOD' | translate}}
                     select.form-control(ng-model='vm.queryTopup.depositMethod')
                         option(value='') {{'any' | translate}}
                         option(value='1') 网银转账(OnlineTransfer)
                         option(value='2') 自动取款机(ATM)
-                        option(value='3') 柜台存款(Counter)
-                //div(style='max-width:100px')
-                //    label {{'Merchant' | translate}}
-                //    select.form-control(ng-model='vm.queryTopup.merchant', ng-options='a.merchantTypeId as a.showStr for a in vm.allMerchantsArr')
-                //        option(value='') {{'any' | translate}}
-                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
-                    label {{'PLAYER_NAME' | translate}}
-                    input.form-control(type='text', ng-model='vm.queryTopup.playerName')
+                        option(value='3') 银行柜台(Counter)
+                div
+                    label 收款银行类别
+                    select.form-control(ng-model='vm.queryTopup.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList')
+                        option(value='') {{'any' | translate}}
+                div(style='max-width:125px')
+                    label {{'Merchant No' | translate}}
+                    select.form-control.merchantNoList( ng-model='vm.queryTopup.merchantNo', ng-options='a.merchantNo as a.name group by a.merchantTypeName for a in vm.merchantNoList' , multiple, bsp)
+                        //option(value='') {{'any' | translate}}
+                        //option(ng-repeat='(i,v) in vm.merchantNoList' ,ng-init='$last && vm.initMultiSelect()', value='{{v.merchantNo}}') {{v.name}}
+                        //option()
+                div
+                    label {{'STATUS' | translate}}
+                    select.form-control(ng-model='vm.queryTopup.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList')
+                        option(value='') {{'any' | translate}}
                 div
                     label.control-label {{'Start date' | translate}}
                     .startTime
@@ -326,6 +333,92 @@
                 .penal_body
                     table#detailDomainPlayerTable.common-table.display(style='min-width:100%')
                     #detailDomainPlayerTablePage
+
+        div(ng-if='vm.showPageName=="DX_NEWACCOUNT_REPORT"')
+            #dxNewPlayerReportQuery.block-query.col-md-12.well
+                div
+                    label {{"USER TYPE"|translate}}
+                    select.form-control(ng-model='vm.dxNewPlayerQuery.userType', style='max-width:300px')
+                        option(value='') {{'all' | translate}}
+                        option(value='1') {{'NON_PARTNER' | translate}}
+                        option(value='2') {{'WITH_PARTNER' | translate}}
+                div
+                    label {{'REGISTRATION_TIME_START' | translate}}
+                    .startTime
+                div
+                    label {{'REGISTRATION_TIME_END' | translate}}
+                    .endTime
+                div
+                    label {{"ACCUMULATE_DAYS" | translate}}
+                    input.form-control.span.input-sm(type="Number" ng-model="vm.dxNewPlayerQuery.days")
+                div
+                    label {{"csPromoteWay"|translate}}
+                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.csPromoteWay', multiple, data-actions-box='true')
+                        option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
+                div
+                    label {{"REGISTRATION_DEPARTMENT"|translate}}
+                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.departments', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryRole()")
+                        option(ng-repeat='(i,v) in vm.queryDepartments', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.departmentName}}
+                div
+                    label {{"REGISTRATION_ROLE"|translate}}
+                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.roles', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryAdmins()")
+                        option(ng-repeat='(i,v) in vm.queryRoles', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.roleName}}
+                div
+                    label {{"REGISTRATION_ADMIN"|translate}}
+                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.admins', multiple, data-actions-box='true' data-width="200px")
+                        option(ng-repeat='(i,v) in vm.queryAdmins', value='{{v.adminName}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
+                div
+                    label {{"PlayerValue"|translate}}
+                    select.form-control(ng-model="vm.dxNewPlayerQuery.valueScoreOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.playerScoreValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.dxNewPlayerQuery.valueScoreOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.playerScoreValueTwo" style="width:80px;display:inline-block" ng-if="vm.dxNewPlayerQuery.valueScoreOperator === 'range'")
+                div
+                    label {{"TOP_UP_TIMES"|translate}}
+                    select.form-control(ng-model="vm.dxNewPlayerQuery.topUpTimesOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.topUpTimesValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.dxNewPlayerQuery.topUpTimesOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.topUpTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.dxNewPlayerQuery.topUpTimesOperator === 'range'")
+                div
+                    label {{"BonusTime"|translate}}
+                    select.form-control(ng-model="vm.dxNewPlayerQuery.bonusTimesOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.bonusTimesValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.dxNewPlayerQuery.bonusTimesOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.bonusTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.dxNewPlayerQuery.bonusTimesOperator === 'range'")
+                div
+                    label {{"TOTAL_TOP_UP"|translate}}
+                    select.form-control(ng-model="vm.dxNewPlayerQuery.topUpAmountOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.topUpAmountValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.dxNewPlayerQuery.topUpAmountOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.topUpAmountValueTwo" style="width:80px;display:inline-block" ng-if="vm.dxNewPlayerQuery.topUpAmountOperator === 'range'")
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchDXNewPlayerReport(true)') {{'SEARCH' | translate}}
+                    span#dxNewPlayerReportTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.dxNewPlayerQuery.totalCount}} {{"records" | translate}}
+            table.common-table#dxNewPlayerReportTable.display(style="width:100% ;overflow-x: scroll")
 
         div(ng-if='vm.showPageName=="PLAYERPARTNER_REPORT"')
             #playerPartnerReportQuery.block-query.col-md-12.well
@@ -728,11 +821,14 @@
                     label {{'playerName' | translate}}
                     input.form-control(type='text', ng-model='vm.limitedOfferQuery.playerName')
                 div
-                    label {{'TITLE' | translate}}
+                    label {{'promoName' | translate}}
                     input.form-control(type='text', ng-model='vm.limitedOfferQuery.promoName')
                 div
                     label {{'Status' | translate}}
                     select.form-control(ng-model='vm.limitedOfferQuery.status')
+                        option(value='online') {{"TOPUPONLINE" | translate }}
+                        option(value='manual') {{"TOPUPMANUAL" | translate }}
+                        option(value='bonus') {{"Bonus" | translate }}
                 div
                     label {{"Start date"|translate}}
                     .startTime
@@ -769,6 +865,51 @@
                         td {{el.data.rewardProposalId}}
                         td {{el.data.rewardProposalId ? el.data.rewardAmount : ""}}
                         td {{el.data.spendingAmount}}
+
+#modalProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span
+                    ul.nav.nav-tabs
+                        li
+                            label {{vm.selectedProposal.type.name | translate}}
+                        li.active
+                            a(data-toggle="tab", href="#ProposalDetail", ng-click="")
+                                .fa.fa-user
+                                | {{ 'DETAIL' | translate }}
+                        li(ng-if='vm.chartData')
+                            a(data-toggle="tab", href="#Workflow", ng-click="")
+                                .fa.fa-user
+                                | {{ 'WORKFLOW' | translate }}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            #ProposalDetail.tab-pane.fade.in.active
+                                include ./proposal-dialog-detail
+                            #Workflow.tab-pane.fade(mouse-capture, style="max-height:600px;overflow-y:auto")
+                                flow-chart#flowChart(style='width: 100%; height: 550px;overflow:auto;', chart='vm.chartViewModel')
+            .modal-footer
+                .inlineBlk(ng-show='vm.selectedProposal.isLocked && !vm.selectedProposal.showUnlockBtn')
+                    label.form-control {{'Lock Status' | translate}} : {{vm.selectedProposal.isLocked.adminName}}
+                .inlineBlk(ng-show='!vm.selectedProposal.isLocked || vm.selectedProposal.showUnlockBtn')
+                    button.btn.btn-success.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","ApproveProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, true)") {{"APPROVE" | translate}}
+                    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, false)") {{"REJECT" | translate}}
+                button.btn.btn-warning.common-button(ng-if='vm.selectedProposal.showCancel', ng-click="vm.submitCancelProposal(vm.selectedProposal)") {{"Cancel Proposal" | translate}}
+                .inlineBlk(ng-if='vm.selectedProposal.cancelling')
+                    label {{'Cancelling Proposal' | translate}}
+                    i.fa.fa-spin.fa-2x.fa-spinner
+                label.inlineBlk(ng-if='vm.selectedProposal.cancelled') {{"Cancel" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
+                button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
+                label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
+                .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
+                    label.inlineBlk {{'remark' | translate}}
+                    input#proposalRemark.inlineBlk.proposalRemark.form-control(style='width:400px;')
+
+
 
 include ../common-widget/telephone-popover
 script(src='js/lib/flot/jquery.flot.min.js')
