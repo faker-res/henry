@@ -34,7 +34,7 @@
                 label {{"ADD_PHONE_NUMBER_FILTER" | translate}}
             .panel-body
                 label {{"ADD_PHONE_NUMBER_FILTER_INSTRUCTION" | translate}}
-                textarea.form-control(rows='5', ng-model="phoneNumList")
+                textarea.form-control(rows='5', placeholder="14444444444, 15555555555, 16666666666", ng-model="phoneNumList")
                 br
                 .pull-right
                     button.btn.btn-primary.common-button(ng-click="vm.phoneNumListResult=!vm.phoneNumListResult")
