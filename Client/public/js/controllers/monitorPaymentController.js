@@ -36,7 +36,7 @@ define(['js/app'], function (myApp) {
         vm.topUpField = {
           "ManualPlayerTopUp": 'bankCardNo',
           "PlayerAlipayTopUp": 'alipayAccount',
-          "PlayerWechatTopUp": 'weChatAccount',
+          "PlayerWechatTopUp": 'wechatAccount',
           "PlayerTopUp": 'merchantNo'
         }
         vm.seleDataType = {};
@@ -217,7 +217,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
             }
           }else if(typeName=="PlayerWechatTopUp"){
-            let　merchantNo = vm.selectedProposal.data.weChatAccount;
+            let　merchantNo = vm.selectedProposal.data.wechatAccount;
             if(merchantNo && vm.allWechatpaysAcc.length > 0){
                 vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'-', quota:'-'};
             }else{
@@ -295,6 +295,7 @@ define(['js/app'], function (myApp) {
               index: 0
           }
           sendData.status = ["Success"];
+          vm.selectedProposal.cardSumToday = 0;
           socketService.$socket($scope.AppSocket, 'getProposalAmountSum', sendData, function (data) {
               if(data.data.length>0){
                  vm.selectedProposal.cardSumToday = data.data[0].totalAmount||0;
@@ -384,8 +385,8 @@ define(['js/app'], function (myApp) {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.merchantNo$ = item.data.merchantNo
                             ? item.data.merchantNo
-                            : item.data.weChatAccount
-                            ? item.data.weChatAccount
+                            : item.data.wechatAccount
+                            ? item.data.wechatAccount
                             : item.data.alipayAccount
                             ? item.data.alipayAccount
                             : item.data.bankCardNo
@@ -418,7 +419,8 @@ define(['js/app'], function (myApp) {
                             item.topupTypeStr = $translate(item.type.name)
                         }
                         item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
-                        item.endTime$ = item.data.lastSettleTime ? utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) : "-";
+                        //item.endTime$ = item.data.lastSettleTime ? utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) : "-";
+                        item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) || '-';
                           // $('.merchantNoList').selectpicker('refresh');
                         return item;
                     }), data.data.size, {}, isNewSearch

@@ -1489,8 +1489,8 @@
   "PartnerBonus": "代理提款",
   "GAME_ID": "游戏ID",
   "PlayerLevelUp": "升级奖励",
-  "Online": "在线",
-  "Counter": "柜台",
+  "Online": "网银转账",
+  "Counter": "银行柜台",
   "topupOnline": "在线充值",
   "Online Topup Type": "在线充值类型",
   "topupManualtopupManual": "手工存款",
@@ -2489,5 +2489,7 @@
   "Duration": "用时",
   "Delay Status": "延迟状态",
   "Game Type": "游戏平台",
-  "Latest Recorded Time": "当前收录到的最大时间"
+  "Latest Recorded Time": "当前收录到的最大时间",
+  "userAgent": "装置",
+  "LastSettlementTime":"执行时间"
 }

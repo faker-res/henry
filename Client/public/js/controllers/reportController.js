@@ -50,7 +50,7 @@ define(['js/app'], function (myApp) {
         vm.topUpField = {
           "ManualPlayerTopUp": 'bankCardNo',
           "PlayerAlipayTopUp": 'alipayAccount',
-          "PlayerWechatTopUp": 'weChatAccount',
+          "PlayerWechatTopUp": 'wechatAccount',
           "PlayerTopUp": 'merchantNo'
         }
 
@@ -119,30 +119,30 @@ define(['js/app'], function (myApp) {
             if(typeName=='ManualPlayerTopUp'){
               let bankCardNo = vm.selectedProposal.data.bankCardNo;
               if(bankCardNo && vm.bankCards.length > 0){
-                  vm.selectedProposal.card = vm.bankCards.filter(item=>{ return item.accountNumber == bankCardNo })[0] ||  {singleLimit:'-', quota:'-'};
+                  vm.selectedProposal.card = vm.bankCards.filter(item=>{ return item.accountNumber == bankCardNo })[0] ||  {singleLimit:'0', quota:'0'};
               }else{
-                  vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
+                  vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
               }
             }else if(typeName=="PlayerAlipayTopUp"){
               let　merchantNo = vm.selectedProposal.data.alipayAccount;
               if(merchantNo && vm.allAlipaysAcc.length > 0){
-                  vm.selectedProposal.card = vm.allAlipaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'-', quota:'-'};
+                  vm.selectedProposal.card = vm.allAlipaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
               }else{
-                  vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
+                  vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
               }
             }else if(typeName=="PlayerWechatTopUp"){
-              let　merchantNo = vm.selectedProposal.data.weChatAccount;
+              let　merchantNo = vm.selectedProposal.data.wechatAccount;
               if(merchantNo && vm.allWechatpaysAcc.length > 0){
-                  vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'-', quota:'-'};
+                  vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
               }else{
-                  vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
+                  vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
               }
             }else if(typeName=="PlayerTopUp"){
               let　merchantNo = vm.selectedProposal.data.merchantNo;
               if(merchantNo && vm.merchantLists.length > 0){
-                  vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'-', quota:'-'};
+                  vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
               }else{
-                  vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
+                  vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
               }
             }
             $scope.safeApply();
@@ -207,6 +207,7 @@ define(['js/app'], function (myApp) {
               index: 0
           }
           sendData.status = ["Success"];
+          vm.selectedProposal.cardSumToday = 0;
           socketService.$socket($scope.AppSocket, 'getProposalAmountSum', sendData, function (data) {
                console.log(data.data.data);
                if(data.data.length>0){
@@ -1408,8 +1409,8 @@ define(['js/app'], function (myApp) {
                         item.merchantName = vm.getMerchantName(item.data.merchantNo);
                         item.merchantNo$ = item.data.merchantNo != null
                             ? item.data.merchantNo
-                            : item.data.weChatAccount != null
-                            ? item.data.weChatAccount
+                            : item.data.wechatAccount != null
+                            ? item.data.wechatAccount
                             : item.data.alipayAccount != null
                             ? item.data.alipayAccount
                             : null;

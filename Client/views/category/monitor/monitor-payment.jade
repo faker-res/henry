@@ -41,7 +41,7 @@ div
                 option(value='') {{'any' | translate}}
                 option(value='1') 网银转账(OnlineTransfer)
                 option(value='2') 自动取款机(ATM)
-                option(value='3') 柜台存款(Counter)
+                option(value='3') 银行柜台(Counter)
         div
             label 收款银行类别
             select.form-control(ng-model='vm.paymentMonitorQuery.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList')
