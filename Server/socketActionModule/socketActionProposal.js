@@ -382,7 +382,11 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(data && data.proposalId && data.orderStatus);
             socketUtil.emitter(self.socket, dbProposal.setBonusProposalStatus, [data.proposalId, data.orderStatus, data.remark], actionName, isValidData);
         },
-
+        getProposalAmountSum: function getProposalAmountSum(data){
+          var actionName = arguments.callee.name;
+          var isValidData = Boolean(data);
+          socketUtil.emitter(self.socket, dbProposal.getProposalAmountSum, [data, data.index, data.limit], actionName, isValidData);
+        },
         getPaymentMonitorResult: function getPaymentMonitorResult(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId);

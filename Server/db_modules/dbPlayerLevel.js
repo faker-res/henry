@@ -267,17 +267,22 @@ let dbPlayerLevelInfo = {
                         }
                     ).then(
                         proposalTypeData => {
-                            return dbconfig.collection_proposal.findOne({
-                                'data.playerObjId': {$in: [ObjectId(playerData._id), String(playerData._id)]},
-                                'data.platformObjId': {$in: [ObjectId(playerData.platform), String(playerData.platform)]},
-                                'data.levelValue': levelUpObj.value,
-                                type: proposalTypeData._id,
-                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                            }).lean();
+                            // check if player has level up to this level previously
+                            if (upOrDown) {
+                                return dbconfig.collection_proposal.findOne({
+                                    'data.playerObjId': {$in: [ObjectId(playerData._id), String(playerData._id)]},
+                                    'data.platformObjId': {$in: [ObjectId(playerData.platform), String(playerData.platform)]},
+                                    'data.levelValue': levelUpObj.value,
+                                    type: proposalTypeData._id,
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                }).lean();
+                            }
                         }
                     ).then(
                         rewardProp => {
-                            if (!rewardProp) {
+                            if (upOrDown && !rewardProp) {
+                                // if this is level up and player has not reach this level before
+                                // create level up reward proposal
                                 if (levelUpObj && levelUpObj.reward && levelUpObj.reward.bonusCredit) {
                                     proposalData.rewardAmount = levelUpObj.reward.bonusCredit;
                                     proposalData.isRewardTask = levelUpObj.reward.isRewardTask;
