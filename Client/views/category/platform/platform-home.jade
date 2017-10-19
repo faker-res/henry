@@ -123,6 +123,10 @@
                             a.common-tab(data-toggle="tab", href="#registrationUrlConfig", ng-click="vm.platformPageName='RegistrationUrlConfig';vm.updatePageTile();vm.initPlatformOfficer();")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"RegistrationUrlConfig" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'phoneNumFilter','Read')")
+                            a.common-tab(data-toggle="tab", href="#phoneNumFilter", ng-click="vm.platformPageName='phoneNumFilter';vm.updatePageTile();vm.initPhoneNumFilter();")
+                                .fa.fa-phone.margin-right-5
+                                text.span {{"phoneNumFilter" | translate}}
                         //li
                             a.common-tab(ng-show="checkViewPermission('Platform', 'BankCardGroup', 'Read')",data-toggle="tab", href="#bankCardGroup", ng-click="vm.bankCardGroupTabClicked();vm.platformPageName='bankCardGroup';vm.updatePageTile();")
                                 .fa.fa-credit-card.margin-right-5
@@ -173,6 +177,8 @@
                             include ./platform-promo-code
                         #registrationUrlConfig.tab-pane.fade
                             include platform-registrationUrl-config
+                        #phoneNumFilter.tab-pane.fade
+                            include ./platform-phone-num-filter
                             //ui-view
                         //#bankCardGroup.tab-pane.fade
                             include ./platform-bankCardGroup

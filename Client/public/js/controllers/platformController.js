@@ -444,6 +444,7 @@ define(['js/app'], function (myApp) {
                         vm.loadQuickPayGroupData();
                         vm.getPlatformAnnouncements();
                         vm.promoCodeTabClicked();
+                        vm.phoneNumFilterClicked();
                         //     break;
                         // }
                         $scope.safeApply();
@@ -11600,6 +11601,10 @@ define(['js/app'], function (myApp) {
                 setTimeout(function () {
                     $('#newPlayerLevelFirstInput').focus();
                 }, 1);
+            };
+
+            vm.phoneNumFilterClicked = function () {
+                vm.phoneNumListResult = false;
             };
             // player level codes==============end===============================
 

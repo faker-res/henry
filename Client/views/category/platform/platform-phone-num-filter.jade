@@ -1,0 +1,48 @@
+.row
+    .col-md-3
+        .panel.panel-primary
+            .panel-heading
+                .fa.fa-file-text.margin-right-5
+                label {{"SUPPORTED_FILE_FORMAT" | translate}}:
+                |  .csv
+            .panel-body
+                input#fileSelect(type='file', accept='.csv')
+                br
+                .pull-right
+                    button.btn.btn-primary.common-button
+                        i.fa.fa-check
+                        text {{"SUBMIT" | translate}}
+
+    .col-md-3
+        .panel.panel-primary
+            .panel-heading
+                .fa.fa-file-text.margin-right-5
+                label {{"SUPPORTED_FILE_FORMAT" | translate}}:
+                |  .txt
+            .panel-body
+                input#fileSelect(type='file', accept='text/plain')
+                br
+                .pull-right
+                    button.btn.btn-primary.common-button
+                        i.fa.fa-check
+                        text {{"SUBMIT" | translate}}
+
+    .col-md-6
+        .panel.panel-primary
+            .panel-heading
+                .fa.fa-phone.margin-right-5
+                label {{"ADD_PHONE_NUMBER_FILTER" | translate}}
+            .panel-body
+                label {{"ADD_PHONE_NUMBER_FILTER_INSTRUCTION" | translate}}
+                textarea.form-control(rows='5', ng-model="phoneNumList")
+                br
+                .pull-right
+                    button.btn.btn-primary.common-button(ng-click="vm.phoneNumListResult=!vm.phoneNumListResult")
+                        i.fa.fa-check
+                        text {{"SUBMIT" | translate}}
+                // display result
+                div(ng-if="vm.phoneNumListResult")
+                    br
+                    label {{"RESULT" | translate}}:
+                    .well
+                        p RESULT HERE
