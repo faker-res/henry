@@ -162,9 +162,10 @@ define(['js/app'], function (myApp) {
             });
 
             vm.getProviderLatestTimeRecord = function () {
-                console.log("should show twice")
                 vm.providerLatestTime = {};
                 vm.delayStatus = {};
+                vm.longestDelayDate = new Date().toString();
+                vm.longestDelayStatus = "rgb(0,180,0)";
 
                 let counter = 1;
 
@@ -176,6 +177,12 @@ define(['js/app'], function (myApp) {
                             console.log('getPlatformProviderTime', providerId.providerId, data);
 
                             if(data.data){
+                                if(data.data.createTime < vm.longestDelayDate)
+                                {
+                                    vm.longestDelayDate = data.data.createTime
+                                    vm.longestDelayStatus = data.data.delayStatusColor;
+                                }
+
                                 vm.providerLatestTime[counter] = vm.dateReformat(data.data.createTime);
                                 vm.delayStatus[counter] = data.data.delayStatusColor;
                             }
@@ -190,7 +197,7 @@ define(['js/app'], function (myApp) {
                     })
                 })
                 return p;
-            }
+            };
 
             vm.setPlatformFooter = function(platformAction) {
                 vm.platformAction = platformAction;
@@ -1858,6 +1865,9 @@ define(['js/app'], function (myApp) {
                     $.each(vm.platformPaymentChList, function (i, v) {
                         vm.paymentListCheck[v._id] = true;
                     })
+
+                    //provider delay status init
+                    vm.getProviderLatestTimeRecord();
                     $scope.safeApply();
                 })
             };
@@ -6792,8 +6802,9 @@ define(['js/app'], function (myApp) {
                     "providerId": vm.gameCreditLog.query.status || "41",
                     "startDate": vm.gameCreditLog.query.startTime.data('datetimepicker').getLocalDate(),
                     "endDate": vm.gameCreditLog.query.endTime.data('datetimepicker').getLocalDate(),
-                    "page": newSearch ? "1" : "1",
+                    "page": newSearch ? "1" : vm.gameCreditLog.pageObj.curPage,
                     "platformId": vm.selectedPlatform.data.platformId,
+                    "pageSize": vm.gameCreditLog.pageObj.pageSize
                 };
                 requestData.startDate = $filter('date')(requestData.startDate, 'yyyy-MM-dd HH:mm:ss');
                 requestData.endDate = $filter('date')(requestData.endDate, 'yyyy-MM-dd HH:mm:ss');
@@ -6834,7 +6845,7 @@ define(['js/app'], function (myApp) {
                         item.typeText = $translate(item.typeText);
                         return item;
                     });
-                    vm.gameCreditLog.totalCount = (result.data.pageSize || 20) * result.data.totalPages;
+                    vm.gameCreditLog.totalCount = (vm.gameCreditLog.pageObj.pageSize || 20) * result.data.totalPages;
                     vm.gameCreditLog.pageObj.init({maxCount: vm.gameCreditLog.totalCount}, newSearch);
                     $scope.safeApply();
                 }).catch(console.error);

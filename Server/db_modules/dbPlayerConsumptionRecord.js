@@ -130,7 +130,8 @@ var dbPlayerConsumptionRecord = {
             createTime: {
                 $gte: startTime,
                 $lt: endTime
-            }
+            },
+            isDuplicate: {$ne: true}
         };
         if (providerObjId) {
             matchObj.providerId = providerObjId
@@ -1614,7 +1615,7 @@ var dbPlayerConsumptionRecord = {
             data => {
                 let gameProviderData = data[0];
                 platform = data[1];
-                return dbconfig.collection_playerConsumptionRecord.findOne({providerId: gameProviderData._id}).sort({_id: -1}).limit(1).lean();
+                return dbconfig.collection_playerConsumptionRecord.findOne({providerId: gameProviderData._id}).sort({createTime: -1}).limit(1).lean();
             }
         ).then(
             lastestConsumptionRecord => {

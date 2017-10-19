@@ -15,7 +15,7 @@
 
                         li.padding-all-5(style='margin:5px 10px; margin-top:8px;')
                             //.text-success(ng-show='vm.selectedPlatform.data.settlementStatus=="Ready"' style='color:rgb(0,180,0)')
-                            a.text-success(class="providerListPopover" data-toggle="popover" data-container="body" data-placement="right" data-trigger="focus" type="button" data-html="true" href="#" ng-show='vm.selectedPlatform.data.settlementStatus=="Ready"' style='color:rgb(0,180,0);z-index: auto' ng-click="vm.getProviderLatestTimeRecord();")
+                            a.text-success(class="providerListPopover" data-toggle="popover" data-container="body" data-placement="right" data-trigger="focus" type="button" data-html="true" href="#" ng-show='vm.selectedPlatform.data.settlementStatus=="Ready"' style='color:{{vm.longestDelayStatus}};z-index: auto' ng-click="vm.getProviderLatestTimeRecord();")
                                 i.fa.fa-lg.fa-circle
                             .text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="DailyError"')
                                 i.fa.fa-lg.fa-circle.margin-right-5
@@ -240,7 +240,7 @@
                                     div.form-group.col-md-7
                                         label.control-label {{"RETYPE_QQ" | translate}}
                                         input.form-control(type="text", name="repeatqq", placeholder='{{"RETYPE_QQ" | translate}}', ng-model="qqConfirmation", match="vm.modifyCritical.newQQ", required)
-                                        span.help-block(ng-show="form_edit_critical_qq.repeatqq.$dirty && form_edit_critical_qq.repeatqq.$error.match"){{"QQ_DO_NOT_MATCH" | translate}}
+                                        span.help-block(ng-show="form_edit_critical_qq.repeatqq.$dirty && form_edit_critical_qq.repeatqq.$error.match") {{"QQ_DO_NOT_MATCH" | translate}}
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal',ng-show='vm.modifyCritical.changeType=="email"', ng-disabled='form_edit_critical_email.$invalid || form_edit_critical_email.$pristine', ng-click="vm.submitCriticalUpdate();") {{"CREATE" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal',ng-show='vm.modifyCritical.changeType=="phone"', ng-disabled='form_edit_critical_phone.$invalid || form_edit_critical_phone.$pristine', ng-click="vm.submitCriticalUpdate();") {{"CREATE" | translate}}

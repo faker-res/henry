@@ -1601,7 +1601,7 @@ var dbPlayerTopUpRecord = {
                             aliPayAccount: 1,
                             amount: amount,
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
-                            remark: alipayName || remark,
+                            remark: entryType == "ADMIN" ? remark : (alipayName || remark),
                             createTime: cTimeString,
                             operateType: entryType == "ADMIN" ? 1 : 0
                         };
@@ -1633,7 +1633,7 @@ var dbPlayerTopUpRecord = {
                         if (requestData.result.validTime) {
                             updateData.data.validTime = new Date(requestData.result.validTime);
                         }
-                        requestData.result.alipayName = alipayName;
+                        // requestData.result.alipayName = alipayName;
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},
                             updateData,

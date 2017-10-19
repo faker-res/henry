@@ -83,7 +83,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData, bypassSMSVerify) {
+    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName) {
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -322,6 +322,10 @@ let dbPlayerInfo = {
 
                     if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
                         inputData.loginTimes = 1;
+                    }
+                    else if (adminName) {
+                        // insert related CS name when account is opened from backstage
+                        inputData.accAdmin = adminName;
                     }
 
                     return dbPlayerInfo.createPlayerInfo(inputData);
@@ -974,14 +978,17 @@ let dbPlayerInfo = {
 
     getPlayerInfo: function (query) {
         return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
-            .populate({path: "platform", model: dbconfig.collection_platform}).then(
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
                 playerData => {
                     if (!playerData) {
                         return false;
                     }
                     return {
+                        _id: playerData._id,
                         name: playerData.name,
-                        platformId: playerData.platform.platformId
+                        platformId: playerData.platform.platformId,
+                        validCredit: playerData.validCredit,
+                        realName: playerData.realName
                     }
                 }
             );
@@ -2839,8 +2846,9 @@ let dbPlayerInfo = {
                 if (levels) { // && levels[0].value >= levels[1].value) {
                     let levelProm = [];
                     for (var i = 0; i < levels.length; i++) {
-                        if (playerLevelData.value >= levels[i].value && rewardParams[i].param && curRewardAmount < rewardParams[i].param.maxRewardAmountPerDay && (!rewardParams[i].param.bankCardType ||
-                                (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))) {
+                        if (playerLevelData.value >= levels[i].value && rewardParams[i].param && curRewardAmount < rewardParams[i].param.maxRewardAmountPerDay
+                            // && (!rewardParams[i].param.bankCardType || (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))
+                        ) {
                             let rewardAmount = Math.min((rewardParams[i].param.maxRewardAmountPerDay - curRewardAmount), rewardParams[i].param.rewardPercentage * topupAmount);
                             let proposalData = {
                                 type: rewardParams[i].executeProposal,
@@ -5066,7 +5074,7 @@ let dbPlayerInfo = {
         ).then(
             function (player) {
                 if (player) {
-                    queryObject["data.playerObjId"] = player._id;
+                    queryObject["data.playerObjId"] = {$in: [String(player._id), player._id]};
                     playerName = player.name;
                     if (rewardType) {
                         return dbconfig.collection_proposalType.findOne({
@@ -5103,7 +5111,7 @@ let dbPlayerInfo = {
                             path: "process",
                             model: dbconfig.collection_proposalProcess
                         })
-                        .lean().skip(startIndex).limit(count);
+                        .lean().sort({createTime: 1}).skip(startIndex).limit(count);
                     return Q.all([countProm, rewardProm]).catch(
                         error => Q.reject({name: "DBError", message: "Error in finding proposal", error: error})
                     );
@@ -5133,8 +5141,8 @@ let dbPlayerInfo = {
                                 playerName: playerName,
                                 createTime: proposals[i].createTime,
                                 rewardType: proposals[i].type ? proposals[i].type.name : "",
-                                rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : 0,
-                                eventName: proposals[i].data.eventName,
+                                rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
+                                eventName: proposals[i].data.eventName || proposals[i].data.type,
                                 eventCode: proposals[i].data.eventCode,
                                 status: status
                             }
@@ -10404,7 +10412,7 @@ let dbPlayerInfo = {
 
             let playerProm = dbconfig.collection_players.findOne(
                 playerQuery, {
-                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1
+                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1
                 }
             ).lean();
 
@@ -10633,7 +10641,12 @@ let dbPlayerInfo = {
                     result.endTime = endTime;
 
                     let csOfficerDetail = data[6];
-                    if (csOfficerDetail) {
+
+                    // related admin
+                    if (playerDetail.accAdmin) {
+                        result.csOfficer = playerDetail.accAdmin;
+                    }
+                    else if (csOfficerDetail) {
                         result.csOfficer = csOfficerDetail.admin ? csOfficerDetail.admin.adminName : "";
                         result.csPromoteWay = csOfficerDetail.way;
                     }
