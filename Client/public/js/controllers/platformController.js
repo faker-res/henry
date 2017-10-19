@@ -174,7 +174,6 @@ define(['js/app'], function (myApp) {
                 vm.platformProviderList.forEach(providerId => {
                     p = p.then(() => {
                         return $scope.$socketPromise('getProviderLatestTimeRecord', {providerId: providerId.providerId,platformObjId: vm.selectedPlatform.id}).then(function (data) {
-                            console.log('getPlatformProviderTime', providerId.providerId, data);
 
                             if(data.data){
                                 if(data.data.createTime < vm.longestDelayDate)
