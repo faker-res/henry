@@ -632,14 +632,14 @@ define(['js/app'], function (myApp) {
                         })
                         vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
                     }
-                    vm.initAccs();
+
 
                     $scope.safeApply();
                 }, function (data) {
                     console.log("merchantList", data);
                 });
 
-
+                vm.initAccs();
 
 
 
