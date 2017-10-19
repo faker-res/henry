@@ -3412,14 +3412,16 @@ define(['js/app'], function (myApp) {
                 // "scrollY": 400,
                 // "scrollCollapse": true,
                 // "destroy": true,
+                "bSortClasses": false,
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
                 "language": {
                     "info": "Total _MAX_ records",
                     "emptyTable": $translate("No data available in table"),
-                }
+                },
+                fnRowCallback: vm.proposalTableRow
             }
-            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             $.each(tableOptions.columns, function (i, v) {
                 v.defaultContent = v.defaultContent || "";
             });
@@ -3443,6 +3445,42 @@ define(['js/app'], function (myApp) {
             //
             // });
         }
+
+        vm.proposalTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            $compile(nRow)($scope);
+            vm.OperationProposalTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
+            //console.log("row", nRow, aData, iDisplayIndex, iDisplayIndexFull);
+        };
+
+        vm.OperationProposalTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            switch (true) {
+                // case (aData.expirationTime$ < 0 && aData.status == "Pending" && vm.rightPanelTitle == 'APPROVAL_PROPOSAL'): {
+                //     $(nRow).css('background-color', 'rgba(135, 206, 250, 100)');
+                //     break;
+                // }
+                case (aData.data.updateAmount >= 5000 && aData.data.updateAmount < 50000): {
+                    $(nRow).css('background-color', 'rgba(255, 209, 202, 100)','important');
+                    $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                    break;
+                }
+                case (aData.data.updateAmount >= 50000 && aData.data.updateAmount < 500000): {
+                    $(nRow).css('background-color', 'rgba(236,100,75, 100)','important');
+                    break;
+                }
+                case (aData.data.updateAmount >= 500000 && aData.data.updateAmount < 1000000): {
+                    $(nRow).css('background-color', 'rgba(255, 184, 133, 100)');
+                    break;
+                }
+                case (aData.data.updateAmount >= 1000000): {
+                    $(nRow).css('background-color', 'rgba(188, 230, 114, 100)');
+                    break;
+                }
+                default: {
+                    $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
+                    break;
+                }
+            }
+        };
 
         vm.proposalTablePageChange = function (curP, pageSize) {
             vm.commonPageChangeHandler(curP, pageSize, "proposalQuery", vm.searchProposalRecord)
