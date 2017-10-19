@@ -464,6 +464,20 @@ define([], function () {
                         } else if (i == 17) {
                             totalWinLoss = pageValue;
                         }
+                    }else if (classes.indexOf('sumPercent') > -1) {
+                            if (sumData && sumData[i]) {
+                                totalValue = sumData[i]
+                            } else {
+                                totalValue = api.column(i).data().reduce(function (a, b) {
+                                    return getFloat(a) + getFloat(b);
+                                })
+                            }
+                            pageValue = api.column(i, {page: 'current'}).data().reduce(function (a, b) {
+                                return getFloat(a) + getFloat(b);
+                            })
+                            totalValue = getFloat(totalValue).toFixed(2);
+                            pageValue = getFloat(pageValue).toFixed(2);
+                            htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
                     } else if (classes.indexOf('sumInt') > -1) {
                         if (sumData && sumData[i]) {
                             totalValue = sumData[i]
