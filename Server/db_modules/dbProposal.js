@@ -2239,6 +2239,33 @@ var proposal = {
             }
         );
     },
+    getProposalAmountSum: (data, index, limit) => {
+
+      let queryObj = {}
+      queryObj['data.platformId'] = ObjectId(data.platformId);
+      if(data.type){
+          queryObj['type'] = ObjectId(data.typeId);
+      }
+      queryObj.mainType = 'TopUp'
+      if(data.cardField){
+          let cardField = 'data.'+data.cardField;
+          queryObj[cardField]= data.card;
+      }
+      queryObj["data.validTime"] = {};
+      queryObj["data.validTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
+      queryObj["data.validTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
+
+      return dbconfig.collection_proposal.aggregate(
+         {
+             $match: queryObj
+         }, {
+             $group: {
+                 _id: null,
+                 totalAmount: {$sum: "$data.amount"},
+             }
+         }
+     );
+    },
 
     getPaymentMonitorResult: (data, index, limit) => {
         let query = {};
@@ -2252,17 +2279,17 @@ var proposal = {
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
         query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
 
-        if (data.merchantNo && !data.merchantGroup) {
-            query['data.merchantNo'] = data.merchantNo;
+        if (data.merchantNo && data.merchantNo.length > 0 && !data.merchantGroup) {
+            query['data.merchantNo'] = {$in: data.merchantNo};
         }
 
         if (!data.merchantNo && data.merchantGroup) {
             query['data.merchantNo'] = {$in: data.merchantGroup};
         }
 
-        if (data.merchantNo && data.merchantGroup) {
+        if (data.merchantNo && data.merchantNo.length >0 && data.merchantGroup) {
             query['$and'] = [
-                {'data.merchantNo': {$in: [data.merchantNo]}},
+                {'data.merchantNo': {$in: data.merchantNo}},
                 {'data.merchantNo': {$in: data.merchantGroup}}
             ]
         }
@@ -2273,6 +2300,15 @@ var proposal = {
 
         if (data.playerName) {
             query['data.playerName'] = data.playerName;
+        }
+        if (data.proposalNo) {
+            query['data.proposalId'] = data.proposalNo;
+        }
+        if (data.bankTypeId){
+            query['data.bankTypeId'] = data.bankTypeId;
+        }
+        if (data.userAgent){
+            query['data.userAgent'] = data.userAgent;
         }
 
         let mainTopUpType;
@@ -2303,7 +2339,7 @@ var proposal = {
                     ]
                 };
         }
-
+        data.topupType = Number(data.topupType)
         if (data.topupType) {
             query['data.topupType'] = data.topupType;
         }

@@ -39,7 +39,7 @@
                         option(value='') {{"any" | translate}}
                         option(value='') {{"any" | translate}}
                         option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{"TOPUP"+i | translate}}
-                div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
+                div(style='max-width:125px')
                     label {{'Online Topup Type' | translate}}
                     select.form-control(ng-model='vm.paymentMonitorQuery.topupType')
                         option(value='') {{'any' | translate}}
@@ -50,11 +50,11 @@
                         option(value='5') 支付宝App支付(AlipayApp)
                         option(value='6') 快捷支付(FASTPAY)
                         option(value='7') QQ扫码(QQPAYQR)
-                div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
+                div(style='max-width:125px')
                     label {{'Merchant Group' | translate}}
                     select.form-control(ng-model='vm.paymentMonitorQuery.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroups')
                         option(value='') {{'any' | translate}}
-                div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
+                div(style='max-width:125px')
                     label {{'Merchant No' | translate}}
                     select.form-control(ng-model='vm.paymentMonitorQuery.merchantNo', ng-options='index as name for (index, name) in vm.merchantNumbers')
                         option(value='') {{'any' | translate}}
