@@ -1106,7 +1106,7 @@ define(['js/app'], function (myApp) {
                         return 0;
                     }
                 );
-                console.log("vm.allProposalType", vm.allProposalType);
+                $scope.safeApply();
                 deferred.resolve(true);
             }, function (error) {
                 deferred.reject(error);
@@ -2968,7 +2968,7 @@ define(['js/app'], function (myApp) {
                 $('#proposalTable').show();
                 console.log('proposal data', data);
                 var datatoDraw = data.data.data.map(item => {
-                    item.data.involveAmount = 0;
+                    item.involveAmount = 0;
                     if (item.topUpAmount) {
                         item.involveAmount = item.data.topUpAmount;
                     } else if (item.data.rewardAmount) {
