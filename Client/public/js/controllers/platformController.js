@@ -2184,8 +2184,41 @@ define(['js/app'], function (myApp) {
             /////////////////////////////////Mark::player functions//////////////////
 
             /////////////////////////////////Mark::Platform players functions//////////////////
-            vm.showPlatformCreditTransferLog = function () {
-                $('#modalPlatformCreditTransferLog').modal().show();
+            // vm.showPlatformCreditTransferLogPopup = function () {
+            //     $('#modalPlatformCreditTransferLog').modal().show();
+            //     vm.showPlatformRepair = false;
+            //     vm.linkedPlayerTransferId = null;
+            //     vm.creditChange = {
+            //         finalValidAmount: $translate("Unknown"),
+            //         finalLockedAmount: $translate("Unknown"),
+            //         number: 0,
+            //         remark: ''
+            //     };
+            //     vm.platformCreditTransferLog = {};
+            //     utilService.actionAfterLoaded(('#platformCreditTransferLogPopup'), function () {
+            //         vm.platformCreditTransferLog.startTime = utilService.createDatePicker('#platformCreditTransferLogPopup .startTime');
+            //         vm.platformCreditTransferLog.endTime = utilService.createDatePicker('#platformCreditTransferLogPopup .endTime');
+            //         vm.platformCreditTransferLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+            //         vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+            //         vm.platformCreditTransferLog.pageObj = utilService.createPageForPagingTable("#platformCreditTransferLogPopupTablePage", {}, $translate, function (curP, pageSize) {
+            //             vm.commonPageChangeHandler(curP, pageSize, "platformCreditTransferLogPopup", vm.getPagedPlatformCreditTransferLog)
+            //         });
+            //         vm.getPagedPlatformCreditTransferLog(true);
+            //     });
+            // };
+            vm.showPlatformCreditTransferLog = function (isPopup) {
+                isPopup === true ? false : true;
+                let panelBody, tablePage;
+                if(isPopup) {
+                    $('#modalPlatformCreditTransferLog').modal().show();
+                    panelBody = 'platformCreditTransferLogPopup';
+                    tablePage = 'platformCreditTransferLogPopupTablePage';
+                    vm.queryPlatformCreditTransferPlayerName = "";
+                }
+                else {
+                    panelBody = 'platformCreditTransferLog';
+                    tablePage = 'platformCreditTransferLogTablePage';
+                }
                 vm.showPlatformRepair = false;
                 vm.linkedPlayerTransferId = null;
                 vm.creditChange = {
@@ -2195,19 +2228,19 @@ define(['js/app'], function (myApp) {
                     remark: ''
                 };
                 vm.platformCreditTransferLog = {};
-                utilService.actionAfterLoaded(('#platformCreditTransferLog'), function () {
-                    vm.platformCreditTransferLog.startTime = utilService.createDatePicker('#platformCreditTransferLog .startTime');
-                    vm.platformCreditTransferLog.endTime = utilService.createDatePicker('#platformCreditTransferLog .endTime');
+                utilService.actionAfterLoaded(('#'+panelBody), function () {
+                    vm.platformCreditTransferLog.startTime = utilService.createDatePicker('#'+panelBody+' .startTime');
+                    vm.platformCreditTransferLog.endTime = utilService.createDatePicker('#'+panelBody+' .endTime');
                     vm.platformCreditTransferLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.platformCreditTransferLog.pageObj = utilService.createPageForPagingTable("#platformCreditTransferLogTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "platformCreditTransferLog", vm.getPagedPlatformCreditTransferLog)
+                    vm.platformCreditTransferLog.pageObj = utilService.createPageForPagingTable('#'+tablePage, {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, panelBody, vm.getPagedPlatformCreditTransferLog)
                     });
-                    vm.getPagedPlatformCreditTransferLog(true);
+                    vm.getPagedPlatformCreditTransferLog(true, isPopup);
                 });
             };
 
-            vm.getPagedPlatformCreditTransferLog = function (newSearch) {
+            vm.getPagedPlatformCreditTransferLog = function (newSearch, isPopup) {
                 vm.platformCreditTransferLog.loading = true;
                 let sendQuery = {
                     PlatformObjId: vm.selectedPlatform.id,
@@ -2227,7 +2260,7 @@ define(['js/app'], function (myApp) {
                     vm.platformCreditTransferLogData = data.data.data;
                     vm.platformCreditTransferLog.totalCount = data.data.total || 0;
                     vm.platformCreditTransferLog.loading = false;
-                    vm.drawPagedPlatformCreditTransferQueryTable(vm.platformCreditTransferLogData, vm.platformCreditTransferLog.totalCount, newSearch);
+                    vm.drawPagedPlatformCreditTransferQueryTable(vm.platformCreditTransferLogData, vm.platformCreditTransferLog.totalCount, newSearch, isPopup);
                 });
 
                 // function getAllPlayerCreditTransferStatus() {
@@ -2241,7 +2274,7 @@ define(['js/app'], function (myApp) {
                 //
                 // getAllPlayerCreditTransferStatus();
             };
-            vm.drawPagedPlatformCreditTransferQueryTable = function (data, size, newSearch) {
+            vm.drawPagedPlatformCreditTransferQueryTable = function (data, size, newSearch, isPopup) {
                 let tableData = data.map(item => {
                     item.createTime$ = vm.dateReformat(item.createTime);
                     item.typeText = $translate(item.type);
@@ -2282,11 +2315,12 @@ define(['js/app'], function (myApp) {
                     paging: false,
                 });
 
-                let table = utilService.createDatatableWithFooter('#platformCreditTransferLogTable', option, {});
+                let tableElem = isPopup ? '#platformCreditTransferLogPopupTable' : '#platformCreditTransferLogTable'; console.log(tableElem);
+                let table = utilService.createDatatableWithFooter(tableElem, option, {});
                 vm.platformCreditTransferLog.pageObj.init({maxCount: size}, newSearch);
 
-                $('#platformCreditTransferLogTable tbody').off('click', "**");
-                $('#platformCreditTransferLogTable tbody').on('click', 'tr', function () {
+                $(tableElem+' tbody').off('click', "**");
+                $(tableElem+' tbody').on('click', 'tr', function () {
                     vm.selectedThisPlayer = false;
                     let errorLogObjReady = false;
                     if ($(this).hasClass('selected')) {
@@ -2324,11 +2358,11 @@ define(['js/app'], function (myApp) {
                     }
                 })
 
-                $('#platformCreditTransferLogTable').off('order.dt');
-                $('#platformCreditTransferLogTable').on('order.dt', function (event, a, b) {
+                $(tableElem).off('order.dt');
+                $(tableElem).on('order.dt', function (event, a, b) {
                     vm.commonSortChangeHandler(a, 'playerCreditChangeLog', vm.getPagedPlayerCreditChangeLog);
                 });
-                $("#platformCreditTransferLogTable").resize();
+                $(tableElem).resize();
                 $scope.safeApply();
             };
 

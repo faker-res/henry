@@ -145,7 +145,7 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'CreditChangeLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initGameCreditLog()', data-target='#modalGameCreditLog')
             text {{"GAME_CREDIT_LOG" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog()')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog(true)')
             text {{"Platform Credit Transfer Log" | translate}}
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.newPlayerList()', data-target='#modalNewPlayerList')
@@ -3142,7 +3142,7 @@ include modalGameCreditLog
                 label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
 
 // Platform related sub-views
-//#modalPlatformCreditTransferLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+#modalPlatformCreditTransferLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
         .modal-content
             .modal-header
@@ -3151,7 +3151,7 @@ include modalGameCreditLog
             .modal-body
                 .panel.panel-primary
                     .panel-body
-                        #platformCreditTransferLog.adminLogQueryDiv
+                        #platformCreditTransferLogPopup.adminLogQueryDiv
                             .inlineBlk
                                 label {{ 'playerName' | translate }}
                                 input.form-control(ng-model='vm.queryPlatformCreditTransferPlayerName')
@@ -3178,12 +3178,12 @@ include modalGameCreditLog
                                     option(value='') {{'all' | translate}}
                                     option(ng-repeat='(i,v) in vm.allPlayerCreditTransferStatus', value='{{v}}') {{i | translate}}
                             .inlineBlk
-                                button.btn.btn-primary(ng-click='vm.getPagedPlatformCreditTransferLog(true)') {{'SEARCH' | translate}}
+                                button.btn.btn-primary(ng-click='vm.getPagedPlatformCreditTransferLog(true,true)') {{'SEARCH' | translate}}
                             .inlineBlk(ng-if='vm.platformCreditTransferLog.loading')
                                 i.fa.fa-spin.fa-spinner
                         //label {{"Total" | translate}} {{vm.platformCreditTransferLog.totalCount}} {{"records" | translate}}
-                        table#platformCreditTransferLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
-                        #platformCreditTransferLogTablePage
+                        table#platformCreditTransferLogPopupTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                        #platformCreditTransferLogPopupTablePage
 
                         .clearfix
                         button.common-button.margin-right-5.btn.btn-success(ng-click="vm.prepareRepairTransfer()") {{'RepairTransaction' | translate}}
@@ -3194,14 +3194,14 @@ include modalGameCreditLog
                                         td(style='width:25%') {{'playerName' | translate}} : {{vm.selectedThisPlayer.name}}
                                         td {{'LOCKED_CREDIT' | translate}}
                                         td {{vm.selectedThisPlayer.lockedCredit | number:2}} ({{'curData' | translate}})
-                                        td ===>
+                                        td --->
                                         td
                                             label.text-danger {{vm.creditChange.finalLockedAmount}} ({{'updateData' | translate}})
                                     tr
                                         td(style='width:25%') {{'transferID' | translate}} : {{vm.linkedPlayerTransferId}}
                                         td {{'VALID_CREDIT' | translate}}
                                         td {{vm.selectedThisPlayer.validCredit | number:2}} ({{'curData' | translate}})
-                                        td ===>
+                                        td --->
                                         td
                                             label.text-danger {{vm.creditChange.finalValidAmount}} ({{'updateData' | translate}})
                             .row
