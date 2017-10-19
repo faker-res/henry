@@ -1249,6 +1249,11 @@
   "playerAccount": "会员帐号",
   "relatedTopUpAmount": "关连存款金额",
 
+  "phoneNumFilter":"电话号码过滤",
+  "SUPPORTED_FILE_FORMAT":"支持的文件格式",
+  "ADD_PHONE_NUMBER_FILTER":"添加要过滤的电话号码",
+  "ADD_PHONE_NUMBER_FILTER_INSTRUCTION":"电话号码必须用逗号分隔",
+
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",

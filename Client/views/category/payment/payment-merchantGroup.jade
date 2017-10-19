@@ -47,24 +47,26 @@
                 .well
                     .inlineBlk.margin-right-5
                         .control-label {{"Target Device" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterTargetDeviceJson', style='max-width:200px', ng-init='vm.filterTargetDeviceJson="all"')
-                            option(value='all') {{'any' | translate}}
-                            option(ng-repeat='(i,v) in merchantTargetDeviceJson', value='{{i}}') {{v | translate}}
+                        select.input-sm.form-control.merchantNoList(ng-model='vm.filterTargetDeviceJson',ng-options="a | translate for a in merchantTargetDeviceJson", style='max-width:200px', ng-init='vm.filterTargetDeviceJson="all"',multiple,bsp)
+                            //option(value='all') {{'any' | translate}}
+                            //option(ng-repeat='(i,v) in merchantTargetDeviceJson', value='{{i}}') {{v | translate}}
                     .inlineBlk.margin-right-5
                         .control-label {{"Online Topup Type" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterMerchantTopupType', style='max-width:200px', ng-init='vm.filterMerchantTopupType="all"')
-                            option(value='all') {{'any' | translate}}
-                            option(ng-repeat='(i,v) in merchantTopupTypeJson', value='{{i}}') {{v | translate}}
+                        select.input-sm.form-control.merchantNoList(ng-model='vm.filterMerchantTopupType',ng-options="a | translate for a in merchantTopupTypeJson", style='max-width:200px', ng-init='vm.filterMerchantTopupType="all"',multiple,bsp)
+                            //option(value='all') {{'any' | translate}}
+                            //option(ng-repeat='(i,v) in merchantTopupTypeJson', value='{{i}}') {{v | translate}}
                     .inlineBlk.margin-right-5
                         .control-label {{"Third Party Platform" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterMerchantType', style='max-width:200px', ng-init='vm.filterMerchantType="all"')
-                            option(value='all') {{'any' | translate}}
-                            option(ng-repeat='(i,v) in vm.allMerchantTypeList', value='{{i}}') {{v.name | translate}}
+                        select.input-sm.form-control.merchantNoList(ng-model='vm.filterMerchantType',ng-options="a.name for a in vm.allMerchantTypeList", style='max-width:200px', ng-init='vm.filterMerchantType="all"',multiple,bsp)
+                        //select.input-sm.form-control(ng-model='vm.filterMerchantType', style='max-width:200px', ng-init='vm.filterMerchantType="all"')
+                        //    option(value='all') {{'any' | translate}}
+                        //    option(ng-repeat='(i,v) in vm.allMerchantTypeList', value='{{i}}') {{v.name | translate}}
                     .inlineBlk.margin-right-5
                         .control-label {{"Backstage Merchant ID" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterMerchantTopupType', style='max-width:200px', ng-init='vm.filterMerchantTopupType="all"')
-                            option(value='all') {{'any' | translate}}
-                            option(ng-repeat='(i,v) in vm.MerchantId', value='{{i}}') {{v.merchantId | translate}}
+                        select.input-sm.form-control.merchantNoList(ng-model='vm.filterMerchantId',ng-options="a for a in vm.MerchantId", style='max-width:200px', ng-init='vm.filterMerchantId="all"',multiple,bsp)
+                        //select.input-sm.form-control(ng-model='vm.filterMerchantBackstageMerchantId',style='max-width:200px', ng-init='vm.filterMerchantBackstageMerchantId="all"')
+                        //    option(value='all') {{'any' | translate}}
+                        //    option(ng-repeat='(i,v) in vm.MerchantId', value='{{i}}') {{v.merchantId | translate}}
                     //.inlineBlk.margin-right-5
                     //    .control-label {{"TITLE" | translate}}
                     //    input.input-sm.form-control(type='text', ng-model='vm.filterMerchantTitle')
