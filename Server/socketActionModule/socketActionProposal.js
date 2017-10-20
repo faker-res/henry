@@ -385,6 +385,8 @@ function socketActionProposal(socketIO, socket) {
         getProposalAmountSum: function getProposalAmountSum(data){
           var actionName = arguments.callee.name;
           var isValidData = Boolean(data);
+          data.startDate = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+          data.endDate = data.startDate ? dbUtil.getDayEndTime(data.startDate) : new Date();
           socketUtil.emitter(self.socket, dbProposal.getProposalAmountSum, [data, data.index, data.limit], actionName, isValidData);
         },
         getPaymentMonitorResult: function getPaymentMonitorResult(data) {
