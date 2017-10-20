@@ -14811,6 +14811,9 @@ define(['js/app'], function (myApp) {
 
         vm.isForbidChanged = function (newForbid, oldForbid){
             var disableSubmit = true;
+            if (!oldForbid) {
+                oldForbid = [];
+            }
             if (newForbid.length == oldForbid.length) {
                 for (let i = 0; i < newForbid.length; i++) {
                     if (oldForbid.indexOf(newForbid[i]) > -1) {
