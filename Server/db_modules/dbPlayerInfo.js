@@ -271,8 +271,16 @@ let dbPlayerInfo = {
                                 }
                             );
                             proms.push(domainProm);
-                        }
 
+                            let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({domain: {$regex: inputData.domain, $options: "x"}}).lean().then(data => {
+                                    if(data){
+                                        inputData.csOfficer = data.admin;
+                                        inputData.promoteWay = data.way
+                                    }
+                            });
+
+                            proms.push(promoteWayProm);
+                        }
 
                         return Q.all(proms);
                     } else {
@@ -5765,7 +5773,8 @@ let dbPlayerInfo = {
 
         let count = dbconfig.collection_players.find(query).count();
         let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
-            .populate({path: 'partner', model: dbconfig.collection_partner}).lean();
+            .populate({path: 'partner', model: dbconfig.collection_partner}).lean()
+            .populate({path:'csOfficer', model: dbconfig.collection_admin, select: "adminName"}).lean();
 
         return Q.all([count, detail]).then(
             data => {
