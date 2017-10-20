@@ -1485,8 +1485,9 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {
                         "title": $translate('proposalId'),
-                        "data": "proposalId",
+                        data: "proposalId",
                         render: function (data, type, row) {
+                          data = String(data);
                           return '<a ng-click="vm.showProposalModal2('+data+')">'+data+'</a>';
                         }
                     },
