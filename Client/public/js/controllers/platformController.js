@@ -3238,7 +3238,7 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.topUpCard === true ? "cardTopUpBlue.png" : "cardTopUpRed.png"),
+                                    'src': "images/icon/" + (perm.topUpCard === false ? "cardTopUpRed.png" : "cardTopUpBlue.png"),
                                     height: "14px",
                                     width: "14px",
                                 }));
@@ -3261,7 +3261,7 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.PlayerLimitedOfferReward === true ? "limitedRewardBlue.png" : "limitedRewardRed.png"),
+                                    'src': "images/icon/" + (perm.PlayerLimitedOfferReward === false ? "limitedRewardRed.png" : "limitedRewardBlue.png"),
                                     height: "14px",
                                     width: "14px",
                                 }));
