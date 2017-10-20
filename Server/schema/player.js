@@ -247,7 +247,9 @@ var playerSchema = new Schema({
         limitedOfferInfo: {type: Number, default: 1}
     },
     // admin name who opened this account from backstage
-    accAdmin: {type: String}
+    accAdmin: {type: String},
+    csOfficer: {type: Schema.ObjectId, ref: 'admin'},
+    promoteWay: {type: String},
 });
 
 //record is unique by name and platform
