@@ -135,11 +135,11 @@ let dbPlayerLevelInfo = {
             }
         );
 
-        let consumptionProm = dbconfig.collection_playerConsumptionSummary.aggregate(
+        let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate(
             {
                 $match: {
                     platformId: ObjectId(platformObjId),
-                    summaryDay: {
+                    createTime: {
                         $gte: new Date(consumptionTime.startTime),
                         $lt: new Date(consumptionTime.endTime)
                     },

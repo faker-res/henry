@@ -17,6 +17,11 @@
   "IMAGE_URL": "Image URL",
   "SETTLEMENT_HISTORY": "Settlement History",
 
+  "MANUAL_TOPUP": "Manual",
+  "ALIPAY": "Alipay",
+  "WECHATPAY": "WeChat Pay",
+  "DEPOSIT_TIME": "Deposit Time",
+
 
   "CREATE":"Create",
   "EDIT":"Edit",
@@ -975,5 +980,21 @@
   "DELETE_OFFICER": "Delete Officer",
   "TOPUP_WECHAT": "weChat",
   "TOPUP_ALIPAY": "AliPay",
-  "CREDIBILITY_RECORD": "Credibility Records"
+  "CREDIBILITY_RECORD": "Credibility Records",
+  "MAIN": "Main",
+  "SECONDARY": "Secondary",
+  "ACTION_BUTTON": "Action",
+  "CONTACT_INFO": "Contact Info",
+  "WITHDRAW_INFO": "Withdrawal Info",
+  "ONLINE_TOP_UP_GROUP": "Online TopUp Group",
+  "PERSONAL_ALIPAY_GROUP": "Alipay Group",
+  "PERSONAL_WECHAT_GRUOP": "Wechat Pay Group",
+  "EDIT_HISTORY": "Edit History",
+  "EDIT_WEBSITE_PASS": "Edit Website Password",
+  "EDIT_PROVIDER_PASS": "Edit Provider Password",
+  "TOPUP_GROUP_RECORD": "Top Up Group Record",
+  "OPERATOR_NAME": "Operator Name",
+  "OPERATOR_ACTION": "Operation",
+  "CHANGES_RECORD": "Changes Log",
+  "FORBID_REWARD": "Forbidden Reward "
 }

@@ -1078,6 +1078,15 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne({_id: playerObjId}).then(
             playerData => {
                 if (playerData) {
+
+                    if (playerData.permission && playerData.permission.phoneCallFeedback === false) {
+                        Q.reject({
+                            status: constServerCode.PLAYER_NO_PERMISSION,
+                            name: "DataError",
+                            message: "Player does not have this permission"
+                        });
+                    }
+
                     if (playerData.phoneNumber) {
                         if (playerData.phoneNumber.length > 20) {
                             try {
@@ -1587,6 +1596,14 @@ let dbPlayerInfo = {
         let updateData = {};
         if (forbidProviders) {
             updateData.forbidProviders = forbidProviders;
+        }
+        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
+    },
+
+    updatePlayerForbidRewardEvents: function (playerObjId, forbidRewardEvents) {
+        let updateData = {};
+        if (forbidRewardEvents) {
+            updateData.forbidRewardEvents = forbidRewardEvents;
         }
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
@@ -2673,8 +2690,18 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data && data[0] && data[1] && !data[2]) {
-                    if (String(data[0].platform._id) == String(data[1].platform) && data[1].type.name == constRewardType.GAME_PROVIDER_REWARD
-                        && data[0].validCredit > 0 && amount > 0 && amount <= data[0].validCredit && rewardUtility.isValidRewardEvent(constRewardType.GAME_PROVIDER_REWARD, data[1])) {
+                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(data[0], data[1]._id);
+                    if (playerIsForbiddenForThisReward) {
+                        deferred.reject({name: "DataError", message: "Player is forbidden for this reward."});
+                    }
+
+                    if (String(data[0].platform._id) == String(data[1].platform)
+                        && data[1].type.name == constRewardType.GAME_PROVIDER_REWARD
+                        && data[0].validCredit > 0
+                        && amount > 0
+                        && amount <= data[0].validCredit
+                        && rewardUtility.isValidRewardEvent(constRewardType.GAME_PROVIDER_REWARD, data[1]
+                    )) {
                         proposalData = {
                             type: data[1].executeProposal,
                             creator: adminInfo ? adminInfo :
@@ -2824,6 +2851,9 @@ let dbPlayerInfo = {
             function (data) {
                 if (data && data[0] && data[1] && data[2] && data[3]) {
                     if (!data[3].permission || !data[3].permission.transactionReward) {
+                        deferred.resolve("No permission!");
+                    }
+                    if (dbPlayerReward.isRewardEventForbidden(data[3], data[0]._id)) {
                         deferred.resolve("No permission!");
                     }
                     if (data[1] && data[1][0]) {
@@ -3025,12 +3055,17 @@ let dbPlayerInfo = {
                         .sort(sortObj).skip(index).limit(limit)
                         .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
                         .populate({path: "partner", model: dbconfig.collection_partner})
-                        // .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
+                        .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
                         .lean().then(
                             playerData => {
                                 var players = [];
                                 for (var ind in playerData) {
                                     if (playerData[ind]) {
+                                        if (playerData[ind].referral) {
+                                            playerData[ind].referralName$ = playerData[ind].referral.name;
+                                            playerData[ind].referral = playerData[ind].referral._id;
+                                        }
+
                                         var newInfo = getRewardData(playerData[ind]);
                                         players.push(Q.resolve(newInfo));
                                     }
@@ -4778,11 +4813,13 @@ let dbPlayerInfo = {
         var deferred = Q.defer();
 
         var playerPlatformId = null;
+        let playerData;
 
         dbconfig.collection_players.findOne(query).then(
             function (player) {
                 if (player) {
                     playerPlatformId = player.platform;
+                    playerData = player;
                     return dbconfig.collection_rewardEvent.find({platform: player.platform})
                         .populate({
                             path: "type",
@@ -8077,6 +8114,15 @@ let dbPlayerInfo = {
                 eventData = data[0];
                 taskData = data[1];
 
+                let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(player, eventData._id);
+                if (playerIsForbiddenForThisReward) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        message: "Player is forbidden for this reward."
+                    });
+                }
+
                 if (eventData.validStartTime && eventData.validEndTime) {
                     // TODO Temoporary hardcoding: Only can apply 1 time within period
                     return dbconfig.collection_proposalType.findOne({
@@ -8318,6 +8364,10 @@ let dbPlayerInfo = {
                     if (rewardUtility.isValidRewardEvent(constRewardType.PLAYER_CONSUMPTION_INCENTIVE, eventData) && eventData.needApply) {
                         event = eventData;
                         let minTopUpRecordAmount = 0;
+
+                        if (dbPlayerReward.isRewardEventForbidden(player, event._id)) {
+                            return Q.reject({status:constServerCode.PLAYER_NO_PERMISSION, name: "DataError", message: "Player is forbidden for this reward."});
+                        }
 
                         // Filter event param based on player level
                         eventParams = eventData.param.reward.filter(reward => {
@@ -8824,6 +8874,12 @@ let dbPlayerInfo = {
         ).then(
             rewardEvent => {
                 if (rewardEvent && rewardEvent.type) {
+
+                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerInfo, rewardEvent._id);
+                    if (playerIsForbiddenForThisReward) {
+                        deferred.reject({name: "DataError", message: "Player is forbidden for this reward."});
+                    }
+
                     //check valid time for reward event
                     let curTime = new Date();
                     if ((rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) ||
@@ -9480,6 +9536,17 @@ let dbPlayerInfo = {
                     return eventProm.then(
                         eData => {
                             eventData = eData;
+
+                            let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(player, eventData._id);
+
+                            if (playerIsForbiddenForThisReward) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_NO_PERMISSION,
+                                    name: "DataError",
+                                    message: "Reward not applicable"
+                                });
+                            }
+
                             //get today's double top up reward
                             let rewardProm = dbconfig.collection_proposalType.findOne({
                                 name: constProposalType.PLAYER_DOUBLE_TOP_UP_REWARD,
@@ -10010,6 +10077,23 @@ let dbPlayerInfo = {
         let endDate = new Date(query.end);
         let getPlayerProm = Promise.resolve("");
         let result = [];
+        let resultSum = {
+            manualTopUpAmount : 0,
+            weChatTopUpAmount : 0,
+            aliPayTopUpAmount : 0,
+            onlineTopUpAmount : 0,
+            topUpTimes : 0,
+            topUpAmount : 0,
+            bonusTimes : 0,
+            bonusAmount : 0,
+            rewardAmount : 0,
+            consumptionReturnAmount : 0,
+            consumptionTimes : 0,
+            validConsumptionAmount : 0,
+            consumptionBonusAmount : 0,
+            profit : 0,
+            consumptionAmount : 0,
+        };
 
         if (query.name) {
             getPlayerProm = dbconfig.collection_players.findOne({name: query.name}, {_id: 1}).lean();
@@ -10056,9 +10140,29 @@ let dbPlayerInfo = {
                         )
                     );
                 });
+
             }
         ).then(
             () => {
+                //handle sum of field here
+                for (let z = 0; z < result.length; z++) {
+                    resultSum.manualTopUpAmount += result[z].manualTopUpAmount;
+                    resultSum.weChatTopUpAmount += result[z].weChatTopUpAmount;
+                    resultSum.aliPayTopUpAmount += result[z].aliPayTopUpAmount;
+                    resultSum.onlineTopUpAmount += result[z].onlineTopUpAmount;
+                    resultSum.topUpTimes += result[z].topUpTimes;
+                    resultSum.topUpAmount += result[z].topUpAmount;
+                    resultSum.bonusTimes += result[z].bonusTimes;
+                    resultSum.bonusAmount += result[z].bonusAmount;
+                    resultSum.rewardAmount += result[z].rewardAmount;
+                    resultSum.consumptionReturnAmount += result[z].consumptionReturnAmount;
+                    resultSum.consumptionTimes += result[z].consumptionTimes;
+                    resultSum.validConsumptionAmount += result[z].validConsumptionAmount;
+                    resultSum.consumptionBonusAmount += result[z].consumptionBonusAmount;
+                    resultSum.profit += (result[z].consumptionBonusAmount/ result[z].validConsumptionAmount * -100).toFixed(2)/1;
+                    resultSum.consumptionAmount += result[z].consumptionAmount;
+                }
+
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
                     result.sort(function (a, b) {
@@ -10086,7 +10190,7 @@ let dbPlayerInfo = {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
 
-                return {size: result.length, data: outputResult};
+                return {size: result.length, data: outputResult, total: resultSum};
             }
         );
     },
@@ -10663,7 +10767,6 @@ let dbPlayerInfo = {
                 }
             );
         }
-
     },
 
     setShowInfo: (playerId, field, flag) => {
@@ -10681,7 +10784,145 @@ let dbPlayerInfo = {
         ).then(
             res => res.viewInfo[field]
         );
-    }
+    },
+
+    createUpdateTopUpGroupLog: (player, adminId, bankGroup, remark) => {
+        remark = remark || "";
+        let proms = [];
+        for (let i = 0; i < Object.keys(bankGroup).length; i++){
+            if (bankGroup.hasOwnProperty(Object.keys(bankGroup)[i])) {
+                let bankGroup$ = {};
+                bankGroup$[Object.keys(bankGroup)[i]] = bankGroup[Object.keys(bankGroup)[i]];
+                let logDetail = {
+                    admin: adminId,
+                    player: player,
+                    topUpGroupNames: bankGroup$,
+                    remark: remark
+                }
+
+                let createSingleLog = dbconfig.collection_playerTopUpGroupUpdateLog(logDetail)
+                    .save().then().catch(errorUtils.reportError);
+                proms.push(createSingleLog);
+            }
+        }
+        return Promise.all(proms);
+    },
+
+    getPlayerTopUpGroupLog: function (playerId, index, limit) {
+        let logProm = dbconfig.collection_playerTopUpGroupUpdateLog.find({player: playerId}).skip(index).limit(limit).sort({createTime: -1}).populate(
+            {path: "admin",select: 'adminName', model: dbconfig.collection_admin}
+        ).lean();
+        let countProm = dbconfig.collection_playerTopUpGroupUpdateLog.find({player: playerId}).count();
+
+        return Promise.all([logProm, countProm]).then(
+            data => {
+                let logs = data[0];
+                let count = data[1];
+
+                return {data: logs, size: count};
+            }
+        )
+    },
+
+    createForbidRewardLog: function (playerId, adminId, forbidRewardNames, remark){
+        remark = remark || "";
+        let logDetails = {
+            player: playerId,
+            admin: adminId,
+            forbidRewardNames: forbidRewardNames,
+            remark: remark
+        };
+        return dbconfig.collection_playerForbidRewardLog(logDetails).save().then().catch(errorUtils.reportError);
+    },
+
+    getForbidRewardLog: function (playerId, startTime, endTime, index, limit) {
+        let logProm = dbconfig.collection_playerForbidRewardLog.find({
+            player: playerId,
+            createTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            }
+        }).skip(index).limit(limit).sort({createTime: -1}).populate(
+            {path: "admin",select: 'adminName', model: dbconfig.collection_admin}
+        ).lean();
+        let countProm = dbconfig.collection_playerForbidRewardLog.find({player: playerId}).count();
+
+        return Promise.all([logProm, countProm]).then(
+            data => {
+                let logs = data[0];
+                let count = data[1];
+
+                return {data: logs, size: count};
+            }
+        )
+    },
+
+    createForbidGameLog: function (playerId, adminId, forbidGameNames, remark){
+        remark = remark || "";
+        let logDetails = {
+            player: playerId,
+            admin: adminId,
+            forbidGameNames: forbidGameNames,
+            remark: remark
+        };
+        return dbconfig.collection_playerForbidGameLog(logDetails).save().then().catch(errorUtils.reportError);
+    },
+
+    getForbidGameLog: function (playerId, startTime, endTime, index, limit) {
+        let logProm = dbconfig.collection_playerForbidGameLog.find({
+            player: playerId,
+            createTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            }
+        }).skip(index).limit(limit).sort({createTime: -1}).populate(
+            {path: "admin",select: 'adminName', model: dbconfig.collection_admin}
+        ).lean();
+        let countProm = dbconfig.collection_playerForbidGameLog.find({player: playerId}).count();
+
+        return Promise.all([logProm, countProm]).then(
+            data => {
+                let logs = data[0];
+                let count = data[1];
+
+                return {data: logs, size: count};
+            }
+        )
+    },
+
+    createForbidTopUpLog: function (playerId, adminId, forbidTopUpNames, remark){
+        remark = remark || "";
+        let logDetails = {
+            player: playerId,
+            admin: adminId,
+            forbidTopUpNames: forbidTopUpNames,
+            remark: remark
+        };
+        return dbconfig.collection_playerForbidTopUpLog(logDetails).save().then().catch(errorUtils.reportError);
+    },
+
+    getForbidTopUpLog: function (playerId, startTime, endTime, index, limit) {
+        let logProm = dbconfig.collection_playerForbidTopUpLog.find({
+            player: playerId,
+            createTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            }
+        }).skip(index).limit(limit).sort({createTime: -1}).populate(
+            {path: "admin",select: 'adminName', model: dbconfig.collection_admin}
+        ).lean();
+        let countProm = dbconfig.collection_playerForbidTopUpLog.find({player: playerId}).count();
+
+        return Promise.all([logProm, countProm]).then(
+            data => {
+                let logs = data[0];
+                let count = data[1];
+
+                return {data: logs, size: count};
+            }
+        )
+    },
+
 };
 
 

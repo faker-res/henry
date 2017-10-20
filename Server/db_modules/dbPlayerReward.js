@@ -218,6 +218,7 @@ let dbPlayerReward = {
      */
     applyPlayerTopUpPromo: (topUpProposalData, type) => {
         type = type || 'online';
+        let player;
         return new Promise(function (resolve) {
             let rewardEventQuery = {
                 platform: topUpProposalData.data.platformId
@@ -230,10 +231,15 @@ let dbPlayerReward = {
                         type: rewardTypeData._id
                     };
 
-                    return dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
+                    let playerProm = dbConfig.collection_players.findOne({_id: topUpProposalData.data.playerObjId}).lean();
+                    let rewardEventProm = dbConfig.collection_rewardEvent.find(rewardEventQuery).lean()
+
+                    return Promise.all([rewardEventProm, playerProm]);
                 }
             ).then(
-                promoEvents => {
+                data => {
+                    promoEvents = data[0];
+                    player = data[1];
                     if (!promoEvents || promoEvents.length <= 0) {
                         // there is no promotion event going on
                         return;
@@ -242,6 +248,12 @@ let dbPlayerReward = {
                     let promoEventDetail, promotionDetail;
                     for (let i = 0; i < promoEvents.length; i++) {
                         let promoEvent = promoEvents[i];
+
+                        if (dbRewardEvent.isRewardEventForbidden(player, promoEvent._id)) {
+                            // the player is not valid for this promotion
+                            continue;
+                        }
+
                         for (let j = 0; j < promoEvent.param.reward.length; j++) {
                             let promotion = promoEvent.param.reward[j];
 
@@ -514,6 +526,11 @@ let dbPlayerReward = {
                 playerData => {
                     if (playerData && playerData.platform && playerData.permission.playerConsecutiveConsumptionReward) {
                         playerObj = playerData;
+
+                        let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerObj, eventData._id);
+
+                        if (playerIsForbiddenForThisReward) return;
+
                         eventData.param.reward.forEach(
                             reward => {
                                 if (consumptionAmount >= reward.minConsumptionAmount) {
@@ -672,6 +689,12 @@ let dbPlayerReward = {
                 // Check if player has take more than allowed packet today
                 if (eventData && eventData.param && eventData.param.reward
                     && eventData.param.dailyApplyLimit && todayPacketCount < eventData.param.dailyApplyLimit) {
+
+                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerObj, eventData._id);
+
+                    if (playerIsForbiddenForThisReward)
+                        deferred.reject({name: "DataError", message: "Player is forbidden for this reward."});
+
                     //calculate player reward amount
                     let rewardAmount = 0;
                     let totalProbability = 0;
@@ -1585,6 +1608,10 @@ let dbPlayerReward = {
                         if (String(f._id) == String(limitedOfferObjId)) {
                             eventObj = e;
                             limitedOfferObj = f;
+
+                            if (dbPlayerReward.isRewardEventForbidden(playerObj, eventObj._id)) {
+                                return Q.reject({name: "DataError", message: "Player is forbidden for this reward."});
+                            }
                         }
                     })
                 });
@@ -1700,6 +1727,17 @@ let dbPlayerReward = {
         )
     },
 
+    isRewardEventForbidden: function (playerData, eventId) {
+        eventId = eventId ? eventId.toString() : "";
+        // return playerData.forbidRewardEvents.indexOf()
+        let forbiddenEvents = playerData.forbidRewardEvents || [];
+        for (let i = 0, len = forbiddenEvents.length; i < len; i++) {
+            let forbiddenEventId = forbiddenEvents[i].toString();
+            if (forbiddenEventId === eventId) return true;
+        }
+        return false;
+    },
+    
     getLimitedOfferBonus: (platformId) => {
         let platformObj;
         let intPropTypeObj;
