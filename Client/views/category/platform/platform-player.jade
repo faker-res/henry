@@ -1196,10 +1196,10 @@ include modalGameCreditLog
                                                 div(ng-show='vm.creditTransfer.focusProvider==v.providerId')
                                                     div(ng-show='!vm.creditTransfer.transferResult')
                                                         button.common-button.margin-right-5.btn.btn-success(ng-click='vm.confirmCreditTransfer(v.providerId)') {{'CONFIRM' | translate}}
-                                                        button.common-button.margin-right-5.btn.btn-warning(ng-click='vm.closeCreditTransferLog("#modalPlayerGameProviderCredit")') {{'CANCEL' | translate}}
+                                                        button.common-button.margin-right-5.btn.btn-warning(ng-click='vm.closeCreditTransferLog("#modalPlayerAccountingDetail")') {{'CANCEL' | translate}}
                                                         i.fa.fa-spin.fa-spinner.text-danger(ng-show='vm.creditTransfer.isProcessing')
                                                     div(ng-show='vm.creditTransfer.transferResult')
-                                                        button.common-button.margin-right-5.btn.btn-success(ng-click='vm.closeCreditTransferLog("#modalPlayerGameProviderCredit")') {{'OK' | translate}}
+                                                        button.common-button.margin-right-5.btn.btn-success(ng-click='vm.closeCreditTransferLog("#modalPlayerAccountingDetail")') {{'OK' | translate}}
                                                         label {{vm.creditTransfer.transferResult | translate}}
                                         td(class='prov{{v.providerId}}', ng-if='vm.transferAllCredit.isProcessing')
                                             text.text-danger {{vm.transferAllCredit[v.providerId].text | translate}}
