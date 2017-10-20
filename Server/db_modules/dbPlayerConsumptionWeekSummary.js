@@ -446,12 +446,7 @@ var dbPlayerConsumptionWeekSummary = {
                     }
 
                     platformData = data.platform;
-                    if (platformData.settlementStatus == constPlatformStatus.READY) {
-                        return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
-                    }
-                    else {
-                        deferred.reject({name: "DataError", message: "Platform is not ready for settlement"});
-                    }
+                    return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect player data"});
