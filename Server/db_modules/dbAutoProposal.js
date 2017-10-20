@@ -337,7 +337,8 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 }
 
                                                 // Handling for top up promo reward
-                                                if (getProp.type.executionType == "executePlayerTopUpPromo") {
+                                                // Flag to include reward consumption into last top up
+                                                if (getProp.type.executionType == "executePlayerTopUpPromo" || getProp.type.executionType == "executePlatformTransactionReward") {
                                                     isTopUpPromo = true;
                                                 }
 
