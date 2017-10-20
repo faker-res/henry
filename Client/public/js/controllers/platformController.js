@@ -4873,6 +4873,12 @@ define(['js/app'], function (myApp) {
                                         "emptyTable": $translate("No data available in table"),
                                     },
                                 };
+                                
+                                if ($('.dataTables_scrollHeadInner > .topupGroupRecordTable').length > 0) {
+                                    $(".topupGroupRecordTable").parent().parent().parent().remove();
+                                    $(".topupGroupRecordTablePage").before('<table class="topupGroupRecordTable common-table display" style="width:100%"></table>')
+                                }
+
                                 utilService.createDatatableWithFooter('.topupGroupRecordTable', tableOptions, {});
                                 cvm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
                                 $scope.safeApply()
@@ -14805,6 +14811,9 @@ define(['js/app'], function (myApp) {
 
         vm.isForbidChanged = function (newForbid, oldForbid){
             var disableSubmit = true;
+            if (!oldForbid) {
+                oldForbid = [];
+            }
             if (newForbid.length == oldForbid.length) {
                 for (let i = 0; i < newForbid.length; i++) {
                     if (oldForbid.indexOf(newForbid[i]) > -1) {
