@@ -294,7 +294,7 @@ define(['js/app'], function (myApp) {
               size: 10,
               index: 0
           }
-          sendData.status = ["Success"];
+          sendData.status = ["Approved"];
           vm.selectedProposal.cardSumToday = 0;
           socketService.$socket($scope.AppSocket, 'getProposalAmountSum', sendData, function (data) {
               if(data.data.length>0){
@@ -505,7 +505,7 @@ define(['js/app'], function (myApp) {
                         data: "proposalId",
                         render: function (data, type, row) {
                           // data = String(data);
-                          return '<a ng-click="vm.showProposalModal2(\''+data+'\')">'+data+'</a>';
+                          return '<a ng-click="vm.showProposalModal(\''+data+'\')">'+data+'</a>';
                         }
                     },
                     {
