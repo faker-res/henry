@@ -65,16 +65,16 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
 
         ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='margin:10px 0 10px 0;height: 43px;')
             .pull-left.padding-all-5
-            li.active(id = 'smsToPlayerTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
-                a.common-tab(data-toggle="tab", ng-click='vm.smsModalTab = \'smsToPlayerPanel\'')
+            li.active#smsToPlayerTab(ng-hide="vm.selectedPlayersCount!= 1 || (vm.selectedSinglePlayer && vm.selectedSinglePlayer.permission && vm.selectedSinglePlayer.permission.SMSFeedBack === false)")
+                a.common-tab(data-toggle="tab", ng-click='vm.showSmsTab("smsToPlayerPanel");')
                     .fa.fa-file-text.margin-right-5
                     text.span {{"MESSAGE" | translate}}
-            li(id = 'smsLogTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
-                a.common-tab(data-toggle="tab",ng-click='vm.smsModalTab = \'smsLogPanel\'; vm.initSMSLog("single");')
+            li#smsLogTab(ng-hide="vm.selectedPlayersCount!= 1")
+                a.common-tab(data-toggle="tab",ng-click='vm.showSmsTab("smsLogPanel"); vm.initSMSLog("single");')
                     .fa.fa-file-text.margin-right-5
                     text.span {{"smsLog" | translate}}
-            li(id = 'smsSettingTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
-                a.common-tab(data-toggle="tab",ng-click='vm.smsModalTab = \'smsSettingPanel\'; vm.loadSMSSettings();')
+            li#smsSettingTab(ng-hide="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1")
+                a.common-tab(data-toggle="tab",ng-click='vm.showSmsTab("smsSettingPanel"); vm.loadSMSSettings();')
                     .fa.fa-file-text.margin-right-5
                     text.span {{"SMS Notify Settings" | translate}}
 
