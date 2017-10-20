@@ -4873,6 +4873,12 @@ define(['js/app'], function (myApp) {
                                         "emptyTable": $translate("No data available in table"),
                                     },
                                 };
+                                
+                                if ($('.dataTables_scrollHeadInner > .topupGroupRecordTable').length > 0) {
+                                    $(".topupGroupRecordTable").parent().parent().parent().remove();
+                                    $(".topupGroupRecordTablePage").before('<table class="topupGroupRecordTable common-table display" style="width:100%"></table>')
+                                }
+
                                 utilService.createDatatableWithFooter('.topupGroupRecordTable', tableOptions, {});
                                 cvm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
                                 $scope.safeApply()
