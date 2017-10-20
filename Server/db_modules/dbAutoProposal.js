@@ -432,13 +432,20 @@ function checkProposalConsumption(proposal, platformObj) {
                                 currentProposal = lastTopUpResult.proposalId ? lastTopUpResult.proposalId : currentProposal;
 
                                 // Include consumptions from previous top up if it is cleared before reward
-                                // OR: Include consumptions from top up promo reward
-                                if (lastTopUpResult && (lastTopUpResult.isCleared || checkResult[i].isTopUpPromo)) {
+                                if (lastTopUpResult && lastTopUpResult.isCleared) {
                                     validConsumptionAmount += lastTopUpResult.curConsumption ? lastTopUpResult.curConsumption : 0;
                                     spendingAmount += lastTopUpResult.requiredConsumption ? lastTopUpResult.requiredConsumption : 0;
                                     initBonusAmount += lastTopUpResult.initBonusAmount ? lastTopUpResult.initBonusAmount : 0;
                                     bonusAmount += lastTopUpResult.bonusAmount ? lastTopUpResult.bonusAmount : 0;
                                 }
+                            }
+
+                            // Include top up promo reward to previous last top up consumptions
+                            if (lastTopUpResult && checkResult[i].isTopUpPromo) {
+                                lastTopUpResult.curConsumption += checkResult[i].curConsumption;
+                                lastTopUpResult.requiredConsumption += checkResult[i].requiredConsumption;
+                                lastTopUpResult.initBonusAmount += checkResult[i].initBonusAmount;
+                                lastTopUpResult.bonusAmount += checkResult[i].bonusAmount;
                             }
 
                             // Check consumption for each cycle
