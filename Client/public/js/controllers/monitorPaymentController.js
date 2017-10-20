@@ -505,7 +505,7 @@ define(['js/app'], function (myApp) {
                         data: "proposalId",
                         render: function (data, type, row) {
                           // data = String(data);
-                          return '<a ng-click="vm.showProposalModal('+data+')">'+data+'</a>';
+                          return '<a ng-click="vm.showProposalModal2(\''+data+'\')">'+data+'</a>';
                         }
                     },
                     {

@@ -1,3 +1,9 @@
+'use strict';
+
+var dbPlayerRewardFunc = function () {
+};
+module.exports = new dbPlayerRewardFunc();
+
 const Q = require("q");
 const moment = require('moment-timezone');
 const mongoose = require('mongoose');
@@ -1985,4 +1991,8 @@ function expirePromoCode() {
 }
 
 
+var proto = dbPlayerRewardFunc.prototype;
+proto = Object.assign(proto, dbPlayerReward);
+
+// This make WebStorm navigation work
 module.exports = dbPlayerReward;
