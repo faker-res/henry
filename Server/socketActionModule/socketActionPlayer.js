@@ -181,6 +181,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidProviders, [data._id, data.forbidProviders], actionName, isValidData);
         },
 
+        updatePlayerForbidRewardEvents: function updatePlayerForbidRewardEvents(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id && data.forbidRewardEvents);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardEvents, [data._id, data.forbidRewardEvents], actionName, isValidData);
+        },
+
         /**
          * Delete player infos by _ids
          * @param {json} data - It has to contain _ids(array of player object id)
@@ -879,6 +885,62 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.playerObjId && data.remarks);
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.platformObjId, data.playerObjId, data.remarks, data.comment], actionName, isValidData);
+        },
+
+        createUpdateTopUpGroupLog: function createUpdateTopUpGroupLog(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.adminId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createUpdateTopUpGroupLog, [data.playerId,data.adminId, data.topUpGroup, data.remark], actionName, isValidData);
+        },
+
+        getPlayerTopUpGroupLog: function getPlayerTopUpGroupLog(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId);
+            let index = data.index || 0;
+            let limit = data.limit || 10;
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerTopUpGroupLog, [data.playerId, index, limit], actionName, isValidData);
+        },
+
+        createForbidRewardLog: function createForbidRewardLog(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId && data.adminId && data.forbidRewardNames);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createForbidRewardLog, [data.playerId, data.adminId, data.forbidRewardNames, data.remark], actionName, isValidData);
+        },
+
+        getForbidRewardLog: function getForbidRewardLog(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.startTime && data.endTime);
+            let index = data.index || 0;
+            let limit = data.limit || 10;
+            socketUtil.emitter(self.socket, dbPlayerInfo.getForbidRewardLog, [data.playerId, data.startTime, data.endTime, index, limit], actionName, isValidData);
+        },
+
+        createForbidGameLog: function createForbidGameLog(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId && data.adminId && data.forbidGameNames);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createForbidGameLog, [data.playerId, data.adminId, data.forbidGameNames, data.remark], actionName, isValidData);
+        },
+
+        getForbidGameLog: function getForbidGameLog(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.startTime && data.endTime);
+            let index = data.index || 0;
+            let limit = data.limit || 10;
+            socketUtil.emitter(self.socket, dbPlayerInfo.getForbidGameLog, [data.playerId, data.startTime, data.endTime, index, limit], actionName, isValidData);
+        },
+
+        createForbidTopUpLog: function createForbidTopUpLog(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId && data.adminId && data.forbidTopUpNames);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createForbidTopUpLog, [data.playerId, data.adminId, data.forbidTopUpNames, data.remark], actionName, isValidData);
+        },
+
+        getForbidTopUpLog: function getForbidTopUpLog(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.startTime && data.endTime);
+            let index = data.index || 0;
+            let limit = data.limit || 10;
+            socketUtil.emitter(self.socket, dbPlayerInfo.getForbidTopUpLog, [data.playerId, data.startTime, data.endTime, index, limit], actionName, isValidData);
         },
 
     };
