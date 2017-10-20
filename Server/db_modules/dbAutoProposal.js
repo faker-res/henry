@@ -326,6 +326,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 let curConsumption = 0, bonusAmount = 0;
                                                 let initBonusAmount = 0;
                                                 let isIncludePreviousConsumption = false;
+                                                let isTopUpPromo = false;
                                                 let spendingAmount = getProp.data.spendingAmount ? getProp.data.spendingAmount : getProp.data.requiredUnlockAmount;
 
                                                 if (getProp.type.executionType == "executePlayerTopUpReturn" || getProp.type.executionType == "executeFirstTopUp") {
@@ -333,6 +334,11 @@ function checkProposalConsumption(proposal, platformObj) {
                                                     isIncludePreviousConsumption = true;
                                                 } else {
                                                     initBonusAmount = getProp.data.rewardAmount ? getProp.data.rewardAmount : getProp.data.initAmount;
+                                                }
+
+                                                // Handling for top up promo reward
+                                                if (getProp.type.executionType == "executePlayerTopUpPromo") {
+                                                    isTopUpPromo = true;
                                                 }
 
                                                 if (record && record[0]) {
@@ -360,7 +366,8 @@ function checkProposalConsumption(proposal, platformObj) {
                                                     curConsumption: curConsumption,
                                                     bonusAmount: bonusAmount,
                                                     settleTime: new Date(queryDateFrom),
-                                                    isIncludePreviousConsumption: isIncludePreviousConsumption
+                                                    isIncludePreviousConsumption: isIncludePreviousConsumption,
+                                                    isTopUpPromo: isTopUpPromo
                                                 });
 
                                             }
@@ -424,7 +431,9 @@ function checkProposalConsumption(proposal, platformObj) {
                             if (checkResult[i].isIncludePreviousConsumption) {
                                 currentProposal = lastTopUpResult.proposalId ? lastTopUpResult.proposalId : currentProposal;
 
-                                if (lastTopUpResult && lastTopUpResult.isCleared) {
+                                // Include consumptions from previous top up if it is cleared before reward
+                                // OR: Include consumptions from top up promo reward
+                                if (lastTopUpResult && (lastTopUpResult.isCleared || checkResult[i].isTopUpPromo)) {
                                     validConsumptionAmount += lastTopUpResult.curConsumption ? lastTopUpResult.curConsumption : 0;
                                     spendingAmount += lastTopUpResult.requiredConsumption ? lastTopUpResult.requiredConsumption : 0;
                                     initBonusAmount += lastTopUpResult.initBonusAmount ? lastTopUpResult.initBonusAmount : 0;
