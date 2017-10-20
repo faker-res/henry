@@ -271,8 +271,16 @@ let dbPlayerInfo = {
                                 }
                             );
                             proms.push(domainProm);
-                        }
 
+                            let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({domain: {$regex: inputData.domain, $options: "x"}}).lean().then(data => {
+                                    if(data){
+                                        inputData.csOfficer = data.admin;
+                                        inputData.promoteWay = data.way
+                                    }
+                            });
+
+                            proms.push(promoteWayProm);
+                        }
 
                         return Q.all(proms);
                     } else {
