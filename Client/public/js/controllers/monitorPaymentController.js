@@ -294,7 +294,7 @@ define(['js/app'], function (myApp) {
               size: 10,
               index: 0
           }
-          sendData.status = ["Approved"];
+          sendData.status = ["Approved", "Success"];
           vm.selectedProposal.cardSumToday = 0;
           socketService.$socket($scope.AppSocket, 'getProposalAmountSum', sendData, function (data) {
               if(data.data.length>0){
