@@ -19,7 +19,7 @@ div
         label {{vm.selectedProposal.creator.name || 'System' | translate}}
     .label-value
         label {{'CREATION_TIME' | translate}}&nbsp;:&nbsp;
-        label {{vm.dateReformat(vm.selectedProposal.createTime) || 'none'}}
+        label {{ vm.selectedProposal.createTime | date : 'yyyy-MM-dd hh:mm:ss'}}
     .label-value
         label {{'LastSettlementTime' | translate}}&nbsp;:&nbsp;
         label {{ vm.selectedProposal.settleTime  | date : 'yyyy-MM-dd hh:mm:ss'}}
