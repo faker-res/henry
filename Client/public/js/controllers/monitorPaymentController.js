@@ -176,7 +176,11 @@ define(['js/app'], function (myApp) {
           vm.merchants.map(item=>{
             let merchantTypeId = item.merchantTypeId;
             if(merchantTypeId){
-              item.merchantTypeName = vm.merchantTypes[merchantTypeId] ? vm.merchantTypes[merchantTypeId].name : "";
+              if(merchantTypeId=="9999"){
+                item.merchantTypeName = $translate('Bankcard');
+              }else{
+                item.merchantTypeName = vm.merchantTypes[merchantTypeId] ? vm.merchantTypes[merchantTypeId].name : "";
+              }
             }else{
               item.merchantTypeName = '';
             }
@@ -533,7 +537,6 @@ define(['js/app'], function (myApp) {
                         "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
                         render: function (data, type, row) {
                             var text = $translate(data ? vm.getDepositMethodbyId[data]: "");
-                            console.log(text);
                             return "<div>" + text + "</div>";
                         }
                     },
@@ -885,7 +888,7 @@ define(['js/app'], function (myApp) {
 
         function getMerchantList() {
             return new Promise(function (resolve) {
-                socketService.$socket($scope.AppSocket, 'getMerchantList', {platformId: vm.selectedPlatform.platformId}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
                     if (data.data && data.data.merchants) {
                         resolve(data.data.merchants);
                     }

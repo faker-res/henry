@@ -47,9 +47,9 @@ div
             select.form-control(ng-model='vm.paymentMonitorQuery.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList')
                 option(value='') {{'any' | translate}}
         div(style='max-width:125px')
-            label {{'Merchant No' | translate}}
+            label {{'Business Acc/ Bank Acc' | translate}}
             //select.form-control.merchantNoList( ng-model='vm.paymentMonitorQuery.merchantNo')
-            select.form-control.merchantNoList( ng-model='vm.paymentMonitorQuery.merchantNo', ng-options='a.merchantNo as a.name group by a.merchantTypeName for a in vm.merchants' , multiple, bsp)
+            select.form-control.merchantNoList( ng-model='vm.paymentMonitorQuery.merchantNo', ng-options='a.merchantNo as a.name group by a.merchantTypeName for a in vm.merchants' , multiple, bsp, data-actions-box='true')
                 //option(value='') {{'any' | translate}}
                 //option(ng-repeat='(i,v) in vm.merchants' ,ng-init='$last && vm.initMultiSelect()', value='{{v.merchantNo}}') {{v.name}}
         div
