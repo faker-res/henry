@@ -177,7 +177,7 @@ define(['js/app'], function (myApp) {
             let merchantTypeId = item.merchantTypeId;
             if(merchantTypeId){
               if(merchantTypeId=="9999"){
-                item.merchantTypeName = $translate('Bankcard');
+                item.merchantTypeName = $translate('BankCardNo');
               }else{
                 item.merchantTypeName = vm.merchantTypes[merchantTypeId] ? vm.merchantTypes[merchantTypeId].name : "";
               }

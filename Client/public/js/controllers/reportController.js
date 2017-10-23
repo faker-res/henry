@@ -625,7 +625,7 @@ define(['js/app'], function (myApp) {
                         Object.keys(vm.merchantNoList).forEach(item=>{
                            let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
                            if(merchantTypeId=="9999"){
-                             vm.merchantNoList[item].merchantTypeName = $translate('Bankcard');
+                             vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
                            }else if(vm.merchantTypes[merchantTypeId]){
                               vm.merchantNoList[item].merchantTypeName = merchantTypeId ? vm.merchantTypes[merchantTypeId].name :'';
                            }else{
