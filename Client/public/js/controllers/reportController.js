@@ -206,7 +206,7 @@ define(['js/app'], function (myApp) {
               size: 10,
               index: 0
           }
-          sendData.status = ["Success"];
+          sendData.status = ["Approved", "Success"];
           vm.selectedProposal.cardSumToday = 0;
           socketService.$socket($scope.AppSocket, 'getProposalAmountSum', sendData, function (data) {
                console.log(data.data.data);
@@ -632,14 +632,14 @@ define(['js/app'], function (myApp) {
                         })
                         vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
                     }
-                    vm.initAccs();
+
 
                     $scope.safeApply();
                 }, function (data) {
                     console.log("merchantList", data);
                 });
 
-
+                vm.initAccs();
 
 
 
@@ -754,6 +754,46 @@ define(['js/app'], function (myApp) {
                 vm.playerDomain.isNewSystem = "";
                 vm.playerDomain.playerType = "Real Player (all)";
                 utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
+                    // Get Promote CS and way lists
+                    vm.pdAllPromoteWay = {};
+                    let query = {
+                        platformId: vm.selectedPlatform._id
+                    };
+                    socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                            vm.pdAllPromoteWay = data.data;
+                            console.log("vm.pdAllPromoteWay", vm.pdAllPromoteWay);
+                            $scope.safeApply();
+                        },
+                        function (err) {
+                            console.log(err);
+                        });
+
+                    // Get Departments Detail
+                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
+                        console.log('getDepartmentTreeById', data);
+                        let parentId;
+                        vm.pdQueryDepartments = [];
+                        vm.pdQueryRoles = [];
+
+                        data.data.map(e => {
+                            if (e.departmentName == vm.selectedPlatform.name) {
+                                vm.pdQueryDepartments.push(e);
+                                parentId = e._id;
+                            }
+                        });
+
+                        data.data.map(e => {
+                            if (String(parentId) == String(e.parent)) {
+                                vm.pdQueryDepartments.push(e);
+                            }
+                        });
+
+                        $scope.$digest();
+                        if (typeof(callback) == 'function') {
+                            callback(data.data);
+                        }
+                    });
+
                     vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
                     vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainRepport)
@@ -1232,6 +1272,32 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
+        vm.setPDQueryRole = () => {
+            vm.pdQueryRoles = [];
+
+            vm.pdQueryDepartments.map(e => {
+                if (vm.playerDomain.departments.indexOf(e._id) >= 0) {
+                    vm.pdQueryRoles = vm.pdQueryRoles.concat(e.roles);
+                }
+            });
+
+            vm.endLoadMultipleSelect();
+            $scope.safeApply();
+        };
+
+        vm.setPDQueryAdmins = () => {
+            vm.pdQueryAdmins = [];
+
+            vm.pdQueryRoles.map(e => {
+                if (vm.playerDomain.roles.indexOf(e._id) >= 0) {
+                    vm.pdQueryAdmins = vm.pdQueryAdmins.concat(e.users);
+                }
+            });
+
+            vm.endLoadMultipleSelect();
+            $scope.safeApply();
+        };
+
         vm.getGameByIds = function (id) {
             if (!id) return;
             return new Promise(function (resolve, reject) {
@@ -1593,9 +1659,10 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {
                         "title": $translate('proposalId'),
-                        "data": "proposalId",
+                        data: "proposalId",
                         render: function (data, type, row) {
-                          return '<a ng-click="vm.showProposalModal2('+data+')">'+data+'</a>';
+                          data = String(data);
+                          return '<a ng-click="vm.showProposalModal2(\''+data+'\')">'+data+'</a>';
                         }
                     },
                     {
@@ -1664,6 +1731,7 @@ define(['js/app'], function (myApp) {
             vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {6: summary.amount});
 
             vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
+
 
             $('#topupTable').off('order.dt');
             $('#topupTable').on('order.dt', function (event, a, b) {
@@ -2363,6 +2431,9 @@ define(['js/app'], function (myApp) {
         vm.searchPlayerDomainRepport = function (newSearch) {
             $('#playerDomainReportTableSpin').show();
 
+            let admins = [];
+            let csPromoteWay = [];
+
             var sendquery = {
                 platform: vm.curPlatformId,
                 query: {
@@ -2380,7 +2451,9 @@ define(['js/app'], function (myApp) {
                     registrationInterface: vm.playerDomain.registrationInterface,
                     isNewSystem: vm.playerDomain.isNewSystem,
                     startTime: vm.playerDomain.startTime.data('datetimepicker').getLocalDate(),
-                    endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate()
+                    endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate(),
+                    csPromoteWay: vm.playerDomain.csPromoteWay && vm.playerDomain.csPromoteWay.length > 0 ? vm.playerDomain.csPromoteWay : csPromoteWay,
+                    csOfficer: vm.playerDomain.admins && vm.playerDomain.admins.length > 0 ? vm.playerDomain.admins : admins
                 },
                 index: newSearch ? 0 : (vm.playerDomain.index || 0),
                 limit: vm.playerDomain.limit || 10,
@@ -2497,12 +2570,14 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'loginTimes', 'aTargets': [7], bSortable: true},
                     {'sortCol': 'topUpTimes', 'aTargets': [8], bSortable: true},
                     {'sortCol': 'valueScore', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'sourceUrl', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'domain', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'registrationInterface', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'os', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'browser', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'partner', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'csOfficer.adminName', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'promoteWay', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'sourceUrl', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'domain', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'registrationInterface', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'os', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'browser', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'partner', 'aTargets': [17], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -2516,6 +2591,8 @@ define(['js/app'], function (myApp) {
                     {title: $translate('LOGIN_TIMES'), data: "loginTimes"},
                     {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
                     {title: $translate('PLAYER_VALUE'), data: "valueScore"},
+                    {title: $translate('REGISTRATION_ADMIN'), data: "csOfficer.adminName"},
+                    {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
                     {
                         title: $translate('Source Domain'),
                         data: "sourceUrl",

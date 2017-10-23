@@ -1,0 +1,57 @@
+.panel.panel-primary
+    .panel-body
+        .well
+            label {{'PLEASE_CHOOSE' | translate}}
+            p
+            label.radio-inline {{'EMAIL' | translate}}
+                input.pull-left.relative(type='radio', ng-model='modifyCritical.changeType', value='email')
+            label.radio-inline {{'PHONE' | translate}}
+                input.pull-left.relative(type='radio', ng-model='modifyCritical.changeType', value='phone')
+            label.radio-inline(ng-if = "platformPageName==='Player'") QQ
+                input.pull-left.relative(type='radio', ng-model='modifyCritical.changeType', value='qq')
+        .col-md-12.well
+            div(ng-show='modifyCritical.changeType=="email"')
+                div.form-group.col-md-7
+                    label.control-label {{"CURRENT_EMAIL" | translate}}
+                    input.form-control(type="email", name="email", placeholder='{{"EMAIL" | translate}}', ng-model="modifyCritical.curEmail", disabled)
+                form(name='form_edit_critical_email', novalidate)
+                    div.form-group.col-md-7
+                        label.control-label {{"NEW_EMAIL" | translate}}
+                        input.form-control(type="email", name="email1", placeholder='{{"EMAIL" | translate}}', ng-model="modifyCritical.newEmail", required)
+                        span.help-block(ng-show="form_edit_critical_email.email1.$dirty && form_edit_critical_email.email1.$error.email") {{"EMAIL_INVALID" | translate}}
+                    div.form-group.col-md-7
+                        label.control-label {{"RETYPE_EMAIL" | translate}}
+                        input.form-control(type="email", name="repeatemail", placeholder='{{"EMAIL" | translate}}', ng-model="emailConfirmation", match="modifyCritical.newEmail", required)
+                        span.help-block(ng-show="form_edit_critical_email.repeatemail.$dirty && form_edit_critical_email.repeatemail.$error.email") {{"EMAIL_INVALID" | translate}}
+                        span.help-block(ng-show="form_edit_critical_email.repeatemail.$dirty && form_edit_critical_email.repeatemail.$error.match") {{"EMAIL_DO_NOT_MATCH" | translate}}
+            div(ng-show='modifyCritical.changeType=="phone"')
+                div.form-group.col-md-7
+                    label.control-label {{"CURRENT_TELEPHONE" | translate}}
+                    input.form-control(type="text", placeholder="{{'MOBILE' | translate}}", ng-model="modifyCritical.phoneNumber", disabled)
+                div.form-group.col-md-7
+                    label.control-label {{"VERIFY_TELEPHONE" | translate}}
+                    input.form-control(type="text", placeholder="{{'VERIFY_TELEPHONE' | translate}}", ng-model="modifyCritical.verifyPhoneNumber")
+                    p
+                    button.btn.btn-primary.common-button(ng-disabled='!modifyCritical.verifyPhoneNumber', ng-click="verifyPlayerPhoneNumber()") {{"VERIFY" | translate}}
+                    label.fa.fa-check.colorGreen(ng-if='correctVerifyPhoneNumber.str')
+                    label.fa.fa-times.colorRed(ng-if='(!correctVerifyPhoneNumber.str && (correctVerifyPhoneNumber.str !== undefined))')
+                form(name='form_edit_critical_phone', novalidate)
+                    div.form-group.col-md-7
+                        label.control-label {{"NEW_TELEPHONE" | translate}}
+                        input.form-control(type="text", placeholder="{{'MOBILE' | translate}}",ng-pattern="vm.phonePattern", ng-model="modifyCritical.newPhoneNumber", required)
+            div(ng-show='modifyCritical.changeType=="qq"')
+                div.form-group.col-md-7
+                    label.control-label {{"CURRENT_QQ" | translate}}
+                    input.form-control(type="text", name="qq", placeholder='{{"CURRENT_QQ" | translate}}', ng-model="modifyCritical.curQQ", disabled)
+                form(name='form_edit_critical_qq', novalidate)
+                    div.form-group.col-md-7
+                        label.control-label {{"NEW_QQ" | translate}}
+                        input.form-control(type="text", name="qq1", placeholder='{{"NEW_QQ" | translate}}', ng-model="modifyCritical.newQQ", required)
+                    div.form-group.col-md-7
+                        label.control-label {{"RETYPE_QQ" | translate}}
+                        input.form-control(type="text", name="repeatqq", placeholder='{{"RETYPE_QQ" | translate}}', ng-model="qqConfirmation", match="modifyCritical.newQQ", required)
+                        span.help-block(ng-show="form_edit_critical_qq.repeatqq.$dirty && form_edit_critical_qq.repeatqq.$error.match") {{"QQ_DO_NOT_MATCH" | translate}}
+button.btn.btn-primary.common-button(data-dismiss='dialog',ng-show='modifyCritical.changeType=="email"', ng-disabled='form_edit_critical_email.$invalid || form_edit_critical_email.$pristine', ng-click="submitCriticalUpdate();") {{"CREATE" | translate}}
+button.btn.btn-primary.common-button(data-dismiss='dialog',ng-show='modifyCritical.changeType=="phone"', ng-disabled='form_edit_critical_phone.$invalid || form_edit_critical_phone.$pristine', ng-click="submitCriticalUpdate();") {{"CREATE" | translate}}
+button.btn.btn-primary.common-button(data-dismiss='dialog',ng-show='modifyCritical.changeType=="qq"', ng-disabled='form_edit_critical_qq.$invalid || form_edit_critical_qq.$pristine', ng-click="submitCriticalUpdate();") {{"CREATE" | translate}}
+button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}

@@ -106,10 +106,8 @@ function socketActionMerchantGroup(socketIO, socket) {
 
         getMerchantList: function getMerchantList(data) {
             var actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, pmsAPI.merchant_getMerchantList, [{
-                platformId: data.platformId,
-                queryId: serverInstance.getQueryId()
-            }], actionName, true);
+            socketUtil.emitter(self.socket, pmsAPI.merchant_getMerchantList, [{platformId: data.platformId,queryId: serverInstance.getQueryId()}], actionName, true);
+
         },
 
         /**

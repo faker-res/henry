@@ -2688,6 +2688,7 @@ input[type='number'].leftALignNumber {
     border-top-left-radius: 9px !important;
     border-top-right-radius-radius: 9px !important;
 }
+
 #modalUpdatePlatform .nav-tabs>li {
     cursor: pointer;
 }
@@ -2696,6 +2697,39 @@ input[type='number'].leftALignNumber {
     border-bottom: none;
 }
 
+
+#modalPlayerTopUp .nav-tabs>li {
+    cursor: pointer;
+    z-index: 9;
+}
+#modalPlayerTopUp .nav-tabs>li.active>a {
+    background: #e8e8e8;
+    border: 1px solid #dcdcdc;
+    border-bottom: none;
+}
+#modalPlayerAddRewardTask .nav-tabs>li {
+    cursor: pointer;
+}
+#modalPlayerAddRewardTask .nav-tabs>li.active>a {
+    border: 1px solid #2B6698;
+    border-bottom: none;
+}
+
+#modalReapplyLostOrder .nav-tabs>li {
+    cursor: pointer;
+}
+#modalReapplyLostOrder .nav-tabs>li.active>a {
+    border: 1px solid #337AB7;
+    border-bottom: none;
+}
+
+#modalPlayerAccountingDetail .nav-tabs>li {
+    cursor: pointer;
+}
+#modalPlayerAccountingDetail .nav-tabs>li.active>a {
+    border: 1px solid #337AB7;
+    border-bottom: none;
+}
 .text-disabled{
     color: red;
 }
