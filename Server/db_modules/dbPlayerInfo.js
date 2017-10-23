@@ -2814,6 +2814,10 @@ let dbPlayerInfo = {
      * @param-data {Json} can include  one or more of the following fields
      */
     applyForPlatformTransactionReward: function (platformId, playerId, topupAmount, playerLevel, bankCardType) {
+
+        // DEBUG: Reward sometime not applied issue
+        console.log('applyForPlatformTransactionReward', playerId);
+
         let deferred = Q.defer();
         let todayTime = dbUtility.getTodaySGTime();
         let curRewardAmount = 0;
@@ -2904,6 +2908,10 @@ let dbPlayerInfo = {
                                     eventCode: rewardParams[i].code,
                                 }
                             };
+
+                            // DEBUG: Reward sometime not applied issue
+                            console.log('applyForPlatformTransactionReward - Before Create Proposal', rewardAmount);
+
                             let temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
                             levelProm.push(temp);
                         }
@@ -5714,8 +5722,8 @@ let dbPlayerInfo = {
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
         para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
-        para.csPromoteWay.length > 0 ? query.promoteWay = para.csPromoteWay : null;
-        para.csOfficer.length > 0 ? query.csOfficer = para.csOfficer : null;
+        para.csPromoteWay && para.csPromoteWay.length > 0 ? query.promoteWay = para.csPromoteWay : null;
+        para.csOfficer && para.csOfficer.length > 0 ? query.csOfficer = para.csOfficer : null;
 
         if (para.isNewSystem === 'old') {
             query.isNewSystem = {$ne : true};

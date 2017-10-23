@@ -176,7 +176,11 @@ define(['js/app'], function (myApp) {
           vm.merchants.map(item=>{
             let merchantTypeId = item.merchantTypeId;
             if(merchantTypeId){
-              item.merchantTypeName = vm.merchantTypes[merchantTypeId] ? vm.merchantTypes[merchantTypeId].name : "";
+              if(merchantTypeId=="9999"){
+                item.merchantTypeName = $translate('BankCardNo');
+              }else{
+                item.merchantTypeName = vm.merchantTypes[merchantTypeId] ? vm.merchantTypes[merchantTypeId].name : "";
+              }
             }else{
               item.merchantTypeName = '';
             }
@@ -225,10 +229,10 @@ define(['js/app'], function (myApp) {
             }
           }else if(typeName=="PlayerTopUp"){
             let　merchantNo = vm.selectedProposal.data.merchantNo;
-            if(merchantNo && vm.merchantLists.length > 0){
-                vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
+            if(merchantNo && vm.merchants.length > 0){
+                vm.selectedProposal.card = vm.merchants.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
             }else{
-                vm.selectedProposal.card = {singleLimit:'-', quota:'-'};
+                vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
             }
           }
           $scope.safeApply();
@@ -533,7 +537,6 @@ define(['js/app'], function (myApp) {
                         "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
                         render: function (data, type, row) {
                             var text = $translate(data ? vm.getDepositMethodbyId[data]: "");
-                            console.log(text);
                             return "<div>" + text + "</div>";
                         }
                     },
@@ -885,7 +888,7 @@ define(['js/app'], function (myApp) {
 
         function getMerchantList() {
             return new Promise(function (resolve) {
-                socketService.$socket($scope.AppSocket, 'getMerchantList', {platformId: vm.selectedPlatform.platformId}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
                     if (data.data && data.data.merchants) {
                         resolve(data.data.merchants);
                     }

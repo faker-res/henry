@@ -107,7 +107,12 @@ function socketActionMerchantGroup(socketIO, socket) {
         getMerchantList: function getMerchantList(data) {
             var actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, pmsAPI.merchant_getMerchantList, [{platformId: data.platformId,queryId: serverInstance.getQueryId()}], actionName, true);
+        },
 
+        getMerchantNBankCard: function getMerchantNBankCard(data){
+          var actionName = arguments.callee.name;
+          var isValidData = Boolean(data);
+          socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getMerchantNBankCard, [data.platformId], actionName, isValidData);
         },
 
         /**
