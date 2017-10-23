@@ -611,7 +611,7 @@ define(['js/app'], function (myApp) {
                     console.log("merchantList", data);
                 });
 
-                socketService.$socket($scope.AppSocket, 'getMerchantList', {platformId: vm.selectedPlatform.platformId}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
                     if (data.data && data.data.merchants) {
                         vm.merchantNoList = data.data.merchants.filter(mer => {
                             vm.merchantNoNameObj[mer.merchantNo] = mer.name;
@@ -624,7 +624,9 @@ define(['js/app'], function (myApp) {
 
                         Object.keys(vm.merchantNoList).forEach(item=>{
                            let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
-                           if(vm.merchantTypes[merchantTypeId]){
+                           if(merchantTypeId=="9999"){
+                             vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
+                           }else if(vm.merchantTypes[merchantTypeId]){
                               vm.merchantNoList[item].merchantTypeName = merchantTypeId ? vm.merchantTypes[merchantTypeId].name :'';
                            }else{
                              vm.merchantNoList[item].merchantTypeName = '';
