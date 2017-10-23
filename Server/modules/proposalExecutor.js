@@ -938,10 +938,17 @@ var proposalExecutor = {
                                     }
                                 );
                             }
+
+                            // DEBUG: Reward sometime not applied issue
+                            console.log('applyForPlatformTransactionReward - Start', proposalData.proposalId);
+
                             dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType).then(
                                 data => deferred.resolve(data),
                                 error => deferred.reject(error)
                             );
+
+                            // DEBUG: Reward sometime not applied issue
+                            console.log('applyForPlatformTransactionReward - End', proposalData.proposalId);
                         },
                         function (error) {
                             deferred.reject(error);
