@@ -4917,8 +4917,10 @@ define(['js/app'], function (myApp) {
                     vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "new");
                     $scope.safeApply();
                 };
-                return function(){
-                    console.log('x')
+
+                if ($('.dataTables_scrollHeadInner > .topupGroupRecordTable').length > 0) {
+                    $(".topupGroupRecordTable").parent().parent().parent().remove();
+                    $(".topupGroupRecordTablePage").before('<table class="topupGroupRecordTable common-table display" style="width:100%"></table>')
                 }
             };
 
