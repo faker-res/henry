@@ -190,46 +190,71 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedPlatform.platformId},
                 data => {
                     var data = data.data;
-                    vm.bankCards = data.data ? data.data : false;
+                    vm.bankCards = data.data ? data.data : [];
             });
             socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroup', {platform: vm.selectedPlatform.platformId},
                 data => {
                     var data = data.data;
-                    vm.allAlipaysAcc = data.data ? data.data : false;
+                    vm.allAlipaysAcc = data.data ? data.data : [];
             });
             socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroup', {platform: vm.selectedPlatform.platformId},
                 data => {
                     var data = data.data;
-                    vm.allWechatpaysAcc = data.data ? data.data : false;
+                    vm.allWechatpaysAcc = data.data ? data.data : [];
             });
 
+        }
+        vm.wechatNameConvert = function(){
+            vm.selectedProposal.data.weAcc = '';
+            vm.selectedProposal.data.weName = '';
+            vm.selectedProposal.data.weChatQRCode = '';
+
+            if(vm.selectedProposal.data.wechatAccount){
+                vm.selectedProposal.data.weAcc = vm.selectedProposal.data.wechatAccount;
+            }
+            if(vm.selectedProposal.data.weChatAccount){
+                vm.selectedProposal.data.weAcc = vm.selectedProposal.data.weChatAccount;
+            }
+            if(vm.selectedProposal.data.wechatName) {
+                vm.selectedProposal.data.weName = vm.selectedProposal.data.wechatName;
+            }
+            if(vm.selectedProposal.data.weChatName) {
+                vm.selectedProposal.data.weName = vm.selectedProposal.data.weChatName;
+            }
+            if(vm.selectedProposal.data.wechatQRCode){
+                vm.selectedProposal.data.weQRCode =  vm.selectedProposal.data.wechatQRCode;
+            }
+            if(vm.selectedProposal.data.weChatQRCode){
+                vm.selectedProposal.data.weQRCode =  vm.selectedProposal.data.weChatQRCode;
+            }
+            $scope.safeApply();
         }
         vm.getCardLimit = function(typeName){
           let acc = '';
           if(typeName=='ManualPlayerTopUp'){
             let bankCardNo = vm.selectedProposal.data.bankCardNo;
-            if(bankCardNo && vm.bankCards.length > 0){
+            if(bankCardNo && vm.bankCards && vm.bankCards.length > 0){
                 vm.selectedProposal.card = vm.bankCards.filter(item=>{ return item.accountNumber == bankCardNo })[0] ||  {singleLimit:'0', quota:'0'};
             }else{
                 vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
             }
           }else if(typeName=="PlayerAlipayTopUp"){
             let　merchantNo = vm.selectedProposal.data.alipayAccount;
-            if(merchantNo && vm.allAlipaysAcc.length > 0){
+            if(merchantNo && vm.allAlipaysAcc && vm.allAlipaysAcc.length > 0){
                 vm.selectedProposal.card = vm.allAlipaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
             }else{
                 vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
             }
           }else if(typeName=="PlayerWechatTopUp"){
             let　merchantNo = vm.selectedProposal.data.wechatAccount;
-            if(merchantNo && vm.allWechatpaysAcc.length > 0){
+            if(merchantNo && vm.allWechatpaysAcc && vm.allWechatpaysAcc.length > 0){
                 vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
             }else{
                 vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
             }
           }else if(typeName=="PlayerTopUp"){
             let　merchantNo = vm.selectedProposal.data.merchantNo;
-            if(merchantNo && vm.merchants.length > 0){
+            if(merchantNo && vm.merchants && vm.merchants.length > 0){
                 vm.selectedProposal.card = vm.merchants.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
             }else{
                 vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
@@ -391,6 +416,7 @@ define(['js/app'], function (myApp) {
                             ? item.data.merchantNo
                             : item.data.wechatAccount
                             ? item.data.wechatAccount
+                                :item.data.weChatAccount != null ? item.data.weChatAccount
                             : item.data.alipayAccount
                             ? item.data.alipayAccount
                             : item.data.bankCardNo
@@ -481,6 +507,7 @@ define(['js/app'], function (myApp) {
                     vm.getCityName(vm.selectedProposal.data.inputData.cityId)
                 }
             }
+            vm.wechatNameConvert();
             // vm.selectedProposal.data.cityId;
             $('#modalProposal').modal('show');
             $('#modalProposal').on('shown.bs.modal', function (e) {

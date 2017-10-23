@@ -22,7 +22,7 @@ div
         label {{ vm.selectedProposal.createTime | date : 'yyyy-MM-dd hh:mm:ss'}}
     .label-value
         label {{'LastSettlementTime' | translate}}&nbsp;:&nbsp;
-        label {{ vm.selectedProposal.settleTime  | date : 'yyyy-MM-dd hh:mm:ss'}}
+        label {{ vm.selectedProposal.settleTime | date : 'yyyy-MM-dd hh:mm:ss'}}
 
     //.titleBackground.margin-bottom-5.text-center
     div(style='min-height:30px')
@@ -225,7 +225,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                 //wechat
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp" && !vm.selectProposal.from_old_system')
                     td {{'Our WeChatACC' | translate }}
-                    td {{ vm.selectedProposal.data.wechatAccount }}
+                    td {{ vm.selectedProposal.data.weAcc }}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp" && vm.selectProposal.from_old_system')
                     td {{'Our WeChatACC' | translate }}
                     td {{ vm.selectedProposal.data.msg }}
@@ -241,7 +241,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp"')
                     td {{'weChatQRCode' | translate }}
-                    td {{ vm.selectedProposal.data.wechatQRCode }}
+                    td {{ vm.selectedProposal.data.weQRCode }}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp"')
                     td {{'validTime' | translate }}
                     td {{ vm.selectedProposal.data.validTime }}
