@@ -4855,7 +4855,7 @@ define(['js/app'], function (myApp) {
                                 let cvm = this;
                                 let tableOptions = {
                                     data: tableData,
-                                    order: [[3, 'desc']],
+                                    order: [[2, 'desc']],
                                     columns: [
                                         {title: $translate('OPERATOR_NAME'), data: "admin.adminName"},
                                         {title: $translate('Topup Group'), data: "topUpGroupNames$", sClass: "realNameCell wordWrap"},
@@ -4900,14 +4900,22 @@ define(['js/app'], function (myApp) {
                         this.topUpGroupRemark = "";
                     };
 
+                    let debounceGetReferralPlayer = $scope.debounce(function refreshReferral() {
+                        return vm.getReferralPlayer(option.childScope.playerBeingEdited, "change");
+                    }, 500);
+
+                    let debounceGetPartnerInPlayer = $scope.debounce(function () {
+                        return vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "change");
+                    }, 500, false);
+
                     option.childScope.playerBeforeEditing.smsSetting = _.clone(editPlayer.smsSetting);
                     option.childScope.playerBeingEdited.smsSetting = _.clone(editPlayer.smsSetting);
                     option.childScope.changeReferral = function () {
-                        return vm.getReferralPlayer(option.childScope.playerBeingEdited, "change");
+                        debounceGetReferralPlayer();
                     };
                     option.childScope.changePartner = function () {
-                        return vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "change");
-                    }
+                        debounceGetPartnerInPlayer();
+                    };
                     vm.partnerChange = false;
                     $('.referralValidTrue').hide();
                     $('.referralValidFalse').hide();
