@@ -157,6 +157,7 @@ var roleChecker = {
         "getGameTypeList": true,
 
         //todo::to be added to permission list
+        "getCredibilityRemarks": true,
         "countTopUpORConsumptionbyPlatform": true,
         "getPlayerRetention": true,
         "getAllActions": true,
@@ -241,7 +242,7 @@ var roleChecker = {
             "Player": {
                 Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",
                     'getPlayersCountByPlatform', 'getPlatform', 'getPlayerStatusChangeLog', 'getPlayerForAttachGroup',
-                    'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo", 'getUpdateCredibilityLog'],
+                    'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo", 'getUpdateCredibilityLog','getPlayerTopUpGroupLog'],
                 AdvancedSearch: ['getPlayerByAdvanceQuery'],
                 Create: ['createPlayer', 'checkPlayerNameValidity'],
                 CreateTrial: ['createTestPlayerForPlatform'],
@@ -249,7 +250,7 @@ var roleChecker = {
                 ForbidTopupTypes: [],
                 AddFeedback: [],
                 FeedbackHistory: [],
-                Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity', 'updatePlayerReferral'],
+                Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity', 'updatePlayerReferral','createUpdateTopUpGroupLog'],
                 EditContact: ['createUpdatePlayerEmailProposal', 'createUpdatePlayerPhoneProposal', 'createUpdatePlayerQQProposal'],
                 PaymentInformation: ['updatePlayerPayment', 'createUpdatePlayerBankInfoProposal', 'verifyPlayerBankAccount'],
                 PaymentInformationHistory: ['getPaymentHistory'],
@@ -368,7 +369,8 @@ var roleChecker = {
                 autoApproval: ['updateAutoApprovalConfig'],
                 Monitor: [],
                 PlayerValue: ['updatePlayerValueConfig','updatePlayerLevelScores'],
-                Credibility: ['updateCredibilityRemarksInBulk']
+                Credibility: ['updateCredibilityRemarksInBulk'],
+                providerGroup: []
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],

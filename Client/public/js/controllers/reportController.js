@@ -756,6 +756,46 @@ define(['js/app'], function (myApp) {
                 vm.playerDomain.isNewSystem = "";
                 vm.playerDomain.playerType = "Real Player (all)";
                 utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
+                    // Get Promote CS and way lists
+                    vm.pdAllPromoteWay = {};
+                    let query = {
+                        platformId: vm.selectedPlatform._id
+                    };
+                    socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                            vm.pdAllPromoteWay = data.data;
+                            console.log("vm.pdAllPromoteWay", vm.pdAllPromoteWay);
+                            $scope.safeApply();
+                        },
+                        function (err) {
+                            console.log(err);
+                        });
+
+                    // Get Departments Detail
+                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
+                        console.log('getDepartmentTreeById', data);
+                        let parentId;
+                        vm.pdQueryDepartments = [];
+                        vm.pdQueryRoles = [];
+
+                        data.data.map(e => {
+                            if (e.departmentName == vm.selectedPlatform.name) {
+                                vm.pdQueryDepartments.push(e);
+                                parentId = e._id;
+                            }
+                        });
+
+                        data.data.map(e => {
+                            if (String(parentId) == String(e.parent)) {
+                                vm.pdQueryDepartments.push(e);
+                            }
+                        });
+
+                        $scope.$digest();
+                        if (typeof(callback) == 'function') {
+                            callback(data.data);
+                        }
+                    });
+
                     vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
                     vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainRepport)
@@ -1234,6 +1274,32 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
+        vm.setPDQueryRole = () => {
+            vm.pdQueryRoles = [];
+
+            vm.pdQueryDepartments.map(e => {
+                if (vm.playerDomain.departments.indexOf(e._id) >= 0) {
+                    vm.pdQueryRoles = vm.pdQueryRoles.concat(e.roles);
+                }
+            });
+
+            vm.endLoadMultipleSelect();
+            $scope.safeApply();
+        };
+
+        vm.setPDQueryAdmins = () => {
+            vm.pdQueryAdmins = [];
+
+            vm.pdQueryRoles.map(e => {
+                if (vm.playerDomain.roles.indexOf(e._id) >= 0) {
+                    vm.pdQueryAdmins = vm.pdQueryAdmins.concat(e.users);
+                }
+            });
+
+            vm.endLoadMultipleSelect();
+            $scope.safeApply();
+        };
+
         vm.getGameByIds = function (id) {
             if (!id) return;
             return new Promise(function (resolve, reject) {
@@ -1302,21 +1368,129 @@ define(['js/app'], function (myApp) {
             var deferred = Q.defer();
             socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: id}, function (data) {
                 vm.allProposalType = data.data;
+                // add index to data
+                for (let x = 0; x < vm.allProposalType.length; x++) {
+                    let groupName = utilService.getProposalGroupValue(vm.allProposalType[x],false);
+                    console.log(groupName);
+                    switch (vm.allProposalType[x].name) {
+                        case "AddPlayerRewardTask":
+                            vm.allProposalType[x].seq = 3.01;
+                            break;
+                        case "PlayerLevelUp":
+                            vm.allProposalType[x].seq = 3.02;
+                            break;
+                        case "PlayerPromoCodeReward":
+                            vm.allProposalType[x].seq = 3.03;
+                            break;
+                        case "UpdatePlayerInfo":
+                            vm.allProposalType[x].seq = 4.01;
+                            break;
+                        case "UpdatePlayerBankInfo":
+                            vm.allProposalType[x].seq = 4.02;
+                            break;
+                        case "UpdatePlayerEmail":
+                            vm.allProposalType[x].seq = 4.03;
+                            break;
+                        case "UpdatePlayerPhone":
+                            vm.allProposalType[x].seq = 4.04;
+                            break;
+                        case "UpdatePlayerQQ":
+                            vm.allProposalType[x].seq = 4.05;
+                            break;
+                        case "UpdatePartnerInfo":
+                            vm.allProposalType[x].seq = 5.01;
+                            break;
+                        case "UpdatePartnerBankInfo":
+                            vm.allProposalType[x].seq = 5.02;
+                            break;
+                        case "UpdatePartnerEmail":
+                            vm.allProposalType[x].seq = 5.03;
+                            break;
+                        case "UpdatePartnerPhone":
+                            vm.allProposalType[x].seq = 5.04;
+                            break;
+                        case "UpdatePartnerQQ":
+                            vm.allProposalType[x].seq = 5.05;
+                            break;
+                        case "UpdatePlayerCredit":
+                            vm.allProposalType[x].seq = 6.01;
+                            break;
+                        case "FixPlayerCreditTransfer":
+                            vm.allProposalType[x].seq = 6.02;
+                            break;
+                        case "UpdatePartnerCredit":
+                            vm.allProposalType[x].seq = 6.03;
+                            break;
+                        case "ManualUnlockPlayerReward":
+                            vm.allProposalType[x].seq = 6.04;
+                            break;
+                        case "PlayerLevelMigration":
+                            vm.allProposalType[x].seq = 6.05;
+                            break;
+                        case "PlayerRegistrationIntention":
+                            vm.allProposalType[x].seq = 6.06;
+                            break;
+                        case "PlayerLimitedOfferIntention":
+                            vm.allProposalType[x].seq = 6.07;
+                            break;
+                    }
+                    if(!vm.allProposalType[x].seq) {
+                        switch (groupName) {
+                            case "Topup Proposal":
+                                vm.allProposalType[x].seq = 1;
+                                break;
+                            case "Bonus Proposal":
+                                vm.allProposalType[x].seq = 2;
+                                break;
+                            case "Reward Proposal":
+                                vm.allProposalType[x].seq = 3.90;
+                                break;
+                            case "PLAYER_INFORMATION":
+                                vm.allProposalType[x].seq = 4.90;
+                                break;
+                            case "PARTNER_INFORMATION":
+                                vm.allProposalType[x].seq = 5.90;
+                                break;
+                            case "Others":
+                                vm.allProposalType[x].seq = 6.90;
+                                break;
+                        }
+                    }
+                }
                 vm.allProposalType.sort(
                     function (a, b) {
-                        if (vm.getProposalTypeOptionValue(a) > vm.getProposalTypeOptionValue(b)) return 1;
-                        if (vm.getProposalTypeOptionValue(a) < vm.getProposalTypeOptionValue(b)) return -1;
+                        if (a.seq > b.seq) return 1;
+                        if (a.seq < b.seq) return -1;
                         return 0;
                     }
                 );
-                console.log('vm.allProposalType:', data.data);
-                // console.log('ConsumptionReturn', data.data.name["ConsumptionReturn"]);
+                $scope.safeApply();
                 deferred.resolve(true);
             }, function (error) {
                 deferred.reject(error);
             });
             return deferred.promise;
         };
+
+        // vm.getProposalTypeByPlatformId = function (id) {
+        //     var deferred = Q.defer();
+        //     socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: id}, function (data) {
+        //         vm.allProposalType = data.data;
+        //         vm.allProposalType.sort(
+        //             function (a, b) {
+        //                 if (vm.getProposalTypeOptionValue(a) > vm.getProposalTypeOptionValue(b)) return 1;
+        //                 if (vm.getProposalTypeOptionValue(a) < vm.getProposalTypeOptionValue(b)) return -1;
+        //                 return 0;
+        //             }
+        //         );
+        //         console.log('vm.allProposalType:', data.data);
+        //         // console.log('ConsumptionReturn', data.data.name["ConsumptionReturn"]);
+        //         deferred.resolve(true);
+        //     }, function (error) {
+        //         deferred.reject(error);
+        //     });
+        //     return deferred.promise;
+        // };
 
         vm.getRewardList = function (callback) {
             vm.rewardList = [];
@@ -1559,6 +1733,7 @@ define(['js/app'], function (myApp) {
             vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {6: summary.amount});
 
             vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
+
 
             $('#topupTable').off('order.dt');
             $('#topupTable').on('order.dt', function (event, a, b) {
@@ -2258,6 +2433,9 @@ define(['js/app'], function (myApp) {
         vm.searchPlayerDomainRepport = function (newSearch) {
             $('#playerDomainReportTableSpin').show();
 
+            let admins = [];
+            let csPromoteWay = [];
+
             var sendquery = {
                 platform: vm.curPlatformId,
                 query: {
@@ -2275,7 +2453,9 @@ define(['js/app'], function (myApp) {
                     registrationInterface: vm.playerDomain.registrationInterface,
                     isNewSystem: vm.playerDomain.isNewSystem,
                     startTime: vm.playerDomain.startTime.data('datetimepicker').getLocalDate(),
-                    endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate()
+                    endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate(),
+                    csPromoteWay: vm.playerDomain.csPromoteWay && vm.playerDomain.csPromoteWay.length > 0 ? vm.playerDomain.csPromoteWay : csPromoteWay,
+                    csOfficer: vm.playerDomain.admins && vm.playerDomain.admins.length > 0 ? vm.playerDomain.admins : admins
                 },
                 index: newSearch ? 0 : (vm.playerDomain.index || 0),
                 limit: vm.playerDomain.limit || 10,
@@ -2392,12 +2572,14 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'loginTimes', 'aTargets': [7], bSortable: true},
                     {'sortCol': 'topUpTimes', 'aTargets': [8], bSortable: true},
                     {'sortCol': 'valueScore', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'sourceUrl', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'domain', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'registrationInterface', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'os', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'browser', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'partner', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'csOfficer.adminName', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'promoteWay', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'sourceUrl', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'domain', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'registrationInterface', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'os', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'browser', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'partner', 'aTargets': [17], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -2411,6 +2593,8 @@ define(['js/app'], function (myApp) {
                     {title: $translate('LOGIN_TIMES'), data: "loginTimes"},
                     {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
                     {title: $translate('PLAYER_VALUE'), data: "valueScore"},
+                    {title: $translate('REGISTRATION_ADMIN'), data: "csOfficer.adminName"},
+                    {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
                     {
                         title: $translate('Source Domain'),
                         data: "sourceUrl",
@@ -2555,12 +2739,12 @@ define(['js/app'], function (myApp) {
 
 
                     return item;
-                }), data.data.size, newSearch);
+                }),data.data.total, data.data.size, newSearch);
                 $scope.safeApply();
             });
         };
 
-        vm.drawPlayerReport = function (data, size, newSearch) {
+        vm.drawPlayerReport = function (data, total, size, newSearch) {
             var tableOptions = {
                 data: data,
                 "order": vm.playerQuery.aaSorting || [[15, 'desc']],
@@ -2590,26 +2774,26 @@ define(['js/app'], function (myApp) {
                     {title: $translate('LEVEL'), data: "playerLevel$"},
                     {title: $translate('CREDIBILITY'), data: "credibility$"},
                     {
-                        title: $translate('LOBBY'), data: "provider$", "className": 'expandPlayerReport',
+                        title: $translate('LOBBY'), data: "provider$", "className": 'expandPlayerReport', sClass: "sumText",
                         render: function (data) {
                             return "<a>" + data + "</a>";
                         }
                     },
-                    {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$"},
-                    {title: $translate('TOPUP_WECHAT'), data: "weChatTopUpAmount$"},
-                    {title: $translate('PlayerAlipayTopUp'), data: "aliPayTopUpAmount$"},
-                    {title: $translate('TOPUPONLINE'), data: "onlineTopUpAmount$"},
-                    {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
-                    {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$"},
-                    {title: $translate('WITHDRAW_COUNT'), data: "bonusTimes"},
-                    {title: $translate('WITHDRAW_AMOUNT'), data: "bonusAmount$"},
-                    {title: $translate('PROMOTION'), data: "rewardAmount$"},
-                    {title: $translate('CONSUMPTION_RETURN_AMOUNT'), data: "consumptionReturnAmount$"},
-                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes"},
-                    {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$"},
-                    {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$"},
-                    {title: $translate('COMPANY_PROFIT'), data: "profit$"},
-                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"}
+                    {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('TOPUP_WECHAT'), data: "weChatTopUpAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('PlayerAlipayTopUp'), data: "aliPayTopUpAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('TOPUPONLINE'), data: "onlineTopUpAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes", sClass: 'sumInt alignRight'},
+                    {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('WITHDRAW_COUNT'), data: "bonusTimes", sClass: 'sumInt alignRight'},
+                    {title: $translate('WITHDRAW_AMOUNT'), data: "bonusAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('PROMOTION'), data: "rewardAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('CONSUMPTION_RETURN_AMOUNT'), data: "consumptionReturnAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt alignRight'},
+                    {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: 'sumPercent alignRight'},
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: 'sumFloat alignRight'}
                 ],
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
@@ -2622,7 +2806,23 @@ define(['js/app'], function (myApp) {
             if (playerTbl){
                 playerTbl.clear();
             }
-            var playerTbl = utilService.createDatatableWithFooter('#playerReportTable', tableOptions, {});
+            var playerTbl = utilService.createDatatableWithFooter('#playerReportTable', tableOptions, {
+                4: total.manualTopUpAmount,
+                5: total.weChatTopUpAmount,
+                6: total.aliPayTopUpAmount,
+                7: total.onlineTopUpAmount,
+                8: total.topUpTimes,
+                9: total.topUpAmount,
+                10: total.bonusTimes,
+                11: total.bonusAmount,
+                12: total.rewardAmount,
+                13: total.consumptionReturnAmount,
+                14: total.consumptionTimes,
+                15: total.validConsumptionAmount,
+                16: total.consumptionBonusAmount,
+                17: total.profit,
+                18: total.consumptionAmount
+            });
             utilService.setDataTablePageInput('playerReportTable', playerTbl, $translate);
 
             vm.playerQuery.pageObj.init({maxCount: size}, newSearch);
@@ -3212,7 +3412,7 @@ define(['js/app'], function (myApp) {
                 $('#proposalTable').show();
                 console.log('proposal data', data);
                 var datatoDraw = data.data.data.map(item => {
-                    item.data.involveAmount = 0;
+                    item.involveAmount = 0;
                     if (item.topUpAmount) {
                         item.involveAmount = item.data.topUpAmount;
                     } else if (item.data.rewardAmount) {
@@ -3307,14 +3507,16 @@ define(['js/app'], function (myApp) {
                 // "scrollY": 400,
                 // "scrollCollapse": true,
                 // "destroy": true,
+                "bSortClasses": false,
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
                 "language": {
                     "info": "Total _MAX_ records",
                     "emptyTable": $translate("No data available in table"),
-                }
+                },
+                fnRowCallback: vm.proposalTableRow
             }
-            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             $.each(tableOptions.columns, function (i, v) {
                 v.defaultContent = v.defaultContent || "";
             });
@@ -3338,6 +3540,42 @@ define(['js/app'], function (myApp) {
             //
             // });
         }
+
+        vm.proposalTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            $compile(nRow)($scope);
+            vm.OperationProposalTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
+            //console.log("row", nRow, aData, iDisplayIndex, iDisplayIndexFull);
+        };
+
+        vm.OperationProposalTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            switch (true) {
+                // case (aData.expirationTime$ < 0 && aData.status == "Pending" && vm.rightPanelTitle == 'APPROVAL_PROPOSAL'): {
+                //     $(nRow).css('background-color', 'rgba(135, 206, 250, 100)');
+                //     break;
+                // }
+                case (aData.data.updateAmount >= 5000 && aData.data.updateAmount < 50000): {
+                    $(nRow).css('background-color', 'rgba(255, 209, 202, 100)','important');
+                    $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                    break;
+                }
+                case (aData.data.updateAmount >= 50000 && aData.data.updateAmount < 500000): {
+                    $(nRow).css('background-color', 'rgba(236,100,75, 100)','important');
+                    break;
+                }
+                case (aData.data.updateAmount >= 500000 && aData.data.updateAmount < 1000000): {
+                    $(nRow).css('background-color', 'rgba(255, 184, 133, 100)');
+                    break;
+                }
+                case (aData.data.updateAmount >= 1000000): {
+                    $(nRow).css('background-color', 'rgba(188, 230, 114, 100)');
+                    break;
+                }
+                default: {
+                    $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
+                    break;
+                }
+            }
+        };
 
         vm.proposalTablePageChange = function (curP, pageSize) {
             vm.commonPageChangeHandler(curP, pageSize, "proposalQuery", vm.searchProposalRecord)

@@ -217,7 +217,7 @@ var dbPlatformGameStatus = {
                             games = games.filter(
                                 function (obj) {
                                     return groupGames.some(function (game) {
-                                        return game.equals(obj);
+                                        return game && game.gameId == obj.gameId;
                                     });
                                 }
                             )

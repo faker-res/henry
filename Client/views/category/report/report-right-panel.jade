@@ -496,6 +496,22 @@
                     div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerDomain.topUpTimesOperator === 'range'") ~
                     input.form-control(type="number" ng-model="vm.playerDomain.topUpTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerDomain.topUpTimesOperator === 'range'")
                 div
+                    label {{"csPromoteWay"|translate}}
+                    select.spicker.form-control(ng-model='vm.playerDomain.csPromoteWay', multiple, data-actions-box='true')
+                        option(ng-repeat='(i,v) in vm.pdAllPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
+                div
+                    label {{"REGISTRATION_DEPARTMENT"|translate}}
+                    select.spicker.form-control(ng-model='vm.playerDomain.departments', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setPDQueryRole()")
+                        option(ng-repeat='(i,v) in vm.pdQueryDepartments', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.departmentName}}
+                div
+                    label {{"REGISTRATION_ROLE"|translate}}
+                    select.spicker.form-control(ng-model='vm.playerDomain.roles', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setPDQueryAdmins()")
+                        option(ng-repeat='(i,v) in vm.pdQueryRoles', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.roleName}}
+                div
+                    label {{"REGISTRATION_ADMIN"|translate}}
+                    select.spicker.form-control(ng-model='vm.playerDomain.admins', multiple, data-actions-box='true' data-width="200px")
+                        option(ng-repeat='(i,v) in vm.pdQueryAdmins', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
+                div
                     label {{"Registration Domain"|translate}}
                     input.form-control(type="text", ng-model="vm.playerDomain.domain")
                 div

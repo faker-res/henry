@@ -949,7 +949,8 @@ var dbPlayerTopUpRecord = {
                         cityId: inputData.cityId,
                         districtId: inputData.districtId || "",
                         groupBankcardList: player.bankCardGroup ? player.bankCardGroup.banks : [],
-                        operateType: entryType == "ADMIN" ? 1 : 0
+                        operateType: entryType == "ADMIN" ? 1 : 0,
+                        remark: inputData.remark || ''
                     };
                     if( fromFPMS ){
                         let cTime = inputData.createTime ? new Date(inputData.createTime) : new Date();
