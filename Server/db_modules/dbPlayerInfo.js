@@ -5714,6 +5714,8 @@ let dbPlayerInfo = {
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
         para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
+        para.csPromoteWay.length > 0 ? query.promoteWay = para.csPromoteWay : null;
+        para.csOfficer.length > 0 ? query.csOfficer = para.csOfficer : null;
 
         if (para.isNewSystem === 'old') {
             query.isNewSystem = {$ne : true};
