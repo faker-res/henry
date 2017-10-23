@@ -5714,6 +5714,8 @@ let dbPlayerInfo = {
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
         para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
+        para.csPromoteWay ? query.promoteWay = para.csPromoteWay : null;
+        para.csOfficer.length > 0 ? query.csOfficer = para.csOfficer : null;
 
         if (para.isNewSystem === 'old') {
             query.isNewSystem = {$ne : true};
@@ -5771,10 +5773,26 @@ let dbPlayerInfo = {
             }
         }
 
+
+        // let adminFilter = para.admins.length > 0 ? para.admins : null;
+        let adminFilter = [];
+
         let count = dbconfig.collection_players.find(query).count();
+        // let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
+        //     .populate({path: 'partner', model: dbconfig.collection_partner}).lean()
+        //     .populate({path:'csOfficer', model: dbconfig.collection_admin, select: "adminName"}).lean();
+        //para.admins.length > 0 ? query.csOfficer = para.admins : null;
+
         let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
             .populate({path: 'partner', model: dbconfig.collection_partner}).lean()
             .populate({path:'csOfficer', model: dbconfig.collection_admin, select: "adminName"}).lean();
+            //.populate({path:'csOfficer', model: dbconfig.collection_admin,select: "adminName"}).find(para.admins.length > 0 ? {adminName:{$in :para.admins}} : null).skip(index).limit(limit).lean();
+
+
+        //match: {adminName: adminFilter},
+
+
+
 
         return Q.all([count, detail]).then(
             data => {
@@ -5783,6 +5801,9 @@ let dbPlayerInfo = {
                     dbPlayerCredibility.calculatePlayerValue(players[i]._id);
                 }
 
+                // Output filter promote way and csofficer
+                // data[1] = para.csPromoteWay && para.csPromoteWay.length > 0 ? data[1].filter(e => para.csPromoteWay.indexOf(e.promoteWay) >= 0) : data[1];
+                //data[1] = para.admins && para.admins.length > 0 ? data[1].filter(e => para.admins.indexOf(e.csOfficer.adminName) >= 0) : data[1];
                 return {data: data[1], size: data[0]}
             }
         )
