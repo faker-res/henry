@@ -12,6 +12,7 @@ var platformSchema = new Schema({
     code: {type: String, unique: true, required: true, dropDups: true, index: true},
     //platform prefix
     prefix: {type: String, default: ""},
+    icon: {type: String},
     //platform partner prefix
     partnerPrefix: {type: String, default: ""},
     //platform description
@@ -38,25 +39,28 @@ var platformSchema = new Schema({
     lastDailySettlementTime: {type: Date},
     //last weekly settlement time
     lastWeeklySettlementTime: {type: Date},
+    //CUSTOMER SERVICE INFO
     //email address used when sending emails to players
     csEmail: {type: String},
-    //Customer Service phone
+    csEmailImageUrl: {type: String},
     csPhone: {type: String},
-    //cs url
     csUrl: {type: String},
-    csWeixin: {type: String},
     csQQ: {type: String},
-    icon: {type: String},
+    csWeixin: {type: String},
+    weixinPhotoUrl: {type: String},
+    csSkype: {type: String},
+    csDisplayUrl: {type: String},
     //OFFICIAL_ACCOUNT_WEIXIN
     oaWeixin: {type: String},
-    //wechat photo
-    weixinPhotoUrl: {type: String},
-    //cs skype
-    csSkype: {type: String},
-    //partner cs contact
-    csPartnerQQ: {type: String},
+    //CUSTOMER SERVICE PARTNER INFO
     csPartnerEmail: {type: String},
+    csPartnerPhone: {type: String},
+    csPartnerUrl: {type: String},
+    csPartnerQQ: {type: String},
+    csPartnerWeixin: {type: String},
+    partnerWeixinPhotoUrl: {type: String},
     csPartnerSkype: {type: String},
+    csPartnerDisplayUrl: {type: String},
     //auto settlement
     canAutoSettlement: {type: Boolean, default: false},
     //invitation url for player from partner
@@ -152,6 +156,10 @@ var platformSchema = new Schema({
         // default score for credibility remark criteria
         credibilityScoreDefault: {type: Number, default: 5}
     },
+    consumptionTimeConfig: [{
+        duration: {type: Number},
+        color: {type: String},
+    }],
     jiguangAppKey: {type: String},
     jiguangMasterKey: {type: String},
     bonusSetting: {type: JSON,default:{}}

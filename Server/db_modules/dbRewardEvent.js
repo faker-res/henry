@@ -356,6 +356,9 @@ var dbRewardEvent = {
                                                 data => data,
                                                 //treat error as 0 credit for now, todo::refactor code here with retries
                                                 error => {
+                                                    // System log when querying game credit timeout / error
+                                                    console.log("ERROR: player_queryCredit failed for player", playerData.name, error);
+
                                                     return {};
                                                 }
                                             )

@@ -157,6 +157,7 @@ var roleChecker = {
         "getGameTypeList": true,
 
         //todo::to be added to permission list
+        "getCredibilityRemarks": true,
         "countTopUpORConsumptionbyPlatform": true,
         "getPlayerRetention": true,
         "getAllActions": true,
@@ -239,9 +240,9 @@ var roleChecker = {
                 PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement']
             },
             "Player": {
-                Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList',
+                Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",
                     'getPlayersCountByPlatform', 'getPlatform', 'getPlayerStatusChangeLog', 'getPlayerForAttachGroup',
-                    'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo", 'getUpdateCredibilityLog'],
+                    'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo", 'getUpdateCredibilityLog','getPlayerTopUpGroupLog'],
                 AdvancedSearch: ['getPlayerByAdvanceQuery'],
                 Create: ['createPlayer', 'checkPlayerNameValidity'],
                 CreateTrial: ['createTestPlayerForPlatform'],
@@ -249,7 +250,7 @@ var roleChecker = {
                 ForbidTopupTypes: [],
                 AddFeedback: [],
                 FeedbackHistory: [],
-                Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity', 'updatePlayerReferral'],
+                Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity', 'updatePlayerReferral','createUpdateTopUpGroupLog'],
                 EditContact: ['createUpdatePlayerEmailProposal', 'createUpdatePlayerPhoneProposal', 'createUpdatePlayerQQProposal'],
                 PaymentInformation: ['updatePlayerPayment', 'createUpdatePlayerBankInfoProposal', 'verifyPlayerBankAccount'],
                 PaymentInformationHistory: ['getPaymentHistory'],
@@ -368,7 +369,8 @@ var roleChecker = {
                 autoApproval: ['updateAutoApprovalConfig'],
                 Monitor: [],
                 PlayerValue: ['updatePlayerValueConfig','updatePlayerLevelScores'],
-                Credibility: ['updateCredibilityRemarksInBulk']
+                Credibility: ['updateCredibilityRemarksInBulk'],
+                providerGroup: []
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -403,7 +405,7 @@ var roleChecker = {
                 promoCodeAnalysis: ['getPromoCodeTypeByObjId']
             },
             "RegistrationUrlConfig": {
-                Read: ['getAllOfficer', 'getAllPromoteWay', 'getAllUrl'],
+                Read: ['getAllOfficer', 'getAllPromoteWay', 'getAllUrl', 'getAdminNameByDepartment'],
                 Create: ['createOfficer', 'addPromoteWay', 'addUrl'],
                 Delete: ['deletePromoteWay', 'deleteOfficer', 'deleteUrl'],
                 Update: ['updateUrl']
@@ -528,6 +530,7 @@ var roleChecker = {
                 PLAYER_EXPENSE_REPORT: ['getPlayerProviderReport', 'getProviderGamePlayerReport', 'getProviderGameReport', 'getPlayerProviderByGameReport', 'manualDailyProviderSettlement'],
                 PLAYER_REPORT: ['getPlayerReport', 'manualDailyProviderSettlement'],
                 NEWACCOUNT_REPORT: ['getPlayerDomainAnalysisData', 'getNewAccountReportData'],
+                DX_NEWACCOUNT_REPORT: ['getDXNewPlayerReport', 'getAllPromoteWay', 'getDepartmentDetailsByPlatformObjId'],
                 PLAYERPARTNER_REPORT: ['getPartnerPlayers', 'getPartnerSummaryReport', 'getPartnerPlayerBonusReport'],
                 PARTNERPLAYERBOUNS_REPORT: ['getPartnerPlayerBonusReport'],
                 PARTNERCOMMISSION_REPORT: ['getPartnerCommissionReport'],
@@ -552,7 +555,9 @@ var roleChecker = {
                 PLAYER_FEEDBACK_REPORT: ['getPlayerFeedbackReport', 'getAllFeedbackResultList'],
                 CREDIT_CHANGE_REPORT: ['queryCreditChangeLog'],
                 PLAYER_ALMOST_LEVELUP_REPORT: ['getPlayerAlmostLevelupReport'],
-                ACTIONLOG_REPORT: ['getActionLogPageReport']
+                ACTIONLOG_REPORT: ['getActionLogPageReport'],
+                ONLINE_PAYMENT_MISMATCH_REPORT: ['getMismatchReport'],
+                LIMITED_OFFER_REPORT: ['getLimitedOfferReport']
             }
         },
         Monitor: {

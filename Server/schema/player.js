@@ -101,6 +101,9 @@ var playerSchema = new Schema({
         transactionReward: {type: Boolean, default: true},
         topupOnline: {type: Boolean, default: true},
         topupManual: {type: Boolean, default: true},
+        topUpCard: {type: Boolean, default: true},
+        phoneCallFeedback: {type: Boolean, default: true},
+        SMSFeedBack: {type: Boolean, default: true},
         alipayTransaction: {type: Boolean, default: true},
         quickpayTransaction: {type: Boolean, default: true},
         banReward: {type: Boolean, default: false},
@@ -200,6 +203,8 @@ var playerSchema = new Schema({
     quickPayGroup: {type: Schema.ObjectId, ref: 'platformQuickPayGroup'},
     //forbid top up types
     forbidTopUpType: [{type: String}],
+    // forbid reward events by player
+    forbidRewardEvents: [{type: String}],
     //reward info
     //if this player has been rewarded for first time top up event
     bFirstTopUpReward: {type: Boolean, default: false},
@@ -241,7 +246,15 @@ var playerSchema = new Schema({
     // the number of times where player login
     loginTimes: {type: Number, default: 0},
     //for reporo conversion
-    reporoId: {type: String}
+    reporoId: {type: String},
+    // UI Help Info View
+    viewInfo: {
+        limitedOfferInfo: {type: Number, default: 1}
+    },
+    // admin name who opened this account from backstage
+    accAdmin: {type: String},
+    csOfficer: {type: Schema.ObjectId, ref: 'admin'},
+    promoteWay: {type: String},
 });
 
 //record is unique by name and platform

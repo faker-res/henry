@@ -328,6 +328,7 @@ let PlayerServiceImplement = function () {
                 conn.playerId = playerData.playerId;
                 conn.playerObjId = playerData._id;
                 conn.noOfAttempt = 0;
+                conn.viewInfo = playerData.viewInfo;
                 conn.onclose = function (event) {
                     dbPlayerInfo.playerLogout({playerId: playerData.playerId}).catch(
                         error => {

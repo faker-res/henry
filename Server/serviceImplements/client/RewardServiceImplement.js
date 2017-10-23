@@ -130,14 +130,32 @@ let RewardServiceImplement = function () {
     this.getLimitedOffers.expectsData = 'platformId: String';
     this.getLimitedOffers.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getLimitedOffers, [data.platformId], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getLimitedOffers, [data.platformId, conn.playerId, data.status], isValidData, false, false, true);
     };
-    this.applyLimitedOffers.expectsData = 'playerName: String, platformId: String, limitedOfferObjId: String';
+    this.applyLimitedOffers.expectsData = 'limitedOfferObjId: String';
     this.applyLimitedOffers.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.platformId && data.playerName && data.limitedOfferObjId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyLimitedOffers, [data.platformId, data.playerName, ObjectId(data.limitedOfferObjId)], isValidData, false, false, true);
+        let isValidData = Boolean(data && data.limitedOfferObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyLimitedOffers, [conn.playerId, ObjectId(data.limitedOfferObjId)], isValidData);
     };
 
+    this.getLimitedOfferBonus.expectsData = 'platformId: String';
+    this.getLimitedOfferBonus.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getLimitedOfferBonus, [data.platformId], isValidData, false, false, true);
+    };
+
+    this.setLimitedOfferShowInfo.expectsData = 'showInfo: Number|String';
+    this.setLimitedOfferShowInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data);
+
+        if (conn.viewInfo) {
+            conn.viewInfo.limitedOfferInfo = data.showInfo;
+        } else {
+            conn.viewInfo = {limitedOfferInfo: data.showInfo};
+        }
+
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setShowInfo, [conn.playerId, "limitedOfferInfo", data.showInfo], isValidData, false, false, true);
+    };
 };
 
 

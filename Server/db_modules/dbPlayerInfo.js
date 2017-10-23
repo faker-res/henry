@@ -83,7 +83,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData, bypassSMSVerify) {
+    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName) {
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -208,7 +208,7 @@ let dbPlayerInfo = {
                         delete inputData.platformId;
                         //find player referrer if there is any
                         let proms = [];
-                        if (inputData.referral) {
+                        if (inputData.referral || inputData.referralName) {
                             let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
                             let referralProm = dbconfig.collection_players.findOne({
                                 name: referralName,
@@ -271,8 +271,16 @@ let dbPlayerInfo = {
                                 }
                             );
                             proms.push(domainProm);
-                        }
 
+                            let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({domain: {$regex: inputData.domain, $options: "x"}}).lean().then(data => {
+                                    if(data){
+                                        inputData.csOfficer = data.admin;
+                                        inputData.promoteWay = data.way
+                                    }
+                            });
+
+                            proms.push(promoteWayProm);
+                        }
 
                         return Q.all(proms);
                     } else {
@@ -322,6 +330,10 @@ let dbPlayerInfo = {
 
                     if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
                         inputData.loginTimes = 1;
+                    }
+                    else if (adminName) {
+                        // insert related CS name when account is opened from backstage
+                        inputData.accAdmin = adminName;
                     }
 
                     return dbPlayerInfo.createPlayerInfo(inputData);
@@ -974,9 +986,20 @@ let dbPlayerInfo = {
 
     getPlayerInfo: function (query) {
         return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-            .populate({path: "partner", model: dbconfig.collection_partner})
-            .exec();
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+                playerData => {
+                    if (!playerData) {
+                        return false;
+                    }
+                    return {
+                        _id: playerData._id,
+                        name: playerData.name,
+                        platformId: playerData.platform.platformId,
+                        validCredit: playerData.validCredit,
+                        realName: playerData.realName
+                    }
+                }
+            );
     },
     getOnePlayerInfo: function (query) {
         let playerData;
@@ -1008,11 +1031,62 @@ let dbPlayerInfo = {
                 }
             )
     },
+    getOnePlayerCardGroup: function(query){
+        let playerData;
 
+        return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+            .populate({path: "partner", model: dbconfig.collection_partner})
+            .populate({
+                path: "bankCardGroup",
+                model: dbconfig.collection_platformBankCardGroup
+            }).populate({
+                path: "merchantGroup",
+                model: dbconfig.collection_platformMerchantGroup
+            }).populate({
+                path: "alipayGroup",
+                model: dbconfig.collection_platformAlipayGroup
+            }).populate({
+                path: "wechatPayGroup",
+                model: dbconfig.collection_platformWechatPayGroup
+            })
+            .then(data => {
+                if (data) {
+                    playerData = data;
+                    return dbconfig.collection_platform.findOne({
+                        _id: playerData.platform
+                    });
+                } else return Q.reject({message: "incorrect player result"});
+            }).then(
+                platformData => {
+                    return dbconfig.collection_playerClientSourceLog.findOne({
+                        platformId: platformData.platformId,
+                        playerName: playerData.name
+                    }).lean()
+                }
+            ).then(
+                sourceLogData => {
+                    if (sourceLogData) {
+                        playerData.sourceUrl = sourceLogData.sourceUrl;
+                    }
+                    return playerData;
+                }
+            )
+
+    },
     getPlayerPhoneNumber: function (playerObjId) {
         return dbconfig.collection_players.findOne({_id: playerObjId}).then(
             playerData => {
                 if (playerData) {
+
+                    if (playerData.permission && playerData.permission.phoneCallFeedback === false) {
+                        Q.reject({
+                            status: constServerCode.PLAYER_NO_PERMISSION,
+                            name: "DataError",
+                            message: "Player does not have this permission"
+                        });
+                    }
+
                     if (playerData.phoneNumber) {
                         if (playerData.phoneNumber.length > 20) {
                             try {
@@ -1527,6 +1601,14 @@ let dbPlayerInfo = {
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
 
+    updatePlayerForbidRewardEvents: function (playerObjId, forbidRewardEvents) {
+        let updateData = {};
+        if (forbidRewardEvents) {
+            updateData.forbidRewardEvents = forbidRewardEvents;
+        }
+        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
+    },
+
     /**
      * Delete playerInfo by object _id of the playerInfo schema
      * @param {array}  playerObjIds - The object _ids of the players
@@ -1911,7 +1993,8 @@ let dbPlayerInfo = {
                             {
                                 $set: {
                                     'data.topUpProposalObjId': proposalData._id,
-                                    'data.topUpProposalId': proposalData.proposalId
+                                    'data.topUpProposalId': proposalData.proposalId,
+                                    'data.topUpAmount': proposalData.data.amount
                                 },
                                 $currentDate: {settleTime: true}
                             },
@@ -1928,6 +2011,7 @@ let dbPlayerInfo = {
                         ).then(
                             proposalTypeData => {
                                 if (proposalTypeData) {
+                                    // Create reward proposal with intention data
                                     let proposalData = {
                                         type: proposalTypeData._id,
                                         creator: newProp.creator,
@@ -1937,6 +2021,23 @@ let dbPlayerInfo = {
                                     };
                                     return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
                                 }
+                            }
+                        ).then(
+                            res => {
+                                return dbUtility.findOneAndUpdateForShard(
+                                    dbconfig.collection_proposal,
+                                    {_id: proposalData.data.limitedOfferObjId},
+                                    {
+                                        $set: {
+                                            'data.rewardProposalObjId': res._id,
+                                            'data.rewardProposalId': res.proposalId,
+                                            'data.rewardAmount': res.data.rewardAmount
+                                        },
+                                        $currentDate: {settleTime: true}
+                                    },
+                                    constShardKeys.collection_proposal,
+                                    true
+                                )
                             }
                         );
 
@@ -2591,8 +2692,18 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data && data[0] && data[1] && !data[2]) {
-                    if (String(data[0].platform._id) == String(data[1].platform) && data[1].type.name == constRewardType.GAME_PROVIDER_REWARD
-                        && data[0].validCredit > 0 && amount > 0 && amount <= data[0].validCredit && rewardUtility.isValidRewardEvent(constRewardType.GAME_PROVIDER_REWARD, data[1])) {
+                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(data[0], data[1]._id);
+                    if (playerIsForbiddenForThisReward) {
+                        deferred.reject({name: "DataError", message: "Player is forbidden for this reward."});
+                    }
+
+                    if (String(data[0].platform._id) == String(data[1].platform)
+                        && data[1].type.name == constRewardType.GAME_PROVIDER_REWARD
+                        && data[0].validCredit > 0
+                        && amount > 0
+                        && amount <= data[0].validCredit
+                        && rewardUtility.isValidRewardEvent(constRewardType.GAME_PROVIDER_REWARD, data[1]
+                    )) {
                         proposalData = {
                             type: data[1].executeProposal,
                             creator: adminInfo ? adminInfo :
@@ -2706,6 +2817,10 @@ let dbPlayerInfo = {
      * @param-data {Json} can include  one or more of the following fields
      */
     applyForPlatformTransactionReward: function (platformId, playerId, topupAmount, playerLevel, bankCardType) {
+
+        // DEBUG: Reward sometime not applied issue
+        console.log('applyForPlatformTransactionReward', playerId);
+
         let deferred = Q.defer();
         let todayTime = dbUtility.getTodaySGTime();
         let curRewardAmount = 0;
@@ -2745,6 +2860,9 @@ let dbPlayerInfo = {
                     if (!data[3].permission || !data[3].permission.transactionReward) {
                         deferred.resolve("No permission!");
                     }
+                    if (dbPlayerReward.isRewardEventForbidden(data[3], data[0]._id)) {
+                        deferred.resolve("No permission!");
+                    }
                     if (data[1] && data[1][0]) {
                         curRewardAmount = data[1][0].totalAmount;
                     }
@@ -2773,8 +2891,9 @@ let dbPlayerInfo = {
                 if (levels) { // && levels[0].value >= levels[1].value) {
                     let levelProm = [];
                     for (var i = 0; i < levels.length; i++) {
-                        if (playerLevelData.value >= levels[i].value && rewardParams[i].param && curRewardAmount < rewardParams[i].param.maxRewardAmountPerDay && (!rewardParams[i].param.bankCardType ||
-                                (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))) {
+                        if (playerLevelData.value >= levels[i].value && rewardParams[i].param && curRewardAmount < rewardParams[i].param.maxRewardAmountPerDay
+                            // && (!rewardParams[i].param.bankCardType || (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))
+                        ) {
                             let rewardAmount = Math.min((rewardParams[i].param.maxRewardAmountPerDay - curRewardAmount), rewardParams[i].param.rewardPercentage * topupAmount);
                             let proposalData = {
                                 type: rewardParams[i].executeProposal,
@@ -2787,11 +2906,15 @@ let dbPlayerInfo = {
                                     eventDescription: rewardParams[i].description,
                                     curRewardAmount: curRewardAmount,
                                     maxRewardAmountPerDay: rewardParams[i].param.maxRewardAmountPerDay,
-                                    spendingAmount: curRewardAmount,
+                                    spendingAmount: rewardAmount,
                                     eventName: rewardParams[i].name,
                                     eventCode: rewardParams[i].code,
                                 }
                             };
+
+                            // DEBUG: Reward sometime not applied issue
+                            console.log('applyForPlatformTransactionReward - Before Create Proposal', rewardAmount);
+
                             let temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
                             levelProm.push(temp);
                         }
@@ -2943,11 +3066,17 @@ let dbPlayerInfo = {
                         .sort(sortObj).skip(index).limit(limit)
                         .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
                         .populate({path: "partner", model: dbconfig.collection_partner})
+                        .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
                         .lean().then(
                             playerData => {
                                 var players = [];
                                 for (var ind in playerData) {
                                     if (playerData[ind]) {
+                                        if (playerData[ind].referral) {
+                                            playerData[ind].referralName$ = playerData[ind].referral.name;
+                                            playerData[ind].referral = playerData[ind].referral._id;
+                                        }
+
                                         var newInfo = getRewardData(playerData[ind]);
                                         players.push(Q.resolve(newInfo));
                                     }
@@ -3874,7 +4003,7 @@ let dbPlayerInfo = {
                         rewardProm = dbRewardTask.getPlayerCurRewardTask(playerObjId);
                     }
                     let gameCreditProm = {};
-                    if (playerData.lastPlayedProvider) {
+                    if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
                         gameCreditProm = cpmsAPI.player_queryCredit(
                             {
                                 username: userName,
@@ -4592,6 +4721,10 @@ let dbPlayerInfo = {
                                         creditData => {
                                             returnObj.gameCredit = creditData ? parseFloat(creditData.credit) : 0;
                                             return returnObj;
+                                        },
+                                        error => {
+                                            //if can't query credit use 0 for game credit
+                                            return returnObj;
                                         }
                                     );
                                 }
@@ -4691,11 +4824,13 @@ let dbPlayerInfo = {
         var deferred = Q.defer();
 
         var playerPlatformId = null;
+        let playerData;
 
         dbconfig.collection_players.findOne(query).then(
             function (player) {
                 if (player) {
                     playerPlatformId = player.platform;
+                    playerData = player;
                     return dbconfig.collection_rewardEvent.find({platform: player.platform})
                         .populate({
                             path: "type",
@@ -4995,7 +5130,7 @@ let dbPlayerInfo = {
         ).then(
             function (player) {
                 if (player) {
-                    queryObject["data.playerObjId"] = player._id;
+                    queryObject["data.playerObjId"] = {$in: [String(player._id), player._id]};
                     playerName = player.name;
                     if (rewardType) {
                         return dbconfig.collection_proposalType.findOne({
@@ -5032,7 +5167,7 @@ let dbPlayerInfo = {
                             path: "process",
                             model: dbconfig.collection_proposalProcess
                         })
-                        .lean().skip(startIndex).limit(count);
+                        .lean().sort({createTime: 1}).skip(startIndex).limit(count);
                     return Q.all([countProm, rewardProm]).catch(
                         error => Q.reject({name: "DBError", message: "Error in finding proposal", error: error})
                     );
@@ -5062,8 +5197,8 @@ let dbPlayerInfo = {
                                 playerName: playerName,
                                 createTime: proposals[i].createTime,
                                 rewardType: proposals[i].type ? proposals[i].type.name : "",
-                                rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : 0,
-                                eventName: proposals[i].data.eventName,
+                                rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
+                                eventName: proposals[i].data.eventName || proposals[i].data.type,
                                 eventCode: proposals[i].data.eventCode,
                                 status: status
                             }
@@ -5590,6 +5725,8 @@ let dbPlayerInfo = {
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
         para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
+        para.csPromoteWay && para.csPromoteWay.length > 0 ? query.promoteWay = para.csPromoteWay : null;
+        para.csOfficer && para.csOfficer.length > 0 ? query.csOfficer = para.csOfficer : null;
 
         if (para.isNewSystem === 'old') {
             query.isNewSystem = {$ne : true};
@@ -5649,7 +5786,8 @@ let dbPlayerInfo = {
 
         let count = dbconfig.collection_players.find(query).count();
         let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
-            .populate({path: 'partner', model: dbconfig.collection_partner}).lean();
+            .populate({path: 'partner', model: dbconfig.collection_partner}).lean()
+            .populate({path:'csOfficer', model: dbconfig.collection_admin, select: "adminName"}).lean();
 
         return Q.all([count, detail]).then(
             data => {
@@ -6979,7 +7117,7 @@ let dbPlayerInfo = {
                     }
                     else {
                         SMSSender.sendByPlayerId(data.data.playerId, constPlayerSMSSetting.APPLY_BONUS);
-                        return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bSuccess, proposalData);
+                        // return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bSuccess, proposalData);
                     }
                 }
                 else {
@@ -7936,7 +8074,8 @@ let dbPlayerInfo = {
                 }
 
                 //get player's platform reward event data
-                if (data && data[0] && data[1] && !data[1].bDirty && String(data[1].playerId) == String(data[0]._id)) {
+                if (data && data[0] && data[1] && !data[1].bDirty && String(data[1].playerId) == String(data[0]._id)
+                    && !(data[1].proposalId && data[1].proposalId.length > 10)) {
                     player = data[0];
                     record = data[1];
                     platformId = player.platform;
@@ -7972,7 +8111,7 @@ let dbPlayerInfo = {
                         return Q.reject({
                             status: constServerCode.INVALID_DATA,
                             name: "DataError",
-                            message: "Invalid data"
+                            message: "Cant apply this reward, contact cs"
                         });
                     }
                 }
@@ -7989,6 +8128,15 @@ let dbPlayerInfo = {
 
                 eventData = data[0];
                 taskData = data[1];
+
+                let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(player, eventData._id);
+                if (playerIsForbiddenForThisReward) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        message: "Player is forbidden for this reward."
+                    });
+                }
 
                 if (eventData.validStartTime && eventData.validEndTime) {
                     // TODO Temoporary hardcoding: Only can apply 1 time within period
@@ -8232,6 +8380,10 @@ let dbPlayerInfo = {
                     if (rewardUtility.isValidRewardEvent(constRewardType.PLAYER_CONSUMPTION_INCENTIVE, eventData) && eventData.needApply) {
                         event = eventData;
                         let minTopUpRecordAmount = 0;
+
+                        if (dbPlayerReward.isRewardEventForbidden(player, event._id)) {
+                            return Q.reject({status:constServerCode.PLAYER_NO_PERMISSION, name: "DataError", message: "Player is forbidden for this reward."});
+                        }
 
                         // Filter event param based on player level
                         eventParams = eventData.param.reward.filter(reward => {
@@ -8740,6 +8892,12 @@ let dbPlayerInfo = {
         ).then(
             rewardEvent => {
                 if (rewardEvent && rewardEvent.type) {
+
+                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerInfo, rewardEvent._id);
+                    if (playerIsForbiddenForThisReward) {
+                        deferred.reject({name: "DataError", message: "Player is forbidden for this reward."});
+                    }
+
                     //check valid time for reward event
                     let curTime = new Date();
                     if ((rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) ||
@@ -9398,6 +9556,17 @@ let dbPlayerInfo = {
                     return eventProm.then(
                         eData => {
                             eventData = eData;
+
+                            let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(player, eventData._id);
+
+                            if (playerIsForbiddenForThisReward) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_NO_PERMISSION,
+                                    name: "DataError",
+                                    message: "Reward not applicable"
+                                });
+                            }
+
                             //get today's double top up reward
                             let rewardProm = dbconfig.collection_proposalType.findOne({
                                 name: constProposalType.PLAYER_DOUBLE_TOP_UP_REWARD,
@@ -9828,7 +9997,8 @@ let dbPlayerInfo = {
                     }
                     return dbconfig.collection_playerMail.update(
                         qObj,
-                        {bDelete: true}
+                        {bDelete: true},
+                        {multi: true}
                     );
                 }
                 else {
@@ -9928,6 +10098,23 @@ let dbPlayerInfo = {
         let endDate = new Date(query.end);
         let getPlayerProm = Promise.resolve("");
         let result = [];
+        let resultSum = {
+            manualTopUpAmount : 0,
+            weChatTopUpAmount : 0,
+            aliPayTopUpAmount : 0,
+            onlineTopUpAmount : 0,
+            topUpTimes : 0,
+            topUpAmount : 0,
+            bonusTimes : 0,
+            bonusAmount : 0,
+            rewardAmount : 0,
+            consumptionReturnAmount : 0,
+            consumptionTimes : 0,
+            validConsumptionAmount : 0,
+            consumptionBonusAmount : 0,
+            profit : 0,
+            consumptionAmount : 0,
+        };
 
         if (query.name) {
             getPlayerProm = dbconfig.collection_players.findOne({name: query.name}, {_id: 1}).lean();
@@ -9974,8 +10161,116 @@ let dbPlayerInfo = {
                         )
                     );
                 });
+
             }
         ).then(
+            () => {
+                //handle sum of field here
+                for (let z = 0; z < result.length; z++) {
+                    resultSum.manualTopUpAmount += result[z].manualTopUpAmount;
+                    resultSum.weChatTopUpAmount += result[z].weChatTopUpAmount;
+                    resultSum.aliPayTopUpAmount += result[z].aliPayTopUpAmount;
+                    resultSum.onlineTopUpAmount += result[z].onlineTopUpAmount;
+                    resultSum.topUpTimes += result[z].topUpTimes;
+                    resultSum.topUpAmount += result[z].topUpAmount;
+                    resultSum.bonusTimes += result[z].bonusTimes;
+                    resultSum.bonusAmount += result[z].bonusAmount;
+                    resultSum.rewardAmount += result[z].rewardAmount;
+                    resultSum.consumptionReturnAmount += result[z].consumptionReturnAmount;
+                    resultSum.consumptionTimes += result[z].consumptionTimes;
+                    resultSum.validConsumptionAmount += result[z].validConsumptionAmount;
+                    resultSum.consumptionBonusAmount += result[z].consumptionBonusAmount;
+                    resultSum.profit += (result[z].consumptionBonusAmount/ result[z].validConsumptionAmount * -100).toFixed(2)/1;
+                    resultSum.consumptionAmount += result[z].consumptionAmount;
+                }
+
+                // handle index limit sortcol here
+                if (Object.keys(sortCol).length > 0) {
+                    result.sort(function (a, b) {
+                        if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
+                            return 1 * sortCol[Object.keys(sortCol)[0]];
+                        } else {
+                            return -1 * sortCol[Object.keys(sortCol)[0]];
+                        }
+                    });
+                }
+                else {
+                    result.sort(function (a, b) {
+                        if (a._id > b._id) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    });
+                }
+
+
+                let outputResult = [];
+
+                for (let i = 0, len = limit; i < len; i++) {
+                    result[index + i] ? outputResult.push(result[index + i]) : null;
+                }
+
+                return {size: result.length, data: outputResult, total: resultSum};
+            }
+        );
+    },
+
+    getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
+        limit = limit ? limit : 20;
+        index = index ? index : 0;
+        query = query ? query : {};
+
+        let startDate = new Date(query.start);
+        let endDate = new Date(query.end);
+        let result = [];
+        let matchObj = {
+            platform: platform,
+            registrationTime: {$gte: startDate, $lt: endDate}
+        };
+
+        if (query.userType) {
+            switch (query.userType) {
+                case "1":
+                    matchObj.partner = {$exists: false};
+                    break;
+                case "2":
+                    matchObj.partner = {$exists: true};
+                    break;
+            }
+        }
+
+        let stream = dbconfig.collection_players.aggregate({
+            $match: matchObj
+        }).cursor({batchSize: 100}).allowDiskUse(true).exec();
+
+        let balancer = new SettlementBalancer();
+
+        return balancer.initConns().then(function () {
+            return Q(
+                balancer.processStream(
+                    {
+                        stream: stream,
+                        batchSize: constSystemParam.BATCH_SIZE,
+                        makeRequest: function (playerIdObjs, request) {
+                            request("player", "getConsumptionDetailOfPlayers", {
+                                platformId: platform,
+                                startTime: query.start,
+                                endTime: moment(query.start).add(query.days, "day"),
+                                query: query,
+                                playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                    return playerIdObj._id;
+                                }),
+                                isDX: true
+                            });
+                        },
+                        processResponse: function (record) {
+                            result = result.concat(record.data);
+                        }
+                    }
+                )
+            );
+        }).then(
             () => {
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
@@ -10003,6 +10298,10 @@ let dbPlayerInfo = {
                 for (let i = 0, len = limit; i < len; i++) {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
+
+                // Output filter promote way
+                outputResult = query.csPromoteWay && query.csPromoteWay.length > 0 ? outputResult.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : outputResult;
+                outputResult = query.admins && query.admins.length > 0 ? outputResult.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : outputResult;
 
                 return {size: result.length, data: outputResult};
             }
@@ -10039,7 +10338,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds) {
+    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, isDX) {
         let proms = [];
         let proposalType = [];
 
@@ -10047,7 +10346,25 @@ let dbPlayerInfo = {
             proposalTypeData => {
                 proposalType = proposalTypeData;
                 for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
-                    proms.push(getPlayerRecord(playerObjIds[p]));
+                    let prom;
+
+                    if (isDX) {
+                        prom = dbconfig.collection_players.findOne({
+                            _id: playerObjIds[p]
+                        }).then(
+                            playerData => {
+                                let qStartTime = new Date(playerData.registrationTime);
+                                let qEndTime = moment(qStartTime).add(query.days, 'day');
+
+                                return getPlayerRecord(playerObjIds[p], qStartTime, qEndTime, playerData.domain);
+                            }
+                        );
+
+                        proms.push(prom);
+                    } else {
+                        proms.push(getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime)));
+                    }
+
                 }
 
                 return Promise.all(proms);
@@ -10063,7 +10380,7 @@ let dbPlayerInfo = {
             }
         );
 
-        function getPlayerRecord(playerObjId) {
+        function getPlayerRecord(playerObjId, startTime, endTime, domain) {
             let result = {_id: playerObjId};
             playerObjId = {$in: [ObjectId(playerObjId), playerObjId]};
             let onlineTopUpTypeId = "";
@@ -10206,9 +10523,40 @@ let dbPlayerInfo = {
                 playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
             }
 
-            let playerProm = dbconfig.collection_players.findOne(playerQuery, {playerLevel: 1, credibilityRemarks: 1, name: 1}).lean();
+            // Player Score Query Operator
+            if (query.playerScoreValue) {
+                switch (query.valueScoreOperator) {
+                    case '>=':
+                        playerQuery.valueScore = {$gte: query.playerScoreValue};
+                        break;
+                    case '=':
+                        playerQuery.valueScore = {$eq: query.playerScoreValue};
+                        break;
+                    case '<=':
+                        playerQuery.valueScore = {$lte: query.playerScoreValue};
+                        break;
+                    case 'range':
+                        if (query.playerScoreValueTwo) {
+                            playerQuery.valueScore = {$gte: query.playerScoreValue, $lte: query.playerScoreValueTwo};
+                        }
+                        break;
+                }
+            }
 
-            return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm]).then(
+            let playerProm = dbconfig.collection_players.findOne(
+                playerQuery, {
+                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1
+                }
+            ).lean();
+
+            // Promise domain CS and promote way
+            let promoteWayProm = domain ?
+                dbconfig.collection_csOfficerUrl.findOne({domain: {$regex: domain, $options: "x"}}).populate({
+                    path: 'admin',
+                    model: dbconfig.collection_admin
+                }).lean() : Promise.resolve(false);
+
+            return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm, promoteWayProm]).then(
                 data => {
                     if (!data[5]) {
                         return "";
@@ -10304,7 +10652,7 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    // proposal related 
+                    // proposal related
                     result.topUpAmount = 0;
                     result.topUpTimes = 0;
                     result.onlineTopUpAmount = 0;
@@ -10315,7 +10663,7 @@ let dbPlayerInfo = {
                     let topUpTypeDetail = data[1];
                     for (let i = 0, len = topUpTypeDetail.length; i < len; i++) {
                         let topUpTypeRecord = topUpTypeDetail[i];
-                        
+
                         if (topUpTypeRecord.typeId.toString() === onlineTopUpTypeId) {
                             result.onlineTopUpAmount = topUpTypeRecord.amount;
                         }
@@ -10421,13 +10769,180 @@ let dbPlayerInfo = {
                     result.credibilityRemarks = playerDetail.credibilityRemarks;
                     result.playerLevel = playerDetail.playerLevel;
                     result.name = playerDetail.name;
+                    result.valueScore = playerDetail.valueScore;
+                    result.registrationTime = playerDetail.registrationTime;
+                    result.endTime = endTime;
+
+                    let csOfficerDetail = data[6];
+
+                    // related admin
+                    if (playerDetail.accAdmin) {
+                        result.csOfficer = playerDetail.accAdmin;
+                    }
+                    else if (csOfficerDetail) {
+                        result.csOfficer = csOfficerDetail.admin ? csOfficerDetail.admin.adminName : "";
+                        result.csPromoteWay = csOfficerDetail.way;
+                    }
 
                     return result;
                 }
             );
         }
-       
-    }
+    },
+
+    setShowInfo: (playerId, field, flag) => {
+        let updateQ = {
+            viewInfo: {}
+        };
+
+        updateQ.viewInfo[field] = flag;
+
+        return dbUtility.findOneAndUpdateForShard(
+            dbconfig.collection_players,
+            {playerId: playerId},
+            updateQ,
+            constShardKeys.collection_players
+        ).then(
+            res => res.viewInfo[field]
+        );
+    },
+
+    createUpdateTopUpGroupLog: (player, adminId, bankGroup, remark) => {
+        remark = remark || "";
+        let proms = [];
+        for (let i = 0; i < Object.keys(bankGroup).length; i++){
+            if (bankGroup.hasOwnProperty(Object.keys(bankGroup)[i])) {
+                let bankGroup$ = {};
+                bankGroup$[Object.keys(bankGroup)[i]] = bankGroup[Object.keys(bankGroup)[i]];
+                let logDetail = {
+                    admin: adminId,
+                    player: player,
+                    topUpGroupNames: bankGroup$,
+                    remark: remark
+                }
+
+                let createSingleLog = dbconfig.collection_playerTopUpGroupUpdateLog(logDetail)
+                    .save().then().catch(errorUtils.reportError);
+                proms.push(createSingleLog);
+            }
+        }
+        return Promise.all(proms);
+    },
+
+    getPlayerTopUpGroupLog: function (playerId, index, limit) {
+        let logProm = dbconfig.collection_playerTopUpGroupUpdateLog.find({player: playerId}).skip(index).limit(limit).sort({createTime: -1}).populate(
+            {path: "admin",select: 'adminName', model: dbconfig.collection_admin}
+        ).lean();
+        let countProm = dbconfig.collection_playerTopUpGroupUpdateLog.find({player: playerId}).count();
+
+        return Promise.all([logProm, countProm]).then(
+            data => {
+                let logs = data[0];
+                let count = data[1];
+
+                return {data: logs, size: count};
+            }
+        )
+    },
+
+    createForbidRewardLog: function (playerId, adminId, forbidRewardNames, remark){
+        remark = remark || "";
+        let logDetails = {
+            player: playerId,
+            admin: adminId,
+            forbidRewardNames: forbidRewardNames,
+            remark: remark
+        };
+        return dbconfig.collection_playerForbidRewardLog(logDetails).save().then().catch(errorUtils.reportError);
+    },
+
+    getForbidRewardLog: function (playerId, startTime, endTime, index, limit) {
+        let logProm = dbconfig.collection_playerForbidRewardLog.find({
+            player: playerId,
+            createTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            }
+        }).skip(index).limit(limit).sort({createTime: -1}).populate(
+            {path: "admin",select: 'adminName', model: dbconfig.collection_admin}
+        ).lean();
+        let countProm = dbconfig.collection_playerForbidRewardLog.find({player: playerId}).count();
+
+        return Promise.all([logProm, countProm]).then(
+            data => {
+                let logs = data[0];
+                let count = data[1];
+
+                return {data: logs, size: count};
+            }
+        )
+    },
+
+    createForbidGameLog: function (playerId, adminId, forbidGameNames, remark){
+        remark = remark || "";
+        let logDetails = {
+            player: playerId,
+            admin: adminId,
+            forbidGameNames: forbidGameNames,
+            remark: remark
+        };
+        return dbconfig.collection_playerForbidGameLog(logDetails).save().then().catch(errorUtils.reportError);
+    },
+
+    getForbidGameLog: function (playerId, startTime, endTime, index, limit) {
+        let logProm = dbconfig.collection_playerForbidGameLog.find({
+            player: playerId,
+            createTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            }
+        }).skip(index).limit(limit).sort({createTime: -1}).populate(
+            {path: "admin",select: 'adminName', model: dbconfig.collection_admin}
+        ).lean();
+        let countProm = dbconfig.collection_playerForbidGameLog.find({player: playerId}).count();
+
+        return Promise.all([logProm, countProm]).then(
+            data => {
+                let logs = data[0];
+                let count = data[1];
+
+                return {data: logs, size: count};
+            }
+        )
+    },
+
+    createForbidTopUpLog: function (playerId, adminId, forbidTopUpNames, remark){
+        remark = remark || "";
+        let logDetails = {
+            player: playerId,
+            admin: adminId,
+            forbidTopUpNames: forbidTopUpNames,
+            remark: remark
+        };
+        return dbconfig.collection_playerForbidTopUpLog(logDetails).save().then().catch(errorUtils.reportError);
+    },
+
+    getForbidTopUpLog: function (playerId, startTime, endTime, index, limit) {
+        let logProm = dbconfig.collection_playerForbidTopUpLog.find({
+            player: playerId,
+            createTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            }
+        }).skip(index).limit(limit).sort({createTime: -1}).populate(
+            {path: "admin",select: 'adminName', model: dbconfig.collection_admin}
+        ).lean();
+        let countProm = dbconfig.collection_playerForbidTopUpLog.find({player: playerId}).count();
+
+        return Promise.all([logProm, countProm]).then(
+            data => {
+                let logs = data[0];
+                let count = data[1];
+
+                return {data: logs, size: count};
+            }
+        )
+    },
 
 };
 

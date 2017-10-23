@@ -66,10 +66,22 @@ function socketActionPromoCode(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerReward.savePromoCodeUserGroup, [ObjectId(data.platformObjId), isDelete ? data.deleteData : data.groupData, isDelete], actionName, isValidData);
         },
 
+        saveDelayDurationGroup: function saveDelayDurationGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && (data.groupData));
+            socketUtil.emitter(self.socket, dbPlayerReward.saveDelayDurationGroup, [ObjectId(data.platformObjId), data.groupData], actionName, isValidData);
+        },
+
         getPromoCodeUserGroup: function getPromoCodeUserGroup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeUserGroup, [ObjectId(data.platformObjId)], actionName, isValidData);
+        },
+
+        getDelayDurationGroup: function getDelayDurationGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerReward.getDelayDurationGroup, [ObjectId(data.platformObjId), data.duration], actionName, isValidData);
         },
 
         applyPromoCode: function applyPromoCode(data) {

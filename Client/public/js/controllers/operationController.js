@@ -107,38 +107,38 @@ define(['js/app'], function (myApp) {
             vm.allProposalString = null;
             // vm.getPlayerTopUpIntentRecordStatusList();
             // vm.getNewAccountProposal().done();
-            vm.getProposalTypeByPlatformId(vm.allPlatformId).then(
-                function (data) {
-                    $('select#selectProposalType').multipleSelect({
-                        allSelected: $translate("All Selected"),
-                        selectAllText: $translate("Select All"),
-                        displayValues: true,
-                        countSelected: $translate('# of % selected'),
-                        onClick: function () {
-                            vm.proposalTypeUpdated();
-                        },
-                        onCheckAll: function () {
-                            vm.proposalTypeUpdated();
-                        },
-                        onUncheckAll: function () {
-                            vm.proposalTypeUpdated();
-                        }
-                    });
-                    var $multi = ($('select#selectProposalType').next().find('.ms-choice'))[0];
-                    $('select#selectProposalType').next().on('click', 'li input[type=checkbox]', function () {
-                        var upText = $($multi).text().split(',').map(item => {
-                            return $translate(item);
-                        }).join(',');
-                        $($multi).find('span').text(upText)
-                    });
-                    $("select#selectProposalType").multipleSelect("checkAll");
-                    vm.proposalTypeClicked("total");
-                    // vm.allProposalClicked();
-                }
-            );
+            vm.getProposalTypeByPlatformId(vm.allPlatformId).then(vm.renderMultipleSelectDropDownList);
             $scope.safeApply();
 
         };
+
+        vm.renderMultipleSelectDropDownList = function() {
+            $('select#selectProposalType').multipleSelect({
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: true,
+                countSelected: $translate('# of % selected'),
+                onClick: function () {
+                    vm.proposalTypeUpdated();
+                },
+                onCheckAll: function () {
+                    vm.proposalTypeUpdated();
+                },
+                onUncheckAll: function () {
+                    vm.proposalTypeUpdated();
+                }
+            });
+            var $multi = ($('select#selectProposalType').next().find('.ms-choice'))[0];
+            $('select#selectProposalType').next().on('click', 'li input[type=checkbox]', function () {
+                var upText = $($multi).text().split(',').map(item => {
+                    return $translate(item);
+                }).join(',');
+                $($multi).find('span').text(upText)
+            });
+            $("select#selectProposalType").multipleSelect("checkAll");
+            vm.proposalTypeClicked("total");
+            // vm.allProposalClicked();
+        }
 
         vm.resetFilter = function () {
             vm.queryProposalId = "";
@@ -367,9 +367,10 @@ define(['js/app'], function (myApp) {
                     language: 'en',
                     format: 'yyyy/MM/dd hh:mm:ss',
                 });
-                var lastMonth = utilService.setNDaysAgo(new Date(), 1);
-                var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
-                vm.queryProposalstartTime = $("#datetimepicker").data('datetimepicker').setLocalDate(lastMonthDateStartTime);
+                let defaultStartTime = new Date();
+                // let default start time to be 3 hours ago
+                defaultStartTime.setHours(defaultStartTime.getHours() - 3);
+                vm.queryProposalstartTime = $("#datetimepicker").data('datetimepicker').setLocalDate(defaultStartTime);
 
                 $('#datetimepicker2').datetimepicker({
                     language: 'en',
@@ -542,6 +543,8 @@ define(['js/app'], function (myApp) {
                 result = JSON.stringify(val);
             } else if (fieldName === "upOrDown") {
                 result = $translate(val);
+            } else if (fieldName === 'userAgent') {
+                result = $translate($scope.userAgentType[val]) || '';
             }
             return $sce.trustAsHtml(result);
         };
@@ -1585,31 +1588,137 @@ define(['js/app'], function (myApp) {
             }, function (error) {
                 deferred.reject(error);
             });
-
             return deferred.promise;
         };
 
-        vm.getProposalTypeByPlatformId = function (allPlatformId) {
+        vm.getProposalTypeByPlatformId = function (id) {
             var deferred = Q.defer();
-
-            socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: allPlatformId}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: id}, function (data) {
                 vm.allProposalType = data.data;
+                // add index to data
+                for (let x = 0; x < vm.allProposalType.length; x++) {
+                    let groupName = utilService.getProposalGroupValue(vm.allProposalType[x],false);
+                    switch (vm.allProposalType[x].name) {
+                        case "AddPlayerRewardTask":
+                            vm.allProposalType[x].seq = 3.01;
+                            break;
+                        case "PlayerLevelUp":
+                            vm.allProposalType[x].seq = 3.02;
+                            break;
+                        case "PlayerPromoCodeReward":
+                            vm.allProposalType[x].seq = 3.03;
+                            break;
+                        case "UpdatePlayerInfo":
+                            vm.allProposalType[x].seq = 4.01;
+                            break;
+                        case "UpdatePlayerBankInfo":
+                            vm.allProposalType[x].seq = 4.02;
+                            break;
+                        case "UpdatePlayerEmail":
+                            vm.allProposalType[x].seq = 4.03;
+                            break;
+                        case "UpdatePlayerPhone":
+                            vm.allProposalType[x].seq = 4.04;
+                            break;
+                        case "UpdatePlayerQQ":
+                            vm.allProposalType[x].seq = 4.05;
+                            break;
+                        case "UpdatePartnerInfo":
+                            vm.allProposalType[x].seq = 5.01;
+                            break;
+                        case "UpdatePartnerBankInfo":
+                            vm.allProposalType[x].seq = 5.02;
+                            break;
+                        case "UpdatePartnerEmail":
+                            vm.allProposalType[x].seq = 5.03;
+                            break;
+                        case "UpdatePartnerPhone":
+                            vm.allProposalType[x].seq = 5.04;
+                            break;
+                        case "UpdatePartnerQQ":
+                            vm.allProposalType[x].seq = 5.05;
+                            break;
+                        case "UpdatePlayerCredit":
+                            vm.allProposalType[x].seq = 6.01;
+                            break;
+                        case "FixPlayerCreditTransfer":
+                            vm.allProposalType[x].seq = 6.02;
+                            break;
+                        case "UpdatePartnerCredit":
+                            vm.allProposalType[x].seq = 6.03;
+                            break;
+                        case "ManualUnlockPlayerReward":
+                            vm.allProposalType[x].seq = 6.04;
+                            break;
+                        case "PlayerLevelMigration":
+                            vm.allProposalType[x].seq = 6.05;
+                            break;
+                        case "PlayerRegistrationIntention":
+                            vm.allProposalType[x].seq = 6.06;
+                            break;
+                        case "PlayerLimitedOfferIntention":
+                            vm.allProposalType[x].seq = 6.07;
+                            break;
+                    }
+                    if(!vm.allProposalType[x].seq) {
+                        switch (groupName) {
+                            case "Topup Proposal":
+                                vm.allProposalType[x].seq = 1;
+                                break;
+                            case "Bonus Proposal":
+                                vm.allProposalType[x].seq = 2;
+                                break;
+                            case "Reward Proposal":
+                                vm.allProposalType[x].seq = 3.90;
+                                break;
+                            case "PLAYER_INFORMATION":
+                                vm.allProposalType[x].seq = 4.90;
+                                break;
+                            case "PARTNER_INFORMATION":
+                                vm.allProposalType[x].seq = 5.90;
+                                break;
+                            case "Others":
+                                vm.allProposalType[x].seq = 6.90;
+                                break;
+                        }
+                    }
+                }
                 vm.allProposalType.sort(
                     function (a, b) {
-                        if (vm.getProposalTypeOptionValue(a) > vm.getProposalTypeOptionValue(b)) return 1;
-                        if (vm.getProposalTypeOptionValue(a) < vm.getProposalTypeOptionValue(b)) return -1;
+                        if (a.seq > b.seq) return 1;
+                        if (a.seq < b.seq) return -1;
                         return 0;
                     }
                 );
-                console.log("vm.allProposalType:", vm.allProposalType);
                 $scope.safeApply();
                 deferred.resolve(true);
             }, function (error) {
                 deferred.reject(error);
             });
-
             return deferred.promise;
         };
+
+        // vm.getProposalTypeByPlatformId = function (allPlatformId) {
+        //     var deferred = Q.defer();
+        //
+        //     socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: allPlatformId}, function (data) {
+        //         vm.allProposalType = data.data;
+        //         vm.allProposalType.sort(
+        //             function (a, b) {
+        //                 if (vm.getProposalTypeOptionValue(a) > vm.getProposalTypeOptionValue(b)) return 1;
+        //                 if (vm.getProposalTypeOptionValue(a) < vm.getProposalTypeOptionValue(b)) return -1;
+        //                 return 0;
+        //             }
+        //         );
+        //         console.log("vm.allProposalType:", vm.allProposalType);
+        //         $scope.safeApply();
+        //         deferred.resolve(true);
+        //     }, function (error) {
+        //         deferred.reject(error);
+        //     });
+        //
+        //     return deferred.promise;
+        // };
 
         vm.getProposalTypeOptionValue = function (proposalType) {
             var result = utilService.getProposalGroupValue(proposalType);
@@ -1888,8 +1997,11 @@ define(['js/app'], function (myApp) {
                                 vm.updateProposalData();
                             });
                             var showLeft = $cookies.get("operationShowLeft");
-                            if (showLeft === 'false') {
-                                vm.toggleShowOperationList(false)
+                            if (showLeft === 'true') {
+                                vm.toggleShowOperationList(true);
+                            }
+                            else {
+                                vm.toggleShowOperationList(false);
                             }
                             vm.initQueryPara();
                         }

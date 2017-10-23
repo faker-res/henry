@@ -1,6 +1,11 @@
 div
     .titleBackground.margin-bottom-5.text-center {{'Basic' | translate}}
     .label-value
+        label {{'Lock Status' | translate}}&nbsp;:&nbsp;
+        label {{vm.selectedProposal.isLocked.adminName || 'not locked' | translate}}
+        //button.pull-right.btn.btn-danger.btn-sm.margin-left-5(ng-if="vm.selectedProposal.showLockBtn", ng-click='vm.lockProposal(vm.selectedProposal.proposalId)') {{'Lock Proposal' | translate}}
+        //button.pull-right.btn.btn-success.btn-sm.margin-left-5(ng-if="vm.selectedProposal.showUnlockBtn", ng-click='vm.unlockProposal(vm.selectedProposal.proposalId)') {{'Unlock Proposal' | translate}}
+    .label-value
         label {{'TITLE' | translate}}&nbsp;:&nbsp;
         label {{vm.selectedProposal.type.name || 'none'|translate}}
     .label-value
@@ -14,28 +19,232 @@ div
         label {{vm.selectedProposal.creator.name || 'System' | translate}}
     .label-value
         label {{'CREATION_TIME' | translate}}&nbsp;:&nbsp;
-        label {{vm.dateReformat(vm.selectedProposal.createTime) || 'none'}}
+        label {{ vm.selectedProposal.createTime | date : 'yyyy-MM-dd hh:mm:ss'}}
+    .label-value
+        label {{'LastSettlementTime' | translate}}&nbsp;:&nbsp;
+        label {{ vm.selectedProposal.settleTime  | date : 'yyyy-MM-dd hh:mm:ss'}}
 
-    //.titleBackground.margin-bottom-5.text-center {{'Proposal History Process' | translate}}
-    //div(ng-repeat='(i,v) in vm.thisProposalSteps', ng-show='v.operator')
-    //    .label-value
-    //        label {{'DEPARTMENT' | translate}}&nbsp;:&nbsp;
-    //        label {{v.department.departmentName || 'Unknown' | translate}}
-    //    .label-value
-    //        label {{'Operator' | translate}}&nbsp;:&nbsp;
-    //        label {{v.operator.adminName || 'Unknown' | translate}}
-    //    .label-value
-    //        label {{'OperationTime' | translate}}&nbsp;:&nbsp;
-    //        label {{vm.dateReformat(v.operationTime) || 'Unknown' | translate}}
-    //    .label-value(ng-show='v.memo')
-    //        label {{'remark' | translate}}&nbsp;:&nbsp;
-    //        label {{v.memo}}
-    //    hr
+    //.titleBackground.margin-bottom-5.text-center
+    div(style='min-height:30px')
+        hr
+    //hr
+    //div(ng-show='vm.selectedProposal.remark.length > 0')
+        .col-md-12
+            label.text-center {{'remark' | translate}}
+        div(style='height:200px;overflow-auto;')
+            .margin-left-5.wordWrap(ng-repeat='(i,v) in vm.selectedProposal.remark')
+                text.margin-right-5(style='font-style: italic;') &nbsp;&nbsp;&nbsp;&nbsp;{{v.admin.adminName || ('unknown' | translate)}}
+                text.margin-right-5(style='font-style: italic;') ({{vm.dateReformat(v.addTime)}})
+                label {{v.content}}
 div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
     label {{'UPDATE_DETAIL' | translate}}
     div(ng-switch-default)
-        table.table(style='width:100%')
-            tr(ng-repeat='(i,v) in vm.selectedProposalDetailForDisplay')
-                td {{ i | translate}}
-                td
-                    div(ng-bind-html='vm.showProposalDetailField(vm.selectedProposal,i,v)')
+        .col-md-12(ng-show='vm.selectedProposal.type.name=="PlayerTopUp" && vm.selectedProposal.status=="Pending" && checkViewPermission("Operation","Proposal","RepairPayment")')
+            button.common-btn.btn-primary(ng-click='vm.submitRepairPayment(vm.selectedProposal)') {{'Repair Payment' | translate}}
+            i.margin-left-5.margin-right-5.fa.fa-spinner.fa-spin(ng-show='vm.repairPaymentStage==1')
+            text.text-success(ng-show='vm.repairPaymentStage==2') {{'Success' | translate}}
+            text.text-danger(ng-show='vm.repairPaymentStage==3') {{'Fail' | translate}}
+        table.table(style='width:100%',ng-if='vm.selectedProposal')
+            thead
+            tbody(ng-if='vm.selectedProposal')
+                tr
+                    td {{'PLAYER_NAME' | translate}}
+                    td {{ vm.selectedProposal.data.playerName}}
+                tr
+                    td {{'Real Name' | translate}}
+                    td {{ vm.proposalPlayer.realName}}
+                tr(ng-if='vm.proposalPlayer.bankCardGroup.displayName && vm.selectedProposal.type.name=="ManualPlayerTopUp"')
+                    td {{'BankCardGroup' | translate}}
+                    td {{ vm.proposalPlayer.bankCardGroup.displayName}}
+                tr(ng-if='vm.proposalPlayer.alipayGroup.displayName && vm.selectedProposal.type.name=="PlayerAlipayTopUp"')
+                    td {{'Player AliPayGroup' | translate}}
+                    td {{ vm.proposalPlayer.alipayGroup.displayName}}
+                tr(ng-if='vm.proposalPlayer.wechatPayGroup.displayName && vm.selectedProposal.type.name=="PlayerWechatTopUp"')
+                    td {{'Player WeChatPayGroup' | translate}}
+                    td {{ vm.proposalPlayer.wechatPayGroup.displayName}}
+                tr(ng-if='vm.proposalPlayer.merchantGroup.displayName && vm.selectedProposal.type.name=="PlayerTopUp"')
+                    td {{'MerchantGroup' | translate}}
+                    td {{ vm.proposalPlayer.merchantGroup.displayName}}
+                tr
+                    td {{'playerLevelName' | translate}}
+                    td {{vm.selectedProposal.data.playerLevelName ||vm.selectedProposal.data.proposalPlayerLevel}}
+                tr
+                    td {{'PlayerCredibilityStatus' | translate}}
+                    td {{vm.proposalPlayer.credibilityRemarksName }}
+                tr
+                    td {{'PlayerValue' | translate}}
+                    td {{vm.selectedProposal.data.proposalPlayerLevelValue}}
+                tr
+                    td {{'TopupAmount' | translate }}
+                    td {{ vm.selectedProposal.data.amount }}
+                tr
+                    td {{'DEVICE' | translate}}
+                    td {{ userAgentType[vm.selectedProposal.data.userAgent] }}
+                tr(ng-if="vm.selectedProposal.data.validTime")
+                    td {{'DEPOSITTIME' | translate}}
+                    td {{ vm.selectedProposal.data.validTime  | date : 'yyyy-MM-dd hh:mm:ss'}}
+
+                //onlineTopupType only
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerTopUp"')
+                    td {{'OnlineTopUpType' | translate}}
+                    td {{ merchantTopupTypeJson[vm.selectedProposal.data.topupType] }}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'3rdPartyPlatform' | translate}}
+                    td {{ vm.getMerchantName(vm.selectedProposal.data.merchantNo) || '' }}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'3rdPartyPlatform' | translate}}
+                    td {{ vm.selectedProposal.data.msg }}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerTopUp"')
+                    td {{'merchantNo' | translate}}
+                    td {{ vm.selectedProposal.data.merchantNo }}
+                // undefined yet
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerTopUp"')
+                    td {{'MerchantBackendId' | translate }}
+                    td
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerTopUp"')
+                    td {{'SINGLELIMIT' | translate }}
+                    td {{vm.selectedProposal.card.singleLimit}}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerTopUp"')
+                    td {{'DAYLIMIT' | translate }}
+                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'REMARK' | translate }}
+                    td {{vm.selectedProposal.card.remark}}
+
+
+                // manual topup
+                tr(ng-if="vm.selectedProposal.data.depositMethod && !vm.selectedProposal.from_old_system")
+                    td {{'DEPOSIT_METHOD' | translate}}
+                    td {{ vm.getDepositMethodbyId[vm.selectedProposal.data.depositMethod] | translate }}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'ACCNAME' | translate}}
+                    td {{ vm.selectedProposal.data.realName }}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'ACCPROVINCE' | translate}}
+                    td {{ vm.selectedProposal.data.provinceName ||vm.selectedProposal.data.provinceId }}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'ACCCITY' | translate}}
+                    td {{ vm.selectedProposal.data.cityName || vm.selectedProposal.data.cityId  }}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'ToBankTypeId' | translate}}
+                    td {{ vm.allBankTypeList[vm.selectedProposal.data.bankTypeId] || "" }}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'ToBankCardNo' | translate}}
+                    td {{ vm.selectedProposal.data.bankCardNo }}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'ToCardOwner' | translate}}
+                    td {{ vm.selectedProposal.data.cardOwner }}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'SINGLELIMIT' | translate }}
+                    td {{vm.selectedProposal.card.singleLimit}}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'DAYLIMIT' | translate }}
+                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
+
+                tr(ng-if="vm.selectedProposal.data.cashintime && vm.selectedProposal.from_old_system")
+                    td {{'DEPOSITTIME' | translate}}
+                    td {{ vm.selectedProposal.data.cashintime  | date : 'yyyy-MM-dd hh:mm:ss'}}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'DEPOSIT_METHOD' | translate}}
+                    td {{ vm.selectedProposal.data.manner }}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'ACCNAME' | translate}}
+                    td {{ vm.proposalPlayer.data.playerObjId.realName || '' }}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'ACCPROVINCE' | translate}}
+                    td {{ vm.selectedProposal.data.province }}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'ACCCITY' | translate}}
+                    td {{ vm.selectedProposal.data.city }}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'ToBankTypeId' | translate}}
+                    td {{　vm.selectedProposal.data.corpBankName}}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'ToBankCardNo' | translate}}
+                    td {{ vm.selectedProposal.data.accountNo }}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'ToCardOwner' | translate}}
+                    td {{ vm.selectedProposal.data.cardOwner }}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'SINGLELIMIT' | translate }}
+                    td {{vm.selectedProposal.card.singleLimit}}
+                tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'DAYLIMIT' | translate }}
+                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
+
+
+                //alipay
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'Member AliPayAcc' | translate }}
+                    td {{ vm.selectedProposal.data.alipayName }}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'Our AliPayAccName' | translate }}
+                    td {{ vm.selectedProposal.card.name }}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'Our AliPayAcc' | translate }}
+                    td {{ vm.selectedProposal.data.alipayAccount }}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'SINGLELIMIT' | translate }}
+                    td {{vm.selectedProposal.card.singleLimit}}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'DAYLIMIT' | translate }}
+                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'alipayQRCode' | translate }}
+                    td {{vm.selectedProposal.data.alipayQRCode}}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && !vm.selectedProposal.from_old_system')
+                    td {{'validTime' | translate }}
+                    td {{ vm.selectedProposal.data.validTime  | date : 'yyyy-MM-dd hh:mm:ss'}}
+
+                //alipay old records
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'Member AliPayAcc' | translate }}
+                    td {{ vm.selectedProposal.data.alipayName }}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'Our AliPayAccName' | translate }}
+                    td {{ vm.selectedProposal.card.name }}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'Our AliPayAcc' | translate }}
+                    td {{ vm.selectedProposal.data.accountNo }}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'SINGLELIMIT' | translate }}
+                    td {{vm.selectedProposal.card.singleLimit}}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'DAYLIMIT' | translate }}
+                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'alipayQRCode' | translate }}
+                    td {{vm.selectedProposal.data.alipayQRCode}}
+                tr(ng-if="vm.selectedProposal.data.alipayAccount  && vm.selectedProposal.from_old_system")
+                    td {{'validTime' | translate }}
+                    td {{ vm.selectedProposal.expirationTime  | date : 'yyyy-MM-dd hh:mm:ss'}}
+                tr(ng-if="vm.selectedProposal.data.remark && vm.selectedProposal.from_old_system")
+                    td {{'REMARK' | translate }}
+                    td {{ vm.selectedProposal.data.remark }}
+
+                //wechat
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp" && !vm.selectProposal.from_old_system')
+                    td {{'Our WeChatACC' | translate }}
+                    td {{ vm.selectedProposal.data.wechatAccount }}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp" && vm.selectProposal.from_old_system')
+                    td {{'Our WeChatACC' | translate }}
+                    td {{ vm.selectedProposal.data.msg }}
+                //undefined yet
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp"')
+                    td {{'Our WeChatNick' | translate }}
+                    td {{vm.selectedProposal.card.name}}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp"')
+                    td {{'SINGLELIMIT' | translate }}
+                    td {{vm.selectedProposal.card.singleLimit}}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp"')
+                    td {{'DAYLIMIT' | translate }}
+                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp"')
+                    td {{'weChatQRCode' | translate }}
+                    td {{ vm.selectedProposal.data.wechatQRCode }}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp"')
+                    td {{'validTime' | translate }}
+                    td {{ vm.selectedProposal.data.validTime }}
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp" && vm.selectedProposal.from_old_system')
+                    td {{'REMARK' | translate }}
+                    td {{ vm.selectedProposal.data.remark }}

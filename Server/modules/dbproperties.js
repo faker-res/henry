@@ -128,6 +128,9 @@ var platformWechatPayGroupModel = db_admin.model('platformWechatPayGroup', platf
 var partnerCommissionConfigSchema = require('./../schema/partnerCommissionConfig');
 var partnerCommissionConfigModel = db_admin.model('partnerCommissionConfig', partnerCommissionConfigSchema, 'partnerCommissionConfig');
 
+let gameProviderGroupSchema = require('./../schema/gameProviderGroup');
+let gameProviderGroupModel = db_admin.model('gameProviderGroup', gameProviderGroupSchema, 'gameProviderGroup');
+
 let geoIpSchema = require('./../schema/geoip');
 let geoIpModel = db_admin.model('geoIp', geoIpSchema, 'geoIp');
 
@@ -139,6 +142,9 @@ let playerCredibilityRemarkModel = db_admin.model('playerCredibilityRemark', pla
 
 let csOfficerSchema = require('../schema/csOfficer');
 let csOfficerModel = db_admin.model('csOfficer', csOfficerSchema, 'csOfficer');
+
+let csOfficerUrlSchema = require('../schema/csOfficerUrl');
+let csOfficerUrlModel = db_admin.model('csOfficerUrl', csOfficerUrlSchema, 'csOfficerUrl');
 
 let csPromoteWaySchema = require('../schema/csPromoteWay');
 let csPromoteWayModel = db_admin.model('csPromoteWay', csPromoteWaySchema, 'csPromoteWay');
@@ -276,6 +282,18 @@ let apiLogModel = dbLogs.model('apiLog', apiLogSchema, 'apiLog');
 let playerCredibilityUpdateLogSchema = require('./../schema/logs/playerCredibilityUpdateLog');
 let playerCredibilityUpdateLogModel = dbLogs.model('playerCredibilityUpdateLog', playerCredibilityUpdateLogSchema, 'playerCredibilityUpdateLog');
 
+let playerTopUpGroupUpdateLogSchema = require('./../schema/logs/playerTopUpGroupUpdateLog');
+let playerTopUpGroupUpdateLogModel = dbLogs.model('playerTopUpGroupUpdateLog', playerTopUpGroupUpdateLogSchema, 'playerTopUpGroupUpdateLog');
+
+let playerForbidRewardLogSchema = require('./../schema/logs/playerForbidRewardLog');
+let playerForbidRewardLogModel = dbLogs.model('playerForbidRewardLog', playerForbidRewardLogSchema, 'playerForbidRewardLog');
+
+let playerForbidGameLogSchema = require('./../schema/logs/playerForbidGameLog');
+let playerForbidGameLogModel = dbLogs.model('playerForbidGameLog', playerForbidGameLogSchema, 'playerForbidGameLog');
+
+let playerForbidTopUpLogSchema = require('./../schema/logs/playerForbidTopUpLog');
+let playerForbidTopUpLogModel = dbLogs.model('playerForbidTopUpLog', playerForbidTopUpLogSchema, 'playerForbidTopUpLog');
+
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -345,6 +363,7 @@ var dbProperties = {
     collection_gameType: gameTypeModel,
     collection_game: gameModel,
     collection_gameProvider: gameProviderModel,
+    collection_gameProviderGroup: gameProviderGroupModel,
 
     collection_partner: partnerModel,
     collection_partnerLevel: partnerLevelModel,
@@ -360,6 +379,7 @@ var dbProperties = {
     collection_promoCodeUserGroup: promoCodeUserGroupModel,
 
     collection_csOfficer: csOfficerModel,
+    collection_csOfficerUrl: csOfficerUrlModel,
     collection_csPromoteWay: csPromoteWayModel,
 
     //logs
@@ -409,6 +429,10 @@ var dbProperties = {
     collection_promoCode: promoCodeModel,
     collection_playerState: playerStateModel,
     collection_playerCredibilityUpdateLog: playerCredibilityUpdateLogModel,
+    collection_playerTopUpGroupUpdateLog: playerTopUpGroupUpdateLogModel,
+    collection_playerForbidRewardLog: playerForbidRewardLogModel,
+    collection_playerForbidGameLog: playerForbidGameLogModel,
+    collection_playerForbidTopUpLog: playerForbidTopUpLogModel,
 
     //unique
     collection_playerName: playerNameModal,

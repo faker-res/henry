@@ -203,6 +203,33 @@ var dbPlatformMerchantGroup = {
                 }
             }
         );
+    },
+
+    getMerchantNBankCard:function(platformId){
+      var a = pmsAPI.merchant_getMerchantList({ platformId: platformId,queryId: serverInstance.getQueryId() })
+      var b = pmsAPI.bankcard_getBankcardList(
+          {
+              platformId: platformId,
+              queryId: serverInstance.getQueryId()
+          })
+      return Q.all([a, b]).then(
+        data=>{
+          let bankcard = [];
+          if(data[1] && data[1].data.length>0){
+              data[1].data.map(bcard=>{
+                  bcard.merchantNo = bcard.accountNumber;
+                  bcard.name = bcard.accountNumber + '('+ bcard.name + ')';
+                  bcard.merchantTypeId = '9999';
+                  bcard.merchantTypeName = "Bankcard";
+              })
+          }
+          let result = {}
+          if(!data[0].merchants){
+            data[0].merchants = []
+          }
+          result.merchants = data[0].merchants.concat(data[1].data);
+          return result
+        })
     }
 
 };

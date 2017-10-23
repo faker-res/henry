@@ -32,6 +32,10 @@ var dbGameProvider = {
         return dbconfig.collection_gameProvider.findOne(query).exec();
     },
 
+    getGameProviders: function (query) {
+        return dbconfig.collection_gameProvider.find(query).exec();
+    },
+
     /**
      * delete the information of the gameProvider by _id
      * @param - _id of GameProvider
