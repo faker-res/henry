@@ -2814,6 +2814,10 @@ let dbPlayerInfo = {
      * @param-data {Json} can include  one or more of the following fields
      */
     applyForPlatformTransactionReward: function (platformId, playerId, topupAmount, playerLevel, bankCardType) {
+
+        // DEBUG: Reward sometime not applied issue
+        console.log('applyForPlatformTransactionReward', playerId);
+
         let deferred = Q.defer();
         let todayTime = dbUtility.getTodaySGTime();
         let curRewardAmount = 0;
@@ -2904,6 +2908,10 @@ let dbPlayerInfo = {
                                     eventCode: rewardParams[i].code,
                                 }
                             };
+
+                            // DEBUG: Reward sometime not applied issue
+                            console.log('applyForPlatformTransactionReward - Before Create Proposal', rewardAmount);
+
                             let temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
                             levelProm.push(temp);
                         }

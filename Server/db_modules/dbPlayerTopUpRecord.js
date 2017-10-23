@@ -146,17 +146,25 @@ var dbPlayerTopUpRecord = {
                 }
 
                 if (query.merchantNo && query.merchantNo.length > 0 && !query.merchantGroup) {
-                    queryObj['data.merchantNo'] = {$in: query.merchantNo};
+                    queryObj['$or'] = [
+                      {'data.merchantNo': {$in: query.merchantNo}},
+                      {'data.bankCardNo': {$in: query.merchantNo}},
+                      {'data.accountNo': {$in: query.merchantNo}}
+                    ]
+
                 }
                 if (!query.merchantNo && query.merchantGroup) {
                     queryObj['data.merchantNo'] = {$in: query.merchantGroup};
                 }
+
+
                 if (query.merchantNo && query.merchantNo.length > 0  && query.merchantGroup) {
                     queryObj['$and'] = [
                         {'data.merchantNo': {$in: query.merchantNo}},
                         {'data.merchantNo': {$in: query.merchantGroup}}
                     ]
                 }
+
                 if (query.dingdanID) {
                     queryObj['data.requestId'] = query.dingdanID
                 }

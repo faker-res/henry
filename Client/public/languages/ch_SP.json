@@ -2534,5 +2534,6 @@
   "Game Type": "游戏平台",
   "Latest Recorded Time": "当前收录到的最大时间",
   "userAgent": "装置",
-  "LastSettlementTime":"执行时间"
+  "LastSettlementTime":"执行时间",
+  "BankCardNo":"银行帐号"
 }
