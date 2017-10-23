@@ -8673,6 +8673,10 @@ define(['js/app'], function (myApp) {
                     sendQuery.isNewSystem = true;
                 }
 
+                if (vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
+                    sendQuery.credibilityRemarks = vm.playerFeedbackQuery.credibilityRemarks;
+                }
+
                 $('#platformFeedbackSpin').show();
                 console.log('sendQuery', sendQuery);
                 socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
@@ -12667,6 +12671,7 @@ define(['js/app'], function (myApp) {
                         vm.credibilityRemarks = data.data;
                         $scope.safeApply();
                         vm.setupRemarksMultiInput();
+                        vm.setupRemarksMultiInputFeedback();
                         resolve();
                     }, function (err) {
                         reject(err);
@@ -14706,6 +14711,22 @@ define(['js/app'], function (myApp) {
                 vm.advancedPlayerQuery(true);
             })
         })
+
+        vm.setupRemarksMultiInputFeedback = function () {
+            let remarkSelect = $('select#selectCredibilityRemarkFeedback');
+            if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
+                return;
+            }
+            remarkSelect.multipleSelect({
+                showCheckbox  : true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
+            });
+            $scope.safeApply();
+        };
+
 
         vm.getPlayersByAdvanceQuery = function (playerQuery) {
             // NOTE: If the response is ignoring your field filter and returning all players, please check that the

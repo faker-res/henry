@@ -8152,7 +8152,8 @@ let dbPlayerInfo = {
                         type: proposalTypeData._id,
                         status: {$in: [constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                         "data.playerObjId": player._id,
-                        settleTime: {$gte: eventData.validStartTime, $lt: eventData.validEndTime}
+                        settleTime: {$gte: eventData.validStartTime, $lt: eventData.validEndTime},
+                        "data.eventCode": eventData.code
                     }).lean();
                 }
                 else {
