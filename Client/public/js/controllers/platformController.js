@@ -4900,14 +4900,22 @@ define(['js/app'], function (myApp) {
                         this.topUpGroupRemark = "";
                     };
 
+                    let debounceGetReferralPlayer = $scope.debounce(function refreshReferral() {
+                        return vm.getReferralPlayer(option.childScope.playerBeingEdited, "change");
+                    }, 500);
+
+                    let debounceGetPartnerInPlayer = $scope.debounce(function () {
+                        return vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "change");
+                    }, 500, false);
+
                     option.childScope.playerBeforeEditing.smsSetting = _.clone(editPlayer.smsSetting);
                     option.childScope.playerBeingEdited.smsSetting = _.clone(editPlayer.smsSetting);
                     option.childScope.changeReferral = function () {
-                        return vm.getReferralPlayer(option.childScope.playerBeingEdited, "change");
+                        debounceGetReferralPlayer();
                     };
                     option.childScope.changePartner = function () {
-                        return vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "change");
-                    }
+                        debounceGetPartnerInPlayer();
+                    };
                     vm.partnerChange = false;
                     $('.referralValidTrue').hide();
                     $('.referralValidFalse').hide();
