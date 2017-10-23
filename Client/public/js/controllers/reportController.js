@@ -2432,6 +2432,7 @@ define(['js/app'], function (myApp) {
             $('#playerDomainReportTableSpin').show();
 
             let admins = [];
+            let csPromoteWay = [];
 
             var sendquery = {
                 platform: vm.curPlatformId,
@@ -2451,7 +2452,7 @@ define(['js/app'], function (myApp) {
                     isNewSystem: vm.playerDomain.isNewSystem,
                     startTime: vm.playerDomain.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate(),
-                    csPromoteWay: vm.playerDomain.csPromoteWay,
+                    csPromoteWay: vm.playerDomain.csPromoteWay && vm.playerDomain.csPromoteWay.length > 0 ? vm.playerDomain.csPromoteWay : csPromoteWay,
                     csOfficer: vm.playerDomain.admins && vm.playerDomain.admins.length > 0 ? vm.playerDomain.admins : admins
                 },
                 index: newSearch ? 0 : (vm.playerDomain.index || 0),
