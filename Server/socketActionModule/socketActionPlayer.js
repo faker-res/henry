@@ -151,9 +151,10 @@ function socketActionPlayer(socketIO, socket) {
          * @param {json} data - It has to contain query string and updateData
          */
         updatePlayerPayment: function updatePlayerPayment(data) {
+            let userAgent = "";
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerPayment, [data.query, {forbidTopUpType: data.updateData.forbidTopUpType}, true], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerPayment, [userAgent, data.query, {forbidTopUpType: data.updateData.forbidTopUpType}, true], actionName, isValidData);
         },
 
         /**
@@ -622,7 +623,8 @@ function socketActionPlayer(socketIO, socket) {
         applyBonusRequest: function applyBonusRequest(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId && data.bonusId && data.amount);
-            socketUtil.emitter(self.socket, dbPlayerInfo.applyBonus, [data.playerId, data.bonusId, data.amount, data.honoreeDetail, data.bForce, {
+            let userAgent = '';
+            socketUtil.emitter(self.socket, dbPlayerInfo.applyBonus, [userAgent, data.playerId, data.bonusId, data.amount, data.honoreeDetail, data.bForce, {
                 type: "admin",
                 name: getAdminName(),
                 id: getAdminId()
@@ -632,7 +634,8 @@ function socketActionPlayer(socketIO, socket) {
         applyRewardEvent: function applyRewardEvent(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.code && data.data);
-            socketUtil.emitter(self.socket, dbPlayerInfo.applyRewardEvent, [data.playerId, data.code, data.data, getAdminId(), getAdminName()], actionName, isValidData);
+            let userAgent = '';
+            socketUtil.emitter(self.socket, dbPlayerInfo.applyRewardEvent, [userAgent, data.playerId, data.code, data.data, getAdminId(), getAdminName()], actionName, isValidData);
         },
 
         getPlayerTransferErrorLogs: function getPlayerTransferErrorLogs(data) {

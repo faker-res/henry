@@ -1384,7 +1384,7 @@ let dbPlayerInfo = {
      * @param {String}  query - The query string
      * @param {Object} updateData - The update data string
      */
-    updatePlayerPayment: function (query, updateData, skipSMSVerification) {
+    updatePlayerPayment: function (userAgent, query, updateData, skipSMSVerification) {
         let playerObj = null;
         let platformObjId;
         // Get platform
@@ -1465,9 +1465,10 @@ let dbPlayerInfo = {
             }
         ).then(
             updatedData => {
+                let inputDeviceData = dbUtility.getInputDevice(userAgent,false);
                 updateData.isPlayerInit = true;
                 updateData.playerName = playerObj.name;
-                dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {data: updateData});
+                dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {data: updateData, inputDevice: inputDeviceData});
                 return updatedData;
             }
         )
@@ -2204,7 +2205,7 @@ let dbPlayerInfo = {
      * @param {ObjectId} topUpRecordId
      * @param {Boolean} checkConsumption
      */
-    applyForFirstTopUpRewardProposal: function (playerObjId, playerId, topUpRecordIds, code, ifAdmin) {
+    applyForFirstTopUpRewardProposal: function (userAgent, playerObjId, playerId, topUpRecordIds, code, ifAdmin) {
         let deferred = Q.defer();
         let platformId = null;
         let player = {};
@@ -2403,6 +2404,7 @@ let dbPlayerInfo = {
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS,
                 };
+                proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                 var proms = records.map(rec =>
                     dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                         {_id: rec._id, createTime: rec.createTime, bDirty: {$ne: true}},
@@ -2546,7 +2548,7 @@ let dbPlayerInfo = {
      * @param {objectId} eventId
      * @param {number} amount
      */
-    applyForGameProviderRewardAPI: function (playerId, code, amount, ifAdmin) {
+    applyForGameProviderRewardAPI: function (userAgent, playerId, code, amount, ifAdmin) {
         var proposalData = {};
         var deferred = Q.defer();
         var adminInfo = ifAdmin;
@@ -2617,6 +2619,7 @@ let dbPlayerInfo = {
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
                         };
+                        proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                         var proposalProm = dbProposal.createProposalWithTypeId(data[1].executeProposal, proposalData);
                         var playerProm = dbconfig.collection_players.findOneAndUpdate(
                             {_id: data[0]._id, platform: data[0].platform._id},
@@ -6506,7 +6509,7 @@ let dbPlayerInfo = {
     /*
      * Apply bonus
      */
-    applyBonus: function (playerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
+    applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
         if (amount < 100 && !adminInfo) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
         }
@@ -6744,6 +6747,7 @@ let dbPlayerInfo = {
                                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                                 userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                                             };
+                                            newProposal.inputDevice = dbUtility.getInputDevice(userAgent,false);
                                             return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
                                         }
                                     });
@@ -7903,7 +7907,7 @@ let dbPlayerInfo = {
      * @param {ObjectId} topUpRecordId
      * @param {String} code
      */
-    applyTopUpReturn: function (playerId, topUpRecordId, code, ifAdmin) {
+    applyTopUpReturn: function (userAgent, playerId, topUpRecordId, code, ifAdmin) {
         var platformId = null;
         var player = {};
         var record = {};
@@ -8100,6 +8104,7 @@ let dbPlayerInfo = {
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS,
                             };
+                            proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                             return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                                 {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
                                 {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_RETURN},
@@ -8169,7 +8174,7 @@ let dbPlayerInfo = {
      * @param {String} playerId
      * @param {String} code
      */
-    applyConsumptionIncentive: function (playerId, code, ifAdmin) {
+    applyConsumptionIncentive: function (userAgent, playerId, code, ifAdmin) {
         let platformId = null;
         let player = {};
         let eventParam = {};
@@ -8422,6 +8427,7 @@ let dbPlayerInfo = {
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
                     };
+                    proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
 
                     // Set percentage to 100% if not available
                     if (eventParam.rewardAmount && !eventParam.rewardPercentage) {
@@ -8507,7 +8513,7 @@ let dbPlayerInfo = {
         )
     },
 
-    applyPlayerTopUpReward: function (playerId, code, topUpRecordId, ifAdmin) {
+    applyPlayerTopUpReward: function (userAgent, playerId, code, topUpRecordId, ifAdmin) {
         var platformId = null;
         var player = {};
         var record = {};
@@ -8642,6 +8648,7 @@ let dbPlayerInfo = {
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
                         };
+                        proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
                             {bDirty: true},
@@ -8691,7 +8698,7 @@ let dbPlayerInfo = {
         );
     },
 
-    applyRewardEvent: function (playerId, code, data, adminId, adminName) {
+    applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName) {
         let playerInfo = null;
         let adminInfo = '';
         if (adminId && adminName) {
@@ -8805,7 +8812,7 @@ let dbPlayerInfo = {
                                             message: "Invalid Data"
                                         });
                                     }
-                                    return dbPlayerInfo.applyForFirstTopUpRewardProposal(null, playerId, data.topUpRecordIds, code, adminInfo);
+                                    return dbPlayerInfo.applyForFirstTopUpRewardProposal(userAgent, null, playerId, data.topUpRecordIds, code, adminInfo);
                                     break;
                                 //provider reward
                                 case constRewardType.GAME_PROVIDER_REWARD:
@@ -8816,7 +8823,7 @@ let dbPlayerInfo = {
                                             message: "Invalid Data"
                                         });
                                     }
-                                    return dbPlayerInfo.applyForGameProviderRewardAPI(playerId, code, data.amount, adminInfo);
+                                    return dbPlayerInfo.applyForGameProviderRewardAPI(userAgent, playerId, code, data.amount, adminInfo);
                                     break;
                                 //request consumption rebate
                                 case constRewardType.PLAYER_CONSUMPTION_RETURN:
@@ -8830,19 +8837,19 @@ let dbPlayerInfo = {
                                             message: "Invalid Data"
                                         });
                                     }
-                                    return dbPlayerInfo.applyTopUpReturn(playerId, data.topUpRecordId, code, adminInfo);
+                                    return dbPlayerInfo.applyTopUpReturn(userAgent, playerId, data.topUpRecordId, code, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_CONSUMPTION_INCENTIVE:
-                                    return dbPlayerInfo.applyConsumptionIncentive(playerId, code, adminInfo);
+                                    return dbPlayerInfo.applyConsumptionIncentive(userAgent, playerId, code, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_REWARD:
-                                    return dbPlayerInfo.applyPlayerTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
+                                    return dbPlayerInfo.applyPlayerTopUpReward(userAgent, playerId, code, data.topUpRecordId, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_REFERRAL_REWARD:
-                                    return dbPlayerInfo.applyPlayerReferralReward(playerId, code, data.referralName, adminInfo);
+                                    return dbPlayerInfo.applyPlayerReferralReward(userAgent, playerId, code, data.referralName, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_REGISTRATION_REWARD:
-                                    return dbPlayerInfo.applyPlayerRegistrationReward(playerId, code, adminInfo);
+                                    return dbPlayerInfo.applyPlayerRegistrationReward(userAgent, playerId, code, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD:
                                     if (data.topUpRecordId == null) {
@@ -8852,10 +8859,10 @@ let dbPlayerInfo = {
                                             message: "Invalid Data"
                                         });
                                     }
-                                    return dbPlayerInfo.applyPlayerDoubleTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
+                                    return dbPlayerInfo.applyPlayerDoubleTopUpReward(userAgent, playerId, code, data.topUpRecordId, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD:
-                                    return dbPlayerReward.applyConsecutiveLoginReward(playerId, code, adminInfo);
+                                    return dbPlayerReward.applyConsecutiveLoginReward(userAgent, playerId, code, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_EASTER_EGG_REWARD:
                                     return dbPlayerReward.applyEasterEggReward(playerId, code, adminInfo);
@@ -9081,7 +9088,7 @@ let dbPlayerInfo = {
         );
     },
 
-    applyPlayerReferralReward: function (playerId, code, referralName, ifAdmin) {
+    applyPlayerReferralReward: function (userAgent, playerId, code, referralName, ifAdmin) {
         var playerObj = null;
         var referralObj = null;
         var rewardEvent = null;
@@ -9226,6 +9233,7 @@ let dbPlayerInfo = {
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
                     };
+                    proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                     return dbProposal.createProposalWithTypeId(rewardEvent.executeProposal, proposalData);
                 }
                 else {
@@ -9245,7 +9253,7 @@ let dbPlayerInfo = {
         );
     },
 
-    applyPlayerRegistrationReward: function (playerId, code, adminInfo) {
+    applyPlayerRegistrationReward: function (userAgent, playerId, code, adminInfo) {
         var playerObj = null;
         var rewardEvent = null;
 
@@ -9326,6 +9334,7 @@ let dbPlayerInfo = {
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
                     };
+                    proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                     return dbProposal.createProposalWithTypeId(rewardEvent.executeProposal, proposalData);
                 }
                 else {
@@ -9339,7 +9348,7 @@ let dbPlayerInfo = {
         );
     },
 
-    applyPlayerDoubleTopUpReward: function (playerId, code, topUpRecordId, adminInfo) {
+    applyPlayerDoubleTopUpReward: function (userAgent, playerId, code, topUpRecordId, adminInfo) {
         var platformId = null;
         var player = {};
         var record = {};
@@ -9549,6 +9558,7 @@ let dbPlayerInfo = {
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
                         };
+                        proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
                             {bDirty: true},

@@ -1096,7 +1096,7 @@ var dbPlatform = {
                     //get player's platform reward event data
                     if (data && data.playerLevel) {
                         player = data;
-                        return dbPlayerInfo.applyConsumptionIncentive(data.playerId, eventData.code);
+                        return dbPlayerInfo.applyConsumptionIncentive("", data.playerId, eventData.code);
                     }
                 }
             }

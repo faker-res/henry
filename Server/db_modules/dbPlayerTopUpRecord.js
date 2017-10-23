@@ -586,7 +586,9 @@ var dbPlayerTopUpRecord = {
      * @param {Number} topupRequest.amount
      * @param {Number} topupRequest.topupType
      */
-    addOnlineTopupRequest: function (playerId, topupRequest, merchantUseType, clientType) {
+
+    addOnlineTopupRequest: function (userAgent, playerId, topupRequest, merchantUseType, clientType) {
+        var userAgentStr = userAgent;
         var player = null;
         var proposal = null;
         var merchantResponse = null;
@@ -670,7 +672,7 @@ var dbPlayerTopUpRecord = {
                     entryType: constProposalEntryType.CLIENT,
                     userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 };
-
+                newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr,false);
                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_TOP_UP, newProposal);
             }
         ).then(
@@ -763,6 +765,7 @@ var dbPlayerTopUpRecord = {
         var player = null;
         var proposal = null;
         var request = null;
+        let userAgentStr = userAgent;
 
         return dbPlayerInfo.getManualTopupRequestList(playerId).then(
             retData => {
@@ -871,6 +874,7 @@ var dbPlayerTopUpRecord = {
                     entryType: constProposalEntryType[entryType],
                     userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 };
+                newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr,false);//newProposal.isPartner
                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_MANUAL_TOP_UP, newProposal);
             }
         ).then(
@@ -1469,7 +1473,9 @@ var dbPlayerTopUpRecord = {
      * @param adminId
      * @param adminName
      */
-    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime) {
+
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime) {
+        let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
         let request = null;
@@ -1552,6 +1558,7 @@ var dbPlayerTopUpRecord = {
                         //createTime: createTime ? new Date(createTime) : new Date(),
                         userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                     };
+                    newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr,false);
                     return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
                 }
             ).then(
@@ -1681,7 +1688,9 @@ var dbPlayerTopUpRecord = {
      * @param adminId
      * @param adminName
      */
-    requestWechatTopup: function (playerId, amount, wechatName, wechatAccount, entryType, adminId, adminName, remark, createTime) {
+
+    requestWechatTopup: function (userAgent, playerId, amount, wechatName, wechatAccount, entryType, adminId, adminName, remark, createTime) {
+        let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
         let request = null;
@@ -1757,6 +1766,7 @@ var dbPlayerTopUpRecord = {
                         //createTime: createTime ? new Date(createTime) : new Date(),
                         userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                     };
+                    newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr,false);
                     return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_WECHAT_TOP_UP, newProposal);
                 }
                 else {
