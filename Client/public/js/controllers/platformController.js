@@ -4833,7 +4833,8 @@ define(['js/app'], function (myApp) {
                                     cvm.initTopUpGroupChangeLog();
                                 }
 
-                                socketService.$socket($scope.AppSocket, 'getPlayerTopUpGroupLog', query, function (data) {
+                                $scope.$socketPromise('getPlayerTopUpGroupLog', query).then( function (data) {
+                                // socketService.$socket($scope.AppSocket, 'getPlayerTopUpGroupLog', query, function (data) {
                                     // it is a change log for topup group
                                     // let singleLog = data.data[i]
                                     // vm.playerTopUpGroupLog.length = 0;
