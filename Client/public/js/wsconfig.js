@@ -15,6 +15,6 @@ let WSCONFIG = {
         "socketURL": "papi-lan.fpms8.me:9000",
     },
     "dev": {
-        "socketURL": "devtest.fpms8.me",
+        "socketURL": "devtest.fpms8.me:9000",
     }
 };
