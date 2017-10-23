@@ -4855,7 +4855,7 @@ define(['js/app'], function (myApp) {
                                 let cvm = this;
                                 let tableOptions = {
                                     data: tableData,
-                                    order: [[3, 'desc']],
+                                    order: [[2, 'desc']],
                                     columns: [
                                         {title: $translate('OPERATOR_NAME'), data: "admin.adminName"},
                                         {title: $translate('Topup Group'), data: "topUpGroupNames$", sClass: "realNameCell wordWrap"},
