@@ -1,5 +1,5 @@
 'use strict';
-var dbUtility = require('../../../../Server/modules/dbutility');
+
 define(['js/app'], function (myApp) {
 
     var injectParams = ['$sce', '$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies", "$timeout"];
@@ -4447,8 +4447,7 @@ define(['js/app'], function (myApp) {
                         socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
                             creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                             data: updateData,
-                            platformId: vm.selectedPlatform.id,
-                            inputDevice: dbUtility.getInputDevice("",false)
+                            platformId: vm.selectedPlatform.id
                         }, function (data) {
                             if (data.data && data.data.stepInfo) {
                                 socketService.showProposalStepInfo(data.data.stepInfo, $translate);
