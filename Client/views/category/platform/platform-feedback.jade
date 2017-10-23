@@ -52,8 +52,11 @@
                     option(value='') {{'all'|translate}}
                     option(value='new') {{'NEW_SYSTEM'|translate}}
                     option(value='old') {{'OLD_SYSTEM'|translate}}
+            .inlineBlk(style="width: 13em;")
+                label.control-label {{'CREDIBILITY_REMARK' | translate}}
+                select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.playerFeedbackQuery.credibilityRemarks')
             .inlineBlk
-                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.submitPlayerFeedbackQuery()') {{"SEARCH" | translate}}
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.submitPlayerFeedbackQuery();') {{"SEARCH" | translate}}
                 span#platformFeedbackSpin.collapse
                     i.fa.fa-spinner.fa-spin
                 span.margin-left-5
