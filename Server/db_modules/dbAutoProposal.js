@@ -326,6 +326,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 let curConsumption = 0, bonusAmount = 0;
                                                 let initBonusAmount = 0;
                                                 let isIncludePreviousConsumption = false;
+                                                let isTopUpPromo = false;
                                                 let spendingAmount = getProp.data.spendingAmount ? getProp.data.spendingAmount : getProp.data.requiredUnlockAmount;
 
                                                 if (getProp.type.executionType == "executePlayerTopUpReturn" || getProp.type.executionType == "executeFirstTopUp") {
@@ -333,6 +334,12 @@ function checkProposalConsumption(proposal, platformObj) {
                                                     isIncludePreviousConsumption = true;
                                                 } else {
                                                     initBonusAmount = getProp.data.rewardAmount ? getProp.data.rewardAmount : getProp.data.initAmount;
+                                                }
+
+                                                // Handling for top up promo reward
+                                                // Flag to include reward consumption into last top up
+                                                if (getProp.type.executionType == "executePlayerTopUpPromo" || getProp.type.executionType == "executePlatformTransactionReward") {
+                                                    isTopUpPromo = true;
                                                 }
 
                                                 if (record && record[0]) {
@@ -360,7 +367,8 @@ function checkProposalConsumption(proposal, platformObj) {
                                                     curConsumption: curConsumption,
                                                     bonusAmount: bonusAmount,
                                                     settleTime: new Date(queryDateFrom),
-                                                    isIncludePreviousConsumption: isIncludePreviousConsumption
+                                                    isIncludePreviousConsumption: isIncludePreviousConsumption,
+                                                    isTopUpPromo: isTopUpPromo
                                                 });
 
                                             }
@@ -424,12 +432,21 @@ function checkProposalConsumption(proposal, platformObj) {
                             if (checkResult[i].isIncludePreviousConsumption) {
                                 currentProposal = lastTopUpResult.proposalId ? lastTopUpResult.proposalId : currentProposal;
 
+                                // Include consumptions from previous top up if it is cleared before reward
                                 if (lastTopUpResult && lastTopUpResult.isCleared) {
                                     validConsumptionAmount += lastTopUpResult.curConsumption ? lastTopUpResult.curConsumption : 0;
                                     spendingAmount += lastTopUpResult.requiredConsumption ? lastTopUpResult.requiredConsumption : 0;
                                     initBonusAmount += lastTopUpResult.initBonusAmount ? lastTopUpResult.initBonusAmount : 0;
                                     bonusAmount += lastTopUpResult.bonusAmount ? lastTopUpResult.bonusAmount : 0;
                                 }
+                            }
+
+                            // Include top up promo reward to previous last top up consumptions
+                            if (lastTopUpResult && checkResult[i].isTopUpPromo) {
+                                lastTopUpResult.curConsumption += checkResult[i].curConsumption;
+                                lastTopUpResult.requiredConsumption += checkResult[i].requiredConsumption;
+                                lastTopUpResult.initBonusAmount += checkResult[i].initBonusAmount;
+                                lastTopUpResult.bonusAmount += checkResult[i].bonusAmount;
                             }
 
                             // Check consumption for each cycle

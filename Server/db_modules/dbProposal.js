@@ -2252,9 +2252,12 @@ var proposal = {
           queryObj[cardField]= data.card;
       }
       queryObj["data.validTime"] = {};
-      queryObj["data.validTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
-      queryObj["data.validTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
+      queryObj["data.validTime"]["$gte"] = data.startDate ? new Date(data.startDate) : null;
+      queryObj["data.validTime"]["$lt"] = data.endDate ? new Date(data.endDate) : null;
 
+      if(data.status){
+        queryObj["status"] = {$in: data.status};
+      }
       return dbconfig.collection_proposal.aggregate(
          {
              $match: queryObj

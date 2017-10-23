@@ -2766,7 +2766,7 @@ define(['js/app'], function (myApp) {
                     columnDefs: [
                         {targets: '_all', defaultContent: ' '}
                     ],
-                    "order": vm.playerTableQuery.aaSorting || [[7, 'desc']],
+                    "order": vm.playerTableQuery.aaSorting || [[6, 'desc']],
                     columns: [
                         // {title: $translate('PLAYER_ID'), data: "playerId", advSearch: true},
                         {
@@ -3238,7 +3238,7 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.topUpCard === true ? "cardTopUpBlue.png" : "cardTopUpRed.png"),
+                                    'src': "images/icon/" + (perm.topUpCard === false ? "cardTopUpRed.png" : "cardTopUpBlue.png"),
                                     height: "14px",
                                     width: "14px",
                                 }));
@@ -3261,7 +3261,7 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.PlayerLimitedOfferReward === true ? "limitedRewardBlue.png" : "limitedRewardRed.png"),
+                                    'src': "images/icon/" + (perm.PlayerLimitedOfferReward === false ? "limitedRewardRed.png" : "limitedRewardBlue.png"),
                                     height: "14px",
                                     width: "14px",
                                 }));
@@ -4855,7 +4855,7 @@ define(['js/app'], function (myApp) {
                                 let cvm = this;
                                 let tableOptions = {
                                     data: tableData,
-                                    order: [[3, 'desc']],
+                                    order: [[2, 'desc']],
                                     columns: [
                                         {title: $translate('OPERATOR_NAME'), data: "admin.adminName"},
                                         {title: $translate('Topup Group'), data: "topUpGroupNames$", sClass: "realNameCell wordWrap"},
@@ -4873,6 +4873,14 @@ define(['js/app'], function (myApp) {
                                         "emptyTable": $translate("No data available in table"),
                                     },
                                 };
+                                
+                                if ($('.dataTables_scrollHeadInner > .topupGroupRecordTable').length > 0) {
+                                    $(".topupGroupRecordTable").parent().parent().parent().remove();
+                                    $(".topupGroupRecordTablePage").before('<table class="topupGroupRecordTable common-table display" style="width:100%"></table>')
+                                }
+
+                                $(".topupGroupRecordTablePage").show();
+
                                 utilService.createDatatableWithFooter('.topupGroupRecordTable', tableOptions, {});
                                 cvm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
                                 $scope.safeApply()
@@ -4892,14 +4900,22 @@ define(['js/app'], function (myApp) {
                         this.topUpGroupRemark = "";
                     };
 
+                    let debounceGetReferralPlayer = $scope.debounce(function refreshReferral() {
+                        return vm.getReferralPlayer(option.childScope.playerBeingEdited, "change");
+                    }, 500);
+
+                    let debounceGetPartnerInPlayer = $scope.debounce(function () {
+                        return vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "change");
+                    }, 500, false);
+
                     option.childScope.playerBeforeEditing.smsSetting = _.clone(editPlayer.smsSetting);
                     option.childScope.playerBeingEdited.smsSetting = _.clone(editPlayer.smsSetting);
                     option.childScope.changeReferral = function () {
-                        return vm.getReferralPlayer(option.childScope.playerBeingEdited, "change");
+                        debounceGetReferralPlayer();
                     };
                     option.childScope.changePartner = function () {
-                        return vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "change");
-                    }
+                        debounceGetPartnerInPlayer();
+                    };
                     vm.partnerChange = false;
                     $('.referralValidTrue').hide();
                     $('.referralValidFalse').hide();
@@ -4911,8 +4927,12 @@ define(['js/app'], function (myApp) {
                     vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "new");
                     $scope.safeApply();
                 };
-                return function(){
-                    console.log('x')
+
+                $(".topupGroupRecordTablePage").hide();
+
+                if ($('.dataTables_scrollHeadInner > .topupGroupRecordTable').length > 0) {
+                    $(".topupGroupRecordTable").parent().parent().parent().remove();
+                    $(".topupGroupRecordTablePage").before('<table class="topupGroupRecordTable common-table display" style="width:100%"></table>')
                 }
             };
 
@@ -14805,6 +14825,9 @@ define(['js/app'], function (myApp) {
 
         vm.isForbidChanged = function (newForbid, oldForbid){
             var disableSubmit = true;
+            if (!oldForbid) {
+                oldForbid = [];
+            }
             if (newForbid.length == oldForbid.length) {
                 for (let i = 0; i < newForbid.length; i++) {
                     if (oldForbid.indexOf(newForbid[i]) > -1) {
