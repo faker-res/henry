@@ -151,6 +151,9 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.newPlayerList()', data-target='#modalNewPlayerList')
             text {{"new player list" | translate}}
             img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform','Player', 'Read')",ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareShowProviderExpense()')
+            text {{"EXPENSE" | translate}}
+            i.fa.fa-table
 //.col-md-12.playerBtn
     hr.margin-top-bottom-small
     .btn-group.margin-small
@@ -3210,3 +3213,35 @@ include modalGameCreditLog
                                 .col-md-12.textareaDetail
                                     textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
                             button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
+#modalProviderExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"EXPENSE" | translate}} : {{vm.selectedPlatform.text}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        #providerExpenseQuery.well
+                            .inlineBlk
+                                .control-label {{"Provider" | translate}}
+                                select.form-control(ng-model='vm.selectedProviderID', ng-init='vm.selectedProviderID="all"')
+                                    option(value='all') {{'any' | translate}}
+                                    option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}') {{v.name}}
+                            .inlineBlk
+                                .control-label {{"Start date" | translate}}
+                                .startTime
+                            .inlineBlk
+                                .control-label {{"End date" | translate}}
+                                .endTime
+                            .inlineBlk
+                                .control-label {{"MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
+                                input.input-sm.form-control(ng-model="vm.playerName")
+                            .inlineBlk
+                                button.btn.btn-primary.common-button(ng-click="vm.getProviderExpense(true)") {{"SEARCH" | translate}}
+                            br
+                        div(ng-if="checkViewPermission('Platform', 'Player', 'Read')")
+                            i.fa.fa-spinner.fa-spin(ng-show='vm.providerExpenseTableLoading')
+                            label {{"Total" | translate}} {{vm.expenseQuery.totalCount}} {{"records" | translate}} 
+                            table#providerExpenseTable.common-table.display(style='min-width:100%')
+                            #providerExpenseTablePage
