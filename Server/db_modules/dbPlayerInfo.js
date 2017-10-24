@@ -8904,7 +8904,7 @@ let dbPlayerInfo = {
 
                     let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerInfo, rewardEvent._id);
                     if (playerIsForbiddenForThisReward) {
-                        deferred.reject({name: "DataError", message: "Player is forbidden for this reward."});
+                        return Q.reject({name: "DataError", message: "Player is forbidden for this reward."});
                     }
 
                     //check valid time for reward event
