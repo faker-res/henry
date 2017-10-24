@@ -2859,10 +2859,8 @@ let dbPlayerInfo = {
         Q.all([eventProm, proposalProm, playerLevelProm, playerProm]).then(
             function (data) {
                 if (data && data[0] && data[1] && data[2] && data[3]) {
+                    let rewardEvents = data[0];
                     if (!data[3].permission || !data[3].permission.transactionReward) {
-                        deferred.resolve("No permission!");
-                    }
-                    if (dbPlayerReward.isRewardEventForbidden(data[3], data[0]._id)) {
                         deferred.resolve("No permission!");
                     }
                     if (data[1] && data[1][0]) {
@@ -2872,8 +2870,11 @@ let dbPlayerInfo = {
                     rewardParams = data[0];
                     playerLevelData = data[2];
                     playerData = data[3];
-                    for (var i = 0; i < data[0].length; i++) {
-                        var temp = dbconfig.collection_playerLevel.findOne({_id: data[0][i].param.playerLevel});
+                    for (var i = 0; i < rewardEvents.length; i++) {
+                        // skip promotion from this event if it is forbidden
+                        if (dbPlayerReward.isRewardEventForbidden(data[3], rewardEvents[i]._id)) continue;
+
+                        var temp = dbconfig.collection_playerLevel.findOne({_id: rewardEvents[i].param.playerLevel});
                         eventLevelProm.push(temp);
                     }
                     return Q.all(eventLevelProm);
