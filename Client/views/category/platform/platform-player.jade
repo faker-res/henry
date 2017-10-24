@@ -2324,7 +2324,7 @@ include modalGameCreditLog
                                 label {{'WechatPay' | translate}}
                                 select.form-control#wechatpayOption(ng-model='vm.wechatpaysAcc',ng-change='vm.pickWechatPayAcc(vm.wechatpaysAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc', value='{{v}}') {{v.name}}({{v.state | translate}})
+                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc', value='{{v}}') {{v.name}} {{v.accountNumber}} ({{v.state | translate}})
                             .form-group.col-md-6
                                 .control-label
                                 label {{'wechatPayName' | translate}}
