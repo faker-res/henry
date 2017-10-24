@@ -1549,7 +1549,7 @@ var dbPlayerTopUpRecord = {
                         return Q.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
-                            errorMessage: "Player does not have this permission"
+                            errorMessage: "Player does not have this topup permission"
                         });
                     }
                     if(userAgent){
@@ -1759,7 +1759,7 @@ var dbPlayerTopUpRecord = {
                         return Q.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
-                            errorMessage: "Player does not have this permission"
+                            errorMessage: "Player does not have this topup permission"
                         });
                     }
                     if(userAgent){
