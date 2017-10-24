@@ -2312,7 +2312,11 @@ var proposal = {
         query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
 
         if (data.merchantNo && data.merchantNo.length > 0 && !data.merchantGroup) {
-            query['data.merchantNo'] = {$in: data.merchantNo};
+            query['$or'] = [
+              {'data.merchantNo': {$in: data.merchantNo}},
+              {'data.bankCardNo': {$in: data.merchantNo}},
+              {'data.accountNo': {$in: data.merchantNo}}
+            ]
         }
 
         if (!data.merchantNo && data.merchantGroup) {
