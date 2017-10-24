@@ -853,12 +853,14 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
-                        dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
-                        deferred.resolve(proposalData);
+                        return dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
                     },
                     function (error) {
                         deferred.reject(error);
                     }
+                ).then(
+                    data => deferred.resolve(proposalData),
+                    error => deferred.reject(error)
                 );
             },
 
