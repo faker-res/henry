@@ -65,6 +65,7 @@ define(['js/app'], function (myApp) {
             vm.getPlayerLevelByPlatformId(vm.selectedPlatform._id);
             vm.getCredibilityRemarksByPlatformId(vm.selectedPlatform._id);
             vm.getRewardList();
+            vm.getPromotionTypeList();
             $cookies.put("platform", vm.selectedPlatform.name);
             console.log('vm.selectedPlatform', vm.selectedPlatform);
             vm.loadPage(vm.showPageName);
@@ -723,6 +724,7 @@ define(['js/app'], function (myApp) {
             else if (choice == "PROPOSAL_REPORT") {
                 vm.proposalQuery = {};
                 vm.proposalQuery.status = 'all';
+                vm.proposalQuery.promoType = '';
                 vm.proposalQuery.totalCount = 0;
                 vm.proposalQuery.proposalTypeId = '';
                 utilService.actionAfterLoaded("#proposalTablePage", function () {
@@ -743,8 +745,38 @@ define(['js/app'], function (myApp) {
                     });
                     $("select#selectProposalType").multipleSelect("checkAll");
 
+                    $('select#selectPromoType').multipleSelect({
+                        allSelected: $translate("All Selected"),
+                        selectAllText: $translate("Select All"),
+                        displayValues: true,
+                        countSelected: $translate('# of % selected'),
+                    });
+                    var $multi = ($('select#selectPromoType').next().find('.ms-choice'))[0];
+                    $('select#selectPromoType').next().on('click', 'li input[type=checkbox]', function () {
+                        var upText = $($multi).text().split(',').map(item => {
+                            return $translate(item);
+                        }).join(',');
+                        $($multi).find('span').text(upText)
+                    });
+                    $("select#selectPromoType").multipleSelect("checkAll");
+
+                    $('select#selectRewardType').multipleSelect({
+                        allSelected: $translate("All Selected"),
+                        selectAllText: $translate("Select All"),
+                        displayValues: true,
+                        countSelected: $translate('# of % selected'),
+                    });
+                    var $multi = ($('select#selectRewardType').next().find('.ms-choice'))[0];
+                    $('select#selectRewardType').next().on('click', 'li input[type=checkbox]', function () {
+                        var upText = $($multi).text().split(',').map(item => {
+                            return $translate(item);
+                        }).join(',');
+                        $($multi).find('span').text(upText)
+                    });
+                    $("select#selectRewardType").multipleSelect("checkAll");
+
                     vm.proposalQuery.pageObj = utilService.createPageForPagingTable("#proposalTablePage", {}, $translate, vm.proposalTablePageChange);
-                })
+                });
                 $scope.safeApply();
             } else if (choice == "PLAYER_REPORT") {
                 utilService.actionAfterLoaded('#playerReportTablePage', function () {
@@ -1531,7 +1563,18 @@ define(['js/app'], function (myApp) {
                     callback();
                 }
             });
-        }
+        };
+
+        vm.getPromotionTypeList = function (callback) {
+            socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform._id}, function (data) {
+                console.log('getPromoCodeTypes', data);
+                vm.promoTypeList = data.data;
+                $scope.safeApply();
+                if (callback) {
+                    callback();
+                }
+            });
+        };
 
         vm.getPageNameByRewardName = function (rewardName) {
             if (vm.rewardNamePage[rewardName]) {
@@ -3416,9 +3459,30 @@ define(['js/app'], function (myApp) {
                     newproposalQuery.proposalTypeId.push(item._id);
                 }
             });
+            var rewardTypes = $('select#selectRewardType').multipleSelect("getSelects");
+            newproposalQuery.rewardTypeName = [];
+            vm.rewardList.filter(item => {
+                if (rewardTypes.indexOf(item.name) > -1) {
+                    newproposalQuery.rewardTypeName.push(item.name);
+                }
+            });
+            var promoType = $('select#selectPromoType').multipleSelect("getSelects");
+            newproposalQuery.promoTypeName = [];
+            vm.promoTypeList.filter(item => {
+                if (promoType.indexOf(item.name) > -1) {
+                    newproposalQuery.promoTypeName.push(item.name);
+                }
+            });
             if (newproposalQuery.status == "all") {
                 newproposalQuery.status = null;
             }
+            if (newproposalQuery.relatedAccount) {
+                newproposalQuery.relatedAccount = newproposalQuery.relatedAccount.toLowerCase();
+            }
+            else {
+                newproposalQuery.relatedAccount = null;
+            }
+
             $('#proposalTableSpin').show();
             newproposalQuery.limit = newproposalQuery.limit || 10;
             var sendData = newproposalQuery.proposalId ? {
@@ -3429,12 +3493,15 @@ define(['js/app'], function (myApp) {
                 startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
                 proposalTypeId: newproposalQuery.proposalTypeId,
+                rewardTypeName: newproposalQuery.rewardTypeName,
+                promoTypeName: newproposalQuery.promoTypeName,
                 platformId: vm.curPlatformId,
                 status: newproposalQuery.status,
+                relatedAccount: newproposalQuery.relatedAccount,
                 index: newSearch ? 0 : (newproposalQuery.index || 0),
                 limit: newproposalQuery.limit,
                 sortCol: newproposalQuery.sortCol
-            }
+            };
             console.log("newproposalQuery", newproposalQuery);
 
             socketService.$socket($scope.AppSocket, 'getProposalStaticsReport', sendData, function (data) {

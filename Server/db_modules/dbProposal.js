@@ -1534,9 +1534,38 @@ var proposal = {
             if (reqData.type && reqData.type.length > 0) {
                 var arr = reqData.type.map(item => {
                     return ObjectId(item);
-                })
+                });
                 reqData.type = {$in: arr}
             }
+
+            if (reqData["data.eventName"] || reqData["data.PROMO_CODE_TYPE"] || reqData["data.playerName"] || reqData["data.partnerName"]) {
+                reqData["$and"] = [];
+            }
+
+            if (reqData["data.eventName"]) {
+                let dataCheck = {"data.eventName":{$in: reqData["data.eventName"]}};
+                let existCheck = {"data.eventName": {$exists: false}};
+                let orQuery = [dataCheck, existCheck];
+                reqData["$and"].push({$or: orQuery});
+                delete reqData["data.eventName"];
+            }
+            if (reqData["data.PROMO_CODE_TYPE"]) {
+                let dataCheck = {"data.PROMO_CODE_TYPE":{$in: reqData["data.PROMO_CODE_TYPE"]}};
+                let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
+                let orQuery = [dataCheck, existCheck];
+                reqData["$and"].push({$or: orQuery});
+                delete reqData["data.PROMO_CODE_TYPE"];
+            }
+            if (reqData["data.playerName"] || reqData["data.partnerName"]) {
+                let playerNameCheck = {"data.playerName":reqData["data.playerName"]};
+                let partnerNameCheck = {"data.partnerName":reqData["data.partnerName"]};
+                let orQuery = [playerNameCheck, partnerNameCheck];
+                reqData["$and"].push({$or: orQuery});
+                delete reqData["data.playerName"];
+                delete reqData["data.partnerName"];
+            }
+
+            console.log("~!@#$%^&*()_+",reqData);
             var a = dbconfig.collection_proposal.find(reqData).count();
             var b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                 .populate({path: "type", model: dbconfig.collection_proposalType})
