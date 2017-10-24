@@ -979,8 +979,9 @@ let dbPlayerReward = {
                       proposal=>{
                         console.log(proposal.proposalId);
                         let bonus = proposal.data.rewardAmount - proposal.data.applyAmount;
+                        let accountNo = dbUtility.encodeBankAcc(proposal.data.playerName);
                         let record = {
-                            "accountNo": proposal.data.playerName,
+                            "accountNo": accountNo,
                             "bonus": bonus,
                             "time": proposal.settleTime
                         }
