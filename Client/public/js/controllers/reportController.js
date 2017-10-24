@@ -11,6 +11,16 @@ define(['js/app'], function (myApp) {
         window.VM = vm;
 
         // declare constant
+        vm.inputDevice = {
+            BACKSTAGE: 0,
+            WEB_PLAYER: 1,
+            WEB_AGENT: 2,
+            H5_PLAYER: 3,
+            H5_AGENT: 4,
+            APP_PLAYER: 5,
+            APP_AGENT: 6
+        };
+
         vm.proposalStatusList = { // removed APPROVED and REJECTED
             PREPENDING: "PrePending",
             PENDING: "Pending",
@@ -3444,46 +3454,64 @@ define(['js/app'], function (myApp) {
                 "order": vm.proposalQuery.aaSorting,
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', 'aTargets': [0]},
-                    {'sortCol': 'createTime', 'aTargets': [6]}
+                    {'sortCol': 'createTime', 'aTargets': [8]}
                 ],
                 columns: [
                     {title: $translate('PROPOSAL ID'), data: "proposalId"},
+                    {title: $translate('CREATOR'),
+                        data: null,
+                        render: function (data, type, row) {
+                            if (data.hasOwnProperty('creator')) {
+                                return data.creator.name;
+                            } else {
+                                var creator = $translate('System');
+                                if (data && data.data && data.data.playerName) {
+                                    creator += "(" + data.data.playerName + ")";
+                                }
+                                return creator;
+                            }
+                        }
+                    },
+                    {title: $translate('INPUT_DEVICE'),
+                        data: "inputDevice",
+                        render: function (data, type, row) {
+                            for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data ){
+                                    return $translate(Object.keys(vm.inputDevice)[i]);
+                                }
+                            }
+                        }
+                    },
                     {
-                        title: $translate('PROPOSAL TYPE'), data: "typeName",
+                        title: $translate('PROPOSAL TYPE'), data: ("mainType$"),
                         orderable: false,
                         // render: function (data) {
                         //     return $translate(data);
                         // }
                     },
                     {
-                        title: $translate('PROPOSAL MAIN TYPE'), data: ("mainType$"),
+                        title: $translate('PROPOSAL_SUB_TYPE'), data: null,
                         orderable: false,
-                        // render: function (data) {
-                        //     return $translate(data);
-                        // }
+                        render: function (data, type, row) {
+                            if (data && data.data && data.data.PROMO_CODE_TYPE) {
+                                return data.data.PROMO_CODE_TYPE;
+                            }else if(data && data.data && data.data.eventName){
+                                return data.data.eventName;
+                            }else {
+                                return data.typeName;
+                            }
+                        }
                     },
                     {
-                        title: "<div>" + $translate('STATUS'), data: "status$",
+                        title: "<div>" + $translate('Proposal Status'), data: "status$",
                         orderable: false,
                         // render: function (data, type, row) {
                         //     return $translate(vm.getStatusStrfromRow(row))
                         // }
                     },
                     {
-                        title: "<div>" + $translate('PLAYER ID'), data: "data.playerShortId",
+                        title: "<div>" + $translate('INVOLVED_ACC'), data: "data.playerShortId",
                         orderable: false,
-                    },
-                    {
-                        title: "<div>" + $translate('USER TYPE'), data: "userType",
-                        orderable: false,
-                    },
-                    {
-                        title: "<div>" + $translate('CREATION TIME'), data: "createTime$",
-                        sClass: "sumText",
-                        // render: function (data, type, row) {
-                        //     return utilService.$getTimeFromStdTimeFormat(data);
-                        // },
-                        defaultContent: 0
                     },
                     {
                         title: $translate('Amount Involved'), data: "involveAmount", defaultContent: 0,
@@ -3500,6 +3528,26 @@ define(['js/app'], function (myApp) {
                         //     }
                         //     return showStr;
                         // },
+                    },
+                    // {
+                    //     title: "<div>" + $translate('USER TYPE'), data: "userType",
+                    //     orderable: false,
+                    // },
+                    {
+                        title: "<div>" + $translate('START_TIME'), data: "createTime$",
+                        sClass: "sumText",
+                        // render: function (data, type, row) {
+                        //     return utilService.$getTimeFromStdTimeFormat(data);
+                        // },
+                        defaultContent: 0
+                    },
+                    {
+                        title: "<div>" + $translate('Player Level'), data: "data.proposalPlayerLevel",
+                        orderable: false,
+                    },
+                    {
+                        title: "<div>" + $translate('REMARKS'), data: " ",
+                        orderable: false,
                     }
                 ],
                 // "autoWidth": true,

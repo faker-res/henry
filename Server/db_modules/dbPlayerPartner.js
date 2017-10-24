@@ -480,10 +480,10 @@ let dbPlayerPartner = {
                 // data.data.updateData && data.data.updateData.phoneNumber
                 let player, partner, playerUpdateData, partnerUpdateData;
                 let updatePhoneNumber = dbUtility.encodePhoneNum(newPhoneNumber);
-                // let inputDevice = dbUtility.getInputDevice(userAgent,false);
+                let inputDevice = 0;
                 switch (targetType) {
                     case 0:
-                        let inputDevice = dbUtility.getInputDevice(userAgent,false);
+                        inputDevice = dbUtility.getInputDevice(userAgent,false);
                         player = result;
                         playerUpdateData = {
                             isPlayerInit: true,
@@ -498,7 +498,7 @@ let dbPlayerPartner = {
                         dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData, inputDevice: inputDevice});
                         break;
                     case 1:
-                        let inputDevice = dbUtility.getInputDevice(userAgent,true);
+                        inputDevice = dbUtility.getInputDevice(userAgent,true);
                         partner = result;
                         partnerUpdateData = {
                             isPlayerInit: true,
