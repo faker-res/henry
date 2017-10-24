@@ -226,10 +226,6 @@ let dbPlayerReward = {
         type = type || 'online';
         let player;
         return new Promise(function (resolve) {
-            let rewardEventQuery = {
-                platform: topUpProposalData.data.platformId
-            };
-
             dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_TOP_UP_PROMO}).lean().then(
                 rewardTypeData => {
                     let rewardEventQuery = {
@@ -238,13 +234,13 @@ let dbPlayerReward = {
                     };
 
                     let playerProm = dbConfig.collection_players.findOne({_id: topUpProposalData.data.playerObjId}).lean();
-                    let rewardEventProm = dbConfig.collection_rewardEvent.find(rewardEventQuery).lean()
+                    let rewardEventProm = dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
 
                     return Promise.all([rewardEventProm, playerProm]);
                 }
             ).then(
                 data => {
-                    promoEvents = data[0];
+                    let promoEvents = data[0];
                     player = data[1];
                     if (!promoEvents || promoEvents.length <= 0) {
                         // there is no promotion event going on
@@ -255,7 +251,7 @@ let dbPlayerReward = {
                     for (let i = 0; i < promoEvents.length; i++) {
                         let promoEvent = promoEvents[i];
 
-                        if (dbRewardEvent.isRewardEventForbidden(player, promoEvent._id)) {
+                        if (dbPlayerReward.isRewardEventForbidden(player, promoEvent._id)) {
                             // the player is not valid for this promotion
                             continue;
                         }
@@ -264,9 +260,9 @@ let dbPlayerReward = {
                             let promotion = promoEvent.param.reward[j];
 
                             switch (true) {
-                                case (type === 'online' && Number(promotion.topUpType) === Number(topUpProposalData.data.topupType)):
-                                case (type === 'weChat' && Number(promotion.topUpType) === 98):
-                                case (type === 'aliPay' && Number(promotion.topUpType) === 99):
+                                case (type === 'online' && Number(promotion.topUpType) == Number(topUpProposalData.data.topupType)):
+                                case (type === 'weChat' && Number(promotion.topUpType) == 98):
+                                case (type === 'aliPay' && Number(promotion.topUpType) == 99):
                                     promotionDetail = promotion;
                                     promoEventDetail = promoEvent;
                                     break;
@@ -285,10 +281,11 @@ let dbPlayerReward = {
 
                     if (!promotionDetail) {
                         // there is no relevant promotion
+                        console.error("applyPlayerTopUpPromo:there is no relevant promotion");
                         return;
                     }
 
-                    let rewardAmount = (Number(topUpProposalData.data.amount) * promotionDetail.rewardPercentage / 100);
+                    let rewardAmount = (Number(topUpProposalData.data.amount) * Number(promotionDetail.rewardPercentage) / 100);
                     if( rewardAmount > 500 ){
                         rewardAmount = 500;
                     }
@@ -322,6 +319,8 @@ let dbPlayerReward = {
                 }
             ).catch(
                 error => {
+                    //add debug log
+                    console.error(error);
                     resolve(error);
                 }
             );

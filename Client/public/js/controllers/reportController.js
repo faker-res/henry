@@ -65,6 +65,7 @@ define(['js/app'], function (myApp) {
             vm.getPlayerLevelByPlatformId(vm.selectedPlatform._id);
             vm.getCredibilityRemarksByPlatformId(vm.selectedPlatform._id);
             vm.getRewardList();
+            vm.getPromotionTypeList();
             $cookies.put("platform", vm.selectedPlatform.name);
             console.log('vm.selectedPlatform', vm.selectedPlatform);
             vm.loadPage(vm.showPageName);
@@ -95,6 +96,8 @@ define(['js/app'], function (myApp) {
                     vm.getCityName(vm.selectedProposal.data.inputData.cityId)
                 }
             }
+            vm.wechatNameConvert();
+
             // vm.selectedProposal.data.cityId;
             $('#modalProposal').modal('show');
             $('#modalProposal').on('shown.bs.modal', function (e) {
@@ -113,33 +116,60 @@ define(['js/app'], function (myApp) {
         //             vm.bankCards = data.data ? data.data : false;
         //     });
         // }
+        vm.wechatNameConvert = function(){
+            vm.selectedProposal.data.weAcc = '';
+            vm.selectedProposal.data.weName = '';
+            vm.selectedProposal.data.weChatQRCode = '';
 
+            if(vm.selectedProposal.data.wechatAccount){
+                vm.selectedProposal.data.weAcc = vm.selectedProposal.data.wechatAccount;
+            }
+            if(vm.selectedProposal.data.weChatAccount){
+                vm.selectedProposal.data.weAcc = vm.selectedProposal.data.weChatAccount;
+            }
+            if(vm.selectedProposal.data.wechatName) {
+                vm.selectedProposal.data.weName = vm.selectedProposal.data.wechatName;
+            }
+            if(vm.selectedProposal.data.weChatName) {
+                vm.selectedProposal.data.weName = vm.selectedProposal.data.weChatName;
+            }
+            if(vm.selectedProposal.data.weChatName) {
+                vm.selectedProposal.data.weName = vm.selectedProposal.data.weChatName;
+            }
+            if(vm.selectedProposal.data.wechatQRCode){
+                vm.selectedProposal.data.weQRCode =  vm.selectedProposal.data.wechatQRCode;
+            }
+            if(vm.selectedProposal.data.weChatQRCode){
+                vm.selectedProposal.data.weQRCode =  vm.selectedProposal.data.weChatQRCode;
+            }
+            $scope.safeApply();
+        }
         vm.getCardLimit = function(typeName){
             let acc = '';
             if(typeName=='ManualPlayerTopUp'){
               let bankCardNo = vm.selectedProposal.data.bankCardNo;
-              if(bankCardNo && vm.bankCards.length > 0){
+              if(bankCardNo && vm.bankCards && vm.bankCards.length > 0){
                   vm.selectedProposal.card = vm.bankCards.filter(item=>{ return item.accountNumber == bankCardNo })[0] ||  {singleLimit:'0', quota:'0'};
               }else{
                   vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
               }
             }else if(typeName=="PlayerAlipayTopUp"){
               let　merchantNo = vm.selectedProposal.data.alipayAccount;
-              if(merchantNo && vm.allAlipaysAcc.length > 0){
+              if(merchantNo && vm.allAlipaysAcc && vm.allAlipaysAcc.length > 0){
                   vm.selectedProposal.card = vm.allAlipaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
               }else{
                   vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
               }
             }else if(typeName=="PlayerWechatTopUp"){
               let　merchantNo = vm.selectedProposal.data.wechatAccount;
-              if(merchantNo && vm.allWechatpaysAcc.length > 0){
+              if(merchantNo && vm.allWechatpaysAcc && vm.allWechatpaysAcc.length > 0){
                   vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
               }else{
                   vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
               }
             }else if(typeName=="PlayerTopUp"){
               let　merchantNo = vm.selectedProposal.data.merchantNo;
-              if(merchantNo && vm.merchantLists.length > 0){
+              if(merchantNo && vm.merchantLists && vm.merchantLists.length > 0){
                   vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
               }else{
                   vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
@@ -611,7 +641,7 @@ define(['js/app'], function (myApp) {
                     console.log("merchantList", data);
                 });
 
-                socketService.$socket($scope.AppSocket, 'getMerchantList', {platformId: vm.selectedPlatform.platformId}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
                     if (data.data && data.data.merchants) {
                         vm.merchantNoList = data.data.merchants.filter(mer => {
                             vm.merchantNoNameObj[mer.merchantNo] = mer.name;
@@ -624,7 +654,9 @@ define(['js/app'], function (myApp) {
 
                         Object.keys(vm.merchantNoList).forEach(item=>{
                            let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
-                           if(vm.merchantTypes[merchantTypeId]){
+                           if(merchantTypeId=="9999"){
+                             vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
+                           }else if(vm.merchantTypes[merchantTypeId]){
                               vm.merchantNoList[item].merchantTypeName = merchantTypeId ? vm.merchantTypes[merchantTypeId].name :'';
                            }else{
                              vm.merchantNoList[item].merchantTypeName = '';
@@ -692,6 +724,7 @@ define(['js/app'], function (myApp) {
             else if (choice == "PROPOSAL_REPORT") {
                 vm.proposalQuery = {};
                 vm.proposalQuery.status = 'all';
+                vm.proposalQuery.promoType = '';
                 vm.proposalQuery.totalCount = 0;
                 vm.proposalQuery.proposalTypeId = '';
                 utilService.actionAfterLoaded("#proposalTablePage", function () {
@@ -712,8 +745,38 @@ define(['js/app'], function (myApp) {
                     });
                     $("select#selectProposalType").multipleSelect("checkAll");
 
+                    $('select#selectPromoType').multipleSelect({
+                        allSelected: $translate("All Selected"),
+                        selectAllText: $translate("Select All"),
+                        displayValues: true,
+                        countSelected: $translate('# of % selected'),
+                    });
+                    var $multi = ($('select#selectPromoType').next().find('.ms-choice'))[0];
+                    $('select#selectPromoType').next().on('click', 'li input[type=checkbox]', function () {
+                        var upText = $($multi).text().split(',').map(item => {
+                            return $translate(item);
+                        }).join(',');
+                        $($multi).find('span').text(upText)
+                    });
+                    $("select#selectPromoType").multipleSelect("checkAll");
+
+                    $('select#selectRewardType').multipleSelect({
+                        allSelected: $translate("All Selected"),
+                        selectAllText: $translate("Select All"),
+                        displayValues: true,
+                        countSelected: $translate('# of % selected'),
+                    });
+                    var $multi = ($('select#selectRewardType').next().find('.ms-choice'))[0];
+                    $('select#selectRewardType').next().on('click', 'li input[type=checkbox]', function () {
+                        var upText = $($multi).text().split(',').map(item => {
+                            return $translate(item);
+                        }).join(',');
+                        $($multi).find('span').text(upText)
+                    });
+                    $("select#selectRewardType").multipleSelect("checkAll");
+
                     vm.proposalQuery.pageObj = utilService.createPageForPagingTable("#proposalTablePage", {}, $translate, vm.proposalTablePageChange);
-                })
+                });
                 $scope.safeApply();
             } else if (choice == "PLAYER_REPORT") {
                 utilService.actionAfterLoaded('#playerReportTablePage', function () {
@@ -1500,7 +1563,18 @@ define(['js/app'], function (myApp) {
                     callback();
                 }
             });
-        }
+        };
+
+        vm.getPromotionTypeList = function (callback) {
+            socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform._id}, function (data) {
+                console.log('getPromoCodeTypes', data);
+                vm.promoTypeList = data.data;
+                $scope.safeApply();
+                if (callback) {
+                    callback();
+                }
+            });
+        };
 
         vm.getPageNameByRewardName = function (rewardName) {
             if (vm.rewardNamePage[rewardName]) {
@@ -1582,6 +1656,7 @@ define(['js/app'], function (myApp) {
                             ? item.data.merchantNo
                             : item.data.wechatAccount != null
                             ? item.data.wechatAccount
+                            : item.data.weChatAccount != null ? item.data.weChatAccount
                             : item.data.alipayAccount != null
                             ? item.data.alipayAccount
                             : null;
@@ -1626,22 +1701,22 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedPlatform.platformId},
                 data => {
                     var data = data.data;
-                    vm.bankCards = data.data ? data.data : false;
+                    vm.bankCards = data.data ? data.data : [];
             });
             socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroup', {platform: vm.selectedPlatform.platformId},
                 data => {
                     var data = data.data;
-                    vm.allAlipaysAcc = data.data ? data.data : false;
+                    vm.allAlipaysAcc = data.data ? data.data : [];
             });
             socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroup', {platform: vm.selectedPlatform.platformId},
                 data => {
                     var data = data.data;
-                    vm.allWechatpaysAcc = data.data ? data.data : false;
+                    vm.allWechatpaysAcc = data.data ? data.data : [];
                 });
             socketService.$socket($scope.AppSocket, 'getMerchantList', {platform: vm.selectedPlatform.platformId},
                 data => {
                     var data = data.data;
-                    vm.merchantLists = data.data ? data.data : false;
+                    vm.merchantLists = data.data ? data.data : [];
                 });
         }
 
@@ -2772,7 +2847,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('LEVEL'), data: "playerLevel$"},
                     {title: $translate('CREDIBILITY'), data: "credibility$"},
                     {
-                        title: $translate('LOBBY'), data: "provider$", "className": 'expandPlayerReport', sClass: "sumText",
+                        title: $translate('LOBBY'), data: "provider$", sClass: "expandPlayerReport sumText",
                         render: function (data) {
                             return "<a>" + data + "</a>";
                         }
@@ -3384,9 +3459,30 @@ define(['js/app'], function (myApp) {
                     newproposalQuery.proposalTypeId.push(item._id);
                 }
             });
+            var rewardTypes = $('select#selectRewardType').multipleSelect("getSelects");
+            newproposalQuery.rewardTypeName = [];
+            vm.rewardList.filter(item => {
+                if (rewardTypes.indexOf(item.name) > -1) {
+                    newproposalQuery.rewardTypeName.push(item.name);
+                }
+            });
+            var promoType = $('select#selectPromoType').multipleSelect("getSelects");
+            newproposalQuery.promoTypeName = [];
+            vm.promoTypeList.filter(item => {
+                if (promoType.indexOf(item.name) > -1) {
+                    newproposalQuery.promoTypeName.push(item.name);
+                }
+            });
             if (newproposalQuery.status == "all") {
                 newproposalQuery.status = null;
             }
+            if (newproposalQuery.relatedAccount) {
+                newproposalQuery.relatedAccount = newproposalQuery.relatedAccount.toLowerCase();
+            }
+            else {
+                newproposalQuery.relatedAccount = null;
+            }
+
             $('#proposalTableSpin').show();
             newproposalQuery.limit = newproposalQuery.limit || 10;
             var sendData = newproposalQuery.proposalId ? {
@@ -3397,12 +3493,15 @@ define(['js/app'], function (myApp) {
                 startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
                 proposalTypeId: newproposalQuery.proposalTypeId,
+                rewardTypeName: newproposalQuery.rewardTypeName,
+                promoTypeName: newproposalQuery.promoTypeName,
                 platformId: vm.curPlatformId,
                 status: newproposalQuery.status,
+                relatedAccount: newproposalQuery.relatedAccount,
                 index: newSearch ? 0 : (newproposalQuery.index || 0),
                 limit: newproposalQuery.limit,
                 sortCol: newproposalQuery.sortCol
-            }
+            };
             console.log("newproposalQuery", newproposalQuery);
 
             socketService.$socket($scope.AppSocket, 'getProposalStaticsReport', sendData, function (data) {

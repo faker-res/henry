@@ -3265,7 +3265,7 @@ define(['js/app'], function (myApp) {
                                         'src': "images/icon/rewardBlue.png",
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.initRewardSettings();',
+                                        'ng-click': 'vm.initRewardSettings();vm.initPlayerAddRewardTask();',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerAddRewardTask',
@@ -4955,7 +4955,8 @@ define(['js/app'], function (myApp) {
                                     cvm.initTopUpGroupChangeLog();
                                 }
 
-                                socketService.$socket($scope.AppSocket, 'getPlayerTopUpGroupLog', query, function (data) {
+                                $scope.$socketPromise('getPlayerTopUpGroupLog', query).then( function (data) {
+                                // socketService.$socket($scope.AppSocket, 'getPlayerTopUpGroupLog', query, function (data) {
                                     // it is a change log for topup group
                                     // let singleLog = data.data[i]
                                     // vm.playerTopUpGroupLog.length = 0;
@@ -8795,6 +8796,10 @@ define(['js/app'], function (myApp) {
                     sendQuery.isNewSystem = true;
                 }
 
+                if (vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
+                    sendQuery.credibilityRemarks = vm.playerFeedbackQuery.credibilityRemarks;
+                }
+
                 $('#platformFeedbackSpin').show();
                 console.log('sendQuery', sendQuery);
                 socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
@@ -11094,9 +11099,6 @@ define(['js/app'], function (myApp) {
                         case 'WinRatio':
                             vm.playerValueBasic.winRatioScores.push({name: data.name, score: data.score});
                             break;
-                        case 'gameProviderGroup':
-                            vm.gameProviderGroup.push({name: data.name, providers: data.providers});
-                            break;
                     }
                 } else if (type == 'remove') {
                     configType.splice(data, 1);
@@ -11358,9 +11360,9 @@ define(['js/app'], function (myApp) {
                         vm.prepareCredibilityConfig();
                         break;
                     case 'providerGroup':
-                        vm.gameProviderGroup = [];
                         vm.availableGameProviders = vm.allGameProvider;
                         vm.providerGroupConfig = {showWarning: false};
+                        vm.getPlatformProviderGroup();
                         break;
                 }
             };
@@ -12789,12 +12791,20 @@ define(['js/app'], function (myApp) {
                         vm.credibilityRemarks = data.data;
                         $scope.safeApply();
                         vm.setupRemarksMultiInput();
+                        vm.setupRemarksMultiInputFeedback();
                         resolve();
                     }, function (err) {
                         reject(err);
                     });
                 });
             };
+
+        vm.getPlatformProviderGroup = () => {
+            $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+                vm.gameProviderGroup = data.data;
+                $scope.safeApply();
+            });
+        };
 
             vm.submitAddPlayerLvl = function () {
                 var sendData = vm.newPlayerLvl;
@@ -13176,6 +13186,22 @@ define(['js/app'], function (myApp) {
             else {
                 vm.providerGroupConfig.showWarning = false;
                 vm.configTableEdit = false;
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    gameProviderGroup: vm.gameProviderGroup.map(e => {
+                        return {
+                            name: e.name,
+                            providers: e.providers
+                        };
+                    })
+                };
+
+                console.log('sendData2', sendData);
+
+                socketService.$socket($scope.AppSocket, 'updatePlatformProviderGroup', sendData, function (data) {
+                    console.log('updatePlatformProviderGroup', data);
+                });
             }
         }
 
@@ -14828,6 +14854,22 @@ define(['js/app'], function (myApp) {
                 vm.advancedPlayerQuery(true);
             })
         })
+
+        vm.setupRemarksMultiInputFeedback = function () {
+            let remarkSelect = $('select#selectCredibilityRemarkFeedback');
+            if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
+                return;
+            }
+            remarkSelect.multipleSelect({
+                showCheckbox  : true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
+            });
+            $scope.safeApply();
+        };
+
 
         vm.getPlayersByAdvanceQuery = function (playerQuery) {
             // NOTE: If the response is ignoring your field filter and returning all players, please check that the
