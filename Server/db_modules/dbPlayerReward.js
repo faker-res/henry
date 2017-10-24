@@ -854,6 +854,8 @@ let dbPlayerReward = {
     },
     getPromoCode: (playerId, platformId, status) => {
       let platformData = null;
+      var playerData = null;
+      var promoListData = null;
       return dbConfig.collection_platform.findOne({platformId: platformId}).exec()
       .then(
           platformRecord=>{
@@ -871,21 +873,126 @@ let dbPlayerReward = {
          playerRecord=>{
            if(playerRecord && playerRecord._id){
                var query = {
-                   playerObjId:playerRecord._id,
-                   platformObjId:platformData._id
+                   "playerObjId":playerRecord._id,
+                   "platformObjId":platformData._id
                }
                if(status){
                    query.status = status;
                }
+               playerData = playerRecord;
                return dbConfig.collection_promoCode.find(query)
                  .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
-                 .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean();
+                 .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean()
+                   .then(
+                       promocodes => {
+                           console.log(promocodes);
+                           let usedListArr = [];
+                           let noUseListArr = [];
+                           let expiredListArr = [];
+                           let bonusListArr = [];
+
+                           promocodes.forEach(promocode=>{
+                               let providers = [];
+                               let status = promocode.status;
+                               let condition = promoCondition(promocode);
+                               let title = getPromoTitle(promocode);
+
+                               promocode.allowedProviders.forEach(provider=>{
+                                   providers.push(provider.name);
+                               })
+
+                               let promo = {
+                                   "title": title,
+                                   "validBet":promocode.requiredConsumption,
+                                   "games": providers,
+                                   "condition": condition,
+                                   "expireTime": promocode.expirationTime,
+                                   "bonusCode": promocode.code,
+                                   "tag":promocode.bannerText,
+                               }
+                               if(promocode.maxTopUpAmount){
+                                   promo.bonusLimit = promocode.maxTopUpAmount;
+                               }
+                               console.log(promo);
+                               if(status=="1"){
+                                   noUseListArr.push(promo);
+                               }else if(status=="2"){
+                                   promo.bonusUrl = playerData.name;
+                                   usedListArr.push(promo);
+                               }else if(status=="3"){
+                                   expiredListArr.push(promo);
+                               }else if(status=="4"){
+                                   bonusListArr.push(promo);
+                               }
+                           });
+                       let result = {
+                           "showInfo":1,
+                           "usedList": usedListArr,
+                           "noUseList":noUseListArr,
+                           "expiredList":expiredListArr,
+                           "bonusList":bonusListArr
+                       }
+                       return result;
+                       });
            }else{
              return Q.reject({name: "DataError", message: "Platform Not Found"});
            }
          }
        )
+      .then(
+          promoList=>{
+              promoListData = promoList
+                if(promoList){
+                    return dbConfig.collection_proposalType.findOne({
+                        platformId: ObjectId(platformData._id),
+                        name: constProposalType.PLAYER_PROMO_CODE_REWARD
+                    }).lean()
+                        .then(
+                            proposalType=>{
+                                var queryObj = {
+                                    "data.platformId":ObjectId(platformData._id),
+                                    "type": Object(proposalType._id),
+                                    "status": {$in:["Success", "Approved"]},
+                                    "settleTime": {
+                                        '$gte':moment().subtract(4, 'hours'),
+                                        '$lte':new Date()
+                                    }
+                                    };
+                                return dbConfig.collection_proposal.find(queryObj).populate(
+                                    {path: "type", model: dbConfig.collection_proposalType}).sort({"createTime": -1}).limit(10).lean()
 
+                            }
+                        )
+
+                }else{
+                    return Q.reject({name: "DataError", message: "Platform Not Found"});
+                }
+          }
+      )
+          .then(
+              proposalData=>{
+                  console.log(proposalData);
+                  console.log('end of the world');
+                  let approvedProposal = [];
+                  let result = promoListData;
+                  proposalData.forEach(
+                      proposal=>{
+                        console.log(proposal.proposalId);
+                        let bonus = proposal.data.rewardAmount - proposal.data.applyAmount;
+                        let record = {
+                            "accountNo": proposal.data.playerName,
+                            "bonus": bonus,
+                            "time": proposal.settleTime
+                        }
+                        approvedProposal.push(record);
+                      }
+                  )
+
+                  result.bonusList = approvedProposal;
+                  return result;
+              }
+
+          )
     },
 
     getPromoCodesHistory: (searchQuery) => {
@@ -1990,7 +2097,32 @@ function expirePromoCode() {
     });
 }
 
+function promoCondition(promo){
+    let proMsg = ''
+    if(promo.minTopUpAmount){
+        proMsg += "有新存款<span class=\"c_color\">("+promo.minTopUpAmount+"以上)"+"</span>";
+    }
+    if(promo.maxTopUpAmount){
+        proMsg += ", 存款上限<span class=\"c_color\">("+promo.maxTopUpAmount+")"+"</span>";
+    }
+    if(promo.disableWithdraw){
+        proMsg += ' 且尚未投注';
+    }
+    if(!promo.minTopUpAmount && !promo.disableWithdraw){
+        proMsg += '无';
+    }
+    return proMsg;
+}
 
+function getPromoTitle(promo){
+    let promoTitle = '';
+    if(promo.promoCodeTypeObjId.type==3){
+        promoTitle = promo.amount + '%';
+    }else{
+        promoTitle = promo.amount + '元';
+    }
+    return promoTitle;
+}
 var proto = dbPlayerRewardFunc.prototype;
 proto = Object.assign(proto, dbPlayerReward);
 
