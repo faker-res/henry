@@ -228,7 +228,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{ vm.selectedProposal.data.weAcc }}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp" && vm.selectProposal.from_old_system')
                     td {{'Our WeChatACC' | translate }}
-                    td {{ vm.selectedProposal.data.msg }}
+                    td {{ vm.selectedProposal.data.weName }}
                 //undefined yet
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp"')
                     td {{'Our WeChatNick' | translate }}

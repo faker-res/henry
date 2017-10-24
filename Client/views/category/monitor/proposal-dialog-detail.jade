@@ -232,7 +232,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                 //undefined yet
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp"')
                     td {{'Our WeChatNick' | translate }}
-                    td {{vm.selectedProposal.card.name}}
+                    td {{vm.selectedProposal.data.weName}}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp"')
                     td {{'SINGLELIMIT' | translate }}
                     td {{vm.selectedProposal.card.singleLimit}}
