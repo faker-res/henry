@@ -4779,8 +4779,9 @@ let dbPlayerInfo = {
     getSimilarPlayers: function (playerId) {
         return dbconfig.collection_players.findOne({_id: playerId}).populate({
             path: "similarPlayers.playerObjId",
-            model: dbconfig.collection_players
-        }).then(
+            model: dbconfig.collection_players,
+            select: "playerId name"
+        }).lean().then(
             playerData => {
                 return {playerId: playerData.playerId, similarData: playerData.similarPlayers};
             }
