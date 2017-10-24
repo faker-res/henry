@@ -2804,7 +2804,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('LEVEL'), data: "playerLevel$"},
                     {title: $translate('CREDIBILITY'), data: "credibility$"},
                     {
-                        title: $translate('LOBBY'), data: "provider$", "className": 'expandPlayerReport', sClass: "sumText",
+                        title: $translate('LOBBY'), data: "provider$", sClass: "expandPlayerReport sumText",
                         render: function (data) {
                             return "<a>" + data + "</a>";
                         }
