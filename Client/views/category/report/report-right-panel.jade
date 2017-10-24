@@ -84,17 +84,29 @@
         div(ng-if='vm.showPageName=="PROPOSAL_REPORT"')
             #proposalReportQuery.block-query.col-md-12.well
                 div
-                    label(style='width:250px;') {{"Proposal Type"|translate}}
+                    label(style='width:200px;') {{"Proposal Type"|translate}}
                     select.form-control#selectProposalType(multiple="multiple", ng-options='i._id as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='abc')
 
                     //select.form-control(ng-model='vm.proposalQuery.proposalTypeId', style='max-width:300px', required)
                         option(value='all') {{"all" | translate}}
                         option(ng-repeat='(i,v) in vm.allProposalType', value='{{v._id}}', ng-selected='vm.selectedProposalType==v._id') {{v.name | translate}}
+
+                div
+                    label(style='width:150px;') {{"CUSTOMIZED_PROMO_NAME"|translate}}
+                    select.form-control#selectRewardType(multiple="multiple", ng-options='i._id as i.name for (k,i) in ( vm.rewardList | unique: "name" ) track by i.name', ng-model='bbc')
+                div
+                    label(style='width:150px;') {{"PROMO_CODE_NAME"|translate}}
+                    select.form-control#selectPromoType(multiple="multiple", ng-options='i._id as i.name for (k,i) in ( vm.promoTypeList | unique: "name" ) track by i.name', ng-model='cbc')
+
                 div
                     label {{"Proposal Status"|translate}}
                     select.form-control(ng-model='vm.proposalQuery.status', style='max-width:300px', required)
                         option(value='all') {{'all' | translate}}
                         option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}', ng-selected='vm.proposalQuery.status==v._id') {{v | translate}}
+                div
+                    label {{"RELATED_ACCOUNT" | translate}}
+                    input(style='width:180px;').form-control(ng-model='vm.proposalQuery.relatedAccount', type='text')
+
                 div
                     label {{"Start date"|translate}}
                     .startTime
@@ -103,7 +115,7 @@
                     .endTime
                 div
                     label {{"Proposal No"|translate}}
-                    input.noGrey.form-control(type="text", ng-model="vm.proposalQuery.proposalId", ng-change='vm.hideOtherConditions("#proposalReportQuery",vm.proposalQuery.proposalId,".noGrey")')
+                    input(style='width:110px;').noGrey.form-control(type="text", ng-model="vm.proposalQuery.proposalId", ng-change='vm.hideOtherConditions("#proposalReportQuery",vm.proposalQuery.proposalId,".noGrey")')
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchProposalRecord(true)') {{'SEARCH' | translate}}

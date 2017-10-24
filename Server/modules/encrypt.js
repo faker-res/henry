@@ -240,6 +240,16 @@ var encrypt = {
             else {
                 query["platformId"] = data.platformId;
             }
+            if (data.rewardTypeName) {
+                query["data.eventName"] = data.rewardTypeName;
+            }
+            if (data.promoTypeName) {
+                query["data.PROMO_CODE_TYPE"] = data.promoTypeName;
+            }
+            if (data.relatedAccount) {
+                query["data.playerName"] = data.relatedAccount;
+                query["data.partnerName"] = data.relatedAccount;
+            }
         }
         return query;
     },
