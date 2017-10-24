@@ -1006,7 +1006,7 @@
                                 td
                                     input.form-control(ng-model='vm.newProviderGroup.name')
                                 td
-                                    select.spicker.form-control(ng-model='vm.newProviderGroup.providers', multiple, data-actions-box='true' data-width="600px" ng-change="$scope.safeApply();")
+                                    select.spicker.form-control(ng-model='vm.newProviderGroup.providers', multiple, data-actions-box='true' data-width="600px" ng-change="$scope.safeApply();" data-dropup-auto='false')
                                         option(ng-repeat='(i,v) in vm.availableGameProviders', value='{{v._id}}' ng-init="$last && vm.endLoadWeekDay()" ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
                                 td
                                     i.fa.fa-plus(ng-click='vm.gameProviderGroup.push(vm.newProviderGroup); vm.newProviderGroup={};')

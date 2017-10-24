@@ -543,6 +543,8 @@ define(['js/app'], function (myApp) {
                 result = JSON.stringify(val);
             } else if (fieldName === "upOrDown") {
                 result = $translate(val);
+            } else if (fieldName === 'userAgent') {
+                result = $translate($scope.userAgentType[val]) || '';
             }
             return $sce.trustAsHtml(result);
         };

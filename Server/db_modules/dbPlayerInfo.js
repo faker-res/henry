@@ -272,11 +272,16 @@ let dbPlayerInfo = {
                             );
                             proms.push(domainProm);
 
-                            let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({domain: {$regex: inputData.domain, $options: "x"}}).lean().then(data => {
-                                    if(data){
-                                        inputData.csOfficer = data.admin;
-                                        inputData.promoteWay = data.way
-                                    }
+                            let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
+                                domain: {
+                                    $regex: inputData.domain,
+                                    $options: "x"
+                                }
+                            }).lean().then(data => {
+                                if (data) {
+                                    inputData.csOfficer = data.admin;
+                                    inputData.promoteWay = data.way
+                                }
                             });
 
                             proms.push(promoteWayProm);
@@ -1031,7 +1036,7 @@ let dbPlayerInfo = {
                 }
             )
     },
-    getOnePlayerCardGroup: function(query){
+    getOnePlayerCardGroup: function (query) {
         let playerData;
 
         return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
@@ -2701,7 +2706,7 @@ let dbPlayerInfo = {
                         && amount > 0
                         && amount <= data[0].validCredit
                         && rewardUtility.isValidRewardEvent(constRewardType.GAME_PROVIDER_REWARD, data[1]
-                    )) {
+                        )) {
                         proposalData = {
                             type: data[1].executeProposal,
                             creator: adminInfo ? adminInfo :
@@ -2889,7 +2894,7 @@ let dbPlayerInfo = {
                     let levelProm = [];
                     for (var i = 0; i < levels.length; i++) {
                         if (playerLevelData.value >= levels[i].value && rewardParams[i].param && curRewardAmount < rewardParams[i].param.maxRewardAmountPerDay
-                            // && (!rewardParams[i].param.bankCardType || (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))
+                        // && (!rewardParams[i].param.bankCardType || (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))
                         ) {
                             let rewardAmount = Math.min((rewardParams[i].param.maxRewardAmountPerDay - curRewardAmount), rewardParams[i].param.rewardPercentage * topupAmount);
                             let proposalData = {
@@ -4787,8 +4792,9 @@ let dbPlayerInfo = {
     getSimilarPlayers: function (playerId) {
         return dbconfig.collection_players.findOne({_id: playerId}).populate({
             path: "similarPlayers.playerObjId",
-            model: dbconfig.collection_players
-        }).then(
+            model: dbconfig.collection_players,
+            select: "playerId name"
+        }).lean().then(
             playerData => {
                 return {playerId: playerData.playerId, similarData: playerData.similarPlayers};
             }
@@ -5722,11 +5728,11 @@ let dbPlayerInfo = {
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
         para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
-        para.csPromoteWay.length > 0 ? query.promoteWay = para.csPromoteWay : null;
-        para.csOfficer.length > 0 ? query.csOfficer = para.csOfficer : null;
+        para.csPromoteWay && para.csPromoteWay.length > 0 ? query.promoteWay = para.csPromoteWay : null;
+        para.csOfficer && para.csOfficer.length > 0 ? query.csOfficer = para.csOfficer : null;
 
         if (para.isNewSystem === 'old') {
-            query.isNewSystem = {$ne : true};
+            query.isNewSystem = {$ne: true};
         } else if (para.isNewSystem === 'new') {
             query.isNewSystem = true;
         }
@@ -5784,7 +5790,7 @@ let dbPlayerInfo = {
         let count = dbconfig.collection_players.find(query).count();
         let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
             .populate({path: 'partner', model: dbconfig.collection_partner}).lean()
-            .populate({path:'csOfficer', model: dbconfig.collection_admin, select: "adminName"}).lean();
+            .populate({path: 'csOfficer', model: dbconfig.collection_admin, select: "adminName"}).lean();
 
         return Q.all([count, detail]).then(
             data => {
@@ -6799,13 +6805,15 @@ let dbPlayerInfo = {
                                 let amountAfterUpdate = player.validCredit - amount;
                                 let playerLevelVal = player.playerLevel.value;
 
-                                if(playerData.platform.bonusSetting){
-                                    let bonusSetting = playerData.platform.bonusSetting.find( (item) => {return item.value == playerLevelVal} );
+                                if (playerData.platform.bonusSetting) {
+                                    let bonusSetting = playerData.platform.bonusSetting.find((item) => {
+                                        return item.value == playerLevelVal
+                                    });
                                     if (todayBonusApply.length >= bonusSetting.bonusCharges && bonusSetting.bonusPercentageCharges > 0) {
                                         creditCharge = (finalAmount * bonusSetting.bonusPercentageCharges) * 0.01;
                                         finalAmount = finalAmount - creditCharge;
-                                        console.log('finalAmount'+finalAmount);
-                                        console.log('creditCharge'+creditCharge);
+                                        console.log('finalAmount' + finalAmount);
+                                        console.log('creditCharge' + creditCharge);
                                     }
                                 }
 
@@ -7848,7 +7856,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                if(proposal){
+                if (proposal) {
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
                         {"data.cancelBy": "玩家：" + proposal.data.playerName}
@@ -8152,7 +8160,8 @@ let dbPlayerInfo = {
                         type: proposalTypeData._id,
                         status: {$in: [constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                         "data.playerObjId": player._id,
-                        settleTime: {$gte: eventData.validStartTime, $lt: eventData.validEndTime}
+                        settleTime: {$gte: eventData.validStartTime, $lt: eventData.validEndTime},
+                        "data.eventCode": eventData.code
                     }).lean();
                 }
                 else {
@@ -8377,7 +8386,11 @@ let dbPlayerInfo = {
                         let minTopUpRecordAmount = 0;
 
                         if (dbPlayerReward.isRewardEventForbidden(player, event._id)) {
-                            return Q.reject({status:constServerCode.PLAYER_NO_PERMISSION, name: "DataError", message: "Player is forbidden for this reward."});
+                            return Q.reject({
+                                status: constServerCode.PLAYER_NO_PERMISSION,
+                                name: "DataError",
+                                message: "Player is forbidden for this reward."
+                            });
                         }
 
                         // Filter event param based on player level
@@ -10089,21 +10102,21 @@ let dbPlayerInfo = {
         let getPlayerProm = Promise.resolve("");
         let result = [];
         let resultSum = {
-            manualTopUpAmount : 0,
-            weChatTopUpAmount : 0,
-            aliPayTopUpAmount : 0,
-            onlineTopUpAmount : 0,
-            topUpTimes : 0,
-            topUpAmount : 0,
-            bonusTimes : 0,
-            bonusAmount : 0,
-            rewardAmount : 0,
-            consumptionReturnAmount : 0,
-            consumptionTimes : 0,
-            validConsumptionAmount : 0,
-            consumptionBonusAmount : 0,
-            profit : 0,
-            consumptionAmount : 0,
+            manualTopUpAmount: 0,
+            weChatTopUpAmount: 0,
+            aliPayTopUpAmount: 0,
+            onlineTopUpAmount: 0,
+            topUpTimes: 0,
+            topUpAmount: 0,
+            bonusTimes: 0,
+            bonusAmount: 0,
+            rewardAmount: 0,
+            consumptionReturnAmount: 0,
+            consumptionTimes: 0,
+            validConsumptionAmount: 0,
+            consumptionBonusAmount: 0,
+            profit: 0,
+            consumptionAmount: 0,
         };
 
         if (query.name) {
@@ -10170,7 +10183,7 @@ let dbPlayerInfo = {
                     resultSum.consumptionTimes += result[z].consumptionTimes;
                     resultSum.validConsumptionAmount += result[z].validConsumptionAmount;
                     resultSum.consumptionBonusAmount += result[z].consumptionBonusAmount;
-                    resultSum.profit += (result[z].consumptionBonusAmount/ result[z].validConsumptionAmount * -100).toFixed(2)/1;
+                    resultSum.profit += (result[z].consumptionBonusAmount / result[z].validConsumptionAmount * -100).toFixed(2) / 1;
                     resultSum.consumptionAmount += result[z].consumptionAmount;
                 }
 
@@ -10311,7 +10324,7 @@ let dbPlayerInfo = {
                     return Boolean(md5(playerPassword) === db_password);
                 }
                 else {
-                    return new Promise( function (resolve, reject) {
+                    return new Promise(function (resolve, reject) {
                         bcrypt.compare(String(playerPassword), db_password, function (err, isMatch) {
                             if (err) {
                                 reject({
@@ -10359,7 +10372,7 @@ let dbPlayerInfo = {
 
                 return Promise.all(proms);
             },
-            error =>{
+            error => {
                 return Promise.reject(error)
             }
         ).then(
@@ -10588,7 +10601,6 @@ let dbPlayerInfo = {
                     result.providerDetail = providerDetail;
 
 
-
                     // filter irrelevant result base on query
                     if (query.providerId && !providerDetail[query.providerId]) {
                         return "";
@@ -10800,7 +10812,7 @@ let dbPlayerInfo = {
     createUpdateTopUpGroupLog: (player, adminId, bankGroup, remark) => {
         remark = remark || "";
         let proms = [];
-        for (let i = 0; i < Object.keys(bankGroup).length; i++){
+        for (let i = 0; i < Object.keys(bankGroup).length; i++) {
             if (bankGroup.hasOwnProperty(Object.keys(bankGroup)[i])) {
                 let bankGroup$ = {};
                 bankGroup$[Object.keys(bankGroup)[i]] = bankGroup[Object.keys(bankGroup)[i]];
@@ -10820,22 +10832,28 @@ let dbPlayerInfo = {
     },
 
     getPlayerTopUpGroupLog: function (playerId, index, limit) {
-        let logProm = dbconfig.collection_playerTopUpGroupUpdateLog.find({player: playerId}).skip(index).limit(limit).sort({createTime: -1}).populate(
-            {path: "admin",select: 'adminName', model: dbconfig.collection_admin}
+        console.log("getPlayerTopUpGroupLog:", playerId, index, limit);
+        let logProm = dbconfig.collection_playerTopUpGroupUpdateLog.find({player: playerId}).sort({createTime: -1}).skip(index).limit(limit).populate(
+            {path: "admin", select: 'adminName', model: dbconfig.collection_admin}
         ).lean();
         let countProm = dbconfig.collection_playerTopUpGroupUpdateLog.find({player: playerId}).count();
 
         return Promise.all([logProm, countProm]).then(
             data => {
-                let logs = data[0];
-                let count = data[1];
+                if (data) {
+                    let logs = data[0];
+                    let count = data[1];
 
-                return {data: logs, size: count};
+                    return {data: logs, size: count};
+                }
+                else {
+                    return {data: [], size: 0};
+                }
             }
         )
     },
 
-    createForbidRewardLog: function (playerId, adminId, forbidRewardNames, remark){
+    createForbidRewardLog: function (playerId, adminId, forbidRewardNames, remark) {
         remark = remark || "";
         let logDetails = {
             player: playerId,
@@ -10854,7 +10872,7 @@ let dbPlayerInfo = {
                 $lt: new Date(endTime)
             }
         }).skip(index).limit(limit).sort({createTime: -1}).populate(
-            {path: "admin",select: 'adminName', model: dbconfig.collection_admin}
+            {path: "admin", select: 'adminName', model: dbconfig.collection_admin}
         ).lean();
         let countProm = dbconfig.collection_playerForbidRewardLog.find({player: playerId}).count();
 
@@ -10868,7 +10886,7 @@ let dbPlayerInfo = {
         )
     },
 
-    createForbidGameLog: function (playerId, adminId, forbidGameNames, remark){
+    createForbidGameLog: function (playerId, adminId, forbidGameNames, remark) {
         remark = remark || "";
         let logDetails = {
             player: playerId,
@@ -10887,7 +10905,7 @@ let dbPlayerInfo = {
                 $lt: new Date(endTime)
             }
         }).skip(index).limit(limit).sort({createTime: -1}).populate(
-            {path: "admin",select: 'adminName', model: dbconfig.collection_admin}
+            {path: "admin", select: 'adminName', model: dbconfig.collection_admin}
         ).lean();
         let countProm = dbconfig.collection_playerForbidGameLog.find({player: playerId}).count();
 
@@ -10901,7 +10919,7 @@ let dbPlayerInfo = {
         )
     },
 
-    createForbidTopUpLog: function (playerId, adminId, forbidTopUpNames, remark){
+    createForbidTopUpLog: function (playerId, adminId, forbidTopUpNames, remark) {
         remark = remark || "";
         let logDetails = {
             player: playerId,
@@ -10920,7 +10938,7 @@ let dbPlayerInfo = {
                 $lt: new Date(endTime)
             }
         }).skip(index).limit(limit).sort({createTime: -1}).populate(
-            {path: "admin",select: 'adminName', model: dbconfig.collection_admin}
+            {path: "admin", select: 'adminName', model: dbconfig.collection_admin}
         ).lean();
         let countProm = dbconfig.collection_playerForbidTopUpLog.find({player: playerId}).count();
 

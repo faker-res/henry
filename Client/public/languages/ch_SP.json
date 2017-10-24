@@ -977,6 +977,7 @@
   "success": "成功",
   "failure": "失败",
   "Fail": "失败",
+  "Lock Lobby Group": "锁大厅设置",
   "VALID_CONSUMPTION": "有效投注额",
   "EARNING_RATIO": "营收比例",
   "Daily Settlement": "每日结算",
@@ -2534,5 +2535,6 @@
   "Game Type": "游戏平台",
   "Latest Recorded Time": "当前收录到的最大时间",
   "userAgent": "装置",
-  "LastSettlementTime":"执行时间"
+  "LastSettlementTime":"执行时间",
+  "BankCardNo":"银行帐号"
 }

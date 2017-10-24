@@ -4833,7 +4833,8 @@ define(['js/app'], function (myApp) {
                                     cvm.initTopUpGroupChangeLog();
                                 }
 
-                                socketService.$socket($scope.AppSocket, 'getPlayerTopUpGroupLog', query, function (data) {
+                                $scope.$socketPromise('getPlayerTopUpGroupLog', query).then( function (data) {
+                                // socketService.$socket($scope.AppSocket, 'getPlayerTopUpGroupLog', query, function (data) {
                                     // it is a change log for topup group
                                     // let singleLog = data.data[i]
                                     // vm.playerTopUpGroupLog.length = 0;
@@ -10976,9 +10977,6 @@ define(['js/app'], function (myApp) {
                         case 'WinRatio':
                             vm.playerValueBasic.winRatioScores.push({name: data.name, score: data.score});
                             break;
-                        case 'gameProviderGroup':
-                            vm.gameProviderGroup.push({name: data.name, providers: data.providers});
-                            break;
                     }
                 } else if (type == 'remove') {
                     configType.splice(data, 1);
@@ -11240,9 +11238,9 @@ define(['js/app'], function (myApp) {
                         vm.prepareCredibilityConfig();
                         break;
                     case 'providerGroup':
-                        vm.gameProviderGroup = [];
                         vm.availableGameProviders = vm.allGameProvider;
                         vm.providerGroupConfig = {showWarning: false};
+                        vm.getPlatformProviderGroup();
                         break;
                 }
             };
@@ -12679,6 +12677,13 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+        vm.getPlatformProviderGroup = () => {
+            $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+                vm.gameProviderGroup = data.data;
+                $scope.safeApply();
+            });
+        };
+
             vm.submitAddPlayerLvl = function () {
                 var sendData = vm.newPlayerLvl;
                 vm.newPlayerLvl.platform = vm.selectedPlatform.id;
@@ -13059,6 +13064,22 @@ define(['js/app'], function (myApp) {
             else {
                 vm.providerGroupConfig.showWarning = false;
                 vm.configTableEdit = false;
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    gameProviderGroup: vm.gameProviderGroup.map(e => {
+                        return {
+                            name: e.name,
+                            providers: e.providers
+                        };
+                    })
+                };
+
+                console.log('sendData2', sendData);
+
+                socketService.$socket($scope.AppSocket, 'updatePlatformProviderGroup', sendData, function (data) {
+                    console.log('updatePlatformProviderGroup', data);
+                });
             }
         }
 
