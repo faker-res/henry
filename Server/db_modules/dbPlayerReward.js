@@ -885,7 +885,6 @@ let dbPlayerReward = {
                  .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean()
                    .then(
                        promocodes => {
-                           console.log(promocodes);
                            let usedListArr = [];
                            let noUseListArr = [];
                            let expiredListArr = [];
@@ -913,7 +912,6 @@ let dbPlayerReward = {
                                if(promocode.maxTopUpAmount){
                                    promo.bonusLimit = promocode.maxTopUpAmount;
                                }
-                               console.log(promo);
                                if(status=="1"){
                                    noUseListArr.push(promo);
                                }else if(status=="2"){
@@ -971,13 +969,10 @@ let dbPlayerReward = {
       )
           .then(
               proposalData=>{
-                  console.log(proposalData);
-                  console.log('end of the world');
                   let approvedProposal = [];
                   let result = promoListData;
                   proposalData.forEach(
                       proposal=>{
-                        console.log(proposal.proposalId);
                         let bonus = proposal.data.rewardAmount - proposal.data.applyAmount;
                         let accountNo = dbUtility.encodeBankAcc(proposal.data.playerName);
                         let record = {
