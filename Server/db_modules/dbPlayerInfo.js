@@ -4790,15 +4790,18 @@ let dbPlayerInfo = {
     },
 
     getSimilarPlayers: function (playerId) {
-        return dbconfig.collection_players.findOne({_id: playerId}).populate({
-            path: "similarPlayers.playerObjId",
-            model: dbconfig.collection_players,
-            select: "playerId name"
-        }).lean().then(
-            playerData => {
-                return {playerId: playerData.playerId, similarData: playerData.similarPlayers};
-            }
-        );
+        //todo::temp disable similar player display
+        return Q.resolve({playerId: playerId, similarData: []});
+
+        // return dbconfig.collection_players.findOne({_id: playerId}).populate({
+        //     path: "similarPlayers.playerObjId",
+        //     model: dbconfig.collection_players,
+        //     select: "playerId name"
+        // }).lean().then(
+        //     playerData => {
+        //         return {playerId: playerData.playerId, similarData: playerData.similarPlayers};
+        //     }
+        // );
     },
 
     /*
