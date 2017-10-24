@@ -3143,7 +3143,7 @@ define(['js/app'], function (myApp) {
                                         'src': "images/icon/rewardBlue.png",
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.initRewardSettings();',
+                                        'ng-click': 'vm.initRewardSettings();vm.initPlayerAddRewardTask();',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerAddRewardTask',
