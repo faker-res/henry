@@ -45,6 +45,8 @@
                     br
                     label {{"RESULT" | translate}}:
                     .well
-                        p RESULT HERE
-                        p Same phone number: {{vm.samePhoneList}}
-                        p New list of phone: {{vm.diffPhoneList}}
+                        label {{"DUPLICATE_PHONE" | translate}}:
+                        p {{vm.samePhoneList}}
+                    .well
+                        label {{"NON_DUPLICATE_PHONE" | translate}}:
+                        p {{vm.diffPhoneList}}
