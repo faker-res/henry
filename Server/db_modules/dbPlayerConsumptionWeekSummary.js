@@ -530,12 +530,6 @@ var dbPlayerConsumptionWeekSummary = {
                 }
             },
             function (error) {
-                //reset consumption return status
-                dbconfig.collection_players.findOneAndUpdate({
-                    _id: playerData._id,
-                    platform: playerData.platform._id
-                }, {isConsumptionReturn: false}).then();
-
                 deferred.reject({
                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                     name: "DBError",
