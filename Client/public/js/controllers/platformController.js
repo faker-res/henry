@@ -12298,7 +12298,7 @@ define(['js/app'], function (myApp) {
                     };
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
                 } else {
-                        socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
+                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
                 }
             };
 
@@ -12522,6 +12522,37 @@ define(['js/app'], function (myApp) {
 
             vm.phoneNumFilterClicked = function () {
                 vm.phoneNumListResult = false;
+                vm.inputNewPhoneNum = [];
+            };
+
+            // compare a new list pf phone numbers with existing player info database
+            // generate a new list of phone numbers without existing player phone number
+            vm.comparePhoneNum = function() {
+                vm.arrayInputPhone = vm.inputNewPhoneNum.split(", ").map((item) => item.trim());
+
+                vm.stringPhone = vm.arrayInputPhone.join(", ");
+                console.log('vm.stringPhone', vm.stringPhone);
+
+                let sendData = {
+                    arrayInputPhone: vm.arrayInputPhone
+                };
+
+                socketService.$socket($scope.AppSocket, 'comparePhoneNum', sendData, function (data) {
+                    console.log('data', data);
+                    console.log('data.data', data.data);
+                    // console.log('data.data.diffPhoneList', data.data.diffPhoneList);
+                    // console.log('data.data.samePhoneList', data.data.samePhoneList);
+                    vm.diffPhoneList = data.data.diffPhoneList;
+                    vm.samePhoneList = data.data.samePhoneList;
+                    console.log('vm.diffPhoneList', vm.diffPhoneList);
+                    console.log('vm.samePhoneList', vm.samePhoneList);
+                    return vm.comparePhoneNumResult();
+                });
+            };
+
+            vm.comparePhoneNumResult = function () {
+                console.log('vm.diffPhoneList2', vm.diffPhoneList);
+                console.log('vm.samePhoneList2', vm.samePhoneList);
             };
             // player level codes==============end===============================
 

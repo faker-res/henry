@@ -10960,6 +10960,57 @@ let dbPlayerInfo = {
         )
     },
 
+    comparePhoneNum: function (arrayInputPhone) {
+        let oldNewPhone = {$in: []};
+
+        for (let i = 0; i < arrayInputPhone.length; i++) {
+            oldNewPhone.$in.push(arrayInputPhone[i]);
+            oldNewPhone.$in.push(rsaCrypto.encrypt(arrayInputPhone[i]));
+        }
+
+        // display phoneNumber from DB without asterisk masking
+        let dbPhone = dbconfig.collection_players.aggregate([
+            {$match: {"phoneNumber": oldNewPhone}},
+            {$project: {name: 1, phoneNumber: 1, _id: 0}}
+        ]);
+
+        let diffPhoneList;
+        let samePhoneList;
+        let arrayDbPhone = [];
+
+        // display phoneNumber result that matched input phoneNumber
+        return dbPhone.then(playerData => {
+            // encrypted phoneNumber in DB will be decrypted
+            for (let q = 0; q < playerData.length; q ++) {
+                if (playerData[q].phoneNumber.length > 20) {
+                    playerData[q].phoneNumber = rsaCrypto.decrypt(playerData[q].phoneNumber);
+                }
+            }
+            console.log('playerData', playerData);
+
+            for (let z = 0; z < playerData.length; z ++) {
+                arrayDbPhone.push(playerData[z].phoneNumber);
+            }
+            console.log('arrayDbPhone', arrayDbPhone);
+            console.log('arrayInputPhone', arrayInputPhone);
+
+            // display non duplicated phone numbers
+            let diffPhone = arrayInputPhone.filter(item => !arrayDbPhone.includes(item));
+            diffPhoneList = diffPhone.join(", ");
+            console.log('diffPhoneList', diffPhoneList);
+
+            // display duplicated phone numbers
+            let samePhone = arrayInputPhone.filter(item => arrayDbPhone.includes(item));
+            samePhoneList = samePhone.join(", ");
+            console.log('samePhoneList', samePhoneList);
+
+            return {samePhoneList: samePhoneList, diffPhoneList: diffPhoneList};
+        }).then(data => {
+            console.log('data222', data);
+            return data;
+        });
+    },
+
 };
 
 
