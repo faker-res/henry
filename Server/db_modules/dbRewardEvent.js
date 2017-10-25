@@ -359,7 +359,7 @@ var dbRewardEvent = {
                                                     // System log when querying game credit timeout / error
                                                     console.log("ERROR: player_queryCredit failed for player", playerData.name, error);
 
-                                                    return {};
+                                                    return Q.reject(error);
                                                 }
                                             )
                                         )

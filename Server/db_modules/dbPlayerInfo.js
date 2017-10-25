@@ -2859,10 +2859,8 @@ let dbPlayerInfo = {
         Q.all([eventProm, proposalProm, playerLevelProm, playerProm]).then(
             function (data) {
                 if (data && data[0] && data[1] && data[2] && data[3]) {
+                    let rewardEvents = data[0];
                     if (!data[3].permission || !data[3].permission.transactionReward) {
-                        deferred.resolve("No permission!");
-                    }
-                    if (dbPlayerReward.isRewardEventForbidden(data[3], data[0]._id)) {
                         deferred.resolve("No permission!");
                     }
                     if (data[1] && data[1][0]) {
@@ -2872,8 +2870,11 @@ let dbPlayerInfo = {
                     rewardParams = data[0];
                     playerLevelData = data[2];
                     playerData = data[3];
-                    for (var i = 0; i < data[0].length; i++) {
-                        var temp = dbconfig.collection_playerLevel.findOne({_id: data[0][i].param.playerLevel});
+                    for (var i = 0; i < rewardEvents.length; i++) {
+                        // skip promotion from this event if it is forbidden
+                        if (dbPlayerReward.isRewardEventForbidden(data[3], rewardEvents[i]._id)) continue;
+
+                        var temp = dbconfig.collection_playerLevel.findOne({_id: rewardEvents[i].param.playerLevel});
                         eventLevelProm.push(temp);
                     }
                     return Q.all(eventLevelProm);
@@ -4790,15 +4791,18 @@ let dbPlayerInfo = {
     },
 
     getSimilarPlayers: function (playerId) {
-        return dbconfig.collection_players.findOne({_id: playerId}).populate({
-            path: "similarPlayers.playerObjId",
-            model: dbconfig.collection_players,
-            select: "playerId name"
-        }).lean().then(
-            playerData => {
-                return {playerId: playerData.playerId, similarData: playerData.similarPlayers};
-            }
-        );
+        //todo::temp disable similar player display
+        return Q.resolve({playerId: playerId, similarData: []});
+
+        // return dbconfig.collection_players.findOne({_id: playerId}).populate({
+        //     path: "similarPlayers.playerObjId",
+        //     model: dbconfig.collection_players,
+        //     select: "playerId name"
+        // }).lean().then(
+        //     playerData => {
+        //         return {playerId: playerData.playerId, similarData: playerData.similarPlayers};
+        //     }
+        // );
     },
 
     /*
@@ -8901,7 +8905,7 @@ let dbPlayerInfo = {
 
                     let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerInfo, rewardEvent._id);
                     if (playerIsForbiddenForThisReward) {
-                        deferred.reject({name: "DataError", message: "Player is forbidden for this reward."});
+                        return Q.reject({name: "DataError", message: "Player is forbidden for this reward."});
                     }
 
                     //check valid time for reward event
@@ -10392,6 +10396,16 @@ let dbPlayerInfo = {
             let aliPayTopUpTypeId = "";
             let consumptionReturnTypeId = "";
 
+            let consumptionPromMatchObj = {
+                playerId: playerObjId,
+                createTime: {
+                    $gte: new Date(startTime),
+                    $lte: new Date(endTime)
+                }
+            };
+
+            query.providerId ? consumptionPromMatchObj.providerId = ObjectId(query.providerId) : false;
+
             for (let i = 0, len = proposalType.length; i < len; i++) {
                 let proposalTypeObj = proposalType[i];
                 if (proposalTypeObj.name === constProposalType.PLAYER_TOP_UP) {
@@ -10413,13 +10427,7 @@ let dbPlayerInfo = {
 
             let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
                 {
-                    $match: {
-                        playerId: playerObjId,
-                        createTime: {
-                            $gte: new Date(startTime),
-                            $lte: new Date(endTime)
-                        }
-                    }
+                    $match: consumptionPromMatchObj
                 },
                 {
                     $group: {
@@ -10564,7 +10572,7 @@ let dbPlayerInfo = {
                     if (!data[5]) {
                         return "";
                     }
-
+                    
                     result.gameDetail = data[0];
                     result.consumptionTimes = 0;
                     result.consumptionAmount = 0;

@@ -260,9 +260,9 @@ let dbPlayerReward = {
                             let promotion = promoEvent.param.reward[j];
 
                             switch (true) {
-                                case (type === 'online' && Number(promotion.topUpType) === Number(topUpProposalData.data.topupType)):
-                                case (type === 'weChat' && Number(promotion.topUpType) === 98):
-                                case (type === 'aliPay' && Number(promotion.topUpType) === 99):
+                                case (type === 'online' && Number(promotion.topUpType) == Number(topUpProposalData.data.topupType)):
+                                case (type === 'weChat' && Number(promotion.topUpType) == 98):
+                                case (type === 'aliPay' && Number(promotion.topUpType) == 99):
                                     promotionDetail = promotion;
                                     promoEventDetail = promoEvent;
                                     break;
@@ -281,10 +281,11 @@ let dbPlayerReward = {
 
                     if (!promotionDetail) {
                         // there is no relevant promotion
+                        console.error("applyPlayerTopUpPromo:there is no relevant promotion");
                         return;
                     }
 
-                    let rewardAmount = (Number(topUpProposalData.data.amount) * promotionDetail.rewardPercentage / 100);
+                    let rewardAmount = (Number(topUpProposalData.data.amount) * Number(promotionDetail.rewardPercentage) / 100);
                     if( rewardAmount > 500 ){
                         rewardAmount = 500;
                     }
@@ -318,6 +319,8 @@ let dbPlayerReward = {
                 }
             ).catch(
                 error => {
+                    //add debug log
+                    console.error(error);
                     resolve(error);
                 }
             );
