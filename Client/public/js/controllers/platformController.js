@@ -5326,6 +5326,7 @@ define(['js/app'], function (myApp) {
                     }, function (updated) {
                         console.log('updated', updated);
                         vm.getPlatformPlayersData();
+                        vm.showReferralName = updateReferralName;
                     });
                 }
             }
