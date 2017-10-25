@@ -11060,20 +11060,6 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-        vm.providerGroupChange = function (groupId, checked) {
-            if (!groupId) {
-                return;
-            }
-            if (!vm.rewardParams.hasOwnProperty('providerGroup')) {
-                vm.rewardParams.providerGroup = [];
-            }
-            if (checked && vm.rewardParams.providerGroup.indexOf(groupId) == -1) {
-                vm.rewardParams.providerGroup.push(groupId);
-            } else if (!checked && vm.rewardParams.providerGroup.indexOf(groupId) !== -1) {
-                vm.rewardParams.providerGroup.splice(vm.rewardParams.providerGroup.indexOf(groupId), 1)
-            }
-        };
-
             vm.getProviderGames = function (id, callback) {
                 if (!id)return;
                 console.log(id);
