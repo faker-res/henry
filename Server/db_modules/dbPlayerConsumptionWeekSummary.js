@@ -466,7 +466,7 @@ var dbPlayerConsumptionWeekSummary = {
                             if (!updatePlayer.isConsumptionReturn || bAdmin) {
                                 let proms = [];
                                 for (let eventData of eventsData) {
-                                    if (dbPlayerReward.isRewardEventForbidden(updatePlayer, event._id)) {
+                                    if (dbPlayerReward.isRewardEventForbidden(updatePlayer, eventsData._id)) {
                                         continue;
                                     }
                                     proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest));
