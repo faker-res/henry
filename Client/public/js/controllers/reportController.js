@@ -3519,15 +3519,19 @@ define(['js/app'], function (myApp) {
                 $('#proposalTable').show();
                 console.log('proposal data', data);
                 var datatoDraw = data.data.data.map(item => {
-                    item.involveAmount = 0;
-                    if (item.topUpAmount) {
-                        item.involveAmount = item.data.topUpAmount;
-                    } else if (item.data.rewardAmount) {
-                        item.involveAmount = item.data.rewardAmount;
+                    item.involveAmount$ = 0;
+                    if (item.data.updateAmount) {
+                        item.involveAmount$ = item.data.updateAmount;
                     } else if (item.data.amount) {
-                        item.involveAmount = item.data.amount;
+                        item.involveAmount$ = item.data.amount;
+                    } else if (item.data.rewardAmount) {
+                        item.involveAmount$ = item.data.rewardAmount;
+                    } else if (item.data.commissionAmount) {
+                        item.involveAmount$ = item.data.commissionAmount;
+                    } else if (item.data.negativeProfitAmount) {
+                        item.involveAmount$ = item.data.negativeProfitAmount;
                     }
-                    item.involveAmount = parseFloat(item.involveAmount).toFixed(2);
+                    item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
                     item.typeName = $translate(item.type.name || "Unknown");
                     item.mainType$ = $translate(item.mainType || "Unknown");
                     item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
@@ -3625,9 +3629,10 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         orderable: false,
+                        sClass: "sumText"
                     },
                     {
-                        title: $translate('Amount Involved'), data: "involveAmount", defaultContent: 0,
+                        title: $translate('Amount Involved'), data: "involveAmount$", defaultContent: 0,
                         orderable: false,
                         sClass: "sumFloat alignRight",
                         // render: function (data, type, row) {
@@ -3648,7 +3653,6 @@ define(['js/app'], function (myApp) {
                     // },
                     {
                         title: "<div>" + $translate('START_TIME'), data: "createTime$",
-                        sClass: "sumText",
                         // render: function (data, type, row) {
                         //     return utilService.$getTimeFromStdTimeFormat(data);
                         // },
