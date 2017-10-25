@@ -5326,6 +5326,7 @@ define(['js/app'], function (myApp) {
                     }, function (updated) {
                         console.log('updated', updated);
                         vm.getPlatformPlayersData();
+                        vm.showReferralName = updateReferralName;
                     });
                 }
             }
@@ -10607,7 +10608,8 @@ define(['js/app'], function (myApp) {
                 // }, function (data) {
                 // });
 
-            }
+                vm.getPlatformProviderGroup();
+            };
 
             vm.getRewardEventsByPlatform = function () {
                 socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
@@ -10783,7 +10785,7 @@ define(['js/app'], function (myApp) {
                     console.log('vm.rewardParams', vm.rewardParams);
                     vm.rewardParams.providers = vm.rewardParams.providers || [];
 
-                    vm.playerTopUpReturn = {providerTick: {}};
+                    vm.playerTopUpReturn = {providerTick: {}, providerGroupTick: {}};
                     console.log('vm.rewardParams', vm.rewardParams);
                     socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
                         vm.platformProvider = data.data.gameProviders;
@@ -10791,7 +10793,8 @@ define(['js/app'], function (myApp) {
                             if (vm.rewardParams.providers) {
                                 vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
                             }
-                        })
+                        });
+
                         $scope.safeApply();
                     }, function (data) {
                         console.log("cannot get gameProvider", data);
@@ -11162,6 +11165,10 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+        vm.removeGameGroupInEdit = (index) => {
+            vm.gameProviderGroup.splice(index, 1);
+        };
+
             vm.topupProviderChange = function (provider, checked) {
                 if (!provider) {
                     return;
@@ -11174,7 +11181,7 @@ define(['js/app'], function (myApp) {
                 } else if (!checked && vm.rewardParams.providers.indexOf(provider) !== -1) {
                     vm.rewardParams.providers.splice(vm.rewardParams.providers.indexOf(provider), 1)
                 }
-            }
+            };
 
             vm.getProviderGames = function (id, callback) {
                 if (!id)return;
@@ -11202,7 +11209,17 @@ define(['js/app'], function (myApp) {
                 })
                 //console.log('provider text', result);
                 return result;
-            }
+            };
+        vm.getProviderGroupNameById = (grpId) => {
+            let result = '';
+            $.each(vm.gameProviderGroup, function (i, v) {
+                if (grpId == v._id) {
+                    result = v.name;
+                    return true;
+                }
+            });
+            return result;
+        };
             vm.getGameTextbyId = function (id) {
                 if (!vm.allGames) return;
                 if (!id)return false;
@@ -12297,7 +12314,7 @@ define(['js/app'], function (myApp) {
                     };
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
                 } else {
-                        socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
+                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
                 }
             };
 
@@ -12521,6 +12538,23 @@ define(['js/app'], function (myApp) {
 
             vm.phoneNumFilterClicked = function () {
                 vm.phoneNumListResult = false;
+                vm.inputNewPhoneNum = [];
+            };
+
+            // compare a new list pf phone numbers with existing player info database
+            // generate a new list of phone numbers without existing player phone number
+            vm.comparePhoneNum = function() {
+                vm.arrayInputPhone = vm.inputNewPhoneNum.split(/,|, /).map((item) => item.trim());
+
+                let sendData = {
+                    arrayInputPhone: vm.arrayInputPhone
+                };
+
+                socketService.$socket($scope.AppSocket, 'comparePhoneNum', sendData, function (data) {
+                    vm.diffPhoneList = data.data.diffPhoneList;
+                    vm.samePhoneList = data.data.samePhoneList;
+                    $scope.safeApply();
+                });
             };
             // player level codes==============end===============================
 
@@ -12619,6 +12653,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.requireSMSVerification = vm.selectedPlatform.data.requireSMSVerification;
                 vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
                 vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
+                vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup;
                 $scope.safeApply();
             }
 
@@ -13051,7 +13086,8 @@ define(['js/app'], function (myApp) {
                         bonusSetting: srcData.bonusSetting,
                         requireSMSVerification: srcData.requireSMSVerification,
                         requireSMSVerificationForPasswordUpdate: srcData.requireSMSVerificationForPasswordUpdate,
-                        requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate
+                        requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
+                        useProviderGroup: srcData.useProviderGroup
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {

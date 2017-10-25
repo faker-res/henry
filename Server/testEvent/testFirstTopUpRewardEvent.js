@@ -85,7 +85,7 @@ proto.runTestData = function (data) {
         }
     ).then(
         function (data) {
-            return dbPlayerInfo.applyForFirstTopUpRewardProposal(self.playerObjId);
+            return dbPlayerInfo.applyForFirstTopUpRewardProposal("", self.playerObjId);
 
         }, function (error) {
             deferred.reject({name: "DBError", message: "Error in  player purchase", error: error});

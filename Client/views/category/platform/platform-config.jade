@@ -558,6 +558,10 @@
                                 td {{'USE_LOCK_CREDIT' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.useLockedCredit', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Use Provider Group' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.useProviderGroup', ng-disabled='!vm.configTableEdit')
 
                             br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
@@ -1001,7 +1005,7 @@
                                     select.spicker.form-control(disabled, ng-model='group.providers', multiple data-width="600px")
                                         option(ng-repeat='(i,v) in vm.availableGameProviders', value='{{v._id}}' ng-init="$last && vm.endLoadWeekDay()" ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
                                 td(ng-if='vm.configTableEdit')
-                                    i.fa.fa-minus(ng-click='vm.updatePlayerValueConfigInEdit("remove", vm.playerValueBasic.topUpTimesScores, $index)')
+                                    button.btn.btn-danger.common-button(ng-click='vm.removeGameGroupInEdit($index)') {{"Delete" | translate}}
                             tr(ng-if='vm.configTableEdit')
                                 td
                                     input.form-control(ng-model='vm.newProviderGroup.name')

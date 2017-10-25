@@ -41,6 +41,7 @@ var type10 = "PlayerTopUpReturn";
 db.rewardParam.update({"name": type10}, {$set: { params:{
     targetEnable: {type: "Boolean", des: "If target is enabled"},
     providers: {type: "DBArray", action:"getAllGameProviders", field: "name", des: "Game Provider"},
+    providerGroup: {type: "DBString", action: "getPlatformProviderGroup", field: "name", des: "Game Provider Group"},
     //games: {type: "DBArray", action:"getGamesByProviderId", field: "name", des: "Games"},
     useConsumption: {type: "Boolean", des: "If use consumption record"},
     reward: {
