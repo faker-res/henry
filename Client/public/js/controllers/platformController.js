@@ -10672,13 +10672,6 @@ define(['js/app'], function (myApp) {
                             }
                         });
 
-                        // Tick provider group
-                        vm.gameProviderGroup.forEach(a => {
-                            if (vm.rewardParams.providerGroup) {
-                                vm.playerTopUpReturn.providerGroupTick[a._id] = (vm.rewardParams.providerGroup.indexOf(a._id) != -1);
-                            }
-                        });
-
                         $scope.safeApply();
                     }, function (data) {
                         console.log("cannot get gameProvider", data);
