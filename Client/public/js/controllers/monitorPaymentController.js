@@ -546,7 +546,8 @@ define(['js/app'], function (myApp) {
                             return "<div>" + text + "</div>";
                         }
                     },
-                    {title: $translate('DEVICE'), data: "data.userAgent",
+                    {
+                        title: $translate('DEVICE'), data: "data.userAgent",
                         render: function(data, type, row){
                           var text = $translate(data ? $scope.userAgentType[data]: "");
                           return "<div>" + text + "</div>";
@@ -557,17 +558,20 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                             var text = $translate(data ? $scope.merchantTopupTypeJson[data]: "");
                             return "<div>" + text + "</div>";
-                        }
+                        },
+                        sClass: 'merchantCount'
                     },
-                    {title: $translate('3rd Party Platform'), data: "merchantName"},
+                    {title: $translate('3rd Party Platform'), data: "merchantName", sClass: 'merchantCount'},
                     {
                         "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
                         render: function (data, type, row) {
                             var text = $translate(data ? vm.getDepositMethodbyId[data]: "");
                             return "<div>" + text + "</div>";
-                        }
+                        },
+                        sClass: 'merchantCount'
                     },
-                    {title: $translate('From Bank Type'), data: "data.bankTypeId",
+                    {
+                        title: $translate('From Bank Type'), data: "data.bankTypeId",
                         render: function (data, type, row) {
                           if(data){
                               var text = $translate(vm.allBankTypeList[data] ? vm.allBankTypeList[data]: "");
@@ -575,16 +579,17 @@ define(['js/app'], function (myApp) {
                           }else{
                               return "<div>" + '' + "</div>";
                           }
-                        }
+                        },
+                        sClass: 'merchantCount'
                     },
-                    {title: $translate('Business Acc/ Bank Acc'), data: "merchantNo$"},
-                    {title: $translate('Total Business Acc'), data: "merchantCount$"},
+                    {title: $translate('Business Acc/ Bank Acc'), data: "merchantNo$", sClass: 'merchantCount'},
+                    {title: $translate('Total Business Acc'), data: "merchantCount$", sClass: 'merchantCount'},
                     {title: $translate('STATUS'), data: "status$"},
-                    {title: $translate('PLAYER_NAME'), data: "data.playerName"},
-                    {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText"},
-                    {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText"},
+                    {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "playerCount"},
+                    {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText playerCount"},
+                    {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText playerCount"},
                     // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
-                    {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight"},
+                    {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight playerCount"},
 
                     {title: $translate('START_TIME'), data: "startTime$"},
                     {title: $translate('END_TIME'), data: "endTime$"}

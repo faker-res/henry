@@ -347,6 +347,27 @@ var dbGameProvider = {
                 return Q.reject({name: "DBError", message: "Error in getting player data", error: error});
             }
         );
+    },
+
+    getPlatformProviderGroup: (platformObjId) => {
+        return dbconfig.collection_gameProviderGroup.find({
+            platform: platformObjId
+        }).lean();
+    },
+
+    updatePlatformProviderGroup: (platformObjId, gameProviderGroup) => {
+        let promArr = [];
+
+        gameProviderGroup.map(e => {
+            promArr.push(
+                dbconfig.collection_gameProviderGroup.findOneAndUpdate({
+                    platform: platformObjId,
+                    name: e.name
+                }, e, {upsert: true})
+            )
+        });
+
+        return Promise.all(promArr);
     }
 };
 
