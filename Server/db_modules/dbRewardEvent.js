@@ -273,7 +273,7 @@ var dbRewardEvent = {
                     ).then(
                         data => {
                             let playerObjIds = data.map(player => player._id);
-                            console.log(playerObjIds);
+                            //console.log(playerObjIds);
                             let stream = dbconfig.collection_players.find(
                                 {
                                     _id: {$in: playerObjIds}
@@ -287,7 +287,7 @@ var dbRewardEvent = {
                                         balancer.processStream(
                                             {
                                                 stream: stream,
-                                                batchSize: 100,
+                                                batchSize: 50,
                                                 makeRequest: function (playerObjs, request) {
                                                     request("player", "savePlayerCredit", {
                                                         playerObjId: playerObjs.map(player => {

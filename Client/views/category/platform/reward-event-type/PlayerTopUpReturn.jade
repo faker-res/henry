@@ -19,13 +19,11 @@
             label.margin-right-5(ng-repeat='(i,v) in vm.rewardParams.providers') {{vm.getProviderText(v)|translate}}
     .full-width-input-block(ng-if="vm.platformRewardPageName!=='showReward' && vm.selectedPlatform.data.useProviderGroup === true")
         label(style='vertical-align: top;') {{"Lock Provider Group" | translate}}
-        div.inlineBlk
-            label.margin-right-5(ng-repeat='(i,v) in vm.gameProviderGroup') {{v.name}}
-                input.pull-left(type='checkbox', ng-model="vm.playerTopUpReturn.providerGroupTick[v._id]", ng-change='vm.providerGroupChange(v._id,vm.playerTopUpReturn.providerGroupTick[v._id])')
+        select.form-control(ng-model='vm.rewardParams.providerGroup' ng-options="v._id as v.name for (i,v) in vm.gameProviderGroup")
+            option(value='') {{'LOCAL_CREDIT' | translate}}
     .full-width-input-block(ng-if="vm.platformRewardPageName=='showReward' && vm.selectedPlatform.data.useProviderGroup === true")
         label(style='vertical-align: top;') {{"Lock Provider Group" | translate}}
-        div.inlineBlk
-            label.margin-right-5(ng-repeat='(i,v) in vm.rewardParams.providerGroup') {{vm.getProviderGroupNameById(v)|translate}}
+        label.form-control {{vm.getProviderGroupNameById(vm.rewardParams.providerGroup)|translate}}
 
     label {{vm.showRewardTypeData.params.params.reward.des | translate}}
         table.paddingTbl
