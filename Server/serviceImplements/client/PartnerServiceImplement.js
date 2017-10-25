@@ -224,11 +224,13 @@ var PartnerServiceImplement = function () {
 
     this.fillBankInformation.expectsData = 'partnerId: String';
     this.fillBankInformation.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        data.userAgent = userAgent;
         var isValidData = Boolean(data && data.partnerId && (data.partnerId == conn.partnerId));
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
         }
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.updatePartnerBankInfo, [data.partnerId, data], isValidData, true, true, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.updatePartnerBankInfo, [data.userAgent, data.partnerId, data], isValidData, true, true, false).then(
             function (res) {
                 if (res) {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS}, data);
@@ -290,8 +292,10 @@ var PartnerServiceImplement = function () {
 
     this.applyBonus.expectsData = 'bonusId: Number|String, amount: Number|String, honoreeDetail: String';
     this.applyBonus.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        data.userAgent = userAgent;
         var isValidData = Boolean(conn.partnerId && data && data.bonusId && typeof data.amount === 'number' && data.amount > 0);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.applyBonus, [conn.partnerId, data.bonusId, data.amount, data.honoreeDetail], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.applyBonus, [data.userAgent, conn.partnerId, data.bonusId, data.amount, data.honoreeDetail], isValidData);
     };
 
     this.getPartnerChildrenReport.expectsData = '[startIndex]: Number, [requestCount]: Number';
@@ -372,6 +376,8 @@ var PartnerServiceImplement = function () {
 
     this.updatePhoneNumberWithSMS.expectsData = 'partnerId: String, phoneNumber: Number';
     this.updatePhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        data.userAgent = userAgent
         let isValidData = Boolean(data && data.platformId && data.partnerId && (data.partnerId == conn.partnerId) && (data.phoneNumber || data.newPhoneNumber) && data.smsCode);
         let newPhoneNumber = data.newPhoneNumber ? data.newPhoneNumber : data.phoneNumber;
         let queryRes = queryPhoneLocation(newPhoneNumber);
@@ -380,7 +386,7 @@ var PartnerServiceImplement = function () {
             data.phoneCity = queryRes.city;
             data.phoneType = queryRes.type;
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.platformId, data.partnerId, newPhoneNumber, data.smsCode, 1], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.userAgent, data.platformId, data.partnerId, newPhoneNumber, data.smsCode, 1], isValidData);
     };
 
 };

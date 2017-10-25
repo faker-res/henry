@@ -122,7 +122,7 @@ describe("test DBPlayerReward Apply Consecutive Login Reward", function(){
     });
 
     it('should reward player correctly at day 1 when applied', function(done){
-        dbPlayerReward.applyConsecutiveLoginReward(testPlayerId, "RRXX").then(
+        dbPlayerReward.applyConsecutiveLoginReward("",testPlayerId, "RRXX").then(
             function(data) {
                 generatedProposals.push({
                     _id: data._id,
@@ -153,7 +153,7 @@ describe("test DBPlayerReward Apply Consecutive Login Reward", function(){
     });
 
     it('should not be able to reward player again in day 1', function(done){
-        dbPlayerReward.applyConsecutiveLoginReward(testPlayerId, "RRXX").then(
+        dbPlayerReward.applyConsecutiveLoginReward("",testPlayerId, "RRXX").then(
             function(data) {
                 let errorMessage = {
                     message: "The player should not be able to get reward twice in a day.",
@@ -199,7 +199,7 @@ describe("test DBPlayerReward Apply Consecutive Login Reward", function(){
     });
 
     it('should reward player correctly at day 2 when applied', function(done){
-        dbPlayerReward.applyConsecutiveLoginReward(testPlayerId, "RRXX").then(
+        dbPlayerReward.applyConsecutiveLoginReward("",testPlayerId, "RRXX").then(
             function(data) {
                 generatedProposals.push({
                     _id: data._id,
@@ -261,7 +261,7 @@ describe("test DBPlayerReward Apply Consecutive Login Reward", function(){
     });
 
     it('should reward player correctly at day 3 when applied', function(done){
-        dbPlayerReward.applyConsecutiveLoginReward(testPlayerId, "RRXX").then(
+        dbPlayerReward.applyConsecutiveLoginReward("", testPlayerId, "RRXX").then(
             function(data) {
                 generatedProposals.push({
                     _id: data._id,

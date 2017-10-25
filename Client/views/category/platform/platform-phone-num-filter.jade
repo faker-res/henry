@@ -34,10 +34,10 @@
                 label {{"ADD_PHONE_NUMBER_FILTER" | translate}}
             .panel-body
                 label {{"ADD_PHONE_NUMBER_FILTER_INSTRUCTION" | translate}}
-                textarea.form-control(rows='5', placeholder="14444444444, 15555555555, 16666666666", ng-model="phoneNumList")
+                textarea.form-control(rows='5', placeholder="14444444444, 15555555555, 16666666666", ng-model="vm.inputNewPhoneNum")
                 br
                 .pull-right
-                    button.btn.btn-primary.common-button(ng-click="vm.phoneNumListResult=!vm.phoneNumListResult")
+                    button.btn.btn-primary.common-button(ng-click="vm.phoneNumListResult=true; vm.comparePhoneNum(vm.inputNewPhoneNum);")
                         i.fa.fa-check
                         text {{"SUBMIT" | translate}}
                 // display result
@@ -45,4 +45,8 @@
                     br
                     label {{"RESULT" | translate}}:
                     .well
-                        p RESULT HERE
+                        label {{"DUPLICATE_PHONE" | translate}}:
+                        p {{vm.samePhoneList}}
+                    .well
+                        label {{"NON_DUPLICATE_PHONE" | translate}}:
+                        p {{vm.diffPhoneList}}
