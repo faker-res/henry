@@ -165,6 +165,73 @@ var dbPlayerConsumptionRecord = {
             return {data: result[0], count: result[1], summary: result[2] ? result[2][0] : {}}
         })
     },
+    getConsumptionRecordByGameProvider: function (data, platformId, providerObjId, playerName, index, limit, sortCol) {
+        var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
+        var endTime = data.endTime ? new Date(data.endTime) : new Date();
+        index = index || 0;
+        limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
+        sortCol = sortCol || {createTime: -1};
+
+        var matchObj = {
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
+            },
+            isDuplicate: {$ne: true}
+        };
+        if (providerObjId) {
+            matchObj.providerId = providerObjId;
+        }
+        if (platformId) {
+            matchObj.platformId = platformId;
+        }
+
+        let playerProm;
+
+        if (playerName) {
+            playerProm = dbconfig.collection_players.findOne({name: playerName}, {_id: 1}).lean();
+        }
+        else {
+            playerProm = Promise.resolve('noData');
+        }
+
+        return playerProm.then(
+            playerData => {
+                if (playerData !== 'noData') {
+                    if(playerData){
+                        matchObj.playerId = playerData._id;
+                    }
+                    else {
+                        return Promise.all([[], 0, []]);
+                    }
+                }
+
+                var a = dbconfig.collection_playerConsumptionRecord.find(matchObj)
+                    .populate({path: "playerId", model: dbconfig.collection_players})
+                    .populate({path: "gameId", model: dbconfig.collection_game})
+                    .populate({path: "platformId", model: dbconfig.collection_platform})
+                    .populate({path: "providerId", model: dbconfig.collection_gameProvider})
+                    .sort(sortCol).skip(index).limit(limit);
+
+                var b = dbconfig.collection_playerConsumptionRecord.find(matchObj).count();
+                var c = dbconfig.collection_playerConsumptionRecord.aggregate({
+                        $match: matchObj
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            validAmountAll: {$sum: "$validAmount"},
+                            amountAll: {$sum: "$amount"},
+                            bonusAmountAll: {$sum: "$bonusAmount"},
+                            commissionAmountAll: {$sum: "$commissionAmount"},
+                        }
+                    });
+                return Q.all([a, b, c]);
+            }
+        ).then(result => {
+            return {data: result[0], count: result[1], summary: result[2] ? result[2][0] : {}}
+        });
+    },
     /**
      * Upsert without shardkey
      * This function can be run on the same record asynchronously.  It will avoid race conditions by using a queue.
