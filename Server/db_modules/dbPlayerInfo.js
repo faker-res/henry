@@ -5735,8 +5735,8 @@ let dbPlayerInfo = {
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
         para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
-        para.csPromoteWay && para.csPromoteWay.length > 0 ? query.promoteWay = para.csPromoteWay : null;
-        para.csOfficer && para.csOfficer.length > 0 ? query.csOfficer = para.csOfficer : null;
+        para.csPromoteWay && para.csPromoteWay.length > 0 ? query.promoteWay = {$in: para.csPromoteWay} : null;
+        para.csOfficer && para.csOfficer.length > 0 ? query.csOfficer = {$in: para.csOfficer} : null;
 
         if (para.isNewSystem === 'old') {
             query.isNewSystem = {$ne: true};
@@ -9002,7 +9002,7 @@ let dbPlayerInfo = {
                                     break;
                                 //request consumption rebate
                                 case constRewardType.PLAYER_CONSUMPTION_RETURN:
-                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true);
+                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN:
                                     if (data.topUpRecordId == null) {
@@ -10197,9 +10197,10 @@ let dbPlayerInfo = {
                     resultSum.consumptionTimes += result[z].consumptionTimes;
                     resultSum.validConsumptionAmount += result[z].validConsumptionAmount;
                     resultSum.consumptionBonusAmount += result[z].consumptionBonusAmount;
-                    resultSum.profit += (result[z].consumptionBonusAmount / result[z].validConsumptionAmount * -100).toFixed(2) / 1;
+                    // resultSum.profit += (result[z].consumptionBonusAmount / result[z].validConsumptionAmount * -100).toFixed(2) / 1;
                     resultSum.consumptionAmount += result[z].consumptionAmount;
                 }
+                resultSum.profit += (resultSum.consumptionBonusAmount / resultSum.validConsumptionAmount * -100).toFixed(2) / 1;
 
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {

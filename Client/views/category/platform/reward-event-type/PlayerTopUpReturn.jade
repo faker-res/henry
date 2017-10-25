@@ -7,17 +7,23 @@
     .full-width-input-block
         label {{vm.showRewardTypeData.params.params.targetEnable.des | translate}}
         input.form-control(type='checkbox', ng-model='vm.rewardParams.targetEnable', ng-disabled='vm.platformRewardShowEdit()')
-        
-    .full-width-input-block(ng-if="vm.platformRewardPageName!=='showReward'")
+
+    .full-width-input-block(ng-if="vm.platformRewardPageName!=='showReward' && !vm.selectedPlatform.data.useProviderGroup")
         label(style='vertical-align: top;') {{"PROVIDER" | translate}}
         div.inlineBlk
             label.margin-right-5(ng-repeat='(i,v) in vm.platformProvider') {{v.name}}
                 input.pull-left(type='checkbox', ng-model="vm.playerTopUpReturn.providerTick[v._id]", ng-change='vm.topupProviderChange(v._id,vm.playerTopUpReturn.providerTick[v._id])')
-    .full-width-input-block(ng-if="vm.platformRewardPageName =='showReward'")
+    .full-width-input-block(ng-if="vm.platformRewardPageName =='showReward' && !vm.selectedPlatform.data.useProviderGroup")
         label(style='vertical-align: top;') {{"PROVIDER" | translate}}
         div.inlineBlk
             label.margin-right-5(ng-repeat='(i,v) in vm.rewardParams.providers') {{vm.getProviderText(v)|translate}}
-
+    .full-width-input-block(ng-if="vm.platformRewardPageName!=='showReward' && vm.selectedPlatform.data.useProviderGroup === true")
+        label(style='vertical-align: top;') {{"Lock Provider Group" | translate}}
+        select.form-control(ng-model='vm.rewardParams.providerGroup' ng-options="v._id as v.name for (i,v) in vm.gameProviderGroup")
+            option(value='') {{'LOCAL_CREDIT' | translate}}
+    .full-width-input-block(ng-if="vm.platformRewardPageName=='showReward' && vm.selectedPlatform.data.useProviderGroup === true")
+        label(style='vertical-align: top;') {{"Lock Provider Group" | translate}}
+        label.form-control {{vm.getProviderGroupNameById(vm.rewardParams.providerGroup)|translate}}
 
     label {{vm.showRewardTypeData.params.params.reward.des | translate}}
         table.paddingTbl

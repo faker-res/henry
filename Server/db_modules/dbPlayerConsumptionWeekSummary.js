@@ -416,7 +416,7 @@ var dbPlayerConsumptionWeekSummary = {
      * Start calculate consumption return for player
      * @param {ObjectId} playerId
      */
-    startCalculatePlayerConsumptionReturn: function (playerId, bRequest) {
+    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin) {
         var deferred = Q.defer();
         var platformData = null;
         var playerData = null;
@@ -463,7 +463,7 @@ var dbPlayerConsumptionWeekSummary = {
                         platform: playerData.platform._id
                     }, {isConsumptionReturn: true}).then(
                         updatePlayer => {
-                            if (!updatePlayer.isConsumptionReturn) {
+                            if (!updatePlayer.isConsumptionReturn || bAdmin) {
                                 let proms = [];
                                 for (let eventData of eventsData) {
                                     if (dbPlayerReward.isRewardEventForbidden(updatePlayer, event._id)) {

@@ -438,6 +438,9 @@ define([], function () {
                 // Special variable for dxNewPlayerReport
                 let totalWinLoss = 0;
                 let totalConsumption = 0;
+                //special variable for playerReport
+                let consumptionBonusAmount = 0;
+                let validConsumptionAmount = 0;
 
                 api.columns().every(function (i, v) {
                     var classes = (this.nodes() && this.nodes()[0]) ? this.nodes()[0].className : '';
@@ -464,20 +467,24 @@ define([], function () {
                         } else if (i == 17) {
                             totalWinLoss = pageValue;
                         }
-                    }else if (classes.indexOf('sumPercent') > -1) {
-                            if (sumData && sumData[i]) {
-                                totalValue = sumData[i]
-                            } else {
-                                totalValue = api.column(i).data().reduce(function (a, b) {
-                                    return getFloat(a) + getFloat(b);
-                                })
-                            }
-                            pageValue = api.column(i, {page: 'current'}).data().reduce(function (a, b) {
+                        //special handling for player report
+                        if (i == 15) {
+                            validConsumptionAmount = pageValue;
+                        } else if (i == 16) {
+                            consumptionBonusAmount = pageValue;
+                        }
+                    }else if (classes.indexOf('playerReportProfit') > -1) {
+                        if (sumData && sumData[i]) {
+                            totalValue = sumData[i]
+                        } else {
+                            totalValue = api.column(i).data().reduce(function (a, b) {
                                 return getFloat(a) + getFloat(b);
                             })
-                            totalValue = getFloat(totalValue).toFixed(2);
-                            pageValue = getFloat(pageValue).toFixed(2);
-                            htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
+                        }
+                        pageValue = (-consumptionBonusAmount) / validConsumptionAmount * 100;
+                        totalValue = getFloat(totalValue).toFixed(2);
+                        pageValue = getFloat(pageValue).toFixed(2);
+                        htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
                     } else if (classes.indexOf('sumInt') > -1) {
                         if (sumData && sumData[i]) {
                             totalValue = sumData[i]
