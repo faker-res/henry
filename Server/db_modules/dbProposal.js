@@ -1236,14 +1236,14 @@ var proposal = {
             var summaryObj = {};
             if (finalSummary) {
                 summaryObj = {
-                    amount: finalSummary.totalAmount/* + finalSummary.totalRewardAmount */+ finalSummary.totalTopUpAmount + finalSummary.totalUpdateAmount + finalSummary.totalNegativeProfitAmount + finalSummary.totalCommissionAmount
+                    amount: finalSummary.totalAmount + finalSummary.totalRewardAmount + finalSummary.totalTopUpAmount + finalSummary.totalUpdateAmount + finalSummary.totalNegativeProfitAmount + finalSummary.totalCommissionAmount
                 }
             }
             return {data: data, size: totalCount, summary: summaryObj};
         });
     },
 
-    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum) {//need
+    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId) {//need
         platformId = Array.isArray(platformId) ?platformId :[platformId];
 
         //check proposal without process
@@ -1315,6 +1315,14 @@ var proposal = {
                                 ]
                             })
                         }
+
+                        if (playerId) {
+                            queryObj["$or"] = [
+                                {"data._id": playerId},
+                                {"data.playerObjId": playerId}
+                            ];
+                        }
+
                         if (credit) {
                             queryObj["$and"] = queryObj["$and"] || [];
                             queryObj["$and"].push({

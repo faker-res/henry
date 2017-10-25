@@ -1525,7 +1525,7 @@ include modalGameCreditLog
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPlayerDialog('basicInfo');", ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
-                                        button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-click='vm.getPlayerInfoHistory()') {{"EDIT_HISTORY" | translate}}
                                         br
                                         button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'ResetPassword')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initResetPlayerPasswordModal()', data-target='#modalPlayerPasswordReset') {{"EDIT_WEBSITE_PASS" | translate}}
                                         br
@@ -1574,7 +1574,7 @@ include modalGameCreditLog
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'EditContact')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('contactInfo')") {{"EDIT" | translate}}
                                         br
-                                        button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-click='vm.getPlayerContactHistory()') {{"EDIT_HISTORY" | translate}}
                                 tr
                                     td
                                         div {{'WITHDRAW_INFO' | translate}}
@@ -1679,7 +1679,7 @@ include modalGameCreditLog
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-click='vm.openEditPlayerDialog("topUpInfo");', ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
-                                        button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
+                                        //button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
                                 tr
                                     td
                                         div {{'IP' | translate}}
@@ -1877,6 +1877,30 @@ include modalGameCreditLog
                     .col-md-12
                         label {{"Total" | translate}} {{vm.paymetHistoryCount}} {{"records" | translate}}
                         table#playerPaymentHistoryTbl.common-table.display(style='min-width:100%;width:inherit')
+
+#modalPlayerInfoHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:90%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Player' | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                .row
+                    .col-md-12
+                        label {{"Total" | translate}} {{vm.playerInfoHistoryCount}} {{"records" | translate}}
+                        table#playerInfoHistoryTbl.common-table.display(style='min-width:100%;width:inherit')
+
+#modalPlayerContactHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:90%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Player' | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                .row
+                    .col-md-12
+                        label {{"Total" | translate}} {{vm.playerContactHistoryCount}} {{"records" | translate}}
+                        table#playerContactHistoryTbl.common-table.display(style='min-width:100%;width:inherit')
 
 #playerPermissionPopover.hide(style="width: 600px")
     #playerPermissionTable
