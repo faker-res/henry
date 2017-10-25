@@ -10994,12 +10994,10 @@ let dbPlayerInfo = {
             // display non duplicated phone numbers
             let diffPhone = arrayInputPhone.filter(item => !arrayDbPhone.includes(item));
             diffPhoneList = diffPhone.join(", ");
-            console.log('diffPhoneList', diffPhoneList);
 
             // display duplicated phone numbers
             let samePhone = arrayInputPhone.filter(item => arrayDbPhone.includes(item));
             samePhoneList = samePhone.join(", ");
-            console.log('samePhoneList', samePhoneList);
 
             return {samePhoneList: samePhoneList, diffPhoneList: diffPhoneList};
         }).then(data => {
