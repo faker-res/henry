@@ -102,7 +102,7 @@
     hr.margin-top-bottom-small
     .btn-group.margin-small
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Create')", ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareCreatePlayer()', data-toggle="modal", data-target='#modalCreatePlayer')
-            text {{"CREATE" | translate}}
+            text {{"CREATE_NEW_PLAYER" | translate}}
             img.img-create
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.newPlayerList()', data-target='#modalNewPlayerList')
             text {{"new player list" | translate}}
