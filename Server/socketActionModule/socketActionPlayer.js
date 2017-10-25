@@ -943,6 +943,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.getForbidTopUpLog, [data.playerId, data.startTime, data.endTime, index, limit], actionName, isValidData);
         },
 
+        comparePhoneNum: function comparePhoneNum(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.arrayInputPhone);
+            socketUtil.emitter(self.socket, dbPlayerInfo.comparePhoneNum, [data.arrayInputPhone], actionName, isValidData);
+        },
+
     };
     socketActionPlayer.actions = this.actions;
 }
