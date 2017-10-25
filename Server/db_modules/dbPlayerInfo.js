@@ -10986,13 +10986,10 @@ let dbPlayerInfo = {
                     playerData[q].phoneNumber = rsaCrypto.decrypt(playerData[q].phoneNumber);
                 }
             }
-            console.log('playerData', playerData);
 
             for (let z = 0; z < playerData.length; z ++) {
                 arrayDbPhone.push(playerData[z].phoneNumber);
             }
-            console.log('arrayDbPhone', arrayDbPhone);
-            console.log('arrayInputPhone', arrayInputPhone);
 
             // display non duplicated phone numbers
             let diffPhone = arrayInputPhone.filter(item => !arrayDbPhone.includes(item));
@@ -11006,7 +11003,6 @@ let dbPlayerInfo = {
 
             return {samePhoneList: samePhoneList, diffPhoneList: diffPhoneList};
         }).then(data => {
-            console.log('data222', data);
             return data;
         });
     },

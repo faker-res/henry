@@ -945,7 +945,6 @@ function socketActionPlayer(socketIO, socket) {
 
         comparePhoneNum: function comparePhoneNum(data){
             var actionName = arguments.callee.name;
-            console.log('data111', JSON.stringify(data, null, 4));
             var isValidData = Boolean(data && data.arrayInputPhone);
             socketUtil.emitter(self.socket, dbPlayerInfo.comparePhoneNum, [data.arrayInputPhone], actionName, isValidData);
         },
