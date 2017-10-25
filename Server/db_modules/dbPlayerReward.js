@@ -961,34 +961,32 @@ let dbPlayerReward = {
 
                             }
                         )
-
                 }else{
                     return Q.reject({name: "DataError", message: "Platform Not Found"});
                 }
           }
       )
-          .then(
-              proposalData=>{
-                  let approvedProposal = [];
-                  let result = promoListData;
-                  proposalData.forEach(
-                      proposal=>{
-                        let bonus = proposal.data.rewardAmount - proposal.data.applyAmount;
-                        let accountNo = dbUtility.encodeBankAcc(proposal.data.playerName);
-                        let record = {
-                            "accountNo": accountNo,
-                            "bonus": bonus,
-                            "time": proposal.settleTime
-                        }
-                        approvedProposal.push(record);
-                      }
-                  )
+      .then(
+          proposalData=>{
+              let approvedProposal = [];
+              let result = promoListData;
+              proposalData.forEach(
+                  proposal=>{
+                    let bonus = proposal.data.rewardAmount - proposal.data.applyAmount;
+                    let accountNo = dbUtility.encodeBankAcc(proposal.data.playerName);
+                    let record = {
+                        "accountNo": accountNo,
+                        "bonus": bonus,
+                        "time": proposal.settleTime
+                    }
+                    approvedProposal.push(record);
+                  }
+              )
 
-                  result.bonusList = approvedProposal;
-                  return result;
-              }
-
-          )
+              result.bonusList = approvedProposal;
+              return result;
+          }
+       )
     },
 
     getPromoCodesHistory: (searchQuery) => {
