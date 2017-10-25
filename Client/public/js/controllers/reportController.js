@@ -3503,6 +3503,7 @@ define(['js/app'], function (myApp) {
                 startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
                 proposalTypeId: newproposalQuery.proposalTypeId,
+                inputDevice: newproposalQuery.inputDevice,
                 rewardTypeName: newproposalQuery.rewardTypeName,
                 promoTypeName: newproposalQuery.promoTypeName,
                 platformId: vm.curPlatformId,
