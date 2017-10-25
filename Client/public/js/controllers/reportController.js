@@ -3569,7 +3569,8 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     },
-                    {title: $translate('INPUT_DEVICE'),
+                    {
+                        title: $translate('INPUT_DEVICE'),
                         data: "inputDevice",
                         render: function (data, type, row) {
                             for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
@@ -3607,7 +3608,22 @@ define(['js/app'], function (myApp) {
                         // }
                     },
                     {
-                        title: "<div>" + $translate('INVOLVED_ACC'), data: "data.playerShortId",
+                        title: "<div>" + $translate('INVOLVED_ACC'),
+                        "data": null,
+                        render: function (data, type, row) {
+                            if (data.hasOwnProperty('creator') && data.creator.type == 'player') {
+                                return data.creator.name;
+                            }
+                            if (data && data.data && data.data.playerName) {
+                                return data.data.playerName;
+                            }
+                            else if (data && data.data && data.data.partnerName) {
+                                return data.data.partnerName;
+                            }
+                            else {
+                                return "";
+                            }
+                        },
                         orderable: false,
                     },
                     {
