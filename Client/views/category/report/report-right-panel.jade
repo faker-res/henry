@@ -88,6 +88,17 @@
         div(ng-if='vm.showPageName=="PROPOSAL_REPORT"')
             #proposalReportQuery.block-query.col-md-12.well
                 div
+                    label {{"REGISTRATION_AGENT"|translate}}
+                    select.form-control(ng-model="vm.proposalQuery.inputDevice")
+                        option(value='') {{'all'|translate}}
+                        option(value=0) {{'Backstage'|translate}}
+                        option(value=1) {{'Web Player'|translate}}
+                        option(value=2) {{'Web Agent'|translate}}
+                        option(value=3) {{'HTML5 Player'|translate}}
+                        option(value=4) {{'HTML5 Agent'|translate}}
+                        option(value=5) {{'APP Player'|translate}}
+                        option(value=6) {{'APP Agent'|translate}}
+                div
                     label(style='width:200px;') {{"Proposal Type"|translate}}
                     select.form-control#selectProposalType(multiple="multiple", ng-options='i._id as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='abc')
 

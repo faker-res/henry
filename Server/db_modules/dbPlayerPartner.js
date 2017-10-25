@@ -317,7 +317,7 @@ let dbPlayerPartner = {
      * @param smsCode
      * @param targetType - 0: Player, 1: Partner, 2: Player Partner
      */
-    updatePhoneNumberWithSMS: function (platformId, userId, newPhoneNumber, smsCode, targetType) {
+    updatePhoneNumberWithSMS: function (userAgent, platformId, userId, newPhoneNumber, smsCode, targetType) {
         let platformObjId = null;
         let curPhoneNumber = null;
         let newEncrpytedPhoneNumber = null;
@@ -480,8 +480,10 @@ let dbPlayerPartner = {
                 // data.data.updateData && data.data.updateData.phoneNumber
                 let player, partner, playerUpdateData, partnerUpdateData;
                 let updatePhoneNumber = dbUtility.encodePhoneNum(newPhoneNumber);
+                let inputDevice = 0;
                 switch (targetType) {
                     case 0:
+                        inputDevice = dbUtility.getInputDevice(userAgent,false);
                         player = result;
                         playerUpdateData = {
                             isPlayerInit: true,
@@ -493,9 +495,10 @@ let dbPlayerPartner = {
 
                         };
                         // result.isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData});
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData, inputDevice: inputDevice});
                         break;
                     case 1:
+                        inputDevice = dbUtility.getInputDevice(userAgent,true);
                         partner = result;
                         partnerUpdateData = {
                             isPlayerInit: true,
@@ -507,9 +510,11 @@ let dbPlayerPartner = {
 
                         };
                         // result.isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData});
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevice});
                         break;
                     case 2:
+                        let inputDevicePlayer = dbUtility.getInputDevice(userAgent,false);
+                        let inputDevicePartner = dbUtility.getInputDevice(userAgent,true);
                         player = result[0];
                         playerUpdateData = {
                             isPlayerInit: true,
@@ -532,8 +537,8 @@ let dbPlayerPartner = {
                         };
                         // result[0].isPlayerInit = true;
                         // result[1].isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData});
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData});
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData, inputDevice: inputDevicePlayer});
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevicePartner});
                         break;
                 }
 

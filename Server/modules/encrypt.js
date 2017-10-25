@@ -250,6 +250,9 @@ var encrypt = {
                 query["data.playerName"] = data.relatedAccount;
                 query["data.partnerName"] = data.relatedAccount;
             }
+            if (data.inputDevice) {
+                query.inputDevice = data.inputDevice;
+            }
         }
         return query;
     },

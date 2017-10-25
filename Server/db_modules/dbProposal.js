@@ -1236,7 +1236,7 @@ var proposal = {
             var summaryObj = {};
             if (finalSummary) {
                 summaryObj = {
-                    amount: finalSummary.totalAmount + finalSummary.totalRewardAmount + finalSummary.totalTopUpAmount + finalSummary.totalUpdateAmount + finalSummary.totalNegativeProfitAmount + finalSummary.totalCommissionAmount
+                    amount: finalSummary.totalAmount/* + finalSummary.totalRewardAmount */+ finalSummary.totalTopUpAmount + finalSummary.totalUpdateAmount + finalSummary.totalNegativeProfitAmount + finalSummary.totalCommissionAmount
                 }
             }
             return {data: data, size: totalCount, summary: summaryObj};
@@ -1573,7 +1573,6 @@ var proposal = {
                 delete reqData["data.partnerName"];
             }
 
-            console.log("~!@#$%^&*()_+",reqData);
             var a = dbconfig.collection_proposal.find(reqData).count();
             var b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                 .populate({path: "type", model: dbconfig.collection_proposalType})
