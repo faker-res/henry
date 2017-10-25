@@ -12298,7 +12298,7 @@ define(['js/app'], function (myApp) {
                     };
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
                 } else {
-                        socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
+                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
                 }
             };
 
@@ -12522,6 +12522,26 @@ define(['js/app'], function (myApp) {
 
             vm.phoneNumFilterClicked = function () {
                 vm.phoneNumListResult = false;
+                vm.inputNewPhoneNum = [];
+            };
+
+            // compare a new list pf phone numbers with existing player info database
+            // generate a new list of phone numbers without existing player phone number
+            vm.comparePhoneNum = function() {
+                vm.arrayInputPhone = vm.inputNewPhoneNum.split(", ").map((item) => item.trim());
+
+                let sendData = {
+                    arrayInputPhone: vm.arrayInputPhone
+                };
+
+                socketService.$socket($scope.AppSocket, 'comparePhoneNum', sendData, function (data) {
+                    vm.diffPhoneList = data.data.diffPhoneList;
+                    vm.samePhoneList = data.data.samePhoneList;
+                    return vm.comparePhoneNumResult();
+                });
+            };
+
+            vm.comparePhoneNumResult = function () {
             };
             // player level codes==============end===============================
 
