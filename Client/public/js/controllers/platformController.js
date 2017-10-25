@@ -2633,7 +2633,129 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            /////////////////////////////////Mark::Platform players functions//////////////////
+
+            vm.commonProviderGameTableOptions = {
+                columnDefs: [
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [0]},
+                    {'sortCol': 'playerId', bSortable: true, 'aTargets': [2]},
+                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
+                    {'sortCol': 'amount', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
+                    {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
+                    {targets: '_all', bSortable: false, defaultContent: ' '}
+                ],
+                columns: [
+                    {title: $translate('CREATION_TIME'), data: "createTime$"},
+                    //{title: $translate('PLATFORM'), data: "platformId.name"},
+                    {title: $translate('PLAYERID'), data: "playerId.name", sClass: 'sumText'},
+                    {title: $translate('providerId'), data: "providerId.name", sClass: 'sumText'},
+                    {title: $translate('GAME_TITLE'), data: "gameId.name"},
+                    {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'sumFloat textRight'},
+                    {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
+                    {title: $translate('orderId'), data: "orderId"},
+                    {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
+                    {
+                        title: $translate('commissionAmount'), data: "commissionAmount$",
+                        sClass: 'sumFloat textRight'
+                    },
+                ],
+                "paging": false,
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                }
+            }
+
+            vm.providerExpenseDataTableOptions = {
+                "paging": true,
+                dom: 'tpl',
+                "aaSorting": [],
+                destroy: true,
+                "scrollX": true,
+                sScrollY: 350,
+                scrollCollapse: true,
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10', '25', '50', $translate('Show All')]
+                ],
+                "language": {
+                    "info": "",
+                    "paginate": {
+                        "previous": $translate("PREVIOUS_PAGE"),
+                        "next": $translate("NEXT_PAGE"),
+                    },
+                    "emptyTable": "",
+                    "lengthMenu": $translate("lengthMenuText"),
+                    sZeroRecords: ""
+                }
+            }
+
+            vm.prepareShowProviderExpense = function () {
+                $('#modalProviderExpenses').modal().show();
+                vm.expenseQuery = {};
+                utilService.actionAfterLoaded('#modalProviderExpenses.in #providerExpenseQuery', function () {
+                    vm.expenseQuery.startTime = utilService.createDatePicker('#providerExpenseQuery .startTime');
+                    vm.expenseQuery.endTime = utilService.createDatePicker('#providerExpenseQuery .endTime');
+                    vm.expenseQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.expenseQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                    utilService.actionAfterLoaded('#modalProviderExpenses.in #providerExpenseTablePage', function () {
+                        vm.expenseQuery.pageObj = utilService.createPageForPagingTable("#providerExpenseTablePage", {}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "expenseQuery", vm.getProviderExpense)
+                        });
+                        vm.getProviderExpense(true);
+                    });
+                });
+            }
+
+            vm.getProviderExpense = function (newSearch) {
+                var queryData = {
+                    startTime: vm.expenseQuery.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: vm.expenseQuery.endTime.data('datetimepicker').getLocalDate(),
+                    platformId: vm.selectedPlatform.id,
+                    providerObjId: vm.selectedProviderID,
+                    playerName: vm.playerName,
+                    index: newSearch ? 0 : vm.expenseQuery.index,
+                    limit: newSearch ? 10 : vm.expenseQuery.limit,
+                    sortCol: newSearch ? null : vm.expenseQuery.sortCol,
+                }
+                vm.providerExpenseTableLoading = true;
+                $scope.safeApply();
+                socketService.$socket($scope.AppSocket, 'getConsumptionRecordByGameProvider', queryData, function (data) {
+                    vm.providerExpenseTableLoading = false;
+                    var tableData = data.data.data ? data.data.data.map(item => {
+                        item.createTime$ = vm.dateReformat(item.createTime);
+                        item.validAmount$ = item.validAmount.toFixed(2);
+                        item.amount$ = item.amount.toFixed(2);
+                        item.bonusAmount$ = item.bonusAmount.toFixed(2);
+                        item.commissionAmount$ = item.commissionAmount.toFixed(2);
+                        return item;
+                    }) : [];
+                    vm.expenseQuery.totalCount = data.data.count || 0;
+                    var summary = data.data.summary || {};
+                    var tableOptions = {
+                        data: tableData,
+                        "order": vm.expenseQuery.aaSorting || [[0, 'desc']],
+                    }
+                    tableOptions = $.extend(true, {}, vm.providerExpenseDataTableOptions, vm.commonProviderGameTableOptions, tableOptions);
+                    vm.expenseQuery.pageObj.init({maxCount: vm.expenseQuery.totalCount}, newSearch);
+                    utilService.createDatatableWithFooter('#providerExpenseTable', tableOptions, {
+                        3: summary.validAmountAll,
+                        4: summary.amountAll,
+                        6: summary.bonusAmountAll,
+                        7: summary.commissionAmountAll
+                    });
+                    $('#providerExpenseTable').off('order.dt');
+                    $('#providerExpenseTable').on('order.dt', function (event, a, b) {
+                        vm.commonSortChangeHandler(a, 'expenseQuery', vm.getProviderExpense);
+                    });
+                    $('#providerExpenseTable').resize();
+                    $scope.safeApply();
+                });
+            }
+
+
+        /////////////////////////////////Mark::Platform players functions//////////////////
 
             //get all platform players data from server
             vm.getPlatformPlayersData = function (newSearch) {
@@ -5469,21 +5591,21 @@ define(['js/app'], function (myApp) {
                 );
             };
 
-        vm.checkAnyPlayerRemarkRemoved = () => {
-            let playerRemarksId = vm.selectedSinglePlayer.credibilityRemarks;
-            for (let i = 0; i < playerRemarksId.length; i++) {
-                for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                    if (playerRemarksId[i] === vm.credibilityRemarks[j]._id) {
-                        if (vm.credibilityRemarks[j].selected !== true) {
-                            vm.somePlayerRemarksRemoved = true;
-                            return;
+            vm.checkAnyPlayerRemarkRemoved = () => {
+                let playerRemarksId = vm.selectedSinglePlayer.credibilityRemarks;
+                for (let i = 0; i < playerRemarksId.length; i++) {
+                    for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                        if (playerRemarksId[i] === vm.credibilityRemarks[j]._id) {
+                            if (vm.credibilityRemarks[j].selected !== true) {
+                                vm.somePlayerRemarksRemoved = true;
+                                return;
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
-            }
-            vm.somePlayerRemarksRemoved = false;
-        };
+                vm.somePlayerRemarksRemoved = false;
+            };
 
             vm.submitRemarkUpdate = () => {
                 let selectedRemarks = [];
@@ -10435,13 +10557,13 @@ define(['js/app'], function (myApp) {
                 //vm.showRewardTypeData.condition.condition = {};
                 $scope.safeApply();
             }
-        vm.getFullDate = function (num) {
-            if (num < 10) {
-                return '0' + num;
-            } else {
-                return '' + num + '';
+            vm.getFullDate = function (num) {
+                if (num < 10) {
+                    return '0' + num;
+                } else {
+                    return '' + num + '';
+                }
             }
-        }
             vm.rewardTabClicked = function (callback) {
                 vm.forbidRewardRemark = '';
                 vm.dayHrs = {};
@@ -10863,20 +10985,20 @@ define(['js/app'], function (myApp) {
                 vm.showRewardTypeId = null;
             }
 
-        vm.clearProvider = function (rowIndex) {
-            for (var providers in vm.rewardParams.reward[rowIndex].providers) {
-                if (vm.rewardParams.reward[rowIndex].providers[providers] == 'ANY') {
-                    vm.rewardParams.reward[rowIndex].providers = [];
+            vm.clearProvider = function (rowIndex) {
+                for (var providers in vm.rewardParams.reward[rowIndex].providers) {
+                    if (vm.rewardParams.reward[rowIndex].providers[providers] == 'ANY') {
+                        vm.rewardParams.reward[rowIndex].providers = [];
+                    }
                 }
+                console.log(vm.rewardParams.reward[rowIndex]);
+                $scope.safeApply();
             }
-            console.log(vm.rewardParams.reward[rowIndex]);
-            $scope.safeApply();
-        }
 
-        vm.clearWeekDay = function (rowIndex) {
-            vm.rewardParams.reward[rowIndex].repeatWeekDay = [];
-            $scope.safeApply();
-        }
+            vm.clearWeekDay = function (rowIndex) {
+                vm.rewardParams.reward[rowIndex].repeatWeekDay = [];
+                $scope.safeApply();
+            }
 
             vm.rewardWeeklyConsecutiveTopUpAddProvider = function () {
                 vm.rewardParams.providers = vm.rewardParams.providers || [];
@@ -10931,7 +11053,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1)
                 }
             };
-        vm.updateLimitedOffersEdit = function (type, data, id) {
+            vm.updateLimitedOffersEdit = function (type, data, id) {
                 if (type == 'add') {
                   socketService.$socket($scope.AppSocket, 'generateObjectId', {}, function (result) {
                       var objectId = result.data
@@ -10959,11 +11081,11 @@ define(['js/app'], function (myApp) {
                 '7': 'Sun'
             };
 
-        vm.endLoadWeekDay = function () {
-            $timeout(function () {
-                $('.spicker').selectpicker('refresh');
-            }, 0);
-        };
+            vm.endLoadWeekDay = function () {
+                $timeout(function () {
+                    $('.spicker').selectpicker('refresh');
+                }, 0);
+            };
 
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
                 if (type == 'add') {
