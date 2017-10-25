@@ -565,7 +565,7 @@ let dbPlayerReward = {
                                 spendingAmount: rewardAmount * Number(rewardParam.spendingTimes),
                                 applyAmount: 0,
                                 consumptionAmount: consumptionAmount,
-                                amount: rewardAmount,
+                                // amount: rewardAmount,
                                 settlementStartTime: yerTime.startTime,
                                 settlementEndTime: yerTime.endTime,
                                 eventId: eventData._id,
