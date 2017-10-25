@@ -732,7 +732,7 @@ define(['js/app'], function (myApp) {
             //     });
             // }
             else if (choice == "PROPOSAL_REPORT") {
-                vm.proposalQuery = {};
+                vm.proposalQuery = {aaSorting: [[8, "desc"]], sortCol: {createTime: -1}};
                 vm.proposalQuery.status = 'all';
                 vm.proposalQuery.promoType = '';
                 vm.proposalQuery.totalCount = 0;
