@@ -10197,9 +10197,10 @@ let dbPlayerInfo = {
                     resultSum.consumptionTimes += result[z].consumptionTimes;
                     resultSum.validConsumptionAmount += result[z].validConsumptionAmount;
                     resultSum.consumptionBonusAmount += result[z].consumptionBonusAmount;
-                    resultSum.profit += (result[z].consumptionBonusAmount / result[z].validConsumptionAmount * -100).toFixed(2) / 1;
+                    // resultSum.profit += (result[z].consumptionBonusAmount / result[z].validConsumptionAmount * -100).toFixed(2) / 1;
                     resultSum.consumptionAmount += result[z].consumptionAmount;
                 }
+                resultSum.profit += (resultSum.consumptionBonusAmount / resultSum.validConsumptionAmount * -100).toFixed(2) / 1;
 
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
