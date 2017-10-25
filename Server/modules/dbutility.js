@@ -667,16 +667,13 @@ var dbUtility = {
         return decodeURIComponent(results[2].replace(/\+/g, " "));
     },
 
-    getInputDevice: function (inputUserAgent, isPartnerProposal){
-        console.log("walaoeh",inputUserAgent);
+    getInputDevice: function (inputUserAgent, isPartnerProposal) {
         let ua = uaParser(inputUserAgent);
-        console.log('walao2', JSON.stringify(ua,null,2))
         let userAgentInput = [{
             browser: ua.browser.name || '',
             device: ua.device.name || '',
             os: ua.os.name || ''
         }];
-        console.log('walao3', JSON.stringify(userAgentInput,null,2));
         let inputDevice="";
 
         if (userAgentInput && userAgentInput[0] && inputUserAgent) {
