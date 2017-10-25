@@ -12553,6 +12553,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'comparePhoneNum', sendData, function (data) {
                     vm.diffPhoneList = data.data.diffPhoneList;
                     vm.samePhoneList = data.data.samePhoneList;
+                    $scope.safeApply();
                 });
             };
             // player level codes==============end===============================
