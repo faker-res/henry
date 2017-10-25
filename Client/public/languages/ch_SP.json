@@ -2540,5 +2540,8 @@
   "Latest Recorded Time": "当前收录到的最大时间",
   "userAgent": "装置",
   "LastSettlementTime":"执行时间",
-  "BankCardNo":"银行帐号"
+  "BankCardNo":"银行帐号",
+  "CONTENT_CHANGED":"更改内容",
+  "CHANGED_VALUE":"更改值",
+  "UNCHANGED":"(无更改)"
 }
