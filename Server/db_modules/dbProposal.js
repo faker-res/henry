@@ -1236,7 +1236,7 @@ var proposal = {
             var summaryObj = {};
             if (finalSummary) {
                 summaryObj = {
-                    amount: finalSummary.totalAmount + finalSummary.totalRewardAmount + finalSummary.totalTopUpAmount + finalSummary.totalUpdateAmount + finalSummary.totalNegativeProfitAmount + finalSummary.totalCommissionAmount
+                    amount: finalSummary.totalAmount/* + finalSummary.totalRewardAmount */+ finalSummary.totalTopUpAmount + finalSummary.totalUpdateAmount + finalSummary.totalNegativeProfitAmount + finalSummary.totalCommissionAmount
                 }
             }
             return {data: data, size: totalCount, summary: summaryObj};
