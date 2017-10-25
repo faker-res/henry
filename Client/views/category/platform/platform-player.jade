@@ -102,11 +102,14 @@
     hr.margin-top-bottom-small
     .btn-group.margin-small
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Create')", ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareCreatePlayer()', data-toggle="modal", data-target='#modalCreatePlayer')
-            text {{"CREATE" | translate}}
+            text {{"CREATE_NEW_PLAYER" | translate}}
             img.img-create
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.newPlayerList()', data-target='#modalNewPlayerList')
             text {{"new player list" | translate}}
             img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform','Player', 'Read')",ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareShowProviderExpense()')
+            text {{"EXPENSE" | translate}}
+            i.fa.fa-table
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog(true)')
             text {{"Platform Credit Transfer Log" | translate}}
             img.img-edit
@@ -151,10 +154,6 @@
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'referrals')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", ng-click='vm.initPlayerReferral()')
             text {{"REFERRAL" | translate}}
             img.img-edit
-
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform','Player', 'Read')",ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareShowProviderExpense()')
-            text {{"EXPENSE" | translate}}
-            i.fa.fa-table
             
 //.col-md-12.playerBtn
     hr.margin-top-bottom-small
