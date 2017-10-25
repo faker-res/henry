@@ -10406,6 +10406,16 @@ let dbPlayerInfo = {
             let aliPayTopUpTypeId = "";
             let consumptionReturnTypeId = "";
 
+            let consumptionPromMatchObj = {
+                playerId: playerObjId,
+                createTime: {
+                    $gte: new Date(startTime),
+                    $lte: new Date(endTime)
+                }
+            };
+
+            query.providerId ? consumptionPromMatchObj.providerId = ObjectId(query.providerId) : false;
+
             for (let i = 0, len = proposalType.length; i < len; i++) {
                 let proposalTypeObj = proposalType[i];
                 if (proposalTypeObj.name === constProposalType.PLAYER_TOP_UP) {
@@ -10427,13 +10437,7 @@ let dbPlayerInfo = {
 
             let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
                 {
-                    $match: {
-                        playerId: playerObjId,
-                        createTime: {
-                            $gte: new Date(startTime),
-                            $lte: new Date(endTime)
-                        }
-                    }
+                    $match: consumptionPromMatchObj
                 },
                 {
                     $group: {
@@ -10578,7 +10582,7 @@ let dbPlayerInfo = {
                     if (!data[5]) {
                         return "";
                     }
-
+                    
                     result.gameDetail = data[0];
                     result.consumptionTimes = 0;
                     result.consumptionAmount = 0;
