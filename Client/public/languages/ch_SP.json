@@ -531,6 +531,8 @@
   "PlatformTransactionReward": "银行转账奖励",
   "UPDATE_PARTNER": "编辑代理资料",
   "Game Group display Name": "游戏组显示名",
+  "Lock Provider Group": "锁大厅组",
+  "Use Provider Group": "使用锁大厅组",
   "Pending": "待审核",
   "Approved": "成功",
   "Rejected": "失败",
