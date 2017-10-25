@@ -117,7 +117,7 @@ let dbPlayerReward = {
      * @param {String} playerId
      * @param {String} code
      */
-    applyConsecutiveLoginReward: function (playerId, code, adminId, adminName, isPrevious) {
+    applyConsecutiveLoginReward: function (userAgent, playerId, code, adminId, adminName, isPrevious) {
         let platformId = null;
         let player = {};
         let todayTime = dbUtility.getTodaySGTime();
@@ -168,6 +168,7 @@ let dbPlayerReward = {
                                 });
                             }
                             let bProposal = false;
+                            player.inputDevice = dbUtility.getInputDevice(userAgent,false);
                             let proc = () => {
                                 queryTime = dateArr.pop();
                                 return processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo, isPrevious).then(
@@ -2042,6 +2043,7 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
+                        inputDevice: playerData.inputDevice
                     };
 
                     if (isPrevious) {

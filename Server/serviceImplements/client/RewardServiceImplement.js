@@ -59,14 +59,18 @@ let RewardServiceImplement = function () {
 
     this.createFirstTopUpRewardProposal.expectsData = 'topUpRecordId: [], code: String';
     this.createFirstTopUpRewardProposal.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        data.userAgent = userAgent;
         var isValidData = Boolean(data && conn.playerId && data.topUpRecordId && data.code);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.applyForFirstTopUpRewardProposal, [null, conn.playerId, data.topUpRecordId, data.code], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.applyForFirstTopUpRewardProposal, [data.userAgent, null, conn.playerId, data.topUpRecordId, data.code], isValidData);
     };
 
     this.applyProviderReward.expectsData = 'code: String, amount: Number|String';
     this.applyProviderReward.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        data.userAgent = userAgent;
         var isValidData = Boolean(data && data.code && conn.playerId && data.amount);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.applyForGameProviderRewardAPI, [conn.playerId, data.code, data.amount], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.applyForGameProviderRewardAPI, [data.userAgent, conn.playerId, data.code, data.amount], isValidData);
     };
 
     this.applyRewardEvent.expectsData = 'code: String';
@@ -74,7 +78,9 @@ let RewardServiceImplement = function () {
         var isValidData = Boolean(data && conn.playerId && data.code);
         data.data = data.data || {};
         data.data.requestId = data.requestId || "";
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyRewardEvent, [conn.playerId, data.code, data.data], isValidData, true, false, false).then(
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        data.userAgent = userAgent;
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyRewardEvent, [data.userAgent, conn.playerId, data.code, data.data], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
