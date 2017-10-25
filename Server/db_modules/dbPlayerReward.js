@@ -320,7 +320,7 @@ let dbPlayerReward = {
             ).catch(
                 error => {
                     //add debug log
-                    console.error(error);
+                    console.error("applyPlayerTopUpPromo:", error);
                     resolve(error);
                 }
             );
