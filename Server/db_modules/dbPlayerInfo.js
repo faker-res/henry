@@ -83,7 +83,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName) {
+    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId) {
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -339,6 +339,7 @@ let dbPlayerInfo = {
                     else if (adminName) {
                         // insert related CS name when account is opened from backstage
                         inputData.accAdmin = adminName;
+                        inputData.csOfficer = ObjectId(adminId);
                     }
 
                     return dbPlayerInfo.createPlayerInfo(inputData);
