@@ -103,10 +103,10 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerTopUp"')
                     td {{'SINGLELIMIT' | translate }}
-                    td {{vm.selectedProposal.card.singleLimit}}
+                    td {{vm.selectedProposal.card.permerchantLimits || vm.selectedProposal.card.singleLimit }}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerTopUp"')
                     td {{'DAYLIMIT' | translate }}
-                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
+                    td {{vm.selectedProposal.cardSumToday}} / {{ vm.selectedProposal.card.transactionForPlayerOneDay || vm.selectedProposal.card.quota }}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerTopUp" && vm.selectedProposal.from_old_system')
                     td {{'REMARK' | translate }}
                     td {{vm.selectedProposal.card.remark}}
@@ -136,12 +136,12 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{ vm.selectedProposal.data.cardOwner }}
                 tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && !vm.selectedProposal.from_old_system')
                     td {{'SINGLELIMIT' | translate }}
-                    td {{vm.selectedProposal.card.permerchantLimits || vm.selectedProposal.card.singleLimit }}
+                    td {{ vm.selectedProposal.card.singleLimit }}
                 tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && !vm.selectedProposal.from_old_system')
                     td {{'DAYLIMIT' | translate }}
-                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.transactionForPlayerOneDay || vm.selectedProposal.card.quota }}
+                    td {{vm.selectedProposal.cardSumToday}} / {{ vm.selectedProposal.card.quota }}
 
-        tr(ng-if="vm.selectedProposal.data.cashintime && vm.selectedProposal.from_old_system")
+                tr(ng-if="vm.selectedProposal.data.cashintime && vm.selectedProposal.from_old_system")
                     td {{'DEPOSITTIME' | translate}}
                     td {{ vm.selectedProposal.data.cashintime  | date : 'yyyy-MM-dd HH:mm:ss'}}
                 tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
@@ -167,12 +167,12 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{ vm.selectedProposal.data.cardOwner }}
                 tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
                     td {{'SINGLELIMIT' | translate }}
-                    td {{ vm.selectedProposal.card.permerchantLimits || vm.selectedProposal.card.singleLimit}}
+                    td {{ vm.selectedProposal.card.singleLimit}}
                 tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
                     td {{'DAYLIMIT' | translate }}
-                    td {{ vm.selectedProposal.cardSumToday}} / {{ vm.selectedProposal.card.transactionForPlayerOneDay || vm.selectedProposal.card.quota }}}
+                    td {{ vm.selectedProposal.cardSumToday}} / vm.selectedProposal.card.quota }}
 
-        //alipay
+                //alipay
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && !vm.selectedProposal.from_old_system')
                     td {{'Member AliPayAcc' | translate }}
                     td {{ vm.selectedProposal.data.alipayName }}
