@@ -119,7 +119,7 @@ define(['js/app'], function (myApp) {
         vm.wechatNameConvert = function(){
             vm.selectedProposal.data.weAcc = '';
             vm.selectedProposal.data.weName = '';
-            vm.selectedProposal.data.weChatQRCode = '';
+            vm.selectedProposal.data.weQRCode = '';
 
             if(vm.selectedProposal.data.wechatAccount){
                 vm.selectedProposal.data.weAcc = vm.selectedProposal.data.wechatAccount;
@@ -129,9 +129,6 @@ define(['js/app'], function (myApp) {
             }
             if(vm.selectedProposal.data.wechatName) {
                 vm.selectedProposal.data.weName = vm.selectedProposal.data.wechatName;
-            }
-            if(vm.selectedProposal.data.weChatName) {
-                vm.selectedProposal.data.weName = vm.selectedProposal.data.weChatName;
             }
             if(vm.selectedProposal.data.weChatName) {
                 vm.selectedProposal.data.weName = vm.selectedProposal.data.weChatName;
@@ -643,6 +640,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
                     if (data.data && data.data.merchants) {
+                        vm.merchantLists = data.data.merchants;
                         vm.merchantNoList = data.data.merchants.filter(mer => {
                             vm.merchantNoNameObj[mer.merchantNo] = mer.name;
                             return mer.status != 'DISABLED';
@@ -1712,11 +1710,6 @@ define(['js/app'], function (myApp) {
                 data => {
                     var data = data.data;
                     vm.allWechatpaysAcc = data.data ? data.data : [];
-                });
-            socketService.$socket($scope.AppSocket, 'getMerchantList', {platform: vm.selectedPlatform.platformId},
-                data => {
-                    var data = data.data;
-                    vm.merchantLists = data.data ? data.data : [];
                 });
         }
 

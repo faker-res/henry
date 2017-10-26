@@ -9,6 +9,7 @@ const pmsAPI = require("../../externalAPI/pmsAPI.js");
 const constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
 const SMSSender = require('../../modules/SMSSender');
 const dbPlayerPayment = require('../../db_modules/dbPlayerPayment');
+const uaParser = require('ua-parser-js');
 
 var PaymentServiceImplement = function () {
     PaymentService.call(this);
@@ -19,7 +20,8 @@ var PaymentServiceImplement = function () {
     this.createOnlineTopupProposal.onRequest = function (wsFunc, conn, data) {
         if (data) {
             data.amount = Number(data.amount);
-            let userAgent = conn['upgradeReq']['headers']['user-agent'];
+            let userAgentConn = conn['upgradeReq']['headers']['user-agent'];
+            let userAgent = uaParser(userAgentConn);
             data.userAgent = userAgent;
         }
         var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount && Number.isInteger(data.amount));
@@ -105,7 +107,8 @@ var PaymentServiceImplement = function () {
     this.requestManualTopup.onRequest = function (wsFunc, conn, data) {
         if (data) {
             data.amount = Number(data.amount);
-            let userAgent = conn['upgradeReq']['headers']['user-agent'];
+            let userAgentConn = conn['upgradeReq']['headers']['user-agent'];
+            let userAgent = uaParser(userAgentConn);
             data.userAgent = userAgent;
         }
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && Number.isInteger(data.amount));
@@ -136,7 +139,8 @@ var PaymentServiceImplement = function () {
     this.requestAlipayTopup.onRequest = function (wsFunc, conn, data) {
         if (data) {
             data.amount = Number(data.amount);
-            let userAgent = conn['upgradeReq']['headers']['user-agent'];
+            let userAgentConn = conn['upgradeReq']['headers']['user-agent'];
+            let userAgent = uaParser(userAgentConn);
             data.userAgent = userAgent;
         }
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName && Number.isInteger(data.amount));
@@ -147,7 +151,8 @@ var PaymentServiceImplement = function () {
     this.requestWechatTopup.onRequest = function (wsFunc, conn, data) {
         if (data) {
             data.amount = Number(data.amount);
-            let userAgent = conn['upgradeReq']['headers']['user-agent'];
+            let userAgentConn = conn['upgradeReq']['headers']['user-agent'];
+            let userAgent = uaParser(userAgentConn);
             data.userAgent = userAgent;
         }
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && Number.isInteger(data.amount));

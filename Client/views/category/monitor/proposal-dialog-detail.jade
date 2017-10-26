@@ -19,10 +19,10 @@ div
         label {{vm.selectedProposal.creator.name || 'System' | translate}}
     .label-value
         label {{'CREATION_TIME' | translate}}&nbsp;:&nbsp;
-        label {{ vm.selectedProposal.createTime | date : 'yyyy-MM-dd hh:mm:ss'}}
+        label {{ vm.selectedProposal.createTime | date : 'yyyy-MM-dd HH:mm:ss'}}
     .label-value
         label {{'LastSettlementTime' | translate}}&nbsp;:&nbsp;
-        label {{ vm.selectedProposal.settleTime | date : 'yyyy-MM-dd hh:mm:ss'}}
+        label {{ vm.selectedProposal.settleTime | date : 'yyyy-MM-dd HH:mm:ss'}}
 
     //.titleBackground.margin-bottom-5.text-center
     div(style='min-height:30px')
@@ -73,7 +73,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{vm.proposalPlayer.credibilityRemarksName }}
                 tr
                     td {{'PlayerValue' | translate}}
-                    td {{vm.selectedProposal.data.proposalPlayerLevelValue}}
+                    td {{vm.proposalPlayer.data.valueScore}}
                 tr
                     td {{'TopupAmount' | translate }}
                     td {{ vm.selectedProposal.data.amount }}
@@ -82,7 +82,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{ userAgentType[vm.selectedProposal.data.userAgent] }}
                 tr(ng-if="vm.selectedProposal.data.validTime")
                     td {{'DEPOSITTIME' | translate}}
-                    td {{ vm.selectedProposal.data.validTime  | date : 'yyyy-MM-dd hh:mm:ss'}}
+                    td {{ vm.selectedProposal.data.validTime  | date : 'yyyy-MM-dd HH:mm:ss'}}
 
                 //onlineTopupType only
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerTopUp"')
@@ -136,14 +136,14 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{ vm.selectedProposal.data.cardOwner }}
                 tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && !vm.selectedProposal.from_old_system')
                     td {{'SINGLELIMIT' | translate }}
-                    td {{vm.selectedProposal.card.singleLimit}}
+                    td {{vm.selectedProposal.card.singleLimit || vm.selectedProposal.card.permerchantLimits}}
                 tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && !vm.selectedProposal.from_old_system')
                     td {{'DAYLIMIT' | translate }}
-                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
+                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota || vm.selectedProposal.card.transactionForPlayerOneDay}}
 
                 tr(ng-if="vm.selectedProposal.data.cashintime && vm.selectedProposal.from_old_system")
                     td {{'DEPOSITTIME' | translate}}
-                    td {{ vm.selectedProposal.data.cashintime  | date : 'yyyy-MM-dd hh:mm:ss'}}
+                    td {{ vm.selectedProposal.data.cashintime  | date : 'yyyy-MM-dd HH:mm:ss'}}
                 tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
                     td {{'DEPOSIT_METHOD' | translate}}
                     td {{ vm.selectedProposal.data.manner }}
@@ -167,10 +167,10 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{ vm.selectedProposal.data.cardOwner }}
                 tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
                     td {{'SINGLELIMIT' | translate }}
-                    td {{vm.selectedProposal.card.singleLimit}}
+                    td {{vm.selectedProposal.card.singleLimit || vm.selectedProposal.card.permerchantLimits}}
                 tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
                     td {{'DAYLIMIT' | translate }}
-                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota}}
+                    td {{vm.selectedProposal.cardSumToday}} / {{vm.selectedProposal.card.quota || vm.selectedProposal.card.transactionForPlayerOneDay}}
 
 
                 //alipay
@@ -194,7 +194,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{vm.selectedProposal.data.alipayQRCode}}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && !vm.selectedProposal.from_old_system')
                     td {{'validTime' | translate }}
-                    td {{ vm.selectedProposal.data.validTime  | date : 'yyyy-MM-dd hh:mm:ss'}}
+                    td {{ vm.selectedProposal.data.validTime  | date : 'yyyy-MM-dd HH:mm:ss'}}
 
                 //alipay old records
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && vm.selectedProposal.from_old_system')
@@ -217,18 +217,18 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{vm.selectedProposal.data.alipayQRCode}}
                 tr(ng-if="vm.selectedProposal.data.alipayAccount  && vm.selectedProposal.from_old_system")
                     td {{'validTime' | translate }}
-                    td {{ vm.selectedProposal.expirationTime  | date : 'yyyy-MM-dd hh:mm:ss'}}
+                    td {{ vm.selectedProposal.expirationTime  | date : 'yyyy-MM-dd HH:mm:ss'}}
                 tr(ng-if="vm.selectedProposal.data.remark && vm.selectedProposal.from_old_system")
                     td {{'REMARK' | translate }}
                     td {{ vm.selectedProposal.data.remark }}
 
                 //wechat
-                tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp" && !vm.selectProposal.from_old_system')
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp" && !vm.selectedProposal.from_old_system')
                     td {{'Our WeChatACC' | translate }}
                     td {{ vm.selectedProposal.data.weAcc }}
-                tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp" && vm.selectProposal.from_old_system')
+                tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp" && vm.selectedProposal.from_old_system')
                     td {{'Our WeChatACC' | translate }}
-                    td {{ vm.selectedProposal.data.msg }}
+                    td {{ vm.selectedProposal.card.name || vm.selectedProposal.data.weName }}
                 //undefined yet
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp"')
                     td {{'Our WeChatNick' | translate }}
