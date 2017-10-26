@@ -126,7 +126,7 @@ var encrypt = {
             query["loginIps"] = new RegExp('.*' + loginIps + '.*');
         }
         if (credibilityRemarks && credibilityRemarks !== '' && credibilityRemarks.length !== 0) {
-            query["credibilityRemarks"] = {$all: credibilityRemarks};
+            query["credibilityRemarks"] = {$in: credibilityRemarks};
         }
         if (referral !== '') {
             query["referral"] = referral;
