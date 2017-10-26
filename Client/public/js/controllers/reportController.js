@@ -795,6 +795,7 @@ define(['js/app'], function (myApp) {
                     var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                     var todayEndTime = utilService.getTodayEndTime();
                     vm.playerQuery = {};
+                    vm.playerQuery.limit = 5000;
                     vm.playerQuery.consumptionTimesOperator = ">=";
                     vm.playerQuery.profitAmountOperator = ">=";
                     vm.playerQuery.topUpTimesOperator = ">=";
@@ -804,7 +805,7 @@ define(['js/app'], function (myApp) {
                     vm.playerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                     vm.playerQuery.end = utilService.createDatePicker('#endingEndDateTimePicker');
                     vm.playerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                    vm.playerQuery.pageObj = utilService.createPageForPagingTable("#playerReportTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.playerQuery.pageObj = utilService.createPageForPagingTable("#playerReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerQuery", vm.searchPlayerReport);
                     });
                     vm.setupRemarksMultiInput();
