@@ -117,7 +117,7 @@ let dbPlayerReward = {
      * @param {String} playerId
      * @param {String} code
      */
-    applyConsecutiveLoginReward: function (playerId, code, adminId, adminName, isPrevious) {
+    applyConsecutiveLoginReward: function (userAgent, playerId, code, adminId, adminName, isPrevious) {
         let platformId = null;
         let player = {};
         let todayTime = dbUtility.getTodaySGTime();
@@ -168,6 +168,7 @@ let dbPlayerReward = {
                                 });
                             }
                             let bProposal = false;
+                            player.inputDevice = dbUtility.getInputDevice(userAgent,false);
                             let proc = () => {
                                 queryTime = dateArr.pop();
                                 return processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo, isPrevious).then(
@@ -225,6 +226,9 @@ let dbPlayerReward = {
     applyPlayerTopUpPromo: (topUpProposalData, type) => {
         type = type || 'online';
         let player;
+        if (type === 'aliPay') {
+            console.log('debugging topup promo, inside apply function');
+        }
         return new Promise(function (resolve) {
             dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_TOP_UP_PROMO}).lean().then(
                 rewardTypeData => {
@@ -244,15 +248,22 @@ let dbPlayerReward = {
                     player = data[1];
                     if (!promoEvents || promoEvents.length <= 0) {
                         // there is no promotion event going on
+                        if (type === 'aliPay') {
+                            console.log('debugging topup promo, promo event not found');
+                        }
                         return;
                     }
 
                     let promoEventDetail, promotionDetail;
                     for (let i = 0; i < promoEvents.length; i++) {
                         let promoEvent = promoEvents[i];
+                        if (type === 'aliPay') {
+                            console.log('debugging topup promo, event name:', promoEvent.name);
+                        }
 
                         if (dbPlayerReward.isRewardEventForbidden(player, promoEvent._id)) {
                             // the player is not valid for this promotion
+                            if (type === 'aliPay') console.log('debugging topup promo, forbidden triggered, some event skipped');
                             continue;
                         }
 
@@ -263,6 +274,7 @@ let dbPlayerReward = {
                                 case (type === 'online' && Number(promotion.topUpType) == Number(topUpProposalData.data.topupType)):
                                 case (type === 'weChat' && Number(promotion.topUpType) == 98):
                                 case (type === 'aliPay' && Number(promotion.topUpType) == 99):
+                                    if (type === 'aliPay') console.log('debugging topup promo, promotion matched');
                                     promotionDetail = promotion;
                                     promoEventDetail = promoEvent;
                                     break;
@@ -311,6 +323,8 @@ let dbPlayerReward = {
                         userType: constProposalUserType.PLAYERS
                     };
 
+                    if (type === 'aliPay') console.log('debugging topup promo, proposalData:', proposalData);
+
                     return dbProposal.createProposalWithTypeId(promoEventDetail.executeProposal, proposalData);
                 }
             ).then(
@@ -320,7 +334,7 @@ let dbPlayerReward = {
             ).catch(
                 error => {
                     //add debug log
-                    console.error(error);
+                    console.error("applyPlayerTopUpPromo:", error);
                     resolve(error);
                 }
             );
@@ -564,7 +578,7 @@ let dbPlayerReward = {
                                 spendingAmount: rewardAmount * Number(rewardParam.spendingTimes),
                                 applyAmount: 0,
                                 consumptionAmount: consumptionAmount,
-                                amount: rewardAmount,
+                                // amount: rewardAmount,
                                 settlementStartTime: yerTime.startTime,
                                 settlementEndTime: yerTime.endTime,
                                 eventId: eventData._id,
@@ -2042,6 +2056,7 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
+                        inputDevice: playerData.inputDevice
                     };
 
                     if (isPrevious) {

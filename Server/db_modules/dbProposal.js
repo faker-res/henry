@@ -1243,7 +1243,7 @@ var proposal = {
         });
     },
 
-    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum) {//need
+    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId) {//need
         platformId = Array.isArray(platformId) ?platformId :[platformId];
 
         //check proposal without process
@@ -1315,6 +1315,14 @@ var proposal = {
                                 ]
                             })
                         }
+
+                        if (playerId) {
+                            queryObj["$or"] = [
+                                {"data._id": playerId},
+                                {"data.playerObjId": playerId}
+                            ];
+                        }
+
                         if (credit) {
                             queryObj["$and"] = queryObj["$and"] || [];
                             queryObj["$and"].push({
@@ -1565,7 +1573,6 @@ var proposal = {
                 delete reqData["data.partnerName"];
             }
 
-            console.log("~!@#$%^&*()_+",reqData);
             var a = dbconfig.collection_proposal.find(reqData).count();
             var b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                 .populate({path: "type", model: dbconfig.collection_proposalType})

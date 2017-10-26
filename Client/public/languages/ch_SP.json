@@ -536,6 +536,8 @@
   "PlatformTransactionReward": "银行转账奖励",
   "UPDATE_PARTNER": "编辑代理资料",
   "Game Group display Name": "游戏组显示名",
+  "Lock Provider Group": "锁大厅组",
+  "Use Provider Group": "使用锁大厅组",
   "Pending": "待审核",
   "Approved": "成功",
   "Rejected": "失败",
@@ -1281,6 +1283,8 @@
   "SUPPORTED_FILE_FORMAT":"支持的文件格式",
   "ADD_PHONE_NUMBER_FILTER":"添加要过滤的电话号码",
   "ADD_PHONE_NUMBER_FILTER_INSTRUCTION":"电话号码必须用逗号分隔",
+  "DUPLICATE_PHONE":"系统内重复的电话号码",
+  "NON_DUPLICATE_PHONE":"已经过滤的电话号码",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
@@ -2541,5 +2545,18 @@
   "Latest Recorded Time": "当前收录到的最大时间",
   "userAgent": "装置",
   "LastSettlementTime":"执行时间",
-  "BankCardNo":"银行帐号"
+  "BankCardNo":"银行帐号",
+  "CONTENT_CHANGED":"更改内容",
+  "CHANGED_VALUE":"更改值",
+  "UNCHANGED":"(无更改)",
+  "INPUT_DEVICE":"入口",
+  "BACKSTAGE": "后台",
+  "WEB_PLAYER": "WEB玩家",
+  "WEB_AGENT": "WEB代理",
+  "H5_PLAYER": "H5玩家",
+  "H5_AGENT": "H5代理",
+  "APP_PLAYER": "APP玩家",
+  "APP_AGENT": "APP代理",
+  "PROPOSAL_SUB_TYPE": "提案子类型",
+  "INVOLVED_ACC": "涉及帐号"
 }

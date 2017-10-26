@@ -60,10 +60,15 @@ let dbApiLog = {
             ipAddress: ipAddress
         };
 
-
-
-        let apiLog = new dbConfig.collection_apiLog(logData);
-        apiLog.save().then().catch(errorUtils.reportError);
+        if (playerObjId) {
+            let apiLog = new dbConfig.collection_apiLog(logData);
+            apiLog.save().then().catch(errorUtils.reportError);
+        }
+        else {
+            console.error('There are item that should be logged but playerObjId not found.');
+            console.error('actionName', actionName);
+            console.error('actionResult',JSON.stringify(actionResult, null, 2));
+        }
     },
 
     getPlayerApiLog: function (playerObjId, startDate, endDate, action, index, limit, sortCol) {
