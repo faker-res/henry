@@ -8967,7 +8967,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
-                    sendQuery.credibilityRemarks = vm.playerFeedbackQuery.credibilityRemarks;
+                    sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
                 }
 
                 $('#platformFeedbackSpin').show();
