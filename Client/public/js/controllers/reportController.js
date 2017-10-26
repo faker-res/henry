@@ -3734,20 +3734,20 @@ define(['js/app'], function (myApp) {
                 //     $(nRow).css('background-color', 'rgba(135, 206, 250, 100)');
                 //     break;
                 // }
-                case (aData.data.updateAmount >= 5000 && aData.data.updateAmount < 50000): {
+                case (aData.involveAmount$ >= 5000 && aData.involveAmount$ < 50000): {
                     $(nRow).css('background-color', 'rgba(255, 209, 202, 100)','important');
                     $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
                     break;
                 }
-                case (aData.data.updateAmount >= 50000 && aData.data.updateAmount < 500000): {
+                case (aData.involveAmount$ >= 50000 && aData.involveAmount$ < 500000): {
                     $(nRow).css('background-color', 'rgba(236,100,75, 100)','important');
                     break;
                 }
-                case (aData.data.updateAmount >= 500000 && aData.data.updateAmount < 1000000): {
+                case (aData.involveAmount$ >= 500000 && aData.involveAmount$ < 1000000): {
                     $(nRow).css('background-color', 'rgba(255, 184, 133, 100)');
                     break;
                 }
-                case (aData.data.updateAmount >= 1000000): {
+                case (aData.involveAmount$ >= 1000000): {
                     $(nRow).css('background-color', 'rgba(188, 230, 114, 100)');
                     break;
                 }
