@@ -12244,8 +12244,7 @@ define(['js/app'], function (myApp) {
 
             vm.applyPromoCode = function () {
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
-                    playerName: vm.selectedPromoCode.playerObjId.name,
+                    playerId: vm.selectedPromoCode.playerObjId.playerId,
                     promoCode: vm.selectedPromoCode.code
                 };
 
