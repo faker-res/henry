@@ -795,6 +795,7 @@ define(['js/app'], function (myApp) {
                     var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                     var todayEndTime = utilService.getTodayEndTime();
                     vm.playerQuery = {};
+                    vm.playerQuery.sortCol = {validConsumptionAmount: -1};
                     vm.playerQuery.limit = 5000;
                     vm.playerQuery.consumptionTimesOperator = ">=";
                     vm.playerQuery.profitAmountOperator = ">=";
@@ -3229,9 +3230,10 @@ define(['js/app'], function (myApp) {
         ///////draw Platform table inside player start///////
         vm.drawPlatformTable = function (data, id, size, newSearch, qObj) {
             let holder = data;
-            var tableOptions = {
+            let tableOptions = {
                 data: data.providerArr,
-                "order": qObj.aaSorting,
+                "ordering": false,
+                // "order": qObj.aaSorting,
                 aoColumnDefs: [
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
@@ -3305,9 +3307,10 @@ define(['js/app'], function (myApp) {
 
         ///////draw Platform table inside player start///////
         vm.drawPlatformGameTable = function (data, id, size, newSearch, qObj) {
-            var tableOptions = {
+            let tableOptions = {
                 data: data,
-                "order": qObj.aaSorting,
+                "ordering": false,
+                // "order": qObj.aaSorting,
                 aoColumnDefs: [
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
