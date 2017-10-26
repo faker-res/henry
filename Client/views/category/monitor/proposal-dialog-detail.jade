@@ -232,7 +232,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                 //undefined yet
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp"')
                     td {{'Our WeChatNick' | translate }}
-                    td {{vm.selectedProposal.data.weName}}
+                    td {{vm.selectedProposal.data.nickName}}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp"')
                     td {{'SINGLELIMIT' | translate }}
                     td {{vm.selectedProposal.card.singleLimit}}
@@ -244,7 +244,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{ vm.selectedProposal.data.weQRCode }}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp"')
                     td {{'validTime' | translate }}
-                    td {{ vm.selectedProposal.data.validTime }}
+                    td {{ vm.selectedProposal.data.validTime | date : 'yyyy-MM-dd HH:mm:ss'}}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerWechatTopUp" && vm.selectedProposal.from_old_system')
                     td {{'REMARK' | translate }}
                     td {{ vm.selectedProposal.data.remark }}
