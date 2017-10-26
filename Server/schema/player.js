@@ -174,7 +174,8 @@ var playerSchema = new Schema({
         _id: false,
         providerGroupId: {type: Schema.ObjectId, ref: 'gameProviderGroup'},
         walletCredit: {type: Number, min: 0, default: 0},
-        walletConsumption: {type: Number, min: 0, default: 0}
+        walletCurrentConsumption: {type: Number, min: 0, default: 0},
+        walletTargetConsumption: {type: Number, min: 0, default: 0}
     }],
 
     /*Player payment*/

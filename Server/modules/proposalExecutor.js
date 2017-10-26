@@ -1136,9 +1136,15 @@ var proposalExecutor = {
                         targetEnable: proposalData.data.targetEnable,
                         useLockedCredit: proposalData.data.useLockedCredit
                     };
-                    if (proposalData.data.providers) {
+
+                    // Target providers or providerGroup
+                    if (proposalData.data.providerGroup) {
+                        taskData.providerGroup = proposalData.data.providerGroup;
+                    }
+                    else if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;
                     }
+
                     var deferred1 = Q.defer();
                     createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_TOP_UP_RETURN, proposalData);
                     deferred1.promise.then(
@@ -1469,7 +1475,8 @@ var proposalExecutor = {
                         eventId: proposalData.data.eventId,
                         maxRewardAmount: proposalData.data.maxRewardAmount,
                         proposalId: proposalData.proposalId,
-                        applyAmount: proposalData.data.applyAmount
+                        applyAmount: proposalData.data.applyAmount,
+                        rewardAmount: proposalData.data.rewardAmount
                     };
                     createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_TOP_UP_REWARD, proposalData);
                 }
@@ -2452,53 +2459,65 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
     // Add proposalId in reward data
     taskData.proposalId = proposalData.proposalId;
 
-    //check if player has reward task and if player's platform support multi reward
-    dbconfig.collection_rewardTask.findOne(
-        {playerId: proposalData.data.playerObjId, status: constRewardTaskStatus.STARTED, useLockedCredit: true}
-    ).populate(
-        {path: "platformId", model: dbconfig.collection_platform}
-    ).lean().then(
-        curTask => {
-            if (!curTask || (curTask && curTask.platformId && curTask.platformId.canMultiReward)) {
-                return;
-            }
-            else {
-                return Q.reject({name: "DBError", message: "Player already has reward task ongoing"});
-            }
-        }
-    ).then(
-        () => dbRewardTask.createRewardTask(taskData).then(
-            data => rewardTask = data
-        ).catch(
-            error => Q.reject({name: "DBError", message: "Error creating reward task for " + rewardType, error: error})
+    // Create different process flow for lock provider group reward
+    if (proposalData.data.providerGroup) {
+        dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(
+            data => deferred.resolve(resolveValue || rewardTask),
+            error => deferred.reject(error)
         )
-    ).then(
-        () => {
-            if( !taskData.useLockedCredit ){
-                return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
-                    playerData => {
-                        dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
-                    }
-                );
+    } else {
+        //check if player has reward task and if player's platform support multi reward
+        dbconfig.collection_rewardTask.findOne(
+            {playerId: proposalData.data.playerObjId, status: constRewardTaskStatus.STARTED, useLockedCredit: true}
+        ).populate(
+            {path: "platformId", model: dbconfig.collection_platform}
+        ).lean().then(
+            curTask => {
+                if (!curTask || (curTask && curTask.platformId && curTask.platformId.canMultiReward)) {
+                    return;
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Player already has reward task ongoing"});
+                }
             }
-        }
-    ).then(
-        //() => createRewardLogForProposal(taskData.rewardType, proposalData)
-        () => {
-            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
-            //send message if there is any template created for this reward
-            return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
-                rewardTask: taskData
-            });
-        }
-    ).then(
-        function () {
-            deferred.resolve(resolveValue || rewardTask);
-        },
-        function (error) {
-            deferred.reject(error);
-        }
-    );
+        ).then(
+            () => dbRewardTask.createRewardTask(taskData).then(
+                data => rewardTask = data
+            ).catch(
+                error => Q.reject({
+                    name: "DBError",
+                    message: "Error creating reward task for " + rewardType,
+                    error: error
+                })
+            )
+        ).then(
+            () => {
+                if (!taskData.useLockedCredit) {
+                    return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
+                        playerData => {
+                            dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
+                        }
+                    );
+                }
+            }
+        ).then(
+            //() => createRewardLogForProposal(taskData.rewardType, proposalData)
+            () => {
+                SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
+                //send message if there is any template created for this reward
+                return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
+                    rewardTask: taskData
+                });
+            }
+        ).then(
+            function () {
+                deferred.resolve(resolveValue || rewardTask);
+            },
+            function (error) {
+                deferred.reject(error);
+            }
+        );
+    }
 }
 
 function createRewardLogForProposal(rewardTypeName, proposalData) {
