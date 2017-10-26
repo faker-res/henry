@@ -182,7 +182,7 @@ define(['js/app'], function (myApp) {
             }else if(typeName=="PlayerTopUp"){
               let　merchantNo = vm.selectedProposal.data.merchantNo;
               if(merchantNo && vm.merchantLists && vm.merchantLists.length > 0){
-                  vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
+                  vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.merchantNo == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
               }else{
                   vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
               }
