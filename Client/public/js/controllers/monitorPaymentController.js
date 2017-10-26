@@ -246,7 +246,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
             }
           }else if(typeName=="PlayerWechatTopUp"){
-            let　merchantNo = vm.selectedProposal.data.wechatAccount;
+            let　merchantNo = vm.selectedProposal.data.wechatAccount || vm.selectedProposal.data.weChatAccount || vm.selectedProposal.data.weChatName || vm.selectedProposal.data.wechatName;
             if(merchantNo && vm.allWechatpaysAcc && vm.allWechatpaysAcc.length > 0){
                 vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
             }else{
@@ -306,12 +306,11 @@ define(['js/app'], function (myApp) {
               console.error("cannot get player level", data);
           });
         }
-        vm.loadTodayTopupQuota = function(typeId, typeName, cardNo){
+        vm.loadTodayTopupQuota = function(typeId, typeName, cardField, cardNo){
           var start = new Date();
           start.setHours(0,0,0,0);
           var end = new Date();
           end.setHours(23,59,59,999);
-          let cardField = vm.topUpField[typeName]
           var sendData = {
               adminId: authService.adminId,
               platformId: vm.selectedPlatform._id,
@@ -513,8 +512,13 @@ define(['js/app'], function (myApp) {
             $('#modalProposal').on('shown.bs.modal', function (e) {
                 $scope.safeApply();
             })
-            let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
-            vm.loadTodayTopupQuota(typeId, typeName, cardNo);
+            let cardField = vm.topUpField[typeName].filter( fieldName =>{
+                if(vm.selectedProposal.data[fieldName]){
+                    return fieldName
+                }
+            })[0] || '';
+            let cardNo = vm.selectedProposal.data[cardField];
+            vm.loadTodayTopupQuota(typeId, typeName, cardField, cardNo);
             vm.getUserCardGroup(vm.selectedProposal.type.name,vm.selectedPlatform._id, playerId )
             vm.getCardLimit(vm.selectedProposal.type.name);
           })
