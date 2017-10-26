@@ -3209,7 +3209,8 @@ define(['js/app'], function (myApp) {
             let holder = data;
             let tableOptions = {
                 data: data.providerArr,
-                "order": [[0, 'desc']],
+                "ordering": false,
+                // "order": qObj.aaSorting,
                 aoColumnDefs: [
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
@@ -3285,7 +3286,8 @@ define(['js/app'], function (myApp) {
         vm.drawPlatformGameTable = function (data, id, size, newSearch, qObj) {
             let tableOptions = {
                 data: data,
-                "order": [[0, 'desc']],
+                "ordering": false,
+                // "order": qObj.aaSorting,
                 aoColumnDefs: [
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
