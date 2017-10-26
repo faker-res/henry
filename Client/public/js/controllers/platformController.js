@@ -2647,63 +2647,6 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-
-            vm.commonProviderGameTableOptions = {
-                columnDefs: [
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'playerId', bSortable: true, 'aTargets': [2]},
-                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
-                    {'sortCol': 'amount', bSortable: true, 'aTargets': [5]},
-                    {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
-                    {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
-                    {targets: '_all', bSortable: false, defaultContent: ' '}
-                ],
-                columns: [
-                    {title: $translate('CREATION_TIME'), data: "createTime$"},
-                    //{title: $translate('PLATFORM'), data: "platformId.name"},
-                    {title: $translate('PLAYERID'), data: "playerId.name", sClass: 'sumText'},
-                    {title: $translate('providerId'), data: "providerId.name", sClass: 'sumText'},
-                    {title: $translate('GAME_TITLE'), data: "gameId.name"},
-                    {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'sumFloat textRight'},
-                    {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
-                    {title: $translate('orderId'), data: "orderId"},
-                    {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
-                    {
-                        title: $translate('commissionAmount'), data: "commissionAmount$",
-                        sClass: 'sumFloat textRight'
-                    },
-                ],
-                "paging": false,
-                "language": {
-                    "info": "Total _MAX_ records",
-                    "emptyTable": $translate("No data available in table"),
-                }
-            }
-
-            vm.providerExpenseDataTableOptions = {
-                "paging": true,
-                dom: 'tpl',
-                "aaSorting": [],
-                destroy: true,
-                "scrollX": true,
-                sScrollY: 350,
-                scrollCollapse: true,
-                lengthMenu: [
-                    [10, 25, 50, -1],
-                    ['10', '25', '50', $translate('Show All')]
-                ],
-                "language": {
-                    "info": "",
-                    "paginate": {
-                        "previous": $translate("PREVIOUS_PAGE"),
-                        "next": $translate("NEXT_PAGE"),
-                    },
-                    "emptyTable": "",
-                    "lengthMenu": $translate("lengthMenuText"),
-                    sZeroRecords: ""
-                }
-            }
-
             vm.prepareShowProviderExpense = function () {
                 $('#modalProviderExpenses').modal().show();
                 vm.expenseQuery = {};
@@ -2717,7 +2660,7 @@ define(['js/app'], function (myApp) {
                         vm.expenseQuery.pageObj = utilService.createPageForPagingTable("#providerExpenseTablePage", {}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "expenseQuery", vm.getProviderExpense)
                         });
-                        vm.getProviderExpense(true);
+                        // vm.getProviderExpense(true);
                     });
                 });
             }
@@ -2750,7 +2693,64 @@ define(['js/app'], function (myApp) {
                     var tableOptions = {
                         data: tableData,
                         "order": vm.expenseQuery.aaSorting || [[0, 'desc']],
-                    }
+                    };
+
+                    vm.commonProviderGameTableOptions = {
+                        columnDefs: [
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [0]},
+                            {'sortCol': 'playerId', bSortable: true, 'aTargets': [2]},
+                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
+                            {'sortCol': 'amount', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
+                            {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
+                            {targets: '_all', bSortable: false, defaultContent: ' '}
+                        ],
+                        columns: [
+                            {title: $translate('CREATION_TIME'), data: "createTime$"},
+                            //{title: $translate('PLATFORM'), data: "platformId.name"},
+                            {title: $translate('PLAYERID'), data: "playerId.name", sClass: 'sumText'},
+                            {title: $translate('providerId'), data: "providerId.name", sClass: 'sumText'},
+                            {title: $translate('GAME_TITLE'), data: "gameId.name"},
+                            {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'sumFloat textRight'},
+                            {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
+                            {title: $translate('orderId'), data: "orderId"},
+                            {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
+                            {
+                                title: $translate('commissionAmount'), data: "commissionAmount$",
+                                sClass: 'sumFloat textRight'
+                            },
+                        ],
+                        "paging": false,
+                        "language": {
+                            "info": "Total _MAX_ records",
+                            "emptyTable": $translate("No data available in table"),
+                        }
+                    };
+
+                    vm.providerExpenseDataTableOptions = {
+                        "paging": true,
+                        dom: 'tpl',
+                        "aaSorting": [],
+                        destroy: true,
+                        "scrollX": true,
+                        sScrollY: 350,
+                        scrollCollapse: true,
+                        lengthMenu: [
+                            [10, 25, 50, -1],
+                            ['10', '25', '50', $translate('Show All')]
+                        ],
+                        "language": {
+                            "info": "",
+                            "paginate": {
+                                "previous": $translate("PREVIOUS_PAGE"),
+                                "next": $translate("NEXT_PAGE"),
+                            },
+                            "emptyTable": "",
+                            "lengthMenu": $translate("lengthMenuText"),
+                            sZeroRecords: ""
+                        }
+                    };
+
                     tableOptions = $.extend(true, {}, vm.providerExpenseDataTableOptions, vm.commonProviderGameTableOptions, tableOptions);
                     vm.expenseQuery.pageObj.init({maxCount: vm.expenseQuery.totalCount}, newSearch);
                     utilService.createDatatableWithFooter('#providerExpenseTable', tableOptions, {
@@ -2766,7 +2766,7 @@ define(['js/app'], function (myApp) {
                     $('#providerExpenseTable').resize();
                     $scope.safeApply();
                 });
-            }
+            };
 
 
         /////////////////////////////////Mark::Platform players functions//////////////////
