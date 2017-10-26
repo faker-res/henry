@@ -1976,6 +1976,7 @@ let dbPlayerInfo = {
                             type = constPlayerCreditChangeType.MANUAL_TOP_UP;
                             break;
                         case constPlayerTopUpType.ALIPAY:
+                            console.log('debugging topup promo, name:', data.name);
                             type = constPlayerCreditChangeType.ALIPAY_TOP_UP;
                             break;
                         case constPlayerTopUpType.QUICKPAY:
@@ -9011,7 +9012,7 @@ let dbPlayerInfo = {
                                     break;
                                 //request consumption rebate
                                 case constRewardType.PLAYER_CONSUMPTION_RETURN:
-                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true);
+                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN:
                                     if (data.topUpRecordId == null) {

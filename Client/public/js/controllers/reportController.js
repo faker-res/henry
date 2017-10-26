@@ -2540,6 +2540,18 @@ define(['js/app'], function (myApp) {
             let admins = [];
             let csPromoteWay = [];
 
+            if (vm.playerDomain.departments) {
+                if (vm.playerDomain.roles) {
+                    vm.pdQueryRoles.map(e => {
+                        if (vm.playerDomain.roles.indexOf(e._id) >= 0) {
+                            e.users.map(f => admins.push(f._id))
+                        }
+                    })
+                } else {
+                    vm.pdQueryRoles.map(e => e.users.map(f => admins.push(f._id)))
+                }
+            }
+
             var sendquery = {
                 platform: vm.curPlatformId,
                 query: {
@@ -2607,7 +2619,7 @@ define(['js/app'], function (myApp) {
                     if (!item.sourceUrl) {
                         item.registrationAgent$ = "Backstage";
                     }
-                    else if (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1) {
+                    else if (item.registrationBrowser$ && (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1)) {
                         if (item.partner) {
                             item.registrationAgent$ = "APP Agent";
                         }
@@ -2615,7 +2627,7 @@ define(['js/app'], function (myApp) {
                             item.registrationAgent$ = "APP Player";
                         }
                     }
-                    else if (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1) {
+                    else if (item.registrationOS$ && (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1)) {
                         if (item.partner) {
                             item.registrationAgent$ = "HTML5 Agent";
                         }
