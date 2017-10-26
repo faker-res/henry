@@ -207,7 +207,7 @@ define(['js/app'], function (myApp) {
         vm.wechatNameConvert = function(){
             vm.selectedProposal.data.weAcc = '';
             vm.selectedProposal.data.weName = '';
-            vm.selectedProposal.data.weChatQRCode = '';
+            vm.selectedProposal.data.weQRCode = '';
 
             if(vm.selectedProposal.data.wechatAccount){
                 vm.selectedProposal.data.weAcc = vm.selectedProposal.data.wechatAccount;
