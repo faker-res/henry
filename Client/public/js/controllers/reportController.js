@@ -48,10 +48,10 @@ define(['js/app'], function (myApp) {
         };
 
         vm.topUpField = {
-          "ManualPlayerTopUp": 'bankCardNo',
-          "PlayerAlipayTopUp": 'alipayAccount',
-          "PlayerWechatTopUp": 'wechatAccount',
-          "PlayerTopUp": 'merchantNo'
+          "ManualPlayerTopUp": ['bankCardNo'],
+          "PlayerAlipayTopUp": ['alipayAccount'],
+          "PlayerWechatTopUp": ['wechatAccount','weChatAccount'],
+          "PlayerTopUp": ['merchantNo']
         }
 
         //get all platform data from server
@@ -103,9 +103,15 @@ define(['js/app'], function (myApp) {
             $('#modalProposal').on('shown.bs.modal', function (e) {
               $scope.safeApply();
             })
-            let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
-            vm.loadTodayTopupQuota(typeId, typeName, cardNo);
-            vm.getUserCardGroup(vm.selectedProposal.type.name, vm.selectedPlatform._id, playerId )
+            // let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
+            let cardField = vm.topUpField[typeName].filter( fieldName =>{
+                if(vm.selectedProposal.data[fieldName]){
+                    return fieldName
+                }
+            })[0] || '';
+            let cardName = vm.selectedProposal.data[cardField];
+            vm.loadTodayTopupQuota(typeId, typeName, cardName);
+            vm.getUserCardGroup(vm.selectedProposal.type.name, vm.selectedPlatform._id, playerId );
             vm.getCardLimit(vm.selectedProposal.type.name);
           })
         }
