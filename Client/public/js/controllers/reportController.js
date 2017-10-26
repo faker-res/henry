@@ -58,10 +58,10 @@ define(['js/app'], function (myApp) {
         };
 
         vm.topUpField = {
-          "ManualPlayerTopUp": 'bankCardNo',
-          "PlayerAlipayTopUp": 'alipayAccount',
-          "PlayerWechatTopUp": 'wechatAccount',
-          "PlayerTopUp": 'merchantNo'
+          "ManualPlayerTopUp": ['bankCardNo'],
+          "PlayerAlipayTopUp": ['alipayAccount'],
+          "PlayerWechatTopUp": ['wechatAccount','weChatAccount'],
+          "PlayerTopUp": ['merchantNo']
         }
 
         //get all platform data from server
@@ -113,9 +113,15 @@ define(['js/app'], function (myApp) {
             $('#modalProposal').on('shown.bs.modal', function (e) {
               $scope.safeApply();
             })
-            let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
-            vm.loadTodayTopupQuota(typeId, typeName, cardNo);
-            vm.getUserCardGroup(vm.selectedProposal.type.name, vm.selectedPlatform._id, playerId )
+            // let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
+            let cardField = vm.topUpField[typeName].filter( fieldName =>{
+                if(vm.selectedProposal.data[fieldName]){
+                    return fieldName
+                }
+            })[0] || '';
+            let cardName = vm.selectedProposal.data[cardField];
+            vm.loadTodayTopupQuota(typeId, typeName, cardName);
+            vm.getUserCardGroup(vm.selectedProposal.type.name, vm.selectedPlatform._id, playerId );
             vm.getCardLimit(vm.selectedProposal.type.name);
           })
         }
@@ -129,7 +135,7 @@ define(['js/app'], function (myApp) {
         vm.wechatNameConvert = function(){
             vm.selectedProposal.data.weAcc = '';
             vm.selectedProposal.data.weName = '';
-            vm.selectedProposal.data.weChatQRCode = '';
+            vm.selectedProposal.data.weQRCode = '';
 
             if(vm.selectedProposal.data.wechatAccount){
                 vm.selectedProposal.data.weAcc = vm.selectedProposal.data.wechatAccount;
@@ -139,9 +145,6 @@ define(['js/app'], function (myApp) {
             }
             if(vm.selectedProposal.data.wechatName) {
                 vm.selectedProposal.data.weName = vm.selectedProposal.data.wechatName;
-            }
-            if(vm.selectedProposal.data.weChatName) {
-                vm.selectedProposal.data.weName = vm.selectedProposal.data.weChatName;
             }
             if(vm.selectedProposal.data.weChatName) {
                 vm.selectedProposal.data.weName = vm.selectedProposal.data.weChatName;
@@ -653,6 +656,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
                     if (data.data && data.data.merchants) {
+                        vm.merchantLists = data.data.merchants;
                         vm.merchantNoList = data.data.merchants.filter(mer => {
                             vm.merchantNoNameObj[mer.merchantNo] = mer.name;
                             return mer.status != 'DISABLED';
@@ -1725,11 +1729,6 @@ define(['js/app'], function (myApp) {
                     var data = data.data;
                     vm.allWechatpaysAcc = data.data ? data.data : [];
                 });
-            socketService.$socket($scope.AppSocket, 'getMerchantList', {platform: vm.selectedPlatform.platformId},
-                data => {
-                    var data = data.data;
-                    vm.merchantLists = data.data ? data.data : [];
-                });
         }
 
         vm.drawTopupReport = function (data, size, summary, newSearch) {
@@ -1739,8 +1738,8 @@ define(['js/app'], function (myApp) {
                 "order": vm.queryTopup.aaSorting || [[0, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [6]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [14]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
