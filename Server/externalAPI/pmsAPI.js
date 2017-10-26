@@ -25,7 +25,7 @@ function callPMSAPI(service, functionName, data) {
                 message: "Payment is not available"
             });
         }
-    }, 5*1000);
+    }, 10*1000);
     clientAPIInstance.createAPIConnectionInMode("PaymentAPI").then(
         con => {
             bOpen = true;
