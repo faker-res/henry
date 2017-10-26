@@ -523,11 +523,11 @@ define(['js/app'], function (myApp) {
             console.log('data', data);
             let tableOptions = {
                 data: data,
-                "order": vm.paymentMonitorQuery.aaSorting || [[11, 'desc']],
+                "order": vm.paymentMonitorQuery.aaSorting || [[14, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [6]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [14]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [

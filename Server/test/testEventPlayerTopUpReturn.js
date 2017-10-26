@@ -338,7 +338,7 @@ describe("Test player top up return", function () {
         //test on top up record can be used only once
         for(var i = 0; i < 3; i++){
             proms.push(
-                dbPlayerInfo.applyTopUpReturn(testPlayerId, testPlayerTopUpRecordId, testRewardEventNameCode).then(
+                dbPlayerInfo.applyTopUpReturn('', testPlayerId, testPlayerTopUpRecordId, testRewardEventNameCode).then(
                     proposal => {
                         numberOfSuccesses++;
                         proposalData = proposal;

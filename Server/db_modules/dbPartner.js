@@ -1506,19 +1506,21 @@ let dbPartner = {
         );
     },
 
-    updatePartnerBankInfo: function (partnerId, bankData) {
+    updatePartnerBankInfo: function (userAgent, partnerId, bankData) {
         return dbconfig.collection_partner.findOne({partnerId: partnerId}).then(
             partnerData => {
                 if (partnerData) {
                     if (partnerData.bankName || partnerData.bankAccount || partnerData.bankAccountName || partnerData.bankAccountType || partnerData.bankAccountCity || partnerData.bankAddress) {
                         // bankData.partnerName = partnerData.partnerName;
                         // bankData.parternId = partnerData.partnerId;
+                        let inputDevice = dbutility.getInputDevice(userAgent,true);
                         return dbProposal.createProposalWithTypeNameWithProcessInfo(partnerData.platform, constProposalType.UPDATE_PARTNER_BANK_INFO, {
                             data: {
                                 partnerName: partnerData.partnerName,
                                 parternId: partnerData.partnerId,
                                 updateData: bankData
-                            }
+                            },
+                            inputDeivce: inputDevice
                         });
                     }
                     else {
@@ -1825,10 +1827,10 @@ let dbPartner = {
     /*
      * Apply bonus
      */
-    applyBonus: function (partnerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
+    applyBonus: function (userAgent, partnerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
         let partner = null;
         let bonusDetail = null;
-        let bUpdateCredit = false;
+        let bUpdateCredit = false;;
         let resetCredit = function (partnerObjId, platformObjId, credit, error) {
             //reset partner credit if credit is incorrect
             return dbconfig.collection_partner.findOneAndUpdate({
@@ -2015,6 +2017,7 @@ let dbPartner = {
                                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                     userType: constProposalUserType.PARTNERS,
                                 };
+                                newProposal.inputDevice = dbutility.getInputDevice(userAgent,true);
                                 return dbProposal.createProposalWithTypeName(partner.platform._id, constProposalType.PARTNER_BONUS, newProposal);
                             }
                         }

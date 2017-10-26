@@ -11,6 +11,16 @@ define(['js/app'], function (myApp) {
         window.VM = vm;
 
         // declare constant
+        vm.inputDevice = {
+            BACKSTAGE: 0,
+            WEB_PLAYER: 1,
+            WEB_AGENT: 2,
+            H5_PLAYER: 3,
+            H5_AGENT: 4,
+            APP_PLAYER: 5,
+            APP_AGENT: 6
+        };
+
         vm.proposalStatusList = { // removed APPROVED and REJECTED
             PREPENDING: "PrePending",
             PENDING: "Pending",
@@ -722,7 +732,7 @@ define(['js/app'], function (myApp) {
             //     });
             // }
             else if (choice == "PROPOSAL_REPORT") {
-                vm.proposalQuery = {};
+                vm.proposalQuery = {aaSorting: [[8, "desc"]], sortCol: {createTime: -1}};
                 vm.proposalQuery.status = 'all';
                 vm.proposalQuery.promoType = '';
                 vm.proposalQuery.totalCount = 0;
@@ -2510,6 +2520,18 @@ define(['js/app'], function (myApp) {
             let admins = [];
             let csPromoteWay = [];
 
+            if (vm.playerDomain.departments) {
+                if (vm.playerDomain.roles) {
+                    vm.pdQueryRoles.map(e => {
+                        if (vm.playerDomain.roles.indexOf(e._id) >= 0) {
+                            e.users.map(f => admins.push(f._id))
+                        }
+                    })
+                } else {
+                    vm.pdQueryRoles.map(e => e.users.map(f => admins.push(f._id)))
+                }
+            }
+
             var sendquery = {
                 platform: vm.curPlatformId,
                 query: {
@@ -2577,7 +2599,7 @@ define(['js/app'], function (myApp) {
                     if (!item.sourceUrl) {
                         item.registrationAgent$ = "Backstage";
                     }
-                    else if (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1) {
+                    else if (item.registrationBrowser$ && (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1)) {
                         if (item.partner) {
                             item.registrationAgent$ = "APP Agent";
                         }
@@ -2585,7 +2607,7 @@ define(['js/app'], function (myApp) {
                             item.registrationAgent$ = "APP Player";
                         }
                     }
-                    else if (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1) {
+                    else if (item.registrationOS$ && (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1)) {
                         if (item.partner) {
                             item.registrationAgent$ = "HTML5 Agent";
                         }
@@ -2866,7 +2888,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt alignRight'},
                     {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$", sClass: 'sumFloat alignRight'},
                     {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$", sClass: 'sumFloat alignRight'},
-                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: 'sumPercent alignRight'},
+                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: 'playerReportProfit alignRight'},
                     {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: 'sumFloat alignRight'}
                 ],
                 "paging": false,
@@ -3496,6 +3518,7 @@ define(['js/app'], function (myApp) {
                 startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
                 proposalTypeId: newproposalQuery.proposalTypeId,
+                inputDevice: newproposalQuery.inputDevice,
                 rewardTypeName: newproposalQuery.rewardTypeName,
                 promoTypeName: newproposalQuery.promoTypeName,
                 platformId: vm.curPlatformId,
@@ -3512,15 +3535,19 @@ define(['js/app'], function (myApp) {
                 $('#proposalTable').show();
                 console.log('proposal data', data);
                 var datatoDraw = data.data.data.map(item => {
-                    item.involveAmount = 0;
-                    if (item.topUpAmount) {
-                        item.involveAmount = item.data.topUpAmount;
-                    } else if (item.data.rewardAmount) {
-                        item.involveAmount = item.data.rewardAmount;
+                    item.involveAmount$ = 0;
+                    if (item.data.updateAmount) {
+                        item.involveAmount$ = item.data.updateAmount;
                     } else if (item.data.amount) {
-                        item.involveAmount = item.data.amount;
+                        item.involveAmount$ = item.data.amount;
+                    } else if (item.data.rewardAmount) {
+                        item.involveAmount$ = item.data.rewardAmount;
+                    } else if (item.data.commissionAmount) {
+                        item.involveAmount$ = item.data.commissionAmount;
+                    } else if (item.data.negativeProfitAmount) {
+                        item.involveAmount$ = item.data.negativeProfitAmount;
                     }
-                    item.involveAmount = parseFloat(item.involveAmount).toFixed(2);
+                    item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
                     item.typeName = $translate(item.type.name || "Unknown");
                     item.mainType$ = $translate(item.mainType || "Unknown");
                     item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
@@ -3544,49 +3571,84 @@ define(['js/app'], function (myApp) {
                 "order": vm.proposalQuery.aaSorting,
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', 'aTargets': [0]},
-                    {'sortCol': 'createTime', 'aTargets': [6]}
+                    {'sortCol': 'createTime', 'aTargets': [8]}
                 ],
                 columns: [
                     {title: $translate('PROPOSAL ID'), data: "proposalId"},
+                    {title: $translate('CREATOR'),
+                        data: null,
+                        render: function (data, type, row) {
+                            if (data.hasOwnProperty('creator')) {
+                                return data.creator.name;
+                            } else {
+                                var creator = $translate('System');
+                                if (data && data.data && data.data.playerName) {
+                                    creator += "(" + data.data.playerName + ")";
+                                }
+                                return creator;
+                            }
+                        }
+                    },
                     {
-                        title: $translate('PROPOSAL TYPE'), data: "typeName",
+                        title: $translate('INPUT_DEVICE'),
+                        data: "inputDevice",
+                        render: function (data, type, row) {
+                            for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data ){
+                                    return $translate(Object.keys(vm.inputDevice)[i]);
+                                }
+                            }
+                        }
+                    },
+                    {
+                        title: $translate('PROPOSAL TYPE'), data: ("mainType$"),
                         orderable: false,
                         // render: function (data) {
                         //     return $translate(data);
                         // }
                     },
                     {
-                        title: $translate('PROPOSAL MAIN TYPE'), data: ("mainType$"),
+                        title: $translate('PROPOSAL_SUB_TYPE'), data: null,
                         orderable: false,
-                        // render: function (data) {
-                        //     return $translate(data);
-                        // }
+                        render: function (data, type, row) {
+                            if (data && data.data && data.data.PROMO_CODE_TYPE) {
+                                return data.data.PROMO_CODE_TYPE;
+                            }else if(data && data.data && data.data.eventName){
+                                return data.data.eventName;
+                            }else {
+                                return data.typeName;
+                            }
+                        }
                     },
                     {
-                        title: "<div>" + $translate('STATUS'), data: "status$",
+                        title: "<div>" + $translate('Proposal Status'), data: "status$",
                         orderable: false,
                         // render: function (data, type, row) {
                         //     return $translate(vm.getStatusStrfromRow(row))
                         // }
                     },
                     {
-                        title: "<div>" + $translate('PLAYER ID'), data: "data.playerShortId",
+                        title: "<div>" + $translate('INVOLVED_ACC'),
+                        "data": null,
+                        render: function (data, type, row) {
+                            if (data.hasOwnProperty('creator') && data.creator.type == 'player') {
+                                return data.creator.name;
+                            }
+                            if (data && data.data && data.data.playerName) {
+                                return data.data.playerName;
+                            }
+                            else if (data && data.data && data.data.partnerName) {
+                                return data.data.partnerName;
+                            }
+                            else {
+                                return "";
+                            }
+                        },
                         orderable: false,
+                        sClass: "sumText"
                     },
                     {
-                        title: "<div>" + $translate('USER TYPE'), data: "userType",
-                        orderable: false,
-                    },
-                    {
-                        title: "<div>" + $translate('CREATION TIME'), data: "createTime$",
-                        sClass: "sumText",
-                        // render: function (data, type, row) {
-                        //     return utilService.$getTimeFromStdTimeFormat(data);
-                        // },
-                        defaultContent: 0
-                    },
-                    {
-                        title: $translate('Amount Involved'), data: "involveAmount", defaultContent: 0,
+                        title: $translate('Amount Involved'), data: "involveAmount$", defaultContent: 0,
                         orderable: false,
                         sClass: "sumFloat alignRight",
                         // render: function (data, type, row) {
@@ -3600,6 +3662,25 @@ define(['js/app'], function (myApp) {
                         //     }
                         //     return showStr;
                         // },
+                    },
+                    // {
+                    //     title: "<div>" + $translate('USER TYPE'), data: "userType",
+                    //     orderable: false,
+                    // },
+                    {
+                        title: "<div>" + $translate('START_TIME'), data: "createTime$",
+                        // render: function (data, type, row) {
+                        //     return utilService.$getTimeFromStdTimeFormat(data);
+                        // },
+                        defaultContent: 0
+                    },
+                    {
+                        title: "<div>" + $translate('Player Level'), data: "data.proposalPlayerLevel",
+                        orderable: false,
+                    },
+                    {
+                        title: "<div>" + $translate('REMARKS'), data: " ",
+                        orderable: false,
                     }
                 ],
                 // "autoWidth": true,
