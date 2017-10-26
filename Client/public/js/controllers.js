@@ -354,7 +354,9 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         '4': 'WechatApp',
         '5': 'AlipayApp',
         '6': 'FASTPAY',
-        '7': 'QQPAYQR'
+        '7': 'QQPAYQR',
+        '8': 'UnPayQR',
+        '9': 'JdPayQR'
     };
     $scope.merchantTargetDeviceJson = {
         '1': "clientType_Web",
