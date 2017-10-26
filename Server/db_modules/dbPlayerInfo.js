@@ -3274,13 +3274,19 @@ let dbPlayerInfo = {
                         os: userAgent.os.name || '',
                     };
                     var bExit = false;
-                    newAgentArray.forEach(
-                        agent => {
-                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
-                                bExit = true;
+                    if(newAgentArray && typeof newAgentArray.forEach == "function" ){
+                        newAgentArray.forEach(
+                            agent => {
+                                if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                    bExit = true;
+                                }
                             }
-                        }
-                    );
+                        );
+                    }
+                    else{
+                        newAgentArray = [];
+                        bExit = true;
+                    }
                     if (!bExit) {
                         newAgentArray.push(uaObj);
                     }
@@ -3550,13 +3556,20 @@ let dbPlayerInfo = {
                         os: userAgent.os.name || '',
                     };
                     let bExit = false;
-                    newAgentArray.forEach(
-                        agent => {
-                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
-                                bExit = true;
+                    if(newAgentArray && typeof newAgentArray.forEach == "function" ){
+                        newAgentArray.forEach(
+                            agent => {
+                                if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                    bExit = true;
+                                }
                             }
-                        }
-                    );
+                        );
+                    }
+                    else{
+                        newAgentArray = [];
+                        bExit = true;
+                    }
+
                     if (!bExit) {
                         newAgentArray.push(uaObj);
                     }
