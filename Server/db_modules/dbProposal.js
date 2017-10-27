@@ -147,18 +147,28 @@ var proposal = {
                 )
         }
 
-        return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
-            data => {
-                if (data && data.process) {
-                    return getStepInfo(Object.assign({}, data));
-                } else {
-                    return data;
+        let getPlayerQuery = {name:""};
+        if(proposalData.data.referralName) {
+            getPlayerQuery.name = proposalData.data.referralName;
+        }
+        return dbPlayerInfo.getPlayerInfo(getPlayerQuery).then(
+            player => {
+                if(proposalData.data.referralName) {
+                    proposalData.data.referral = player._id;
                 }
-            },
-            error => {
-                return Q.reject(error);
-            }
-        );
+                return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
+                    data => {
+                        if (data && data.process) {
+                            return getStepInfo(Object.assign({}, data));
+                        } else {
+                            return data;
+                        }
+                    },
+                    error => {
+                        return Q.reject(error);
+                    }
+                );
+            })
     },
 
     /**
