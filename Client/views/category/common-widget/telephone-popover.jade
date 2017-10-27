@@ -30,7 +30,7 @@ ez-modal(modal-id="messagePlayerModal", modal-title="{{'SEND_MESSAGE_TO_PLAYER' 
                 .row
                     div.form-group.col-md-12
                         label.control-label {{"MESSAGE" | translate}}
-                        textarea.form-control(ng-model="vm.messageForPlayer.content", placeholder="...", rows="8")
+                        textarea.form-control(ng-model="vm.messageForPlayer.content", placeholder="...", rows="8", maxlength="100")
 
         #messageLogPanel.panel-body(ng-if="vm.messageModalTab === 'messageLogPanel'")
             #mailLogQuery.block-query.well
