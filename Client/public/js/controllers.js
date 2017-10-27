@@ -66,9 +66,9 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             query: 'token=' + token,
             //todo::add secure flag for https
             //secure: true
-            //set connection timeout to 50 seconds
-            timeout: 50000,
-            reconnectionDelay: 2000,
+            //set connection timeout to 10 seconds
+            timeout: 10000,
+            reconnectionDelay: 1000,
             reconnection: true,
             "transports": ["websocket"]
         });
