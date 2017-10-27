@@ -12979,6 +12979,7 @@ define(['js/app'], function (myApp) {
             vm.phoneNumFilterClicked = function () {
                 vm.phoneNumListResult = false;
                 vm.inputNewPhoneNum = [];
+                vm.phoneNumCSVResult = false;
             };
 
             // compare a new list pf phone numbers with existing player info database
@@ -12996,6 +12997,23 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             };
+
+            // upload phone file: csv
+            vm.uploadPhoneFileCSV = function(content) {
+                vm.splitPhoneCSV = content.split(/\n/g).map((item) => item.trim());
+                vm.arrayPhoneCSV = vm.splitPhoneCSV.slice(0, vm.splitPhoneCSV.length - 1);
+
+                let sendData = {
+                    arrayPhoneCSV: vm.arrayPhoneCSV
+                };
+
+                socketService.$socket($scope.AppSocket, 'uploadPhoneFileCSV', sendData, function (data) {
+                    vm.diffPhoneCSV = data.data.diffPhoneCSV;
+                    vm.samePhoneCSV = data.data.samePhoneCSV;
+                    $scope.safeApply();
+                });
+            };
+
             // player level codes==============end===============================
 
             // partner level codes==============start===============================
