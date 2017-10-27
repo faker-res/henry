@@ -28,7 +28,7 @@ function callCPMSAPI(service, functionName, data) {
                 message: "Game is not available"
             });
         }
-    }, 30 * 1000);
+    }, 60 * 1000);
     clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
         wsClient => {
             bOpen = true;

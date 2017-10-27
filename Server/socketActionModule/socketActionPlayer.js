@@ -952,6 +952,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.comparePhoneNum, [data.arrayInputPhone], actionName, isValidData);
         },
 
+        uploadPhoneFileCSV: function uploadPhoneFileCSV(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.arrayPhoneCSV);
+            socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileCSV, [data.arrayPhoneCSV], actionName, isValidData);
+        },
+
     };
     socketActionPlayer.actions = this.actions;
 }

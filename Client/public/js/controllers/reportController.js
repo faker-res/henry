@@ -76,6 +76,7 @@ define(['js/app'], function (myApp) {
             vm.getCredibilityRemarksByPlatformId(vm.selectedPlatform._id);
             vm.getRewardList();
             vm.getPromotionTypeList();
+            vm.getPlatformProviderGroup();
             $cookies.put("platform", vm.selectedPlatform.name);
             console.log('vm.selectedPlatform', vm.selectedPlatform);
             vm.loadPage(vm.showPageName);
@@ -113,14 +114,13 @@ define(['js/app'], function (myApp) {
             $('#modalProposal').on('shown.bs.modal', function (e) {
               $scope.safeApply();
             })
-            // let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
             let cardField = vm.topUpField[typeName].filter( fieldName =>{
                 if(vm.selectedProposal.data[fieldName]){
                     return fieldName
                 }
             })[0] || '';
-            let cardName = vm.selectedProposal.data[cardField];
-            vm.loadTodayTopupQuota(typeId, typeName, cardName);
+            let cardNo = vm.selectedProposal.data[cardField];
+            vm.loadTodayTopupQuota(typeId, typeName, cardField, cardNo);
             vm.getUserCardGroup(vm.selectedProposal.type.name, vm.selectedPlatform._id, playerId );
             vm.getCardLimit(vm.selectedProposal.type.name);
           })
@@ -174,7 +174,7 @@ define(['js/app'], function (myApp) {
                   vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
               }
             }else if(typeName=="PlayerWechatTopUp"){
-              let　merchantNo = vm.selectedProposal.data.wechatAccount;
+              let　merchantNo = vm.selectedProposal.data.wechatAccount || vm.selectedProposal.data.weChatAccount || vm.selectedProposal.data.weChatName || vm.selectedProposal.data.wechatName;
               if(merchantNo && vm.allWechatpaysAcc && vm.allWechatpaysAcc.length > 0){
                   vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
               }else{
@@ -183,7 +183,7 @@ define(['js/app'], function (myApp) {
             }else if(typeName=="PlayerTopUp"){
               let　merchantNo = vm.selectedProposal.data.merchantNo;
               if(merchantNo && vm.merchantLists && vm.merchantLists.length > 0){
-                  vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
+                  vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.merchantNo == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
               }else{
                   vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
               }
@@ -232,12 +232,11 @@ define(['js/app'], function (myApp) {
               console.error("cannot get player level", data);
           });
         }
-        vm.loadTodayTopupQuota = function(typeId, typeName, cardNo){
+        vm.loadTodayTopupQuota = function(typeId, typeName, cardField, cardNo){
           var start = new Date();
           start.setHours(0,0,0,0);
           var end = new Date();
           end.setHours(23,59,59,999);
-          let cardField = vm.topUpField[typeName]
           var sendData = {
               adminId: authService.adminId,
               platformId: vm.selectedPlatform._id,
@@ -298,6 +297,8 @@ define(['js/app'], function (myApp) {
                         return vm.getProviderText(item);
                     }) : '';
                     result = result.join(',');
+                } else if (fieldName.indexOf('providerGroup') > -1) {
+                    result = getProviderGroupNameById(val);
                 } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                     result = utilService.getFormatTime(val);
                 } else if (fieldName == 'bankAccountType') {
@@ -344,7 +345,7 @@ define(['js/app'], function (myApp) {
                 } else if (fieldName == 'allowedProviders'){
                     let providerName = '';
                     for(var v in val){
-                      providerName += val[v].name+', ';
+                        providerName += val[v].name+', ';
                     }
                     result = providerName;
                 } else if (fieldName === 'proposalPlayerLevel') {
@@ -365,7 +366,25 @@ define(['js/app'], function (myApp) {
             obj.startTime = utilService.setNDaysAgo(new Date(), 30);
             obj.endTime = new Date();
             return obj;
-        }
+        };
+
+        vm.getPlatformProviderGroup = () => {
+            $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+                vm.gameProviderGroup = data.data;
+                $scope.safeApply();
+            });
+        };
+
+        vm.getProviderGroupNameById = (grpId) => {
+            let result = '';
+            $.each(vm.gameProviderGroup, function (i, v) {
+                if (grpId == v._id) {
+                    result = v.name;
+                    return true;
+                }
+            });
+            return result;
+        };
 
         var constRewardReportTableProp = [
             {// player reward tables
@@ -3734,20 +3753,20 @@ define(['js/app'], function (myApp) {
                 //     $(nRow).css('background-color', 'rgba(135, 206, 250, 100)');
                 //     break;
                 // }
-                case (aData.data.updateAmount >= 5000 && aData.data.updateAmount < 50000): {
+                case (aData.involveAmount$ >= 5000 && aData.involveAmount$ < 50000): {
                     $(nRow).css('background-color', 'rgba(255, 209, 202, 100)','important');
                     $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
                     break;
                 }
-                case (aData.data.updateAmount >= 50000 && aData.data.updateAmount < 500000): {
+                case (aData.involveAmount$ >= 50000 && aData.involveAmount$ < 500000): {
                     $(nRow).css('background-color', 'rgba(236,100,75, 100)','important');
                     break;
                 }
-                case (aData.data.updateAmount >= 500000 && aData.data.updateAmount < 1000000): {
+                case (aData.involveAmount$ >= 500000 && aData.involveAmount$ < 1000000): {
                     $(nRow).css('background-color', 'rgba(255, 184, 133, 100)');
                     break;
                 }
-                case (aData.data.updateAmount >= 1000000): {
+                case (aData.involveAmount$ >= 1000000): {
                     $(nRow).css('background-color', 'rgba(188, 230, 114, 100)');
                     break;
                 }
@@ -5167,7 +5186,9 @@ define(['js/app'], function (myApp) {
                         '4': 'WechatApp',
                         '5': 'AlipayApp',
                         '6': 'FASTPAY',
-                        '7': 'QQPAYQR'
+                        '7': 'QQPAYQR',
+                        '8': 'UnPayQR',
+                        '9': 'JdPayQR'
                     };
                 }
             );

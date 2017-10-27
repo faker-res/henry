@@ -3274,13 +3274,19 @@ let dbPlayerInfo = {
                         os: userAgent.os.name || '',
                     };
                     var bExit = false;
-                    newAgentArray.forEach(
-                        agent => {
-                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
-                                bExit = true;
+                    if(newAgentArray && typeof newAgentArray.forEach == "function" ){
+                        newAgentArray.forEach(
+                            agent => {
+                                if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                    bExit = true;
+                                }
                             }
-                        }
-                    );
+                        );
+                    }
+                    else{
+                        newAgentArray = [];
+                        bExit = true;
+                    }
                     if (!bExit) {
                         newAgentArray.push(uaObj);
                     }
@@ -3550,13 +3556,20 @@ let dbPlayerInfo = {
                         os: userAgent.os.name || '',
                     };
                     let bExit = false;
-                    newAgentArray.forEach(
-                        agent => {
-                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
-                                bExit = true;
+                    if(newAgentArray && typeof newAgentArray.forEach == "function" ){
+                        newAgentArray.forEach(
+                            agent => {
+                                if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                    bExit = true;
+                                }
                             }
-                        }
-                    );
+                        );
+                    }
+                    else{
+                        newAgentArray = [];
+                        bExit = true;
+                    }
+
                     if (!bExit) {
                         newAgentArray.push(uaObj);
                     }
@@ -8070,6 +8083,7 @@ let dbPlayerInfo = {
         var adminInfo = ifAdmin;
 
         let eventData, taskData;
+        let isProviderGroup = false;
 
         var recordProm = dbconfig.collection_playerTopUpRecord.findById(topUpRecordId).lean();
         var playerProm = dbconfig.collection_players.findOne({playerId: playerId})
@@ -8093,6 +8107,7 @@ let dbPlayerInfo = {
                     player = data[0];
                     record = data[1];
                     platformId = player.platform;
+                    isProviderGroup = Boolean(player.platform.useProviderGroup);
 
                     let taskProm;
                     if (!player.platform.canMultiReward && player.platform.useLockedCredit) {
@@ -8252,7 +8267,6 @@ let dbPlayerInfo = {
                                     topUpProposalId: record.proposalId,
                                     applyAmount: deductionAmount,
                                     rewardAmount: rewardAmount,
-                                    providers: eventData.param.providers,
                                     targetEnable: eventData.param.targetEnable,
                                     games: eventData.param.games,
                                     spendingAmount: (record.amount + rewardAmount) * rewardParam.spendingTimes,
@@ -8267,6 +8281,14 @@ let dbPlayerInfo = {
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS,
                             };
+
+                            // Provider Group setting
+                            if (isProviderGroup) {
+                                proposalData.data.providerGroup = eventData.param.providerGroup;
+                            } else {
+                                proposalData.data.providers = eventData.param.providers;
+                            }
+
                             proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                             return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                                 {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
@@ -11013,6 +11035,51 @@ let dbPlayerInfo = {
             samePhoneList = samePhone.join(", ");
 
             return {samePhoneList: samePhoneList, diffPhoneList: diffPhoneList};
+        }).then(data => {
+            return data;
+        });
+    },
+
+    uploadPhoneFileCSV: function (arrayPhoneCSV) {
+        let oldNewPhone = {$in: []};
+
+        for (let i = 0; i < arrayPhoneCSV.length; i++) {
+            oldNewPhone.$in.push(arrayPhoneCSV[i]);
+            oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneCSV[i]));
+        }
+
+        // display phoneNumber from DB without asterisk masking
+        let dbPhone = dbconfig.collection_players.aggregate([
+            {$match: {"phoneNumber": oldNewPhone}},
+            {$project: {name: 1, phoneNumber: 1, _id: 0}}
+        ]);
+
+        let diffPhoneCSV;
+        let samePhoneCSV;
+        let arrayDbPhone = [];
+
+        // display phoneNumber result that matched input phoneNumber
+        return dbPhone.then(playerData => {
+            // encrypted phoneNumber in DB will be decrypted
+            for (let q = 0; q < playerData.length; q ++) {
+                if (playerData[q].phoneNumber.length > 20) {
+                    playerData[q].phoneNumber = rsaCrypto.decrypt(playerData[q].phoneNumber);
+                }
+            }
+
+            for (let z = 0; z < playerData.length; z ++) {
+                arrayDbPhone.push(playerData[z].phoneNumber);
+            }
+
+            // display non duplicated phone numbers
+            let diffPhone = arrayPhoneCSV.filter(item => !arrayDbPhone.includes(item));
+            diffPhoneCSV = diffPhone.join(", ");
+
+            // display duplicated phone numbers
+            let samePhone = arrayPhoneCSV.filter(item => arrayDbPhone.includes(item));
+            samePhoneCSV = samePhone.join(", ");
+
+            return {samePhoneCSV: samePhoneCSV, diffPhoneCSV: diffPhoneCSV};
         }).then(data => {
             return data;
         });

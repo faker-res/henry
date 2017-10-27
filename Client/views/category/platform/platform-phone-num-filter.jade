@@ -1,19 +1,38 @@
 .row
-    .col-md-3
+    .col-md-4
         .panel.panel-primary
             .panel-heading
                 .fa.fa-file-text.margin-right-5
                 label {{"SUPPORTED_FILE_FORMAT" | translate}}:
                 |  .csv
             .panel-body
-                input#fileSelect(type='file', accept='.csv')
-                br
-                .pull-right
-                    button.btn.btn-primary.common-button
-                        i.fa.fa-check
-                        text {{"SUBMIT" | translate}}
+                div
+                    form
+                        input(type='file', name='file' on-read-file='vm.uploadPhoneFileCSV($fileContent); showContentCSV($fileContent)')
+                        br
+                        .well(ng-if='contentCSV')
+                            label {{"CONTENT_CSV" | translate}}:
+                            p {{contentCSV}}
+                        .pull-right
+                            button.btn.btn-primary.common-button(ng-click="vm.phoneNumCSVResult=true;")
+                                i.fa.fa-check
+                                text {{"SUBMIT" | translate}}
+                // display result
+                div(ng-if="vm.phoneNumCSVResult")
+                    br
+                    label {{"RESULT" | translate}}:
+                    .well
+                        label {{"DUPLICATE_PHONE" | translate}}:
+                        p {{vm.samePhoneCSV}}
+                    .well
+                        label {{"NON_DUPLICATE_PHONE" | translate}}:
+                        p {{vm.diffPhoneCSV}}
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-click="vm.phoneNumCSVResult=true;")
+                            i.fa.fa-check
+                            text {{"EXPORT_CSV" | translate}}
 
-    .col-md-3
+    .col-md-4
         .panel.panel-primary
             .panel-heading
                 .fa.fa-file-text.margin-right-5
@@ -27,7 +46,7 @@
                         i.fa.fa-check
                         text {{"SUBMIT" | translate}}
 
-    .col-md-6
+    .col-md-4
         .panel.panel-primary
             .panel-heading
                 .fa.fa-phone.margin-right-5

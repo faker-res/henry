@@ -1142,20 +1142,21 @@ let dbPlayerReward = {
     getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
     getDelayDurationGroup: (platformObjId, duration) => dbConfig.collection_platform.find({_id: platformObjId}).lean(),
 
-    applyPromoCode: (platformObjId, playerName, promoCode, adminInfo) => {
+    applyPromoCode: (playerId, promoCode, adminInfo) => {
         let promoCodeObj, playerObj, topUpProp;
         let isType2Promo = false;
+        let platformObjId = '';
 
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
-                platform: platformObjId,
-                name: playerName
+                playerId: playerId
             })
         }).then(
             playerData => {
                 playerObj = playerData;
+                platformObjId = playerObj.platform
                 return dbConfig.collection_promoCode.find({
-                    platformObjId: platformObjId,
+                    platformObjId: playerData.platform,
                     playerObjId: playerObj._id,
                     status: constPromoCodeStatus.AVAILABLE
                 }).populate({
@@ -1245,7 +1246,7 @@ let dbPlayerReward = {
                         });
                 } else {
                     return Q.reject({
-                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        status: constServerCode.PLAYER_NOT_MINTOPUP,
                         name: "ConditionError",
                         message: "您需要有新的存款 '" + promoCodeObj.minTopUpAmount + "元' 才可以领取此优惠，千万别错过了！"
                     })
