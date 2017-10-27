@@ -1142,20 +1142,21 @@ let dbPlayerReward = {
     getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
     getDelayDurationGroup: (platformObjId, duration) => dbConfig.collection_platform.find({_id: platformObjId}).lean(),
 
-    applyPromoCode: (platformObjId, playerName, promoCode, adminInfo) => {
+    applyPromoCode: (playerId, promoCode, adminInfo) => {
         let promoCodeObj, playerObj, topUpProp;
         let isType2Promo = false;
+        let platformObjId = '';
 
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
-                platform: platformObjId,
-                name: playerName
+                playerId: playerId
             })
         }).then(
             playerData => {
                 playerObj = playerData;
+                platformObjId = playerObj.platform
                 return dbConfig.collection_promoCode.find({
-                    platformObjId: platformObjId,
+                    platformObjId: playerData.platform,
                     playerObjId: playerObj._id,
                     status: constPromoCodeStatus.AVAILABLE
                 }).populate({
