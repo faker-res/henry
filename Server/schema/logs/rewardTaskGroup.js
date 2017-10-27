@@ -34,6 +34,9 @@ let rewardTaskGroupSchema = new Schema({
     // Target Consumption
     targetConsumption: {type: Number, default: 0},
 
+    // Last played provider
+    lastPlayedProvider: {type: Schema.Types.ObjectId},
+
     //if this reward task will use consumption record
     useConsumption: {type: Boolean, default: true},
     //reward event id

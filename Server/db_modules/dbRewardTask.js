@@ -126,8 +126,7 @@ var dbRewardTask = {
                         _id: providerGroup._id
                     }, {
                         $inc: {
-                            freeAmt: rewardData.applyAmount,
-                            rewardAmt: proposalData.data.rewardAmount,
+                            rewardAmt: rewardData.bonusAmount,
                             targetConsumption: rewardData.requiredUnlockAmount,
                         }
                     })
@@ -138,9 +137,7 @@ var dbRewardTask = {
                         playerId: rewardData.playerId,
                         providerGroup: rewardData.providerGroup,
                         status: constRewardTaskStatus.STARTED,
-                        freeAmt: rewardData.applyAmount,
-                        rewardAmt: proposalData.data.rewardAmount,
-                        curConsumption: 0,
+                        rewardAmt: rewardData.bonusAmount,
                         targetConsumption: rewardData.requiredUnlockAmount,
                     };
                     // create new reward group

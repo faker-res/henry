@@ -3916,11 +3916,14 @@ let dbPlayerInfo = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
                         "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
 
-                    if (playerData.platform.canMultiReward) {
+                    if (playerData.platform.useProviderGroup) {
+                        // Platform supporting provider group
+                        return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
+                            playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                    } else if (playerData.platform.canMultiReward) {
                         // Platform supporting multiple rewards will use new function first
                         return dbPlayerCreditTransfer.playerCreditTransferToProvider(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
-                    }
-                    else {
+                    } else {
                         return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
                     }
                 } else {
@@ -7510,6 +7513,7 @@ let dbPlayerInfo = {
                                         gameStatus: gameData.status
                                     });
                                 }
+
                                 if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
                                     return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
                                 }
