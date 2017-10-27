@@ -80,6 +80,9 @@ let PlayerServiceImplement = function () {
             let inputData = Object.assign({}, data);
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode], isValidData, true, true, true).then(
                 (playerData) => {
+
+                    data.playerId = data.playerId ? data.playerId : playerData.playerId;
+                    data.playerObjId = data.playerObjId ? data.playerObjId : playerData._id;
                     console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     conn.isAuth = true;

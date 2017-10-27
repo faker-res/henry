@@ -1243,7 +1243,8 @@ var proposal = {
         });
     },
 
-    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum) {//need
+    //getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum) {//need
+    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, phoneNumber, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum) {//need
         platformId = Array.isArray(platformId) ?platformId :[platformId];
 
         //check proposal without process
@@ -1306,14 +1307,17 @@ var proposal = {
                                 ]
                             })
                         }
-                        if (relatePlayerId) {
-                            queryObj["$and"] = [];
-                            queryObj["$and"].push({
-                                $or: [
-                                    {"data.playerId": relatePlayerId},
-                                    {"data.partnerId": relatePlayerId}
-                                ]
-                            })
+                        // if (relatePlayerId) {
+                        //     queryObj["$and"] = [];
+                        //     queryObj["$and"].push({
+                        //         $or: [
+                        //             {"data.playerId": relatePlayerId},
+                        //             {"data.partnerId": relatePlayerId}
+                        //         ]
+                        //     })
+                        // }
+                        if(phoneNumber){
+                            queryObj['data.phoneNumber'] = phoneNumber;
                         }
                         if (credit) {
                             queryObj["$and"] = queryObj["$and"] || [];
@@ -1327,6 +1331,8 @@ var proposal = {
                         if (entryType) {
                             queryObj.entryType = entryType;
                         }
+
+                        console.log('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq ',queryObj)
                         var sortKey = (Object.keys(sortCol))[0];
                         var a = sortKey != 'relatedAmount' ?
                             dbconfig.collection_proposal.find(queryObj)
@@ -1335,6 +1341,8 @@ var proposal = {
                                 // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
                                 .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
                                 .populate({path: 'isLocked', model: dbconfig.collection_admin})
+                                .populate({path: 'data.playerObjId', model: dbconfig.collection_players})
+                                //.populate({path: 'data.playerObjId.csOfficer', model: dbconfig.collection_csOfficerUrl})
                                 .sort(sortCol).skip(index).limit(size).lean()
                                 .then(
                                      pdata => {
@@ -1418,6 +1426,7 @@ var proposal = {
                     amount: returnData[2][0].totalAmount + returnData[2][0].totalRewardAmount + returnData[2][0].totalTopUpAmount + returnData[2][0].totalUpdateAmount + returnData[2][0].totalNegativeProfitAmount + returnData[2][0].totalCommissionAmount
                 }
             }
+
             return {data: returnData[0], size: returnData[1], summary: summaryObj};
         });
     },

@@ -2555,5 +2555,10 @@
   "APP_PLAYER": "APP玩家",
   "APP_AGENT": "APP代理",
   "PROPOSAL_SUB_TYPE": "提案子类型",
-  "INVOLVED_ACC": "涉及帐号"
+  "INVOLVED_ACC": "涉及帐号",
+  "REGISTERED_PHONE_NUMBER": "开户电话",
+  "REGISTERED_TIME": "开户时间",
+  "REGISTERED_IP": "开户IP",
+  "VERIFICATION_CODE": "验证码",
+  "CUSTOMER_SERVICE": "客服"
 }

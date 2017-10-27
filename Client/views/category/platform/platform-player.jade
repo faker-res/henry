@@ -2151,6 +2151,12 @@ include modalGameCreditLog
                     .panel-body
                         #newPlayerRecords.adminLogQueryDiv
                             .inlineBlk
+                                label {{'PLAYERNAME' | translate}}
+                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerName', required)
+                            .inlineBlk
+                                label {{'REGISTERED_PHONE_NUMBER' | translate}}
+                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.phoneNumber', required)
+                            .inlineBlk
                                 label {{'START_DATE' | translate}}
                                 .startTime
                             .inlineBlk
@@ -2167,13 +2173,9 @@ include modalGameCreditLog
                                     option 100
                                     option 200
                                     option(value='-1') {{'Unlimited' | translate}}
-                            .inlineBlk
+                            //.inlineBlk
                                 label {{'PLAYERID' | translate}}
                                 input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerId', required)
-                            .inlineBlk
-                                label {{'PLAYERNAME' | translate}}
-                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerName', required)
-
                             .inlineBlk
                                 button.btn.btn-primary(ng-click='vm.getNewPlayerListByFilter(true)') {{'SEARCH' | translate}}
                         .well

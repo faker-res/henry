@@ -2446,8 +2446,9 @@ define(['js/app'], function (myApp) {
                     startDate: vm.queryPara.newPlayerRecords.startTime.data('datetimepicker').getLocalDate(),
                     endDate: vm.queryPara.newPlayerRecords.endTime.data('datetimepicker').getLocalDate(),
                     name: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.playerName : null,
+                    phoneNumber: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.phoneNumber : null,
                     relateUser: null,
-                    relatePlayerId: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.playerId : null,
+                    //relatePlayerId: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.playerId : null,
                     // entryType: vm.queryProposalEntryType,
                     size: newSearch ? 10 : (vm.newPlayerRecords.limit || 10),
                     index: newSearch ? 0 : (vm.newPlayerRecords.index || 0),
@@ -2487,6 +2488,13 @@ define(['js/app'], function (myApp) {
                             record.name = record.data.name ? record.data.name : "";
                             record.realName = record.data.realName ? record.data.realName : "";
                             record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
+                            record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+                            record.depositCount = record.depositCount ? record.depositCount : 0;
+                            record.smsCode = record.data.smsCode ? record.data.smsCode : "";
+                            record.remarks = record.data.remarks ? record.data.remarks : "";
+                            record.device = record.device ? merchantTargetDeviceJson(record.device) : "";
+                            record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
+                            record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
                             return record
                         }
                     );
@@ -2496,7 +2504,7 @@ define(['js/app'], function (myApp) {
                         aoColumnDefs: [
                             {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
                             {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
-                            {'sortCol': 'data.playerId', bSortable: true, 'aTargets': [2]},
+                            //{'sortCol': 'data.playerId', bSortable: true, 'aTargets': [2]},
                             {'sortCol': 'data.name', bSortable: true, 'aTargets': [3]},
                             {'sortCol': 'data.realName', bSortable: true, 'aTargets': [4]},
                             {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
@@ -2506,14 +2514,19 @@ define(['js/app'], function (myApp) {
                         ],
                         columns: [
                             {title: $translate('PROPOSAL_ID'), data: "proposalId"},
-                            {title: $translate('STATUS'), data: "statusName"},
-                            {title: $translate('PLAYERID'), data: "playerId"},
                             {title: $translate('PLAYERNAME'), data: "name"},
-                            {title: $translate('REAL_NAME'), data: "realName"},
-                            {title: $translate('IP_ADDRESS'), data: "lastLoginIp"},
-                            {title: $translate('CREATETIME'), data: "createTime"},
+                            {title: $translate('STATUS'), data: "statusName"},
+                            //{title: $translate('PLAYERID'), data: "playerId"},
+                            {title: $translate('SENT TIME'), data: "createTime"},
+                            {title: $translate('REGISTERED_TIME'), data: "createTime"},
+                            {title: $translate('REGISTERED_IP'), data: "lastLoginIp"},
+                            {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
+                            {title: $translate('DEPOSIT_COUNT'), data: "depositCount"},
+                            {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
+                            {title: $translate('REMARKS'), data: "remarks"},
+                            {title: $translate('DEVICE'), data: "device"},
                             {
-                                title: $translate('phoneNumber'),
+                                title: $translate('Function'),
                                 data: "data.phoneNumber",
                                 advSearch: true,
                                 "sClass": "",
@@ -2537,7 +2550,9 @@ define(['js/app'], function (myApp) {
                                     }
                                     return link.prop('outerHTML')
                                 }
-                            }
+                            },
+                            {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
+                            {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
                         ],
                         destroy: true,
                         paging: false,
