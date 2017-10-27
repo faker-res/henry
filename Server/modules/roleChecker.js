@@ -283,7 +283,6 @@ var roleChecker = {
                 ModifyGamePassword: ['modifyGamePassword'],
                 ClearProposalLimit: ['requestClearProposalLimit'],
                 TriggerAutoProposal: ['triggerAutoProposal'],
-                TriggerSavePlayersCredit: ['triggerSavePlayersCredit'],
                 playerDailyCreditLog :['playerCreditDailyLog'],
                 playerApiLog: ['getPlayerApiLog'],
                 rewardTaskLog: ['getPlayerRewardTask'],
@@ -409,6 +408,9 @@ var roleChecker = {
                 Create: ['createOfficer', 'addPromoteWay', 'addUrl'],
                 Delete: ['deletePromoteWay', 'deleteOfficer', 'deleteUrl'],
                 Update: ['updateUrl']
+            },
+            "devFunc": {
+                Read: ['triggerSavePlayersCredit']
             }
         },
         Payment: {
