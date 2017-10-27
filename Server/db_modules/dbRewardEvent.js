@@ -278,7 +278,7 @@ var dbRewardEvent = {
                                 {
                                     _id: {$in: playerObjIds}
                                 }
-                            ).lean().cursor({batchSize: 100});
+                            ).lean().cursor({batchSize: 200});
 
                             let balancer = new SettlementBalancer();
                             return balancer.initConns().then(function () {
@@ -287,7 +287,7 @@ var dbRewardEvent = {
                                         balancer.processStream(
                                             {
                                                 stream: stream,
-                                                batchSize: 50,
+                                                batchSize: 200,
                                                 makeRequest: function (playerObjs, request) {
                                                     request("player", "savePlayerCredit", {
                                                         playerObjId: playerObjs.map(player => {
@@ -388,7 +388,7 @@ var dbRewardEvent = {
                             return dbconfig.collection_playerCreditsDailyLog.update({
                                     playerObjId: playerData._id,
                                     platformObjId: playerData.platform,
-                                    createTime: queryTime.endTime
+                                    createTime: 0
                                 },
                                 {
                                     playerObjId: playerData._id,

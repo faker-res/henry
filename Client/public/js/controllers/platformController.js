@@ -11647,6 +11647,7 @@ define(['js/app'], function (myApp) {
                 //console.log('provider text', result);
                 return result;
             };
+
         vm.getProviderGroupNameById = (grpId) => {
             let result = '';
             $.each(vm.gameProviderGroup, function (i, v) {
@@ -11657,6 +11658,7 @@ define(['js/app'], function (myApp) {
             });
             return result;
         };
+
             vm.getGameTextbyId = function (id) {
                 if (!vm.allGames) return;
                 if (!id)return false;
@@ -12240,6 +12242,8 @@ define(['js/app'], function (myApp) {
                         return vm.getProviderText(item);
                     }) : '';
                     result = result.join(',');
+                } else if (fieldName.indexOf('providerGroup') > -1) {
+                    result = vm.getProviderGroupNameById(val);
                 } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                     result = utilService.getFormatTime(val);
                 } else if (fieldName == 'bankAccountType') {
@@ -12286,7 +12290,7 @@ define(['js/app'], function (myApp) {
                 } else if (fieldName == 'allowedProviders'){
                     let providerName = '';
                     for(var v in val){
-                      providerName += val[v].name+', ';
+                        providerName += val[v].name+', ';
                     }
                     result = providerName;
                 } else if (fieldName === 'proposalPlayerLevel') {

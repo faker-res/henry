@@ -169,6 +169,14 @@ var playerSchema = new Schema({
     consumptionDetail: {type: JSON, default: {}},
     //top up times
     consumptionTimes: {type: Number, min: 0, default: 0},
+    // Credit Wallet (For Provider Group Lock)
+    creditWallet: [{
+        _id: false,
+        providerGroupId: {type: Schema.ObjectId, ref: 'gameProviderGroup'},
+        walletCredit: {type: Number, min: 0, default: 0},
+        walletCurrentConsumption: {type: Number, min: 0, default: 0},
+        walletTargetConsumption: {type: Number, min: 0, default: 0}
+    }],
 
     /*Player payment*/
     //bank name， bankTypeId

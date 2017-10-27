@@ -8083,6 +8083,7 @@ let dbPlayerInfo = {
         var adminInfo = ifAdmin;
 
         let eventData, taskData;
+        let isProviderGroup = false;
 
         var recordProm = dbconfig.collection_playerTopUpRecord.findById(topUpRecordId).lean();
         var playerProm = dbconfig.collection_players.findOne({playerId: playerId})
@@ -8106,6 +8107,7 @@ let dbPlayerInfo = {
                     player = data[0];
                     record = data[1];
                     platformId = player.platform;
+                    isProviderGroup = Boolean(player.platform.useProviderGroup);
 
                     let taskProm;
                     if (!player.platform.canMultiReward && player.platform.useLockedCredit) {
@@ -8265,7 +8267,6 @@ let dbPlayerInfo = {
                                     topUpProposalId: record.proposalId,
                                     applyAmount: deductionAmount,
                                     rewardAmount: rewardAmount,
-                                    providers: eventData.param.providers,
                                     targetEnable: eventData.param.targetEnable,
                                     games: eventData.param.games,
                                     spendingAmount: (record.amount + rewardAmount) * rewardParam.spendingTimes,
@@ -8280,6 +8281,14 @@ let dbPlayerInfo = {
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS,
                             };
+
+                            // Provider Group setting
+                            if (isProviderGroup) {
+                                proposalData.data.providerGroup = eventData.param.providerGroup;
+                            } else {
+                                proposalData.data.providers = eventData.param.providers;
+                            }
+
                             proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                             return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                                 {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
