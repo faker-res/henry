@@ -166,24 +166,23 @@ var dbPlayerTopUpRecord = {
                 }
 
                 if (query.dingdanID) {
-                    queryObj['data.requestId'] = query.dingdanID
+                    queryObj['data.requestId'] = query.dingdanID;
                 }
                 if (query.playerName) {
-                    queryObj['data.playerName'] = query.playerName
+                    queryObj['data.playerName'] = query.playerName;
                 }
                 if (query.proposalNo) {
-                    queryObj['proposalId'] = query.proposalNo
+                    queryObj['proposalId'] = query.proposalNo;
                 }
                 if (query.topupType) {
-                    queryObj['data.topupType'] = query.topupType
+                    queryObj['data.topupType'] = query.topupType;
                 }
                 if(query.bankTypeId){
                     queryObj['data.bankTypeId'] = query.bankTypeId;
                 }
                 if(query.userAgent){
-                    queryObj['data.userAgent'] = query.userAgent;
+                    queryObj['data.userAgent'] = {'$in':[String(query.userAgent) ,Number(query.userAgent)]};
                 }
-
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
             }
         ).then(
@@ -192,7 +191,6 @@ var dbPlayerTopUpRecord = {
                     return type._id;
                 });
                 queryObj.type = {$in: typeIds};
-                console.log(query);
                 // console.log('queryObj', JSON.stringify(queryObj, null, 4));
                 var a = dbconfig.collection_proposal.find(queryObj).count();
                 var b = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
@@ -2474,16 +2472,22 @@ function getMinutesBetweenDates(startDate, endDate) {
 }
 
 function retrieveAgent(agentInfo){
-
+    let registrationInterface = '';
     let userAgent = agentInfo;
-    if (userAgent.indexOf("WebKit") !== -1 || userAgent.indexOf("WebView") !== -1) {
-        registrationInterface = 2;
-    }
-    else if (userAgent.indexOf("iOS") !== -1 || userAgent.indexOf("ndroid") !== -1 || userAgent.indexOf("obile") !== -1) {
-        registrationInterface = 3;
-    }
-    else {
+    if(userAgent==''){
         registrationInterface = 1;
+    }else{
+        if (userAgent.browser.name.indexOf("WebKit") !== -1 || userAgent.browser.name.indexOf("WebView") !== -1) {
+            registrationInterface = 2;
+        }
+        else if (userAgent.os.name.indexOf("iOS") !== -1 || userAgent.os.name.indexOf("ndroid") !== -1 || userAgent.browser.name.indexOf("obile") !== -1) {
+            registrationInterface = 3;
+        } else {
+            registrationInterface = 1;
+        }
+        console.log(registrationInterface);
+
+
     }
     return registrationInterface;
 }
