@@ -238,7 +238,7 @@ var dbRewardEvent = {
         return deferred.promise;
     },
 
-    startSavePlayersCredit: (platformId) => {
+    startSavePlayersCredit: (platformId, bManual) => {
         let queryTime = dbUtil.getYesterdaySGTime();
         return dbconfig.collection_rewardType.findOne({
             name: constRewardType.PLAYER_CONSUMPTION_INCENTIVE
@@ -298,7 +298,8 @@ var dbRewardEvent = {
                                                                 validCredit: player.validCredit,
                                                                 lockedCredit: player.lockedCredit
                                                             }
-                                                        })
+                                                        }),
+                                                        bManual: bManual
                                                     });
                                                 }
                                             }
@@ -332,7 +333,7 @@ var dbRewardEvent = {
         )
     },
 
-    savePlayerCredit: (playerDatas) => {
+    savePlayerCredit: (playerDatas, bManual) => {
         let queryTime = dbUtil.getYesterdaySGTime();
         let proms = [];
         playerDatas.forEach(
@@ -388,7 +389,7 @@ var dbRewardEvent = {
                             return dbconfig.collection_playerCreditsDailyLog.update({
                                     playerObjId: playerData._id,
                                     platformObjId: playerData.platform,
-                                    createTime: 0
+                                    createTime: bManual ? 0 : queryTime.endTime
                                 },
                                 {
                                     playerObjId: playerData._id,

@@ -230,7 +230,7 @@ function socketActionPlatform(socketIO, socket) {
         triggerSavePlayersCredit: function triggerSavePlayersCredit(data) {
             let actionName = arguments.callee.name;
             let isDataValid = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbRewardEvent.startSavePlayersCredit, [data.platformObjId], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbRewardEvent.startSavePlayersCredit, [data.platformObjId, true], actionName, isDataValid);
         },
 
         changeStatusToPendingFromAutoAudit: function changeStatusToPendingFromAutoAudit(data) {
