@@ -1071,8 +1071,17 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
     $scope.changeServer = (server) => {
         $cookies.put('curFPMSServer', server);
         $scope.connectSocket();
-    }
+    };
     $scope.changeLogoImg = (url) =>{
         $scope.companyLogo = url;
-    }
+    };
+
+    /**
+     * Display content from CSV file
+     * @param $fileContent
+     */
+    $scope.showContentCSV = function($fileContent){
+        $scope.contentCSV = $fileContent;
+        // console.log('$fileContent',$fileContent);
+    };
 });
