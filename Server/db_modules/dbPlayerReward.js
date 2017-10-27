@@ -1246,7 +1246,7 @@ let dbPlayerReward = {
                         });
                 } else {
                     return Q.reject({
-                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        status: constServerCode.PLAYER_NOT_MINTOPUP,
                         name: "ConditionError",
                         message: "您需要有新的存款 '" + promoCodeObj.minTopUpAmount + "元' 才可以领取此优惠，千万别错过了！"
                     })
