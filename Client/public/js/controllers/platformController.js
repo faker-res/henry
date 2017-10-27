@@ -8696,7 +8696,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlayerCreditLogData = function (newSearch) {
-                if (!authService.checkViewPermission('Platform', 'Player', 'playerCreditDailyLog')) {
+                if (!authService.checkViewPermission('Platform', 'Player', 'playerDailyCreditLog')) {
                     return;
                 }
                 var sendQuery = {
