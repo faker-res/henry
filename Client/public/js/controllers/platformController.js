@@ -6859,6 +6859,7 @@ define(['js/app'], function (myApp) {
                 vm.playerAddRewardTask = {
                     showSubmit: true
                 };
+                vm.showRewardSettingsTab(null);
                 // $('#modalPlayerAddRewardTask').modal();
             }
 
