@@ -12998,6 +12998,8 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.scope = $scope;
+
             // upload phone file: csv
             vm.uploadPhoneFileCSV = function(content) {
                 vm.splitPhoneCSV = content.split(/\n/g).map((item) => item.trim());
@@ -13009,9 +13011,19 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'uploadPhoneFileCSV', sendData, function (data) {
                     vm.diffPhoneCSV = data.data.diffPhoneCSV;
+                    vm.diffPhoneCSVArray = JSON.parse('['+vm.diffPhoneCSV+']');
+                    vm.diffPhoneCSVArray = vm.diffPhoneCSVArray.map(phoneNumber => {
+                        return [phoneNumber];
+                    });
                     vm.samePhoneCSV = data.data.samePhoneCSV;
                     $scope.safeApply();
                 });
+            };
+
+
+            // display content from CSV file
+            vm.showContentCSV = function (fileContent) {
+                vm.contentCSV = fileContent;
             };
 
             // player level codes==============end===============================
