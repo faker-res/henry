@@ -449,7 +449,7 @@ define(['js/app'], function (myApp) {
                         }
                         item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
                         //item.endTime$ = item.data.lastSettleTime ? utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) : "-";
-                        item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) || '-';
+                        item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime):"-";
                           // $('.merchantNoList').selectpicker('refresh');
                         return item;
                     }), data.data.size, {}, isNewSearch
