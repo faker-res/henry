@@ -12998,8 +12998,6 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.scope = $scope;
-
             // upload phone file: csv
             vm.uploadPhoneFileCSV = function(content) {
                 vm.splitPhoneCSV = content.split(/\n/g).map((item) => item.trim());
