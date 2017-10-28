@@ -22,6 +22,16 @@ define(['js/app'], function (myApp) {
             vm.creditChange = {};
 
             // constants declaration
+            vm.proposalStatusList = { // removed APPROVED and REJECTED
+                PREPENDING: "PrePending",
+                PENDING: "Pending",
+                PROCESSING: "Processing",
+                SUCCESS: "Success",
+                FAIL: "Fail",
+                CANCEL: "Cancel",
+                EXPIRED: "Expired",
+                UNDETERMINED: "Undetermined"
+            };
             vm.allProposalStatus = [
                 "PrePending",
                 "Pending",
@@ -37,57 +47,57 @@ define(['js/app'], function (myApp) {
                 "Recover"
             ];
 
-            vm.allProposalType = [
-                "UpdatePlayerInfo",
-                "UpdatePlayerCredit",
-                "FixPlayerCreditTransfer",
-                "UpdatePlayerEmail",
-                "UpdatePlayerPhone",
-                "UpdatePlayerQQ",
-                "UpdatePlayerBankInfo",
-                "AddPlayerRewardTask",
-                "UpdatePartnerBankInfo",
-                "UpdatePartnerPhone",
-                "UpdatePartnerEmail",
-                "UpdatePartnerInfo",
-                "FullAttendance",
-                "PlayerConsumptionReturn",
-                "PartnerConsumptionReturn",
-                "FirstTopUp",
-                "PartnerIncentiveReward",
-                "PartnerReferralReward",
-                "GameProviderReward",
-                "PlatformTransactionReward",
-                "ManualPlayerTopUp",
-                "PlayerAlipayTopUp",
-                "PlayerWechatTopUp",
-                "PlayerTopUp",
-                "PlayerBonus",
-                "PlayerTopUpReturn",
-                "PlayerConsumptionIncentive",
-                "PlayerLevelUp",
-                "PartnerTopUpReturn",
-                "PlayerTopUpReward",
-                "PlayerReferralReward",
-                "PartnerBonus",
-                "PlayerConsumptionReturnFix",
-                "PlayerRegistrationReward",
-                "PartnerCommission",
-                "ManualUnlockPlayerReward",
-                "PlayerDoubleTopUpReward",
-                "UpdatePartnerCredit",
-                "PlayerConsecutiveLoginReward",
-                "PlayerRegistrationIntention",
-                "PlayerEasterEggReward",
-                "PlayerQuickpayTopUp",
-                "PlayerTopUpPromo",
-                "PlayerLevelMigration",
-                "PlayerConsecutiveConsumptionReward",
-                "PlayerPacketRainReward",
-                "PlayerPromoCodeReward",
-                "PlayerLimitedOfferIntention",
-                "PlayerLimitedOfferReward"
-            ];
+            // vm.allProposalType = [
+            //     "UpdatePlayerInfo",
+            //     "UpdatePlayerCredit",
+            //     "FixPlayerCreditTransfer",
+            //     "UpdatePlayerEmail",
+            //     "UpdatePlayerPhone",
+            //     "UpdatePlayerQQ",
+            //     "UpdatePlayerBankInfo",
+            //     "AddPlayerRewardTask",
+            //     "UpdatePartnerBankInfo",
+            //     "UpdatePartnerPhone",
+            //     "UpdatePartnerEmail",
+            //     "UpdatePartnerInfo",
+            //     "FullAttendance",
+            //     "PlayerConsumptionReturn",
+            //     "PartnerConsumptionReturn",
+            //     "FirstTopUp",
+            //     "PartnerIncentiveReward",
+            //     "PartnerReferralReward",
+            //     "GameProviderReward",
+            //     "PlatformTransactionReward",
+            //     "ManualPlayerTopUp",
+            //     "PlayerAlipayTopUp",
+            //     "PlayerWechatTopUp",
+            //     "PlayerTopUp",
+            //     "PlayerBonus",
+            //     "PlayerTopUpReturn",
+            //     "PlayerConsumptionIncentive",
+            //     "PlayerLevelUp",
+            //     "PartnerTopUpReturn",
+            //     "PlayerTopUpReward",
+            //     "PlayerReferralReward",
+            //     "PartnerBonus",
+            //     "PlayerConsumptionReturnFix",
+            //     "PlayerRegistrationReward",
+            //     "PartnerCommission",
+            //     "ManualUnlockPlayerReward",
+            //     "PlayerDoubleTopUpReward",
+            //     "UpdatePartnerCredit",
+            //     "PlayerConsecutiveLoginReward",
+            //     "PlayerRegistrationIntention",
+            //     "PlayerEasterEggReward",
+            //     "PlayerQuickpayTopUp",
+            //     "PlayerTopUpPromo",
+            //     "PlayerLevelMigration",
+            //     "PlayerConsecutiveConsumptionReward",
+            //     "PlayerPacketRainReward",
+            //     "PlayerPromoCodeReward",
+            //     "PlayerLimitedOfferIntention",
+            //     "PlayerLimitedOfferReward"
+            // ];
 
             vm.inputDevice = {
                 BACKSTAGE: 0,
@@ -476,6 +486,9 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                     return;
                 }
+                vm.getProposalTypeByPlatformId(vm.selectedPlatform.id);
+                vm.getRewardList();
+                vm.getPromotionTypeList();
                 vm.getAllAlipaysByAlipayGroup();
                 vm.getAllWechatpaysByWechatpayGroup();
                 vm.getAllBankCard();
@@ -6959,6 +6972,8 @@ define(['js/app'], function (myApp) {
             //region prepareShowProposal
             vm.prepareShowProposal = function () {
                 vm.playerProposal = {totalCount: 0};
+                vm.proposalFilterstatus = 'all';
+
                 utilService.actionAfterLoaded(('#playerProposalData .endTime'), function () {
                     vm.playerProposal.startTime = utilService.createDatePicker('#playerProposalData .startTime');
                     vm.playerProposal.endTime = utilService.createDatePicker('#playerProposalData .endTime');
@@ -6967,23 +6982,110 @@ define(['js/app'], function (myApp) {
                     vm.playerProposal.pageObj = utilService.createPageForPagingTable("#playerProposalTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerProposal", vm.getPlayerProposalByFilter)
                     });
-                    vm.getPlayerProposalByFilter(true);
+                    //set time out to solve $rootScope:inprog error
+                    setTimeout(function(){
+                        $('select#selectProposalType').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        var $multi = ($('select#selectProposalType').next().find('.ms-choice'))[0];
+                        $('select#selectProposalType').next().on('click', 'li input[type=checkbox]', function () {
+                            var upText = $($multi).text().split(',').map(item => {
+                                return $translate(item);
+                            }).join(',');
+                            $($multi).find('span').text(upText)
+                        });
+                        $("select#selectProposalType").multipleSelect("checkAll");
+
+                        $('select#selectRewardType').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        var $multi = ($('select#selectRewardType').next().find('.ms-choice'))[0];
+                        $('select#selectRewardType').next().on('click', 'li input[type=checkbox]', function () {
+                            var upText = $($multi).text().split(',').map(item => {
+                                return $translate(item);
+                            }).join(',');
+                            $($multi).find('span').text(upText)
+                        });
+                        $("select#selectRewardType").multipleSelect("checkAll");
+
+                        $('select#selectPromoType').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        var $multi = ($('select#selectPromoType').next().find('.ms-choice'))[0];
+                        $('select#selectPromoType').next().on('click', 'li input[type=checkbox]', function () {
+                            var upText = $($multi).text().split(',').map(item => {
+                                return $translate(item);
+                            }).join(',');
+                            $($multi).find('span').text(upText)
+                        });
+                        $("select#selectPromoType").multipleSelect("checkAll");
+
+                        vm.getPlayerProposalByFilter(true);
+                    });
                 });
             }
 
             vm.getPlayerProposalByFilter = function (newSearch) {
+                var newproposalQuery = {};
+                var proposalNames = $('select#selectProposalType').multipleSelect("getSelects");
+                newproposalQuery.proposalTypeName = [];
+                vm.allProposalType.filter(item => {
+                    if (proposalNames.indexOf(item.name) > -1) {
+                        newproposalQuery.proposalTypeName.push(item.name);
+                    }
+                });
+
+                var rewardTypes = $('select#selectRewardType').multipleSelect("getSelects");
+                newproposalQuery.eventName = [];
+                vm.rewardList.filter(item => {
+                    if (rewardTypes.indexOf(item.name) > -1) {
+                        newproposalQuery.eventName.push(item.name);
+                    }
+                });
+
+                var promoType = $('select#selectPromoType').multipleSelect("getSelects");
+                newproposalQuery.promoTypeName = [];
+                vm.promoTypeList.filter(item => {
+                    if (promoType.indexOf(item.name) > -1) {
+                        newproposalQuery.promoTypeName.push(item.name);
+                    }
+                });
+
+                newproposalQuery.status = [];
+                if (vm.proposalFilterstatus == "all") {
+                    newproposalQuery.status = vm.allProposalStatus;
+                }else {
+                    if (vm.proposalFilterstatus == vm.proposalStatusList.SUCCESS){
+                        newproposalQuery.status.push("Approved");
+                    }else if (vm.proposalFilterstatus == vm.proposalStatusList.FAIL){
+                        newproposalQuery.status.push("Rejected");
+                    }
+                    newproposalQuery.status.push(vm.proposalFilterstatus)
+                }
+
                 vm.playerProposal.loading = true;
                 let sendData = {
                     startDate: vm.playerProposal.startTime.data('datetimepicker').getLocalDate(),
                     endDate: vm.playerProposal.endTime.data('datetimepicker').getLocalDate(),
                     adminId: authService.adminId,
                     platformId: vm.selectedSinglePlayer.platform,
-                    type: vm.allProposalType,
+                    type: newproposalQuery.proposalTypeName,
                     size: vm.playerProposal.limit || 10,
                     index: newSearch ? 0 : (vm.playerProposal.index || 0),
                     sortCol: vm.playerProposal.sortCol,
-                    status: vm.allProposalStatus,
-                    playerId: vm.selectedSinglePlayer._id
+                    status: newproposalQuery.status,
+                    playerId: vm.selectedSinglePlayer._id,
+                    eventName: newproposalQuery.eventName,
+                    promoTypeName: newproposalQuery.promoTypeName
                 };
 
                 socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
@@ -15775,6 +15877,142 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         }
         //endregion here
+
+        vm.getProposalTypeOptionValue = function (proposalType) {
+            var result = utilService.getProposalGroupValue(proposalType);
+            return $translate(result);
+        };
+
+        vm.getProposalTypeByPlatformId = function (id) {
+            var deferred = Q.defer();
+            socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: id}, function (data) {
+                vm.allProposalType = data.data;
+                // add index to data
+                for (let x = 0; x < vm.allProposalType.length; x++) {
+                    let groupName = utilService.getProposalGroupValue(vm.allProposalType[x],false);
+                    console.log(groupName);
+                    switch (vm.allProposalType[x].name) {
+                        case "AddPlayerRewardTask":
+                            vm.allProposalType[x].seq = 3.01;
+                            break;
+                        case "PlayerLevelUp":
+                            vm.allProposalType[x].seq = 3.02;
+                            break;
+                        case "PlayerPromoCodeReward":
+                            vm.allProposalType[x].seq = 3.03;
+                            break;
+                        case "UpdatePlayerInfo":
+                            vm.allProposalType[x].seq = 4.01;
+                            break;
+                        case "UpdatePlayerBankInfo":
+                            vm.allProposalType[x].seq = 4.02;
+                            break;
+                        case "UpdatePlayerEmail":
+                            vm.allProposalType[x].seq = 4.03;
+                            break;
+                        case "UpdatePlayerPhone":
+                            vm.allProposalType[x].seq = 4.04;
+                            break;
+                        case "UpdatePlayerQQ":
+                            vm.allProposalType[x].seq = 4.05;
+                            break;
+                        case "UpdatePartnerInfo":
+                            vm.allProposalType[x].seq = 5.01;
+                            break;
+                        case "UpdatePartnerBankInfo":
+                            vm.allProposalType[x].seq = 5.02;
+                            break;
+                        case "UpdatePartnerEmail":
+                            vm.allProposalType[x].seq = 5.03;
+                            break;
+                        case "UpdatePartnerPhone":
+                            vm.allProposalType[x].seq = 5.04;
+                            break;
+                        case "UpdatePartnerQQ":
+                            vm.allProposalType[x].seq = 5.05;
+                            break;
+                        case "UpdatePlayerCredit":
+                            vm.allProposalType[x].seq = 6.01;
+                            break;
+                        case "FixPlayerCreditTransfer":
+                            vm.allProposalType[x].seq = 6.02;
+                            break;
+                        case "UpdatePartnerCredit":
+                            vm.allProposalType[x].seq = 6.03;
+                            break;
+                        case "ManualUnlockPlayerReward":
+                            vm.allProposalType[x].seq = 6.04;
+                            break;
+                        case "PlayerLevelMigration":
+                            vm.allProposalType[x].seq = 6.05;
+                            break;
+                        case "PlayerRegistrationIntention":
+                            vm.allProposalType[x].seq = 6.06;
+                            break;
+                        case "PlayerLimitedOfferIntention":
+                            vm.allProposalType[x].seq = 6.07;
+                            break;
+                    }
+                    if(!vm.allProposalType[x].seq) {
+                        switch (groupName) {
+                            case "Topup Proposal":
+                                vm.allProposalType[x].seq = 1;
+                                break;
+                            case "Bonus Proposal":
+                                vm.allProposalType[x].seq = 2;
+                                break;
+                            case "Reward Proposal":
+                                vm.allProposalType[x].seq = 3.90;
+                                break;
+                            case "PLAYER_INFORMATION":
+                                vm.allProposalType[x].seq = 4.90;
+                                break;
+                            case "PARTNER_INFORMATION":
+                                vm.allProposalType[x].seq = 5.90;
+                                break;
+                            case "Others":
+                                vm.allProposalType[x].seq = 6.90;
+                                break;
+                        }
+                    }
+                }
+                vm.allProposalType.sort(
+                    function (a, b) {
+                        if (a.seq > b.seq) return 1;
+                        if (a.seq < b.seq) return -1;
+                        return 0;
+                    }
+                );
+                $scope.safeApply();
+                deferred.resolve(true);
+            }, function (error) {
+                deferred.reject(error);
+            });
+            return deferred.promise;
+        };
+
+        vm.getRewardList = function (callback) {
+            vm.rewardList = [];
+            socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
+                vm.rewardList = data.data;
+                console.log('vm.rewardList', vm.rewardList);
+                $scope.safeApply();
+                if (callback) {
+                    callback();
+                }
+            });
+        };
+
+        vm.getPromotionTypeList = function (callback) {
+            socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                console.log('getPromoCodeTypes', data);
+                vm.promoTypeList = data.data;
+                $scope.safeApply();
+                if (callback) {
+                    callback();
+                }
+            });
+        };
 
         vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);
 

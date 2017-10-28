@@ -1217,6 +1217,20 @@ include modalGameCreditLog
                                     label {{'END_DATE' | translate}}
                                     .endTime
                                 .inlineBlk
+                                    label(style='width:200px;') {{"Proposal Type"|translate}}
+                                    select.form-control#selectProposalType(multiple="multiple", ng-options='i._id as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='abc')
+                                .inlineBlk
+                                    label(style='width:150px;') {{"CUSTOMIZED_PROMO_NAME"|translate}}
+                                    select.form-control#selectRewardType(multiple="multiple", ng-options='i._id as i.name for (k,i) in ( vm.rewardList | unique: "name" ) track by i.name', ng-model='bbc')
+                                .inlineBlk
+                                    label(style='width:150px;') {{"PROMO_CODE_NAME"|translate}}
+                                    select.form-control#selectPromoType(multiple="multiple", ng-options='i._id as i.name for (k,i) in ( vm.promoTypeList | unique: "name" ) track by i.name', ng-model='cbc')
+                                .inlineBlk
+                                    label {{"Proposal Status"|translate}}
+                                    select.form-control(ng-model='vm.proposalFilterstatus', style='max-width:300px', required)
+                                        option(value='all') {{'all' | translate}}
+                                        option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}', ng-selected='vm.proposalFilterstatus==v._id') {{v | translate}}
+                                .inlineBlk
                                     button.btn.btn-primary(ng-click='vm.getPlayerProposalByFilter(true)') {{'SEARCH' | translate}}
                                 .inlineBlk(ng-if='vm.playerProposal.loading')
                                     i.fa.fa-spin.fa-spinner
