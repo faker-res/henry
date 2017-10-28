@@ -860,8 +860,10 @@
   "SUPPORTED_FILE_FORMAT":"Supported file format",
   "ADD_PHONE_NUMBER_FILTER":"Add phone numbers to filter",
   "ADD_PHONE_NUMBER_FILTER_INSTRUCTION":"The phone numbers must be separated by commas",
-  "DUPLICATE_PHONE":"Phone number existed in system",
-  "NON_DUPLICATE_PHONE":"Phone number has been filtered",
+  "DUPLICATE_PHONE":"Phone numbers existed in system",
+  "NON_DUPLICATE_PHONE":"Phone numbers have been filtered",
+  "CONTENT_CSV":"Content in CSV file",
+  "EXPORT_CSV":"Export CSV",
 
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
