@@ -13018,10 +13018,17 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-
             // display content from CSV file
             vm.showContentCSV = function (fileContent) {
                 vm.contentCSV = fileContent;
+            };
+            
+            // reset phone number textarea
+            vm.resetTextarea = function () {
+                vm.inputNewPhoneNum = '';
+                vm.phoneNumListResult=false;
+                vm.samePhoneList = '';
+                vm.diffPhoneList = '';
             };
 
             // player level codes==============end===============================

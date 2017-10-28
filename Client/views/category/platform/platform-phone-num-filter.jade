@@ -56,6 +56,9 @@
                 textarea.form-control(rows='5', placeholder="14444444444, 15555555555, 16666666666", ng-model="vm.inputNewPhoneNum")
                 br
                 .pull-right
+                    button.btn.btn-danger.common-button(ng-click="vm.resetTextarea()")
+                        i.fa.fa-refresh
+                        text {{"RESET_TEXTAREA" | translate}}
                     button.btn.btn-primary.common-button(ng-click="vm.phoneNumListResult=true; vm.comparePhoneNum(vm.inputNewPhoneNum);")
                         i.fa.fa-check
                         text {{"SUBMIT" | translate}}

@@ -864,6 +864,7 @@
   "NON_DUPLICATE_PHONE":"Phone numbers have been filtered",
   "CONTENT_CSV":"Content in CSV file",
   "EXPORT_CSV":"Export CSV",
+  "RESET_TEXTAREA":"Reset",
 
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",

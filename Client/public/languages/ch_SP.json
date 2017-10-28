@@ -1288,6 +1288,7 @@
   "NON_DUPLICATE_PHONE":"已经过滤的",
   "CONTENT_CSV":"CSV文件中的内容",
   "EXPORT_CSV":"导出CSV",
+  "RESET_TEXTAREA":"重置",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
