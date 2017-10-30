@@ -13009,9 +13009,49 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'uploadPhoneFileCSV', sendData, function (data) {
                     vm.diffPhoneCSV = data.data.diffPhoneCSV;
+                    vm.diffPhoneCSVArray = JSON.parse('['+vm.diffPhoneCSV+']');
+                    vm.diffPhoneCSVArray = vm.diffPhoneCSVArray.map(phoneNumber => {
+                        return [phoneNumber];
+                    });
                     vm.samePhoneCSV = data.data.samePhoneCSV;
                     $scope.safeApply();
                 });
+            };
+
+            // display content from CSV file
+            vm.showContentCSV = function (fileContent) {
+                vm.contentCSV = fileContent;
+            };
+            
+            // reset phone number textarea
+            vm.resetTextarea = function () {
+                vm.inputNewPhoneNum = '';
+                vm.phoneNumListResult=false;
+                vm.samePhoneList = '';
+                vm.diffPhoneList = '';
+            };
+
+            // copy phone number list
+            vm.copyToClipboard = function (elementId) {
+                vm.copyHere = false;
+
+                // Create an auxiliary hidden input
+                var aux = document.createElement("input");
+
+                // Get the text from the element passed into the input
+                aux.setAttribute("value", document.getElementById(elementId).innerHTML);
+
+                // Append the aux input to the body
+                document.body.appendChild(aux);
+
+                // Highlight the content
+                aux.select();
+
+                // Execute the copy command
+                document.execCommand("copy");
+
+                // Remove the input from the body
+                document.body.removeChild(aux);
             };
 
             // player level codes==============end===============================

@@ -17,12 +17,28 @@ div
     .label-value
         label {{'CREATOR' | translate}}&nbsp;:&nbsp;
         label {{vm.selectedProposal.creator.name || 'System' | translate}}
-    .label-value
+    .label-value(ng-if="vm.selectedProposal.status=='Approved' ||  vm.selectedProposal.status=='Success'")
         label {{'CREATION_TIME' | translate}}&nbsp;:&nbsp;
         label {{ vm.selectedProposal.createTime | date : 'yyyy-MM-dd HH:mm:ss'}}
-    .label-value
+    .label-value(ng-if="vm.selectedProposal.status=='Approved' ||  vm.selectedProposal.status=='Success'")
         label {{'LastSettlementTime' | translate}}&nbsp;:&nbsp;
         label {{ vm.selectedProposal.settleTime | date : 'yyyy-MM-dd HH:mm:ss'}}
+
+    .label-value(ng-if="vm.selectedProposal.status!='Approved' &&  vm.selectedProposal.status!='Success'")
+        label {{'CREATION_TIME' | translate}}&nbsp;:&nbsp;
+        label {{ vm.selectedProposal.createTime | date : 'yyyy-MM-dd HH:mm:ss'}}
+    .label-value(ng-if="vm.selectedProposal.status!='Approved' &&  vm.selectedProposal.status!='Success'")
+        label {{'LastSettlementTime' | translate}}&nbsp;:&nbsp;
+        label -
+    .label-value(ng-if="vm.selectedProposal.status=='Cancel'")
+        label {{'Cancel' | translate}}&nbsp;:&nbsp;
+        label {{ vm.selectedProposal.settleTime | date : 'yyyy-MM-dd HH:mm:ss'}}
+    .label-value(ng-if="vm.selectedProposal.status=='Approved' ||  vm.selectedProposal.status=='Success'")
+        label {{'END_TIME' | translate}}&nbsp;:&nbsp;
+        label {{ vm.selectedProposal.settleTime | date : 'yyyy-MM-dd HH:mm:ss'}}
+    .label-value(ng-if="vm.selectedProposal.status!='Approved' && vm.selectedProposal.status!='Success'")
+        label {{'END_TIME' | translate}}&nbsp;:&nbsp;
+        label -
 
     //.titleBackground.margin-bottom-5.text-center
     div(style='min-height:30px')
