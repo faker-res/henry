@@ -13165,24 +13165,24 @@ define(['js/app'], function (myApp) {
 
                 if(!filename) filename = 'console.json';
 
-                var blob = new Blob([data], {type: 'text/plain'}),
-                    e    = document.createEvent('MouseEvents'),
-                    a    = document.createElement('a');
+                let blob = new Blob([data], {type: 'text/plain'}),
+                    event    = document.createEvent('MouseEvents'),
+                    tagA    = document.createElement('a');
 
                 // for IE:
                 if (window.navigator && window.navigator.msSaveOrOpenBlob) {
                     window.navigator.msSaveOrOpenBlob(blob, filename);
                 }
                 else{
-                    var e = document.createEvent('MouseEvents'),
-                        a = document.createElement('a');
+                    let event = document.createEvent('MouseEvents'),
+                        tagA = document.createElement('a');
 
-                    a.download = filename;
-                    a.href = window.URL.createObjectURL(blob);
-                    a.dataset.downloadurl = ['text/plain', a.download, a.href].join(':');
-                    e.initEvent('click', true, false, window,
+                    tagA.download = filename;
+                    tagA.href = window.URL.createObjectURL(blob);
+                    tagA.dataset.downloadurl = ['text/plain', tagA.download, tagA.href].join(':');
+                    event.initEvent('click', true, false, window,
                         0, 0, 0, 0, 0, false, false, false, false, 0, null);
-                    a.dispatchEvent(e);
+                    tagA.dispatchEvent(event);
                 }
             };
 
