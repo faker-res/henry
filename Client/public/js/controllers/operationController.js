@@ -1709,6 +1709,10 @@ define(['js/app'], function (myApp) {
                                 break;
                         }
                     }
+                    if(groupName.toLowerCase() == "omit") {
+                        vm.allProposalType.splice(x,1);
+                        x--;
+                    }
                 }
                 vm.allProposalType.sort(
                     function (a, b) {

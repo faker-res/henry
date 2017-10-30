@@ -2900,6 +2900,12 @@ define(['js/app'], function (myApp) {
                             vm.selectedSinglePlayer = null;
                             vm.selectedPlayersCount = 0;
                         }
+                        if (vm.selectedSinglePlayer.referral) {
+                            socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: vm.selectedSinglePlayer.referral}, function (data) {
+                                vm.showReferralName = data.data.name;
+                                // $scope.safeApply();
+                            });
+                        }
                     }
                     $scope.safeApply();
                 });
@@ -5310,19 +5316,18 @@ define(['js/app'], function (myApp) {
                 }else {
                     delete updateData.referralName;
                 }
-                delete updateData.referral;
 
                 if (!updateData.partner) {
                     delete updateData.partnerName;
                 }
                 if (Object.keys(updateData).length > 0) {
                     updateData._id = playerId;
-                    var isUpdate = false
+                    var isUpdate = false;
                     updateData.playerName = newPlayerData.name || vm.editPlayer.name
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
                     Object.keys(newPlayerData).forEach(function (key) {
                         if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup" || key == "referral") {
+                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup") {
                                 //do nothing
                             } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                                 //do nothing
@@ -5410,16 +5415,15 @@ define(['js/app'], function (myApp) {
                         vm.getPlatformPlayersData();
                     });
                 }
-                if (updateReferralName) {
-                    socketService.$socket($scope.AppSocket, 'updatePlayerReferral', {
-                        playerObjId: playerId,
-                        referral: updateReferralName
-                    }, function (updated) {
-                        console.log('updated', updated);
-                        vm.getPlatformPlayersData();
-                        vm.showReferralName = updateReferralName;
-                    });
-                }
+                // if (updateReferralName) {
+                //     socketService.$socket($scope.AppSocket, 'updatePlayerReferral', {
+                //         playerObjId: playerId,
+                //         referral: updateReferralName
+                //     }, function (updated) {
+                //         console.log('updated', updated);
+                //         vm.getPlatformPlayersData();
+                //     });
+                // }
             }
 
             vm.updateSMSSettings = function()
@@ -13082,6 +13086,7 @@ define(['js/app'], function (myApp) {
                 vm.phoneNumListResult = false;
                 vm.inputNewPhoneNum = [];
                 vm.phoneNumCSVResult = false;
+                vm.phoneNumTXTResult = false;
             };
 
             // compare a new list pf phone numbers with existing player info database
@@ -13111,10 +13116,13 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'uploadPhoneFileCSV', sendData, function (data) {
                     vm.diffPhoneCSV = data.data.diffPhoneCSV;
+
+                    // convert string to array, csv only accept array format
                     vm.diffPhoneCSVArray = JSON.parse('['+vm.diffPhoneCSV+']');
                     vm.diffPhoneCSVArray = vm.diffPhoneCSVArray.map(phoneNumber => {
                         return [phoneNumber];
                     });
+
                     vm.samePhoneCSV = data.data.samePhoneCSV;
                     $scope.safeApply();
                 });
@@ -13123,6 +13131,64 @@ define(['js/app'], function (myApp) {
             // display content from CSV file
             vm.showContentCSV = function (fileContent) {
                 vm.contentCSV = fileContent;
+            };
+
+            // upload phone file: txt
+            vm.uploadPhoneFileTXT = function(content) {
+                vm.arrayPhoneTXT = content.split(/,|, /).map((item) => item.trim());
+
+                let sendData = {
+                    arrayPhoneTXT: vm.arrayPhoneTXT
+                };
+
+                socketService.$socket($scope.AppSocket, 'uploadPhoneFileTXT', sendData, function (data) {
+                    vm.diffPhoneTXT = data.data.diffPhoneTXT;
+                    vm.samePhoneTXT = data.data.samePhoneTXT;
+                    $scope.safeApply();
+                });
+            };
+
+            // export phone number to txt
+            vm.exportTXTFile = function(data) {
+                let fileText = data;
+                let fileName = "phoneNumber.txt";
+                vm.saveTextAsFile(fileText, fileName);
+            };
+
+            // export phone number as txt file
+            vm.saveTextAsFile = function(data, filename){
+
+                if(!data) {
+                    console.error('Console.save: No data');
+                    return;
+                }
+
+                if(!filename) filename = 'console.json';
+
+                var blob = new Blob([data], {type: 'text/plain'}),
+                    e    = document.createEvent('MouseEvents'),
+                    a    = document.createElement('a');
+
+                // for IE:
+                if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+                    window.navigator.msSaveOrOpenBlob(blob, filename);
+                }
+                else{
+                    var e = document.createEvent('MouseEvents'),
+                        a = document.createElement('a');
+
+                    a.download = filename;
+                    a.href = window.URL.createObjectURL(blob);
+                    a.dataset.downloadurl = ['text/plain', a.download, a.href].join(':');
+                    e.initEvent('click', true, false, window,
+                        0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                    a.dispatchEvent(e);
+                }
+            };
+
+            // display content from TXT file
+            vm.showContentTXT = function (fileContent) {
+                vm.contentTXT = fileContent;
             };
             
             // reset phone number textarea
