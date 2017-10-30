@@ -1129,6 +1129,11 @@ define(['js/app'], function (myApp) {
                         text: "createUpdatePlayerQQProposal",
                         action: "createUpdatePlayerQQProposal"
                     },
+                    {
+                        group: "PLAYER",
+                        text: "createUpdatePlayerWeChatProposal",
+                        action: "createUpdatePlayerWeChatProposal"
+                    },
                     {group: "PLAYER", text: "UpdatePlayerBankInfo", action: "createUpdatePlayerBankInfoProposal"},
                     {group: "PLAYER", text: "resetPlayerPassword", action: "resetPlayerPassword"},
 
@@ -1471,6 +1476,9 @@ define(['js/app'], function (myApp) {
                             break;
                         case "UpdatePlayerQQ":
                             vm.allProposalType[x].seq = 4.05;
+                            break;
+                        case "UpdatePlayerWeChat":
+                            vm.allProposalType[x].seq = 4.06;
                             break;
                         case "UpdatePartnerInfo":
                             vm.allProposalType[x].seq = 5.01;

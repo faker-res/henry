@@ -9,6 +9,8 @@
                 input.pull-left.relative(type='radio', ng-model='modifyCritical.changeType', value='phone')
             label.radio-inline(ng-if = "platformPageName==='Player'") QQ
                 input.pull-left.relative(type='radio', ng-model='modifyCritical.changeType', value='qq')
+            label.radio-inline {{'WECHAT' | translate}}
+                input.pull-left.relative(type='radio', ng-model='modifyCritical.changeType', value='weChat')
         .col-md-12.well
             div(ng-show='modifyCritical.changeType=="email"')
                 div.form-group.col-md-7
@@ -51,7 +53,20 @@
                         label.control-label {{"RETYPE_QQ" | translate}}
                         input.form-control(type="text", name="repeatqq", placeholder='{{"RETYPE_QQ" | translate}}', ng-model="qqConfirmation", match="modifyCritical.newQQ", required)
                         span.help-block(ng-show="form_edit_critical_qq.repeatqq.$dirty && form_edit_critical_qq.repeatqq.$error.match") {{"QQ_DO_NOT_MATCH" | translate}}
+            div(ng-show='modifyCritical.changeType=="weChat"')
+                div.form-group.col-md-7
+                    label.control-label {{"CURRENT_WECHAT" | translate}}
+                    input.form-control(type="text", name="weChat", placeholder='{{"CURRENT_WECHAT" | translate}}', ng-model="modifyCritical.curWeChat", disabled)
+                form(name='form_edit_critical_weChat', novalidate)
+                    div.form-group.col-md-7
+                        label.control-label {{"NEW_WECHAT" | translate}}
+                        input.form-control(type="text", name="weChat1", placeholder='{{"NEW_WECHAT" | translate}}', ng-model="modifyCritical.newWeChat", required)
+                    div.form-group.col-md-7
+                        label.control-label {{"RETYPE_WECHAT" | translate}}
+                        input.form-control(type="text", name="repeatweChat", placeholder='{{"RETYPE_WECHAT" | translate}}', ng-model="weChatConfirmation", match="modifyCritical.newWeChat", required)
+                        span.help-block(ng-show="form_edit_critical_weChat.repeatweChat.$dirty && form_edit_critical_weChat.repeatweChat.$error.match") {{"WECHAT_DO_NOT_MATCH" | translate}}
 button.btn.btn-primary.common-button(data-dismiss='dialog',ng-show='modifyCritical.changeType=="email"', ng-disabled='form_edit_critical_email.$invalid || form_edit_critical_email.$pristine', ng-click="submitCriticalUpdate();") {{"CREATE" | translate}}
 button.btn.btn-primary.common-button(data-dismiss='dialog',ng-show='modifyCritical.changeType=="phone"', ng-disabled='form_edit_critical_phone.$invalid || form_edit_critical_phone.$pristine', ng-click="submitCriticalUpdate();") {{"CREATE" | translate}}
 button.btn.btn-primary.common-button(data-dismiss='dialog',ng-show='modifyCritical.changeType=="qq"', ng-disabled='form_edit_critical_qq.$invalid || form_edit_critical_qq.$pristine', ng-click="submitCriticalUpdate();") {{"CREATE" | translate}}
+button.btn.btn-primary.common-button(data-dismiss='dialog',ng-show='modifyCritical.changeType=="weChat"', ng-disabled='form_edit_critical_weChat.$invalid || form_edit_critical_weChat.$pristine', ng-click="submitCriticalUpdate();") {{"CREATE" | translate}}
 button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}

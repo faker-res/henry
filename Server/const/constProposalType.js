@@ -8,6 +8,7 @@ const constProposalType = {
     UPDATE_PLAYER_EMAIL: "UpdatePlayerEmail",
     UPDATE_PLAYER_PHONE: "UpdatePlayerPhone",
     UPDATE_PLAYER_QQ: "UpdatePlayerQQ",
+    UPDATE_PLAYER_WECHAT: "UpdatePlayerWeChat",
     UPDATE_PLAYER_BANK_INFO: "UpdatePlayerBankInfo",
     ADD_PLAYER_REWARD_TASK: "AddPlayerRewardTask",
     UPDATE_PARTNER_BANK_INFO: "UpdatePartnerBankInfo",

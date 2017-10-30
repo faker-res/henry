@@ -19,6 +19,7 @@ const constProposalMainType = {
     "UpdatePlayerEmail": constMainType.UPDATE_PLAYER,
     "UpdatePlayerPhone": constMainType.UPDATE_PLAYER,
     "UpdatePlayerQQ": constMainType.UPDATE_PLAYER,
+    "UpdatePlayerWeChat": constMainType.UPDATE_PLAYER,
     "UpdatePlayerBankInfo": constMainType.UPDATE_PLAYER,
     "ManualUnlockPlayerReward": constMainType.UPDATE_PLAYER,
     "PlayerRegistrationIntention":constMainType.UPDATE_PLAYER,

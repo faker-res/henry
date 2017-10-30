@@ -1188,6 +1188,11 @@ var dbMigration = {
                     bValid = true;
                 }
                 break;
+            case "UpdatePlayerWeChat":
+                if (proposalData && proposalData.updateData && proposalData.updateData.weChat != null) {
+                    bValid = true;
+                }
+                break;
             case "UpdatePlayerBankInfo":
                 bValid = true;
                 break;

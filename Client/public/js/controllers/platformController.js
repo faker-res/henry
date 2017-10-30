@@ -7878,7 +7878,7 @@ define(['js/app'], function (myApp) {
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.selectedSinglePlayer.platform,
-                type: ["UpdatePlayerEmail","UpdatePlayerPhone","UpdatePlayerQQ"],
+                type: ["UpdatePlayerEmail","UpdatePlayerPhone","UpdatePlayerQQ", "UpdatePlayerWeChat"],
                 size: 2000,
                 // size: vm.queryProposal.limit || 10,
                 // index: newSearch ? 0 : (vm.queryProposal.index || 0),
@@ -8349,6 +8349,7 @@ define(['js/app'], function (myApp) {
                     }
                     $scope.emailConfirmation = null;
                     $scope.qqConfirmation = null;
+                    $scope.weChatConfirmation = null;
                     if (!vm.modifyCritical) {
                         vm.modifyCritical = {
                             which: 'player',
@@ -8356,6 +8357,7 @@ define(['js/app'], function (myApp) {
                             changeType: 'email',
                             curEmail: vm.selectedSinglePlayer.email,
                             curQQ: vm.selectedSinglePlayer.qq,
+                            curWeChat: vm.selectedSinglePlayer.wechat,
                             phoneNumber: vm.selectedSinglePlayer.phoneNumber ? (vm.selectedSinglePlayer.phoneNumber.substring(0, 3) + "******" + vm.selectedSinglePlayer.phoneNumber.slice(-4)) : '',
                         }
                     } else {
@@ -8364,12 +8366,14 @@ define(['js/app'], function (myApp) {
                         vm.modifyCritical.changeType = 'email';
                         vm.modifyCritical.curEmail = vm.selectedSinglePlayer.email;
                         vm.modifyCritical.curQQ = vm.selectedSinglePlayer.qq;
+                        vm.modifyCritical.curWeChat = vm.selectedSinglePlayer.wechat;
                         vm.modifyCritical.phoneNumber = vm.selectedSinglePlayer.phoneNumber ? (vm.selectedSinglePlayer.phoneNumber.substring(0, 3) + "******" + vm.selectedSinglePlayer.phoneNumber.slice(-4)) : '';
 
                     }
                 } else if (which == 'partner') {
                     $scope.emailConfirmation = null;
                     $scope.qqConfirmation = null;
+                    $scope.weChatConfirmation = null;
                     if (!vm.modifyCritical) {
                         vm.modifyCritical = {
                             which: 'partner',
@@ -8377,6 +8381,7 @@ define(['js/app'], function (myApp) {
                             changeType: 'email',
                             curEmail: vm.selectedSinglePartner.email,
                             curQQ: vm.selectedSinglePartner.qq,
+                            curWeChat: vm.selectedSinglePlayer.wechat,
                             phoneNumber: vm.selectedSinglePartner.phoneNumber,
                         }
                     } else {
@@ -8385,6 +8390,7 @@ define(['js/app'], function (myApp) {
                         vm.modifyCritical.changeType = 'email';
                         vm.modifyCritical.curEmail = vm.selectedSinglePartner.email;
                         vm.modifyCritical.curQQ = vm.selectedSinglePartner.qq;
+                        vm.modifyCritical.curWeChat = vm.selectedSinglePlayer.wechat;
                         vm.modifyCritical.phoneNumber = vm.selectedSinglePartner.phoneNumber;
                     }
                 }
@@ -8434,7 +8440,16 @@ define(['js/app'], function (myApp) {
                     sendData.data.updateData = {
                         qq: vm.modifyCritical.newQQ
                     }
+                } else if (vm.modifyCritical.changeType == 'weChat') {
+                    sendStringKey += 3;
+                    sendData.data.curData = {
+                        wechat: vm.modifyCritical.curWeChat
+                    }
+                    sendData.data.updateData = {
+                        wechat: vm.modifyCritical.newWeChat
+                    }
                 }
+
                 switch (sendStringKey) {
                     case 10:
                         sendString = 'createUpdatePlayerPhoneProposal';
@@ -8444,6 +8459,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 12:
                         sendString = 'createUpdatePlayerQQProposal';
+                        break;
+                    case 13:
+                        sendString = 'createUpdatePlayerWeChatProposal';
                         break;
                     case 20:
                         sendString = 'createUpdatePartnerPhoneProposal';
@@ -15915,6 +15933,9 @@ define(['js/app'], function (myApp) {
                             break;
                         case "UpdatePlayerQQ":
                             vm.allProposalType[x].seq = 4.05;
+                            break;
+                        case "UpdatePlayerWeChat":
+                            vm.allProposalType[x].seq = 4.06;
                             break;
                         case "UpdatePartnerInfo":
                             vm.allProposalType[x].seq = 5.01;

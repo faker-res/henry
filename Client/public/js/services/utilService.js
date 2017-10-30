@@ -712,6 +712,7 @@ define([], function () {
                 case "UpdatePlayerEmail":
                 case "UpdatePlayerPhone":
                 case "UpdatePlayerQQ":
+                case "UpdatePlayerWeChat":
                     groupName = "PLAYER_INFORMATION";
                     break;
                 case "UpdatePartnerInfo":
