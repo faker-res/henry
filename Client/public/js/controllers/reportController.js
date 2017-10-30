@@ -1708,7 +1708,7 @@ define(['js/app'], function (myApp) {
                             item.topupTypeStr = $translate(item.type.name)
                         }
                         item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-                        item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime);
+                        item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime):"";
 
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch
@@ -1819,7 +1819,12 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight"},
 
                     {title: $translate('START_TIME'), data: "startTime$"},
-                    {title: $translate('END_TIME'), data: "endTime$"},
+                    {title: $translate('END_TIME'), data: "endTime$",
+                        render: function (data, type, row) {
+                            var text = $translate(data ?data : "");
+                            return "<div>" +text + "</div>";
+                        }
+                    },
                 ],
                 "paging": false,
                 createdRow: function(row, data, dataIndex){
@@ -1833,7 +1838,7 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.topupTable = $('#topupTable').DataTable(tableOptions);
 
-            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {6: summary.amount});
+            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {13: summary.amount});
 
             vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
 
