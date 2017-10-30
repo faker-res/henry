@@ -111,6 +111,91 @@ var dbRewardTask = {
         return deferred.promise;
     },
 
+    createRewardTaskWithProviderGroup: (rewardData, proposalData) => {
+        rewardData.bonusAmount = rewardData.initAmount;
+        let rewardTask = new dbconfig.collection_rewardTask(rewardData);
+        let taskProm = rewardTask.save();
+        let playerProm = dbconfig.collection_players.findOne({
+            _id: rewardData.playerId,
+            platform: rewardData.platformId
+        }).lean();
+        let providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rewardData.providerGroup}).lean();
+
+        return Promise.all([taskProm, playerProm, providerGroupProm]).then(
+            res => {
+                let player = res[1];
+                let providerGroup = res[2];
+
+                if (providerGroup) {
+                    let updateCreditWalletProm;
+
+                    // For reward with provider group, credit will go to player's group wallet
+                    if (player.creditWallet) {
+                        // Player creditWallet exist
+                        let isWalletExist = false;
+
+                        // Search whether wallet exist for this provider group
+                        player.creditWallet.forEach((el) => {
+                            if (String(el.providerGroupId) == String(rewardData.providerGroup)) {
+                                isWalletExist = true;
+                                updateCreditWalletProm = dbconfig.collection_players.findOneAndUpdate({
+                                    _id: player._id,
+                                    platform: player.platform,
+                                    "creditWallet.providerGroupId": el.providerGroupId
+                                }, {
+                                    $inc: {
+                                        "creditWallet.$.walletCredit": rewardData.bonusAmount,
+                                        "creditWallet.$.walletCurrentConsumption": rewardData.requiredUnlockAmount
+                                    }
+                                })
+                            }
+                        });
+
+                        // Wallet for this provider group not exist yet
+                        if (!isWalletExist) {
+                            updateCreditWalletProm = dbconfig.collection_players.findOneAndUpdate({
+                                _id: player._id,
+                                platform: player.platform
+                            }, {
+                                $push: {
+                                    creditWallet: {
+                                        providerGroupId: rewardData.providerGroup,
+                                        walletCredit: rewardData.bonusAmount,
+                                        walletCurrentConsumption: rewardData.requiredUnlockAmount,
+                                        walletTargetConsumption: 0
+                                    }
+                                }
+                            })
+                        }
+                    } else {
+                        // Player has no credit wallet yet
+                        updateCreditWalletProm = dbconfig.collection_players.findOneAndUpdate({
+                            _id: player._id,
+                            platform: player.platform
+                        }, {
+                            creditWallet: [{
+                                providerGroupId: rewardData.providerGroup,
+                                walletCredit: rewardData.bonusAmount,
+                                walletCurrentConsumption: rewardData.requiredUnlockAmount,
+                                walletTargetConsumption: 0
+                            }]
+                        })
+                    }
+
+                    return updateCreditWalletProm;
+                } else {
+                    // All other will go free credit
+                    return dbPlayerInfo.changePlayerCredit(rewardData.playerId, rewardData.platformId, proposalData.data.rewardAmount, rewardData.rewardType, proposalData);
+                }
+            }
+        ).then(
+            data => data,
+            error => {
+                return Q.reject({name: "DBError", message: "Error creating reward task", error: error});
+            }
+        );
+    },
+
     /**
      * Get one reward task
      * @param {String} query - The query String.

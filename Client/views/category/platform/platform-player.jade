@@ -122,6 +122,12 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ClearProposalLimit')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalClearProposalLimit', ng-click='vm.prepareClearPlayerProposalLimit()')
             text {{"ClearProposalLimit" | translate}}
             img.img-edit
+    hr.margin-top-bottom-small
+    .btn-group.margin-small
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'devFunc', 'Read')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.triggerSavePlayersCredit()')
+            text {{"Trigger Save Players Credit" | translate}}
+            img.img-edit
+
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Delete')", ng-disabled="!vm.canDeletePlayers()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalDeletePlayer')
         //    text(ng-if="vm.selectedSinglePlayer.status == 1 ") {{"DISABLE" | translate}}
         //    text(ng-if="vm.selectedSinglePlayer.status != 1 ") {{"ENABLE" | translate}}
@@ -154,7 +160,7 @@
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'referrals')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", ng-click='vm.initPlayerReferral()')
             text {{"REFERRAL" | translate}}
             img.img-edit
-            
+
 //.col-md-12.playerBtn
     hr.margin-top-bottom-small
     .btn-group.margin-small
@@ -1166,7 +1172,7 @@ include modalGameCreditLog
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('credit-log');vm.showPagedPlayerCreditChangeLog();") {{"PLAYER_CREDIT_LOG" | translate}}
                     li(ng-class="vm.selectedPlayerAccountingDetailTab == 'platform-transfer-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('platform-transfer-log');vm.showPlatformCreditTransferLog();") {{"PLAYER_PLATFORM_TRANSFER_LOG" | translate}}
-                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'playerCreditDailyLog')")
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'playerDailyCreditLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('midnight-balance-log');vm.initPlayerCreditLog();") {{"PLAYER_MIDNIGHT_BALANCE_LOG" | translate}}
 
                 .panel.panel-primary(style="border-radius:0 !important;")

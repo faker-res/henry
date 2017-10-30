@@ -108,6 +108,7 @@ define(['js/app'], function (myApp) {
             // vm.getPlayerTopUpIntentRecordStatusList();
             // vm.getNewAccountProposal().done();
             vm.getProposalTypeByPlatformId(vm.allPlatformId).then(vm.renderMultipleSelectDropDownList);
+            vm.getPlatformProviderGroup();
             $scope.safeApply();
 
         };
@@ -624,7 +625,29 @@ define(['js/app'], function (myApp) {
                     callback(data.data);
                 }
             });
-        }
+        };
+
+        vm.getPlatformProviderGroup = () => {
+            let query = (vm.selectedPlatform && vm.selectedPlatform._id)
+                ? {platformObjId: vm.selectedPlatform._id}
+                : {platformObjId: {$in: vm.allPlatformId}};
+
+            $scope.$socketPromise('getPlatformProviderGroup', query).then(function (data) {
+                vm.gameProviderGroup = data.data;
+                $scope.safeApply();
+            });
+        };
+
+        vm.getProviderGroupNameById = (grpId) => {
+            let result = '';
+            $.each(vm.gameProviderGroup, function (i, v) {
+                if (grpId == v._id) {
+                    result = v.name;
+                    return true;
+                }
+            });
+            return result;
+        };
 
         // vm.startSpin = function (event, callback) {
         //     var item = $(event.target).addClass('fa-spin');
@@ -1130,7 +1153,12 @@ define(['js/app'], function (myApp) {
 
             var proposalDetail = $.extend({}, vm.selectedProposal.data);
             var checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
-            for (var i in proposalDetail) {
+            for (let i in proposalDetail) {
+                // Add provider group name
+                if (i == "providerGroup") {
+                    proposalDetail.providerGroup = vm.getProviderGroupNameById(proposalDetail[i]);
+                }
+
                 //remove objectIDs
                 if (checkForHexRegExp.test(proposalDetail[i])) {
                     delete proposalDetail[i];
@@ -1144,7 +1172,6 @@ define(['js/app'], function (myApp) {
                         proposalDetail.providers = temp;
                     }
                 }
-
             }
             vm.selectedProposalDetailForDisplay = $.extend({}, proposalDetail);
             if (vm.selectedProposalDetailForDisplay['provinceId']) {
@@ -1684,6 +1711,10 @@ define(['js/app'], function (myApp) {
                                 vm.allProposalType[x].seq = 6.90;
                                 break;
                         }
+                    }
+                    if(groupName.toLowerCase() == "omit") {
+                        vm.allProposalType.splice(x,1);
+                        x--;
                     }
                 }
                 vm.allProposalType.sort(

@@ -97,7 +97,6 @@ var dbPlayerTopUpRecord = {
         if (query.status && query.status.length > 0) {
             queryObj.status = {$in: query.status};
         }
-
         return Q.resolve().then(
             () => {
                 var str = '';
@@ -107,7 +106,6 @@ var dbPlayerTopUpRecord = {
                     str = constProposalType.PLAYER_ALIPAY_TOP_UP
                 } else if (query && query.mainTopupType == constPlayerTopUpType.MANUAL) {
                     str = constProposalType.PLAYER_MANUAL_TOP_UP;
-                    query.depositMethod ? queryObj['data'] = {'depositMethod': query.depositMethod} : '';
                 } else if (query && query.mainTopupType == constPlayerTopUpType.WECHAT) {
                     str = constProposalType.PLAYER_WECHAT_TOP_UP
                 } else if (query && query.mainTopupType == constPlayerTopUpType.QUICKPAY) {
@@ -122,27 +120,13 @@ var dbPlayerTopUpRecord = {
                             constProposalType.PLAYER_QUICKPAY_TOP_UP
                         ]
                     };
-                    queryObj['$or'] = [];
                     if(query.topupType){
                         query.topupType = Number(query.topupType);
                     }
+                }
 
-                    query.topupType ? queryObj['$or'].push({
-                        'data.topupType': {$in: [String(query.topupType), Number(query.topupType)]}
-                    }) : queryObj['$or'].push({
-                        'data.topupType': {$exists: true}
-                    });
-                    query.depositMethod ? queryObj['$or'].push({
-                        'data.depositMethod': query.depositMethod
-                    }) : queryObj['$or'].push({
-                        'data.depositMethod': {$exists: true}
-                    });
-                    queryObj['$or'].push({
-                        $and: [
-                            {'data.topupType': {$exists: false}},
-                            {'data.depositMethod': {$exists: false}}
-                        ]
-                    })
+                if (query.depositMethod){
+                    queryObj['data.depositMethod'] = {'$in': [String(query.depositMethod), Number(query.depositMethod)]};
                 }
 
                 if (query.merchantNo && query.merchantNo.length > 0 && !query.merchantGroup) {
@@ -175,7 +159,7 @@ var dbPlayerTopUpRecord = {
                     queryObj['proposalId'] = query.proposalNo;
                 }
                 if (query.topupType) {
-                    queryObj['data.topupType'] = query.topupType;
+                    queryObj['data.topupType'] = {$in: [String(query.topupType), Number(query.topupType)]}
                 }
                 if(query.bankTypeId){
                     queryObj['data.bankTypeId'] = query.bankTypeId;
@@ -191,6 +175,7 @@ var dbPlayerTopUpRecord = {
                     return type._id;
                 });
                 queryObj.type = {$in: typeIds};
+                console.log(queryObj);
                 // console.log('queryObj', JSON.stringify(queryObj, null, 4));
                 var a = dbconfig.collection_proposal.find(queryObj).count();
                 var b = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
@@ -203,10 +188,9 @@ var dbPlayerTopUpRecord = {
                 var c = dbconfig.collection_proposal.aggregate({$match: queryObj}, {
                     $group: {
                         _id: null,
-                        totalAmount: {$sum: "$data.amount"},
+                        totalAmount: {$sum: "$data.amount"}
                     }
                 });
-
                 return Q.all([a, b, c])
             }
         ).then(
@@ -792,12 +776,11 @@ var dbPlayerTopUpRecord = {
      * @param playerID
      * @param inputData
      */
-    addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS) {
+        addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS) {
         var player = null;
         var proposal = null;
         var request = null;
         let userAgentStr = userAgent;
-
         return dbPlayerInfo.getManualTopupRequestList(playerId).then(
             retData => {
                 if (retData) {
@@ -1622,7 +1605,7 @@ var dbPlayerTopUpRecord = {
                         if (alipayAccount) {
                             requestData.groupAlipayList = [alipayAccount];
                         }
-                        //console.log("requestData", requestData);
+                        // console.log("requestData", requestData);
                         return pmsAPI.payment_requestAlipayAccount(requestData);
                     }
                     else {
@@ -2133,8 +2116,7 @@ function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount) {
 
 // lets do the most basic version, refactor later
 function insertRepeatCount(proposals, platformId) {
-  console.log(proposals);
-  console.log(platformId);
+
     return new Promise(function (resolve) {
         let typeIds = null;
         let getProposalTypesIdProm = typeIds ? Promise.resolve(typeIds) : getTopUpProposalTypeIds(platformId);

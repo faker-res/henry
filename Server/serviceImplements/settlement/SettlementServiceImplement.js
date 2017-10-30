@@ -208,7 +208,7 @@ var SettlementServiceImplement = function () {
 
     this.savePlayerCredit.onRequest = function(wsFunc, conn, data) {
         let isValidData = Boolean(data && data.playerObjId);
-        let args = [data.playerObjId];
+        let args = [data.playerObjId, data.bManual];
         WebSocketUtil.performAction(conn, wsFunc, data, dbRewardEvent.savePlayerCredit, args, isValidData);
     };
 

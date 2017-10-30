@@ -2900,6 +2900,12 @@ define(['js/app'], function (myApp) {
                             vm.selectedSinglePlayer = null;
                             vm.selectedPlayersCount = 0;
                         }
+                        if (vm.selectedSinglePlayer.referral) {
+                            socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: vm.selectedSinglePlayer.referral}, function (data) {
+                                vm.showReferralName = data.data.name;
+                                // $scope.safeApply();
+                            });
+                        }
                     }
                     $scope.safeApply();
                 });
@@ -5310,19 +5316,18 @@ define(['js/app'], function (myApp) {
                 }else {
                     delete updateData.referralName;
                 }
-                delete updateData.referral;
 
                 if (!updateData.partner) {
                     delete updateData.partnerName;
                 }
                 if (Object.keys(updateData).length > 0) {
                     updateData._id = playerId;
-                    var isUpdate = false
+                    var isUpdate = false;
                     updateData.playerName = newPlayerData.name || vm.editPlayer.name
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
                     Object.keys(newPlayerData).forEach(function (key) {
                         if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup" || key == "referral") {
+                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup") {
                                 //do nothing
                             } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                                 //do nothing
@@ -5410,16 +5415,15 @@ define(['js/app'], function (myApp) {
                         vm.getPlatformPlayersData();
                     });
                 }
-                if (updateReferralName) {
-                    socketService.$socket($scope.AppSocket, 'updatePlayerReferral', {
-                        playerObjId: playerId,
-                        referral: updateReferralName
-                    }, function (updated) {
-                        console.log('updated', updated);
-                        vm.getPlatformPlayersData();
-                        vm.showReferralName = updateReferralName;
-                    });
-                }
+                // if (updateReferralName) {
+                //     socketService.$socket($scope.AppSocket, 'updatePlayerReferral', {
+                //         playerObjId: playerId,
+                //         referral: updateReferralName
+                //     }, function (updated) {
+                //         console.log('updated', updated);
+                //         vm.getPlatformPlayersData();
+                //     });
+                // }
             }
 
             vm.updateSMSSettings = function()
@@ -8808,7 +8812,7 @@ define(['js/app'], function (myApp) {
                     vm.playerCreditLog.query.endTime = utilService.createDatePicker('#playerCreditLogQuery .endTime');
                     vm.playerCreditLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.playerCreditLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.playerCreditLog.pageObj = utilService.createPageForPagingTable("#playerCreditLogQueryTblPage", {}, $translate, function (curP, pageSize) {
+                    vm.playerCreditLog.pageObj = utilService.createPageForPagingTable("#playerCreditLogTblPage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerCreditLog", vm.getPlayerCreditLogData)
                     });
                     vm.getPlayerCreditLogData(true);
@@ -8816,7 +8820,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlayerCreditLogData = function (newSearch) {
-                if (!authService.checkViewPermission('Platform', 'Player', 'playerCreditDailyLog')) {
+                if (!authService.checkViewPermission('Platform', 'Player', 'playerDailyCreditLog')) {
                     return;
                 }
                 var sendQuery = {
@@ -11767,6 +11771,7 @@ define(['js/app'], function (myApp) {
                 //console.log('provider text', result);
                 return result;
             };
+
         vm.getProviderGroupNameById = (grpId) => {
             let result = '';
             $.each(vm.gameProviderGroup, function (i, v) {
@@ -11777,6 +11782,7 @@ define(['js/app'], function (myApp) {
             });
             return result;
         };
+
             vm.getGameTextbyId = function (id) {
                 if (!vm.allGames) return;
                 if (!id)return false;
@@ -12360,6 +12366,8 @@ define(['js/app'], function (myApp) {
                         return vm.getProviderText(item);
                     }) : '';
                     result = result.join(',');
+                } else if (fieldName.indexOf('providerGroup') > -1) {
+                    result = vm.getProviderGroupNameById(val);
                 } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                     result = utilService.getFormatTime(val);
                 } else if (fieldName == 'bankAccountType') {
@@ -12406,7 +12414,7 @@ define(['js/app'], function (myApp) {
                 } else if (fieldName == 'allowedProviders'){
                     let providerName = '';
                     for(var v in val){
-                      providerName += val[v].name+', ';
+                        providerName += val[v].name+', ';
                     }
                     result = providerName;
                 } else if (fieldName === 'proposalPlayerLevel') {
@@ -13095,6 +13103,8 @@ define(['js/app'], function (myApp) {
             vm.phoneNumFilterClicked = function () {
                 vm.phoneNumListResult = false;
                 vm.inputNewPhoneNum = [];
+                vm.phoneNumCSVResult = false;
+                vm.phoneNumTXTResult = false;
             };
 
             // compare a new list pf phone numbers with existing player info database
@@ -13112,6 +13122,124 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             };
+
+            // upload phone file: csv
+            vm.uploadPhoneFileCSV = function(content) {
+                vm.splitPhoneCSV = content.split(/\n/g).map((item) => item.trim());
+                vm.arrayPhoneCSV = vm.splitPhoneCSV.slice(0, vm.splitPhoneCSV.length - 1);
+
+                let sendData = {
+                    arrayPhoneCSV: vm.arrayPhoneCSV
+                };
+
+                socketService.$socket($scope.AppSocket, 'uploadPhoneFileCSV', sendData, function (data) {
+                    vm.diffPhoneCSV = data.data.diffPhoneCSV;
+
+                    // convert string to array, csv only accept array format
+                    vm.diffPhoneCSVArray = JSON.parse('['+vm.diffPhoneCSV+']');
+                    vm.diffPhoneCSVArray = vm.diffPhoneCSVArray.map(phoneNumber => {
+                        return [phoneNumber];
+                    });
+
+                    vm.samePhoneCSV = data.data.samePhoneCSV;
+                    $scope.safeApply();
+                });
+            };
+
+            // display content from CSV file
+            vm.showContentCSV = function (fileContent) {
+                vm.contentCSV = fileContent;
+            };
+
+            // upload phone file: txt
+            vm.uploadPhoneFileTXT = function(content) {
+                vm.arrayPhoneTXT = content.split(/,|, /).map((item) => item.trim());
+
+                let sendData = {
+                    arrayPhoneTXT: vm.arrayPhoneTXT
+                };
+
+                socketService.$socket($scope.AppSocket, 'uploadPhoneFileTXT', sendData, function (data) {
+                    vm.diffPhoneTXT = data.data.diffPhoneTXT;
+                    vm.samePhoneTXT = data.data.samePhoneTXT;
+                    $scope.safeApply();
+                });
+            };
+
+            // export phone number to txt
+            vm.exportTXTFile = function(data) {
+                let fileText = data;
+                let fileName = "phoneNumber.txt";
+                vm.saveTextAsFile(fileText, fileName);
+            };
+
+            // export phone number as txt file
+            vm.saveTextAsFile = function(data, filename){
+
+                if(!data) {
+                    console.error('Console.save: No data');
+                    return;
+                }
+
+                if(!filename) filename = 'console.json';
+
+                let blob = new Blob([data], {type: 'text/plain'}),
+                    event    = document.createEvent('MouseEvents'),
+                    tagA    = document.createElement('a');
+
+                // for IE:
+                if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+                    window.navigator.msSaveOrOpenBlob(blob, filename);
+                }
+                else{
+                    let event = document.createEvent('MouseEvents'),
+                        tagA = document.createElement('a');
+
+                    tagA.download = filename;
+                    tagA.href = window.URL.createObjectURL(blob);
+                    tagA.dataset.downloadurl = ['text/plain', tagA.download, tagA.href].join(':');
+                    event.initEvent('click', true, false, window,
+                        0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                    tagA.dispatchEvent(event);
+                }
+            };
+
+            // display content from TXT file
+            vm.showContentTXT = function (fileContent) {
+                vm.contentTXT = fileContent;
+            };
+            
+            // reset phone number textarea
+            vm.resetTextarea = function () {
+                vm.inputNewPhoneNum = '';
+                vm.phoneNumListResult=false;
+                vm.samePhoneList = '';
+                vm.diffPhoneList = '';
+            };
+
+            // copy phone number list
+            vm.copyToClipboard = function (elementId) {
+                vm.copyHere = false;
+
+                // Create an auxiliary hidden input
+                var aux = document.createElement("input");
+
+                // Get the text from the element passed into the input
+                aux.setAttribute("value", document.getElementById(elementId).innerHTML);
+
+                // Append the aux input to the body
+                document.body.appendChild(aux);
+
+                // Highlight the content
+                aux.select();
+
+                // Execute the copy command
+                document.execCommand("copy");
+
+                // Remove the input from the body
+                document.body.removeChild(aux);
+            };
+
             // player level codes==============end===============================
 
             // partner level codes==============start===============================

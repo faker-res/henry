@@ -76,6 +76,7 @@ define(['js/app'], function (myApp) {
             vm.getCredibilityRemarksByPlatformId(vm.selectedPlatform._id);
             vm.getRewardList();
             vm.getPromotionTypeList();
+            vm.getPlatformProviderGroup();
             $cookies.put("platform", vm.selectedPlatform.name);
             console.log('vm.selectedPlatform', vm.selectedPlatform);
             vm.loadPage(vm.showPageName);
@@ -296,6 +297,8 @@ define(['js/app'], function (myApp) {
                         return vm.getProviderText(item);
                     }) : '';
                     result = result.join(',');
+                } else if (fieldName.indexOf('providerGroup') > -1) {
+                    result = getProviderGroupNameById(val);
                 } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                     result = utilService.getFormatTime(val);
                 } else if (fieldName == 'bankAccountType') {
@@ -342,7 +345,7 @@ define(['js/app'], function (myApp) {
                 } else if (fieldName == 'allowedProviders'){
                     let providerName = '';
                     for(var v in val){
-                      providerName += val[v].name+', ';
+                        providerName += val[v].name+', ';
                     }
                     result = providerName;
                 } else if (fieldName === 'proposalPlayerLevel') {
@@ -363,7 +366,25 @@ define(['js/app'], function (myApp) {
             obj.startTime = utilService.setNDaysAgo(new Date(), 30);
             obj.endTime = new Date();
             return obj;
-        }
+        };
+
+        vm.getPlatformProviderGroup = () => {
+            $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+                vm.gameProviderGroup = data.data;
+                $scope.safeApply();
+            });
+        };
+
+        vm.getProviderGroupNameById = (grpId) => {
+            let result = '';
+            $.each(vm.gameProviderGroup, function (i, v) {
+                if (grpId == v._id) {
+                    result = v.name;
+                    return true;
+                }
+            });
+            return result;
+        };
 
         var constRewardReportTableProp = [
             {// player reward tables
@@ -1451,7 +1472,6 @@ define(['js/app'], function (myApp) {
                 // add index to data
                 for (let x = 0; x < vm.allProposalType.length; x++) {
                     let groupName = utilService.getProposalGroupValue(vm.allProposalType[x],false);
-                    console.log(groupName);
                     switch (vm.allProposalType[x].name) {
                         case "AddPlayerRewardTask":
                             vm.allProposalType[x].seq = 3.01;
@@ -1538,6 +1558,10 @@ define(['js/app'], function (myApp) {
                                 vm.allProposalType[x].seq = 6.90;
                                 break;
                         }
+                    }
+                    if(groupName.toLowerCase() == "omit") {
+                        vm.allProposalType.splice(x,1);
+                        x--;
                     }
                 }
                 vm.allProposalType.sort(
@@ -1695,7 +1719,7 @@ define(['js/app'], function (myApp) {
                             item.topupTypeStr = $translate(item.type.name)
                         }
                         item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-                        item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime);
+                        item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime):"";
 
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch
@@ -1806,7 +1830,12 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight"},
 
                     {title: $translate('START_TIME'), data: "startTime$"},
-                    {title: $translate('END_TIME'), data: "endTime$"},
+                    {title: $translate('END_TIME'), data: "endTime$",
+                        render: function (data, type, row) {
+                            var text = $translate(data ?data : "");
+                            return "<div>" +text + "</div>";
+                        }
+                    },
                 ],
                 "paging": false,
                 createdRow: function(row, data, dataIndex){
@@ -1820,7 +1849,7 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.topupTable = $('#topupTable').DataTable(tableOptions);
 
-            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {6: summary.amount});
+            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {13: summary.amount});
 
             vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
 
