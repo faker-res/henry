@@ -1650,6 +1650,9 @@ define(['js/app'], function (myApp) {
                         case "UpdatePlayerQQ":
                             vm.allProposalType[x].seq = 4.05;
                             break;
+                        case "UpdatePlayerWeChat":
+                            vm.allProposalType[x].seq = 4.06;
+                            break;
                         case "UpdatePartnerInfo":
                             vm.allProposalType[x].seq = 5.01;
                             break;

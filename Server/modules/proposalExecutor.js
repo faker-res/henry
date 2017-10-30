@@ -107,6 +107,7 @@ var proposalExecutor = {
             this.executions.executePlayerConsumptionReturnFix.des = "Update player credit for consumption return";
             this.executions.executeUpdatePlayerEmail.des = "Update player email";
             this.executions.executeUpdatePlayerQQ.des = "Update player QQ";
+            this.executions.executeUpdatePlayerWeChat.des = "Update player WeChat";
             this.executions.executeUpdatePlayerPhone.des = "Update player phone number";
             this.executions.executeUpdatePlayerBankInfo.des = "Update player bank information";
             this.executions.executeAddPlayerRewardTask.des = "Add player reward task";
@@ -453,6 +454,31 @@ var proposalExecutor = {
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect update player QQ proposal data"});
+                }
+            },
+
+            /**
+             * execution function for update player weChat proposal type
+             */
+            executeUpdatePlayerWeChat: function (proposalData, deferred) {
+                //valid data
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.updateData && proposalData.data.updateData.wechat) {
+                    dbUtil.findOneAndUpdateForShard(
+                        dbconfig.collection_players,
+                        {_id: proposalData.data.playerObjId},
+                        proposalData.data.updateData,
+                        constShardKeys.collection_players
+                    ).then(
+                        function (data) {
+                            deferred.resolve(data);
+                        },
+                        function (err) {
+                            deferred.reject({name: "DataError", message: "Failed to update player weChat", error: err});
+                        }
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect update player weChat proposal data"});
                 }
             },
 

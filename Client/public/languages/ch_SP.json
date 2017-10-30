@@ -517,6 +517,7 @@
   "rejectUpdatePlayerCredit": "编辑玩家额度未通过",
   "UpdatePlayerEmail": "编辑玩家电邮资料",
   "UpdatePlayerQQ": "编辑玩家QQ资料",
+  "UpdatePlayerWeChat": "编辑玩家微信资料",
   "UpdatePlayerPhone": "编辑玩家电话资料",
   "UpdatePlayerBankInfo": "编辑玩家银行资料",
   "UpdatePartnerBankInfo": "编辑代理银行资料",
@@ -878,6 +879,7 @@
   "Update player credit": "更新玩家额度",
   "Update player email": "更新玩家电子邮件",
   "Update player QQ": "更新玩家QQ",
+  "Update player WeChat": "更新玩家微信",
   "Update player phone number": "更新玩家电话号码",
   "Update partner bank information": "更新代理银行资料",
   "Update partner email": "更代理电子邮件",
@@ -1381,6 +1383,7 @@
   "createUpdatePlayerPhoneProposal": "创建更新玩家电话提案",
   "createUpdatePlayerEmailProposal": "创建更新玩家电子邮件提案",
   "createUpdatePlayerQQProposal": "创建更新玩家QQ提案",
+  "createUpdatePlayerWeChatProposal": "创建更新玩家微信提案",
   "detachRolesFromUsersById": "移除用户角色",
   "deletePartnersById": "删除代理",
   "Similar Players": "相似玩家",
@@ -2436,6 +2439,7 @@
   "CURRENT_QQ" : "原QQ帐号",
   "RETYPE_QQ" : "重新输入QQ帐号",
   "QQ_DO_NOT_MATCH": "QQ帐号不相同",
+  "WECHAT_DO_NOT_MATCH": "微信帐号不相同",
   "PAYMENT_MONITOR_MERCHANT_COLOR_CHANGE_COUNT": "商户连续被充值失败 X 次后出现变色提醒",
   "PAYMENT_MONITOR_PLAYER_COLOR_CHANGE_COUNT": "玩家连续充值失败 X 次后出现变色提醒",
   "GAME_NAME": "游戏名",
@@ -2564,5 +2568,8 @@
   "APP_PLAYER": "APP玩家",
   "APP_AGENT": "APP代理",
   "PROPOSAL_SUB_TYPE": "提案子类型",
-  "INVOLVED_ACC": "涉及帐号"
+  "INVOLVED_ACC": "涉及帐号",
+  "NEW_WECHAT": "新微信账号",
+  "CURRENT_WECHAT": "原微信账号",
+  "RETYPE_WECHAT": "重新输入微信账号"
 }

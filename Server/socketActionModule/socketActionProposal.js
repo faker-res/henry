@@ -119,6 +119,20 @@ function socketActionProposal(socketIO, socket) {
         },
 
         /**
+         * Create new Proposal to update player WeChat
+         * @param {json} data - proposal data
+         */
+        createUpdatePlayerWeChatProposal: function createUpdatePlayerWeChatProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(
+                data && data.platformId && data.data &&
+                data.data.playerObjId && data.data.playerName && data.data.curData &&
+                data.data.updateData && data.data.updateData.wechat
+            );
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PLAYER_WECHAT, data], actionName, isValidData);
+        },
+
+        /**
          * Create new Proposal to update player bank info
          * @param {json} data - proposal type name
          */
