@@ -5303,7 +5303,6 @@ define(['js/app'], function (myApp) {
                 }else {
                     delete updateData.referralName;
                 }
-                delete updateData.referral;
 
                 if (!updateData.partner) {
                     delete updateData.partnerName;
@@ -5315,7 +5314,7 @@ define(['js/app'], function (myApp) {
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
                     Object.keys(newPlayerData).forEach(function (key) {
                         if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup" || key == "referral") {
+                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup") {
                                 //do nothing
                             } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                                 //do nothing
