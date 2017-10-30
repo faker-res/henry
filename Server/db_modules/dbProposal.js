@@ -2402,7 +2402,7 @@ var proposal = {
         if (data.topupType) {
             query['data.topupType'] = data.topupType;
         }
-22
+
         if (data.depositMethod) {
             query['data.depositMethod'] = data.depositMethod;
         }
