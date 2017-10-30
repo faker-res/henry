@@ -1756,7 +1756,7 @@ var proposalExecutor = {
             },
 
             executePlayerTopUpPromo: function (proposalData, deferred) {
-                dbPlayerInfo.updatePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.amount, proposalData.type.name, proposalData.data.playerName, proposalData.data).then(
+                dbPlayerInfo.updatePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.rewardAmount, proposalData.type.name, proposalData.data.playerName, proposalData.data).then(
                     successData => {
                         deferred.resolve(successData);
                     },

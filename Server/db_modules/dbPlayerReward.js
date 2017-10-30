@@ -168,7 +168,7 @@ let dbPlayerReward = {
                                 });
                             }
                             let bProposal = false;
-                            player.inputDevice = dbUtility.getInputDevice(userAgent,false);
+                            player.inputDevice = dbUtility.getInputDevice(userAgent, false);
                             let proc = () => {
                                 queryTime = dateArr.pop();
                                 return processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo, isPrevious).then(
@@ -298,7 +298,7 @@ let dbPlayerReward = {
                     }
 
                     let rewardAmount = (Number(topUpProposalData.data.amount) * Number(promotionDetail.rewardPercentage) / 100);
-                    if( rewardAmount > 500 ){
+                    if (rewardAmount > 500) {
                         rewardAmount = 500;
                     }
 
@@ -307,8 +307,8 @@ let dbPlayerReward = {
                         {
                             $match: {
                                 type: promoEventDetail.executeProposal,
-                                eventCode: promoEventDetail.code,
-                                playerObjId: topUpProposalData.data.playerObjId,
+                                "data.eventCode": promoEventDetail.code,
+                                "data.playerObjId": topUpProposalData.data.playerObjId,
                                 createTime: {
                                     $gte: todaySGTime.startTime,
                                     $lt: todaySGTime.endTime
@@ -317,13 +317,20 @@ let dbPlayerReward = {
                         },
                         {
                             $group: {
-                                _id: {type: type},
-                                amount: {$sum: "$rewardAmount"}
+                                _id: {type: "$type"},
+                                amount: {$sum: "$data.rewardAmount"}
                             }
                         }
                     ).then(
                         summaryData => {
-                            if(summaryData && summaryData[0] && summaryData[0].amount + rewardAmount <= 500){
+                            if (summaryData && summaryData[0] && (summaryData[0].amount + rewardAmount) > 500) {
+                                Q.reject({
+                                    status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                                    name: "DataError",
+                                    message: "Cant apply this reward, contact cs"
+                                });
+                            }
+                            else {
                                 let proposalData = {
                                     type: promoEventDetail.executeProposal,
 
@@ -336,7 +343,7 @@ let dbPlayerReward = {
                                         rewardAmount: rewardAmount,
                                         spendingAmount: rewardAmount,
                                         applyAmount: 0,
-                                        amount: rewardAmount,
+                                        // amount: rewardAmount,
                                         eventId: promoEventDetail._id,
                                         eventName: promoEventDetail.name,
                                         eventCode: promoEventDetail.code,
@@ -349,13 +356,6 @@ let dbPlayerReward = {
                                 if (type === 'aliPay') console.log('debugging topup promo, proposalData:', proposalData);
 
                                 return dbProposal.createProposalWithTypeId(promoEventDetail.executeProposal, proposalData);
-                            }
-                            else{
-                                Q.reject({
-                                    status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
-                                    name: "DataError",
-                                    message: "Cant apply this reward, contact cs"
-                                });
                             }
                         }
                     );
@@ -1686,8 +1686,8 @@ let dbPlayerReward = {
             offerSumm => {
                 // Filter by status if any
                 rewards = rewards.filter(e => (!status || status == e.status)
-                && new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()
-                && new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime());
+                    && new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()
+                    && new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime());
 
 
                 rewards.map(e => {
@@ -2171,6 +2171,7 @@ function getPromoTitle(promo) {
     }
     return promoTitle;
 }
+
 var proto = dbPlayerRewardFunc.prototype;
 proto = Object.assign(proto, dbPlayerReward);
 
