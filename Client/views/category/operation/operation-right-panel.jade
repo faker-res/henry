@@ -7,104 +7,177 @@
                 text.strong {{vm.selectedPlatform.name}} {{vm.rightPanelTitle | translate}}
     .panel-body.common-right-panel-body
         .tab-content
-            #proposalDataTableDiv.tab-pane.fade.in.active
-                #search
-                    .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalId')")
-                        label {{"Proposal No" | translate}}
-                        input.form-control(ng-model='vm.queryProposalId', ng-change='vm.queryProposalIdUpdate()')
-                    .inlineBlk.selectProposalTypeDiv(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalType')")
-                        label {{'FILTER_PROPOSAL_TYPE' | translate}}
-                        //select.form-control#selectProposalType(multiple="multiple", style='min-width:100px')
-                        //    option(ng-repeat='(i,v) in vm.allProposalType', value='{{i}}') {{v.name | translate}}
+            div(ng-show="vm.rightPanelTitle == 'ALL_PROPOSAL'")
+                #proposalDataTableDiv.tab-pane.fade.in.active
+                    #search
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalId')")
+                            label {{"Proposal No" | translate}}
+                            input.form-control(ng-model='vm.queryProposalId', ng-change='vm.queryProposalIdUpdate()')
+                        .inlineBlk.selectProposalTypeDiv(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalType')")
+                            label {{'FILTER_PROPOSAL_TYPE' | translate}}
+                            //select.form-control#selectProposalType(multiple="multiple", style='min-width:100px')
+                            //    option(ng-repeat='(i,v) in vm.allProposalType', value='{{i}}') {{v.name | translate}}
 
-                        select.form-control#selectProposalType(multiple="multiple", style='min-width:100px;height:34px;', ng-options='i.name as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='vm.actionLogQuery.action')
+                            select.form-control#selectProposalType(multiple="multiple", style='min-width:100px;height:34px;', ng-options='i.name as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='vm.actionLogQuery.action')
 
-                    .inlineBlk(ng-show="vm.rightPanelTitle == 'ALL_PROPOSAL' && checkViewPermission('Operation', 'Proposal', 'queryByProposalStatus')")
-                        label {{'FILTER_PROPOSAL_STATUS' | translate}}
-                        select.form-control#selectProposalStatus(multiple="multiple", style='min-width:100px;height:34px;')
-                            option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}') {{v | translate}}
-                    .inlineBlk(ng-show="vm.rightPanelTitle == 'ALL_PROPOSAL' && checkViewPermission('Operation', 'Proposal', 'queryByProposalStatus')")
-                        label {{'ENTRY_TYPE' | translate}}
-                        select.form-control(ng-model='vm.queryProposalEntryType', ng-options='i as v | translate for (i,v) in constProposalEntryType')
-                            option(value='') {{'any' | translate}}
-                    //.inlineBlk
-                        label {{'FILTER_PROPOSAL_CONTENT' | translate}}
-                        input.form-control#proposalSearch.form-control(type="text", placeholder='{{"FILTER_CONTENT" | translate}}', ng-model="vm.searchText")
-                    .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalCredit')")
-                        label {{"Qty_Min" | translate }} {{"Credit Amount" | translate}}
-                        input.form-control(ng-model='vm.queryProposalMinCredit', type='number', min=0, style='width:90px')
-                    .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalCredit')")
-                        label {{"Qty_Max" | translate }} {{"Credit Amount" | translate}}
-                        input.form-control(ng-model='vm.queryProposalMaxCredit', type='number', min=0, style='width:90px')
-                    .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalPlayer')")
-                        label {{"RELATED_USER" | translate}}
-                        input.form-control(ng-model='vm.queryProposalRelatedUser', type='text')
-                    .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalDate')")
-                        label {{'START_DATE' | translate}}
-                        #datetimepicker.input-append.form-control
-                            input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
-                            span.add-on
-                                i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                    .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalDate')")
-                        label {{'END_DATE' | translate}}
-                        br
-                        #datetimepicker2.input-append.form-control
-                            input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
-                            span.add-on
-                                i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                    .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalPlayer')")
-                        label {{"Set Date Range" | translate}}
-                        select.form-control(ng-model='vm.dateRange',ng-options='i as v | translate for (i,v) in {"day":"Today","week":"This Week","month":"This Month"}',ng-change='vm.setDateRange(vm.dateRange)')
-                    .inlineBlk.pull-right(style='width:100px;padding-top:20px')
-                        button.common-button.btn.btn-primary(ng-if='vm.queryProposalId', ng-click='vm.getOneProposal()') {{'SEARCH' | translate}}
-                        button.common-button.btn.btn-primary(ng-if='!vm.queryProposalId', ng-click='vm.searchProposalByQuery(true)') {{'SEARCH' | translate}}
-                    .inlineBlk.pull-right(style='width:100px;padding-top:20px')
-                        button.common-button.btn.btn-warning(ng-click='vm.resetFilter()') {{'Reset' | translate}}
-                .clearfix
-                .proposalMessage
-                    text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.timeAllProposal}}
-                    label.text-danger.newProposalAlert
-                    a(ng-click='vm.loadProposalQueryData(true)')
-                        .fa.fa-refresh
-                    .pull-right
-                        label.inlineBlk.pull-right {{'Auto Refresh' | translate}}
-                            input#autoRefreshProposalFlag.margin-left-5(type='checkbox', checked)
-                        .inlineBlk.hidden
-                            text {{"Time left until next refresh" | translate}} :&nbsp;
-                            text#timeLeftRefreshOperation
-                            text s
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalStatus')")
+                            label {{'FILTER_PROPOSAL_STATUS' | translate}}
+                            select.form-control#selectProposalStatus(multiple="multiple", style='min-width:100px;height:34px;')
+                                option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}') {{v | translate}}
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalStatus')")
+                            label {{'ENTRY_TYPE' | translate}}
+                            select.form-control(ng-model='vm.queryProposalEntryType', ng-options='i as v | translate for (i,v) in constProposalEntryType')
+                                option(value='') {{'any' | translate}}
+                        //.inlineBlk
+                            label {{'FILTER_PROPOSAL_CONTENT' | translate}}
+                            input.form-control#proposalSearch.form-control(type="text", placeholder='{{"FILTER_CONTENT" | translate}}', ng-model="vm.searchText")
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalCredit')")
+                            label {{"Qty_Min" | translate }} {{"Credit Amount" | translate}}
+                            input.form-control(ng-model='vm.queryProposalMinCredit', type='number', min=0, style='width:90px')
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalCredit')")
+                            label {{"Qty_Max" | translate }} {{"Credit Amount" | translate}}
+                            input.form-control(ng-model='vm.queryProposalMaxCredit', type='number', min=0, style='width:90px')
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalPlayer')")
+                            label {{"RELATED_USER" | translate}}
+                            input.form-control(ng-model='vm.queryProposalRelatedUser', type='text')
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalDate')")
+                            label {{'START_DATE' | translate}}
+                            #datetimepicker.input-append.form-control
+                                input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                span.add-on
+                                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalDate')")
+                            label {{'END_DATE' | translate}}
+                            br
+                            #datetimepicker2.input-append.form-control
+                                input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                span.add-on
+                                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalPlayer')")
+                            label {{"Set Date Range" | translate}}
+                            select.form-control(ng-model='vm.dateRange',ng-options='i as v | translate for (i,v) in {"day":"Today","week":"This Week","month":"This Month"}',ng-change='vm.proposalSetDateRange(vm.dateRange)')
+                        .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                            button.common-button.btn.btn-primary(ng-if='vm.queryProposalId', ng-click='vm.getOneProposal()') {{'SEARCH' | translate}}
+                            button.common-button.btn.btn-primary(ng-if='!vm.queryProposalId', ng-click='vm.searchProposalByQuery(true)') {{'SEARCH' | translate}}
+                        .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                            button.common-button.btn.btn-warning(ng-click='vm.resetFilter()') {{'Reset' | translate}}
+                    .clearfix
+                    .proposalMessage
+                        text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.timeAllProposal}}
+                            label.text-danger.newProposalAlert
+                            a(ng-click='vm.loadProposalQueryData(true)')
+                                .fa.fa-refresh
+                            .pull-right
+                                label.inlineBlk.pull-right {{'Auto Refresh' | translate}}
+                                    input#autoRefreshProposalFlag.margin-left-5(type='checkbox', ng-model="vm.autoRefresh")
+                                .inlineBlk.hidden
+                                    text {{"Time left until next refresh" | translate}} :&nbsp;
+                                    text.timeLeftRefreshOperation
+                                    text s
+                    .row
+                        .col-md-12
+                            label {{"Total" | translate}} {{vm.queryProposal.totalCount}} {{"records" | translate}}
+                            table.common-table#proposalDataTable.display(style="width:100%;min-width:100%;max-height:450px;")
+                            #proposalDataTablePage
+            div(ng-show="vm.rightPanelTitle == 'APPROVAL_PROPOSAL'")
+                #proposalAuditDataTableDiv.tab-pane.fade.in.active
+                    #searchAudit
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalId')")
+                            label {{"Proposal No" | translate}}
+                            input.form-control(ng-model='vm.queryProposalAuditId', ng-change='vm.queryProposalAuditIdUpdate()')
+                        .inlineBlk.selectProposalTypeDiv(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalType')")
+                            label {{'FILTER_PROPOSAL_TYPE' | translate}}
+                            //select.form-control#selectProposalType(multiple="multiple", style='min-width:100px')
+                            //    option(ng-repeat='(i,v) in vm.allProposalType', value='{{i}}') {{v.name | translate}}
+
+                            select.form-control#selectProposalAuditType(multiple="multiple", style='min-width:100px;height:34px;', ng-options='i.name as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='vm.actionLogQuery.action')
+
+                        //.inlineBlk(ng-show="vm.rightPanelTitle == 'ALL_PROPOSAL' && checkViewPermission('Operation', 'Proposal', 'queryByProposalStatus')")
+                        //    label {{'FILTER_PROPOSAL_STATUS' | translate}}
+                        //    select.form-control#selectProposalAuditStatus(multiple="multiple", style='min-width:100px;height:34px;')
+                        //        option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}') {{v | translate}}
+                        //.inlineBlk(ng-show="vm.rightPanelTitle == 'ALL_PROPOSAL' && checkViewPermission('Operation', 'Proposal', 'queryByProposalStatus')")
+                        //    label {{'ENTRY_TYPE' | translate}}
+                        //    select.form-control(ng-model='vm.queryProposalEntryType', ng-options='i as v | translate for (i,v) in constProposalEntryType')
+                        //        option(value='') {{'any' | translate}}
+                        //.inlineBlk
+                            label {{'FILTER_PROPOSAL_CONTENT' | translate}}
+                            input.form-control#proposalSearch.form-control(type="text", placeholder='{{"FILTER_CONTENT" | translate}}', ng-model="vm.searchText")
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalCredit')")
+                            label {{"Qty_Min" | translate }} {{"Credit Amount" | translate}}
+                            input.form-control(ng-model='vm.queryProposalMinCredit', type='number', min=0, style='width:90px')
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalCredit')")
+                            label {{"Qty_Max" | translate }} {{"Credit Amount" | translate}}
+                            input.form-control(ng-model='vm.queryProposalMaxCredit', type='number', min=0, style='width:90px')
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalPlayer')")
+                            label {{"RELATED_USER" | translate}}
+                            input.form-control(ng-model='vm.queryProposalRelatedUser', type='text')
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalDate')")
+                            label {{'START_DATE' | translate}}
+                            #datetimepickerAudit.input-append.form-control
+                                input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                span.add-on
+                                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalDate')")
+                            label {{'END_DATE' | translate}}
+                            br
+                            #datetimepickerAudit2.input-append.form-control
+                                input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                span.add-on
+                                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalPlayer')")
+                            label {{"Set Date Range" | translate}}
+                            select.form-control(ng-model='vm.dateRange',ng-options='ind as val | translate for (ind,val) in {"day":"Today","week":"This Week","month":"This Month"}',ng-change='vm.proposalAuditSetDateRange(vm.dateRange)')
+                        .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                            button.common-button.btn.btn-primary(ng-if='vm.queryProposalAuditId', ng-click='vm.getOneProposalAudit()') {{'SEARCH' | translate}}
+                            button.common-button.btn.btn-primary(ng-if='!vm.queryProposalAuditId', ng-click='vm.searchProposalByQuery(true)') {{'SEARCH' | translate}}
+                        .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                            button.common-button.btn.btn-warning(ng-click='vm.resetFilter()') {{'Reset' | translate}}
+                    .clearfix
+                    .proposalMessage
+                        text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.timeAllProposal}}
+                        label.text-danger.newProposalAlert
+                        a(ng-click='vm.loadProposalQueryData(true)')
+                            .fa.fa-refresh
+                        .pull-right
+                            label.inlineBlk.pull-right {{'Auto Refresh' | translate}}
+                                input#autoRefreshProposalAuditFlag.margin-left-5(type='checkbox', ng-model="vm.autoRefresh")
+                            .inlineBlk.hidden
+                                text {{"Time left until next refresh" | translate}} :&nbsp;
+                                text.timeLeftRefreshOperation
+                                text s
+                    .row
+                        .col-md-12
+                            label {{"Total" | translate}} {{vm.queryProposal.totalCount}} {{"records" | translate}}
+                            table.common-table#proposalAuditDataTable.display(style="width:100%;min-width:100%;max-height:450px;")
+                            #proposalAuditDataTablePage
                 .row
-                    .col-md-12
-                        label {{"Total" | translate}} {{vm.queryProposal.totalCount}} {{"records" | translate}}
-                        table.common-table#proposalDataTable.display(style="width:100%;min-width:100%;max-height:450px;")
-                        #proposalDataTablePage
-            .row
-                .col-md-12(ng-if='vm.multiProposalSelected.length>0 && vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
-                    button.btn.btn-success.common-button(ng-show="checkViewPermission('Operation', 'Proposal','ApproveProposal')", ng-click="vm.updateMultiProposal(true)") {{"APPROVE" | translate}}
-                        text(ng-show='!vm.showProposalIndicator.approve') ({{vm.multiProposalSelected.length}})
-                        i.fa.fa-spin.fa-spinner(ng-show='vm.showProposalIndicator.approve')
-                    button.btn.btn-danger.common-button(ng-show="checkViewPermission('Operation', 'Proposal','RejectProposal')", ng-click="vm.updateMultiProposal()") {{"REJECT" | translate}}
-                        text(ng-show='!vm.showProposalIndicator.reject') ({{vm.multiProposalSelected.length}})
-                        i.fa.fa-spin.fa-spinner(ng-show='vm.showProposalIndicator.reject')
-            //#topupMonitorTableDiv.tab-pane.fade
-                .proposalMessage
-                    text {{'LAST_REFRESH_TIME' | translate}} : {{vm.timeTopupIntention}}
-                    label.text-danger.newProposalAlert
-                    a(ng-click='vm.startSpin($event,vm.topupClicked)')
-                        .fa.fa-refresh
-                table.common-table#topupMonitorTable.display(style="width:100%;max-height:450px;")
-            //#registrationMonitorTableDiv.tab-pane.fade
-                .proposalMessage
-                    text {{'LAST_REFRESH_TIME' | translate}} : {{vm.timeNewRegistrationIntention}}
-                    label.text-danger.newProposalAlert
-                    a(ng-click='vm.startSpin($event,vm.newAccountClicked)')
-                        .fa.fa-refresh
-                table.common-table#registrationMonitorTable.display(style="width:100%;max-height:450px;")
-            //marquee(direction='up' scrollamount="1" )
-                div
-                    label this text1
-                    br
-                    label this text2
+                    .col-md-12(ng-if='vm.multiProposalSelected.length>0 && vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
+                        button.btn.btn-success.common-button(ng-show="checkViewPermission('Operation', 'Proposal','ApproveProposal')", ng-click="vm.updateMultiProposal(true)") {{"APPROVE" | translate}}
+                            text(ng-show='!vm.showProposalIndicator.approve') ({{vm.multiProposalSelected.length}})
+                            i.fa.fa-spin.fa-spinner(ng-show='vm.showProposalIndicator.approve')
+                        button.btn.btn-danger.common-button(ng-show="checkViewPermission('Operation', 'Proposal','RejectProposal')", ng-click="vm.updateMultiProposal()") {{"REJECT" | translate}}
+                            text(ng-show='!vm.showProposalIndicator.reject') ({{vm.multiProposalSelected.length}})
+                            i.fa.fa-spin.fa-spinner(ng-show='vm.showProposalIndicator.reject')
+                //#topupMonitorTableDiv.tab-pane.fade
+                    .proposalMessage
+                        text {{'LAST_REFRESH_TIME' | translate}} : {{vm.timeTopupIntention}}
+                        label.text-danger.newProposalAlert
+                        a(ng-click='vm.startSpin($event,vm.topupClicked)')
+                            .fa.fa-refresh
+                    table.common-table#topupMonitorTable.display(style="width:100%;max-height:450px;")
+                //#registrationMonitorTableDiv.tab-pane.fade
+                    .proposalMessage
+                        text {{'LAST_REFRESH_TIME' | translate}} : {{vm.timeNewRegistrationIntention}}
+                        label.text-danger.newProposalAlert
+                        a(ng-click='vm.startSpin($event,vm.newAccountClicked)')
+                            .fa.fa-refresh
+                    table.common-table#registrationMonitorTable.display(style="width:100%;max-height:450px;")
+                //marquee(direction='up' scrollamount="1" )
+                    div
+                        label this text1
+                        br
+                        label this text2
 #operationListPopover.hide(style="width: 600px")
     //label {{'CHANGE' | translate}}
     div(style='max-height:400px;overflow-y:auto;')
