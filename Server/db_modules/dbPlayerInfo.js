@@ -1475,11 +1475,12 @@ let dbPlayerInfo = {
                     platformObjId = playerData.platform;
                     //check if bankAccountName in update data is the same as player's real name
                     if (updateData.bankAccountName && updateData.bankAccountName != playerData.realName) {
-                        return Q.reject({
-                            name: "DataError",
-                            code: constServerCode.INVALID_DATA,
-                            message: "Bank account name is different from real name"
-                        });
+                        // return Q.reject({
+                        //     name: "DataError",
+                        //     code: constServerCode.INVALID_DATA,
+                        //     message: "Bank account name is different from real name"
+                        // });
+                        updateData.realName = updateData.bankAccountName;
                     }
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
