@@ -259,7 +259,7 @@ var dbPlatformGameStatus = {
             games => {
                 if (games && games.length > 0) {
                     var platformGamesMap = {};
-                    platformGames = platformGames.filter(game => game.status != 4);
+                    games = games.filter(game => game.status != 4);
                     platformGames.forEach(game => platformGamesMap[game.game] = game);
                     games.forEach(
                         game => {
