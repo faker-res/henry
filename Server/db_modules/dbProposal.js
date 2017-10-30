@@ -2369,7 +2369,9 @@ var proposal = {
         if (data.userAgent){
             query['data.userAgent'] = data.userAgent;
         }
-
+        if (data.status && data.status.length > 0) {
+            query['status'] = {$in: data.status};
+        }
         let mainTopUpType;
         switch (String(data.mainTopupType)) {
             case constPlayerTopUpType.ONLINE.toString():
