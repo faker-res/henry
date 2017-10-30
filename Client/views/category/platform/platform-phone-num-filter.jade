@@ -39,12 +39,31 @@
                 label {{"SUPPORTED_FILE_FORMAT" | translate}}:
                 |  .txt
             .panel-body
-                input#fileSelect(type='file', accept='text/plain')
-                br
-                .pull-right
-                    button.btn.btn-primary.common-button
-                        i.fa.fa-check
-                        text {{"SUBMIT" | translate}}
+                div
+                    form
+                        input(type='file', name='file' on-read-file='vm.uploadPhoneFileTXT($fileContent); vm.showContentTXT($fileContent)', ng-click="vm.phoneNumTXTResult=false;")
+                        br
+                        .well(ng-if='vm.contentTXT')
+                            label {{"CONTENT_TXT" | translate}}:
+                            p {{vm.contentTXT}}
+                        .pull-right
+                            button.btn.btn-primary.common-button(ng-click="vm.phoneNumTXTResult=true;")
+                                i.fa.fa-check
+                                text {{"SUBMIT" | translate}}
+                // display result
+                div(ng-if="vm.phoneNumTXTResult")
+                    br
+                    label {{"RESULT" | translate}}:
+                    .well
+                        label {{"DUPLICATE_PHONE" | translate}}:
+                        p {{vm.samePhoneTXT}}
+                    .well
+                        label {{"NON_DUPLICATE_PHONE" | translate}}:
+                        p {{vm.diffPhoneTXT}}
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-click="vm.phoneNumTXTResult=true; vm.exportTXTFile(vm.diffPhoneTXT);")
+                            i.fa.fa-check
+                            text {{"EXPORT_TXT" | translate}}
 
     .col-md-4
         .panel.panel-primary

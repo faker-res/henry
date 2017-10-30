@@ -958,6 +958,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileCSV, [data.arrayPhoneCSV], actionName, isValidData);
         },
 
+        uploadPhoneFileTXT: function uploadPhoneFileTXT(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.arrayPhoneTXT);
+            socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileTXT, [data.arrayPhoneTXT], actionName, isValidData);
+        },
+
     };
     socketActionPlayer.actions = this.actions;
 }

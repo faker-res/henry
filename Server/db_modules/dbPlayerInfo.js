@@ -11085,6 +11085,51 @@ let dbPlayerInfo = {
         });
     },
 
+    uploadPhoneFileTXT: function (arrayPhoneTXT) {
+        let oldNewPhone = {$in: []};
+
+        for (let i = 0; i < arrayPhoneTXT.length; i++) {
+            oldNewPhone.$in.push(arrayPhoneTXT[i]);
+            oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneTXT[i]));
+        }
+
+        // display phoneNumber from DB without asterisk masking
+        let dbPhone = dbconfig.collection_players.aggregate([
+            {$match: {"phoneNumber": oldNewPhone}},
+            {$project: {name: 1, phoneNumber: 1, _id: 0}}
+        ]);
+
+        let diffPhoneTXT;
+        let samePhoneTXT;
+        let arrayDbPhone = [];
+
+        // display phoneNumber result that matched input phoneNumber
+        return dbPhone.then(playerData => {
+            // encrypted phoneNumber in DB will be decrypted
+            for (let q = 0; q < playerData.length; q ++) {
+                if (playerData[q].phoneNumber.length > 20) {
+                    playerData[q].phoneNumber = rsaCrypto.decrypt(playerData[q].phoneNumber);
+                }
+            }
+
+            for (let z = 0; z < playerData.length; z ++) {
+                arrayDbPhone.push(playerData[z].phoneNumber);
+            }
+
+            // display non duplicated phone numbers
+            let diffPhone = arrayPhoneTXT.filter(item => !arrayDbPhone.includes(item));
+            diffPhoneTXT = diffPhone.join(", ");
+
+            // display duplicated phone numbers
+            let samePhone = arrayPhoneTXT.filter(item => arrayDbPhone.includes(item));
+            samePhoneTXT = samePhone.join(", ");
+
+            return {samePhoneTXT: samePhoneTXT, diffPhoneTXT: diffPhoneTXT};
+        }).then(data => {
+            return data;
+        });
+    },
+
 };
 
 
