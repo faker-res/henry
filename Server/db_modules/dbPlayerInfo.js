@@ -4383,7 +4383,11 @@ let dbPlayerInfo = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
 
-                    if (playerObj.platform.canMultiReward) {
+                    if (playerObj.platform.useProviderGroup) {
+                        // Platform supporting provider group
+                        return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
+                            data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                    } else if (playerObj.platform.canMultiReward) {
                         // Platform supporting multiple rewards will use new function first
                         return dbPlayerCreditTransfer.playerCreditTransferFromProvider(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
                     }

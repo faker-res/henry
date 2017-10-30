@@ -990,6 +990,311 @@ let dbPlayerCreditTransfer = {
         );
     },
 
+    /**
+     * TODO:: WORK IN PROGRESS
+     * @param playerObjId
+     * @param platform
+     * @param providerId
+     * @param amount
+     * @param playerId
+     * @param providerShortId
+     * @param userName
+     * @param platformId
+     * @param adminName
+     * @param cpName
+     * @param bResolve
+     * @param maxReward
+     * @param forSync
+     */
+    playerCreditTransferFromProviderWithProviderGroup: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync) {
+        let pCTFP = this;
+        let providerPlayerObj = null;
+        let rewardTasks = null;
+        let lockedAmount = 0;
+        let rewardTaskTransferredAmount = 0;
+        let validCreditToAdd = 0;
+        let gameCredit = 0;
+        let playerCredit = 0;
+        let rewardTaskCredit = 0;
+        let notEnoughCredit = false;
+        let bUpdateTask = false;
+        let transferId = new Date().getTime();
+
+        let player, gameProviderGroup;
+
+        let playerProm = dbConfig.collection_players.findOne({_id: playerObjId}).populate(
+            {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
+        ).lean();
+        let providerGroupProm = dbConfig.collection_gameProviderGroup.findOne({
+            platform: platform,
+            providers: providerId
+        }).lean();
+
+        // Search provider group
+        return Promise.all([playerProm, providerGroupProm]).then(
+            res => {
+                player = res[0];
+                gameProviderGroup = res[1];
+
+                // Check if player exist
+                if (!player) {
+                    return Q.reject({name: "DataError", message: "Can't find player information."});
+                }
+
+                if (gameProviderGroup) {
+                    // Search for reward task group of this player on this provider
+                    let gameCreditProm = Promise.resolve(false);
+                    let rewardTaskGroupProm = dbConfig.collection_rewardTaskGroup.findOne({
+                        platformId: platform,
+                        playerId: playerObjId,
+                        providerGroup: gameProviderGroup._id,
+                        status: {$in: [constRewardTaskStatus.STARTED]}
+                    }).lean();
+
+                    if (forSync) {
+                        gameCreditProm = Promise.resolve({credit: amount});
+                    } else {
+                        gameCreditProm = pCTFP.getPlayerGameCredit(
+                            {
+                                username: userName,
+                                platformId: platformId,
+                                providerId: providerShortId
+                            }
+                        )
+                    }
+
+                    return Promise.all([rewardTaskGroupProm, gameCreditProm]);
+                } else {
+                    // Group not exist, may be due to provider are not added in a group yet
+                    return Q.reject({name: "DataError", message: "Provider are not added in a group yet."});
+                }
+            }
+        ).then(
+            res => {
+                if (res && res[0] && res[1]) {
+                    let rewardGroupObj = res[0];
+                    providerPlayerObj = {gameCredit: res[1].credit ? parseFloat(res[1].credit) : 0};
+
+                    // Current credit in provider
+                    let curGameCredit = providerPlayerObj.gameCredit;
+
+
+                    // Check current game credit
+                    if (curGameCredit < 1 || amount == 0 || curGameCredit < amount) {
+                        notEnoughCredit = true;
+                        if (bResolve) {
+                            return dbConfig.collection_players.findOne({_id: playerObjId}).lean().then(
+                                playerData => {
+                                    return {
+                                        playerId: playerId,
+                                        providerId: providerShortId,
+                                        providerCredit: providerPlayerObj.gameCredit,
+                                        playerCredit: playerData.validCredit,
+                                        rewardCredit: playerData.lockedCredit
+                                    }
+                                }
+                            );
+                        } else {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                name: "DataError",
+                                errorMessage: "Player does not have enough credit."
+                            });
+                        }
+                    }
+
+                    let updateObj;
+
+                    if (rewardGroupObj) {
+                        let totalInputCredit = rewardGroupObj._inputRewardAmt + rewardGroupObj._inputFreeAmt;
+
+                        // Check current game credit against reward group credit
+                        if (curGameCredit > totalInputCredit) {
+                            // Scenario 1: User gains
+                            let userProfit = curGameCredit - totalInputCredit;
+
+                            updateObj = {
+                                rewardAmt: rewardGroupObj._inputRewardAmt + userProfit,
+                                freeAmt: rewardGroupObj._inputFreeAmt,
+                                _inputRewardAmt: 0,
+                                _inputFreeAmt: 0
+                            };
+                        } else if (curGameCredit < totalInputCredit) {
+                            // Scenario 2: User loses
+                            let userLoses = totalInputCredit - curGameCredit;
+
+                            updateObj = {
+                                rewardAmt: rewardGroupObj._inputRewardAmt,
+                                freeAmt: rewardGroupObj._inputFreeAmt - userLoses,
+                                _inputRewardAmt: 0,
+                                _inputFreeAmt: 0
+                            };
+                        } else {
+                            // Scenario 3: Break even / Didn't bet
+                            updateObj = {
+                                rewardAmt: rewardGroupObj._inputRewardAmt,
+                                freeAmt: rewardGroupObj._inputFreeAmt,
+                                _inputRewardAmt: 0,
+                                _inputFreeAmt: 0
+                            };
+                        }
+                    } else {
+                        // There is no rewardGroupObj found
+                        // Should not be possible as all provider must belong to a group
+                        // and player must have a rewardGroupObj when transfer in
+                        return Q.reject({name: "DataError", message: "No reward task group found for player"});
+                    }
+
+                    return counterManager.incrementAndGetCounter("transferId").then(
+                        function (id) {
+                            transferId = id;
+                            dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
+                                providerShortId, amount, lockedAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
+                            return pCTFP.playerTransferOut(
+                                {
+                                    username: userName,
+                                    platformId: platformId,
+                                    providerId: providerShortId,
+                                    transferId: id, //chance.integer({min: 1000000000000000000, max: 9999999999999999999}),
+                                    credit: amount
+                                }
+                            ).then(
+                                res => res,
+                                error => {
+                                    // let lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
+                                    dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
+                                        providerShortId, amount, lockedAmount, adminName, error, constPlayerCreditTransferStatus.FAIL);
+                                    error.hasLog = true;
+                                    return Q.reject(error);
+                                }
+                            );
+                        }
+                    );
+                } else {
+                    return Q.reject({name: "DataError", message: "Cant find player credit in provider."});
+                }
+            }
+        ).then(
+            function (data) {
+                if (data) {
+                    // CPMS Transfer out success
+                    if (bUpdateTask) {
+                        let rewardPromises = [];
+                        for (let i = 0; i < rewardTasks.length; i++) {
+                            let rewardTask = rewardTasks[i];
+                            if (rewardTask.bUpdateTask) {
+                                let rewardProm = dbConfig.collection_rewardTask.findOneAndUpdate(
+                                    {_id: rewardTask._id, platformId: rewardTask.platformId},
+                                    {
+                                        currentAmount: rewardTask.currentAmount,
+                                        inProvider: rewardTask.inProvider,
+                                        _inputCredit: 0
+                                    },
+                                    {new: true}
+                                );
+                                rewardPromises.push(rewardProm);
+                            } else {
+                                // pushing the object into promise will return the object as usual, with the same array order
+                                rewardPromises.push(rewardTask);
+                            }
+                        }
+                        return Promise.all(rewardPromises);
+                    }
+                    else {
+                        return rewardTasks;
+                    }
+                }
+            },
+            function (error) {
+                //log transfer error
+                return Q.reject(error);
+            }
+        ).then(
+            function (data) {
+                if (data) {
+                    rewardTasks = data;
+                    // note:: transferOut only allow integer, so the decimal amount will stay in the game, hence, the remaining game credit
+                    gameCredit = providerPlayerObj.gameCredit - validCreditToAdd - rewardTaskCredit;
+                    gameCredit = gameCredit >= 0 ? gameCredit : 0;
+                    return true;
+                } else {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_REWARD_INFO,
+                        name: "DataError",
+                        message: "Error when finding reward information for player"
+                    });
+                }
+            }, function (err) {
+                return Q.reject({
+                    status: constServerCode.PLAYER_REWARD_INFO,
+                    name: "DataError",
+                    message: "Error when finding reward information for player",
+                    error: err
+                });
+            }
+        ).then(
+            function (data) {
+                if (data) {
+                    let updateObj = {
+                        lastPlayedProvider: null,
+                        $inc: {validCredit: validCreditToAdd},
+                        lockedCredit: lockedAmount
+                    };
+
+                    //move credit to player
+                    return dbConfig.collection_players.findOneAndUpdate(
+                        {_id: playerObjId, platform: platform},
+                        updateObj,
+                        {new: true}
+                    )
+                }
+            },
+            function (err) {
+                return Q.reject({
+                    status: constServerCode.PLAYER_TRANSFER_OUT_ERROR,
+                    name: "DBError",
+                    message: "Error transfer out player credit.",
+                    error: err
+                });
+            }
+        ).then(
+            function (res) {
+                if (res) {//create log
+                    playerCredit = res.validCredit;
+                    let lockedCredit = res.lockedCredit;
+                    dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, validCreditToAdd, constPlayerCreditChangeType.TRANSFER_OUT, playerCredit, lockedCredit, lockedCredit, null, {
+                        providerId: providerShortId,
+                        providerName: cpName,
+                        transferId: transferId,
+                        adminName: adminName
+                    });
+                    // Logging Transfer Success
+                    dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform,
+                        platformId, constPlayerCreditChangeType.TRANSFER_OUT, transferId, providerShortId, amount, lockedCredit, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
+
+                    return Q.resolve(
+                        {
+                            playerId: playerId,
+                            providerId: providerShortId,
+                            providerCredit: parseFloat(gameCredit).toFixed(2),
+                            playerCredit: parseFloat(playerCredit).toFixed(2),
+                            rewardCredit: parseFloat(rewardTaskCredit).toFixed(2),
+                            transferCredit: {
+                                playerCredit: parseFloat(validCreditToAdd).toFixed(2),
+                                rewardCredit: parseFloat(rewardTaskTransferredAmount).toFixed(2)
+                            }
+                        }
+                    );
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Error in increasing player credit."})
+                }
+            },
+            function (err) {
+                return Q.reject({name: "DBError", message: "Error in increasing player credit.", error: err});
+            }
+        );
+    }
 };
 
 /**
