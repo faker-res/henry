@@ -14,6 +14,7 @@ const constProposalType = {
     UPDATE_PARTNER_BANK_INFO: "UpdatePartnerBankInfo",
     UPDATE_PARTNER_PHONE: "UpdatePartnerPhone",
     UPDATE_PARTNER_EMAIL: "UpdatePartnerEmail",
+    UPDATE_PARTNER_QQ: "UpdatePartnerQQ",
     UPDATE_PARTNER_INFO: "UpdatePartnerInfo",
     FULL_ATTENDANCE: "FullAttendance",
     PLAYER_CONSUMPTION_RETURN: "PlayerConsumptionReturn",

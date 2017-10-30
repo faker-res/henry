@@ -8385,7 +8385,7 @@ define(['js/app'], function (myApp) {
                             changeType: 'email',
                             curEmail: vm.selectedSinglePartner.email,
                             curQQ: vm.selectedSinglePartner.qq,
-                            curWeChat: vm.selectedSinglePlayer.wechat,
+                            // curWeChat: vm.selectedSinglePlayer.wechat,
                             phoneNumber: vm.selectedSinglePartner.phoneNumber,
                         }
                     } else {
@@ -8394,7 +8394,7 @@ define(['js/app'], function (myApp) {
                         vm.modifyCritical.changeType = 'email';
                         vm.modifyCritical.curEmail = vm.selectedSinglePartner.email;
                         vm.modifyCritical.curQQ = vm.selectedSinglePartner.qq;
-                        vm.modifyCritical.curWeChat = vm.selectedSinglePlayer.wechat;
+                        // vm.modifyCritical.curWeChat = vm.selectedSinglePlayer.wechat;
                         vm.modifyCritical.phoneNumber = vm.selectedSinglePartner.phoneNumber;
                     }
                 }
@@ -8472,6 +8472,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 21:
                         sendString = 'createUpdatePartnerEmailProposal';
+                        break;
+                    case 22:
+                        sendString = 'createUpdatePartnerQQProposal';
                         break;
 
                 }

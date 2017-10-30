@@ -114,6 +114,7 @@ var proposalExecutor = {
             this.executions.executeUpdatePartnerBankInfo.des = "Update partner bank information";
             this.executions.executeUpdatePartnerCredit.des = "Update partner credit";
             this.executions.executeUpdatePartnerEmail.des = "Update partner email";
+            this.executions.executeUpdatePartnerQQ.des = "Update partner QQ";
             this.executions.executeUpdatePartnerPhone.des = "Update partner phone number";
             this.executions.executeUpdatePartnerInfo.des = "Update partner information";
             this.executions.executePlayerTopUp.des = "Help player top up";
@@ -158,12 +159,14 @@ var proposalExecutor = {
             this.rejections.rejectPlayerConsumptionReturnFix.des = "Reject update player credit for consumption return";
             this.rejections.rejectUpdatePlayerEmail.des = "Reject player update email proposal";
             this.rejections.rejectUpdatePlayerQQ.des = "Reject player update QQ proposal";
+            this.rejections.rejectUpdatePlayerWeChat.des = "Reject player update WeChat proposal";
             this.rejections.rejectUpdatePlayerPhone.des = "Reject player update phone number proposal";
             this.rejections.rejectUpdatePlayerBankInfo.des = "Reject player update bank information";
             this.rejections.rejectAddPlayerRewardTask.des = "Reject add player reward task";
             this.rejections.rejectUpdatePartnerBankInfo.des = "Reject partner update bank information";
             this.rejections.rejectUpdatePartnerPhone.des = "Reject partner update phone number";
             this.rejections.rejectUpdatePartnerEmail.des = "Reject partner update email";
+            this.rejections.rejectUpdatePartnerWeChat.des = "Reject partner update weChat";
             this.rejections.rejectUpdatePartnerInfo.des = "Reject partner update information";
             this.rejections.rejectFullAttendance.des = "Reject player full attendance reward";
             this.rejections.rejectGameProviderReward.des = "Reject player for Game Provider Reward";
@@ -711,6 +714,31 @@ var proposalExecutor = {
             executeUpdatePartnerEmail: function (proposalData, deferred) {
                 //data validation
                 if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.updateData.email) {
+                    dbUtil.findOneAndUpdateForShard(
+                        dbconfig.collection_partner,
+                        {partnerName: proposalData.data.partnerName},
+                        proposalData.data.updateData,
+                        constShardKeys.collection_partner
+                    ).then(
+                        function (data) {
+                            deferred.resolve(data);
+                        },
+                        function (err) {
+                            deferred.reject({name: "DataError", message: "Failed to update partner email", error: err});
+                        }
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect update partner email proposal data"});
+                }
+            },
+
+            /**
+             * execution function for update partner QQ proposal type
+             */
+            executeUpdatePartnerQQ: function (proposalData, deferred) {
+                //data validation
+                if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.updateData.qq) {
                     dbUtil.findOneAndUpdateForShard(
                         dbconfig.collection_partner,
                         {partnerName: proposalData.data.partnerName},
@@ -1974,6 +2002,13 @@ var proposalExecutor = {
             },
 
             /**
+             * reject function for UpdatePlayerQQ proposal
+             */
+            rejectUpdatePlayerWeChat: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
              * reject function for UpdatePlayerPhone proposal
              */
             rejectUpdatePlayerPhone: function (proposalData, deferred) {
@@ -2012,6 +2047,13 @@ var proposalExecutor = {
              * reject function for UpdatePartnerEmail proposal
              */
             rejectUpdatePartnerEmail: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
+             * reject function for UpdatePartnerWeChat proposal
+             */
+            rejectUpdatePartnerWeChat: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 

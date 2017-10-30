@@ -190,6 +190,19 @@ function socketActionProposal(socketIO, socket) {
         },
 
         /**
+         * Create new Proposal to update partner qq
+         * @param {json} data - proposal type name
+         */
+        createUpdatePartnerQQProposal: function createUpdatePartnerQQProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(
+                data && data.platformId && data.data &&
+                data.data.partnerName && data.data.curData && data.data.updateData && data.data.updateData.qq
+            );
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_QQ, data], actionName, isValidData);
+        },
+
+        /**
          * Create new Proposal to update partner credit
          * @param {json} data - proposal data
          */
