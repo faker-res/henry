@@ -9,7 +9,8 @@
                 .alert.alert-info.alert-dismissable
                     a.close(href='#', data-dismiss='alert', aria-label='close') ×
                     i.fa.fa-info-circle.margin-right-5
-                    text {{"ADD_PHONE_NUMBER_CSV_INSTRUCTION" | translate}}
+                    text
+                        strong {{"ADD_PHONE_NUMBER_CSV_INSTRUCTION" | translate}}
                 div
                     form
                         input(type='file', name='file' on-read-file='vm.uploadPhoneFileCSV($fileContent); vm.showContentCSV($fileContent)', ng-click="vm.phoneNumCSVResult=false;")
@@ -46,7 +47,8 @@
                 .alert.alert-info.alert-dismissable
                     a.close(href='#', data-dismiss='alert', aria-label='close') ×
                     i.fa.fa-info-circle.margin-right-5
-                    text {{"ADD_PHONE_NUMBER_TXT_INSTRUCTION" | translate}}
+                    text
+                        strong {{"ADD_PHONE_NUMBER_TXT_INSTRUCTION" | translate}}
                 div
                     form
                         input(type='file', name='file' on-read-file='vm.uploadPhoneFileTXT($fileContent); vm.showContentTXT($fileContent)', ng-click="vm.phoneNumTXTResult=false;")
@@ -82,7 +84,8 @@
                 .alert.alert-info.alert-dismissable
                     a.close(href='#', data-dismiss='alert', aria-label='close') ×
                     i.fa.fa-info-circle.margin-right-5
-                    text {{"ADD_PHONE_NUMBER_FILTER_INSTRUCTION" | translate}}
+                    text
+                        strong {{"ADD_PHONE_NUMBER_FILTER_INSTRUCTION" | translate}}
                 textarea.form-control(rows='5', placeholder="14444444444, 15555555555, 16666666666", ng-model="vm.inputNewPhoneNum")
                 br
                 .pull-right
