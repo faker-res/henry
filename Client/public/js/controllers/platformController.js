@@ -2900,6 +2900,12 @@ define(['js/app'], function (myApp) {
                             vm.selectedSinglePlayer = null;
                             vm.selectedPlayersCount = 0;
                         }
+                        if (vm.selectedSinglePlayer.referral) {
+                            socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: vm.selectedSinglePlayer.referral}, function (data) {
+                                vm.showReferralName = data.data.name;
+                                // $scope.safeApply();
+                            });
+                        }
                     }
                     $scope.safeApply();
                 });
@@ -5310,19 +5316,18 @@ define(['js/app'], function (myApp) {
                 }else {
                     delete updateData.referralName;
                 }
-                delete updateData.referral;
 
                 if (!updateData.partner) {
                     delete updateData.partnerName;
                 }
                 if (Object.keys(updateData).length > 0) {
                     updateData._id = playerId;
-                    var isUpdate = false
+                    var isUpdate = false;
                     updateData.playerName = newPlayerData.name || vm.editPlayer.name
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
                     Object.keys(newPlayerData).forEach(function (key) {
                         if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup" || key == "referral") {
+                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup") {
                                 //do nothing
                             } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                                 //do nothing
@@ -5410,16 +5415,15 @@ define(['js/app'], function (myApp) {
                         vm.getPlatformPlayersData();
                     });
                 }
-                if (updateReferralName) {
-                    socketService.$socket($scope.AppSocket, 'updatePlayerReferral', {
-                        playerObjId: playerId,
-                        referral: updateReferralName
-                    }, function (updated) {
-                        console.log('updated', updated);
-                        vm.getPlatformPlayersData();
-                        vm.showReferralName = updateReferralName;
-                    });
-                }
+                // if (updateReferralName) {
+                //     socketService.$socket($scope.AppSocket, 'updatePlayerReferral', {
+                //         playerObjId: playerId,
+                //         referral: updateReferralName
+                //     }, function (updated) {
+                //         console.log('updated', updated);
+                //         vm.getPlatformPlayersData();
+                //     });
+                // }
             }
 
             vm.updateSMSSettings = function()
