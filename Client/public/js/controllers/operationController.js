@@ -104,6 +104,8 @@ define(['js/app'], function (myApp) {
             vm.getLoggedInPlayer();
             // vm.loadProposalData();
             // vm.getTopupIntentionData();
+            vm.getRewardList(vm.setUpRewardMultiSelect);
+            vm.getPromotionTypeList(vm.setUpPromoCodeMultiSelect);
             vm.allTopUpIntentionString = null;
             vm.allNewAccountString = null;
             vm.allProposalString = null;
@@ -143,6 +145,42 @@ define(['js/app'], function (myApp) {
             });
             dropDownElement.multipleSelect("checkAll");
             vm.proposalTypeClicked("total");
+        };
+
+        vm.setUpRewardMultiSelect = () => {
+            let selectRewardType = $('select#selectRewardType');
+            selectRewardType.multipleSelect({
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: true,
+                countSelected: $translate('# of % selected'),
+            });
+            var $multi = (selectRewardType.next().find('.ms-choice'))[0];
+            selectRewardType.next().on('click', 'li input[type=checkbox]', function () {
+                var upText = $($multi).text().split(',').map(item => {
+                    return $translate(item);
+                }).join(',');
+                $($multi).find('span').text(upText)
+            });
+            selectRewardType.multipleSelect("checkAll");
+        };
+
+        vm.setUpPromoCodeMultiSelect = () => {
+            let selectPromoType = $('select#selectPromoType');
+            selectPromoType.multipleSelect({
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: true,
+                countSelected: $translate('# of % selected'),
+            });
+            var $multi = (selectPromoType.next().find('.ms-choice'))[0];
+            selectPromoType.next().on('click', 'li input[type=checkbox]', function () {
+                var upText = $($multi).text().split(',').map(item => {
+                    return $translate(item);
+                }).join(',');
+                $($multi).find('span').text(upText)
+            });
+            selectPromoType.multipleSelect("checkAll");
         };
 
         vm.resetFilter = function () {
@@ -759,6 +797,29 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getRewardList = function (callback) {
+            vm.rewardList = [];
+            socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform._id}, function (data) {
+                vm.rewardList = data.data;
+                console.log('vm.rewardList', vm.rewardList);
+                $scope.safeApply();
+                if (callback) {
+                    callback();
+                }
+            });
+        };
+
+        vm.getPromotionTypeList = function (callback) {
+            socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform._id}, function (data) {
+                console.log('getPromoCodeTypes', data);
+                vm.promoTypeList = data.data;
+                $scope.safeApply();
+                if (callback) {
+                    callback();
+                }
+            });
+        };
+
         vm.getPlatformProviderGroup = () => {
             let query = (vm.selectedPlatform && vm.selectedPlatform._id)
                 ? {platformObjId: vm.selectedPlatform._id}
@@ -870,28 +931,12 @@ define(['js/app'], function (myApp) {
                 // filterProposalType: true,
                 "aaSorting": vm.queryProposal.aaSorting || [],
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
                     {'sortCol': 'relatedAmount', bSortable: true, 'aTargets': [7]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {
-                        "title": $translate('Multiselect'),
-                        bSortable: false,
-                        sClass: "approvalProposalSelected",
-                        render: function (data, type, row) {
-                            if (!row.isLocked || row.isLocked._id == authService.adminId) {
-                                var link = $('<input>', {
-                                    type: 'checkbox',
-                                    "data-proposalId": row._id,
-                                    class: "transform150"
-                                })
-                                return link.prop('outerHTML');
-                            } else return null;
-                        },
-                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
-                    },
                     {
                         "title": $translate('PROPOSAL_NO'),
                         "data": "proposalId",
@@ -900,105 +945,6 @@ define(['js/app'], function (myApp) {
                             return $link.prop('outerHTML');
                         },
                         bSortable: true
-                    },
-                    {
-                        "title": $translate('request Id'),
-                        "data": "data.requestId"
-                    },
-                    {
-                        "title": $translate('Merchant No'),
-                        "data": "merchantNo$"
-                    },
-                    {
-                        "title": $translate('MAIN_TYPE'),
-                        "data": "mainType$"
-                    },
-                    {
-                        "title": $translate('TYPE'),
-                        "data": "type",
-                        render: function (data, type, row) {
-                            var text = $translate(row.type ? row.type.name : "");
-                            return "<div>" + text + "</div>";
-                        }
-                    },
-                    {
-                        "title": $translate('topupType'),
-                        "data": "data.topupType",
-                        render: function (data, type, row) {
-                            let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : ""
-                            return "<div>" + text + "</div>";
-                        },
-                        bSortable: true
-                    },
-                    {
-                        "title": $translate('PRIORITY'),
-                        "data": "priority$"
-                    },
-                    {
-                        "title": $translate('playerStatus'),
-                        "data": "playerStatus$",
-                        render: function (data, type, row) {
-                            let showText = $translate($scope.constPlayerStatus[data] ?
-                                $scope.constPlayerStatus[data] : "Normal");
-                            let textClass = '';
-                            let fontStyle = {};
-                            if (data === 4) {
-                                textClass = "bold";
-                                fontStyle = {'font-weight': 'bold'};
-                            } else if (data === 5) {
-                                textClass = "text-danger";
-                                fontStyle = {'font-weight': 'bold'};
-                            }
-
-                            return $('<div>')
-                                .text(showText)
-                                .addClass(textClass)
-                                .css(fontStyle)
-                                .prop('outerHTML');
-                        }
-                    },
-                    {
-                        "title": $translate('ENTRY_TYPE'),
-                        "data": "entryType$"
-                    },
-                    {
-                        "title": $translate('USER_TYPE'),
-                        "data": "userType$",
-                        "sClass": "sumText"
-                    },
-                    {
-                        "title": $translate('Credit Amount'),
-                        "data": "creditAmount$",
-                        "sClass": "alignRight creditAmount sumFloat"
-                    },
-                    {
-                        "title": $translate('bankTypeId'),
-                        "data": "bankType$",
-                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
-                    },
-                    {
-                        "title": $translate('RELATED_USER'),
-                        "data": null,
-                        render: function (data, type, row) {
-                            if (data.hasOwnProperty('creator') && data.creator.type == 'player') {
-                                return data.creator.name;
-                            }
-                            if (data && data.data && data.data.playerName) {
-                                return data.data.playerName;
-                            }
-                            else if (data && data.data && data.data.partnerName) {
-                                return data.data.partnerName;
-                            }
-                            else {
-                                return "";
-                            }
-                        }
-                    },
-                    {
-                        "title": $translate('PlayerLevel'),
-                        bSortable: false,
-                        data: "playerLevel$",
-                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
                     },
                     {
                         "title": $translate('CREATOR'),
@@ -1016,13 +962,32 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        "title": $translate('LOCK_USER'),
-                        "data": "lockUser$",
+                        title: $translate('INPUT_DEVICE'),
+                        data: "inputDevice",
                         render: function (data, type, row) {
-                            var text = row.isLocked ? row.isLocked.adminName : "";
-                            return "<div>" + text + "</div>";
-                        },
-                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                            for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data ){
+                                    return $translate(Object.keys(vm.inputDevice)[i]);
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "title": $translate('MAIN_TYPE'),
+                        "data": "mainType$"
+                    },
+                    {
+                        title: $translate('PROPOSAL_SUB_TYPE'), data: null,
+                        orderable: false,
+                        render: function (data, type, row) {
+                            if (data && data.data && data.data.PROMO_CODE_TYPE) {
+                                return data.data.PROMO_CODE_TYPE;
+                            }else if(data && data.data && data.data.eventName){
+                                return data.data.eventName;
+                            }else {
+                                return data.typeName;
+                            }
+                        }
                     },
                     {
                         "title": $translate('STATUS'),
@@ -1043,43 +1008,154 @@ define(['js/app'], function (myApp) {
                         },
                     },
                     {
+                        "title": $translate('RELATED_USER'),
+                        "data": null,
+                        render: function (data, type, row) {
+                            if (data.hasOwnProperty('creator') && data.creator.type == 'player') {
+                                return data.creator.name;
+                            }
+                            if (data && data.data && data.data.playerName) {
+                                return data.data.playerName;
+                            }
+                            else if (data && data.data && data.data.partnerName) {
+                                return data.data.partnerName;
+                            }
+                            else {
+                                return "";
+                            }
+                        }
+                    },
+                    {
+                        "title": $translate('Credit Amount'),
+                        "data": "creditAmount$",
+                        "sClass": "alignRight creditAmount sumFloat"
+                    },
+                    {
                         "title": $translate('CREATION_TIME'),
                         "data": 'createTime$',
                         bSortable: true
                     },
                     {
+                        "title": $translate('PlayerLevel'),
+                        bSortable: false,
+                        data: "playerLevel$",
+                        // visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    },
+                    {
                         "title": $translate('REMARK'),
                         data: "remark$",
                         sClass: "maxWidth100 wordWrap",
-                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                        // visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
                     },
-                    {
-                        "title": $translate('EXPIRY_DATE'),
-                        "data": 'expirationTime$',
-                        type: 'signed-num',
-                        render: function (data, type, row) {
-                            if (type === 'sort' || type === 'type') {
-                                return data;
-                            }
-                            else {
-                                if (data > 0) {
-                                    // Not expired
-                                    let expireTime = Math.floor((data / 1000) / 60);
-                                    return "<div>" + $translate("Left") + " " + expireTime + " " + $translate("mins") + "</div>";
-                                }
-                                else if (data < 0) {
-                                    // Expired
-                                    let expireTime = Math.ceil((data / 1000) / 60);
-                                    return "<div>" + $translate("Expired") + " " + -expireTime + " " + $translate("mins") + "</div>";
-                                }
-                                else {
-                                    return "<div>" + $translate("N/A") + "</div>";
-                                }
-                            }
-                        },
-                        bSortable: true,
-                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
-                    },
+
+
+                    // {
+                    //     "title": $translate('TYPE'),
+                    //     "data": "type",
+                    //     render: function (data, type, row) {
+                    //         var text = $translate(row.type ? row.type.name : "");
+                    //         return "<div>" + text + "</div>";
+                    //     }
+                    // },
+
+
+                    // {
+                    //     "title": $translate('request Id'),
+                    //     "data": "data.requestId"
+                    // },
+                    // {
+                    //     "title": $translate('Merchant No'),
+                    //     "data": "merchantNo$"
+                    // },
+                    //
+                    // {
+                    //     "title": $translate('topupType'),
+                    //     "data": "data.topupType",
+                    //     render: function (data, type, row) {
+                    //         let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : ""
+                    //         return "<div>" + text + "</div>";
+                    //     },
+                    //     bSortable: true
+                    // },
+                    // {
+                    //     "title": $translate('PRIORITY'),
+                    //     "data": "priority$"
+                    // },
+                    // {
+                    //     "title": $translate('playerStatus'),
+                    //     "data": "playerStatus$",
+                    //     render: function (data, type, row) {
+                    //         let showText = $translate($scope.constPlayerStatus[data] ?
+                    //             $scope.constPlayerStatus[data] : "Normal");
+                    //         let textClass = '';
+                    //         let fontStyle = {};
+                    //         if (data === 4) {
+                    //             textClass = "bold";
+                    //             fontStyle = {'font-weight': 'bold'};
+                    //         } else if (data === 5) {
+                    //             textClass = "text-danger";
+                    //             fontStyle = {'font-weight': 'bold'};
+                    //         }
+                    //
+                    //         return $('<div>')
+                    //             .text(showText)
+                    //             .addClass(textClass)
+                    //             .css(fontStyle)
+                    //             .prop('outerHTML');
+                    //     }
+                    // },
+                    // {
+                    //     "title": $translate('ENTRY_TYPE'),
+                    //     "data": "entryType$"
+                    // },
+                    // {
+                    //     "title": $translate('USER_TYPE'),
+                    //     "data": "userType$",
+                    //     "sClass": "sumText"
+                    // },
+                    // {
+                    //     "title": $translate('bankTypeId'),
+                    //     "data": "bankType$",
+                    //     visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    // },
+                    // {
+                    //     "title": $translate('LOCK_USER'),
+                    //     "data": "lockUser$",
+                    //     render: function (data, type, row) {
+                    //         var text = row.isLocked ? row.isLocked.adminName : "";
+                    //         return "<div>" + text + "</div>";
+                    //     },
+                    //     visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    // },
+                    //
+                    //
+                    // {
+                    //     "title": $translate('EXPIRY_DATE'),
+                    //     "data": 'expirationTime$',
+                    //     type: 'signed-num',
+                    //     render: function (data, type, row) {
+                    //         if (type === 'sort' || type === 'type') {
+                    //             return data;
+                    //         }
+                    //         else {
+                    //             if (data > 0) {
+                    //                 // Not expired
+                    //                 let expireTime = Math.floor((data / 1000) / 60);
+                    //                 return "<div>" + $translate("Left") + " " + expireTime + " " + $translate("mins") + "</div>";
+                    //             }
+                    //             else if (data < 0) {
+                    //                 // Expired
+                    //                 let expireTime = Math.ceil((data / 1000) / 60);
+                    //                 return "<div>" + $translate("Expired") + " " + -expireTime + " " + $translate("mins") + "</div>";
+                    //             }
+                    //             else {
+                    //                 return "<div>" + $translate("N/A") + "</div>";
+                    //             }
+                    //         }
+                    //     },
+                    //     bSortable: true,
+                    //     visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    // },
                 ],
                 "bSortClasses": false,
                 "scrollX": true,

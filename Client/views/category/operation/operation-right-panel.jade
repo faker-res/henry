@@ -10,15 +10,30 @@
             div(ng-show="vm.rightPanelTitle == 'ALL_PROPOSAL'")
                 #proposalDataTableDiv.tab-pane.fade.in.active
                     #search
-                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalId')")
-                            label {{"Proposal No" | translate}}
-                            input.form-control(ng-model='vm.queryProposalId', ng-change='vm.queryProposalIdUpdate()')
+                        .inlineBlk
+                            label {{"REGISTRATION_AGENT"|translate}}
+                            select.form-control(ng-model="vm.proposalInputDevice")
+                                option(value='') {{'all'|translate}}
+                                option(value=0) {{'Backstage'|translate}}
+                                option(value=1) {{'Web Player'|translate}}
+                                option(value=2) {{'Web Agent'|translate}}
+                                option(value=3) {{'HTML5 Player'|translate}}
+                                option(value=4) {{'HTML5 Agent'|translate}}
+                                option(value=5) {{'APP Player'|translate}}
+                                option(value=6) {{'APP Agent'|translate}}
                         .inlineBlk.selectProposalTypeDiv(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalType')")
                             label {{'FILTER_PROPOSAL_TYPE' | translate}}
                             //select.form-control#selectProposalType(multiple="multiple", style='min-width:100px')
                             //    option(ng-repeat='(i,v) in vm.allProposalType', value='{{i}}') {{v.name | translate}}
 
                             select.form-control#selectProposalType(multiple="multiple", style='min-width:100px;height:34px;', ng-options='i.name as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='vm.actionLogQuery.action')
+                        .inlineBlk
+                            label(style='width:150px;') {{"CUSTOMIZED_PROMO_NAME"|translate}}
+                            select.form-control#selectRewardType(multiple="multiple", ng-options='i._id as i.name for (k,i) in ( vm.rewardList | unique: "name" ) track by i.name', ng-model='bbc')
+                        .inlineBlk
+                            label(style='width:150px;') {{"PROMO_CODE_NAME"|translate}}
+                            select.form-control#selectPromoType(multiple="multiple", ng-options='i._id as i.name for (k,i) in ( vm.promoTypeList | unique: "name" ) track by i.name', ng-model='cbc')
+
 
                         .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalStatus')")
                             label {{'FILTER_PROPOSAL_STATUS' | translate}}
@@ -31,12 +46,12 @@
                         //.inlineBlk
                             label {{'FILTER_PROPOSAL_CONTENT' | translate}}
                             input.form-control#proposalSearch.form-control(type="text", placeholder='{{"FILTER_CONTENT" | translate}}', ng-model="vm.searchText")
-                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalCredit')")
-                            label {{"Qty_Min" | translate }} {{"Credit Amount" | translate}}
-                            input.form-control(ng-model='vm.queryProposalMinCredit', type='number', min=0, style='width:90px')
-                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalCredit')")
-                            label {{"Qty_Max" | translate }} {{"Credit Amount" | translate}}
-                            input.form-control(ng-model='vm.queryProposalMaxCredit', type='number', min=0, style='width:90px')
+                        //.inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalCredit')")
+                        //    label {{"Qty_Min" | translate }} {{"Credit Amount" | translate}}
+                        //    input.form-control(ng-model='vm.queryProposalMinCredit', type='number', min=0, style='width:90px')
+                        //.inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalCredit')")
+                        //    label {{"Qty_Max" | translate }} {{"Credit Amount" | translate}}
+                        //    input.form-control(ng-model='vm.queryProposalMaxCredit', type='number', min=0, style='width:90px')
                         .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalPlayer')")
                             label {{"RELATED_USER" | translate}}
                             input.form-control(ng-model='vm.queryProposalRelatedUser', type='text')
@@ -53,9 +68,12 @@
                                 input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
                                 span.add-on
                                     i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalPlayer')")
+                        //.inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalPlayer')")
                             label {{"Set Date Range" | translate}}
                             select.form-control(ng-model='vm.dateRange',ng-options='i as v | translate for (i,v) in {"day":"Today","week":"This Week","month":"This Month"}',ng-change='vm.proposalSetDateRange(vm.dateRange)')
+                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalId')")
+                            label {{"Proposal No" | translate}}
+                            input.form-control(ng-model='vm.queryProposalId', ng-change='vm.queryProposalIdUpdate()')
                         .inlineBlk.pull-right(style='width:100px;padding-top:20px')
                             button.common-button.btn.btn-primary(ng-if='vm.queryProposalId', ng-click='vm.getOneProposal()') {{'SEARCH' | translate}}
                             button.common-button.btn.btn-primary(ng-if='!vm.queryProposalId', ng-click='vm.searchProposalByQuery(true)') {{'SEARCH' | translate}}
