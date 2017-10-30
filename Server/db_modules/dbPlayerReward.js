@@ -301,31 +301,65 @@ let dbPlayerReward = {
                     if( rewardAmount > 500 ){
                         rewardAmount = 500;
                     }
-                    let proposalData = {
-                        type: promoEventDetail.executeProposal,
 
-                        data: {
-                            playerObjId: topUpProposalData.data.playerObjId,
-                            playerId: topUpProposalData.data.playerId,
-                            playerName: topUpProposalData.data.playerName,
-                            platformId: topUpProposalData.data.platformId,
-                            platform: topUpProposalData.data.platform,
-                            rewardAmount: rewardAmount,
-                            spendingAmount: rewardAmount,
-                            applyAmount: 0,
-                            amount: rewardAmount,
-                            eventId: promoEventDetail._id,
-                            eventName: promoEventDetail.name,
-                            eventCode: promoEventDetail.code,
-                            eventDescription: promoEventDetail.description
+                    let todaySGTime = dbUtility.getTodaySGTime();
+                    return dbConfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                type: promoEventDetail.executeProposal,
+                                eventCode: promoEventDetail.code,
+                                playerObjId: topUpProposalData.data.playerObjId,
+                                createTime: {
+                                    $gte: todaySGTime.startTime,
+                                    $lt: todaySGTime.endTime
+                                }
+                            }
                         },
-                        entryType: constProposalEntryType.SYSTEM,
-                        userType: constProposalUserType.PLAYERS
-                    };
+                        {
+                            $group: {
+                                _id: {type: type},
+                                amount: {$sum: "$rewardAmount"}
+                            }
+                        }
+                    ).then(
+                        summaryData => {
+                            if(summaryData && summaryData[0] && summaryData[0].amount + rewardAmount <= 500){
+                                let proposalData = {
+                                    type: promoEventDetail.executeProposal,
 
-                    if (type === 'aliPay') console.log('debugging topup promo, proposalData:', proposalData);
+                                    data: {
+                                        playerObjId: topUpProposalData.data.playerObjId,
+                                        playerId: topUpProposalData.data.playerId,
+                                        playerName: topUpProposalData.data.playerName,
+                                        platformId: topUpProposalData.data.platformId,
+                                        platform: topUpProposalData.data.platform,
+                                        rewardAmount: rewardAmount,
+                                        spendingAmount: rewardAmount,
+                                        applyAmount: 0,
+                                        amount: rewardAmount,
+                                        eventId: promoEventDetail._id,
+                                        eventName: promoEventDetail.name,
+                                        eventCode: promoEventDetail.code,
+                                        eventDescription: promoEventDetail.description
+                                    },
+                                    entryType: constProposalEntryType.SYSTEM,
+                                    userType: constProposalUserType.PLAYERS
+                                };
 
-                    return dbProposal.createProposalWithTypeId(promoEventDetail.executeProposal, proposalData);
+                                if (type === 'aliPay') console.log('debugging topup promo, proposalData:', proposalData);
+
+                                return dbProposal.createProposalWithTypeId(promoEventDetail.executeProposal, proposalData);
+                            }
+                            else{
+                                Q.reject({
+                                    status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                                    name: "DataError",
+                                    message: "Cant apply this reward, contact cs"
+                                });
+                            }
+                        }
+                    );
+
                 }
             ).then(
                 proposalData => {
