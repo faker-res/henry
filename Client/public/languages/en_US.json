@@ -865,6 +865,8 @@
   "CONTENT_CSV":"Content in CSV file",
   "EXPORT_CSV":"Export CSV",
   "RESET_TEXTAREA":"Reset",
+  "COPY_TO_CLIPBOARD":"Copy",
+  "COPIED_SUCCESS":"Copied",
 
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",

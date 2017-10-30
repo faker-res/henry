@@ -71,5 +71,14 @@
                         p {{vm.samePhoneList}}
                     .well
                         label {{"NON_DUPLICATE_PHONE" | translate}}:
-                        p {{vm.diffPhoneList}}
+                        p#copyHere {{vm.diffPhoneList}}
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-click="vm.copyToClipboard('copyHere'); vm.copyHere=true;")
+                            i.fa.fa-copy
+                            text {{"COPY_TO_CLIPBOARD" | translate}}
+                    br
+                    br
+                    .alert.alert-success.alert-dismissable(ng-if="vm.copyHere")
+                        a.close(href='#', data-dismiss='alert', aria-label='close') ×
+                        p {{"COPIED_SUCCESS" | translate}}!
 
