@@ -1467,7 +1467,6 @@ define(['js/app'], function (myApp) {
                 // add index to data
                 for (let x = 0; x < vm.allProposalType.length; x++) {
                     let groupName = utilService.getProposalGroupValue(vm.allProposalType[x],false);
-                    console.log(groupName);
                     switch (vm.allProposalType[x].name) {
                         case "AddPlayerRewardTask":
                             vm.allProposalType[x].seq = 3.01;
@@ -1551,6 +1550,10 @@ define(['js/app'], function (myApp) {
                                 vm.allProposalType[x].seq = 6.90;
                                 break;
                         }
+                    }
+                    if(groupName.toLowerCase() == "omit") {
+                        vm.allProposalType.splice(x,1);
+                        x--;
                     }
                 }
                 vm.allProposalType.sort(
