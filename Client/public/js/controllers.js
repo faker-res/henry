@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter) {
+angular.module('myApp.controllers', ['ngSanitize', 'ngCsv']).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter) {
     //todo::disable console log for production
     // if(CONFIG.NODE_ENV != "local"){
     //     window.console = { log: function(){}, warn: function(){}, error: function(){}, info: function(){} };
@@ -1076,12 +1076,4 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         $scope.companyLogo = url;
     };
 
-    /**
-     * Display content from CSV file
-     * @param $fileContent
-     */
-    $scope.showContentCSV = function($fileContent){
-        $scope.contentCSV = $fileContent;
-        // console.log('$fileContent',$fileContent);
-    };
 });

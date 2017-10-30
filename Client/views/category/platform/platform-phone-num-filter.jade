@@ -8,11 +8,11 @@
             .panel-body
                 div
                     form
-                        input(type='file', name='file' on-read-file='vm.uploadPhoneFileCSV($fileContent); showContentCSV($fileContent)')
+                        input(type='file', name='file' on-read-file='vm.uploadPhoneFileCSV($fileContent); vm.showContentCSV($fileContent)', ng-click="vm.phoneNumCSVResult=false;")
                         br
-                        .well(ng-if='contentCSV')
+                        .well(ng-if='vm.contentCSV')
                             label {{"CONTENT_CSV" | translate}}:
-                            p {{contentCSV}}
+                            p {{vm.contentCSV}}
                         .pull-right
                             button.btn.btn-primary.common-button(ng-click="vm.phoneNumCSVResult=true;")
                                 i.fa.fa-check
@@ -28,7 +28,7 @@
                         label {{"NON_DUPLICATE_PHONE" | translate}}:
                         p {{vm.diffPhoneCSV}}
                     .pull-right
-                        button.btn.btn-primary.common-button(ng-click="vm.phoneNumCSVResult=true;")
+                        button.btn.btn-primary.common-button(type='button', ng-csv='vm.diffPhoneCSVArray', filename='phoneNumber.csv', ng-click='vm.phoneNumCSVResult=true;')
                             i.fa.fa-check
                             text {{"EXPORT_CSV" | translate}}
 
@@ -56,6 +56,9 @@
                 textarea.form-control(rows='5', placeholder="14444444444, 15555555555, 16666666666", ng-model="vm.inputNewPhoneNum")
                 br
                 .pull-right
+                    button.btn.btn-danger.common-button(ng-click="vm.resetTextarea()")
+                        i.fa.fa-refresh
+                        text {{"RESET_TEXTAREA" | translate}}
                     button.btn.btn-primary.common-button(ng-click="vm.phoneNumListResult=true; vm.comparePhoneNum(vm.inputNewPhoneNum);")
                         i.fa.fa-check
                         text {{"SUBMIT" | translate}}
@@ -68,4 +71,14 @@
                         p {{vm.samePhoneList}}
                     .well
                         label {{"NON_DUPLICATE_PHONE" | translate}}:
-                        p {{vm.diffPhoneList}}
+                        p#copyHere {{vm.diffPhoneList}}
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-click="vm.copyToClipboard('copyHere'); vm.copyHere=true;")
+                            i.fa.fa-copy
+                            text {{"COPY_TO_CLIPBOARD" | translate}}
+                    br
+                    br
+                    .alert.alert-success.alert-dismissable(ng-if="vm.copyHere")
+                        a.close(href='#', data-dismiss='alert', aria-label='close') ×
+                        p {{"COPIED_SUCCESS" | translate}}!
+
