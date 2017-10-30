@@ -13059,7 +13059,7 @@ define(['js/app'], function (myApp) {
 
                 if(!filename) filename = 'console.json';
 
-                var blob = new Blob([data], {type: 'text/plain'}),
+                let blob = new Blob([data], {type: 'text/plain'}),
                     event    = document.createEvent('MouseEvents'),
                     tagA    = document.createElement('a');
 
@@ -13068,7 +13068,7 @@ define(['js/app'], function (myApp) {
                     window.navigator.msSaveOrOpenBlob(blob, filename);
                 }
                 else{
-                    var event = document.createEvent('MouseEvents'),
+                    let event = document.createEvent('MouseEvents'),
                         tagA = document.createElement('a');
 
                     tagA.download = filename;
