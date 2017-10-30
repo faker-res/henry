@@ -1243,7 +1243,7 @@ var proposal = {
         });
     },
 
-    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId) {//need
+    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName) {//need
         platformId = Array.isArray(platformId) ?platformId :[platformId];
 
         //check proposal without process
@@ -1321,6 +1321,22 @@ var proposal = {
                                 {"data._id": {$in: [playerId, ObjectId(playerId)]}},
                                 {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}}
                             ];
+                        }
+
+                        if (eventName) {
+                            queryObj["$and"] = queryObj["$and"] || [];
+                            let dataCheck = {"data.eventName":{$in: eventName}};
+                            let existCheck = {"data.eventName": {$exists: false}};
+                            let orQuery = [dataCheck, existCheck];
+                            queryObj["$and"].push({$or: orQuery});
+                        }
+
+                        if(promoTypeName){
+                            queryObj["$and"] = queryObj["$and"] || [];
+                            let dataCheck = {"data.PROMO_CODE_TYPE":{$in: promoTypeName}};
+                            let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
+                            let orQuery = [dataCheck, existCheck];
+                            queryObj["$and"].push({$or: orQuery});
                         }
 
                         if (credit) {
