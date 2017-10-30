@@ -368,7 +368,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPlatformProviderGroup = () => {
-            $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+            $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform._id}).then(function (data) {
                 vm.gameProviderGroup = data.data;
                 $scope.safeApply();
             });

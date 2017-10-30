@@ -3081,6 +3081,24 @@ define(['js/app'], function (myApp) {
                                         .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
                                 }
 
+                                // TODO:: Temporary measure to show reward group credit
+                                if (row.rewardGroupInfo && row.rewardGroupInfo.length > 0) {
+                                    link.append($('<i class="fa fa-lock"></i>'))
+                                        .append(
+                                            $('<a>', {
+                                                'class': 'rewardTaskPopover',
+                                                'ng-click': 'vm.rewardTaskPlayerName = "' + row.name + '";', // @todo: escaping issue
+                                                'data-row': JSON.stringify(row),
+                                                'href': '',
+                                                'data-toggle': 'popover',
+                                                'data-trigger': 'focus',
+                                                'data-placement': 'bottom',
+                                                'data-container': 'body'
+                                            }).text(row.lockedCredit.toFixed(2))
+                                        )
+                                        .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
+                                }
+
                                 //}
                                 link.append(
                                     $('<a>', {

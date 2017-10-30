@@ -137,7 +137,7 @@ var dbRewardTask = {
                         playerId: rewardData.playerId,
                         providerGroup: rewardData.providerGroup,
                         status: constRewardTaskStatus.STARTED,
-                        rewardAmt: rewardData.bonusAmount,
+                        rewardAmt: rewardData.initAmount,
                         targetConsumption: rewardData.requiredUnlockAmount,
                     };
                     // create new reward group

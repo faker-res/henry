@@ -1006,6 +1006,7 @@ let dbPlayerInfo = {
                 }
             );
     },
+
     getOnePlayerInfo: function (query) {
         let playerData;
 
@@ -1021,8 +1022,26 @@ let dbPlayerInfo = {
                 } else return Q.reject({message: "incorrect player result"});
             }).then(
                 platformData => {
+                    if (platformData.useProviderGroup) {
+                        return dbconfig.collection_rewardTaskGroup.find({
+                            platformId: playerData.platform,
+                            playerId: playerData._id,
+                            status: {$in: [constRewardTaskStatus.STARTED]}
+                        })
+                    } else {
+                        return Promise.resolve(false);
+                    }
+                }
+            ).then(
+                rewardTaskGroup => {
+                    if (rewardTaskGroup) {
+                        playerData.lockedCredit = rewardTaskGroup.reduce(
+                            (a, b) => a + b.rewardAmt, 0
+                        )
+                    }
+
                     return dbconfig.collection_playerClientSourceLog.findOne({
-                        platformId: platformData.platformId,
+                        platformId: playerData.platform,
                         playerName: playerData.name
                     }).lean()
                 }
@@ -3014,7 +3033,10 @@ let dbPlayerInfo = {
     getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || {registrationTime: -1};
+
         let advancedQuery = {};
+        let isProviderGroup = false;
+
         //todo encrytion ?
         if (data && data.phoneNumber) {
             data.phoneNumber = {$in: [rsaCrypto.encrypt(data.phoneNumber), data.phoneNumber]};
@@ -3030,6 +3052,22 @@ let dbPlayerInfo = {
                     thisPlayer.rewardInfo = rewardData;
                     return thisPlayer;
                 });
+        }
+
+        function getRewardGroupData(thisPlayer) {
+            return dbconfig.collection_rewardTaskGroup.find({
+                platformId: thisPlayer.platform,
+                playerId: thisPlayer._id,
+                status: {$in: [constRewardTaskStatus.STARTED]}
+            }).then(
+                rewardGroupData => {
+                    thisPlayer.rewardGroupInfo = rewardGroupData;
+                    thisPlayer.lockedCredit = rewardGroupData.reduce(
+                        (arr, inc) => arr + inc.rewardAmt, 0
+                    );
+                    return thisPlayer;
+                }
+            )
         }
 
         if (data.bankAccount) {
@@ -3053,56 +3091,70 @@ let dbPlayerInfo = {
             }
         }
 
+        return dbconfig.collection_platform.findOne({
+            _id: platformId
+        }).lean().then(
+            platform => {
+                isProviderGroup = Boolean(platform.useProviderGroup);
 
-        return dbconfig.collection_players
-            .find(advancedQuery, {similarPlayers: 0})
-            .sort(sortObj).skip(index).limit(limit).lean().then(
-                players => {
-                    let calculatePlayerValueProms = [];
-                    for (let i = 0; i < players.length; i++) {
-                        let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
-                        calculatePlayerValueProms.push(calculateProm);
-                    }
-                    return Promise.all(calculatePlayerValueProms);
-
-                }
-            ).then(
-                () => {
-                    var a = dbconfig.collection_players
-                        .find(advancedQuery, {similarPlayers: 0})
-                        .sort(sortObj).skip(index).limit(limit)
-                        .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-                        .populate({path: "partner", model: dbconfig.collection_partner})
-                        .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
-                        .lean().then(
-                            playerData => {
-                                var players = [];
-                                for (var ind in playerData) {
-                                    if (playerData[ind]) {
-                                        if (playerData[ind].referral) {
-                                            playerData[ind].referralName$ = playerData[ind].referral.name;
-                                            playerData[ind].referral = playerData[ind].referral._id;
-                                        }
-
-                                        var newInfo = getRewardData(playerData[ind]);
-                                        players.push(Q.resolve(newInfo));
-                                    }
-                                }
-                                return Q.all(players)
+                return dbconfig.collection_players
+                    .find(advancedQuery, {similarPlayers: 0})
+                    .sort(sortObj).skip(index).limit(limit).lean().then(
+                        players => {
+                            let calculatePlayerValueProms = [];
+                            for (let i = 0; i < players.length; i++) {
+                                let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
+                                calculatePlayerValueProms.push(calculateProm);
                             }
-                        );
-                    var b = dbconfig.collection_players
-                        .find({platform: platformId, $and: [data]}).count();
-                    return Q.all([a, b]);
-                }
-            ).then(
-                data => {
-                    return {data: data[0], size: data[1]}
-                },
-                err => {
-                    return {error: err};
-                }
-            );
+                            return Promise.all(calculatePlayerValueProms);
+
+                        }
+                    )
+            }
+        ).then(
+            () => {
+                var a = dbconfig.collection_players
+                    .find(advancedQuery, {similarPlayers: 0})
+                    .sort(sortObj).skip(index).limit(limit)
+                    .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                    .populate({path: "partner", model: dbconfig.collection_partner})
+                    .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
+                    .lean().then(
+                        playerData => {
+                            var players = [];
+                            for (var ind in playerData) {
+                                if (playerData[ind]) {
+                                    let newInfo;
+
+                                    if (playerData[ind].referral) {
+                                        playerData[ind].referralName$ = playerData[ind].referral.name;
+                                        playerData[ind].referral = playerData[ind].referral._id;
+                                    }
+
+                                    if (isProviderGroup) {
+                                        newInfo = getRewardGroupData(playerData[ind]);
+                                    } else {
+                                        newInfo = getRewardData(playerData[ind]);
+                                    }
+
+                                    players.push(Q.resolve(newInfo));
+                                }
+                            }
+                            return Q.all(players)
+                        }
+                    );
+                var b = dbconfig.collection_players
+                    .find({platform: platformId, $and: [data]}).count();
+                return Q.all([a, b]);
+            }
+        ).then(
+            data => {
+                return {data: data[0], size: data[1]}
+            },
+            err => {
+                return {error: err};
+            }
+        );
     },
 
     getPagePlayerByAdvanceQueryWithTopupTimes: function (platformId, data, index, limit, sortObj) {
