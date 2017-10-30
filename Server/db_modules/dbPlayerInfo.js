@@ -951,6 +951,10 @@ let dbPlayerInfo = {
                 }
                 apiData = data;
 
+                if (data.realName) {
+                    data.realName = dbUtility.encodeRealName(data.realName);
+                }
+
                 if (data.platform) {
                     return dbconfig.collection_platform.findOne({_id: data.platform});
                 }
