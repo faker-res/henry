@@ -1188,7 +1188,10 @@ var proposal = {
                             $group: {
                                 _id: null,
                                 totalAmount: {$sum: "$data.amount"},
-                                totalRewardAmount: {$sum: "$data.rewardAmount"},
+                                totalRewardAmount: {$sum: {
+                                    $cond: [ { "$ifNull": ["$data.rewardAmount", false] }, $data.rewardAmount, 0 ]
+                                }},
+                                // totalRewardAmount: {$sum: "$data.rewardAmount"},
                                 totalTopUpAmount: {$sum: "$data.topUpAmount"},
                                 totalUpdateAmount: {$sum: "$data.updateAmount"},
                                 totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
@@ -1248,7 +1251,7 @@ var proposal = {
         });
     },
 
-    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId) {//need
+    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName) {//need
         platformId = Array.isArray(platformId) ?platformId :[platformId];
 
         //check proposal without process
@@ -1328,6 +1331,22 @@ var proposal = {
                             ];
                         }
 
+                        if (eventName) {
+                            queryObj["$and"] = queryObj["$and"] || [];
+                            let dataCheck = {"data.eventName":{$in: eventName}};
+                            let existCheck = {"data.eventName": {$exists: false}};
+                            let orQuery = [dataCheck, existCheck];
+                            queryObj["$and"].push({$or: orQuery});
+                        }
+
+                        if(promoTypeName){
+                            queryObj["$and"] = queryObj["$and"] || [];
+                            let dataCheck = {"data.PROMO_CODE_TYPE":{$in: promoTypeName}};
+                            let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
+                            let orQuery = [dataCheck, existCheck];
+                            queryObj["$and"].push({$or: orQuery});
+                        }
+
                         if (credit) {
                             queryObj["$and"] = queryObj["$and"] || [];
                             queryObj["$and"].push({
@@ -1402,7 +1421,8 @@ var proposal = {
                         var c = dbconfig.collection_proposal.aggregate(
                             {
                                 $match: queryObj
-                            }, {
+                            },
+                            {
                                 $group: {
                                     _id: null,
                                     totalAmount: {$sum: "$data.amount"},
@@ -2358,7 +2378,9 @@ var proposal = {
         if (data.userAgent){
             query['data.userAgent'] = data.userAgent;
         }
-
+        if (data.status && data.status.length > 0) {
+            query['status'] = {$in: data.status};
+        }
         let mainTopUpType;
         switch (String(data.mainTopupType)) {
             case constPlayerTopUpType.ONLINE.toString():

@@ -266,6 +266,8 @@ angular.module('myApp.directives', [])
       template: $('#ezNormalButtonTemplate').html()
     };
   })
+
+    // read content inside uploaded file
     .directive('onReadFile', function ($parse) {
         return {
             restrict: 'A',

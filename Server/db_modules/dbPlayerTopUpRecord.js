@@ -97,7 +97,6 @@ var dbPlayerTopUpRecord = {
         if (query.status && query.status.length > 0) {
             queryObj.status = {$in: query.status};
         }
-
         return Q.resolve().then(
             () => {
                 var str = '';
@@ -121,7 +120,6 @@ var dbPlayerTopUpRecord = {
                             constProposalType.PLAYER_QUICKPAY_TOP_UP
                         ]
                     };
-                    queryObj = {}
                     if(query.topupType){
                         query.topupType = Number(query.topupType);
                     }

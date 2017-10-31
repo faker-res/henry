@@ -30,7 +30,7 @@ ez-modal(modal-id="messagePlayerModal", modal-title="{{'SEND_MESSAGE_TO_PLAYER' 
                 .row
                     div.form-group.col-md-12
                         label.control-label {{"MESSAGE" | translate}}
-                        textarea.form-control(ng-model="vm.messageForPlayer.content", placeholder="...", rows="8", maxlength="100")
+                        textarea.form-control(ng-model="vm.messageForPlayer.content", placeholder="...", rows="8")
 
         #messageLogPanel.panel-body(ng-if="vm.messageModalTab === 'messageLogPanel'")
             #mailLogQuery.block-query.well
@@ -106,7 +106,7 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
             .row
                 div.form-group.col-md-12
                     label.control-label {{"CONTENT" | translate}}
-                    textarea.form-control(ng-model="vm.smsPlayer.message", placeholder="...", rows="8", ng-disabled="!vm.smsPlayer.hasPhone")
+                    textarea.form-control(ng-model="vm.smsPlayer.message", placeholder="...", rows="8", ng-disabled="!vm.smsPlayer.hasPhone", maxlength="100")
 
         #smsLogPanel.panel-body(ng-if="vm.smsModalTab === 'smsLogPanel'")
             #smsLogQuery.block-query.well

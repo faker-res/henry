@@ -1172,7 +1172,7 @@ include modalGameCreditLog
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('credit-log');vm.showPagedPlayerCreditChangeLog();") {{"PLAYER_CREDIT_LOG" | translate}}
                     li(ng-class="vm.selectedPlayerAccountingDetailTab == 'platform-transfer-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('platform-transfer-log');vm.showPlatformCreditTransferLog();") {{"PLAYER_PLATFORM_TRANSFER_LOG" | translate}}
-                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'playerCreditDailyLog')")
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'playerDailyCreditLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('midnight-balance-log');vm.initPlayerCreditLog();") {{"PLAYER_MIDNIGHT_BALANCE_LOG" | translate}}
 
                 .panel.panel-primary(style="border-radius:0 !important;")
@@ -1222,6 +1222,20 @@ include modalGameCreditLog
                                 .inlineBlk
                                     label {{'END_DATE' | translate}}
                                     .endTime
+                                .inlineBlk
+                                    label(style='width:200px;') {{"Proposal Type"|translate}}
+                                    select.form-control#selectProposalType(multiple="multiple", ng-options='i._id as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='abc')
+                                .inlineBlk
+                                    label(style='width:150px;') {{"CUSTOMIZED_PROMO_NAME"|translate}}
+                                    select.form-control#selectRewardType(multiple="multiple", ng-options='i._id as i.name for (k,i) in ( vm.rewardList | unique: "name" ) track by i.name', ng-model='bbc')
+                                .inlineBlk
+                                    label(style='width:150px;') {{"PROMO_CODE_NAME"|translate}}
+                                    select.form-control#selectPromoType(multiple="multiple", ng-options='i._id as i.name for (k,i) in ( vm.promoTypeList | unique: "name" ) track by i.name', ng-model='cbc')
+                                .inlineBlk
+                                    label {{"Proposal Status"|translate}}
+                                    select.form-control(ng-model='vm.proposalFilterstatus', style='max-width:300px', required)
+                                        option(value='all') {{'all' | translate}}
+                                        option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}', ng-selected='vm.proposalFilterstatus==v._id') {{v | translate}}
                                 .inlineBlk
                                     button.btn.btn-primary(ng-click='vm.getPlayerProposalByFilter(true)') {{'SEARCH' | translate}}
                                 .inlineBlk(ng-if='vm.playerProposal.loading')
