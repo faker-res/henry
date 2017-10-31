@@ -2574,6 +2574,7 @@
   "APP_AGENT": "APP代理",
   "PROPOSAL_SUB_TYPE": "提案子类型",
   "INVOLVED_ACC": "涉及帐号",
+  "cardQuota": "收款帐号今日交易额",
   "NEW_WECHAT": "新微信账号",
   "CURRENT_WECHAT": "原微信账号",
   "RETYPE_WECHAT": "重新输入微信账号"
