@@ -6092,17 +6092,24 @@ define(['js/app'], function (myApp) {
                 vm.rewardTotalAmount = 0;
                 vm.creditTransfer.needClose = false;
                 vm.creditTransfer.transferResult = '';
-                vm.getRewardTask(row._id, function (data) {
-                    // Add up amounts from all available reward tasks
-                    let showRewardAmount = 0;
-                    if (data && data.length > 0) {
-                        for (let i = 0; i < data.length; i++) {
-                            showRewardAmount += data[i].currentAmount;
-                        }
-                    }
-                    vm.creditTransfer.showRewardAmount = showRewardAmount;
+
+                if (vm.selectedPlatform.data.useProviderGroup) {
                     vm.creditTransfer.showValidCredit = row.validCredit;
-                });
+                    vm.creditTransfer.showRewardAmount = row.lockedCredit;
+                } else {
+                    vm.getRewardTask(row._id, function (data) {
+                        // Add up amounts from all available reward tasks
+                        let showRewardAmount = 0;
+                        if (data && data.length > 0) {
+                            for (let i = 0; i < data.length; i++) {
+                                showRewardAmount += data[i].currentAmount;
+                            }
+                        }
+                        vm.creditTransfer.showRewardAmount = showRewardAmount;
+                        vm.creditTransfer.showValidCredit = row.validCredit;
+                    });
+                }
+
                 for (var i in vm.platformProviderList) {
                     vm.getPlayerCreditInProvider(row.name, vm.platformProviderList[i].providerId, vm.playerCredit)
                 }

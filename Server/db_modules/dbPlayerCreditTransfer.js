@@ -1079,7 +1079,6 @@ let dbPlayerCreditTransfer = {
                     // Current credit in provider
                     let curGameCredit = providerPlayerObj.gameCredit;
 
-
                     // Check current game credit
                     if (curGameCredit < 1 || amount == 0 || curGameCredit < amount) {
                         notEnoughCredit = true;
@@ -1139,9 +1138,9 @@ let dbPlayerCreditTransfer = {
                         }
                     } else {
                         // There is no rewardGroupObj found
-                        // Should not be possible as all provider must belong to a group
-                        // and player must have a rewardGroupObj when transfer in
-                        return Q.reject({name: "DataError", message: "No reward task group found for player"});
+                        // Possibly due to reward group has archived or NO_CREDIT
+                        // All amount goes to player's valid credit
+                        updateObj.freeAmt = amount;
                     }
 
                     return counterManager.incrementAndGetCounter("transferId").then(
@@ -1177,16 +1176,18 @@ let dbPlayerCreditTransfer = {
             res => {
                 if (res) {
                     // CPMS Transfer out success
-                    // Update reward task group
-                    return dbConfig.collection_rewardTaskGroup.findOneAndUpdate({
-                        _id: rewardGroupObj._id
-                    }, {
-                        rewardAmt: updateObj.rewardAmt,
-                        _inputFreeAmt: updateObj._inputFreeAmt,
-                        _inputRewardAmt: updateObj._inputRewardAmt
-                    }, {
-                        new: true
-                    })
+                    // Update reward task group if available
+                    if (rewardGroupObj) {
+                        return dbConfig.collection_rewardTaskGroup.findOneAndUpdate({
+                            _id: rewardGroupObj._id
+                        }, {
+                            rewardAmt: updateObj.rewardAmt,
+                            _inputFreeAmt: updateObj._inputFreeAmt,
+                            _inputRewardAmt: updateObj._inputRewardAmt
+                        }, {
+                            new: true
+                        })
+                    }
                 }
             },
             function (error) {

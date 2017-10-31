@@ -27,6 +27,8 @@ var dbProposal = require('../db_modules/dbProposal');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var dbGameProvider = require('../db_modules/dbGameProvider');
 
+const dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
+
 var dbRewardTask = {
 
     /**
@@ -535,6 +537,104 @@ var dbRewardTask = {
     },
 
     /**
+     *
+     * @param consumptionRecord
+     */
+    checkPlayerRewardTaskGroupForConsumption: function (consumptionRecord) {
+        let bDirty = false;
+        let createTime = new Date(consumptionRecord.createTime);
+
+        return dbRewardTaskGroup.getPlayerRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.providerId, consumptionRecord.playerId).then(
+            rewardTaskGroup => {
+                if (rewardTaskGroup) {
+                    rewardTaskGroup.curConsumption += consumptionRecord.validAmount;
+                    rewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
+                    //taskData.unlockedBonusAmount += (taskData.requiredBonusAmount > 0 ? consumptionRecord.bonusAmount : 0);
+
+                    let bAchieved = false;
+                    //for first top up reward, even after there is no credit left, still need to check consumption amount later
+                    if (rewardTaskGroup.currentAmt < 1) {
+                        // taskData.isUnlock = true;
+                        rewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
+                        rewardTaskGroup.unlockTime = createTime;
+                    }
+                    // //check player registration reward task
+                    // else if (taskData.unlockedBonusAmount >= taskData.requiredBonusAmount && taskData.requiredBonusAmount > 0) {
+                    //     taskData.isUnlock = true;
+                    //     taskData.status = constRewardTaskStatus.ACHIEVED;
+                    //     taskData.unlockTime = createTime;
+                    //     bAchieved = true;
+                    // }
+                    // else if (taskData.unlockedAmount >= taskData.requiredUnlockAmount && taskData.requiredUnlockAmount > 0) {
+                    //     taskData.isUnlock = true;
+                    //     taskData.status = constRewardTaskStatus.ACHIEVED;
+                    //     taskData.unlockTime = createTime;
+                    //     bAchieved = true;
+                    // }
+
+                    else if (rewardTaskGroup.curConsumption >= rewardTaskGroup.targetConsumption) {
+                        // Consumption reached
+                        rewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
+                        rewardTaskGroup.unlockTime = createTime;
+                    }
+
+                    return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                        {_id: rewardTaskGroup._id},
+                        {
+                            $inc: {
+                                curConsumption: consumptionRecord.validAmount,
+                                currentAmt: consumptionRecord.bonusAmount,
+                                //unlockedBonusAmount: (taskData.requiredBonusAmount > 0 ? consumptionRecord.bonusAmount : 0),
+                            },
+                            status: rewardTaskGroup.status,
+                            unlockTime: rewardTaskGroup.unlockTime
+                        }
+                    );
+                }
+            }
+        ).then(
+            updatedData => {
+                if (updatedData) {
+                    // Transfer amount to player if reward is achieved
+                    if (updatedData.status == constRewardTaskStatus.ACHIEVED) {
+                        // if (data[0].requiredBonusAmount > 0) {
+                        //     //transfer player credit out if it is player registration reward task
+                        //     return dbconfig.collection_players.findOne({_id: consumptionRecord.playerId}).populate(
+                        //         {path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}
+                        //     ).lean().then(
+                        //         playerObj => {
+                        //             if (playerObj && playerObj.lastPlayedProvider) {
+                        //                 return dbPlayerInfo.transferPlayerCreditFromProvider(playerObj.playerId, null, playerObj.lastPlayedProvider.providerId, -1, null, null, data[0].requiredBonusAmount);
+                        //             }
+                        //             else {
+                        //                 return dbRewardTask.completeRewardTask(data[0]);
+                        //             }
+                        //         }
+                        //     );
+                        // }
+                        // else {
+                        return dbRewardTask.completeRewardTaskGroup(updatedData);
+                        //}
+                    }
+                    else {
+                        return bDirty;
+                    }
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can't update reward task and consumption record"});
+                }
+            },
+            function (error) {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Error updating reward task and consumption record",
+                    error: error
+                });
+            }
+        )
+    },
+
+    /**
      * apply for manual unlock reward task
      * @param data
      * @param adminId
@@ -715,6 +815,47 @@ var dbRewardTask = {
                 }
             );
         })
+    },
+
+    /**
+     * TODO:: WORK IN PROGRESS
+     * @param rewardGroupData
+     */
+    completeRewardTaskGroup: rewardGroupData => {
+        let playerCreditChange;
+        let rewardAmount = rewardGroupData.currentAmt;
+
+        // Check if player is in game when reward group completed
+        if (!rewardGroupData.inProvider) {
+            // If player has left game, add the rewardAmt to player's credit
+            playerCreditChange = {
+                $inc: {validCredit: rewardAmount}
+            }
+        }
+
+        return dbRewardTask.findOneAndUpdateWithRetry(
+            dbconfig.collection_players,
+            {_id: rewardGroupData.playerId, platform: rewardGroupData.platformId},
+            playerCreditChange,
+            {new: true}
+        ).then(
+            data => {
+                if (data) {
+                    dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardGroupData.type + ":unlock", data.validCredit, 0, -rewardAmount, null, rewardGroupData);
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can't update reward task and player credit"});
+                }
+            },
+            error => {
+                console.log("Update player credit failed when complete reward task", error, rewardGroupData);
+                return Q.reject({
+                    name: "DBError",
+                    message: "Error updating reward task and player credit",
+                    error: error
+                });
+            }
+        );
     },
 
     findOneAndUpdateWithRetry: function (model, query, update, options) {

@@ -31,16 +31,14 @@ let rewardTaskGroupSchema = new Schema({
     curConsumption: {type: Number, default: 0},
     // Target Consumption
     targetConsumption: {type: Number, default: 0},
+    // Current credit
+    currentAmt: {type: Number, default: 0},
 
     // Last played provider
     lastPlayedProvider: {type: Schema.Types.ObjectId},
 
     //if this reward task will use consumption record
     useConsumption: {type: Boolean, default: true},
-    //reward event id
-    eventId: {type: Schema.Types.ObjectId},
-    //max reward amount
-    maxRewardAmount: {type: Number},
     //related proposal id
     proposalId: {type: String, index: true},
     //use locked credit
