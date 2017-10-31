@@ -169,7 +169,7 @@
                                                 option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='oneConfig.consumptionMinimum && j!=="NONE"', value='{{j}}') {{"LEVEL"+i | translate}}
                                         //- TAG_MIX_PERIOD_OR_TOO_COMPLEX
                                         td(ng-class='{warning: vm.levelDownConditionIsTooComplex(oneConfig)}', title='{{vm.levelDownConditionIsTooComplex(oneConfig) ? "OR operation with daily and weekly requirements is not currently supported" : "" | translate}}')
-                                            //input(type='checkbox', ng-model='oneConfig.andConditions', ng-disabled='!vm.configTableEdit')
+                                            input(type='checkbox', ng-model='oneConfig.andConditions', ng-disabled='!vm.configTableEdit')
                                         td(ng-if='vm.configTableEdit')
                                             a.fa.fa-times-circle(ng-if='level.levelDownConfig.length > 1', ng-click='level.levelDownConfig.splice(j,1)', title='{{"REMOVE_THIS_LEVEL_DOWN_CONDITION" | translate}}')
 
@@ -229,7 +229,7 @@
                                             select.form-control(ng-model='vm.newPlayerLvl.levelDownConfig[0].consumptionPeriod',ng-disabled="vm.newPlayerLvl.levelDownConfig[0].topupMinimum", required)
                                                 option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='vm.newPlayerLvl.levelDownConfig[0].consumptionMinimum && i!=="NONE"',value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
-                                            // input(type='checkbox', ng-model='vm.newPlayerLvl.levelDownConfig[0].andConditions')
+                                             input(type='checkbox', ng-model='vm.newPlayerLvl.levelDownConfig[0].andConditions')
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI();')
                             text {{'ADD_LEVEL' | translate}}
