@@ -2559,5 +2559,6 @@
   "APP_PLAYER": "APP玩家",
   "APP_AGENT": "APP代理",
   "PROPOSAL_SUB_TYPE": "提案子类型",
-  "INVOLVED_ACC": "涉及帐号"
+  "INVOLVED_ACC": "涉及帐号",
+  "cardQuota": "收款帐号今日交易额"
 }
