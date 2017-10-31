@@ -287,7 +287,7 @@ var dbRewardEvent = {
                                         balancer.processStream(
                                             {
                                                 stream: stream,
-                                                batchSize: 10,
+                                                batchSize: 5,
                                                 makeRequest: function (playerObjs, request) {
                                                     request("player", "savePlayerCredit", {
                                                         playerObjId: playerObjs.map(player => {
