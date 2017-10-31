@@ -1183,7 +1183,10 @@ var proposal = {
                             $group: {
                                 _id: null,
                                 totalAmount: {$sum: "$data.amount"},
-                                totalRewardAmount: {$sum: "$data.rewardAmount"},
+                                totalRewardAmount: {$sum: {
+                                    $cond: [ { "$ifNull": ["$data.rewardAmount", false] }, $data.rewardAmount, 0 ]
+                                }},
+                                // totalRewardAmount: {$sum: "$data.rewardAmount"},
                                 totalTopUpAmount: {$sum: "$data.topUpAmount"},
                                 totalUpdateAmount: {$sum: "$data.updateAmount"},
                                 totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
@@ -1413,7 +1416,8 @@ var proposal = {
                         var c = dbconfig.collection_proposal.aggregate(
                             {
                                 $match: queryObj
-                            }, {
+                            },
+                            {
                                 $group: {
                                     _id: null,
                                     totalAmount: {$sum: "$data.amount"},
