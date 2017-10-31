@@ -50,6 +50,10 @@ let dbPlayerLevelInfo = {
 
     startPlatformPlayerLevelSettlement: (platformObjId, upOrDown) => {
         let lastMonth = dbUtil.getLastMonthSGTime();
+        if (!upOrDown){
+            lastMonth.startTime = moment(lastMonth.startTime).add(12, 'hours').toDate();
+            lastMonth.endTime = moment(lastMonth.endTime).add(12, 'hours').toDate();
+        }
 
         return dbconfig.collection_playerLevel.find({platform: platformObjId}).sort({value: 1}).lean().then(
             levels => {
