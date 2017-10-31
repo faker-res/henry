@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter) {
+angular.module('myApp.controllers', ['ngSanitize', 'ngCsv']).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter) {
     //todo::disable console log for production
     // if(CONFIG.NODE_ENV != "local"){
     //     window.console = { log: function(){}, warn: function(){}, error: function(){}, info: function(){} };
@@ -66,9 +66,9 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             query: 'token=' + token,
             //todo::add secure flag for https
             //secure: true
-            //set connection timeout to 50 seconds
-            timeout: 50000,
-            reconnectionDelay: 2000,
+            //set connection timeout to 10 seconds
+            timeout: 10000,
+            reconnectionDelay: 1000,
             reconnection: true,
             "transports": ["websocket"]
         });
@@ -354,7 +354,9 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         '4': 'WechatApp',
         '5': 'AlipayApp',
         '6': 'FASTPAY',
-        '7': 'QQPAYQR'
+        '7': 'QQPAYQR',
+        '8': 'UnPayQR',
+        '9': 'JdPayQR'
     };
     $scope.merchantTargetDeviceJson = {
         '1': "clientType_Web",
@@ -1069,8 +1071,9 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
     $scope.changeServer = (server) => {
         $cookies.put('curFPMSServer', server);
         $scope.connectSocket();
-    }
+    };
     $scope.changeLogoImg = (url) =>{
         $scope.companyLogo = url;
-    }
+    };
+
 });

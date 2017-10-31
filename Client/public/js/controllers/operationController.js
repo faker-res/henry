@@ -628,7 +628,11 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPlatformProviderGroup = () => {
-            $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform._id}).then(function (data) {
+            let query = (vm.selectedPlatform && vm.selectedPlatform._id)
+                ? {platformObjId: vm.selectedPlatform._id}
+                : {platformObjId: {$in: vm.allPlatformId}};
+
+            $scope.$socketPromise('getPlatformProviderGroup', query).then(function (data) {
                 vm.gameProviderGroup = data.data;
                 $scope.safeApply();
             });
@@ -1646,6 +1650,9 @@ define(['js/app'], function (myApp) {
                         case "UpdatePlayerQQ":
                             vm.allProposalType[x].seq = 4.05;
                             break;
+                        case "UpdatePlayerWeChat":
+                            vm.allProposalType[x].seq = 4.06;
+                            break;
                         case "UpdatePartnerInfo":
                             vm.allProposalType[x].seq = 5.01;
                             break;
@@ -1704,6 +1711,10 @@ define(['js/app'], function (myApp) {
                                 vm.allProposalType[x].seq = 6.90;
                                 break;
                         }
+                    }
+                    if(groupName.toLowerCase() == "omit") {
+                        vm.allProposalType.splice(x,1);
+                        x--;
                     }
                 }
                 vm.allProposalType.sort(
