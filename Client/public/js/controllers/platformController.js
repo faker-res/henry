@@ -2762,6 +2762,7 @@ define(['js/app'], function (myApp) {
                         item.amount$ = item.amount.toFixed(2);
                         item.bonusAmount$ = item.bonusAmount.toFixed(2);
                         item.commissionAmount$ = item.commissionAmount.toFixed(2);
+                        item.canConsumptionReturn$ = Boolean(!item.bDirty) ? $translate('ABLE') : $translate('UNABLE');
                         return item;
                     }) : [];
                     vm.expenseQuery.totalCount = data.data.count || 0;
@@ -2774,7 +2775,7 @@ define(['js/app'], function (myApp) {
                     vm.commonProviderGameTableOptions = {
                         columnDefs: [
                             {'sortCol': 'createTime', bSortable: true, 'aTargets': [0]},
-                            {'sortCol': 'playerId', bSortable: true, 'aTargets': [2]},
+                            {'sortCol': 'playerId', bSortable: true, 'aTargets': [1]},
                             {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
                             {'sortCol': 'amount', bSortable: true, 'aTargets': [5]},
                             {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
@@ -2784,17 +2785,15 @@ define(['js/app'], function (myApp) {
                         columns: [
                             {title: $translate('CREATION_TIME'), data: "createTime$"},
                             //{title: $translate('PLATFORM'), data: "platformId.name"},
-                            {title: $translate('PLAYERID'), data: "playerId.name", sClass: 'sumText'},
-                            {title: $translate('providerId'), data: "providerId.name", sClass: 'sumText'},
-                            {title: $translate('GAME_TITLE'), data: "gameId.name"},
+                            {title: $translate('PLAYERID'), data: "playerId.name"},
+                            {title: $translate('providerId'), data: "providerId.name"},
+                            {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
                             {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'sumFloat textRight'},
                             {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
                             {title: $translate('orderId'), data: "orderId"},
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
-                            {
-                                title: $translate('commissionAmount'), data: "commissionAmount$",
-                                sClass: 'sumFloat textRight'
-                            },
+                            {title: $translate('commissionAmount'), data: "commissionAmount$", sClass: 'sumFloat textRight'},
+                            {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
                         ],
                         "paging": false,
                         "language": {
@@ -2830,10 +2829,10 @@ define(['js/app'], function (myApp) {
                     tableOptions = $.extend(true, {}, vm.providerExpenseDataTableOptions, vm.commonProviderGameTableOptions, tableOptions);
                     vm.expenseQuery.pageObj.init({maxCount: vm.expenseQuery.totalCount}, newSearch);
                     utilService.createDatatableWithFooter('#providerExpenseTable', tableOptions, {
-                        3: summary.validAmountAll,
-                        4: summary.amountAll,
-                        6: summary.bonusAmountAll,
-                        7: summary.commissionAmountAll
+                        4: summary.validAmountAll,
+                        5: summary.amountAll,
+                        7: summary.bonusAmountAll,
+                        8: summary.commissionAmountAll
                     });
                     $('#providerExpenseTable').off('order.dt');
                     $('#providerExpenseTable').on('order.dt', function (event, a, b) {
