@@ -278,6 +278,13 @@ var dbRewardEvent = {
                             let stream = dbconfig.collection_players.find(
                                 {
                                     _id: {$in: playerObjIds}
+                                },
+                                {
+                                    _id: 1,
+                                    name: 1,
+                                    platform: 1,
+                                    validCredit: 1,
+                                    lockedCredit: 1
                                 }
                             ).lean().cursor({batchSize: 200});
 
