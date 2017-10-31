@@ -52,7 +52,16 @@ define(['js/app'], function (myApp) {
             1: 'Online',
             2: 'ATM',
             3: 'Counter'
-        }
+        };
+        vm.inputDevice = {
+            BACKSTAGE: 0,
+            WEB_PLAYER: 1,
+            WEB_AGENT: 2,
+            H5_PLAYER: 3,
+            H5_AGENT: 4,
+            APP_PLAYER: 5,
+            APP_AGENT: 6
+        };
 
         vm.newProposalNum = 0;
         var allProposalStatusClr = {
@@ -1010,6 +1019,7 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('RELATED_USER'),
                         "data": null,
+                        "sClass": "sumText",
                         render: function (data, type, row) {
                             if (data.hasOwnProperty('creator') && data.creator.type == 'player') {
                                 return data.creator.name;
@@ -1197,7 +1207,7 @@ define(['js/app'], function (myApp) {
             $('#proposalDataTable').empty();
             //no idea why is 7, and 7 is not working, so I change it to 8
             //lizhu: the number here indicates the data should be listed in N-th column
-            vm.proposalTable = utilService.createDatatableWithFooter('#proposalDataTable', tableOptions, {11: summary.amount});
+            vm.proposalTable = utilService.createDatatableWithFooter('#proposalDataTable', tableOptions, {7: summary.amount});
             // utilService.setDataTablePageInput('proposalDataTable', vm.proposalTable, $translate);
 
             //update select all in table
