@@ -21,8 +21,6 @@ let rewardTaskGroupSchema = new Schema({
     inProvider: {type: Boolean, default: false},
 
     /* Amount Related */
-    // Free Credit Amount
-    freeAmt: {type: Number, default: 0},
     // Free Credit Amount (Transfer into provider)
     _inputFreeAmt: {type: Number, default: 0},
     // Reward Amount

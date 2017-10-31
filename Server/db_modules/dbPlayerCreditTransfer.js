@@ -1009,7 +1009,6 @@ let dbPlayerCreditTransfer = {
     playerCreditTransferFromProviderWithProviderGroup: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync) {
         let pCTFP = this;
         let providerPlayerObj = null;
-        let rewardTasks = null;
         let lockedAmount = 0;
         let rewardTaskTransferredAmount = 0;
         let validCreditToAdd = 0;
@@ -1017,10 +1016,9 @@ let dbPlayerCreditTransfer = {
         let playerCredit = 0;
         let rewardTaskCredit = 0;
         let notEnoughCredit = false;
-        let bUpdateTask = false;
         let transferId = new Date().getTime();
 
-        let player, gameProviderGroup;
+        let player, gameProviderGroup, rewardGroupObj, updateObj;
 
         let playerProm = dbConfig.collection_players.findOne({_id: playerObjId}).populate(
             {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
@@ -1072,8 +1070,11 @@ let dbPlayerCreditTransfer = {
         ).then(
             res => {
                 if (res && res[0] && res[1]) {
-                    let rewardGroupObj = res[0];
+                    rewardGroupObj = res[0];
                     providerPlayerObj = {gameCredit: res[1].credit ? parseFloat(res[1].credit) : 0};
+
+                    // Process transfer amount
+                    amount = amount > 0 ? Math.floor(amount) : Math.floor(providerPlayerObj.gameCredit);
 
                     // Current credit in provider
                     let curGameCredit = providerPlayerObj.gameCredit;
@@ -1102,8 +1103,6 @@ let dbPlayerCreditTransfer = {
                             });
                         }
                     }
-
-                    let updateObj;
 
                     if (rewardGroupObj) {
                         let totalInputCredit = rewardGroupObj._inputRewardAmt + rewardGroupObj._inputFreeAmt;
@@ -1175,34 +1174,19 @@ let dbPlayerCreditTransfer = {
                 }
             }
         ).then(
-            function (data) {
-                if (data) {
+            res => {
+                if (res) {
                     // CPMS Transfer out success
-                    if (bUpdateTask) {
-                        let rewardPromises = [];
-                        for (let i = 0; i < rewardTasks.length; i++) {
-                            let rewardTask = rewardTasks[i];
-                            if (rewardTask.bUpdateTask) {
-                                let rewardProm = dbConfig.collection_rewardTask.findOneAndUpdate(
-                                    {_id: rewardTask._id, platformId: rewardTask.platformId},
-                                    {
-                                        currentAmount: rewardTask.currentAmount,
-                                        inProvider: rewardTask.inProvider,
-                                        _inputCredit: 0
-                                    },
-                                    {new: true}
-                                );
-                                rewardPromises.push(rewardProm);
-                            } else {
-                                // pushing the object into promise will return the object as usual, with the same array order
-                                rewardPromises.push(rewardTask);
-                            }
-                        }
-                        return Promise.all(rewardPromises);
-                    }
-                    else {
-                        return rewardTasks;
-                    }
+                    // Update reward task group
+                    return dbConfig.collection_rewardTaskGroup.findOneAndUpdate({
+                        _id: rewardGroupObj._id
+                    }, {
+                        rewardAmt: updateObj.rewardAmt,
+                        _inputFreeAmt: updateObj._inputFreeAmt,
+                        _inputRewardAmt: updateObj._inputRewardAmt
+                    }, {
+                        new: true
+                    })
                 }
             },
             function (error) {
@@ -1210,18 +1194,25 @@ let dbPlayerCreditTransfer = {
                 return Q.reject(error);
             }
         ).then(
-            function (data) {
-                if (data) {
-                    rewardTasks = data;
-                    // note:: transferOut only allow integer, so the decimal amount will stay in the game, hence, the remaining game credit
-                    gameCredit = providerPlayerObj.gameCredit - validCreditToAdd - rewardTaskCredit;
-                    gameCredit = gameCredit >= 0 ? gameCredit : 0;
-                    return true;
+            res => {
+                if (res) {
+                    let updatedRewardGroup = res;
+                    let updatePlayerObj = {
+                        lastPlayedProvider: null,
+                        $inc: {validCredit: updateObj.freeAmt}
+                    };
+
+                    //move credit to player
+                    return dbConfig.collection_players.findOneAndUpdate(
+                        {_id: playerObjId, platform: platform},
+                        updatePlayerObj,
+                        {new: true}
+                    )
                 } else {
                     return Q.reject({
                         status: constServerCode.PLAYER_REWARD_INFO,
                         name: "DataError",
-                        message: "Error when finding reward information for player"
+                        message: "Error when updating reward group information for player"
                     });
                 }
             }, function (err) {
@@ -1229,31 +1220,6 @@ let dbPlayerCreditTransfer = {
                     status: constServerCode.PLAYER_REWARD_INFO,
                     name: "DataError",
                     message: "Error when finding reward information for player",
-                    error: err
-                });
-            }
-        ).then(
-            function (data) {
-                if (data) {
-                    let updateObj = {
-                        lastPlayedProvider: null,
-                        $inc: {validCredit: validCreditToAdd},
-                        lockedCredit: lockedAmount
-                    };
-
-                    //move credit to player
-                    return dbConfig.collection_players.findOneAndUpdate(
-                        {_id: playerObjId, platform: platform},
-                        updateObj,
-                        {new: true}
-                    )
-                }
-            },
-            function (err) {
-                return Q.reject({
-                    status: constServerCode.PLAYER_TRANSFER_OUT_ERROR,
-                    name: "DBError",
-                    message: "Error transfer out player credit.",
                     error: err
                 });
             }
