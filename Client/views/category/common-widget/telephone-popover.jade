@@ -6,59 +6,184 @@
 
 ez-modal(modal-id="messagePlayerModal", modal-title="{{'SEND_MESSAGE_TO_PLAYER' | translate}}")
     ez-modal-body
-        form(name="form_send_message")
-            .row
-                div.form-group.col-md-12
-                    label.control-label {{"TO_PLAYER" | translate}}:&nbsp;
-                    text {{vm.telphonePlayer.name}} {{vm.telphonePlayer.nickName && '(' + vm.telphonePlayer.nickName + ')'}}
-            .row
-                div.form-group.col-md-12
-                    label.control-label {{"TITLE" | translate}}
-                    input.form-control(type="text", ng-model="vm.messageForPlayer.title", placeholder="...")
-            .row
-                div.form-group.col-md-12
-                    label.control-label {{"MESSAGE" | translate}}
-                    textarea.form-control(ng-model="vm.messageForPlayer.content", placeholder="...", rows="8")
-    ez-modal-footer
+        ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='margin:10px 0 10px 0;height: 43px;')
+            .pull-left.padding-all-5
+            li.active(id = 'sendMessageToPlayerTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
+                a.common-tab(data-toggle="tab", ng-click='vm.messageModalTab = \'sendMessageToPlayerPanel\'')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"SEND_MESSAGE" | translate}}
+            li(id = 'messageLogTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
+                a.common-tab(data-toggle="tab",ng-click='vm.messageModalTab = \'messageLogPanel\'; vm.initMailLog();')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"mailLog" | translate}}
+
+        #sendMessageToPlayerPanel.panel-body(ng-if="vm.messageModalTab === 'sendMessageToPlayerPanel'")
+            form(name="form_send_message")
+                .row
+                    div.form-group.col-md-12
+                        label.control-label {{"TO_PLAYER" | translate}}:&nbsp;
+                        text {{vm.telphonePlayer.name}} {{vm.telphonePlayer.nickName && '(' + vm.telphonePlayer.nickName + ')'}}
+                .row
+                    div.form-group.col-md-12
+                        label.control-label {{"TITLE" | translate}}
+                        input.form-control(type="text", ng-model="vm.messageForPlayer.title", placeholder="...")
+                .row
+                    div.form-group.col-md-12
+                        label.control-label {{"MESSAGE" | translate}}
+                        textarea.form-control(ng-model="vm.messageForPlayer.content", placeholder="...", rows="8")
+
+        #messageLogPanel.panel-body(ng-if="vm.messageModalTab === 'messageLogPanel'")
+            #mailLogQuery.block-query.well
+                div
+                    label {{"Start date" | translate}}
+                    .startTime
+                div
+                    label {{"End date" | translate}}
+                    .endTime
+                button.btn.btn-primary.common-button(ng-click='vm.searchMailLog()', style='vertical-align: bottom') {{"SEARCH" | translate}}
+            div(style='max-height: 400px; max-height: 50vh; overflow: auto')
+                table.simple-table.display(style='min-width: 100%; width: 100%')
+                    thead
+                        tr
+                            th {{"date" | translate}}
+                            th {{"Sender Type" | translate}}
+                            th {{"Sender Name" | translate}}
+                            th {{"CONTENT" | translate}}
+                    tbody
+                        tr(ng-repeat='(i,mailLog) in vm.mailLog.receivedMails')
+                            td {{mailLog.createTime | date:'medium'}}
+                            td {{mailLog.senderType}}
+                            td {{mailLog.senderName}}
+                            td {{mailLog.content}}
+
+    ez-modal-footer(ng-if="vm.messageModalTab === 'sendMessageToPlayerPanel'")
         ez-confirm-button(ng-click="vm.sendMessageToPlayer()") {{"SEND" | translate}}
         ez-cancel-button {{"CANCEL" | translate}}
 
 ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | translate}}")
     ez-modal-body
-        .row
-            div.form-group.col-md-12
-                label.control-label {{"TO_PLAYER" | translate}}:&nbsp;
-                text {{vm.smsPlayer.name}} {{vm.smsPlayer.nickName && '(' + vm.smsPlayer.nickName + ')'}}
 
-                label.margin-left-5.control-label {{"Channel" | translate}}:&nbsp;
-                select(ng-model='vm.smsPlayer.channel', ng-options='a for a in channelList')
+        ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='margin:10px 0 10px 0;height: 43px;')
+            .pull-left.padding-all-5
+            li.active#smsToPlayerTab(ng-hide="vm.selectedPlayersCount!= 1 || (vm.selectedSinglePlayer && vm.selectedSinglePlayer.permission && vm.selectedSinglePlayer.permission.SMSFeedBack === false)")
+                a.common-tab(data-toggle="tab", ng-click='vm.showSmsTab("smsToPlayerPanel");')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"MESSAGE" | translate}}
+            li#smsLogTab(ng-hide="vm.selectedPlayersCount!= 1")
+                a.common-tab(data-toggle="tab",ng-click='vm.showSmsTab("smsLogPanel"); vm.initSMSLog("single");')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"smsLog" | translate}}
+            li#smsSettingTab(ng-hide="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1")
+                a.common-tab(data-toggle="tab",ng-click='vm.showSmsTab("smsSettingPanel"); vm.loadSMSSettings();')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"SMS Notify Settings" | translate}}
 
-                label.margin-left-5.blink.text-danger(ng-if="!vm.smsPlayer.hasPhone") {{'This Player did not input phone number' | translate}}
 
-                .pull-right(ng-if='vm.sendSMSResult.sent===true')
-                    .fa.fa-check.text-success(ng-if='vm.sendSMSResult.result')
-                        text {{'SEND' | translate}} {{'SUCCESS' | translate}}
-                    .fa.fa-times.text-danger(ng-if='!vm.sendSMSResult.result')
-                        text {{'SEND' | translate}} {{'FAIL' | translate}}
-                .pull-right(ng-if='vm.sendSMSResult.sent==="sending"')
-                    text.text-danger.blink {{"Sending" | translate}}
+        #smsToPlayerPanel.panel-body(ng-if="vm.smsModalTab === 'smsToPlayerPanel'")
+            .row
+                div.form-group.col-md-12
+                    label.control-label {{"TO_PLAYER" | translate}}:&nbsp;
+                    text {{vm.smsPlayer.name}} {{vm.smsPlayer.nickName && '(' + vm.smsPlayer.nickName + ')'}}
 
-        .row
-            div.form-group.col-md-12
-                label.control-label {{"SMS Templates" | translate}}
-                    select.form-control(style='width:100%;resize:none',ng-change="vm.changeSMSTemplate()", ng-model='vm.smstpl' ng-options='a.type|translate for a in vm.smsTemplate')
-                        option(value="")
-        .row
-            div.form-group.col-md-12
-                label.control-label {{"CONTENT" | translate}}
-                textarea.form-control(ng-model="vm.smsPlayer.message", placeholder="...", rows="8", ng-disabled="!vm.smsPlayer.hasPhone")
+                    label.margin-left-5.control-label {{"Channel" | translate}}:&nbsp;
+                    select(ng-model='vm.smsPlayer.channel', ng-options='a for a in channelList')
+
+                    label.margin-left-5.blink.text-danger(ng-if="!vm.smsPlayer.hasPhone") {{'This Player did not input phone number' | translate}}
+
+                    .pull-right(ng-if='vm.sendSMSResult.sent===true')
+                        .fa.fa-check.text-success(ng-if='vm.sendSMSResult.result')
+                            text {{'SEND' | translate}} {{'SUCCESS' | translate}}
+                        .fa.fa-times.text-danger(ng-if='!vm.sendSMSResult.result')
+                            text {{'SEND' | translate}} {{'FAIL' | translate}}
+                    .pull-right(ng-if='vm.sendSMSResult.sent==="sending"')
+                        text.text-danger.blink {{"Sending" | translate}}
+
+            .row
+                div.form-group.col-md-12
+                    label.control-label {{"SMS Templates" | translate}}
+                        select.form-control(style='width:100%;resize:none',ng-change="vm.changeSMSTemplate()", ng-model='vm.smstpl' ng-options='a.type|translate for a in vm.smsTemplate')
+                            option(value="")
+            .row
+                div.form-group.col-md-12
+                    label.control-label {{"CONTENT" | translate}}
+                    textarea.form-control(ng-model="vm.smsPlayer.message", placeholder="...", rows="8", ng-disabled="!vm.smsPlayer.hasPhone", maxlength="100")
+
+        #smsLogPanel.panel-body(ng-if="vm.smsModalTab === 'smsLogPanel'")
+            #smsLogQuery.block-query.well
+                div
+                    label {{"RESULT" | translate}}
+                    select.form-control(ng-model='vm.smsLog.query.status')
+                        option(value='all') {{"any" | translate}}
+                        option(value='success') {{"Success" | translate}}
+                        option(value='failure') {{"Failure" | translate}}
+                div
+                    label {{"Start date" | translate}}
+                    .startTime
+                    //-(ng-model='vm.smsLog.query.startTime')
+                div
+                    label {{"End date" | translate}}
+                    .endTime
+                    //-(ng-model='vm.smsLog.query.endTime')
+                button.btn.btn-primary.common-button(ng-click='vm.searchSMSLog()', style='vertical-align: bottom') {{"SEARCH" | translate}}
+            div(style='max-height: 400px; max-height: 50vh; overflow: auto')
+                label {{"Total" | translate}} {{vm.smsLog.totalCount}} {{"records" | translate}}
+                table.simple-table.display(style='min-width: 100%; width: 100%')
+                    thead
+                        tr
+                            th {{"date" | translate}}
+                            th {{"Admin" | translate}}
+                            th {{"Recipient" | translate}}
+                            th {{"Channel" | translate}}
+                            th {{"CONTENT" | translate}}
+                            th {{"STATUS" | translate}}
+                    tbody
+                        tr(ng-repeat='(i,smsLog) in vm.smsLog.searchResults')
+                            td {{smsLog.createTime$}}
+                            td {{smsLog.adminName}}
+                            td {{smsLog.recipientName}}
+                            td {{smsLog.channel}}
+                            td {{smsLog.message}}
+                            td(ng-if='smsLog.status !== "failure"') {{smsLog.status$}}
+                            td(ng-if='smsLog.status === "failure"')
+                                text.sn-hoverable-text(title='{{smsLog.error}}', sn-tooltip) {{smsLog.status$}}
+                br
+                #smsLogTablePage
+
+        #smsSettingPanel.panel-body(ng-if="vm.smsModalTab === 'smsSettingPanel'")
+            .row.margin-left-5.margin-right-5
+                .form-group.col-md-12
+                    label.control-label {{"RECEIVE_SMS" | translate}}
+                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.receiveSMS")
+                    label.control-label.margin-right-5 {{"MANUAL_TOP_UP" | translate}}
+                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.manualTopup")
+                    label.control-label.margin-right-5 {{"APPLY_BONUS" | translate}}
+                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.applyBonus")
+                    label.control-label.margin-right-5 {{"CANCEL_BONUS" | translate}}
+                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.cancelBonus")
+                    label.control-label.margin-right-5 {{"APPLY_REWARD" | translate}}
+                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.applyReward")
+                    label.control-label.margin-right-5 {{"CONSUMPTION_RETURN" | translate}}
+                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.consumptionReturn")
+                    label.control-label.margin-right-5 {{"UPDATE_PAYMENT_INFO" | translate}}
+                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.updatePaymentInfo")
+                    label.control-label.margin-right-5 {{"UPDATE_PASSWORD" | translate}}
+                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.updatePassword")
+
     ez-modal-footer
-        button.btn.common-button.btn-primary(ng-click="vm.sendSMSToPlayer()", ng-disabled="!vm.smsPlayer.hasPhone") {{"SEND" | translate}}
-        button.btn.common-button.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+        #smsToPlayerFooter(ng-if="vm.smsModalTab === 'smsToPlayerPanel'")
+            button.btn.common-button.btn-primary(ng-click="vm.sendSMSToPlayer()", ng-disabled="!vm.smsPlayer.hasPhone") {{"SEND" | translate}}
+            button.btn.common-button.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+        #smsLogFooter(ng-if="vm.smsModalTab === 'smsLogPanel'")
+            button.common-button.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}
+        #smsSettingFooter(ng-if="vm.smsModalTab === 'smsSettingPanel'")
+            ez-confirm-button(ng-click="vm.updateSMSSettings();") {{"UPDATE" | translate}}
+            button.btn.common-button.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+            //button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='smsPlayerModal.$invalid || smsPlayerModal.$pristine', ng-click="vm.updateSMSSettings();") {{"UPDATE" | translate}}
+
 ez-modal(modal-id="smsPartnerModal", modal-title="{{'Send SMS to Partner' | translate}}")
     ez-modal-body
         .row
-            div.form-group.col-md-12
+            div.form-group.col-mdl-12
                 label.control-label {{"To Partner" | translate}}:&nbsp;
                 text {{vm.smsPartner.name}} {{vm.smsPartner.realName && '(' + vm.smsPartner.realName + ')'}}
 

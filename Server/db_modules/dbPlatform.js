@@ -11,6 +11,7 @@ var constPlayerTrustLevel = require('./../const/constPlayerTrustLevel');
 var constProposalType = require('./../const/constProposalType');
 var constRewardType = require('./../const/constRewardType');
 var dbPartnerLevel = require('./../db_modules/dbPartnerLevel');
+const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 var dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
 var dbPlayerTrustLevel = require('./../db_modules/dbPlayerTrustLevel');
 var dbProposalType = require('./../db_modules/dbProposalType');
@@ -38,8 +39,6 @@ const constRewardTaskStatus = require('../const/constRewardTaskStatus');
 const constServerCode = require('../const/constServerCode');
 const constSettlementPeriod = require("../const/constSettlementPeriod");
 const constSystemParam = require('../const/constSystemParam');
-
-const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 
 function randomObjectId() {
     var id = crypto.randomBytes(12).toString('hex');
@@ -907,7 +906,7 @@ var dbPlatform = {
                             if (players && players.length > 0) {
                                 var proms = [];
                                 for (var i = 0; i < players.length; i++) {
-                                    var playerProm = dbPlatform.checkConsumptionIncentivePlayer(players[i]._id.playerId, yerTime, levelMinTopUpRecordAmount);
+                                    var playerProm = dbPlatform.checkConsumptionIncentivePlayer(players[i]._id.playerId, yerTime, levelMinTopUpRecordAmount, eventsData._id);
                                     proms.push(playerProm);
                                 }
                                 return Q.all(proms).then(
@@ -935,11 +934,13 @@ var dbPlatform = {
      * @param yerTime
      * @param minAmountPerLevel
      */
-    checkConsumptionIncentivePlayer: function (playerId, yerTime, minAmountPerLevel) {
+    checkConsumptionIncentivePlayer: function (playerId, yerTime, minAmountPerLevel, eventObjId) {
         return dbconfig.collection_players.findOne({_id: playerId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().then(
                 playerData => {
-                    if (playerData && playerData.playerLevel && !playerData.permission.forbidPlayerConsumptionIncentive) {
+                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerData, eventObjId);
+
+                    if (playerData && playerData.playerLevel && !playerData.permission.forbidPlayerConsumptionIncentive && !playerIsForbiddenForThisReward) {
                         var minAmount = minAmountPerLevel[playerData.playerLevel.value];
                         return dbconfig.collection_playerTopUpRecord.aggregate(
                             {
@@ -1096,7 +1097,7 @@ var dbPlatform = {
                     //get player's platform reward event data
                     if (data && data.playerLevel) {
                         player = data;
-                        return dbPlayerInfo.applyConsumptionIncentive(data.playerId, eventData.code);
+                        return dbPlayerInfo.applyConsumptionIncentive("", data.playerId, eventData.code);
                     }
                 }
             }
@@ -1371,6 +1372,15 @@ var dbPlatform = {
                     // return Q.reject(Error("Error when finding phone number"));
                     return Q.reject({message: "Error when finding phone number", data: data});
                 }
+
+                if (playerData.permission && playerData.permission.SMSFeedBack === false) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        errorMessage: "Player does not have this permission"
+                    });
+                }
+
                 if (playerData.phoneNumber && playerData.phoneNumber.length > 20) {
                     try {
                         playerData.phoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);

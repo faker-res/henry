@@ -119,6 +119,20 @@ function socketActionProposal(socketIO, socket) {
         },
 
         /**
+         * Create new Proposal to update player WeChat
+         * @param {json} data - proposal data
+         */
+        createUpdatePlayerWeChatProposal: function createUpdatePlayerWeChatProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(
+                data && data.platformId && data.data &&
+                data.data.playerObjId && data.data.playerName && data.data.curData &&
+                data.data.updateData && data.data.updateData.wechat
+            );
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PLAYER_WECHAT, data], actionName, isValidData);
+        },
+
+        /**
          * Create new Proposal to update player bank info
          * @param {json} data - proposal type name
          */
@@ -173,6 +187,19 @@ function socketActionProposal(socketIO, socket) {
                 data.data.curData.hasOwnProperty("email") && data.data.updateData.email
             );
             socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_EMAIL, data], actionName, isValidData);
+        },
+
+        /**
+         * Create new Proposal to update partner qq
+         * @param {json} data - proposal type name
+         */
+        createUpdatePartnerQQProposal: function createUpdatePartnerQQProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(
+                data && data.platformId && data.data &&
+                data.data.partnerName && data.data.curData && data.data.updateData && data.data.updateData.qq
+            );
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_QQ, data], actionName, isValidData);
         },
 
         /**
@@ -274,7 +301,7 @@ function socketActionProposal(socketIO, socket) {
             var index = data.index || 0;
             var size = data.size || 10;
             var sortCol = data.sortCol || {"createTime": -1};
-            socketUtil.emitter(self.socket, dbProposal.getQueryProposalsForPlatformId, [data.platformId, data.type, data.status, data.credit, data.name, data.relateUser, data.relatePlayerId, data.entryType, startTime, endTime, index, size, sortCol, data.displayPhoneNum], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getQueryProposalsForPlatformId, [data.platformId, data.type, data.status, data.credit, data.name, data.relateUser, data.relatePlayerId, data.entryType, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.playerId, data.eventName, data.promoTypeName], actionName, isValidData);
         },
 
         /**
@@ -382,7 +409,13 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(data && data.proposalId && data.orderStatus);
             socketUtil.emitter(self.socket, dbProposal.setBonusProposalStatus, [data.proposalId, data.orderStatus, data.remark], actionName, isValidData);
         },
-
+        getProposalAmountSum: function getProposalAmountSum(data){
+          var actionName = arguments.callee.name;
+          var isValidData = Boolean(data);
+          data.startDate = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+          data.endDate = data.startDate ? dbUtil.getDayEndTime(data.startDate) : new Date();
+          socketUtil.emitter(self.socket, dbProposal.getProposalAmountSum, [data, data.index, data.limit], actionName, isValidData);
+        },
         getPaymentMonitorResult: function getPaymentMonitorResult(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId);

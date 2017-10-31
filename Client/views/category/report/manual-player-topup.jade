@@ -1,0 +1,51 @@
+div
+    tr
+        td {{'playerName' | translate}}
+        td {{ vm.selectedProposal.data.playerName }}
+    tr
+        td 银行卡组
+        td　
+    tr
+        td {{'playerLevelName' | translate }}
+        td {{ vm.selectedProposal.data.playerLevelName }}
+    tr
+        td 会员信用
+        td
+    tr
+        td {{'proposalPlayerLevelValue' | translate }}
+        td {{ vm.selectedProposal.data.proposalPlayerLevelValue }}
+    tr
+        td {{'proposalPlayerLevelValue' | translate }}
+        td {{ vm.selectedProposal.data.proposalPlayerLevelValue }}
+    tr
+        td 存款金额
+        td {{ vm.selectedProposal.data.amount }}
+    tr
+        td {{'DEVICE' | translate}}
+        td {{ vm.selectedProposal.data.userAgent }}
+    //onlineTopupType
+    tr(ng-if="vm.selectedProposal.data.mainTopupType")
+        td 在线充值方式
+        td {{ vm.selectedProposal.data.mainTopupType }}
+    tr(ng-if="vm.selectedProposal.data.merchantGroup")
+        td 第三方平台
+        td {{ vm.selectedProposal.data.merchantGroup }}
+    tr(ng-if="vm.selectedProposal.data.merchantNo")
+        td 商户号
+        td {{ vm.selectedProposal.data.merchantNo }}
+    tr(ng-if="vm.selectedProposal.data.merchantNo")
+        td 后台商户ID
+        td 　
+    tr(ng-if="vm.selectedProposal.data.merchantNo")
+        td 单笔限额
+        td 　
+    tr(ng-if="vm.selectedProposal.data.merchantNo")
+        td 单日限额
+        td 　
+    tr(ng-if="vm.selectedProposal.data.validTime")
+        td 存款时间
+        td {{ vm.selectedProposal.data.validTime }}
+
+    tr(ng-if="vm.selectedProposal.data.depositMethod")
+        td 手工充值方式
+        td {{ vm.selectedProposal.data.depositMethod }}

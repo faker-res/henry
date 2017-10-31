@@ -228,7 +228,36 @@ angular.module('myApp.directives', [])
     };
   })
 
-  .directive('ezNormalButton', function () {
+  .directive('bsp', function($timeout){
+      return  {
+          restrict : 'A',
+          link: function(scope, element, attrs){
+              if (attrs.ngOptions && / in /.test(attrs.ngOptions)) {
+                  scope.$watch(attrs.ngOptions.split(' in ')[1], function() {
+                      scope.$applyAsync(function () {
+                          $(element).selectpicker('refresh');
+                      });
+                  }, true);
+              }
+          }
+      };
+  })
+
+  .directive('rddl', function($timeout){
+      return  {
+          restrict : 'A',
+          link: function(scope, element, attrs){
+              if (attrs.ngModel){
+                  scope.$watch(attrs.ngModel,function(){
+                      $(element).selectpicker('destroy');
+                      $(element).selectpicker();
+                  },true)
+              }
+          }
+      };
+  })
+
+    .directive('ezNormalButton', function () {
     return {
       restrict: 'E',
       replace: true,
@@ -238,4 +267,26 @@ angular.module('myApp.directives', [])
     };
   })
 
+    // read content inside uploaded file
+    .directive('onReadFile', function ($parse) {
+        return {
+            restrict: 'A',
+            scope: false,
+            link: function(scope, element, attrs) {
+                var fn = $parse(attrs.onReadFile);
+
+                element.on('change', function(onChangeEvent) {
+                    var reader = new FileReader();
+
+                    reader.onload = function(onLoadEvent) {
+                        scope.$apply(function() {
+                            fn(scope, {$fileContent:onLoadEvent.target.result});
+                        });
+                    };
+
+                    reader.readAsText((onChangeEvent.srcElement || onChangeEvent.target).files[0]);
+                });
+            }
+        };
+    });
 ;

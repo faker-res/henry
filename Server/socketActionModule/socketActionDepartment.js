@@ -204,6 +204,12 @@ function socketActionDepartment(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.platformId);
             socketUtil.emitter(self.socket, dbDepartment.getDepartmentsByPlatformId, [data.platformId], actionName, isDataValid);
+        },
+
+        getDepartmentDetailsByPlatformObjId: function getDepartmentDetailsByPlatformObjId(data) {
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbDepartment.getDepartmentDetailsByPlatformObjId, [data.platformObjId], actionName, isDataValid);
         }
     };
 

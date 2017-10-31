@@ -1,24 +1,64 @@
 .row.margin-left-5.margin-right-5(ng-show="checkViewPermission('Platform')")
-    .col-md-3(ng-class='vm.leftPanelClass')
-        include ./platform-list
-    #platformContent.col-md-9(style="padding-left:0;",ng-class='vm.rightPanelClass')
+    //.col-md-3(ng-class='vm.leftPanelClass')
+    include ./platform-list
+
+
+    //#platformContent.col-md-9(style="padding-left:0;",ng-class='vm.rightPanelClass')
+    #platformContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
         .padding-all-5
             .panel.panel-primary
                 .panel-heading.common-left-panel-heading
-                    ul.nav.nav-tabs.common-nav-tabs
-                        .pull-left.padding-all-5
+                    ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
+                        //.pull-left.padding-all-5
                             a.fa.fa-chevron-circle-left.contractIcon(ng-show='vm.showPlatformList', ng-click='vm.toggleShowPlatformList(false)')
                             a.fa.fa-chevron-circle-right.contractIcon(ng-show='!vm.showPlatformList', ng-click='vm.toggleShowPlatformList(true)')
-                        li(ng-if='!vm.curPlatformText')
-                            div.platformName
+
+                        li.padding-all-5(style='margin:5px 10px; margin-top:8px;')
+                            //.text-success(ng-show='vm.selectedPlatform.data.settlementStatus=="Ready"' style='color:rgb(0,180,0)')
+                            a.text-success(class="providerListPopover" data-toggle="popover" data-container="body" data-placement="right" data-trigger="focus" type="button" data-html="true" href="#" ng-show='vm.selectedPlatform.data.settlementStatus=="Ready"' style='color:{{vm.longestDelayStatus}};z-index: auto' ng-click="vm.getProviderLatestTimeRecord();")
+                                i.fa.fa-lg.fa-circle
+                            .text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="DailyError"')
+                                i.fa.fa-lg.fa-circle.margin-right-5
+                            .text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="WeeklyError"')
+                                i.fa.fa-lg.fa-circle.margin-right-5
+
+                        #providerListPopover.hide(style="width: 400px", ng-non-bindable)
+                            table.simple-table
+                                thead
+                                    tr
+                                        th(width="10%") {{'Delay Status' | translate}}
+                                        th(width="30%") {{'Game Type' | translate}}
+                                        th(width="40%") {{'Latest Recorded Time' | translate}}
+                                tr
+                                    td(style='text-align: center')
+                                        div(ng-repeat='(i,v) in vm.delayStatus' style="height:24px;")
+                                            div(style="color: {{v}}")
+                                                i.fa.fa-lg.fa-circle
+                                    td(style='text-align: center')
+                                        div(ng-repeat='(i,v) in vm.platformProviderList' style="height:24px;")
+                                            label {{vm.getProviderText(v.providerId)}}
+                                    td(style='text-align: center')
+                                        div(ng-repeat='(i,v) in vm.providerLatestTime' style="height:24px;")
+                                            label {{v}}
+
+                        li(ng-if='!vm.curPlatformText', style='margin-right: 0;')
+                            div.platformName(style='border-radius: 9px 0 0 9px;')
                                 .fa.fa-2x(style='margin:5px 10px;')
                                     img(src="images/icon/websiteBusiness_hover.png" width="30" )
                                 text.text-danger.shadow(style='margin:5px 10px;font-size:20px') {{"SELECT_PLATFORM"|translate}}
-                        li(ng-if='vm.curPlatformText', style='margin: 0 5px')
-                            div.platformName(ng-click='vm.showPlatformDetailModal()')
+                        li(ng-if='vm.curPlatformText', style='margin-right: 0;')
+                            div.platformName(ng-if='checkViewPermission("Platform","Platform", "Read")',ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalUpdatePlatform', ng-click='vm.initPlatform(false);vm.showPlatformDetailTab(null);vm.setPlatformFooter(null);vm.getAllDepartmentData();vm.prepareSettlementHistory();vm.populatePlatformData();', style='border-radius: 9px 0 0 9px;')
                                 .fa.fa-2x(style='margin:5px 10px;')
                                     img(src="images/icon/websiteBusiness_hover.png" width="30" )
                                 text.shadow(style='margin:5px 10px;font-size:20px') {{vm.curPlatformText}}
+
+                        //dropdown
+                        li(style='margin-right:5px')
+                            div.platformName(ng-click='vm.toggleShowPlatformDropDownList()', style='border-radius: 0 9px 9px 0;')
+                                .fa.fa-2x.fa-caret-down(style='margin:5px 10px; margin-top:8px;')
+                            //div#platformTree(style="height: 400px;")
+                            #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
+
                         li.active(ng-show="checkViewPermission('Platform', 'Player', 'Read')")
                             a.common-tab(data-toggle="tab", href="#Player", ng-click="vm.activatePlayerTab();vm.platformPageName='Player';vm.updatePageTile();")
                                 .fa.fa-users.margin-right-5
@@ -83,6 +123,10 @@
                             a.common-tab(data-toggle="tab", href="#registrationUrlConfig", ng-click="vm.platformPageName='RegistrationUrlConfig';vm.updatePageTile();vm.initPlatformOfficer();")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"RegistrationUrlConfig" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'phoneNumFilter','Read')")
+                            a.common-tab(data-toggle="tab", href="#phoneNumFilter", ng-click="vm.platformPageName='phoneNumFilter';vm.updatePageTile();vm.initPhoneNumFilter();")
+                                .fa.fa-phone.margin-right-5
+                                text.span {{"phoneNumFilter" | translate}}
                         //li
                             a.common-tab(ng-show="checkViewPermission('Platform', 'BankCardGroup', 'Read')",data-toggle="tab", href="#bankCardGroup", ng-click="vm.bankCardGroupTabClicked();vm.platformPageName='bankCardGroup';vm.updatePageTile();")
                                 .fa.fa-credit-card.margin-right-5
@@ -133,6 +177,8 @@
                             include ./platform-promo-code
                         #registrationUrlConfig.tab-pane.fade
                             include platform-registrationUrl-config
+                        #phoneNumFilter.tab-pane.fade
+                            include ./platform-phone-num-filter
                             //ui-view
                         //#bankCardGroup.tab-pane.fade
                             include ./platform-bankCardGroup
@@ -157,7 +203,7 @@
                                 input.pull-left.relative(type='radio', ng-model='vm.modifyCritical.changeType', value='email')
                             label.radio-inline {{'PHONE' | translate}}
                                 input.pull-left.relative(type='radio', ng-model='vm.modifyCritical.changeType', value='phone')
-                            label.radio-inline(ng-if = "vm.platformPageName==='Player'") QQ
+                            label.radio-inline(ng-if = "vm.platformPageName==='Partner'") QQ
                                 input.pull-left.relative(type='radio', ng-model='vm.modifyCritical.changeType', value='qq')
                         .col-md-12.well
                             div(ng-show='vm.modifyCritical.changeType=="email"')
@@ -200,13 +246,13 @@
                                     div.form-group.col-md-7
                                         label.control-label {{"RETYPE_QQ" | translate}}
                                         input.form-control(type="text", name="repeatqq", placeholder='{{"RETYPE_QQ" | translate}}', ng-model="qqConfirmation", match="vm.modifyCritical.newQQ", required)
-                                        span.help-block(ng-show="form_edit_critical_qq.repeatqq.$dirty && form_edit_critical_qq.repeatqq.$error.match"){{"QQ_DO_NOT_MATCH" | translate}}
+                                        span.help-block(ng-show="form_edit_critical_qq.repeatqq.$dirty && form_edit_critical_qq.repeatqq.$error.match") {{"QQ_DO_NOT_MATCH" | translate}}
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal',ng-show='vm.modifyCritical.changeType=="email"', ng-disabled='form_edit_critical_email.$invalid || form_edit_critical_email.$pristine', ng-click="vm.submitCriticalUpdate();") {{"CREATE" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal',ng-show='vm.modifyCritical.changeType=="phone"', ng-disabled='form_edit_critical_phone.$invalid || form_edit_critical_phone.$pristine', ng-click="vm.submitCriticalUpdate();") {{"CREATE" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal',ng-show='vm.modifyCritical.changeType=="qq"', ng-disabled='form_edit_critical_qq.$invalid || form_edit_critical_qq.$pristine', ng-click="vm.submitCriticalUpdate();") {{"CREATE" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
-#modalPlayerTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+#modalPlayerTopUpReport.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
         .modal-content
             .modal-header

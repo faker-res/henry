@@ -430,7 +430,8 @@ var proposal = {
                 }
                 if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PREPENDING ||
                     proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING
-                    || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data && proposalData.data.requestId == requestId) {
+                    || proposalData.status == constProposalStatus.EXPIRED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data &&
+                    (proposalData.data.requestId == requestId || !proposalData.data.requestId)) {
                     return proposalData;
                 }
                 else {
@@ -1242,7 +1243,7 @@ var proposal = {
         });
     },
 
-    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum) {//need
+    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName) {//need
         platformId = Array.isArray(platformId) ?platformId :[platformId];
 
         //check proposal without process
@@ -1314,6 +1315,30 @@ var proposal = {
                                 ]
                             })
                         }
+
+                        if (playerId) {
+                            queryObj["$or"] = [
+                                {"data._id": {$in: [playerId, ObjectId(playerId)]}},
+                                {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}}
+                            ];
+                        }
+
+                        if (eventName) {
+                            queryObj["$and"] = queryObj["$and"] || [];
+                            let dataCheck = {"data.eventName":{$in: eventName}};
+                            let existCheck = {"data.eventName": {$exists: false}};
+                            let orQuery = [dataCheck, existCheck];
+                            queryObj["$and"].push({$or: orQuery});
+                        }
+
+                        if(promoTypeName){
+                            queryObj["$and"] = queryObj["$and"] || [];
+                            let dataCheck = {"data.PROMO_CODE_TYPE":{$in: promoTypeName}};
+                            let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
+                            let orQuery = [dataCheck, existCheck];
+                            queryObj["$and"].push({$or: orQuery});
+                        }
+
                         if (credit) {
                             queryObj["$and"] = queryObj["$and"] || [];
                             queryObj["$and"].push({
@@ -1533,9 +1558,37 @@ var proposal = {
             if (reqData.type && reqData.type.length > 0) {
                 var arr = reqData.type.map(item => {
                     return ObjectId(item);
-                })
+                });
                 reqData.type = {$in: arr}
             }
+
+            if (reqData["data.eventName"] || reqData["data.PROMO_CODE_TYPE"] || reqData["data.playerName"] || reqData["data.partnerName"]) {
+                reqData["$and"] = [];
+            }
+
+            if (reqData["data.eventName"]) {
+                let dataCheck = {"data.eventName":{$in: reqData["data.eventName"]}};
+                let existCheck = {"data.eventName": {$exists: false}};
+                let orQuery = [dataCheck, existCheck];
+                reqData["$and"].push({$or: orQuery});
+                delete reqData["data.eventName"];
+            }
+            if (reqData["data.PROMO_CODE_TYPE"]) {
+                let dataCheck = {"data.PROMO_CODE_TYPE":{$in: reqData["data.PROMO_CODE_TYPE"]}};
+                let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
+                let orQuery = [dataCheck, existCheck];
+                reqData["$and"].push({$or: orQuery});
+                delete reqData["data.PROMO_CODE_TYPE"];
+            }
+            if (reqData["data.playerName"] || reqData["data.partnerName"]) {
+                let playerNameCheck = {"data.playerName":reqData["data.playerName"]};
+                let partnerNameCheck = {"data.partnerName":reqData["data.partnerName"]};
+                let orQuery = [playerNameCheck, partnerNameCheck];
+                reqData["$and"].push({$or: orQuery});
+                delete reqData["data.playerName"];
+                delete reqData["data.partnerName"];
+            }
+
             var a = dbconfig.collection_proposal.find(reqData).count();
             var b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                 .populate({path: "type", model: dbconfig.collection_proposalType})
@@ -2238,6 +2291,36 @@ var proposal = {
             }
         );
     },
+    getProposalAmountSum: (data, index, limit) => {
+
+      let queryObj = {}
+      queryObj['data.platformId'] = ObjectId(data.platformId);
+      if(data.type){
+          queryObj['type'] = ObjectId(data.typeId);
+      }
+      queryObj.mainType = 'TopUp'
+      if(data.cardField){
+          let cardField = 'data.'+data.cardField;
+          queryObj[cardField]= data.card;
+      }
+      queryObj["data.validTime"] = {};
+      queryObj["data.validTime"]["$gte"] = data.startDate ? new Date(data.startDate) : null;
+      queryObj["data.validTime"]["$lt"] = data.endDate ? new Date(data.endDate) : null;
+
+      if(data.status){
+        queryObj["status"] = {$in: data.status};
+      }
+      return dbconfig.collection_proposal.aggregate(
+         {
+             $match: queryObj
+         }, {
+             $group: {
+                 _id: null,
+                 totalAmount: {$sum: "$data.amount"},
+             }
+         }
+     );
+    },
 
     getPaymentMonitorResult: (data, index, limit) => {
         let query = {};
@@ -2251,17 +2334,21 @@ var proposal = {
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
         query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
 
-        if (data.merchantNo && !data.merchantGroup) {
-            query['data.merchantNo'] = data.merchantNo;
+        if (data.merchantNo && data.merchantNo.length > 0 && !data.merchantGroup) {
+            query['$or'] = [
+              {'data.merchantNo': {$in: data.merchantNo}},
+              {'data.bankCardNo': {$in: data.merchantNo}},
+              {'data.accountNo': {$in: data.merchantNo}}
+            ]
         }
 
         if (!data.merchantNo && data.merchantGroup) {
             query['data.merchantNo'] = {$in: data.merchantGroup};
         }
 
-        if (data.merchantNo && data.merchantGroup) {
+        if (data.merchantNo && data.merchantNo.length >0 && data.merchantGroup) {
             query['$and'] = [
-                {'data.merchantNo': {$in: [data.merchantNo]}},
+                {'data.merchantNo': {$in: data.merchantNo}},
                 {'data.merchantNo': {$in: data.merchantGroup}}
             ]
         }
@@ -2273,7 +2360,18 @@ var proposal = {
         if (data.playerName) {
             query['data.playerName'] = data.playerName;
         }
-
+        if (data.proposalNo) {
+            query['data.proposalId'] = data.proposalNo;
+        }
+        if (data.bankTypeId){
+            query['data.bankTypeId'] = data.bankTypeId;
+        }
+        if (data.userAgent){
+            query['data.userAgent'] = data.userAgent;
+        }
+        if (data.status && data.status.length > 0) {
+            query['status'] = {$in: data.status};
+        }
         let mainTopUpType;
         switch (String(data.mainTopupType)) {
             case constPlayerTopUpType.ONLINE.toString():
@@ -2302,7 +2400,7 @@ var proposal = {
                     ]
                 };
         }
-
+        data.topupType = Number(data.topupType)
         if (data.topupType) {
             query['data.topupType'] = data.topupType;
         }

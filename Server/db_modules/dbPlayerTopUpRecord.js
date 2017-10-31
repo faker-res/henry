@@ -28,6 +28,7 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const moment = require('moment-timezone');
 const serverInstance = require("../modules/serverInstance");
+const constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 
 var dbPlayerTopUpRecord = {
     /**
@@ -105,7 +106,6 @@ var dbPlayerTopUpRecord = {
                     str = constProposalType.PLAYER_ALIPAY_TOP_UP
                 } else if (query && query.mainTopupType == constPlayerTopUpType.MANUAL) {
                     str = constProposalType.PLAYER_MANUAL_TOP_UP;
-                    query.depositMethod ? queryObj['data'] = {'depositMethod': query.depositMethod} : '';
                 } else if (query && query.mainTopupType == constPlayerTopUpType.WECHAT) {
                     str = constProposalType.PLAYER_WECHAT_TOP_UP
                 } else if (query && query.mainTopupType == constPlayerTopUpType.QUICKPAY) {
@@ -120,48 +120,52 @@ var dbPlayerTopUpRecord = {
                             constProposalType.PLAYER_QUICKPAY_TOP_UP
                         ]
                     };
-                    queryObj['$or'] = [];
-                    query.topupType ? queryObj['$or'].push({
-                        'data.topupType': query.topupType
-                    }) : queryObj['$or'].push({
-                        'data.topupType': {$exists: true}
-                    });
-                    query.depositMethod ? queryObj['$or'].push({
-                        'data.depositMethod': query.depositMethod
-                    }) : queryObj['$or'].push({
-                        'data.depositMethod': {$exists: true}
-                    });
-                    queryObj['$or'].push({
-                        $and: [
-                            {'data.topupType': {$exists: false}},
-                            {'data.depositMethod': {$exists: false}}
-                        ]
-                    })
+                    if(query.topupType){
+                        query.topupType = Number(query.topupType);
+                    }
                 }
 
-                if (query.merchantNo && !query.merchantGroup) {
-                    queryObj['data.merchantNo'] = query.merchantNo;
+                if (query.depositMethod){
+                    queryObj['data.depositMethod'] = {'$in': [String(query.depositMethod), Number(query.depositMethod)]};
+                }
+
+                if (query.merchantNo && query.merchantNo.length > 0 && !query.merchantGroup) {
+                    queryObj['$or'] = [
+                      {'data.merchantNo': {$in: query.merchantNo}},
+                      {'data.bankCardNo': {$in: query.merchantNo}},
+                      {'data.accountNo': {$in: query.merchantNo}}
+                    ]
+
                 }
                 if (!query.merchantNo && query.merchantGroup) {
                     queryObj['data.merchantNo'] = {$in: query.merchantGroup};
                 }
-                if (query.merchantNo && query.merchantGroup) {
+
+
+                if (query.merchantNo && query.merchantNo.length > 0  && query.merchantGroup) {
                     queryObj['$and'] = [
-                        {'data.merchantNo': {$in: [query.merchantNo]}},
+                        {'data.merchantNo': {$in: query.merchantNo}},
                         {'data.merchantNo': {$in: query.merchantGroup}}
                     ]
                 }
+
                 if (query.dingdanID) {
-                    queryObj['data.requestId'] = query.dingdanID
+                    queryObj['data.requestId'] = query.dingdanID;
                 }
                 if (query.playerName) {
-                    queryObj['data.playerName'] = query.playerName
+                    queryObj['data.playerName'] = query.playerName;
                 }
                 if (query.proposalNo) {
-                    queryObj['proposalId'] = query.proposalNo
+                    queryObj['proposalId'] = query.proposalNo;
                 }
                 if (query.topupType) {
-                    queryObj['data.topupType'] = query.topupType
+                    queryObj['data.topupType'] = {$in: [String(query.topupType), Number(query.topupType)]}
+                }
+                if(query.bankTypeId){
+                    queryObj['data.bankTypeId'] = query.bankTypeId;
+                }
+                if(query.userAgent){
+                    queryObj['data.userAgent'] = {'$in':[String(query.userAgent) ,Number(query.userAgent)]};
                 }
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
             }
@@ -171,15 +175,20 @@ var dbPlayerTopUpRecord = {
                     return type._id;
                 });
                 queryObj.type = {$in: typeIds};
+                console.log(queryObj);
                 // console.log('queryObj', JSON.stringify(queryObj, null, 4));
                 var a = dbconfig.collection_proposal.find(queryObj).count();
                 var b = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
-                    .populate({path: "data.playerObjId", model: dbconfig.collection_players});
+                    .populate({path: "data.playerObjId", model: dbconfig.collection_players})
+                    .then(proposals=>{
+                        proposals = insertRepeatCount(proposals, query.platformId);
+                        return proposals
+                    });
                 var c = dbconfig.collection_proposal.aggregate({$match: queryObj}, {
                     $group: {
                         _id: null,
-                        totalAmount: {$sum: "$data.amount"},
+                        totalAmount: {$sum: "$data.amount"}
                     }
                 });
                 return Q.all([a, b, c])
@@ -586,7 +595,9 @@ var dbPlayerTopUpRecord = {
      * @param {Number} topupRequest.amount
      * @param {Number} topupRequest.topupType
      */
-    addOnlineTopupRequest: function (playerId, topupRequest, merchantUseType, clientType) {
+
+    addOnlineTopupRequest: function (userAgent, playerId, topupRequest, merchantUseType, clientType) {
+        var userAgentStr = userAgent;
         var player = null;
         var proposal = null;
         var merchantResponse = null;
@@ -646,6 +657,11 @@ var dbPlayerTopUpRecord = {
                 if (!player.merchantGroup || !player.merchantGroup.merchants) {
                     return Q.reject({name: "DataError", message: "Player does not have valid merchant data"});
                 }
+
+                if(userAgent){
+                    userAgent = retrieveAgent(userAgent);
+                }
+
                 let proposalData = Object.assign({}, topupRequest);
                 proposalData.playerId = playerId;
                 proposalData.playerObjId = player._id;
@@ -653,6 +669,7 @@ var dbPlayerTopUpRecord = {
                 proposalData.playerLevel = player.playerLevel;
                 proposalData.platform = player.platform.platformId;
                 proposalData.playerName = player.name;
+                proposalData.userAgent = userAgent ? userAgent : "";
                 proposalData.creator = {
                     type: 'player',
                     name: player.name,
@@ -670,7 +687,7 @@ var dbPlayerTopUpRecord = {
                     entryType: constProposalEntryType.CLIENT,
                     userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 };
-
+                newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr,false);
                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_TOP_UP, newProposal);
             }
         ).then(
@@ -759,11 +776,11 @@ var dbPlayerTopUpRecord = {
      * @param playerID
      * @param inputData
      */
-    addManualTopupRequest: function (playerId, inputData, entryType, adminId, adminName, fromFPMS) {
+        addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS) {
         var player = null;
         var proposal = null;
         var request = null;
-
+        let userAgentStr = userAgent;
         return dbPlayerInfo.getManualTopupRequestList(playerId).then(
             retData => {
                 if (retData) {
@@ -828,7 +845,7 @@ var dbPlayerTopUpRecord = {
                         errorMessage: "Top up amount is not enough"
                     });
                 }
-
+                console.log(inputData);
                 if (!player.permission || !player.permission.topupManual) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
@@ -836,7 +853,9 @@ var dbPlayerTopUpRecord = {
                         errorMessage: "Player does not have manual topup permission"
                     });
                 }
-
+                if(userAgent){
+                    userAgent = retrieveAgent(userAgent);
+                }
                 let proposalData = Object.assign({}, inputData);
                 proposalData.playerId = playerId;
                 proposalData.playerObjId = player._id;
@@ -849,7 +868,9 @@ var dbPlayerTopUpRecord = {
                 proposalData.realName = inputData.realName;
                 proposalData.remark = inputData.remark || "";
                 proposalData.lastBankcardNo = inputData.lastBankcardNo || "";
-                proposalData.createTime = inputData.createTime || "";
+                proposalData.depositTime = inputData.createTime || "";
+                proposalData.inputData = inputData;
+                proposalData.userAgent = userAgent ? userAgent :"";
                 proposalData.creator = entryType == "ADMIN" ? {
                     type: 'admin',
                     name: adminName,
@@ -871,6 +892,7 @@ var dbPlayerTopUpRecord = {
                     entryType: constProposalEntryType[entryType],
                     userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 };
+                newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr,false);//newProposal.isPartner
                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_MANUAL_TOP_UP, newProposal);
             }
         ).then(
@@ -912,7 +934,8 @@ var dbPlayerTopUpRecord = {
                         cityId: inputData.cityId,
                         districtId: inputData.districtId || "",
                         groupBankcardList: player.bankCardGroup ? player.bankCardGroup.banks : [],
-                        operateType: entryType == "ADMIN" ? 1 : 0
+                        operateType: entryType == "ADMIN" ? 1 : 0,
+                        remark: inputData.remark || ''
                     };
                     if( fromFPMS ){
                         let cTime = inputData.createTime ? new Date(inputData.createTime) : new Date();
@@ -946,6 +969,7 @@ var dbPlayerTopUpRecord = {
                     updateData.data.bankCardNo = requestData.result.bankCardNo;
                     updateData.data.cardOwner = requestData.result.cardOwner;
                     updateData.data.bankTypeId = requestData.result.bankTypeId;
+                    updateData.data.resultData = requestData.result;
 
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
@@ -997,43 +1021,40 @@ var dbPlayerTopUpRecord = {
         ).then(
             propTypeData => {
                 if (propTypeData) {
-                    return dbconfig.collection_proposal.find({
+                    return dbconfig.collection_proposal.findOne({
                         "data.platformId": playerObj.platform._id,
                         "data.playerObjId": playerObj._id,
                         "data.validTime": {$gt: new Date()},
                         type: propTypeData._id
-                    }).lean();
+                    }).sort({settleTime: -1}).lean();
                 }
             }
         ).then(
             res => {
-                let retArr = [];
+                if (res) {
+                    let retData = {
+                        proposalId: res.proposalId,
+                        requestId: res.data.requestId,
+                        status: res.status,
+                        result: res.data.resultData,
+                        inputData: res.data.inputData,
+                        restTime: Math.abs(parseInt((new Date().getTime() - new Date(res.data.validTime).getTime()) / 1000))
+                    };
 
-                if (res && res.length > 0) {
-                    res.forEach((el, idx, arr) => {
-                        retArr.push({
-                            proposalId: el.proposalId,
-                            requestId: el.data.requestId,
-                            status: el.status,
-                            result: {
-                                requestId: el.data.requestId,
-                                bankTypeId: el.data.bankTypeId,
-                                bankCardNo: el.data.bankCardNo,
-                                cardOwner: el.data.cardOwner,
-                                createTime: el.createTime,
-                                validTime: el.data.validTime
-                            },
-                            inputData: {
-                                amount: el.data.amount,
-                                lastBankcardNo: el.data.lastBankcardNo,
-                                bankTypeId: el.data.bankTypeId,
-                                depositMethod: el.data.depositMethod
-                            },
-                            restTime: Math.abs(parseInt((new Date().getTime() - new Date(el.data.validTime).getTime()) / 1000))
-                        })
-                    });
-
-                    return retArr;
+                    if (res.status == constProposalStatus.APPROVED || res.status == constProposalStatus.SUCCESS) {
+                        if (!res.data.isViewedByFrontEnd) {
+                            return dbconfig.collection_proposal.findOneAndUpdate({
+                                _id: res._id,
+                                createTime: res.createTime
+                            }, {
+                                "data.isViewedByFrontEnd": true
+                            }).then(
+                                res => retData
+                            );
+                        }
+                    } else if (res.status == constProposalStatus.PENDING) {
+                        return retData;
+                    }
                 }
             }
         )
@@ -1469,7 +1490,9 @@ var dbPlayerTopUpRecord = {
      * @param adminId
      * @param adminName
      */
-    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime) {
+
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime) {
+        let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
         let request = null;
@@ -1513,9 +1536,13 @@ var dbPlayerTopUpRecord = {
                         return Q.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
-                            errorMessage: "Player does not have this permission"
+                            errorMessage: "Player does not have this topup permission"
                         });
                     }
+                    if(userAgent){
+                        userAgent = retrieveAgent(userAgent);
+                    }
+
                     let proposalData = {};
                     proposalData.playerId = playerId;
                     proposalData.playerObjId = player._id;
@@ -1523,10 +1550,12 @@ var dbPlayerTopUpRecord = {
                     proposalData.playerLevel = player.playerLevel;
                     proposalData.platform = player.platform.platformId;
                     proposalData.playerName = player.name;
+                    proposalData.realName = player.realName;
                     proposalData.amount = Number(amount);
                     proposalData.alipayName = alipayName;
                     proposalData.alipayAccount = alipayAccount;
                     proposalData.remark = remark;
+                    proposalData.userAgent = userAgent ? userAgent:'';
                     if (createTime) {
                         proposalData.depositeTime = new Date(createTime);
                     }
@@ -1552,6 +1581,7 @@ var dbPlayerTopUpRecord = {
                         //createTime: createTime ? new Date(createTime) : new Date(),
                         userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                     };
+                    newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr,false);
                     return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
                 }
             ).then(
@@ -1564,18 +1594,18 @@ var dbPlayerTopUpRecord = {
                             proposalId: proposalData.proposalId,
                             platformId: player.platform.platformId,
                             userName: player.name,
-                            realName: alipayName,//player.realName || "",
+                            realName: player.realName || "",
                             aliPayAccount: 1,
                             amount: amount,
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
-                            remark: remark,
+                            remark: entryType == "ADMIN" ? remark : (alipayName || remark),
                             createTime: cTimeString,
                             operateType: entryType == "ADMIN" ? 1 : 0
                         };
                         if (alipayAccount) {
                             requestData.groupAlipayList = [alipayAccount];
                         }
-                        //console.log("requestData", requestData);
+                        // console.log("requestData", requestData);
                         return pmsAPI.payment_requestAlipayAccount(requestData);
                     }
                     else {
@@ -1600,7 +1630,7 @@ var dbPlayerTopUpRecord = {
                         if (requestData.result.validTime) {
                             updateData.data.validTime = new Date(requestData.result.validTime);
                         }
-                        requestData.result.alipayName = alipayName;
+                        // requestData.result.alipayName = alipayName;
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},
                             updateData,
@@ -1681,7 +1711,9 @@ var dbPlayerTopUpRecord = {
      * @param adminId
      * @param adminName
      */
-    requestWechatTopup: function (playerId, amount, wechatName, wechatAccount, entryType, adminId, adminName, remark, createTime) {
+
+    requestWechatTopup: function (userAgent, playerId, amount, wechatName, wechatAccount, entryType, adminId, adminName, remark, createTime) {
+        let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
         let request = null;
@@ -1717,10 +1749,12 @@ var dbPlayerTopUpRecord = {
                         return Q.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
-                            errorMessage: "Player does not have this permission"
+                            errorMessage: "Player does not have this topup permission"
                         });
                     }
-
+                    if(userAgent){
+                        userAgent = retrieveAgent(userAgent);
+                    }
                     let proposalData = {};
                     proposalData.playerId = playerId;
                     proposalData.playerObjId = player._id;
@@ -1732,6 +1766,7 @@ var dbPlayerTopUpRecord = {
                     proposalData.wechatName = wechatName;
                     proposalData.wechatAccount = wechatAccount;
                     proposalData.remark = remark;
+                    proposalData.userAgent = userAgent ? userAgent : "";
                     if (createTime) {
                         proposalData.depositeTime = new Date(createTime);
                     }
@@ -1757,6 +1792,7 @@ var dbPlayerTopUpRecord = {
                         //createTime: createTime ? new Date(createTime) : new Date(),
                         userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                     };
+                    newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr,false);
                     return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_WECHAT_TOP_UP, newProposal);
                 }
                 else {
@@ -2074,6 +2110,372 @@ function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount) {
     );
 }
 
+//
+// get account count / merchant count
+//
+
+// lets do the most basic version, refactor later
+function insertRepeatCount(proposals, platformId) {
+
+    return new Promise(function (resolve) {
+        let typeIds = null;
+        let getProposalTypesIdProm = typeIds ? Promise.resolve(typeIds) : getTopUpProposalTypeIds(platformId);
+        let insertedProposals = [];
+
+        if (!proposals || proposals.length === 0) {
+            resolve([]);
+        }
+
+        let promises = [];
+
+        for (let i = 0; i < proposals.length; i++) {
+            let prom = new Promise(function (res) {
+                let proposal = JSON.parse(JSON.stringify(proposals[i]));
+                if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
+                    insertedProposals[i] = handleSuccessProposal(proposal);
+                    res();
+                } else {
+                    getProposalTypesIdProm.then(
+                        typeIdData => {
+                            typeIds = typeIdData;
+                            return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
+                        }
+                    ).then(
+                        () => {
+                            insertedProposals[i] = proposal;
+                            res();
+                        }
+                    )
+                }
+            });
+
+            promises.push(prom);
+        }
+
+        Promise.all(promises).then(
+            () => {
+                resolve(insertedProposals);
+            }
+        );
+
+        // NOTE: async loop will probably be necessary if t
+        // asyncLoop(proposals.length, function (i, loop) {
+        //     let proposal = JSON.parse(JSON.stringify(proposals[i]));
+        //     if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
+        //         insertedProposals[i] = handleSuccessProposal(proposal);
+        //         loop();
+        //     } else {
+        //         getProposalTypesIdProm.then(
+        //             typeIdData => {
+        //                 typeIds = typeIdData;
+        //                 return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
+        //             }
+        //         ).then(
+        //             () => {
+        //                 insertedProposals[i] = proposal;
+        //                 loop();
+        //             }
+        //         )
+        //     }
+        //
+        //
+        // }, function returnResult() {
+        //     resolve(insertedProposals);
+        // });
+
+        function handleFailureMerchant(proposal) {
+            let merchantNo = proposal.data.merchantNo;
+            let relevantTypeIds = merchantNo ? typeIds : [proposal.type];
+            let alipayAccount = proposal.data.alipayAccount ? proposal.data.alipayAccount : "";
+            let bankCardNoRegExp;
+
+            if (proposal.data.bankCardNo) {
+                let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
+                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
+                bankCardNoRegExp = [
+                    {"data.bankCardNo": bankCardNoRegExpA},
+                    {"data.bankCardNo": bankCardNoRegExpB}
+                ];
+            }
+
+            let prevSuccessQuery = {
+                type: {$in: relevantTypeIds},
+                createTime: {$lte: new Date(proposal.createTime)},
+                status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+            };
+
+            let nextSuccessQuery = {
+                type: {$in: relevantTypeIds},
+                createTime: {$gte: new Date(proposal.createTime)},
+                status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+            };
+
+            if (merchantNo) {
+                prevSuccessQuery["data.merchantNo"] = merchantNo;
+                nextSuccessQuery["data.merchantNo"] = merchantNo;
+            }
+
+            if (alipayAccount) {
+                prevSuccessQuery["data.alipayAccount"] = alipayAccount;
+                nextSuccessQuery["data.alipayAccount"] = alipayAccount;
+            }
+
+            if (proposal.data.bankCardNo) {
+                prevSuccessQuery["$and"] = bankCardNoRegExp;
+                nextSuccessQuery["$and"] = bankCardNoRegExp;
+            }
+
+            let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).sort({createTime: -1}).limit(1);
+            let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery).sort({createTime: 1}).limit(1);
+
+            // for debug usage
+            // let pS, nS, fISQ;
+
+            return Promise.all([prevSuccessProm, nextSuccessProm]).then(
+                successData => {
+                    let prevSuccess = successData[0];
+                    let nextSuccess = successData[1];
+
+                    let allCountQuery = {
+                        type: {$in: relevantTypeIds}
+                    };
+
+                    let currentCountQuery = {
+                        type: {$in: relevantTypeIds},
+                        createTime: {
+                            $lte: new Date(proposal.createTime)
+                        }
+                    };
+
+                    let firstInStreakQuery = {
+                        type: {$in: relevantTypeIds}
+                    };
+
+                    if (merchantNo) {
+                        allCountQuery["data.merchantNo"] = merchantNo;
+                        currentCountQuery["data.merchantNo"] = merchantNo;
+                        firstInStreakQuery["data.merchantNo"] = merchantNo;
+                    }
+
+                    if (alipayAccount) {
+                        allCountQuery["data.alipayAccount"] = alipayAccount;
+                        currentCountQuery["data.alipayAccount"] = alipayAccount;
+                        firstInStreakQuery["data.alipayAccount"] = alipayAccount;
+                    }
+
+                    if (proposal.data.bankCardNo) {
+                        allCountQuery["$and"] = bankCardNoRegExp;
+                        currentCountQuery["$and"] = bankCardNoRegExp;
+                        firstInStreakQuery["$and"] = bankCardNoRegExp;
+                    }
+
+                    if (prevSuccess[0]) {
+                        let prevSuccessCreateTime = new Date(prevSuccess[0].createTime);
+                        allCountQuery.createTime = {$gt: prevSuccessCreateTime};
+                        currentCountQuery.createTime.$gt = prevSuccessCreateTime;
+                        firstInStreakQuery.createTime = {$gt: prevSuccessCreateTime};
+                    }
+
+                    if (nextSuccess[0]) {
+                        allCountQuery.createTime = allCountQuery.createTime ? allCountQuery.createTime : {};
+                        allCountQuery.createTime.$lt = nextSuccess[0].createTime;
+                    }
+
+                    // for debug usage
+                    // pS = prevSuccess[0];
+                    // nS = nextSuccess[0];
+                    // fISQ = firstInStreakQuery;
+
+                    let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
+                    let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
+                    let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery).sort({createTime: 1}).limit(1);
+
+                    return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
+                }
+            ).then(
+                countData => {
+                    let allCount = countData[0];
+                    let currentCount = countData[1];
+                    let firstFailure = countData[2][0];
+
+                    // for debug usage
+                    // if (!firstFailure) {
+                    //     console.log('t54lwtMaus')
+                    //     console.log('proposal |||', proposal)
+                    //     console.log('firstFailure |||', firstFailure)
+                    //     console.log('prevSuccess |||', pS)
+                    //     console.log('nextSuccess |||', nS)
+                    //     console.log('firstInStreakQuery |||', fISQ)
+                    //     console.log('prevSuccessQuery |||', prevSuccessQuery)
+                    //     console.log('nextSuccessQuery |||', nextSuccessQuery)
+                    // }
+
+                    proposal.$merchantAllCount = allCount;
+                    proposal.$merchantCurrentCount = currentCount;
+
+                    if (!firstFailure || firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
+                        proposal.$merchantGapTime = 0;
+                    } else {
+                        proposal.$merchantGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
+                    }
+                    return proposal;
+                }
+
+            );
+        }
+
+        function handleFailurePlayer(proposal) {
+            let playerName = proposal.data.playerName;
+
+            let prevSuccessProm = dbconfig.collection_proposal.find({
+                type: {$in: typeIds},
+                createTime: {$lte: proposal.createTime},
+                "data.playerName": playerName,
+                status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+            }).sort({createTime: -1}).limit(1);
+            let nextSuccessProm = dbconfig.collection_proposal.find({
+                type: {$in: typeIds},
+                createTime: {$gte: proposal.createTime},
+                "data.playerName": playerName,
+                status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+            }).sort({createTime: 1}).limit(1);
+
+            return Promise.all([prevSuccessProm, nextSuccessProm]).then(
+                successData => {
+                    let prevSuccess = successData[0];
+                    let nextSuccess = successData[1];
+
+                    let allCountQuery = {
+                        type: {$in: typeIds},
+                        "data.playerName": playerName
+                    };
+
+                    let currentCountQuery = {
+                        type: {$in: typeIds},
+                        createTime: {
+                            $lte: new Date(proposal.createTime)
+                        },
+                        "data.playerName": playerName
+                    };
+
+                    let firstInStreakQuery = {
+                        type: {$in: typeIds},
+                        "data.playerName": playerName
+                    };
+
+                    if (prevSuccess[0]) {
+                        let prevSuccessCreateTime = new Date(prevSuccess[0].createTime);
+                        allCountQuery.createTime = {$gt: prevSuccessCreateTime};
+                        currentCountQuery.createTime.$gt = prevSuccessCreateTime;
+                        firstInStreakQuery.createTime = {$gt: prevSuccessCreateTime};
+                    }
+
+                    if (nextSuccess[0]) {
+                        allCountQuery.createTime = allCountQuery.createTime ? allCountQuery.createTime : {};
+                        allCountQuery.createTime.$lt = nextSuccess[0].createTime;
+                    }
+
+                    let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
+                    let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
+                    let firstInStreakProm = dbconfig.collection_proposal.findOne(firstInStreakQuery);
+
+                    return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
+                }
+            ).then(
+                countData => {
+                    let allCount = countData[0];
+                    let currentCount = countData[1];
+                    let firstFailure = countData[2];
+
+                    proposal.$playerAllCount = allCount;
+                    proposal.$playerCurrentCount = currentCount;
+
+                    if (firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
+                        proposal.$playerGapTime = 0;
+                    } else {
+                        proposal.$playerGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
+                    }
+                    return proposal;
+                }
+            );
+        }
+
+        function handleSuccessProposal(proposal) {
+            proposal['$merchantAllCount'] = '-';
+            proposal['$merchantCurrentCount'] = '-';
+            proposal['$merchantGapTime'] = '-';
+            proposal['$playerAllCount'] = '-';
+            proposal['$playerCurrentCount'] = '-';
+            proposal['$playerGapTime'] = '-';
+            return proposal;
+        }
+
+    });
+}
+
+function getTopUpProposalTypeIds(platformId) {
+    let mainTopUpTypes = {
+        $in: [
+            constProposalType.PLAYER_TOP_UP,
+            constProposalType.PLAYER_ALIPAY_TOP_UP,
+            constProposalType.PLAYER_MANUAL_TOP_UP,
+            constProposalType.PLAYER_WECHAT_TOP_UP,
+            constProposalType.PLAYER_QUICKPAY_TOP_UP
+        ]
+    };
+
+    return dbconfig.collection_proposalType.find({platformId: platformId, name: mainTopUpTypes}).lean().then(
+        proposalTypes => {
+            return proposalTypes.map(type => {
+                return type._id;
+            });
+        }
+    );
+}
+function asyncLoop(count, func, callback) {
+    let i = -1;
+
+    let loop = function () {
+        i++;
+        if (i >= count) {
+            if (callback) {
+                callback();
+            }
+            return;
+        }
+        func(i, loop);
+    };
+    loop();
+}
+
+function getMinutesBetweenDates(startDate, endDate) {
+    var diff = endDate.getTime() - startDate.getTime();
+    return Math.floor(diff / 60000);
+}
+
+function retrieveAgent(agentInfo){
+    let registrationInterface = '';
+    let userAgent = agentInfo;
+    if(userAgent==''){
+        registrationInterface = 1;
+    }else{
+        if (userAgent.browser.name.indexOf("WebKit") !== -1 || userAgent.browser.name.indexOf("WebView") !== -1) {
+            registrationInterface = 2;
+        }
+        else if (userAgent.os.name.indexOf("iOS") !== -1 || userAgent.os.name.indexOf("ndroid") !== -1 || userAgent.browser.name.indexOf("obile") !== -1) {
+            registrationInterface = 3;
+        } else {
+            registrationInterface = 1;
+        }
+        console.log(registrationInterface);
+
+
+    }
+    return registrationInterface;
+}
+
+
+// end of count user /merchant
 var proto = dbPlayerTopUpRecordFunc.prototype;
 proto = Object.assign(proto, dbPlayerTopUpRecord);
 

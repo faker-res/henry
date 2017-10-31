@@ -46,31 +46,53 @@
                     label.text-danger {{"NO_MERCHANT_GROUP_MESSAGE" | translate}}
                 .well
                     .inlineBlk.margin-right-5
-                        .control-label {{"TITLE" | translate}}
-                        input.input-sm.form-control(type='text', ng-model='vm.filterMerchantTitle')
+                        .control-label {{"Target Device" | translate}}
+                        select.input-sm.form-control.merchantNoList(ng-model='vm.filterTargetDeviceJson',ng-options="a | translate for a in merchantTargetDeviceJson", style='max-width:200px', ng-init='vm.filterTargetDeviceJson="all"',multiple,bsp)
+                            //option(value='all') {{'any' | translate}}
+                            //option(ng-repeat='(i,v) in merchantTargetDeviceJson', value='{{i}}') {{v | translate}}
                     .inlineBlk.margin-right-5
-                        .control-label {{"ACCOUNT" | translate}}
-                        input.input-sm.form-control(type='text', ng-model='vm.filterMerchantAcc')
+                        .control-label {{"Online Topup Type" | translate}}
+                        select.input-sm.form-control.merchantNoList(ng-model='vm.filterMerchantTopupType',ng-options="a | translate for a in merchantTopupTypeJson", style='max-width:200px', ng-init='vm.filterMerchantTopupType="all"',multiple,bsp)
+                            //option(value='all') {{'any' | translate}}
+                            //option(ng-repeat='(i,v) in merchantTopupTypeJson', value='{{i}}') {{v | translate}}
                     .inlineBlk.margin-right-5
-                        .control-label {{"Topup Type" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterMerchantTopupType', style='max-width:200px', ng-init='vm.filterMerchantTopupType="all"')
-                            option(value='all') {{'any' | translate}}
-                            option(ng-repeat='(i,v) in merchantTopupTypeJson', value='{{i}}') {{v | translate}}
+                        .control-label {{"Third Party Platform" | translate}}
+                        select.input-sm.form-control.merchantNoList(ng-model='vm.filterMerchantType',ng-options="a.name for a in vm.allMerchantTypeList", style='max-width:200px', ng-init='vm.filterMerchantType="all"',multiple,bsp)
+                        //select.input-sm.form-control(ng-model='vm.filterMerchantType', style='max-width:200px', ng-init='vm.filterMerchantType="all"')
+                        //    option(value='all') {{'any' | translate}}
+                        //    option(ng-repeat='(i,v) in vm.allMerchantTypeList', value='{{i}}') {{v.name | translate}}
                     .inlineBlk.margin-right-5
-                        .control-label {{"Merchant Use" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterMerchantUse', style='max-width:200px', ng-init='vm.filterMerchantUse="all"')
-                            option(value='all') {{'any' | translate}}
-                            option(ng-repeat='(i,v) in merchantUseTypeJson', value='{{i}}') {{v | translate}}
-                    .inlineBlk.margin-right-5
-                        .control-label {{"Merchant Type ID" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterMerchantType', style='max-width:200px', ng-init='vm.filterMerchantType="all"')
-                            option(value='all') {{'any' | translate}}
-                            option(ng-repeat='(i,v) in vm.allMerchantTypeList', value='{{i}}') {{v.name | translate}}
-                    .inlineBlk.margin-right-5
-                        .control-label {{"Target Devices" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterMerchantTargetDevices', style='max-width:200px', ng-init='vm.filterMerchantTargetDevices="all"')
-                            option(value='all') {{'any' | translate}}
-                            option(ng-repeat='(i,v) in merchantTargetDeviceJson', value='{{i}}') {{v | translate}}
+                        .control-label {{"Backstage Merchant ID" | translate}}
+                        select.input-sm.form-control.merchantNoList(ng-model='vm.filterMerchantId',ng-options="a for a in vm.MerchantId", style='max-width:200px', ng-init='vm.filterMerchantId="all"',multiple,bsp)
+                        //select.input-sm.form-control(ng-model='vm.filterMerchantBackstageMerchantId',style='max-width:200px', ng-init='vm.filterMerchantBackstageMerchantId="all"')
+                        //    option(value='all') {{'any' | translate}}
+                        //    option(ng-repeat='(i,v) in vm.MerchantId', value='{{i}}') {{v.merchantId | translate}}
+                    //.inlineBlk.margin-right-5
+                    //    .control-label {{"TITLE" | translate}}
+                    //    input.input-sm.form-control(type='text', ng-model='vm.filterMerchantTitle')
+                    //.inlineBlk.margin-right-5
+                    //    .control-label {{"ACCOUNT" | translate}}
+                    //    input.input-sm.form-control(type='text', ng-model='vm.filterMerchantAcc')
+                    //.inlineBlk.margin-right-5
+                    //    .control-label {{"Topup Type" | translate}}
+                    //    select.input-sm.form-control(ng-model='vm.filterMerchantTopupType', style='max-width:200px', ng-init='vm.filterMerchantTopupType="all"')
+                    //        option(value='all') {{'any' | translate}}
+                    //        option(ng-repeat='(i,v) in merchantTopupTypeJson', value='{{i}}') {{v | translate}}
+                    //.inlineBlk.margin-right-5
+                    //    .control-label {{"Merchant Use" | translate}}
+                    //    select.input-sm.form-control(ng-model='vm.filterMerchantUse', style='max-width:200px', ng-init='vm.filterMerchantUse="all"')
+                    //        option(value='all') {{'any' | translate}}
+                    //        option(ng-repeat='(i,v) in merchantUseTypeJson', value='{{i}}') {{v | translate}}
+                    //.inlineBlk.margin-right-5
+                    //    .control-label {{"Merchant Type ID" | translate}}
+                    //    select.input-sm.form-control(ng-model='vm.filterMerchantType', style='max-width:200px', ng-init='vm.filterMerchantType="all"')
+                    //        option(value='all') {{'any' | translate}}
+                    //        option(ng-repeat='(i,v) in vm.allMerchantTypeList', value='{{i}}') {{v.name | translate}}
+                    //.inlineBlk.margin-right-5
+                    //    .control-label {{"Target Devices" | translate}}
+                    //    select.input-sm.form-control(ng-model='vm.filterMerchantTargetDevices', style='max-width:200px', ng-init='vm.filterMerchantTargetDevices="all"')
+                    //        option(value='all') {{'any' | translate}}
+                    //        option(ng-repeat='(i,v) in merchantTargetDeviceJson', value='{{i}}') {{v | translate}}
                     .inlineBlk
                         button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.merchantGroupClicked(1,vm.SelectedMerchantGroupNode)") {{"FILTER" | translate}}
                 #MerchantList.panel-group(ng-if='vm.SelectedMerchantGroupNode')
@@ -85,32 +107,67 @@
                                 a.platformBankcardDiv(ng-repeat='(i,v) in vm.includedMerchants', class='{{vm.highlightMerchant[v.merchantNo]}}', ng-click='vm.merchantClicked(i,v,"in")')
                                     table.bg-pale
                                         tr
-                                            td.text-center(rowspan="7")
-                                                i.fa.fa-money.text-danger
-                                            td {{'TITLE' | translate}}
-                                            td.text-success {{v.name}}
+                                            td.text-center
+                                            td {{'STATUS' | translate}}
+                                            td(ng-class="{'text-disabled': v.status === 'DISABLED'}").text-success {{v.status| translate}}
                                         tr
-                                            td {{'ACCOUNT' | translate}}
-                                            td.text-success {{v.merchantNo}}
+                                            td.text-center
+                                            td {{'Target Device' | translate}}
+                                            td.text-success {{merchantTargetDeviceJson[v.targetDevices] | translate}}
                                         tr
-                                            td {{'Topup Type' | translate}}
+                                            td.text-center
+                                            td {{'Online Topup Type' | translate}}
                                             td.text-success {{merchantTopupTypeJson[v.topupType] | translate}}
                                         tr
-                                            td {{'Merchant Use' | translate}}
-                                            td.text-success {{merchantUseTypeJson[v.merchantUse] | translate}}
-                                        tr
-                                            td {{'Status' | translate}}
-                                            td.text-success {{v.status | translate}}
-                                        tr
-                                            td {{'Merchant Type ID' | translate}}
+                                            td.text-center
+                                            td {{'Third Party Platform' | translate}}
                                             td.text-success {{vm.allMerchantTypeList[v.merchantTypeId].name | translate}}
                                                 img(ng-if='v.merchantTypeId', src='{{vm.allMerchantTypeList[v.merchantTypeId].showIconURL}}')
                                         tr
-                                            td {{'SINGLE_LIMIT' | translate}}
-                                            td.text-success {{v.permerchantLimits | translate}}
+                                            td.text-center
+                                            td {{'merchantNo' | translate}}
+                                            td.text-success {{v.merchantNo}}
                                         tr
+                                            td.text-center
+                                            td {{'Backstage Merchant ID' | translate}}
+                                            td.text-success {{v.merchantId}}
+                                        tr
+                                            td.text-center
+                                            td {{'SINGLE_LIMIT' | translate}}
+                                            td.text-success {{v.permerchantLimits}}
+                                        tr
+                                            td.text-center
                                             td {{'DAY_LIMIT' | translate}}
-                                            td.text-success {{v.transactionForPlayerOneDay | translate}}
+                                            td.text-success {{v.transactionForPlayerOneDay}}
+
+
+                                        //tr
+                                        //    td.text-center(rowspan="7")
+                                        //        i.fa.fa-money.text-danger
+                                        //    td {{'TITLE' | translate}}
+                                        //    td.text-success {{v.name}}
+                                        //tr
+                                        //    td {{'ACCOUNT' | translate}}
+                                        //    td.text-success {{v.merchantNo}}
+                                        //tr
+                                        //    td {{'Topup Type' | translate}}
+                                        //    td.text-success {{merchantTopupTypeJson[v.topupType] | translate}}
+                                        //tr
+                                        //    td {{'Merchant Use' | translate}}
+                                        //    td.text-success {{merchantUseTypeJson[v.merchantUse] | translate}}
+                                        //tr
+                                        //    td {{'Status' | translate}}
+                                        //    td.text-success {{v.status | translate}}
+                                        //tr
+                                        //    td {{'Merchant Type ID' | translate}}
+                                        //    td.text-success {{vm.allMerchantTypeList[v.merchantTypeId].name | translate}}
+                                        //        img(ng-if='v.merchantTypeId', src='{{vm.allMerchantTypeList[v.merchantTypeId].showIconURL}}')
+                                        //tr
+                                        //    td {{'SINGLE_LIMIT' | translate}}
+                                        //    td.text-success {{v.permerchantLimits | translate}}
+                                        //tr
+                                        //    td {{'DAY_LIMIT' | translate}}
+                                        //    td.text-success {{v.transactionForPlayerOneDay | translate}}
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#MerchantList", href='#excludedMerchants', ng-click='vm.showMerchantCate="exclude";vm.toggleBankType()')
                             h4.panel-title
@@ -122,29 +179,63 @@
                                 a.platformBankcardDiv(ng-repeat='(i,v) in vm.excludedMerchants', class='{{vm.highlightMerchant[v.merchantNo]}}', ng-click='vm.merchantClicked(i,v,"ex")')
                                     table.bg-pale
                                         tr
-                                            td.text-center(rowspan="5")
-                                                i.fa.fa-money.text-danger
-                                            td {{'TITLE' | translate}}
-                                            td.text-success {{v.name}}
+                                            td.text-center
+                                            td {{'STATUS' | translate}}
+                                            td(ng-class="{'text-disabled': v.status === 'DISABLED'}").text-success {{v.status| translate}}
                                         tr
-                                            td {{'ACCOUNT' | translate}}
-                                            td.text-success {{v.merchantNo}}
+                                            td.text-center
+                                            td {{'Target Device' | translate}}
+                                            td.text-success {{merchantTargetDeviceJson[v.targetDevices] | translate}}
                                         tr
-                                            td {{'Topup Type' | translate}}
+                                            td.text-center
+                                            td {{'Online Topup Type' | translate}}
                                             td.text-success {{merchantTopupTypeJson[v.topupType] | translate}}
                                         tr
-                                            td {{'Merchant Use' | translate}}
-                                            td.text-success {{merchantUseTypeJson[v.merchantUse] | translate}}
-                                        tr
-                                            td {{'Merchant Type ID' | translate}}
+                                            td.text-center
+                                            td {{'Third Party Platform' | translate}}
+
                                             td.text-success {{vm.allMerchantTypeList[v.merchantTypeId].name | translate}}
                                                 img(ng-if='v.merchantTypeId', src='{{vm.allMerchantTypeList[v.merchantTypeId].showIconURL}}')
                                         tr
-                                            td {{'SINGLE_LIMIT' | translate}}
-                                            td.text-success {{v.permerchantLimits | translate}}
+                                            td.text-center
+                                            td {{'merchantNo' | translate}}
+                                            td.text-success {{v.merchantNo}}
                                         tr
+                                            td.text-center
+                                            td {{'Backstage Merchant ID' | translate}}
+                                            //td.text-success {{v.status}}
+                                        tr
+                                            td.text-center
+                                            td {{'SINGLE_LIMIT' | translate}}
+                                            td.text-success {{v.permerchantLimits}}
+                                        tr
+                                            td.text-center
                                             td {{'DAY_LIMIT' | translate}}
-                                            td.text-success {{v.transactionForPlayerOneDay | translate}}
+                                            td.text-success {{v.transactionForPlayerOneDay}}
+                                        //tr
+                                        //    td.text-center(rowspan="5")
+                                        //        i.fa.fa-money.text-danger
+                                        //    td {{'TITLE' | translate}}
+                                        //    td.text-success {{v.name}}
+                                        //tr
+                                        //    td {{'ACCOUNT' | translate}}
+                                        //    td.text-success {{v.merchantNo}}
+                                        //tr
+                                        //    td {{'Topup Type' | translate}}
+                                        //    td.text-success {{merchantTopupTypeJson[v.topupType] | translate}}
+                                        //tr
+                                        //    td {{'Merchant Use' | translate}}
+                                        //    td.text-success {{merchantUseTypeJson[v.merchantUse] | translate}}
+                                        //tr
+                                        //    td {{'Merchant Type ID' | translate}}
+                                        //    td.text-success {{vm.allMerchantTypeList[v.merchantTypeId].name | translate}}
+                                        //        img(ng-if='v.merchantTypeId', src='{{vm.allMerchantTypeList[v.merchantTypeId].showIconURL}}')
+                                        //tr
+                                        //    td {{'SINGLE_LIMIT' | translate}}
+                                        //    td.text-success {{v.permerchantLimits | translate}}
+                                        //tr
+                                        //    td {{'DAY_LIMIT' | translate}}
+                                        //    td.text-success {{v.transactionForPlayerOneDay | translate}}
                 .panel.panel-info(ng-if='vm.curMerchant')
                     .panel-heading.panel-heading-sm
                         h4.panel-title(style='display:inline-block') {{'Merchant' | translate}} : {{vm.curMerchant.name}}

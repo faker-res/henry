@@ -238,7 +238,7 @@ var dbRewardEvent = {
         return deferred.promise;
     },
 
-    startSavePlayersCredit: (platformId) => {
+    startSavePlayersCredit: (platformId, bManual) => {
         let queryTime = dbUtil.getYesterdaySGTime();
         return dbconfig.collection_rewardType.findOne({
             name: constRewardType.PLAYER_CONSUMPTION_INCENTIVE
@@ -273,12 +273,12 @@ var dbRewardEvent = {
                     ).then(
                         data => {
                             let playerObjIds = data.map(player => player._id);
-                            console.log(playerObjIds);
+                            //console.log(playerObjIds);
                             let stream = dbconfig.collection_players.find(
                                 {
                                     _id: {$in: playerObjIds}
                                 }
-                            ).lean().cursor({batchSize: 100});
+                            ).lean().cursor({batchSize: 200});
 
                             let balancer = new SettlementBalancer();
                             return balancer.initConns().then(function () {
@@ -287,7 +287,7 @@ var dbRewardEvent = {
                                         balancer.processStream(
                                             {
                                                 stream: stream,
-                                                batchSize: 100,
+                                                batchSize: 10,
                                                 makeRequest: function (playerObjs, request) {
                                                     request("player", "savePlayerCredit", {
                                                         playerObjId: playerObjs.map(player => {
@@ -298,7 +298,8 @@ var dbRewardEvent = {
                                                                 validCredit: player.validCredit,
                                                                 lockedCredit: player.lockedCredit
                                                             }
-                                                        })
+                                                        }),
+                                                        bManual: bManual
                                                     });
                                                 }
                                             }
@@ -332,7 +333,7 @@ var dbRewardEvent = {
         )
     },
 
-    savePlayerCredit: (playerDatas) => {
+    savePlayerCredit: (playerDatas, bManual) => {
         let queryTime = dbUtil.getYesterdaySGTime();
         let proms = [];
         playerDatas.forEach(
@@ -356,7 +357,10 @@ var dbRewardEvent = {
                                                 data => data,
                                                 //treat error as 0 credit for now, todo::refactor code here with retries
                                                 error => {
-                                                    return {};
+                                                    // System log when querying game credit timeout / error
+                                                    console.log("ERROR: player_queryCredit failed for player", playerData.name, error);
+
+                                                    return Q.reject(error);
                                                 }
                                             )
                                         )
@@ -385,7 +389,7 @@ var dbRewardEvent = {
                             return dbconfig.collection_playerCreditsDailyLog.update({
                                     playerObjId: playerData._id,
                                     platformObjId: playerData.platform,
-                                    createTime: queryTime.endTime
+                                    createTime: bManual ? 0 : queryTime.endTime
                                 },
                                 {
                                     playerObjId: playerData._id,
