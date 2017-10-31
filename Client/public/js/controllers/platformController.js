@@ -8385,7 +8385,7 @@ define(['js/app'], function (myApp) {
                             changeType: 'email',
                             curEmail: vm.selectedSinglePartner.email,
                             curQQ: vm.selectedSinglePartner.qq,
-                            curWeChat: vm.selectedSinglePlayer.wechat,
+                            // curWeChat: vm.selectedSinglePlayer.wechat,
                             phoneNumber: vm.selectedSinglePartner.phoneNumber,
                         }
                     } else {
@@ -8394,7 +8394,7 @@ define(['js/app'], function (myApp) {
                         vm.modifyCritical.changeType = 'email';
                         vm.modifyCritical.curEmail = vm.selectedSinglePartner.email;
                         vm.modifyCritical.curQQ = vm.selectedSinglePartner.qq;
-                        vm.modifyCritical.curWeChat = vm.selectedSinglePlayer.wechat;
+                        // vm.modifyCritical.curWeChat = vm.selectedSinglePlayer.wechat;
                         vm.modifyCritical.phoneNumber = vm.selectedSinglePartner.phoneNumber;
                     }
                 }
@@ -8472,6 +8472,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 21:
                         sendString = 'createUpdatePartnerEmailProposal';
+                        break;
+                    case 22:
+                        sendString = 'createUpdatePartnerQQProposal';
                         break;
 
                 }
@@ -13119,6 +13122,8 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'comparePhoneNum', sendData, function (data) {
                     vm.diffPhoneList = data.data.diffPhoneList;
                     vm.samePhoneList = data.data.samePhoneList;
+                    vm.diffPhoneTotal = data.data.diffPhoneTotal;
+                    vm.samePhoneTotal = data.data.samePhoneTotal;
                     $scope.safeApply();
                 });
             };
@@ -13142,6 +13147,8 @@ define(['js/app'], function (myApp) {
                     });
 
                     vm.samePhoneCSV = data.data.samePhoneCSV;
+                    vm.diffPhoneTotalCSV = data.data.diffPhoneTotalCSV;
+                    vm.samePhoneTotalCSV = data.data.samePhoneTotalCSV;
                     $scope.safeApply();
                 });
             };
@@ -13162,6 +13169,8 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'uploadPhoneFileTXT', sendData, function (data) {
                     vm.diffPhoneTXT = data.data.diffPhoneTXT;
                     vm.samePhoneTXT = data.data.samePhoneTXT;
+                    vm.diffPhoneTotalTXT = data.data.diffPhoneTotalTXT;
+                    vm.samePhoneTotalTXT = data.data.samePhoneTotalTXT;
                     $scope.safeApply();
                 });
             };

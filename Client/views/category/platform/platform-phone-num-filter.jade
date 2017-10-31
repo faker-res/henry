@@ -28,9 +28,13 @@
                     label {{"RESULT" | translate}}:
                     .well
                         label {{"DUPLICATE_PHONE" | translate}}:
+                        | &nbsp;
+                        label(style="color:red") ({{vm.samePhoneTotalCSV}})
                         p {{vm.samePhoneCSV}}
                     .well
                         label {{"NON_DUPLICATE_PHONE" | translate}}:
+                        | &nbsp;
+                        label(style="color:red") ({{vm.diffPhoneTotalCSV}})
                         p {{vm.diffPhoneCSV}}
                     .pull-right
                         button.btn.btn-primary.common-button(type='button', ng-csv='vm.diffPhoneCSVArray', filename='phoneNumber.csv')
@@ -66,9 +70,13 @@
                     label {{"RESULT" | translate}}:
                     .well
                         label {{"DUPLICATE_PHONE" | translate}}:
+                        | &nbsp;
+                        label(style="color:red") ({{vm.samePhoneTotalTXT}})
                         p {{vm.samePhoneTXT}}
                     .well
                         label {{"NON_DUPLICATE_PHONE" | translate}}:
+                        | &nbsp;
+                        label(style="color:red") ({{vm.diffPhoneTotalTXT}})
                         p {{vm.diffPhoneTXT}}
                     .pull-right
                         button.btn.btn-primary.common-button(ng-click="vm.exportTXTFile(vm.diffPhoneTXT);")
@@ -101,9 +109,13 @@
                     label {{"RESULT" | translate}}:
                     .well
                         label {{"DUPLICATE_PHONE" | translate}}:
+                        | &nbsp;
+                        label(style="color:red") ({{vm.samePhoneTotal}})
                         p {{vm.samePhoneList}}
                     .well
                         label {{"NON_DUPLICATE_PHONE" | translate}}:
+                        | &nbsp;
+                        label(style="color:red") ({{vm.diffPhoneTotal}})
                         p#copyHere {{vm.diffPhoneList}}
                     .pull-right
                         button.btn.btn-primary.common-button(ng-click="vm.copyToClipboard('copyHere'); vm.copyHere=true;")

@@ -1183,6 +1183,7 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "updatePartner", action: "createUpdatePartnerInfoProposal"},
                     {group: "PARTNER", text: "Update partner phone number", action: "createUpdatePartnerPhoneProposal"},
                     {group: "PARTNER", text: "Update partner email", action: "createUpdatePartnerEmailProposal"},
+                    {group: "PARTNER", text: "Update partner QQ", action: "createUpdatePartnerQQProposal"},
                     {
                         group: "PARTNER",
                         text: "Update partner bank information",

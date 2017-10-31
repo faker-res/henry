@@ -11036,13 +11036,15 @@ let dbPlayerInfo = {
 
             // display non duplicated phone numbers
             let diffPhone = arrayInputPhone.filter(item => !arrayDbPhone.includes(item));
+            let diffPhoneTotal = diffPhone.length;
             diffPhoneList = diffPhone.join(", ");
 
             // display duplicated phone numbers
             let samePhone = arrayInputPhone.filter(item => arrayDbPhone.includes(item));
+            let samePhoneTotal = samePhone.length;
             samePhoneList = samePhone.join(", ");
 
-            return {samePhoneList: samePhoneList, diffPhoneList: diffPhoneList};
+            return {samePhoneList: samePhoneList, diffPhoneList: diffPhoneList, samePhoneTotal: samePhoneTotal, diffPhoneTotal: diffPhoneTotal};
         }).then(data => {
             return data;
         });
@@ -11081,13 +11083,15 @@ let dbPlayerInfo = {
 
             // display non duplicated phone numbers
             let diffPhone = arrayPhoneCSV.filter(item => !arrayDbPhone.includes(item));
+            let diffPhoneTotalCSV = diffPhone.length;
             diffPhoneCSV = diffPhone.join(", ");
 
             // display duplicated phone numbers
             let samePhone = arrayPhoneCSV.filter(item => arrayDbPhone.includes(item));
+            let samePhoneTotalCSV = samePhone.length;
             samePhoneCSV = samePhone.join(", ");
 
-            return {samePhoneCSV: samePhoneCSV, diffPhoneCSV: diffPhoneCSV};
+            return {samePhoneCSV: samePhoneCSV, diffPhoneCSV: diffPhoneCSV, samePhoneTotalCSV: samePhoneTotalCSV, diffPhoneTotalCSV: diffPhoneTotalCSV};
         }).then(data => {
             return data;
         });
@@ -11126,13 +11130,15 @@ let dbPlayerInfo = {
 
             // display non duplicated phone numbers
             let diffPhone = arrayPhoneTXT.filter(item => !arrayDbPhone.includes(item));
+            let diffPhoneTotalTXT = diffPhone.length;
             diffPhoneTXT = diffPhone.join(", ");
 
             // display duplicated phone numbers
             let samePhone = arrayPhoneTXT.filter(item => arrayDbPhone.includes(item));
+            let samePhoneTotalTXT = samePhone.length;
             samePhoneTXT = samePhone.join(", ");
 
-            return {samePhoneTXT: samePhoneTXT, diffPhoneTXT: diffPhoneTXT};
+            return {samePhoneTXT: samePhoneTXT, diffPhoneTXT: diffPhoneTXT, samePhoneTotalTXT: samePhoneTotalTXT, diffPhoneTotalTXT: diffPhoneTotalTXT};
         }).then(data => {
             return data;
         });
