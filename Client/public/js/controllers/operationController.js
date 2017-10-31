@@ -281,7 +281,7 @@ define(['js/app'], function (myApp) {
         };
         vm.queryProposalIdUpdate = function () {
             if (vm.queryProposalId) {
-                var te = $("#proposalDataTableDiv #search .inlineBlk").not(":nth-child(1)").find(".form-control");
+                var te = $("#proposalDataTableDiv #search .inlineBlk").not(":nth-child(9)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee")
                 te.find(".ms-choice").prop("disabled", true).css("background-color", "#eee")
@@ -374,7 +374,7 @@ define(['js/app'], function (myApp) {
             if (startDate) {
                 $(dateTimePickerStartSelector).data('datetimepicker').setLocalDate(startDate);
                 $(dateTimePickerEndSelector).data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
-                vm.loadProposalQueryData(true);
+                // vm.loadProposalQueryData(true);
             }
         };
 
@@ -401,6 +401,8 @@ define(['js/app'], function (myApp) {
                     }
                 );
             }
+            let rewardNames = $('select#selectRewardType').multipleSelect("getSelects");
+            let promoType = $('select#selectPromoType').multipleSelect("getSelects");
 
             let startTime = $('#datetimepicker').data('datetimepicker').getLocalDate();
             let endTime = $('#datetimepicker2').data('datetimepicker').getLocalDate();
@@ -408,6 +410,9 @@ define(['js/app'], function (myApp) {
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
+                inputDevice: vm.proposalInputDevice,
+                eventName: rewardNames,
+                promoTypeName: promoType,
                 type: vm.proposalTypeSelected,
                 startDate: startTime,
                 endDate: endTime,

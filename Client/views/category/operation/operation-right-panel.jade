@@ -39,7 +39,7 @@
                             label {{'FILTER_PROPOSAL_STATUS' | translate}}
                             select.form-control#selectProposalStatus(multiple="multiple", style='min-width:100px;height:34px;')
                                 option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}') {{v | translate}}
-                        .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalStatus')")
+                        //.inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalStatus')")
                             label {{'ENTRY_TYPE' | translate}}
                             select.form-control(ng-model='vm.queryProposalEntryType', ng-options='i as v | translate for (i,v) in constProposalEntryType')
                                 option(value='') {{'any' | translate}}
