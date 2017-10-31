@@ -779,8 +779,8 @@ var dbPlayerTopUpRecord = {
                     updateData.data.cardQuota = res[0].totalAmount;
                 }
                 updateData.data = Object.assign({}, proposal.data);
-                updateData.data.requestId = merchantResponseData.result ? merchantResponseData.result.requestId : "";
-                updateData.data.merchantNo = merchantResponseData.result ? merchantResponseData.result.merchantNo : "";
+                updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
+                updateData.data.merchantNo = merchantResponse.result ? merchantResponse.result.merchantNo : "";
                 return dbconfig.collection_proposal.findOneAndUpdate(
                     {_id: proposal._id, createTime: proposal.createTime},
                     updateData,
