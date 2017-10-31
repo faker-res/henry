@@ -29,6 +29,7 @@ const constProposalMainType = {
     "UpdatePartnerBankInfo": constMainType.UPDATE_PARTNER,
     "UpdatePartnerPhone": constMainType.UPDATE_PARTNER,
     "UpdatePartnerEmail": constMainType.UPDATE_PARTNER,
+    "UpdatePartnerQQ": constMainType.UPDATE_PARTNER,
     "UpdatePartnerInfo": constMainType.UPDATE_PARTNER,
     "PartnerCommission": constMainType.UPDATE_PARTNER,
     "UpdatePartnerCredit":constMainType.UPDATE_PARTNER,

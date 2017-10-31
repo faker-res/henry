@@ -130,6 +130,7 @@ const cpmsAPI = {
     },
 
     player_queryCredit: function (data) {
+        data.requestId = data.username + "_" + data.providerId + "_" + new Date().getTime();
         return callCPMSAPI("player", "queryCredit", data);
     },
 

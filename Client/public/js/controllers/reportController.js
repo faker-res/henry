@@ -90,6 +90,7 @@ define(['js/app'], function (myApp) {
             vm.setPlatform(JSON.stringify(platObj));
         }
         vm.showProposalModal2 = function(proposalId){
+            vm.proposalDialog = 'proposalTopUp';
           socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
               platformId: vm.selectedPlatform._id,
               proposalId: proposalId
@@ -1182,6 +1183,7 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "updatePartner", action: "createUpdatePartnerInfoProposal"},
                     {group: "PARTNER", text: "Update partner phone number", action: "createUpdatePartnerPhoneProposal"},
                     {group: "PARTNER", text: "Update partner email", action: "createUpdatePartnerEmailProposal"},
+                    {group: "PARTNER", text: "Update partner QQ", action: "createUpdatePartnerQQProposal"},
                     {
                         group: "PARTNER",
                         text: "Update partner bank information",
@@ -3609,7 +3611,12 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'createTime', 'aTargets': [8]}
                 ],
                 columns: [
-                    {title: $translate('PROPOSAL ID'), data: "proposalId"},
+                    {title: $translate('PROPOSAL ID'), data: "proposalId",
+                        render: function (data, type, row) {
+                            data = String(data);
+                            return '<a ng-click="vm.showProposalModalNew(\''+data+'\')">'+data+'</a>';
+                        }
+                    },
                     {title: $translate('CREATOR'),
                         data: null,
                         render: function (data, type, row) {
@@ -5089,6 +5096,21 @@ define(['js/app'], function (myApp) {
               vm.selectedProposal.data.cityName = text;
               $scope.safeApply();
           });
+        }
+
+        vm.showProposalModalNew = function(proposalId){
+            vm.proposalDialog = 'proposal';
+            socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
+                platformId: vm.selectedPlatform._id,
+                proposalId: proposalId
+            }, function (data) {
+                vm.selectedProposal = data.data;
+                $('#modalProposal').modal('show');
+                $('#modalProposal').on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                })
+
+            })
         }
 
         $scope.$on(eventName, function (e, d) {
