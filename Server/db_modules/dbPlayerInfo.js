@@ -951,6 +951,13 @@ let dbPlayerInfo = {
                 }
                 apiData = data;
 
+                // if (data.realName) {
+                //     data.realName = dbUtility.encodeRealName(data.realName);
+                // }
+                // if (data.bankAccountName) {
+                //     data.bankAccountName = dbUtility.encodeRealName(data.bankAccountName);
+                // }
+
                 if (data.platform) {
                     return dbconfig.collection_platform.findOne({_id: data.platform});
                 }
