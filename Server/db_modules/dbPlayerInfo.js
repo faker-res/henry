@@ -1985,7 +1985,6 @@ let dbPlayerInfo = {
                             type = constPlayerCreditChangeType.MANUAL_TOP_UP;
                             break;
                         case constPlayerTopUpType.ALIPAY:
-                            console.log('debugging topup promo, name:', data.name);
                             type = constPlayerCreditChangeType.ALIPAY_TOP_UP;
                             break;
                         case constPlayerTopUpType.QUICKPAY:

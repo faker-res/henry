@@ -345,8 +345,6 @@ let dbPlayerReward = {
                                     userType: constProposalUserType.PLAYERS
                                 };
 
-                                if (type === 'aliPay') console.log('debugging topup promo, proposalData:', proposalData);
-
                                 return dbProposal.createProposalWithTypeId(promoEventDetail.executeProposal, proposalData);
                             }
                         }
