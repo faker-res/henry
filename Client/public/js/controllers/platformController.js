@@ -3210,21 +3210,6 @@ define(['js/app'], function (myApp) {
                                 return utilService.getFormatTime(data);
                             }
                         },
-                        // {
-                        //     "visible": false,
-                        //     title: $translate('REGISTRATION_TIME_END'),
-                        //     data: 'registrationEndTime',
-                        //     advSearch: true,
-                        //     filterConfig: {
-                        //         type: "datetimepicker",
-                        //         id: "regEndDateTimePicker",
-                        //         options: {
-                        //             language: 'en',
-                        //             format: 'dd/MM/yyyy hh:mm:ss',
-                        //         }
-                        //     },
-                        //     "sClass": "alignLeft"
-                        // },
                         {
                             title: $translate('LAST_ACCESS_TIME'),
                             data: 'lastAccessTime',
@@ -3243,22 +3228,6 @@ define(['js/app'], function (myApp) {
                                 return utilService.getFormatTime(data);
                             }
                         },
-                        // {
-                        //     "visible": false,
-                        //     title: $translate('LAST_ACCESS_TIME_END'),
-                        //     data: 'lastAccessEndTime',
-                        //     advSearch: true,
-                        //     type: "datetimepicker",
-                        //     filterConfig: {
-                        //         type: "datetimepicker",
-                        //         id: "lastAccessEndDateTimePicker",
-                        //         options: {
-                        //             language: 'en',
-                        //             format: 'dd/MM/yyyy hh:mm:ss',
-                        //         }
-                        //     },
-                        //     "sClass": "alignLeft"
-                        // },
                         {title: $translate('LOGIN_TIMES'), data: "loginTimes",
                             render: function (data, type, row) {
                                 data = data || '0';
@@ -3665,6 +3634,39 @@ define(['js/app'], function (myApp) {
                         //         }
                         //     }
                         // },
+                        {
+                            // keep for date time
+                            // todo :: use createDatePicker after it load instead
+                            "visible": false,
+                            title: $translate('REGISTRATION_TIME_END'),
+                            data: 'registrationEndTime',
+                            advSearch: true,
+                            filterConfig: {
+                                type: "datetimepicker",
+                                id: "regEndDateTimePicker",
+                                options: {
+                                    language: 'en',
+                                    format: 'dd/MM/yyyy hh:mm:ss',
+                                }
+                            },
+                            "sClass": "alignLeft"
+                        },
+                        {
+                            "visible": false,
+                            title: $translate('LAST_ACCESS_TIME_END'),
+                            data: 'lastAccessEndTime',
+                            advSearch: true,
+                            type: "datetimepicker",
+                            filterConfig: {
+                                type: "datetimepicker",
+                                id: "lastAccessEndDateTimePicker",
+                                options: {
+                                    language: 'en',
+                                    format: 'dd/MM/yyyy hh:mm:ss',
+                                }
+                            },
+                            "sClass": "alignLeft"
+                        },
                     ],
                     //"autoWidth": false,
                     "scrollX": true,
