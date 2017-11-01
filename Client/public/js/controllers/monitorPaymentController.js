@@ -358,7 +358,13 @@ define(['js/app'], function (myApp) {
                 vm.paymentMonitorQuery.merchantGroup = '';
                 vm.paymentMonitorQuery.merchantNo = '';
             }
-
+            var staArr = vm.paymentMonitorQuery.status ? [vm.paymentMonitorQuery.status] : [];
+            if (vm.paymentMonitorQuery.status == "Success") {
+                staArr.push("Approved");
+            }
+            if (vm.paymentMonitorQuery.status == "Fail") {
+                staArr.push("Rejected");
+            }
             vm.paymentMonitorQuery.index = isNewSearch ? 0 : (vm.paymentMonitorQuery.index || 0);
             var sendObj = {
                 playerName: vm.paymentMonitorQuery.playerName,
@@ -373,7 +379,7 @@ define(['js/app'], function (myApp) {
                 bankTypeId: vm.paymentMonitorQuery.bankTypeId,
                 //new
                 merchantNo: vm.paymentMonitorQuery.merchantNo,
-                // status: staArr,
+                status: staArr,
                 startTime: vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.paymentMonitorQuery.endTime.data('datetimepicker').getLocalDate(),
 
