@@ -33,6 +33,8 @@ let rewardTaskGroupSchema = new Schema({
     targetConsumption: {type: Number, default: 0},
     // Current credit
     currentAmt: {type: Number, default: 0},
+    // Forbidden XIMA amount
+    forbidXIMAAmt: {type: Number, default: 0},
 
     // Last played provider
     lastPlayedProvider: {type: Schema.Types.ObjectId},
@@ -40,9 +42,7 @@ let rewardTaskGroupSchema = new Schema({
     //if this reward task will use consumption record
     useConsumption: {type: Boolean, default: true},
     //related proposal id
-    proposalId: {type: String, index: true},
-    //use locked credit
-    useLockedCredit: {type: Boolean, default: false}
+    proposalId: {type: String, index: true}
 });
 
 rewardTaskGroupSchema.index({targetProviders: 1});

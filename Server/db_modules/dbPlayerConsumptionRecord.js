@@ -511,144 +511,89 @@ var dbPlayerConsumptionRecord = {
         return newRecord.save().then(
             res => {
                 record = res;
-                if (record && !record.bDirty) {
-                    //check player's reward task group
+
+                if (record) {
+                    // check player's on-going reward task group
                     return dbRewardTask.checkPlayerRewardTaskGroupForConsumption(record);
                 }
                 else {
-                    return true;
+                    return Q.reject({name: "DBError", message: "Error creating consumption record", error: error});
                 }
             },
             error => {
                 return Q.reject({name: "DBError", message: "Error creating consumption record", error: error});
             }
         ).then(
-            //check if player has double top up reward and if this consumption record is from double top up reward
-            checkResult => {
-                if (!checkResult) {
-                    const rewardProposalProm = dbconfig.collection_proposalType.findOne(
-                        {name: constProposalType.PLAYER_DOUBLE_TOP_UP_REWARD, platformId: record.platformId}
-                    ).lean().then(
-                        pType => {
-                            return dbconfig.collection_proposal.find({
-                                type: pType._id,
-                                "data.playerObjId": record.playerId,
-                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                createTime: {$lt: record.createTime}
-                            }).sort({createTime: -1}).limit(1).lean();
-                        }
-                    );
-                    return rewardProposalProm.then(
-                        data => {
-                            if (data && data.length > 0) {
-                                let rewardTime = new Date(data[0].createTime);
-                                return dbconfig.collection_playerTopUpRecord.find({
-                                    playerId: record.playerId,
-                                    createTime: {$gte: rewardTime}
-                                }).sort({createTime: 1}).limit(1).lean().then(
-                                    tRecord => {
-                                        let topUpTime = new Date();
-                                        if (tRecord && tRecord.length > 0) {
-                                            topUpTime = new Date(tRecord[0].createTime);
-                                        }
-                                        const recordTime = new Date(record.createTime);
-                                        if (topUpTime.getTime() > rewardTime.getTime() && recordTime.getTime() > rewardTime.getTime() && recordTime.getTime() < topUpTime.getTime()) {
-                                            return true;
-                                        }
-                                        if (topUpTime.getTime() < rewardTime.getTime() && recordTime.getTime() > rewardTime.getTime()) {
-                                            return true;
-                                        }
-                                        return checkResult;
-                                    }
-                                );
-
-
-                            }
-                            else {
-                                return checkResult;
-                            }
-                        }
-                    );
-                }
-                else {
-                    return checkResult;
-                }
-            }
-        ).then(
-            function (bDirty) {
-                if (!bDirty) {
-                    //update consumption summary record
+            checkRes => {
+                if (checkRes && !checkRes.bDirty) {
+                    // Update consumption summary record (XIMA purpose)
                     let recordDateNoon = new Date(moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate().getTime() + 12 * 60 * 60 * 1000);
                     let summaryDay = recordDateNoon;
+                    let consumptionAmount = record.validAmount ? record.validAmount : record.amount;
+
                     if (record.createTime.getTime() < recordDateNoon.getTime()) {
                         summaryDay = new Date(recordDateNoon.getTime() - 24 * 60 * 60 * 1000);
                     }
-                    var query = {
+                    let query = {
                         playerId: record.playerId,
                         platformId: record.platformId,
                         gameType: record.gameType,
                         summaryDay: summaryDay,
                         bDirty: false
                     };
-                    var updateData = {
-                        $inc: {amount: record.amount, validAmount: record.validAmount}
-                        //$push: {consumptionRecords: record._id}
+
+                    // Handle left over amount from partial XIMA
+                    if (checkRes && checkRes.nonDirtyAmount > 0) {
+                        consumptionAmount = checkRes.nonDirtyAmount;
+                    }
+
+                    let updateData = {
+                        $inc: {amount: consumptionAmount, validAmount: consumptionAmount}
                     };
                     return dbPlayerConsumptionRecord.upsert(query, updateData);
                 }
-                else {
-                    return record;
-                }
             },
-            function (error) {
-                return Q.reject({name: "DBError", message: "Error checking player reward task", error: error});
+            error => {
+                return Q.reject({name: "DBError", message: "Error checking player reward task group", error: error});
             }
         ).then(
-            function (data) {
-                if (record) {
-                    //update player consumption sum
-                    var playerProm = dbconfig.collection_players.findOneAndUpdate(
-                        {_id: record.playerId, platform: record.platformId},
-                        {
-                            $inc: {
-                                consumptionSum: record.validAmount,
-                                dailyConsumptionSum: record.validAmount,
-                                weeklyConsumptionSum: record.validAmount,
-                                pastMonthConsumptionSum: record.validAmount,
-                                consumptionTimes: 1,
-                                creditBalance: -record.validAmount
-                            }
+            () => {
+                // Update player consumption sum
+                return dbconfig.collection_players.findOneAndUpdate(
+                    {_id: record.playerId, platform: record.platformId},
+                    {
+                        $inc: {
+                            consumptionSum: record.validAmount,
+                            dailyConsumptionSum: record.validAmount,
+                            weeklyConsumptionSum: record.validAmount,
+                            pastMonthConsumptionSum: record.validAmount,
+                            consumptionTimes: 1
                         }
-                    ).exec();
-                    return playerProm;
-                }
+                    }
+                ).exec();
             },
-            function (error) {
-                return Q.reject({name: "DBError", message: "Error in creating player consumption", error: error});
-            }
-        ).then(
-            function (data) {
-                //ensure credit balance isn't less than 0
-                if (record) {
-                    var creditProm = dbconfig.collection_players.findOneAndUpdate(
-                        {_id: record.playerId, platform: record.platformId, creditBalance: {$lt: 0}},
-                        {creditBalance: 0}
-                    ).exec();
-                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId);
-
-                    return Q.all([creditProm, levelProm]);
-                }
-            },
-            function (error) {
+            error => {
                 return Q.reject({
                     name: "DBError",
-                    message: "Error in updating player or consumption summary, or in checking reward task",
+                    message: "Error in upserting consumption summary record",
+                    error: error
+                });
+            }
+        ).then(
+            () => {
+                // Check auto player level up
+                return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId);
+            },
+            error => {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Error in updating player consumption sum",
                     error: error
                 });
             }
         ).then(
             data => data,
-            function (error) {
+            error => {
                 return Q.reject({name: "DBError", message: "Error in checking player level", error: error});
             }
         );

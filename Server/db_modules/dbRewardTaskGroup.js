@@ -4,7 +4,7 @@ const dbconfig = require('./../modules/dbproperties');
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 
 let dbRewardTaskGroup = {
-    getPlayerRewardTaskGroup: (platformId, providerId, playerId) => {
+    getPlayerRewardTaskGroup: (platformId, providerId, playerId, createTime) => {
         return dbconfig.collection_gameProviderGroup.findOne({
             platform: platformId,
             providers: providerId
@@ -16,7 +16,8 @@ let dbRewardTaskGroup = {
                         platformId: platformId,
                         playerId: playerId,
                         providerGroup: gameProviderGroup._id,
-                        status: {$in: [constRewardTaskStatus.STARTED]}
+                        status: {$in: [constRewardTaskStatus.STARTED]},
+                        createTime: {$lt: createTime}
                     }).lean();
                 }
             }
