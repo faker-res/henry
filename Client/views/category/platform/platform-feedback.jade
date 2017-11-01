@@ -175,7 +175,7 @@
                             td(colspan=2)
                                 .text-center
                                     button.btn.btn-danger.margin-right-5(ng-click='vm.addFeedback.content="";vm.addFeedback.result="";vm.addFeedback.topic="";') {{'Reset' | translate}}
-                                    button.btn.btn-success(ng-disabled="!vm.addFeedback.result || !vm.addFeedback.content", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
+                                    button.btn.btn-success(ng-disabled="!vm.addFeedback.result || !vm.addFeedback.topic || !vm.addFeedback.content", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
 .row(ng-show='vm.selectedPlatform')
     .col-md-12
         .pull-left
