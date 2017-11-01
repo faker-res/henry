@@ -243,6 +243,20 @@ angular.module('myApp.directives', [])
       };
   })
 
+    .directive('staticBsp', function($timeout){
+        return  {
+            restrict : 'A',
+            link: function(scope, element, attrs){
+                    if (attrs.ngModel){
+                        scope.$watch(attrs.ngModel,function(){
+                            $(element).selectpicker('destroy');
+                            $(element).selectpicker();
+                        },true)
+                    }
+                }
+            }
+    })
+
   .directive('rddl', function($timeout){
       return  {
           restrict : 'A',

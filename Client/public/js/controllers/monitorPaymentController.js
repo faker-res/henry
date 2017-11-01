@@ -11,16 +11,19 @@ define(['js/app'], function (myApp) {
         // console.log('mVM', monitorVM) // it work
 
         // declare constant
-        vm.proposalStatusList = {
+
+        vm.proposalStatusList = { // removed APPROVED and REJECTED
             PREPENDING: "PrePending",
             PENDING: "Pending",
             PROCESSING: "Processing",
-            SUCCESS: "Success",
-            FAIL: "Fail",
+            SUCCESS: "Approved",
+            FAIL: "Rejected",
             CANCEL: "Cancel",
             EXPIRED: "Expired",
             UNDETERMINED: "Undetermined"
         };
+
+
         vm.topUpTypeList = {
             MANUAL: 1,
             ONLINE: 2,
@@ -139,6 +142,8 @@ define(['js/app'], function (myApp) {
                 data => {
                     vm.merchants = data[0];
                     vm.merchantTypes = data[1];
+                    vm.merchantsNBcard();
+                    vm.merchantCloneList = angular.copy(vm.merchants);
                     vm.getMerchantTypeName();
                     vm.merchantGroups = getMerchantGroups(vm.merchants, vm.merchantTypes);
                     vm.merchantNumbers = getMerchantNumbers(vm.merchants);
@@ -156,6 +161,22 @@ define(['js/app'], function (myApp) {
             })
 
         };
+        vm.merchantsNBcard = function(){
+            Object.keys(vm.merchants).forEach(item=>{
+                let merchantTypeId = vm.merchants[item].merchantTypeId;
+                if(merchantTypeId=="9999"){
+                    vm.merchants[item].merchantTypeName = $translate('BankCardNo');
+                }else if(merchantTypeId=="9998"){
+                    vm.merchants[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
+                }else if(merchantTypeId=="9997"){
+                    vm.merchants[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
+                }else if(vm.merchantTypes[merchantTypeId]){
+                    vm.merchants[item].merchantTypeName = merchantTypeId ? vm.merchantTypes[merchantTypeId].name :'';
+                }else{
+                    vm.merchants[item].merchantTypeName = '';
+                }
+            });
+        }
         // function for new topup report
         vm.getProvinceName = function(provinceId){
           socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
@@ -346,6 +367,49 @@ define(['js/app'], function (myApp) {
                 });
             });
         };
+        vm.filterMerchant = function(){
+            vm.merchantCloneList = angular.copy(vm.merchants);
+            let agent = vm.paymentMonitorQuery.userAgent;
+            let thirdParty = vm.paymentMonitorQuery.merchantGroup;
+            let mainTopupType = vm.paymentMonitorQuery.mainTopupType;
+            let topupType = vm.paymentMonitorQuery.topupType;
+            let bankTypeId = vm.paymentMonitorQuery.bankTypeId;
+            if(agent){
+                vm.merchantCloneList = vm.merchantCloneList.filter(item=>{
+                    return agent == item.targetDevices;
+                    //return agent.includes(item)
+                });
+            }
+            // online topup
+            if(thirdParty){
+                vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return thirdParty.includes(item.merchantNo)})
+            }
+            if(topupType){
+                // display online topup type
+                vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.topupType == topupType })
+            }
+            //manual topup
+            if(mainTopupType){
+                if(mainTopupType=='1'||mainTopupType==1){
+                    // 9999 = 'bankcard', if manual topup ,display bankcard only
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId == '9999' })
+                }
+                else if(mainTopupType=='3'||mainTopupType==3){
+                    // 9999 = 'bankcard', if manual topup ,display bankcard only
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId == '9997' })
+                }
+                else if(mainTopupType=='4'||mainTopupType==4){
+                    // 9999 = 'bankcard', if manual topup ,display bankcard only
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId == '9998' })
+                }else{
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId !='9997' && item.merchantTypeId !='9998' && item.merchantTypeId !='9999'})
+                }
+            }
+            if(bankTypeId && (mainTopupType=='1' || mainTopupType==1)){
+                // filter selected banktype only
+                vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.bankTypeId == bankTypeId })
+            }
+        }
         vm.getPaymentMonitorRecord = function (isNewSearch) {
             if (isNewSearch) {
                 $('#autoRefreshProposalFlag').attr('checked', false);
@@ -358,13 +422,8 @@ define(['js/app'], function (myApp) {
                 vm.paymentMonitorQuery.merchantGroup = '';
                 vm.paymentMonitorQuery.merchantNo = '';
             }
-            var staArr = vm.paymentMonitorQuery.status ? [vm.paymentMonitorQuery.status] : [];
-            if (vm.paymentMonitorQuery.status == "Success") {
-                staArr.push("Approved");
-            }
-            if (vm.paymentMonitorQuery.status == "Fail") {
-                staArr.push("Rejected");
-            }
+            var staArr = vm.paymentMonitorQuery.status ? vm.paymentMonitorQuery.status : [];
+
             vm.paymentMonitorQuery.index = isNewSearch ? 0 : (vm.paymentMonitorQuery.index || 0);
             var sendObj = {
                 playerName: vm.paymentMonitorQuery.playerName,

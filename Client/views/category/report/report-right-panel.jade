@@ -19,21 +19,19 @@
                     input.form-control(type='text', ng-model='vm.queryTopup.proposalID')
                 div
                     label {{'topupType' | translate}}
-                    select.form-control(ng-model='vm.queryTopup.mainTopupType', required)
+                    select.form-control(ng-change='vm.filterMerchant()',ng-model='vm.queryTopup.mainTopupType', required)
                         option(value='') {{"any" | translate}}
                         option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{"TOPUP"+i | translate}}
                 div(style='max-width:125px')
                     label {{'DEVICE' | translate}}
-                    select.form-control(ng-model='vm.queryTopup.userAgent', required)
-                        option(value='') {{"any" | translate}}
+                    select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.queryTopup.userAgent', required, multiple, static-bsp, data-actions-box='true')
                         option(value='1') WEB
                         option(value='2') APP
                         option(value='3') H5
 
                 div(style='max-width:180px')
                     label {{'Online Topup Type' | translate}}
-                    select.form-control(ng-model='vm.queryTopup.topupType')
-                        option(value='') {{'any' | translate}}
+                    select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.topupType', multiple, static-bsp, data-actions-box='true')
                         option(value='1') 网银支付(NetPay)
                         option(value='2') 微信扫码(WechatQR)
                         option(value='3') 支付宝扫码(AlipayQR)
@@ -45,12 +43,11 @@
                         option(value='9') 京东钱包扫码支付(JdPayQR)
                 div(style='max-width:125px')
                     label {{'3rd Party Platform' | translate}}
-                    select.form-control(ng-model='vm.queryTopup.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroupObj')
+                    select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroupObj', multiple, bsp, data-actions-box='true')
                         option(value='') {{'any' | translate}}
                 div(style='max-width:125px')
                     label {{'DEPOSIT_METHOD' | translate}}
-                    select.form-control(ng-model='vm.queryTopup.depositMethod')
-                        option(value='') {{'any' | translate}}
+                    select.form-control.merchantNoList(ng-model='vm.queryTopup.depositMethod', multiple, static-bsp, data-actions-box='true')
                         option(value='1') 网银转账(OnlineTransfer)
                         option(value='2') 自动取款机(ATM)
                         option(value='3') 银行柜台(Counter)
@@ -60,18 +57,16 @@
 
                 div
                     label 收款银行类别
-                    select.form-control(ng-model='vm.queryTopup.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList')
-                        option(value='') {{'any' | translate}}
+                    select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList', multiple, bsp, data-actions-box='true')
                 div(style='max-width:125px')
                     label {{'Business Acc/ Bank Acc' | translate}}
-                    select.form-control.merchantNoList( ng-model='vm.queryTopup.merchantNo', ng-options='a.merchantNo as a.name group by a.merchantTypeName for a in vm.merchantNoList' , multiple, bsp, data-actions-box='true')
+                    select.form-control.merchantNoList( ng-model='vm.queryTopup.merchantNo', ng-options='a.merchantNo as a.name group by a.merchantTypeName for a in vm.merchantCloneList' , multiple, bsp, data-actions-box='true')
                         //option(value='') {{'any' | translate}}
                         //option(ng-repeat='(i,v) in vm.merchantNoList' ,ng-init='$last && vm.initMultiSelect()', value='{{v.merchantNo}}') {{v.name}}
                         //option()
                 div
                     label {{'STATUS' | translate}}
-                    select.form-control(ng-model='vm.queryTopup.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList')
-                        option(value='') {{'any' | translate}}
+                    select.form-control.merchantNoList(ng-model='vm.queryTopup.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList', multiple, bsp, data-actions-box='true')
                 div
                     label.control-label {{'Start date' | translate}}
                     .startTime

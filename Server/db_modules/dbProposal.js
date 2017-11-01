@@ -2367,15 +2367,16 @@ var proposal = {
         if (data.proposalNo) {
             query['data.proposalId'] = data.proposalNo;
         }
-        if (data.bankTypeId){
-            query['data.bankTypeId'] = data.bankTypeId;
+        if (data.bankTypeId && data.bankTypeId.length > 0){
+            query['data.bankTypeId'] = {$in: convertStringNumber(data.bankTypeId)};
         }
-        if (data.userAgent){
-            query['data.userAgent'] = data.userAgent;
+        if (data.userAgent && data.userAgent.length > 0){
+            query['data.userAgent'] = {$in: convertStringNumber(data.userAgent)};
         }
         if (data.status && data.status.length > 0) {
-            query['status'] = {$in: data.status};
+            query['status'] = {$in: convertStringNumber(data.status)};
         }
+        console.log(data);
         let mainTopUpType;
         switch (String(data.mainTopupType)) {
             case constPlayerTopUpType.ONLINE.toString():
@@ -2404,13 +2405,12 @@ var proposal = {
                     ]
                 };
         }
-        data.topupType = Number(data.topupType)
-        if (data.topupType) {
-            query['data.topupType'] = data.topupType;
+        if (data.topupType && data.topupType.length > 0) {
+            query['data.topupType'] = { $in: convertStringNumber(data.topupType)}
         }
 
-        if (data.depositMethod) {
-            query['data.depositMethod'] = data.depositMethod;
+        if (data.depositMethod && data.depositMethod.length > 0) {
+            query['data.depositMethod'] = {'$in': convertStringNumber(data.depositMethod)};
         }
 
         let proposalCount, proposals;
@@ -2855,6 +2855,18 @@ function asyncLoop(count, func, callback) {
 function getMinutesBetweenDates(startDate, endDate) {
     var diff = endDate.getTime() - startDate.getTime();
     return Math.floor(diff / 60000);
+}
+
+function convertStringNumber(Arr){
+    let Arrs = JSON.parse(JSON.stringify(Arr));
+    let result = []
+    Arrs.forEach(item=>{
+        result.push(String(item));
+    })
+    Arrs.forEach(item=>{
+        result.push(Number(item));
+    })
+    return result;
 }
 
 var proto = proposalFunc.prototype;

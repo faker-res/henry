@@ -25,8 +25,8 @@ define(['js/app'], function (myApp) {
             PREPENDING: "PrePending",
             PENDING: "Pending",
             PROCESSING: "Processing",
-            SUCCESS: "Success",
-            FAIL: "Fail",
+            SUCCESS: "Approved",
+            FAIL: "Rejected",
             CANCEL: "Cancel",
             EXPIRED: "Expired",
             UNDETERMINED: "Undetermined"
@@ -35,8 +35,7 @@ define(['js/app'], function (myApp) {
             MANUAL: 1,
             ONLINE: 2,
             ALIPAY: 3,
-            WECHAT: 4,
-            QUICKPAY: 5
+            WECHAT: 4
         };
         vm.feedbackResultList = {
             NORMAL: "Normal",
@@ -265,6 +264,50 @@ define(['js/app'], function (myApp) {
             //   $('.merchantNoList').selectpicker('refresh');
             // });
         }
+        vm.filterMerchant = function(){
+            vm.merchantCloneList = angular.copy(vm.merchantNoList);
+            let agent = vm.queryTopup.userAgent;
+            let thirdParty = vm.queryTopup.merchantGroup;
+            let mainTopupType = vm.queryTopup.mainTopupType;
+            let topupType = vm.queryTopup.topupType;
+            let bankTypeId = vm.queryTopup.bankTypeId;
+            if(agent){
+                vm.merchantCloneList = vm.merchantCloneList.filter(item=>{
+                    let targetDevices = String(item.targetDevices)
+                    return agent.indexOf(targetDevices) != -1;
+                });
+            }
+            // online topup
+            if(thirdParty){
+                vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return thirdParty.includes(item.merchantNo)})
+            }
+            if(topupType){
+                // display online topup type
+                vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.topupType == topupType })
+            }
+            //manual topup
+            if(mainTopupType){
+                if(mainTopupType=='1'||mainTopupType==1){
+                    // 9999 = 'bankcard', if manual topup ,display bankcard only
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId == '9999' })
+                }
+                else if(mainTopupType=='3'||mainTopupType==3){
+                    // 9999 = 'bankcard', if manual topup ,display bankcard only
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId == '9997' })
+                }
+                else if(mainTopupType=='4'||mainTopupType==4){
+                    // 9999 = 'bankcard', if manual topup ,display bankcard only
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId == '9998' })
+                }else{
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId !='9997' && item.merchantTypeId !='9998' && item.merchantTypeId !='9999'})
+                }
+            }
+            if(bankTypeId && (mainTopupType=='1' || mainTopupType==1)){
+                // filter selected banktype only
+                vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.bankTypeId == bankTypeId })
+            }
+        }
+
             // display  proposal detail
             vm.showProposalDetailField = function (obj, fieldName, val) {
                 if (!obj) return '';
@@ -690,15 +733,20 @@ define(['js/app'], function (myApp) {
                            let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
                            if(merchantTypeId=="9999"){
                              vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
+                           }else if(merchantTypeId=="9998"){
+                             vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
+                           }else if(merchantTypeId=="9997"){
+                               vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
                            }else if(vm.merchantTypes[merchantTypeId]){
                               vm.merchantNoList[item].merchantTypeName = merchantTypeId ? vm.merchantTypes[merchantTypeId].name :'';
                            }else{
                              vm.merchantNoList[item].merchantTypeName = '';
                            }
-                        })
+                        });
+                        vm.cloneList = {};
+                        vm.merchantCloneList = angular.copy(vm.merchantNoList);
                         vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
                     }
-
 
                     $scope.safeApply();
                 }, function (data) {
@@ -706,8 +754,6 @@ define(['js/app'], function (myApp) {
                 });
 
                 vm.initAccs();
-
-
 
                 utilService.actionAfterLoaded("#topupTablePage", function () {
                   // $timeout(function(){
@@ -1654,13 +1700,7 @@ define(['js/app'], function (myApp) {
             vm.queryTopup.platformId = vm.curPlatformId;
             $('#topupTableSpin').show();
 
-            var staArr = vm.queryTopup.status ? [vm.queryTopup.status] : [];
-            if (vm.queryTopup.status == "Success") {
-                staArr.push("Approved");
-            }
-            if (vm.queryTopup.status == "Fail") {
-                staArr.push("Rejected");
-            }
+            var staArr = vm.queryTopup.status ? vm.queryTopup.status : [];
 
             var sendObj = {
                 playerName: vm.queryTopup.playerName,

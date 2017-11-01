@@ -95,7 +95,7 @@ var dbPlayerTopUpRecord = {
             }
         }
         if (query.status && query.status.length > 0) {
-            queryObj.status = {$in: query.status};
+            queryObj.status = {$in: convertStringNumber(query.status)};
         }
         return Q.resolve().then(
             () => {
@@ -120,13 +120,11 @@ var dbPlayerTopUpRecord = {
                             constProposalType.PLAYER_QUICKPAY_TOP_UP
                         ]
                     };
-                    if(query.topupType){
-                        query.topupType = Number(query.topupType);
-                    }
                 }
 
-                if (query.depositMethod){
-                    queryObj['data.depositMethod'] = {'$in': [String(query.depositMethod), Number(query.depositMethod)]};
+                if (query.depositMethod && query.depositMethod.length > 0){
+                    // queryObj['data.depositMethod'] = {'$in': [String(query.depositMethod), Number(query.depositMethod)]};
+                    queryObj['data.depositMethod'] = {'$in': convertStringNumber(query.depositMethod)};
                 }
 
                 if (query.merchantNo && query.merchantNo.length > 0 && !query.merchantGroup) {
@@ -135,7 +133,6 @@ var dbPlayerTopUpRecord = {
                       {'data.bankCardNo': {$in: query.merchantNo}},
                       {'data.accountNo': {$in: query.merchantNo}}
                     ]
-
                 }
                 if (!query.merchantNo && query.merchantGroup) {
                     queryObj['data.merchantNo'] = {$in: query.merchantGroup};
@@ -158,14 +155,18 @@ var dbPlayerTopUpRecord = {
                 if (query.proposalNo) {
                     queryObj['proposalId'] = query.proposalNo;
                 }
-                if (query.topupType) {
-                    queryObj['data.topupType'] = {$in: [String(query.topupType), Number(query.topupType)]}
+                if (query.topupType && query.topupType.length > 0) {
+                    console.log(query.topupType);
+                    // queryObj['data.topupType'] = {$in: [String(query.topupType), Number(query.topupType)]}
+                    queryObj['data.topupType'] = { $in: convertStringNumber(query.topupType)}
                 }
-                if(query.bankTypeId){
-                    queryObj['data.bankTypeId'] = query.bankTypeId;
+                if(query.bankTypeId && query.bankTypeId.length > 0){
+                    // queryObj['data.bankTypeId'] = query.bankTypeId;
+                    queryObj['data.bankTypeId'] = {$in: convertStringNumber(query.bankTypeId)};
                 }
-                if(query.userAgent){
-                    queryObj['data.userAgent'] = {'$in':[String(query.userAgent) ,Number(query.userAgent)]};
+                if(query.userAgent && query.userAgent.length > 0) {
+                    // queryObj['data.userAgent'] = {'$in':[String(query.userAgent) ,Number(query.userAgent)]};
+                    queryObj['data.userAgent'] = {$in: convertStringNumber(query.userAgent)};
                 }
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
             }
@@ -2467,13 +2468,20 @@ function retrieveAgent(agentInfo){
         } else {
             registrationInterface = 1;
         }
-        console.log(registrationInterface);
-
-
     }
     return registrationInterface;
 }
-
+function convertStringNumber(Arr){
+    let Arrs = JSON.parse(JSON.stringify(Arr));
+    let result = []
+    Arrs.forEach(item=>{
+        result.push(String(item));
+    })
+    Arrs.forEach(item=>{
+        result.push(Number(item));
+    })
+    return result;
+}
 
 // end of count user /merchant
 var proto = dbPlayerTopUpRecordFunc.prototype;
