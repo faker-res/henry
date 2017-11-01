@@ -5353,6 +5353,53 @@ let dbPlayerInfo = {
     },
 
     /**
+     * Check if player can level up manually
+     *
+     * @param {String|ObjectId} playerObjId
+     * @returns {Promise.<*>}
+     */
+    manualPlayerLevelUp: function (playerObjId, platformObjId) {
+
+        if (!platformObjId) {
+            throw Error("platformObjId was not provided!");
+        }
+        else {
+            return dbconfig.collection_platform.findOne({"_id": platformObjId}).then(
+                (platformData) => {
+                    if (platformData.manualPlayerLevelUp) {
+                        const playerProm = dbconfig.collection_players.findOne({_id: playerObjId}).populate({
+                            path: "playerLevel",
+                            model: dbconfig.collection_playerLevel
+                        }).lean().exec();
+
+                        const levelsProm = dbconfig.collection_playerLevel.find({
+                            platform: platformObjId
+                        }).sort({value: 1}).lean().exec();
+
+                        return Q.all([playerProm, levelsProm]).spread(
+                            function (player, playerLevels) {
+                                if (!player){
+                                    return Q.reject({name: "DataError", message: "Cannot find player"});
+                                }
+                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                            },
+                            function () {
+                                return Q.reject({name: "DataError", message: "Cannot find player"});
+                            }
+
+                        );
+                    }
+                    else {
+                        return Q.resolve(true);
+                    }
+                }, (error) => {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            );
+        }
+    },
+
+    /**
      * Check if player can level down.
      *
      * @param {PlayerInfo} player
@@ -5565,7 +5612,8 @@ let dbPlayerInfo = {
                                             playerObjId: playerObj._id,
                                             playerName: playerObj.name,
                                             playerId: playerObj.playerId,
-                                            platformObjId: playerObj.platform
+                                            platformObjId: playerObj.platform,
+                                            levelOldName: playerObj.playerLevel.name,
                                         };
                                         return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
                                     }

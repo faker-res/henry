@@ -58,6 +58,11 @@
                                 td
                                     text(ng-show='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.autoCheckPlayerLevelUp', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'PLAYER_SELF_LEVELUP' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit')
+                                    input(type='checkbox', ng-model='vm.manualPlayerLevelUp', ng-disabled='!vm.configTableEdit')
                     br
                     br
                     div(ng-if='vm.allGameTypes' style="margin-bottom:5px")

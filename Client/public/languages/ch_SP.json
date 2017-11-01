@@ -1896,6 +1896,7 @@
   "Apply without charge": "免手续费次数",
   "Percentage Charge %": "提款手续费 %",
   "Auto Check Player Level Up": "玩家自动升级",
+  "PLAYER_SELF_LEVELUP": "玩家前端自助判断升级",
   "Bonus Basic": "提款设置",
   "PlayerConsumptionIncentive": "救援金",
   "REWARD_NEED_SETTLEMENT": "结算时自动给",

@@ -1290,6 +1290,27 @@
     </div>
 </div>
 
+<h3>MANUAL PLAYER LEVEL UP (玩家前端自助判断升级)</h3>
+
+<div class="test-container">
+    <div>
+        <label name="playerObjId">Player ObjectId
+            <input id="playerObjId" name="playerObjId" type=text>
+        </label>
+    </div>
+    <div>
+        <label >Platform ObjectId
+            <input id="platformObjId" type=text name="platformObjId">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="manualPlayerLevelUp" data-api-name="manualPlayerLevelUp">Manual Level Up</button>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlayerAPITest, ClientConnectionAPITest) {

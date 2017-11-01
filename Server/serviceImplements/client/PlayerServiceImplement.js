@@ -968,6 +968,12 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getUnreadMail, [conn.playerId], isValidData, false, false, true);
     };
 
+
+    this.manualPlayerLevelUp.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data.playerObjId && data.platformObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [data.playerObjId, data.platformObjId], isValidData, false, false, true);
+    };
+
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;

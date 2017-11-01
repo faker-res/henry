@@ -12990,10 +12990,12 @@ define(['js/app'], function (myApp) {
             vm.getAllPlayerLevels = function () {
                 vm.playerIDArr = [];
                 vm.autoCheckPlayerLevelUp = null;
+                vm.manualPlayerLevelUp = null;
                 return $scope.$socketPromise('getPlayerLevelByPlatformId', {platformId: vm.selectedPlatform.id})
                     .then(function (data) {
                         vm.allPlayerLvl = data.data;
                         vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
+                        vm.manualPlayerLevelUp = vm.selectedPlatform.data.manualPlayerLevelUp;
                         vm.allPlayerLvlReordered = false;
                         vm.sortPlayerLevels();
                         console.log("vm.allPlayerLvl", data.data);
@@ -13609,7 +13611,10 @@ define(['js/app'], function (myApp) {
                 switch (choice) {
                     case 'player':
                         console.log('vm.playerLvlData', vm.playerLvlData);
-                        updatePlatformBasic({autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp});
+                        updatePlatformBasic({
+                            autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
+                            manualPlayerLevelUp: vm.manualPlayerLevelUp
+                        });
                         if (vm.allPlayerLvlReordered) {
                             // Number the levels correctly.  (This should only really be needed if something went wrong on a previous attempt.)
                             vm.ensurePlayerLevelOrder();
@@ -13764,6 +13769,7 @@ define(['js/app'], function (myApp) {
                         allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
+                        manualPlayerLevelUp: srcData.manualPlayerLevelUp,
                         requireLogInCaptcha: srcData.requireLogInCaptcha,
                         requireCaptchaInSMS: srcData.requireCaptchaInSMS,
                         onlyNewCanLogin: srcData.onlyNewCanLogin,
