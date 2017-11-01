@@ -3,6 +3,7 @@ var Q = require("q");
 var constRewardPriority = require('./../const/constRewardPriority');
 var constRewardType = require('./../const/constRewardType');
 var constProposalType = require('./../const/constProposalType');
+const constGameStatus = require('./../const/constGameStatus');
 
 let cpmsAPI = require("../externalAPI/cpmsAPI");
 let SettlementBalancer = require('../settlementModule/settlementBalancer');
@@ -277,6 +278,13 @@ var dbRewardEvent = {
                             let stream = dbconfig.collection_players.find(
                                 {
                                     _id: {$in: playerObjIds}
+                                },
+                                {
+                                    _id: 1,
+                                    name: 1,
+                                    platform: 1,
+                                    validCredit: 1,
+                                    lockedCredit: 1
                                 }
                             ).lean().cursor({batchSize: 200});
 
@@ -287,7 +295,7 @@ var dbRewardEvent = {
                                         balancer.processStream(
                                             {
                                                 stream: stream,
-                                                batchSize: 10,
+                                                batchSize: 2,
                                                 makeRequest: function (playerObjs, request) {
                                                     request("player", "savePlayerCredit", {
                                                         playerObjId: playerObjs.map(player => {
@@ -346,24 +354,26 @@ var dbRewardEvent = {
                                 if (platformData && platformData.gameProviders && platformData.gameProviders.length > 0) {
                                     let proms = [];
                                     for (let i = 0; i < platformData.gameProviders.length; i++) {
-                                        proms.push(
-                                            cpmsAPI.player_queryCredit(
-                                                {
-                                                    username: playerData.name,
-                                                    platformId: platformData.platformId,
-                                                    providerId: platformData.gameProviders[i].providerId,
-                                                }
-                                            ).then(
-                                                data => data,
-                                                //treat error as 0 credit for now, todo::refactor code here with retries
-                                                error => {
-                                                    // System log when querying game credit timeout / error
-                                                    console.log("ERROR: player_queryCredit failed for player", playerData.name, error);
+                                        if(platformData.gameProviders[i].status == constGameStatus.ENABLE){
+                                            proms.push(
+                                                cpmsAPI.player_queryCredit(
+                                                    {
+                                                        username: playerData.name,
+                                                        platformId: platformData.platformId,
+                                                        providerId: platformData.gameProviders[i].providerId,
+                                                    }
+                                                ).then(
+                                                    data => data,
+                                                    //treat error as 0 credit for now, todo::refactor code here with retries
+                                                    error => {
+                                                        // System log when querying game credit timeout / error
+                                                        console.log("ERROR: player_queryCredit failed for player", playerData.name, error);
 
-                                                    return Q.reject(error);
-                                                }
+                                                        return Q.reject(error);
+                                                    }
+                                                )
                                             )
-                                        )
+                                        }
                                     }
                                     return Q.all(proms);
                                 }

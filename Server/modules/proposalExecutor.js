@@ -907,7 +907,6 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
-                        console.log('debugging topup promo, playerTopUp resolved');
 
                         return dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
                     },
