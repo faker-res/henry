@@ -1303,15 +1303,15 @@ function playerCreditChange(playerObjId, platformObjId, incValidCredit, incLocke
  * @param lastPlayedProviderObjId
  * @returns {Promise.<*[]>}
  */
-function playerCreditChangeWithRewardTaskGroup(playerObjId, platformObjId, rewardTaskGroupObjId, validCredit, rewardCredit, targetProviderId, lastPlayedProviderObjId) {
+function playerCreditChangeWithRewardTaskGroup(playerObjId, platformObjId, rewardTaskGroupObjId, validCredit, rewardCredit, targetProviderId) {
     let rewardTaskGroupProm = Promise.resolve(true);
 
     let updatePlayerObj = {
         $inc: {validCredit: -validCredit}
     };
 
-    if (lastPlayedProviderObjId) {
-        updatePlayerObj.lastPlayedProvider = lastPlayedProviderObjId;
+    if (targetProviderId) {
+        updatePlayerObj.lastPlayedProvider = targetProviderId;
     }
 
     let updatePlayerProm = dbOps.findOneAndUpdateWithRetry(

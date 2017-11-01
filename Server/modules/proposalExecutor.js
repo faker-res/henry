@@ -2542,7 +2542,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                     },
                     error => deferred.reject(error)
                 ).then(
-                    data => deferred.resolve(resolveValue || rewardTask),
+                    data => deferred.resolve(resolveValue || data),
                     error => deferred.reject(error)
                 )
             } else {

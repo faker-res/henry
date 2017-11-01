@@ -128,7 +128,7 @@ var dbRewardTask = {
                         _id: providerGroup._id
                     }, {
                         $inc: {
-                            rewardAmt: rewardData.bonusAmount,
+                            rewardAmt: rewardData.initAmount,
                             targetConsumption: rewardData.requiredUnlockAmount,
                         }
                     })
