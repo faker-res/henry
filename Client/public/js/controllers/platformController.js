@@ -4630,7 +4630,24 @@ define(['js/app'], function (myApp) {
                         $('body').off('click', partnerIpHistoryHandler);
                     }
                 });
-            }
+            };
+
+            vm.createPlayerFromIntention = function (data) {
+                vm.prepareCreatePlayer();
+                $('#modalCreatePlayer').modal();
+                if (!data || !vm.newPlayer) return;
+                data.name ? vm.newPlayer.name = data.name : null;
+                data.email ? vm.newPlayer.email = data.email : null;
+                data.realName ? vm.newPlayer.realName = data.realName : null;
+                data.mobile ? vm.newPlayer.phoneNumber = data.mobile : null;
+                data.nickName ? vm.newPlayer.nickName = data.nickName : null;
+                if (data.referralName) {
+                    vm.newPlayer.referralName = data.referralName;
+                    vm.getReferralPlayer(vm.newPlayer, "change");
+                }
+
+                $scope.safeApply();
+            };
 
             vm.showIPHistory = function () {
                 socketService.$socket($scope.AppSocket, 'getIpHistory', {
@@ -16215,7 +16232,6 @@ define(['js/app'], function (myApp) {
                 // add index to data
                 for (let x = 0; x < vm.allProposalType.length; x++) {
                     let groupName = utilService.getProposalGroupValue(vm.allProposalType[x],false);
-                    console.log(groupName);
                     switch (vm.allProposalType[x].name) {
                         case "AddPlayerRewardTask":
                             vm.allProposalType[x].seq = 3.01;
