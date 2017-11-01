@@ -1018,7 +1018,8 @@ let dbPlayerCreditTransfer = {
         let notEnoughCredit = false;
         let transferId = new Date().getTime();
 
-        let player, gameProviderGroup, rewardGroupObj, updateObj;
+        let player, gameProviderGroup, rewardGroupObj;
+        let updateObj = {};
 
         let playerProm = dbConfig.collection_players.findOne({_id: playerObjId}).populate(
             {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
@@ -1061,7 +1062,7 @@ let dbPlayerCreditTransfer = {
                         )
                     }
 
-                    return Promise.all([rewardTaskGroupProm, gameCreditProm]);
+                    return Promise.all([gameCreditProm, rewardTaskGroupProm]);
                 } else {
                     // Group not exist, may be due to provider are not added in a group yet
                     return Q.reject({name: "DataError", message: "Provider are not added in a group yet."});
@@ -1069,9 +1070,9 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
-                if (res && res[0] && res[1]) {
-                    rewardGroupObj = res[0];
-                    providerPlayerObj = {gameCredit: res[1].credit ? parseFloat(res[1].credit) : 0};
+                if (res && res[0]) {
+                    providerPlayerObj = {gameCredit: res[0].credit ? parseFloat(res[0].credit) : 0};
+                    rewardGroupObj = res[1];
 
                     // Process transfer amount
                     amount = amount > 0 ? Math.floor(amount) : Math.floor(providerPlayerObj.gameCredit);
@@ -1187,6 +1188,8 @@ let dbPlayerCreditTransfer = {
                         }, {
                             new: true
                         })
+                    } else {
+                        return true;
                     }
                 }
             },
