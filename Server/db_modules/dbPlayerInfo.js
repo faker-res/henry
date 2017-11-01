@@ -2856,7 +2856,7 @@ let dbPlayerInfo = {
                     {
                         $group: {
                             _id: "$type",
-                            totalAmount: {$sum: "$rewardAmount"}
+                            totalAmount: {$sum: "$data.rewardAmount"}
                         }
                     }
                 );
