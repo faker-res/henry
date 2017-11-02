@@ -2560,5 +2560,7 @@
   "REGISTERED_TIME": "开户时间",
   "REGISTERED_IP": "开户IP",
   "VERIFICATION_CODE": "验证码",
-  "CUSTOMER_SERVICE": "客服"
+  "CUSTOMER_SERVICE": "客服",
+  "MANUAL": "手工",
+  "Attempt": "尝试"
 }

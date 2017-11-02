@@ -104,8 +104,9 @@ define(['js/app'], function (myApp) {
 
             vm.newPlayerListStatus = {
                 Success: $translate("Success"),
-                Fail: $translate("Fail"),
-                Pending: $translate("Pending")
+                Fail: $translate("Attempt"),
+                Pending: $translate("Pending"),
+                Manual: $translate("Manual")
             };
 
             vm.soundChoice = {
@@ -121,6 +122,22 @@ define(['js/app'], function (myApp) {
                 // "tone10": "10.wav",
                 // "tone11": "11.wav",
                 // "tone12": "12.wav"
+            };
+
+            vm.constProposalStatus = {
+                PREPENDING: "PrePending",
+                PENDING: "Pending",
+                AUTOAUDIT: "AutoAudit",
+                PROCESSING: "Processing",
+                APPROVED: "Approved",
+                REJECTED: "Rejected",
+                SUCCESS: "Success",
+                FAIL: "Fail",
+                CANCEL: "Cancel",
+                EXPIRED: "Expired",
+                UNDETERMINED: "Undetermined",
+                RECOVER: "Recover",
+                MANUAL:"Manual"
             };
 
             // Basic library functions
@@ -2436,9 +2453,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getNewPlayerListByFilter = function (newSearch) {
-
-
-                var selectedStatus = vm.queryPara.newPlayerList ? [vm.queryPara.newPlayerList.status] : ["Success", "Fail", "Pending"];
+                var selectedStatus = vm.queryPara.newPlayerList ? [vm.queryPara.newPlayerList.status] : ["Success", "Fail", "Pending", "Manual"];
                 var sendData = {
                     adminId: authService.adminId,
                     platformId: vm.selectedPlatform.id,
@@ -2459,7 +2474,7 @@ define(['js/app'], function (myApp) {
                 if (selectedStatus && selectedStatus != "") {
                     sendData.status = selectedStatus
                 } else {
-                    sendData.status = ["Success", "Fail", "Pending"];
+                    sendData.status = ["Success", "Fail", "Pending", "Manual"];
                 }
 
                 vm.newPlayerRecords.loading = true;
@@ -2473,28 +2488,37 @@ define(['js/app'], function (myApp) {
 
             vm.prepareNewPlayerListRecords = function (queryData, newSearch) {
                 vm.newPlayerListRecords = [];
-                socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', queryData, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPlayerProposalsForAdminId', queryData, function (data) {
                     vm.newPlayerListRecords = data.data.data;
                     vm.newPlayerRecords.totalCount = data.data.size;
-                    var summary = data.data.summary || {};
                     vm.newPlayerRecords.loading = false;
-                    console.log('consumption record', data);
+                    console.log('new player list record', data);
 
                     var tableData = vm.newPlayerListRecords.map(
                         record => {
-                            record.createTime = vm.dateReformat(record.createTime);
-                            record.statusName = $translate(record.status);
+                            record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
+                            //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                            if(record.status){
+                                if(record.status == "Fail"){
+                                    record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                                else{
+                                    record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                            }
                             record.playerId = record.data.playerId ? record.data.playerId : "";
                             record.name = record.data.name ? record.data.name : "";
                             record.realName = record.data.realName ? record.data.realName : "";
                             record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
                             record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
-                            record.depositCount = record.depositCount ? record.depositCount : 0;
+                            record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
                             record.smsCode = record.data.smsCode ? record.data.smsCode : "";
                             record.remarks = record.data.remarks ? record.data.remarks : "";
-                            record.device = record.device ? merchantTargetDeviceJson(record.device) : "";
+                            record.device = record.data.device ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
                             record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
                             record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
+                            record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
+                            record.proposalId = record.data.proposalId ? record.data.proposalId : "";
                             return record
                         }
                     );
@@ -2518,10 +2542,10 @@ define(['js/app'], function (myApp) {
                             {title: $translate('STATUS'), data: "statusName"},
                             //{title: $translate('PLAYERID'), data: "playerId"},
                             {title: $translate('SENT TIME'), data: "createTime"},
-                            {title: $translate('REGISTERED_TIME'), data: "createTime"},
+                            {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
                             {title: $translate('REGISTERED_IP'), data: "lastLoginIp"},
                             {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
-                            {title: $translate('DEPOSIT_COUNT'), data: "depositCount"},
+                            {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
                             {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
                             {title: $translate('REMARKS'), data: "remarks"},
                             {title: $translate('DEVICE'), data: "device"},
@@ -2563,7 +2587,8 @@ define(['js/app'], function (myApp) {
                         createdRow: function (row, data, dataIndex) {
                             $compile(angular.element(row).contents())($scope);
 
-                        }
+                        },
+                        fnRowCallback: vm.playerListTableRow
                     });
                     var a = utilService.createDatatableWithFooter('#newPlayerListTable', option, {});
                     vm.newPlayerRecords.pageObj.init({maxCount: vm.newPlayerRecords.totalCount}, newSearch);
@@ -2573,6 +2598,31 @@ define(['js/app'], function (myApp) {
 
                 });
             };
+
+
+        vm.playerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            $compile(nRow)($scope);
+            vm.operatePlayerListTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
+        };
+
+        vm.operatePlayerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            switch (true) {
+
+                case (aData.status == vm.constProposalStatus.FAIL && (aData.$playerAllCount - aData.$playerCurrentCount == 0)): {
+                    $(nRow).css('background-color', 'rgba(255, 153, 153, 100)','important');
+                    //$(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                    break;
+                }
+                case (aData.status == vm.constProposalStatus.FAIL && (aData.$playerAllCount - aData.$playerCurrentCount > 0)): {
+                    $(nRow).css('background-color', 'rgba(153, 153, 153, 100)','important');
+                    break;
+                }
+                default: {
+                    $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
+                    break;
+                }
+            }
+        };
             vm.prepareRepairTransfer = function () {
                 vm.showPlatformRepair = !vm.showPlatformRepair;
                 if (vm.showPlatformRepair) {
@@ -5406,6 +5456,7 @@ define(['js/app'], function (myApp) {
                     });
                 } else {
                     socketService.$socket($scope.AppSocket, 'createPlayer', vm.newPlayer, function (data) {
+                        vm.createPlayerRegistrationIntentRecord(data);
                         vm.playerCreateResult = data;
                         vm.getPlatformPlayersData();
                         $scope.safeApply;
@@ -5416,6 +5467,37 @@ define(['js/app'], function (myApp) {
                     });
                 }
             };
+
+            vm.createPlayerRegistrationIntentRecord = function(data){
+                var intentData = {
+                    name: data.data.name,
+                    realName: data.data.realName,
+                    password: data.data.password,
+                    platformId: data.data.platformId,
+                    domain: data.data.domain,
+                    phoneNumber: data.data.phoneNumber,
+                    email: data.data.email,
+                    smsCode: "",
+                    lastLoginIp:data.data.lastLoginIp,
+                    loginIps: data.data.loginIps,
+                    userAgent: data.data.userAgent,
+                    phoneProvince: data.data.phoneProvince,
+                    phoneCity: data.data.phoneCity,
+                    phoneType: data.data.phoneType,
+                    partnerId: data.data.partnerId,
+                    isOnline: data.data.isOnline,
+                    playerId: data.data.playerId,
+                    remarks: data.data.partnerId ? $translate("PARTNER") + ": " + data.data.partnerId : "",
+                    status: vm.constProposalStatus.MANUAL,
+                    platform: data.data.platform
+                };
+
+                socketService.$socket($scope.AppSocket, 'createPlayerRegistrationIntentRecord', intentData, function (data) {
+                    console.log('player registration intent record created',data);
+                }, function (err) {
+                    console.log('player registration intent record creation failed',err);
+                });
+            }
 
             vm.showPartnerSelectModal = function (editingObj) {
                 vm.showPartnerFilterLevel = null;

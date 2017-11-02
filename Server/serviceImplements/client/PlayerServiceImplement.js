@@ -32,7 +32,7 @@ let PlayerServiceImplement = function () {
         if (data.smsCode || ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha')) {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
-            if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
                 data.lastLoginIp = forwardedIp[0].trim();
             }
             data.loginIps = [data.lastLoginIp];
@@ -73,6 +73,8 @@ let PlayerServiceImplement = function () {
             if (data.qq && !data.email) {
                 data.email = data.qq + "@qq.com";
             }
+
+            data.partnerId = "";
             //for partner player registration
             let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
             conn.captchaCode = null;
@@ -80,9 +82,10 @@ let PlayerServiceImplement = function () {
             let inputData = Object.assign({}, data);
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode], isValidData, true, true, true).then(
                 (playerData) => {
-
                     data.playerId = data.playerId ? data.playerId : playerData.playerId;
-                    data.playerObjId = data.playerObjId ? data.playerObjId : playerData._id;
+                    data.remarks = playerData.partnerId ? localization.translate("PARTNER", conn.lang) + ": " + playerData.partnerId : "";
+
+
                     console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     conn.isAuth = true;

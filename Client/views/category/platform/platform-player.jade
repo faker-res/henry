@@ -2164,7 +2164,7 @@ include modalGameCreditLog
                                 .endTime
                             .inlineBlk
                                 label {{'STATUS' | translate}}
-                                select.form-control(ng-model='vm.queryPara.newPlayerList.status', ng-options='i as a for (i,a) in vm.newPlayerListStatus')
+                                select.form-control(ng-model='vm.queryPara.newPlayerList.status', ng-options='i as a | translate for (i,a) in vm.newPlayerListStatus')
                                     option(value='',) {{'any' | translate}}
                             //.inlineBlk
                                 label {{'Search limit(Max rows)' | translate}}
