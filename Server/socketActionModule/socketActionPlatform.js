@@ -375,6 +375,12 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.gameProviderGroup);
             socketUtil.emitter(self.socket, dbGameProvider.updatePlatformProviderGroup, [data.platformObjId, data.gameProviderGroup], actionName, isValidData);
+        },
+
+        deletePlatformProviderGroup: function deletePlatformProviderGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.gameProviderGroupObjId);
+            socketUtil.emitter(self.socket, dbGameProvider.deletePlatformProviderGroup, [data.gameProviderGroupObjId], actionName, isValidData);
         }
 
     };
