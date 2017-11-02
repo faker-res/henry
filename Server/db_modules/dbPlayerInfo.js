@@ -2941,7 +2941,7 @@ let dbPlayerInfo = {
                                     eventDescription: rewardParams[i].description,
                                     curRewardAmount: curRewardAmount,
                                     maxRewardAmountPerDay: rewardParams[i].param.maxRewardAmountPerDay,
-                                    spendingAmount: rewardAmount,
+                                    spendingAmount: rewardAmount*20, //10 times spending amount
                                     eventName: rewardParams[i].name,
                                     eventCode: rewardParams[i].code,
                                 }
@@ -4536,7 +4536,24 @@ let dbPlayerInfo = {
                 }
             },
             function (err) {
-                deferred.reject(err);
+                if (bResolve) {
+                    return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+                        playerData => {
+                            deferred.resolve(
+                                {
+                                    playerId: playerId,
+                                    providerId: providerShortId,
+                                    providerCredit: 0,
+                                    playerCredit: playerData.validCredit,
+                                    rewardCredit: playerData.lockedCredit
+                                }
+                            );
+                        }
+                    );
+                }
+                else{
+                    deferred.reject(err);
+                }
             }
         ).then(
             function (data) {

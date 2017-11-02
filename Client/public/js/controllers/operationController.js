@@ -999,7 +999,7 @@ define(['js/app'], function (myApp) {
                             }else if(data && data.data && data.data.eventName){
                                 return data.data.eventName;
                             }else {
-                                return data.typeName;
+                                return $translate(row.type ? row.type.name : "");
                             }
                         }
                     },

@@ -411,6 +411,9 @@ var roleChecker = {
             },
             "devFunc": {
                 Read: ['triggerSavePlayersCredit']
+            },
+            "phoneNumFilter": {
+                FilterAllPlatform: []
             }
         },
         Payment: {
