@@ -1588,7 +1588,7 @@ define(['js/app'], function (myApp) {
                     } else return true;
                 }
             );
-            vm.queryProposal.pageObj.init({maxCount: size}, newSearch);
+            vm.queryAuditProposal.pageObj.init({maxCount: size}, newSearch);
 
             $('#proposalAuditDataTable').empty();
             //no idea why is 7, and 7 is not working, so I change it to 8
@@ -2579,16 +2579,18 @@ define(['js/app'], function (myApp) {
                         });
                     });
 
-                    utilService.actionAfterLoaded("#proposalDataTablePage", function () {
-                        vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
-                            vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
+                    setTimeout(function() {
+                        utilService.actionAfterLoaded("#proposalDataTablePage", function () {
+                            vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
+                            });
                         });
-                    });
+                    }, 0);
 
                     // for some reason, the pagination wont translate when it does not put inside setTimeout
                     setTimeout(function() {
                         utilService.actionAfterLoaded("#proposalAuditDataTablePage", function () {
-                            vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalAuditDataTablePage", {}, $translate, function (curP, pageSize) {
+                            vm.queryAuditProposal.pageObj = utilService.createPageForPagingTable("#proposalAuditDataTablePage", {}, $translate, function (curP, pageSize) {
                                 vm.commonPageChangeHandler(curP, pageSize, "queryAuditProposal", vm.loadProposalAuditQueryData)
                             });
                         });
