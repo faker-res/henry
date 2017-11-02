@@ -13127,6 +13127,12 @@ define(['js/app'], function (myApp) {
                 vm.phoneNumCSVResult = false;
                 vm.phoneNumTXTResult = false;
                 vm.filterAllPlatform = false;
+                vm.gridOptions = {};
+            };
+
+            vm.resetUIGrid = function () {
+                vm.gridOptions.data = [];
+                vm.gridOptions.columnDefs = [];
             };
 
             // compare a new list pf phone numbers with existing player info database

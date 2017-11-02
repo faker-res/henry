@@ -134,3 +134,22 @@
                     .alert.alert-success.alert-dismissable(ng-if="vm.copyHere")
                         a.close(href='#', data-dismiss='alert', aria-label='close') ×
                         p {{"COPIED_SUCCESS" | translate}}!
+
+    .col-md-12
+        .panel.panel-primary
+            .panel-heading
+                .fa.fa-file-text.margin-right-5
+                label {{"SUPPORTED_FILE_FORMAT" | translate}}:
+                |  .xls
+            .panel-body
+                div
+                    button.btn.btn-success(type='button', ng-click='vm.resetUIGrid()') Reset Grid
+                    br
+                    br
+                    #grid1.grid(ng-if='vm.gridOptions', ui-grid='vm.gridOptions')
+                        .grid-msg-overlay(ng-show='!vm.gridOptions.data.length')
+                            .msg
+                                .center
+                                    span.muted Select Spreadsheet File
+                                    br
+                                    input(type='file', accept='.xls,.xlsx,.ods', fileread='', opts='vm.gridOptions', multiple='false')
