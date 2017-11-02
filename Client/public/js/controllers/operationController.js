@@ -1644,7 +1644,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.updateMultiselectProposal = function () {
-            var allClicked = $("#proposalDataTable tr input:checked[type='checkbox']");
+            var allClicked = $("#proposalAuditDataTable tr input:checked[type='checkbox']");
             vm.multiProposalSelected = [];
             if (allClicked.length > 0) {
                 allClicked.each(function () {
