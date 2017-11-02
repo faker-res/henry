@@ -694,14 +694,19 @@ var proposal = {
                                     {new: true}
                                 )
                             ).then(
-                                () => dbconfig.collection_proposal.findOneAndUpdate(
-                                    {_id: proposalData._id, createTime: proposalData.createTime},
-                                    {
-                                        status: status,
-                                        isLocked: null
-                                    },
-                                    {new: true}
-                                )
+                                () => {
+                                    let updateData = { status: status, isLocked:null};
+                                    if( status == constProposalStatus.APPROVED ){
+                                        if(proposalData.mainType=='TopUp'){
+                                            updateData['data.cardQuota'] = (proposalData.data.cardQuota ||0) + (proposalData.data.amount||0);
+                                        }
+                                    }
+                                    return dbconfig.collection_proposal.findOneAndUpdate(
+                                        {_id: proposalData._id, createTime: proposalData.createTime},
+                                        updateData,
+                                        {new: true}
+                                    )
+                                }
                             );
                     }
                 }
@@ -1183,10 +1188,7 @@ var proposal = {
                             $group: {
                                 _id: null,
                                 totalAmount: {$sum: "$data.amount"},
-                                totalRewardAmount: {$sum: {
-                                    $cond: [ { "$ifNull": ["$data.rewardAmount", false] }, $data.rewardAmount, 0 ]
-                                }},
-                                // totalRewardAmount: {$sum: "$data.rewardAmount"},
+                                totalRewardAmount: {$sum: "$data.rewardAmount"},
                                 totalTopUpAmount: {$sum: "$data.topUpAmount"},
                                 totalUpdateAmount: {$sum: "$data.updateAmount"},
                                 totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
@@ -1422,7 +1424,10 @@ var proposal = {
                                 $group: {
                                     _id: null,
                                     totalAmount: {$sum: "$data.amount"},
-                                    totalRewardAmount: {$sum: "$data.rewardAmount"},
+                                    totalRewardAmount: {$sum: {
+                                        $cond: [ { "$ifNull": ["$data.rewardAmount", false] }, "$data.rewardAmount", 0 ]
+                                    }},
+                                    // totalRewardAmount: {$sum: "$data.rewardAmount"},
                                     totalTopUpAmount: {$sum: "$data.topUpAmount"},
                                     totalUpdateAmount: {$sum: "$data.updateAmount"},
                                     totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
