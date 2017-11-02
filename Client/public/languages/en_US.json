@@ -874,6 +874,7 @@
   "RESET_TEXTAREA":"Reset",
   "COPY_TO_CLIPBOARD":"Copy",
   "COPIED_SUCCESS":"Copied",
+  "FilterAllPlatform":"Filter All Platform",
 
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
