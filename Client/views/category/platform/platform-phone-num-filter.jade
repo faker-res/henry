@@ -1,4 +1,12 @@
 .row
+    .col-md-12(ng-if='checkViewPermission("Platform", "phoneNumFilter", "FilterAllPlatform")')
+        .panel-body
+            label Filter All Platform is
+            label(style='color:green', ng-if='vm.filterAllPlatform') &nbsp; enabled
+            label(style='color:red', ng-if='!vm.filterAllPlatform') &nbsp; disabled
+            button.btn.btn-lg.btn-toggle(type='button', data-toggle='button', aria-pressed='false', autocomplete='off', ng-click='vm.filterAllPlatform=!vm.filterAllPlatform')
+                .handle
+
     .col-md-4
         .panel.panel-primary
             .panel-heading
@@ -126,4 +134,3 @@
                     .alert.alert-success.alert-dismissable(ng-if="vm.copyHere")
                         a.close(href='#', data-dismiss='alert', aria-label='close') ×
                         p {{"COPIED_SUCCESS" | translate}}!
-
