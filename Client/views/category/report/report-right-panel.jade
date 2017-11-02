@@ -21,7 +21,7 @@
                     label {{'topupType' | translate}}
                     select.form-control(ng-change='vm.filterMerchant()',ng-model='vm.queryTopup.mainTopupType', required)
                         option(value='') {{"any" | translate}}
-                        option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{"TOPUP"+i | translate}}
+                        option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{i | translate}}
                 div(style='max-width:125px')
                     label {{'DEVICE' | translate}}
                     select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.queryTopup.userAgent', required, multiple, static-bsp, data-actions-box='true')
@@ -44,7 +44,6 @@
                 div(style='max-width:125px')
                     label {{'3rd Party Platform' | translate}}
                     select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroupObj', multiple, bsp, data-actions-box='true')
-                        option(value='') {{'any' | translate}}
                 div(style='max-width:125px')
                     label {{'DEPOSIT_METHOD' | translate}}
                     select.form-control.merchantNoList(ng-model='vm.queryTopup.depositMethod', multiple, static-bsp, data-actions-box='true')
@@ -55,7 +54,7 @@
                         option(value='5') 支付宝(AliPay)
 
 
-                div
+                div(style='max-width:125px')
                     label 收款银行类别
                     select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList', multiple, bsp, data-actions-box='true')
                 div(style='max-width:125px')
@@ -64,7 +63,7 @@
                         //option(value='') {{'any' | translate}}
                         //option(ng-repeat='(i,v) in vm.merchantNoList' ,ng-init='$last && vm.initMultiSelect()', value='{{v.merchantNo}}') {{v.name}}
                         //option()
-                div
+                div(style='max-width:125px')
                     label {{'STATUS' | translate}}
                     select.form-control.merchantNoList(ng-model='vm.queryTopup.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList', multiple, bsp, data-actions-box='true')
                 div

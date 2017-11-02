@@ -123,27 +123,43 @@ var dbPlayerTopUpRecord = {
                 }
 
                 if (query.depositMethod && query.depositMethod.length > 0){
-                    // queryObj['data.depositMethod'] = {'$in': [String(query.depositMethod), Number(query.depositMethod)]};
                     queryObj['data.depositMethod'] = {'$in': convertStringNumber(query.depositMethod)};
                 }
-
-                if (query.merchantNo && query.merchantNo.length > 0 && !query.merchantGroup) {
+                if (query.merchantNo && query.merchantNo.length > 0 && (!query.merchantGroup|| query.merchantGroup.length==0)) {
                     queryObj['$or'] = [
-                      {'data.merchantNo': {$in: query.merchantNo}},
-                      {'data.bankCardNo': {$in: query.merchantNo}},
-                      {'data.accountNo': {$in: query.merchantNo}}
+                        {'data.merchantNo': {$in: convertStringNumber(query.merchantNo)}},
+                        {'data.bankCardNo': {$in: convertStringNumber(query.merchantNo)}},
+                        {'data.accountNo': {$in: convertStringNumber(query.merchantNo)}},
+                        {'data.alipayAccount': {$in: convertStringNumber(query.merchantNo)}},
+                        {'data.wechatAccount': {$in: convertStringNumber(query.merchantNo)}},
+                        {'data.weChatAccount': {$in: convertStringNumber(query.merchantNo)}}
                     ]
                 }
-                if (!query.merchantNo && query.merchantGroup) {
-                    queryObj['data.merchantNo'] = {$in: query.merchantGroup};
+                if ((!query.merchantNo || query.merchantNo.length == 0) && query.merchantGroup && query.merchantGroup.length > 0) {
+                    let mGroupList = [];
+                    query.merchantGroup.forEach(item=> {
+                        item.forEach(sItem=>{
+                            mGroupList.push(sItem)
+                        })
+                    })
+                    queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
                 }
 
-
-                if (query.merchantNo && query.merchantNo.length > 0  && query.merchantGroup) {
-                    queryObj['$and'] = [
-                        {'data.merchantNo': {$in: query.merchantNo}},
-                        {'data.merchantNo': {$in: query.merchantGroup}}
-                    ]
+                if (query.merchantNo && query.merchantNo.length > 0  && query.merchantGroup && query.merchantGroup.length > 0) {
+                    if(query.merchantGroup.length > 0){
+                        let mGroupC = [];
+                        let mGroupD = [];
+                        query.merchantNo.forEach(item=>{
+                            mGroupC.push(item);
+                        });
+                        query.merchantGroup.forEach(item=>{
+                            item.forEach(sItem=>{ mGroupD.push(sItem)});
+                        });
+                        queryObj['$or'] = [
+                            {'data.merchantNo': {$in: convertStringNumber(mGroupC)}},
+                            {'data.merchantNo': {$in: convertStringNumber(mGroupD)}}
+                        ]
+                    }
                 }
 
                 if (query.dingdanID) {
@@ -156,16 +172,12 @@ var dbPlayerTopUpRecord = {
                     queryObj['proposalId'] = query.proposalNo;
                 }
                 if (query.topupType && query.topupType.length > 0) {
-                    console.log(query.topupType);
-                    // queryObj['data.topupType'] = {$in: [String(query.topupType), Number(query.topupType)]}
                     queryObj['data.topupType'] = { $in: convertStringNumber(query.topupType)}
                 }
                 if(query.bankTypeId && query.bankTypeId.length > 0){
-                    // queryObj['data.bankTypeId'] = query.bankTypeId;
                     queryObj['data.bankTypeId'] = {$in: convertStringNumber(query.bankTypeId)};
                 }
                 if(query.userAgent && query.userAgent.length > 0) {
-                    // queryObj['data.userAgent'] = {'$in':[String(query.userAgent) ,Number(query.userAgent)]};
                     queryObj['data.userAgent'] = {$in: convertStringNumber(query.userAgent)};
                 }
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});

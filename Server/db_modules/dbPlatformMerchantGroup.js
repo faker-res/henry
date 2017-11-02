@@ -224,7 +224,6 @@ var dbPlatformMerchantGroup = {
           }
             if(data[2] && data[2].data.length>0){
                 data[2].data.map(bcard=>{
-                    console.log(bcard);
                     bcard.merchantNo = bcard.accountNumber;
                     bcard.name = bcard.accountNumber + '('+ bcard.name + ')';
                     bcard.merchantTypeId = '9998';
@@ -233,7 +232,6 @@ var dbPlatformMerchantGroup = {
             }
             if(data[3] && data[3].data.length>0){
                 data[3].data.map(bcard=>{
-                    console.log(bcard);
                     bcard.merchantNo = bcard.accountNumber;
                     bcard.name = bcard.accountNumber + '('+ bcard.name + ')';
                     bcard.merchantTypeId = '9997';

@@ -2338,29 +2338,47 @@ var proposal = {
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
         query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
 
-        if (data.merchantNo && data.merchantNo.length > 0 && !data.merchantGroup) {
+        if (data.merchantNo && data.merchantNo.length > 0 && (!data.merchantGroup|| data.merchantGroup.length==0)) {
             query['$or'] = [
-              {'data.merchantNo': {$in: data.merchantNo}},
-              {'data.bankCardNo': {$in: data.merchantNo}},
-              {'data.accountNo': {$in: data.merchantNo}}
+                {'data.merchantNo': {$in: convertStringNumber(data.merchantNo)}},
+                {'data.bankCardNo': {$in: convertStringNumber(data.merchantNo)}},
+                {'data.accountNo': {$in: convertStringNumber(data.merchantNo)}},
+                {'data.alipayAccount': {$in: convertStringNumber(data.merchantNo)}},
+                {'data.wechatAccount': {$in: convertStringNumber(data.merchantNo)}},
+                {'data.weChatAccount': {$in: convertStringNumber(data.merchantNo)}}
             ]
         }
 
-        if (!data.merchantNo && data.merchantGroup) {
-            query['data.merchantNo'] = {$in: data.merchantGroup};
+        if ((!data.merchantNo || data.merchantNo.length == 0) && data.merchantGroup && data.merchantGroup.length > 0) {
+            let mGroupList = [];
+            data.merchantGroup.forEach(item=> {
+                item.forEach(sItem=>{
+                    mGroupList.push(sItem)
+                })
+            })
+            query['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
         }
 
-        if (data.merchantNo && data.merchantNo.length >0 && data.merchantGroup) {
-            query['$and'] = [
-                {'data.merchantNo': {$in: data.merchantNo}},
-                {'data.merchantNo': {$in: data.merchantGroup}}
-            ]
+        if (data.merchantNo && data.merchantNo.length > 0  && data.merchantGroup && data.merchantGroup.length > 0) {
+            if(data.merchantGroup.length > 0){
+                let mGroupC = [];
+                let mGroupD = [];
+                data.merchantNo.forEach(item=>{
+                    mGroupC.push(item);
+                });
+                data.merchantGroup.forEach(item=>{
+                    item.forEach(sItem=>{ mGroupD.push(sItem)});
+                });
+                query['$or'] = [
+                    {'data.merchantNo': {$in: convertStringNumber(mGroupC)}},
+                    {'data.merchantNo': {$in: convertStringNumber(mGroupD)}}
+                ]
+            }
         }
 
         if (data.orderId) {
             query['data.requestId'] = data.orderId;
         }
-
         if (data.playerName) {
             query['data.playerName'] = data.playerName;
         }
@@ -2376,7 +2394,6 @@ var proposal = {
         if (data.status && data.status.length > 0) {
             query['status'] = {$in: convertStringNumber(data.status)};
         }
-        console.log(data);
         let mainTopUpType;
         switch (String(data.mainTopupType)) {
             case constPlayerTopUpType.ONLINE.toString():

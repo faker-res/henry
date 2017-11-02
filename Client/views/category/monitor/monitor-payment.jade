@@ -10,7 +10,8 @@ div
         div
             label {{'topupType' | translate}}
             select.form-control(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.mainTopupType', required)
-                option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{"TOPUP"+i | translate}}
+                option(value='') {{'any' | translate}}
+                option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{ i | translate}}
         div(style='max-width:125px')
             label {{'DEVICE' | translate}}
             select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.userAgent', required, multiple, static-bsp, data-actions-box='true')
@@ -20,7 +21,7 @@ div
 
         div(style='max-width:180px')
             label {{'Online Topup Type' | translate}}
-            select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.topupType', multiple, static-bsp, data-actions-box='true')
+            select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.topupType', multiple, static-bsp, data-actions-box='true')
                 option(value='1') 网银支付(NetPay)
                 option(value='2') 微信扫码(WechatQR)
                 option(value='3') 支付宝扫码(AlipayQR)
@@ -32,28 +33,28 @@ div
                 option(value='9') 京东钱包扫码支付(JdPayQR)
         div(style='max-width:125px')
             label {{'3rd Party Platform' | translate}}
-            select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroups', multiple, bsp, data-actions-box='true')
+            select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroups', multiple, bsp, data-actions-box='true')
         div(style='max-width:125px')
             label {{'DEPOSIT_METHOD' | translate}}
-            select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.depositMethod', multiple, static-bsp, data-actions-box='true')
+            select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.depositMethod', multiple, static-bsp, data-actions-box='true')
                 option(value='1') 网银转账(OnlineTransfer)
                 option(value='2') 自动取款机(ATM)
                 option(value='3') 银行柜台(Counter)
                 option(value='4') 网银跨行(Online Banking - InterBank Transfer)
                 option(value='5') 支付宝(AliPay)
 
-        div
+        div(style='max-width:125px')
             label 收款银行类别
-            select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList', multiple, bsp, data-actions-box='true')
+            select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList', multiple, bsp, data-actions-box='true')
         div(style='max-width:125px')
             label {{'Business Acc/ Bank Acc' | translate}}
             //select.form-control.merchantNoList( ng-model='vm.paymentMonitorQuery.merchantNo')
-            select.form-control.merchantNoList( ng-model='vm.paymentMonitorQuery.merchantNo', ng-options='a.merchantNo as a.name group by a.merchantTypeName for a in vm.merchantCloneList' , multiple, bsp, data-actions-box='true')
+            select.form-control.merchantNoList(style='max-width:155px', ng-model='vm.paymentMonitorQuery.merchantNo', ng-options='a.merchantNo as a.name group by a.merchantTypeName for a in vm.merchantCloneList' , multiple, bsp, data-actions-box='true')
                 //option(value='') {{'any' | translate}}
                 //option(ng-repeat='(i,v) in vm.merchants' ,ng-init='$last && vm.initMultiSelect()', value='{{v.merchantNo}}') {{v.name}}
-        div
+        div(style='max-width:125px')
             label {{'STATUS' | translate}}
-            select.form-control.merchantNoList(ng-model='vm.paymentMonitorQuery.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList', multiple, bsp, data-actions-box='true')
+            select.form-control.merchantNoList(ng-model='vm.paymentMonitorQuery.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList', multiple, static-bsp, data-actions-box='true')
         div
             label.control-label {{'Start date' | translate}}
             .startTime

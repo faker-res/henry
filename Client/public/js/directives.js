@@ -247,10 +247,13 @@ angular.module('myApp.directives', [])
         return  {
             restrict : 'A',
             link: function(scope, element, attrs){
+                $timeout(()=>{
+                    $(element).selectpicker('refresh')
+                },50 )
+
                     if (attrs.ngModel){
                         scope.$watch(attrs.ngModel,function(){
-                            $(element).selectpicker('destroy');
-                            $(element).selectpicker();
+                            $(element).selectpicker('refresh');
                         },true)
                     }
                 }
