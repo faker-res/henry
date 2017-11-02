@@ -41,6 +41,8 @@
                         option(value='5') 支付宝App支付(AlipayApp)
                         option(value='6') 快捷支付(FASTPAY)
                         option(value='7') QQ扫码(QQPAYQR)
+                        option(value='8') 银联扫码支付(UnPayQR)
+                        option(value='9') 京东钱包扫码支付(JdPayQR)
                 div(style='max-width:125px')
                     label {{'3rd Party Platform' | translate}}
                     select.form-control(ng-model='vm.queryTopup.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroupObj')
@@ -930,8 +932,12 @@
                 .panel.panel-primary
                     .panel-body
                         .tab-content
-                            #ProposalDetail.tab-pane.fade.in.active
-                                include ./proposal-dialog-detail
+                            div(ng-if='vm.proposalDialog == "proposalTopUp"')
+                                #ProposalDetail.tab-pane.fade.in.active
+                                    include ./proposal-dialog-detail
+                            div(ng-if='vm.proposalDialog == "proposal"')
+                                #ProposalDetail.tab-pane.fade.in.active
+                                    include ./proposal-detail
                             #Workflow.tab-pane.fade(mouse-capture, style="max-height:600px;overflow-y:auto")
                                 flow-chart#flowChart(style='width: 100%; height: 550px;overflow:auto;', chart='vm.chartViewModel')
             .modal-footer

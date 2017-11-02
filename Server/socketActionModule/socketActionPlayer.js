@@ -59,7 +59,7 @@ function socketActionPlayer(socketIO, socket) {
                     data.phoneType = queryRes.type;
                 }
             }
-            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerInfoAPI, [data, true, getAdminName()], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerInfoAPI, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
         },
 
         /**
@@ -948,8 +948,20 @@ function socketActionPlayer(socketIO, socket) {
 
         comparePhoneNum: function comparePhoneNum(data){
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.arrayInputPhone);
-            socketUtil.emitter(self.socket, dbPlayerInfo.comparePhoneNum, [data.arrayInputPhone], actionName, isValidData);
+            var isValidData = Boolean(data && data.platformObjId && data.arrayInputPhone);
+            socketUtil.emitter(self.socket, dbPlayerInfo.comparePhoneNum, [data.platformObjId, data.arrayInputPhone], actionName, isValidData);
+        },
+
+        uploadPhoneFileCSV: function uploadPhoneFileCSV(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.arrayPhoneCSV);
+            socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileCSV, [data.platformObjId, data.arrayPhoneCSV], actionName, isValidData);
+        },
+
+        uploadPhoneFileTXT: function uploadPhoneFileTXT(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.arrayPhoneTXT);
+            socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileTXT, [data.platformObjId, data.arrayPhoneTXT], actionName, isValidData);
         },
 
     };

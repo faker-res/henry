@@ -531,7 +531,7 @@ define([], function () {
                 curPage: 1,
                 maxPage: 0,
                 pageSize: (tblObj && tblObj.pageSize) ? tblObj.pageSize : 10
-            }
+            };
             $(id).append(newPage.prop('innerHTML'));
             $(id).find(".jumpText").text(trans("Jump to"));
             $(id).find(".first_page").text(1).hide();
@@ -605,7 +605,7 @@ define([], function () {
                 //     $(id).find('.pageSize').val(retObj.pageSize);
                 //     retObj.jump();
                 // });
-            }
+            };
             retObj.updateCurPage = function (event) {
                 var className = event.target.className;
                 if (className.indexOf('jumpPage') > -1) return;
@@ -629,7 +629,7 @@ define([], function () {
                     retObj.curPage = retObj.maxPage
                 }
                 funcName.call(this, retObj.curPage, retObj.pageSize);
-            }
+            };
             retObj.jump = function () {
                 if (retObj.curPage < 1) {
                     retObj.curPage = 1;
@@ -637,14 +637,14 @@ define([], function () {
                     retObj.curPage = retObj.maxPage
                 }
                 funcName.call(this, retObj.curPage, retObj.pageSize);
-            }
+            };
             return retObj;
-        }
+        };
         this.format2 = function (number) {
             if (parseFloat(number) !== NaN) {
                 return parseFloat(number).toFixed(2);
             } else return number;
-        }
+        };
         this.fitText = function (ele) {
             var $ele = $(ele) ? $($(ele).first()[0]) : null;
             if (!$ele) {
@@ -665,17 +665,19 @@ define([], function () {
                 $ele.css("font-size", fontSize + "px");
             }
             return $ele;
-        }
+        };
 
         this.getProposalGroupValue = function (proposalType, performTranslation) {
             let groupName = "";
             performTranslation = performTranslation === false ? false : true;
             switch (proposalType.name) {
+                case "PlayerQuickpayTopUp":
+                    groupName = "omit";
+                    break;
                 case "ManualPlayerTopUp":
                 case "PlayerAlipayTopUp":
                 case "PlayerTopUp":
                 case "PlayerWechatTopUp":
-                case "PlayerQuickpayTopUp":
                     groupName = "Topup Proposal";
                     break;
                 case "PlayerBonus":
@@ -712,6 +714,7 @@ define([], function () {
                 case "UpdatePlayerEmail":
                 case "UpdatePlayerPhone":
                 case "UpdatePlayerQQ":
+                case "UpdatePlayerWeChat":
                     groupName = "PLAYER_INFORMATION";
                     break;
                 case "UpdatePartnerInfo":
@@ -719,6 +722,7 @@ define([], function () {
                 case "UpdatePartnerEmail":
                 case "UpdatePartnerPhone":
                 case "UpdatePartnerQQ":
+                case "UpdatePartnerWeChat":
                     groupName = "PARTNER_INFORMATION";
                     break;
                 case "UpdatePlayerCredit":

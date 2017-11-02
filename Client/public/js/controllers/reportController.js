@@ -58,10 +58,10 @@ define(['js/app'], function (myApp) {
         };
 
         vm.topUpField = {
-          "ManualPlayerTopUp": 'bankCardNo',
-          "PlayerAlipayTopUp": 'alipayAccount',
-          "PlayerWechatTopUp": 'wechatAccount',
-          "PlayerTopUp": 'merchantNo'
+          "ManualPlayerTopUp": ['bankCardNo'],
+          "PlayerAlipayTopUp": ['alipayAccount'],
+          "PlayerWechatTopUp": ['wechatAccount','weChatAccount'],
+          "PlayerTopUp": ['merchantNo']
         }
 
         //get all platform data from server
@@ -76,6 +76,7 @@ define(['js/app'], function (myApp) {
             vm.getCredibilityRemarksByPlatformId(vm.selectedPlatform._id);
             vm.getRewardList();
             vm.getPromotionTypeList();
+            vm.getPlatformProviderGroup();
             $cookies.put("platform", vm.selectedPlatform.name);
             console.log('vm.selectedPlatform', vm.selectedPlatform);
             vm.loadPage(vm.showPageName);
@@ -89,6 +90,7 @@ define(['js/app'], function (myApp) {
             vm.setPlatform(JSON.stringify(platObj));
         }
         vm.showProposalModal2 = function(proposalId){
+            vm.proposalDialog = 'proposalTopUp';
           socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
               platformId: vm.selectedPlatform._id,
               proposalId: proposalId
@@ -113,9 +115,14 @@ define(['js/app'], function (myApp) {
             $('#modalProposal').on('shown.bs.modal', function (e) {
               $scope.safeApply();
             })
-            let cardNo = vm.selectedProposal.data[vm.topUpField[typeName]];
-            vm.loadTodayTopupQuota(typeId, typeName, cardNo);
-            vm.getUserCardGroup(vm.selectedProposal.type.name, vm.selectedPlatform._id, playerId )
+            let cardField = vm.topUpField[typeName].filter( fieldName =>{
+                if(vm.selectedProposal.data[fieldName]){
+                    return fieldName
+                }
+            })[0] || '';
+            let cardNo = vm.selectedProposal.data[cardField];
+            vm.loadTodayTopupQuota(typeId, typeName, cardField, cardNo);
+            vm.getUserCardGroup(vm.selectedProposal.type.name, vm.selectedPlatform._id, playerId );
             vm.getCardLimit(vm.selectedProposal.type.name);
           })
         }
@@ -129,7 +136,7 @@ define(['js/app'], function (myApp) {
         vm.wechatNameConvert = function(){
             vm.selectedProposal.data.weAcc = '';
             vm.selectedProposal.data.weName = '';
-            vm.selectedProposal.data.weChatQRCode = '';
+            vm.selectedProposal.data.weQRCode = '';
 
             if(vm.selectedProposal.data.wechatAccount){
                 vm.selectedProposal.data.weAcc = vm.selectedProposal.data.wechatAccount;
@@ -139,9 +146,6 @@ define(['js/app'], function (myApp) {
             }
             if(vm.selectedProposal.data.wechatName) {
                 vm.selectedProposal.data.weName = vm.selectedProposal.data.wechatName;
-            }
-            if(vm.selectedProposal.data.weChatName) {
-                vm.selectedProposal.data.weName = vm.selectedProposal.data.weChatName;
             }
             if(vm.selectedProposal.data.weChatName) {
                 vm.selectedProposal.data.weName = vm.selectedProposal.data.weChatName;
@@ -171,7 +175,7 @@ define(['js/app'], function (myApp) {
                   vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
               }
             }else if(typeName=="PlayerWechatTopUp"){
-              let　merchantNo = vm.selectedProposal.data.wechatAccount;
+              let　merchantNo = vm.selectedProposal.data.wechatAccount || vm.selectedProposal.data.weChatAccount || vm.selectedProposal.data.weChatName || vm.selectedProposal.data.wechatName;
               if(merchantNo && vm.allWechatpaysAcc && vm.allWechatpaysAcc.length > 0){
                   vm.selectedProposal.card = vm.allWechatpaysAcc.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
               }else{
@@ -180,7 +184,7 @@ define(['js/app'], function (myApp) {
             }else if(typeName=="PlayerTopUp"){
               let　merchantNo = vm.selectedProposal.data.merchantNo;
               if(merchantNo && vm.merchantLists && vm.merchantLists.length > 0){
-                  vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.accountNumber == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
+                  vm.selectedProposal.card = vm.merchantLists.filter(item=>{ return item.merchantNo == merchantNo })[0] ||  {singleLimit:'0', quota:'0'};
               }else{
                   vm.selectedProposal.card = {singleLimit:'0', quota:'0'};
               }
@@ -229,12 +233,11 @@ define(['js/app'], function (myApp) {
               console.error("cannot get player level", data);
           });
         }
-        vm.loadTodayTopupQuota = function(typeId, typeName, cardNo){
+        vm.loadTodayTopupQuota = function(typeId, typeName, cardField, cardNo){
           var start = new Date();
           start.setHours(0,0,0,0);
           var end = new Date();
           end.setHours(23,59,59,999);
-          let cardField = vm.topUpField[typeName]
           var sendData = {
               adminId: authService.adminId,
               platformId: vm.selectedPlatform._id,
@@ -295,6 +298,8 @@ define(['js/app'], function (myApp) {
                         return vm.getProviderText(item);
                     }) : '';
                     result = result.join(',');
+                } else if (fieldName.indexOf('providerGroup') > -1) {
+                    result = getProviderGroupNameById(val);
                 } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                     result = utilService.getFormatTime(val);
                 } else if (fieldName == 'bankAccountType') {
@@ -341,7 +346,7 @@ define(['js/app'], function (myApp) {
                 } else if (fieldName == 'allowedProviders'){
                     let providerName = '';
                     for(var v in val){
-                      providerName += val[v].name+', ';
+                        providerName += val[v].name+', ';
                     }
                     result = providerName;
                 } else if (fieldName === 'proposalPlayerLevel') {
@@ -362,7 +367,25 @@ define(['js/app'], function (myApp) {
             obj.startTime = utilService.setNDaysAgo(new Date(), 30);
             obj.endTime = new Date();
             return obj;
-        }
+        };
+
+        vm.getPlatformProviderGroup = () => {
+            $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+                vm.gameProviderGroup = data.data;
+                $scope.safeApply();
+            });
+        };
+
+        vm.getProviderGroupNameById = (grpId) => {
+            let result = '';
+            $.each(vm.gameProviderGroup, function (i, v) {
+                if (grpId == v._id) {
+                    result = v.name;
+                    return true;
+                }
+            });
+            return result;
+        };
 
         var constRewardReportTableProp = [
             {// player reward tables
@@ -653,6 +676,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
                     if (data.data && data.data.merchants) {
+                        vm.merchantLists = data.data.merchants;
                         vm.merchantNoList = data.data.merchants.filter(mer => {
                             vm.merchantNoNameObj[mer.merchantNo] = mer.name;
                             return mer.status != 'DISABLED';
@@ -795,6 +819,8 @@ define(['js/app'], function (myApp) {
                     var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                     var todayEndTime = utilService.getTodayEndTime();
                     vm.playerQuery = {};
+                    vm.playerQuery.sortCol = {validConsumptionAmount: -1};
+                    vm.playerQuery.limit = 5000;
                     vm.playerQuery.consumptionTimesOperator = ">=";
                     vm.playerQuery.profitAmountOperator = ">=";
                     vm.playerQuery.topUpTimesOperator = ">=";
@@ -804,7 +830,7 @@ define(['js/app'], function (myApp) {
                     vm.playerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                     vm.playerQuery.end = utilService.createDatePicker('#endingEndDateTimePicker');
                     vm.playerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                    vm.playerQuery.pageObj = utilService.createPageForPagingTable("#playerReportTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.playerQuery.pageObj = utilService.createPageForPagingTable("#playerReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerQuery", vm.searchPlayerReport);
                     });
                     vm.setupRemarksMultiInput();
@@ -1125,6 +1151,11 @@ define(['js/app'], function (myApp) {
                         text: "createUpdatePlayerQQProposal",
                         action: "createUpdatePlayerQQProposal"
                     },
+                    {
+                        group: "PLAYER",
+                        text: "createUpdatePlayerWeChatProposal",
+                        action: "createUpdatePlayerWeChatProposal"
+                    },
                     {group: "PLAYER", text: "UpdatePlayerBankInfo", action: "createUpdatePlayerBankInfoProposal"},
                     {group: "PLAYER", text: "resetPlayerPassword", action: "resetPlayerPassword"},
 
@@ -1152,6 +1183,7 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "updatePartner", action: "createUpdatePartnerInfoProposal"},
                     {group: "PARTNER", text: "Update partner phone number", action: "createUpdatePartnerPhoneProposal"},
                     {group: "PARTNER", text: "Update partner email", action: "createUpdatePartnerEmailProposal"},
+                    {group: "PARTNER", text: "Update partner QQ", action: "createUpdatePartnerQQProposal"},
                     {
                         group: "PARTNER",
                         text: "Update partner bank information",
@@ -1442,7 +1474,6 @@ define(['js/app'], function (myApp) {
                 // add index to data
                 for (let x = 0; x < vm.allProposalType.length; x++) {
                     let groupName = utilService.getProposalGroupValue(vm.allProposalType[x],false);
-                    console.log(groupName);
                     switch (vm.allProposalType[x].name) {
                         case "AddPlayerRewardTask":
                             vm.allProposalType[x].seq = 3.01;
@@ -1467,6 +1498,9 @@ define(['js/app'], function (myApp) {
                             break;
                         case "UpdatePlayerQQ":
                             vm.allProposalType[x].seq = 4.05;
+                            break;
+                        case "UpdatePlayerWeChat":
+                            vm.allProposalType[x].seq = 4.06;
                             break;
                         case "UpdatePartnerInfo":
                             vm.allProposalType[x].seq = 5.01;
@@ -1526,6 +1560,10 @@ define(['js/app'], function (myApp) {
                                 vm.allProposalType[x].seq = 6.90;
                                 break;
                         }
+                    }
+                    if(groupName.toLowerCase() == "omit") {
+                        vm.allProposalType.splice(x,1);
+                        x--;
                     }
                 }
                 vm.allProposalType.sort(
@@ -1683,7 +1721,7 @@ define(['js/app'], function (myApp) {
                             item.topupTypeStr = $translate(item.type.name)
                         }
                         item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-                        item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime);
+                        item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime):"";
 
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch
@@ -1723,11 +1761,6 @@ define(['js/app'], function (myApp) {
                     var data = data.data;
                     vm.allWechatpaysAcc = data.data ? data.data : [];
                 });
-            socketService.$socket($scope.AppSocket, 'getMerchantList', {platform: vm.selectedPlatform.platformId},
-                data => {
-                    var data = data.data;
-                    vm.merchantLists = data.data ? data.data : [];
-                });
         }
 
         vm.drawTopupReport = function (data, size, summary, newSearch) {
@@ -1737,8 +1770,8 @@ define(['js/app'], function (myApp) {
                 "order": vm.queryTopup.aaSorting || [[0, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [6]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [14]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -1799,7 +1832,12 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight"},
 
                     {title: $translate('START_TIME'), data: "startTime$"},
-                    {title: $translate('END_TIME'), data: "endTime$"},
+                    {title: $translate('END_TIME'), data: "endTime$",
+                        render: function (data, type, row) {
+                            var text = $translate(data ?data : "");
+                            return "<div>" +text + "</div>";
+                        }
+                    },
                 ],
                 "paging": false,
                 createdRow: function(row, data, dataIndex){
@@ -1813,7 +1851,7 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.topupTable = $('#topupTable').DataTable(tableOptions);
 
-            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {6: summary.amount});
+            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {13: summary.amount});
 
             vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
 
@@ -2601,7 +2639,7 @@ define(['js/app'], function (myApp) {
                     if (!item.sourceUrl) {
                         item.registrationAgent$ = "Backstage";
                     }
-                    else if (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1) {
+                    else if (item.registrationBrowser$ && (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1)) {
                         if (item.partner) {
                             item.registrationAgent$ = "APP Agent";
                         }
@@ -2609,7 +2647,7 @@ define(['js/app'], function (myApp) {
                             item.registrationAgent$ = "APP Player";
                         }
                     }
-                    else if (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1) {
+                    else if (item.registrationOS$ && (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1)) {
                         if (item.partner) {
                             item.registrationAgent$ = "HTML5 Agent";
                         }
@@ -3231,9 +3269,10 @@ define(['js/app'], function (myApp) {
         ///////draw Platform table inside player start///////
         vm.drawPlatformTable = function (data, id, size, newSearch, qObj) {
             let holder = data;
-            var tableOptions = {
+            let tableOptions = {
                 data: data.providerArr,
-                "order": qObj.aaSorting,
+                "ordering": false,
+                // "order": qObj.aaSorting,
                 aoColumnDefs: [
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
@@ -3307,9 +3346,10 @@ define(['js/app'], function (myApp) {
 
         ///////draw Platform table inside player start///////
         vm.drawPlatformGameTable = function (data, id, size, newSearch, qObj) {
-            var tableOptions = {
+            let tableOptions = {
                 data: data,
-                "order": qObj.aaSorting,
+                "ordering": false,
+                // "order": qObj.aaSorting,
                 aoColumnDefs: [
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
@@ -3574,7 +3614,12 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'createTime', 'aTargets': [8]}
                 ],
                 columns: [
-                    {title: $translate('PROPOSAL ID'), data: "proposalId"},
+                    {title: $translate('PROPOSAL ID'), data: "proposalId",
+                        render: function (data, type, row) {
+                            data = String(data);
+                            return '<a ng-click="vm.showProposalModalNew(\''+data+'\')">'+data+'</a>';
+                        }
+                    },
                     {title: $translate('CREATOR'),
                         data: null,
                         render: function (data, type, row) {
@@ -3734,20 +3779,20 @@ define(['js/app'], function (myApp) {
                 //     $(nRow).css('background-color', 'rgba(135, 206, 250, 100)');
                 //     break;
                 // }
-                case (aData.data.updateAmount >= 5000 && aData.data.updateAmount < 50000): {
+                case (aData.involveAmount$ >= 5000 && aData.involveAmount$ < 50000): {
                     $(nRow).css('background-color', 'rgba(255, 209, 202, 100)','important');
                     $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
                     break;
                 }
-                case (aData.data.updateAmount >= 50000 && aData.data.updateAmount < 500000): {
+                case (aData.involveAmount$ >= 50000 && aData.involveAmount$ < 500000): {
                     $(nRow).css('background-color', 'rgba(236,100,75, 100)','important');
                     break;
                 }
-                case (aData.data.updateAmount >= 500000 && aData.data.updateAmount < 1000000): {
+                case (aData.involveAmount$ >= 500000 && aData.involveAmount$ < 1000000): {
                     $(nRow).css('background-color', 'rgba(255, 184, 133, 100)');
                     break;
                 }
-                case (aData.data.updateAmount >= 1000000): {
+                case (aData.involveAmount$ >= 1000000): {
                     $(nRow).css('background-color', 'rgba(188, 230, 114, 100)');
                     break;
                 }
@@ -5056,6 +5101,21 @@ define(['js/app'], function (myApp) {
           });
         }
 
+        vm.showProposalModalNew = function(proposalId){
+            vm.proposalDialog = 'proposal';
+            socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
+                platformId: vm.selectedPlatform._id,
+                proposalId: proposalId
+            }, function (data) {
+                vm.selectedProposal = data.data;
+                $('#modalProposal').modal('show');
+                $('#modalProposal').on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                })
+
+            })
+        }
+
         $scope.$on(eventName, function (e, d) {
 
             setTimeout(
@@ -5167,7 +5227,9 @@ define(['js/app'], function (myApp) {
                         '4': 'WechatApp',
                         '5': 'AlipayApp',
                         '6': 'FASTPAY',
-                        '7': 'QQPAYQR'
+                        '7': 'QQPAYQR',
+                        '8': 'UnPayQR',
+                        '9': 'JdPayQR'
                     };
                 }
             );

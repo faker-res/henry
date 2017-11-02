@@ -655,6 +655,15 @@ var dbUtility = {
         return str.substring(0, 3) + "******" + str.slice(-4);
     },
 
+    encodeRealName: function (str) {
+        str = str || '';
+        let encodedStr = str[0] || '';
+        for (let i = 1; i < str.length; i++) {
+            if (str !== " ") encodedStr += "*";
+        }
+        return encodedStr;
+    },
+
     getParameterByName: function (name, url) {
         if( !url ){
             return url;

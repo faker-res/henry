@@ -168,7 +168,7 @@ let dbPlayerReward = {
                                 });
                             }
                             let bProposal = false;
-                            player.inputDevice = dbUtility.getInputDevice(userAgent,false);
+                            player.inputDevice = dbUtility.getInputDevice(userAgent, false);
                             let proc = () => {
                                 queryTime = dateArr.pop();
                                 return processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo, isPrevious).then(
@@ -226,6 +226,7 @@ let dbPlayerReward = {
     applyPlayerTopUpPromo: (topUpProposalData, type) => {
         type = type || 'online';
         let player;
+
         return new Promise(function (resolve) {
             dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_TOP_UP_PROMO}).lean().then(
                 rewardTypeData => {
@@ -286,33 +287,73 @@ let dbPlayerReward = {
                         return;
                     }
 
+                    promotionDetail.rewardPercentage = promotionDetail.rewardPercentage || 0;
+
                     let rewardAmount = (Number(topUpProposalData.data.amount) * Number(promotionDetail.rewardPercentage) / 100);
-                    if( rewardAmount > 500 ){
+                    if (rewardAmount > 500) {
                         rewardAmount = 500;
                     }
-                    let proposalData = {
-                        type: promoEventDetail.executeProposal,
 
-                        data: {
-                            playerObjId: topUpProposalData.data.playerObjId,
-                            playerId: topUpProposalData.data.playerId,
-                            playerName: topUpProposalData.data.playerName,
-                            platformId: topUpProposalData.data.platformId,
-                            platform: topUpProposalData.data.platform,
-                            rewardAmount: rewardAmount,
-                            spendingAmount: rewardAmount,
-                            applyAmount: 0,
-                            amount: rewardAmount,
-                            eventId: promoEventDetail._id,
-                            eventName: promoEventDetail.name,
-                            eventCode: promoEventDetail.code,
-                            eventDescription: promoEventDetail.description
+                    let todaySGTime = dbUtility.getTodaySGTime();
+                    return dbConfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                type: promoEventDetail.executeProposal,
+                                "data.eventCode": promoEventDetail.code,
+                                "data.playerObjId": topUpProposalData.data.playerObjId,
+                                createTime: {
+                                    $gte: todaySGTime.startTime,
+                                    $lt: todaySGTime.endTime
+                                }
+                            }
                         },
-                        entryType: constProposalEntryType.SYSTEM,
-                        userType: constProposalUserType.PLAYERS
-                    };
+                        {
+                            $group: {
+                                _id: {type: "$type"},
+                                amount: {$sum: "$data.rewardAmount"}
+                            }
+                        }
+                    ).then(
+                        summaryData => {
+                            if (summaryData && summaryData[0] && summaryData[0].amount >= 500) {
+                                Q.reject({
+                                    status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                                    name: "DataError",
+                                    message: "Cant apply this reward, contact cs"
+                                });
+                            }
+                            else {
+                                if( summaryData && summaryData[0] && (rewardAmount + summaryData[0].amount) > 500 ){
+                                    rewardAmount = Math.max( 0, 500 - summaryData[0].amount);
+                                }
 
-                    return dbProposal.createProposalWithTypeId(promoEventDetail.executeProposal, proposalData);
+                                let proposalData = {
+                                    type: promoEventDetail.executeProposal,
+
+                                    data: {
+                                        playerObjId: topUpProposalData.data.playerObjId,
+                                        playerId: topUpProposalData.data.playerId,
+                                        playerName: topUpProposalData.data.playerName,
+                                        platformId: topUpProposalData.data.platformId,
+                                        platform: topUpProposalData.data.platform,
+                                        rewardAmount: rewardAmount,
+                                        spendingAmount: rewardAmount*10, //10 times spending amount
+                                        applyAmount: 0,
+                                        // amount: rewardAmount,
+                                        eventId: promoEventDetail._id,
+                                        eventName: promoEventDetail.name,
+                                        eventCode: promoEventDetail.code,
+                                        eventDescription: promoEventDetail.description
+                                    },
+                                    entryType: constProposalEntryType.SYSTEM,
+                                    userType: constProposalUserType.PLAYERS
+                                };
+
+                                return dbProposal.createProposalWithTypeId(promoEventDetail.executeProposal, proposalData);
+                            }
+                        }
+                    );
+
                 }
             ).then(
                 proposalData => {
@@ -565,7 +606,7 @@ let dbPlayerReward = {
                                 spendingAmount: rewardAmount * Number(rewardParam.spendingTimes),
                                 applyAmount: 0,
                                 consumptionAmount: consumptionAmount,
-                                amount: rewardAmount,
+                                // amount: rewardAmount,
                                 settlementStartTime: yerTime.startTime,
                                 settlementEndTime: yerTime.endTime,
                                 eventId: eventData._id,
@@ -1129,20 +1170,21 @@ let dbPlayerReward = {
     getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
     getDelayDurationGroup: (platformObjId, duration) => dbConfig.collection_platform.find({_id: platformObjId}).lean(),
 
-    applyPromoCode: (platformObjId, playerName, promoCode, adminInfo) => {
+    applyPromoCode: (playerId, promoCode, adminInfo) => {
         let promoCodeObj, playerObj, topUpProp;
         let isType2Promo = false;
+        let platformObjId = '';
 
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
-                platform: platformObjId,
-                name: playerName
+                playerId: playerId
             })
         }).then(
             playerData => {
                 playerObj = playerData;
+                platformObjId = playerObj.platform
                 return dbConfig.collection_promoCode.find({
-                    platformObjId: platformObjId,
+                    platformObjId: playerData.platform,
                     playerObjId: playerObj._id,
                     status: constPromoCodeStatus.AVAILABLE
                 }).populate({
@@ -1232,7 +1274,7 @@ let dbPlayerReward = {
                         });
                 } else {
                     return Q.reject({
-                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        status: constServerCode.PLAYER_NOT_MINTOPUP,
                         name: "ConditionError",
                         message: "您需要有新的存款 '" + promoCodeObj.minTopUpAmount + "元' 才可以领取此优惠，千万别错过了！"
                     })
@@ -1638,8 +1680,8 @@ let dbPlayerReward = {
             offerSumm => {
                 // Filter by status if any
                 rewards = rewards.filter(e => (!status || status == e.status)
-                && new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()
-                && new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime());
+                    && new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()
+                    && new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime());
 
 
                 rewards.map(e => {
@@ -2123,6 +2165,7 @@ function getPromoTitle(promo) {
     }
     return promoTitle;
 }
+
 var proto = dbPlayerRewardFunc.prototype;
 proto = Object.assign(proto, dbPlayerReward);
 

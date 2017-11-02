@@ -86,8 +86,8 @@ function socketActionPromoCode(socketIO, socket) {
 
         applyPromoCode: function applyPromoCode(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.playerName && data.promoCode);
-            socketUtil.emitter(self.socket, dbPlayerReward.applyPromoCode, [ObjectId(data.platformObjId), data.playerName, data.promoCode, adminInfo], actionName, isValidData);
+            let isValidData = Boolean(data && data.playerId && data.promoCode);
+            socketUtil.emitter(self.socket, dbPlayerReward.applyPromoCode, [data.playerId, data.promoCode, adminInfo], actionName, isValidData);
         },
 
         getPromoCodesMonitor: function getPromoCodesMonitor(data) {

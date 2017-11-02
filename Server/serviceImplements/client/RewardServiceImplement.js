@@ -122,10 +122,10 @@ let RewardServiceImplement = function () {
         let isValidData = Boolean(data && data.platformId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getPromoCode, [data.playerId, data.platformId, data.status], isValidData, false, false, true);
     };
-    this.applyPromoCode.expectsData = 'platformObjId: String';
+    this.applyPromoCode.expectsData = 'promoCode: Number|String';
     this.applyPromoCode.onRequest = function(wsFunc, conn, data){
-        let isValidData = Boolean(data && data.playerName && data.promoCode);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyPromoCode, [ObjectId(data.platformObjId), data.playerName, data.promoCode], isValidData, false, false, true);
+        let isValidData = Boolean(data && conn.playerId && data.promoCode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyPromoCode, [conn.playerId, data.promoCode], isValidData, false, false, true);
     };
     this.getLimitedOffers.expectsData = 'platformId: String';
     this.getLimitedOffers.onRequest = function (wsFunc, conn, data) {

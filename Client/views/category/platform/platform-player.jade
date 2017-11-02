@@ -122,6 +122,12 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ClearProposalLimit')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalClearProposalLimit', ng-click='vm.prepareClearPlayerProposalLimit()')
             text {{"ClearProposalLimit" | translate}}
             img.img-edit
+    hr.margin-top-bottom-small
+    .btn-group.margin-small
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'devFunc', 'Read')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.triggerSavePlayersCredit()')
+            text {{"Trigger Save Players Credit" | translate}}
+            img.img-edit
+
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Delete')", ng-disabled="!vm.canDeletePlayers()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalDeletePlayer')
         //    text(ng-if="vm.selectedSinglePlayer.status == 1 ") {{"DISABLE" | translate}}
         //    text(ng-if="vm.selectedSinglePlayer.status != 1 ") {{"ENABLE" | translate}}
@@ -154,7 +160,7 @@
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'referrals')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", ng-click='vm.initPlayerReferral()')
             text {{"REFERRAL" | translate}}
             img.img-edit
-            
+
 //.col-md-12.playerBtn
     hr.margin-top-bottom-small
     .btn-group.margin-small
@@ -352,7 +358,7 @@ include modalGameCreditLog
                                     #basicGroup.tab-pane.fade(ng-class="selectedTab =='basicInfo'?'in active':''")
                                         include player-edit-form
                                         button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
-                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid || form_edit_player.$pristine', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
+                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
                                     #contactGroup.tab-pane.fade(ng-class="selectedTab =='contactInfo'?'in active':''")
                                         include player-edit-contact
                                     #withdrawGroup.tab-pane.fade(ng-class="selectedTab =='withdrawInfo'?'in active':''")
@@ -1159,14 +1165,14 @@ include modalGameCreditLog
                     li(ng-class="vm.selectedPlayerAccountingDetailTab == 'current-credit' ? 'active' : null")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('current-credit')") {{"PLAYER_CURRENT_CREDIT" | translate}}
                     li(ng-class="vm.selectedPlayerAccountingDetailTab == 'proposal-log' ? 'active' : null")
-                        a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('proposal-log')") {{"PLAYER_PROPOSAL_LOG" | translate}}
+                        a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('proposal-log');vm.prepareShowProposal();") {{"PLAYER_PROPOSAL_LOG" | translate}}
                     li(ng-class="vm.selectedPlayerAccountingDetailTab == 'bet-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'PlayerExpenses');")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('bet-log');vm.prepareShowPlayerExpense();") {{"PLAYER_BET_LOG" | translate}}
                     li(ng-class="vm.selectedPlayerAccountingDetailTab == 'credit-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'CreditChangeLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('credit-log');vm.showPagedPlayerCreditChangeLog();") {{"PLAYER_CREDIT_LOG" | translate}}
                     li(ng-class="vm.selectedPlayerAccountingDetailTab == 'platform-transfer-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('platform-transfer-log');vm.showPlatformCreditTransferLog();") {{"PLAYER_PLATFORM_TRANSFER_LOG" | translate}}
-                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'playerCreditDailyLog')")
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'playerDailyCreditLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('midnight-balance-log');vm.initPlayerCreditLog();") {{"PLAYER_MIDNIGHT_BALANCE_LOG" | translate}}
 
                 .panel.panel-primary(style="border-radius:0 !important;")
@@ -1209,6 +1215,34 @@ include modalGameCreditLog
                                             text.text-danger {{vm.transferAllCredit[v.providerId].text | translate}}
                                             i.fa.fa-spinner.fa-spin(ng-if='vm.transferAllCredit[v.providerId].finished== false')
                         div(ng-show="vm.selectedPlayerAccountingDetailTab == 'proposal-log'")
+                            #playerProposalData.adminLogQueryDiv
+                                .inlineBlk
+                                    label {{'START_DATE' | translate}}
+                                    .startTime
+                                .inlineBlk
+                                    label {{'END_DATE' | translate}}
+                                    .endTime
+                                .inlineBlk
+                                    label(style='width:200px;') {{"Proposal Type"|translate}}
+                                    select.form-control#selectProposalType(multiple="multiple", ng-options='i._id as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='abc')
+                                .inlineBlk
+                                    label(style='width:150px;') {{"CUSTOMIZED_PROMO_NAME"|translate}}
+                                    select.form-control#selectRewardType(multiple="multiple", ng-options='i._id as i.name for (k,i) in ( vm.rewardList | unique: "name" ) track by i.name', ng-model='bbc')
+                                .inlineBlk
+                                    label(style='width:150px;') {{"PROMO_CODE_NAME"|translate}}
+                                    select.form-control#selectPromoType(multiple="multiple", ng-options='i._id as i.name for (k,i) in ( vm.promoTypeList | unique: "name" ) track by i.name', ng-model='cbc')
+                                .inlineBlk
+                                    label {{"Proposal Status"|translate}}
+                                    select.form-control(ng-model='vm.proposalFilterstatus', style='max-width:300px', required)
+                                        option(value='all') {{'all' | translate}}
+                                        option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}', ng-selected='vm.proposalFilterstatus==v._id') {{v | translate}}
+                                .inlineBlk
+                                    button.btn.btn-primary(ng-click='vm.getPlayerProposalByFilter(true)') {{'SEARCH' | translate}}
+                                .inlineBlk(ng-if='vm.playerProposal.loading')
+                                    i.fa.fa-spin.fa-spinner
+                            label {{"Total" | translate}} {{vm.playerProposal.totalCount}} {{"records" | translate}}
+                            table#playerProposalTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                            #playerProposalTablePage
                         div(ng-show="vm.selectedPlayerAccountingDetailTab == 'bet-log'")
                             #playerExpense.adminLogQueryDiv
                                 .inlineBlk
@@ -1525,7 +1559,7 @@ include modalGameCreditLog
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPlayerDialog('basicInfo');", ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
-                                        button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-click='vm.getPlayerInfoHistory()') {{"EDIT_HISTORY" | translate}}
                                         br
                                         button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'ResetPassword')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initResetPlayerPasswordModal()', data-target='#modalPlayerPasswordReset') {{"EDIT_WEBSITE_PASS" | translate}}
                                         br
@@ -1574,7 +1608,7 @@ include modalGameCreditLog
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'EditContact')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('contactInfo')") {{"EDIT" | translate}}
                                         br
-                                        button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-click='vm.getPlayerContactHistory()') {{"EDIT_HISTORY" | translate}}
                                 tr
                                     td
                                         div {{'WITHDRAW_INFO' | translate}}
@@ -1679,7 +1713,7 @@ include modalGameCreditLog
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-click='vm.openEditPlayerDialog("topUpInfo");', ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
-                                        button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
+                                        //button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
                                 tr
                                     td
                                         div {{'IP' | translate}}
@@ -1877,6 +1911,30 @@ include modalGameCreditLog
                     .col-md-12
                         label {{"Total" | translate}} {{vm.paymetHistoryCount}} {{"records" | translate}}
                         table#playerPaymentHistoryTbl.common-table.display(style='min-width:100%;width:inherit')
+
+#modalPlayerInfoHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:90%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Player' | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                .row
+                    .col-md-12
+                        label {{"Total" | translate}} {{vm.playerInfoHistoryCount}} {{"records" | translate}}
+                        table#playerInfoHistoryTbl.common-table.display(style='min-width:100%;width:inherit')
+
+#modalPlayerContactHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:90%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Player' | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                .row
+                    .col-md-12
+                        label {{"Total" | translate}} {{vm.playerContactHistoryCount}} {{"records" | translate}}
+                        table#playerContactHistoryTbl.common-table.display(style='min-width:100%;width:inherit')
 
 #playerPermissionPopover.hide(style="width: 600px")
     #playerPermissionTable

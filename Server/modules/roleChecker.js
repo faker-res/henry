@@ -18,11 +18,11 @@ var roleChecker = {
         'addPlatformsToDepartmentById', 'removePlatformsFromDepartmentById', 'updatePlatform', 'deletePlatformById',
         'createPlatform', 'startPlatformDailySettlement', 'startPlatformWeeklySettlement',
         'createPlayer', 'createTestPlayerForPlatform', 'deletePlayersById', 'createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus',
-        'createUpdatePlayerEmailProposal', 'createUpdatePlayerQQProposal', 'createUpdatePlayerPhoneProposal', 'updatePlayerPayment', 'resetPlayerPassword',
+        'createUpdatePlayerEmailProposal', 'createUpdatePlayerQQProposal','createUpdatePlayerWeChatProposal', 'createUpdatePlayerPhoneProposal', 'updatePlayerPayment', 'resetPlayerPassword',
         'applyManualTopUpRequest', 'applyBonusRequest', 'applyRewardEvent', 'createUpdatePlayerCreditProposal', 'updatePlayerPermission',
         'createPlayerFeedback',
         'createPartnerWithParent', 'createPartner', 'createPlayerLoginRecord', 'deletePartnersById', 'deletePlayerLoginRecord', 'updatePartner',
-        'createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal', 'createUpdatePartnerBankInfoProposal', 'resetPartnerPassword',
+        'createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal', 'createUpdatePartnerQQProposal', 'createUpdatePartnerBankInfoProposal', 'resetPartnerPassword',
         'addProviderToPlatformById', 'renameProviderInPlatformById', 'updateProviderFromPlatformById', 'removeProviderFromPlatformById', 'attachGameToPlatform', 'detachGameFromPlatform',
         'updateGameStatusToPlatform',
         'addPlatformGameGroup', 'updateGameGroupParent', 'renamePlatformGameGroup', 'updatePlatformGameGroup', 'deleteGameGroup',
@@ -251,7 +251,7 @@ var roleChecker = {
                 AddFeedback: [],
                 FeedbackHistory: [],
                 Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity', 'updatePlayerReferral','createUpdateTopUpGroupLog'],
-                EditContact: ['createUpdatePlayerEmailProposal', 'createUpdatePlayerPhoneProposal', 'createUpdatePlayerQQProposal'],
+                EditContact: ['createUpdatePlayerEmailProposal', 'createUpdatePlayerPhoneProposal', 'createUpdatePlayerQQProposal','createUpdatePlayerWeChatProposal'],
                 PaymentInformation: ['updatePlayerPayment', 'createUpdatePlayerBankInfoProposal', 'verifyPlayerBankAccount'],
                 PaymentInformationHistory: ['getPaymentHistory'],
                 ResetPassword: ['resetPlayerPassword'],
@@ -283,7 +283,6 @@ var roleChecker = {
                 ModifyGamePassword: ['modifyGamePassword'],
                 ClearProposalLimit: ['requestClearProposalLimit'],
                 TriggerAutoProposal: ['triggerAutoProposal'],
-                TriggerSavePlayersCredit: ['triggerSavePlayersCredit'],
                 playerDailyCreditLog :['playerCreditDailyLog'],
                 playerApiLog: ['getPlayerApiLog'],
                 rewardTaskLog: ['getPlayerRewardTask'],
@@ -303,7 +302,7 @@ var roleChecker = {
                 Create: ['createPartnerWithParent', 'createPartner', 'createPlayerLoginRecord'],
                 Delete: ['deletePartnersById', 'deletePlayerLoginRecord'],
                 Edit: ['updatePartner', 'checkPartnerFieldValidity', 'checkOwnDomainValidity', 'createUpdatePartnerInfoProposal'],
-                EditContact: ['createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal'],
+                EditContact: ['createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal', 'createUpdatePartnerQQProposal'],
                 BankDetail: ['createUpdatePartnerBankInfoProposal', 'verifyPlayerBankAccount'],
                 ResetPassword: ['resetPartnerPassword'],
                 ApplyBonus: ['applyPartnerBonusRequest'],
@@ -409,6 +408,9 @@ var roleChecker = {
                 Create: ['createOfficer', 'addPromoteWay', 'addUrl'],
                 Delete: ['deletePromoteWay', 'deleteOfficer', 'deleteUrl'],
                 Update: ['updateUrl']
+            },
+            "devFunc": {
+                Read: ['triggerSavePlayersCredit']
             }
         },
         Payment: {

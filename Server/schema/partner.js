@@ -143,7 +143,9 @@ var partnerSchema = new Schema({
     // the number of times where partner login
     loginTimes: {type: Number, default: 0},
     // url where the registree come from
-    sourceUrl: {type: String}
+    sourceUrl: {type: String},
+    //social media info
+    qq: {type: String}
 });
 
 partnerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('partnerId'));

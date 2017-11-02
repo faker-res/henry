@@ -83,7 +83,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName) {
+    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId) {
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -361,6 +361,7 @@ let dbPlayerInfo = {
                     else if (adminName) {
                         // insert related CS name when account is opened from backstage
                         inputData.accAdmin = adminName;
+                        inputData.csOfficer = ObjectId(adminId);
                     }
 
                     return dbPlayerInfo.createPlayerInfo(inputData);
@@ -371,7 +372,7 @@ let dbPlayerInfo = {
                         dbPlayerInfo.createPlayerLoginRecord(data);
                         //todo::temp disable similar player untill ip is correct
                         dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
-                        dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
+                        // dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
                         return data;
                     }
                     else {
@@ -973,6 +974,13 @@ let dbPlayerInfo = {
                 }
                 apiData = data;
 
+                // if (data.realName) {
+                //     data.realName = dbUtility.encodeRealName(data.realName);
+                // }
+                // if (data.bankAccountName) {
+                //     data.bankAccountName = dbUtility.encodeRealName(data.bankAccountName);
+                // }
+
                 if (data.platform) {
                     return dbconfig.collection_platform.findOne({_id: data.platform});
                 }
@@ -1220,17 +1228,17 @@ let dbPlayerInfo = {
                         delete permission[i];
                     }
                 }
-                if (Object.keys(oldData).length !== 0) {
-                    var newLog = new dbconfig.collection_playerPermissionLog({
-                        admin: admin,
-                        platform: query.platform,
-                        player: query._id,
-                        remark: remark,
-                        oldData: oldData,
-                        newData: permission,
-                    });
-                    return newLog.save();
-                } else return true;
+                // if (Object.keys(oldData).length !== 0) {
+                var newLog = new dbconfig.collection_playerPermissionLog({
+                    admin: admin,
+                    platform: query.platform,
+                    player: query._id,
+                    remark: remark,
+                    oldData: oldData,
+                    newData: permission,
+                });
+                return newLog.save();
+                // } else return true;
             },
             function (error) {
                 return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
@@ -1497,11 +1505,12 @@ let dbPlayerInfo = {
                     platformObjId = playerData.platform;
                     //check if bankAccountName in update data is the same as player's real name
                     if (updateData.bankAccountName && updateData.bankAccountName != playerData.realName) {
-                        return Q.reject({
-                            name: "DataError",
-                            code: constServerCode.INVALID_DATA,
-                            message: "Bank account name is different from real name"
-                        });
+                        // return Q.reject({
+                        //     name: "DataError",
+                        //     code: constServerCode.INVALID_DATA,
+                        //     message: "Bank account name is different from real name"
+                        // });
+                        updateData.realName = updateData.bankAccountName;
                     }
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
@@ -2870,7 +2879,7 @@ let dbPlayerInfo = {
                     {
                         $group: {
                             _id: "$type",
-                            totalAmount: {$sum: "$rewardAmount"}
+                            totalAmount: {$sum: "$data.rewardAmount"}
                         }
                     }
                 );
@@ -3295,13 +3304,19 @@ let dbPlayerInfo = {
                         os: userAgent.os.name || '',
                     };
                     var bExit = false;
-                    newAgentArray.forEach(
-                        agent => {
-                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
-                                bExit = true;
+                    if(newAgentArray && typeof newAgentArray.forEach == "function" ){
+                        newAgentArray.forEach(
+                            agent => {
+                                if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                    bExit = true;
+                                }
                             }
-                        }
-                    );
+                        );
+                    }
+                    else{
+                        newAgentArray = [];
+                        bExit = true;
+                    }
                     if (!bExit) {
                         newAgentArray.push(uaObj);
                     }
@@ -3363,7 +3378,7 @@ let dbPlayerInfo = {
                                     }
 
                                     if (updateSimilarIpPlayer) {
-                                        dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'lastLoginIp', playerData.lastLoginIp);
+                                        // dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'lastLoginIp', playerData.lastLoginIp);
                                     }
                                 }
                             ).then(
@@ -3571,13 +3586,20 @@ let dbPlayerInfo = {
                         os: userAgent.os.name || '',
                     };
                     let bExit = false;
-                    newAgentArray.forEach(
-                        agent => {
-                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
-                                bExit = true;
+                    if(newAgentArray && typeof newAgentArray.forEach == "function" ){
+                        newAgentArray.forEach(
+                            agent => {
+                                if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                    bExit = true;
+                                }
                             }
-                        }
-                    );
+                        );
+                    }
+                    else{
+                        newAgentArray = [];
+                        bExit = true;
+                    }
+
                     if (!bExit) {
                         newAgentArray.push(uaObj);
                     }
@@ -8091,6 +8113,7 @@ let dbPlayerInfo = {
         var adminInfo = ifAdmin;
 
         let eventData, taskData;
+        let isProviderGroup = false;
 
         var recordProm = dbconfig.collection_playerTopUpRecord.findById(topUpRecordId).lean();
         var playerProm = dbconfig.collection_players.findOne({playerId: playerId})
@@ -8114,6 +8137,7 @@ let dbPlayerInfo = {
                     player = data[0];
                     record = data[1];
                     platformId = player.platform;
+                    isProviderGroup = Boolean(player.platform.useProviderGroup);
 
                     let taskProm;
                     if (!player.platform.canMultiReward && player.platform.useLockedCredit) {
@@ -8273,7 +8297,6 @@ let dbPlayerInfo = {
                                     topUpProposalId: record.proposalId,
                                     applyAmount: deductionAmount,
                                     rewardAmount: rewardAmount,
-                                    providers: eventData.param.providers,
                                     targetEnable: eventData.param.targetEnable,
                                     games: eventData.param.games,
                                     spendingAmount: (record.amount + rewardAmount) * rewardParam.spendingTimes,
@@ -8288,6 +8311,14 @@ let dbPlayerInfo = {
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS,
                             };
+
+                            // Provider Group setting
+                            if (isProviderGroup) {
+                                proposalData.data.providerGroup = eventData.param.providerGroup;
+                            } else {
+                                proposalData.data.providers = eventData.param.providers;
+                            }
+
                             proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                             return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                                 {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
@@ -10994,7 +11025,7 @@ let dbPlayerInfo = {
         )
     },
 
-    comparePhoneNum: function (arrayInputPhone) {
+    comparePhoneNum: function (platformObjId, arrayInputPhone) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayInputPhone.length; i++) {
@@ -11004,7 +11035,7 @@ let dbPlayerInfo = {
 
         // display phoneNumber from DB without asterisk masking
         let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone}},
+            {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
             {$project: {name: 1, phoneNumber: 1, _id: 0}}
         ]);
 
@@ -11027,13 +11058,109 @@ let dbPlayerInfo = {
 
             // display non duplicated phone numbers
             let diffPhone = arrayInputPhone.filter(item => !arrayDbPhone.includes(item));
+            let diffPhoneTotal = diffPhone.length;
             diffPhoneList = diffPhone.join(", ");
 
             // display duplicated phone numbers
             let samePhone = arrayInputPhone.filter(item => arrayDbPhone.includes(item));
+            let samePhoneTotal = samePhone.length;
             samePhoneList = samePhone.join(", ");
 
-            return {samePhoneList: samePhoneList, diffPhoneList: diffPhoneList};
+            return {samePhoneList: samePhoneList, diffPhoneList: diffPhoneList, samePhoneTotal: samePhoneTotal, diffPhoneTotal: diffPhoneTotal};
+        }).then(data => {
+            return data;
+        });
+    },
+
+    uploadPhoneFileCSV: function (platformObjId, arrayPhoneCSV) {
+        let oldNewPhone = {$in: []};
+
+        for (let i = 0; i < arrayPhoneCSV.length; i++) {
+            oldNewPhone.$in.push(arrayPhoneCSV[i]);
+            oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneCSV[i]));
+        }
+
+        // display phoneNumber from DB without asterisk masking
+        let dbPhone = dbconfig.collection_players.aggregate([
+            {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
+            {$project: {name: 1, phoneNumber: 1, _id: 0}}
+        ]);
+
+        let diffPhoneCSV;
+        let samePhoneCSV;
+        let arrayDbPhone = [];
+
+        // display phoneNumber result that matched input phoneNumber
+        return dbPhone.then(playerData => {
+            // encrypted phoneNumber in DB will be decrypted
+            for (let q = 0; q < playerData.length; q ++) {
+                if (playerData[q].phoneNumber.length > 20) {
+                    playerData[q].phoneNumber = rsaCrypto.decrypt(playerData[q].phoneNumber);
+                }
+            }
+
+            for (let z = 0; z < playerData.length; z ++) {
+                arrayDbPhone.push(playerData[z].phoneNumber);
+            }
+
+            // display non duplicated phone numbers
+            let diffPhone = arrayPhoneCSV.filter(item => !arrayDbPhone.includes(item));
+            let diffPhoneTotalCSV = diffPhone.length;
+            diffPhoneCSV = diffPhone.join(", ");
+
+            // display duplicated phone numbers
+            let samePhone = arrayPhoneCSV.filter(item => arrayDbPhone.includes(item));
+            let samePhoneTotalCSV = samePhone.length;
+            samePhoneCSV = samePhone.join(", ");
+
+            return {samePhoneCSV: samePhoneCSV, diffPhoneCSV: diffPhoneCSV, samePhoneTotalCSV: samePhoneTotalCSV, diffPhoneTotalCSV: diffPhoneTotalCSV};
+        }).then(data => {
+            return data;
+        });
+    },
+
+    uploadPhoneFileTXT: function (platformObjId, arrayPhoneTXT) {
+        let oldNewPhone = {$in: []};
+
+        for (let i = 0; i < arrayPhoneTXT.length; i++) {
+            oldNewPhone.$in.push(arrayPhoneTXT[i]);
+            oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneTXT[i]));
+        }
+
+        // display phoneNumber from DB without asterisk masking
+        let dbPhone = dbconfig.collection_players.aggregate([
+            {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
+            {$project: {name: 1, phoneNumber: 1, _id: 0}}
+        ]);
+
+        let diffPhoneTXT;
+        let samePhoneTXT;
+        let arrayDbPhone = [];
+
+        // display phoneNumber result that matched input phoneNumber
+        return dbPhone.then(playerData => {
+            // encrypted phoneNumber in DB will be decrypted
+            for (let q = 0; q < playerData.length; q ++) {
+                if (playerData[q].phoneNumber.length > 20) {
+                    playerData[q].phoneNumber = rsaCrypto.decrypt(playerData[q].phoneNumber);
+                }
+            }
+
+            for (let z = 0; z < playerData.length; z ++) {
+                arrayDbPhone.push(playerData[z].phoneNumber);
+            }
+
+            // display non duplicated phone numbers
+            let diffPhone = arrayPhoneTXT.filter(item => !arrayDbPhone.includes(item));
+            let diffPhoneTotalTXT = diffPhone.length;
+            diffPhoneTXT = diffPhone.join(", ");
+
+            // display duplicated phone numbers
+            let samePhone = arrayPhoneTXT.filter(item => arrayDbPhone.includes(item));
+            let samePhoneTotalTXT = samePhone.length;
+            samePhoneTXT = samePhone.join(", ");
+
+            return {samePhoneTXT: samePhoneTXT, diffPhoneTXT: diffPhoneTXT, samePhoneTotalTXT: samePhoneTotalTXT, diffPhoneTotalTXT: diffPhoneTotalTXT};
         }).then(data => {
             return data;
         });
