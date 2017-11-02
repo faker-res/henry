@@ -481,9 +481,9 @@ define(['js/app'], function (myApp) {
                 startDate: startTime.getLocalDate(),
                 endDate: newEndTime,
                 entryType: vm.queryProposalEntryType,
-                size: vm.queryProposal.limit || 10,
-                index: newSearch ? 0 : (vm.queryProposal.index || 0),
-                sortCol: vm.queryProposal.sortCol
+                size: vm.queryAuditProposal.limit || 10,
+                index: newSearch ? 0 : (vm.queryAuditProposal.index || 0),
+                sortCol: vm.queryAuditProposal.sortCol
             };
 
             if (vm.queryProposalRelatedUser) {
@@ -2555,6 +2555,7 @@ define(['js/app'], function (myApp) {
                     vm.needRefreshTable = false;
                     vm.allBankTypeList = {};
                     vm.queryProposal = {};
+                    vm.queryAuditProposal = {};
                     //todo::check why need to use timeOut here
                     vm.proposalTypeIdtoText = {};
                     $.fn.dataTable.ext.search = [];
@@ -2583,6 +2584,16 @@ define(['js/app'], function (myApp) {
                             vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
                         });
                     });
+
+                    // for some reason, the pagination wont translate when it does not put inside setTimeout
+                    setTimeout(function() {
+                        utilService.actionAfterLoaded("#proposalAuditDataTablePage", function () {
+                            vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalAuditDataTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "queryAuditProposal", vm.loadProposalAuditQueryData)
+                            });
+                        });
+                    }, 0);
+
 
                     // Q.all([vm.getAllPlatforms(), vm.getProposalEntryTypeList(), vm.getProposalPriorityList(),
                     //     vm.getProposalUserTypeList(), vm.getAllProposalStatus()])
