@@ -1424,9 +1424,9 @@ var proposal = {
                                 $group: {
                                     _id: null,
                                     totalAmount: {$sum: "$data.amount"},
-                                    totalRewardAmount: {$sum: {
-                                        $cond: [ { "$ifNull": ["$data.rewardAmount", false] }, "$data.rewardAmount", 0 ]
-                                    }},
+                                    totalRewardAmount: {$sum: {$cond:[
+                                        {$eq: ["$data.rewardAmount", NaN]}, 0, "$data.rewardAmount"
+                                    ]}},
                                     // totalRewardAmount: {$sum: "$data.rewardAmount"},
                                     totalTopUpAmount: {$sum: "$data.topUpAmount"},
                                     totalUpdateAmount: {$sum: "$data.updateAmount"},
@@ -1521,7 +1521,7 @@ var proposal = {
                         path: "process",
                         model: dbconfig.collection_proposalProcess
                     }).populate({path: "type", model: dbconfig.collection_proposalType});
-                    var c = dbconfig.collection_proposal.aggregate(
+                    var c = dbconfig.collection_proposal.aggregate([
                         {
                             $match: {
                                 type: {$in: proposalTypeIdList},
@@ -1532,11 +1532,16 @@ var proposal = {
                             $group: {
                                 _id: null,
                                 totalAmount: {$sum: "$data.amount"},
-                                totalRewardAmount: {$sum: "$data.rewardAmount"},
+                                totalRewardAmount: {$sum: {$cond:[
+                                    {$eq: ["$data.rewardAmount", NaN]},
+                                    0,
+                                    "$data.rewardAmount"
+                                ]}},
+                                // totalRewardAmount: {$sum: "$data.rewardAmount"},
                                 totalTopUpAmount: {$sum: "$data.topUpAmount"}
                             }
                         }
-                    );
+                    ]);
                     return Q.all([a, b, c]);
                 },
                 function (error) {
@@ -1604,7 +1609,7 @@ var proposal = {
             var b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                 .populate({path: "type", model: dbconfig.collection_proposalType})
                 .populate({path: "process", model: dbconfig.collection_proposalProcess});
-            var c = dbconfig.collection_proposal.aggregate(
+            var c = dbconfig.collection_proposal.aggregate([
                 {
                     $match: reqData
                 },
@@ -1612,11 +1617,15 @@ var proposal = {
                     $group: {
                         _id: null,
                         totalAmount: {$sum: "$data.amount"},
-                        totalRewardAmount: {$sum: "$data.rewardAmount"},
+                        totalRewardAmount: {$sum: {$cond:[
+                            {$eq: ["$data.rewardAmount", NaN]},
+                            0,
+                            "$data.rewardAmount"
+                        ]}},
                         totalTopUpAmount: {$sum: "$data.topUpAmount"}
                     }
                 }
-            );
+            ]);
             Q.all([a, b, c]).then(
                 function (data) {
                     totalSize = data[0];
