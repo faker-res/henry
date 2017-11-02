@@ -1205,17 +1205,17 @@ let dbPlayerInfo = {
                         delete permission[i];
                     }
                 }
-                if (Object.keys(oldData).length !== 0) {
-                    var newLog = new dbconfig.collection_playerPermissionLog({
-                        admin: admin,
-                        platform: query.platform,
-                        player: query._id,
-                        remark: remark,
-                        oldData: oldData,
-                        newData: permission,
-                    });
-                    return newLog.save();
-                } else return true;
+                // if (Object.keys(oldData).length !== 0) {
+                var newLog = new dbconfig.collection_playerPermissionLog({
+                    admin: admin,
+                    platform: query.platform,
+                    player: query._id,
+                    remark: remark,
+                    oldData: oldData,
+                    newData: permission,
+                });
+                return newLog.save();
+                // } else return true;
             },
             function (error) {
                 return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
