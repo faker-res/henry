@@ -1248,7 +1248,7 @@ var proposal = {
         });
     },
 
-    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName) {//need
+    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName, inputDevice) {//need
         platformId = Array.isArray(platformId) ?platformId :[platformId];
 
         //check proposal without process
@@ -1356,6 +1356,7 @@ var proposal = {
                         if (entryType) {
                             queryObj.entryType = entryType;
                         }
+                        inputDevice ? queryObj.inputDevice = inputDevice : null;
                         var sortKey = (Object.keys(sortCol))[0];
                         var a = sortKey != 'relatedAmount' ?
                             dbconfig.collection_proposal.find(queryObj)
@@ -1582,6 +1583,7 @@ var proposal = {
                 reqData["$and"].push({$or: orQuery});
                 delete reqData["data.eventName"];
             }
+
             if (reqData["data.PROMO_CODE_TYPE"]) {
                 let dataCheck = {"data.PROMO_CODE_TYPE":{$in: reqData["data.PROMO_CODE_TYPE"]}};
                 let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};

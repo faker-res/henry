@@ -1205,17 +1205,17 @@ let dbPlayerInfo = {
                         delete permission[i];
                     }
                 }
-                if (Object.keys(oldData).length !== 0) {
-                    var newLog = new dbconfig.collection_playerPermissionLog({
-                        admin: admin,
-                        platform: query.platform,
-                        player: query._id,
-                        remark: remark,
-                        oldData: oldData,
-                        newData: permission,
-                    });
-                    return newLog.save();
-                } else return true;
+                // if (Object.keys(oldData).length !== 0) {
+                var newLog = new dbconfig.collection_playerPermissionLog({
+                    admin: admin,
+                    platform: query.platform,
+                    player: query._id,
+                    remark: remark,
+                    oldData: oldData,
+                    newData: permission,
+                });
+                return newLog.save();
+                // } else return true;
             },
             function (error) {
                 return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
@@ -11002,7 +11002,7 @@ let dbPlayerInfo = {
         )
     },
 
-    comparePhoneNum: function (arrayInputPhone) {
+    comparePhoneNum: function (platformObjId, arrayInputPhone) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayInputPhone.length; i++) {
@@ -11012,7 +11012,7 @@ let dbPlayerInfo = {
 
         // display phoneNumber from DB without asterisk masking
         let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone}},
+            {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
             {$project: {name: 1, phoneNumber: 1, _id: 0}}
         ]);
 
@@ -11049,7 +11049,7 @@ let dbPlayerInfo = {
         });
     },
 
-    uploadPhoneFileCSV: function (arrayPhoneCSV) {
+    uploadPhoneFileCSV: function (platformObjId, arrayPhoneCSV) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayPhoneCSV.length; i++) {
@@ -11059,7 +11059,7 @@ let dbPlayerInfo = {
 
         // display phoneNumber from DB without asterisk masking
         let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone}},
+            {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
             {$project: {name: 1, phoneNumber: 1, _id: 0}}
         ]);
 
@@ -11096,7 +11096,7 @@ let dbPlayerInfo = {
         });
     },
 
-    uploadPhoneFileTXT: function (arrayPhoneTXT) {
+    uploadPhoneFileTXT: function (platformObjId, arrayPhoneTXT) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayPhoneTXT.length; i++) {
@@ -11106,7 +11106,7 @@ let dbPlayerInfo = {
 
         // display phoneNumber from DB without asterisk masking
         let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone}},
+            {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
             {$project: {name: 1, phoneNumber: 1, _id: 0}}
         ]);
 
