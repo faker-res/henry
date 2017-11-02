@@ -2575,18 +2575,15 @@
   "APP_AGENT": "APP代理",
   "PROPOSAL_SUB_TYPE": "提案子类型",
   "INVOLVED_ACC": "涉及帐号",
-<<<<<<< HEAD
   "REGISTERED_PHONE_NUMBER": "开户电话",
   "REGISTERED_TIME": "开户时间",
   "REGISTERED_IP": "开户IP",
   "VERIFICATION_CODE": "验证码",
   "CUSTOMER_SERVICE": "客服",
   "MANUAL": "手工",
-  "Attempt": "尝试"
-=======
+  "Attempt": "尝试",
   "cardQuota": "收款帐号今日交易额",
   "NEW_WECHAT": "新微信账号",
   "CURRENT_WECHAT": "原微信账号",
   "RETYPE_WECHAT": "重新输入微信账号"
->>>>>>> upstream/develop-1.1
 }
