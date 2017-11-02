@@ -1321,8 +1321,6 @@ var proposal = {
                             })
                         }
 
-<<<<<<< HEAD
-=======
                         if (playerId) {
                             queryObj["$or"] = [
                                 {"data._id": {$in: [playerId, ObjectId(playerId)]}},
@@ -1346,7 +1344,6 @@ var proposal = {
                             queryObj["$and"].push({$or: orQuery});
                         }
 
->>>>>>> upstream/develop-1.1
                         if (credit) {
                             queryObj["$and"] = queryObj["$and"] || [];
                             queryObj["$and"].push({
@@ -1359,11 +1356,9 @@ var proposal = {
                         if (entryType) {
                             queryObj.entryType = entryType;
                         }
-<<<<<<< HEAD
 
-=======
                         inputDevice ? queryObj.inputDevice = inputDevice : null;
->>>>>>> upstream/develop-1.1
+
                         var sortKey = (Object.keys(sortCol))[0];
                         var a = sortKey != 'relatedAmount' ?
                             dbconfig.collection_proposal.find(queryObj)
