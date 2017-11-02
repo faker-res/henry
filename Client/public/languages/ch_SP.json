@@ -525,6 +525,7 @@
   "UpdatePartnerEmail": "编辑代理电邮资料",
   "UpdatePartnerInfo": "编辑代理基本资料",
   "UpdatePartnerQQ": "编辑代理QQ资料",
+  "UpdatePartnerWeChat": "编辑代理微信资料",
   "ConsecutiveTopUp": "连续充值",
   "WeeklyConsecutiveTopUp": "每周连续充值",
   "PlayerConsumptionReturn": "玩家洗码",
@@ -1298,6 +1299,7 @@
   "RESET_TEXTAREA":"重置",
   "COPY_TO_CLIPBOARD":"复制",
   "COPIED_SUCCESS":"复制成功",
+  "FilterAllPlatform":"过滤全部平台",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
@@ -2574,6 +2576,7 @@
   "APP_AGENT": "APP代理",
   "PROPOSAL_SUB_TYPE": "提案子类型",
   "INVOLVED_ACC": "涉及帐号",
+  "cardQuota": "收款帐号今日交易额",
   "NEW_WECHAT": "新微信账号",
   "CURRENT_WECHAT": "原微信账号",
   "RETYPE_WECHAT": "重新输入微信账号"

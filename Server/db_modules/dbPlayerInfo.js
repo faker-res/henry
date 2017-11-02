@@ -1205,17 +1205,17 @@ let dbPlayerInfo = {
                         delete permission[i];
                     }
                 }
-                if (Object.keys(oldData).length !== 0) {
-                    var newLog = new dbconfig.collection_playerPermissionLog({
-                        admin: admin,
-                        platform: query.platform,
-                        player: query._id,
-                        remark: remark,
-                        oldData: oldData,
-                        newData: permission,
-                    });
-                    return newLog.save();
-                } else return true;
+                // if (Object.keys(oldData).length !== 0) {
+                var newLog = new dbconfig.collection_playerPermissionLog({
+                    admin: admin,
+                    platform: query.platform,
+                    player: query._id,
+                    remark: remark,
+                    oldData: oldData,
+                    newData: permission,
+                });
+                return newLog.save();
+                // } else return true;
             },
             function (error) {
                 return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
@@ -1985,7 +1985,6 @@ let dbPlayerInfo = {
                             type = constPlayerCreditChangeType.MANUAL_TOP_UP;
                             break;
                         case constPlayerTopUpType.ALIPAY:
-                            console.log('debugging topup promo, name:', data.name);
                             type = constPlayerCreditChangeType.ALIPAY_TOP_UP;
                             break;
                         case constPlayerTopUpType.QUICKPAY:
@@ -2857,7 +2856,7 @@ let dbPlayerInfo = {
                     {
                         $group: {
                             _id: "$type",
-                            totalAmount: {$sum: "$rewardAmount"}
+                            totalAmount: {$sum: "$data.rewardAmount"}
                         }
                     }
                 );
@@ -2922,7 +2921,7 @@ let dbPlayerInfo = {
                                     eventDescription: rewardParams[i].description,
                                     curRewardAmount: curRewardAmount,
                                     maxRewardAmountPerDay: rewardParams[i].param.maxRewardAmountPerDay,
-                                    spendingAmount: rewardAmount,
+                                    spendingAmount: rewardAmount*20, //10 times spending amount
                                     eventName: rewardParams[i].name,
                                     eventCode: rewardParams[i].code,
                                 }
@@ -4459,7 +4458,24 @@ let dbPlayerInfo = {
                 }
             },
             function (err) {
-                deferred.reject(err);
+                if (bResolve) {
+                    return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+                        playerData => {
+                            deferred.resolve(
+                                {
+                                    playerId: playerId,
+                                    providerId: providerShortId,
+                                    providerCredit: 0,
+                                    playerCredit: playerData.validCredit,
+                                    rewardCredit: playerData.lockedCredit
+                                }
+                            );
+                        }
+                    );
+                }
+                else{
+                    deferred.reject(err);
+                }
             }
         ).then(
             function (data) {
@@ -11003,7 +11019,7 @@ let dbPlayerInfo = {
         )
     },
 
-    comparePhoneNum: function (arrayInputPhone) {
+    comparePhoneNum: function (platformObjId, arrayInputPhone) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayInputPhone.length; i++) {
@@ -11013,7 +11029,7 @@ let dbPlayerInfo = {
 
         // display phoneNumber from DB without asterisk masking
         let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone}},
+            {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
             {$project: {name: 1, phoneNumber: 1, _id: 0}}
         ]);
 
@@ -11050,7 +11066,7 @@ let dbPlayerInfo = {
         });
     },
 
-    uploadPhoneFileCSV: function (arrayPhoneCSV) {
+    uploadPhoneFileCSV: function (platformObjId, arrayPhoneCSV) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayPhoneCSV.length; i++) {
@@ -11060,7 +11076,7 @@ let dbPlayerInfo = {
 
         // display phoneNumber from DB without asterisk masking
         let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone}},
+            {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
             {$project: {name: 1, phoneNumber: 1, _id: 0}}
         ]);
 
@@ -11097,7 +11113,7 @@ let dbPlayerInfo = {
         });
     },
 
-    uploadPhoneFileTXT: function (arrayPhoneTXT) {
+    uploadPhoneFileTXT: function (platformObjId, arrayPhoneTXT) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayPhoneTXT.length; i++) {
@@ -11107,7 +11123,7 @@ let dbPlayerInfo = {
 
         // display phoneNumber from DB without asterisk masking
         let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone}},
+            {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
             {$project: {name: 1, phoneNumber: 1, _id: 0}}
         ]);
 

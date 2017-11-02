@@ -3210,21 +3210,6 @@ define(['js/app'], function (myApp) {
                                 return utilService.getFormatTime(data);
                             }
                         },
-                        // {
-                        //     "visible": false,
-                        //     title: $translate('REGISTRATION_TIME_END'),
-                        //     data: 'registrationEndTime',
-                        //     advSearch: true,
-                        //     filterConfig: {
-                        //         type: "datetimepicker",
-                        //         id: "regEndDateTimePicker",
-                        //         options: {
-                        //             language: 'en',
-                        //             format: 'dd/MM/yyyy hh:mm:ss',
-                        //         }
-                        //     },
-                        //     "sClass": "alignLeft"
-                        // },
                         {
                             title: $translate('LAST_ACCESS_TIME'),
                             data: 'lastAccessTime',
@@ -3243,22 +3228,6 @@ define(['js/app'], function (myApp) {
                                 return utilService.getFormatTime(data);
                             }
                         },
-                        // {
-                        //     "visible": false,
-                        //     title: $translate('LAST_ACCESS_TIME_END'),
-                        //     data: 'lastAccessEndTime',
-                        //     advSearch: true,
-                        //     type: "datetimepicker",
-                        //     filterConfig: {
-                        //         type: "datetimepicker",
-                        //         id: "lastAccessEndDateTimePicker",
-                        //         options: {
-                        //             language: 'en',
-                        //             format: 'dd/MM/yyyy hh:mm:ss',
-                        //         }
-                        //     },
-                        //     "sClass": "alignLeft"
-                        // },
                         {title: $translate('LOGIN_TIMES'), data: "loginTimes",
                             render: function (data, type, row) {
                                 data = data || '0';
@@ -3665,6 +3634,39 @@ define(['js/app'], function (myApp) {
                         //         }
                         //     }
                         // },
+                        {
+                            // keep for date time
+                            // todo :: use createDatePicker after it load instead
+                            "visible": false,
+                            title: $translate('REGISTRATION_TIME_END'),
+                            data: 'registrationEndTime',
+                            advSearch: true,
+                            filterConfig: {
+                                type: "datetimepicker",
+                                id: "regEndDateTimePicker",
+                                options: {
+                                    language: 'en',
+                                    format: 'dd/MM/yyyy hh:mm:ss',
+                                }
+                            },
+                            "sClass": "alignLeft"
+                        },
+                        {
+                            "visible": false,
+                            title: $translate('LAST_ACCESS_TIME_END'),
+                            data: 'lastAccessEndTime',
+                            advSearch: true,
+                            type: "datetimepicker",
+                            filterConfig: {
+                                type: "datetimepicker",
+                                id: "lastAccessEndDateTimePicker",
+                                options: {
+                                    language: 'en',
+                                    format: 'dd/MM/yyyy hh:mm:ss',
+                                }
+                            },
+                            "sClass": "alignLeft"
+                        },
                     ],
                     //"autoWidth": false,
                     "scrollX": true,
@@ -4628,7 +4630,24 @@ define(['js/app'], function (myApp) {
                         $('body').off('click', partnerIpHistoryHandler);
                     }
                 });
-            }
+            };
+
+            vm.createPlayerFromIntention = function (data) {
+                vm.prepareCreatePlayer();
+                $('#modalCreatePlayer').modal();
+                if (!data || !vm.newPlayer) return;
+                data.name ? vm.newPlayer.name = data.name : null;
+                data.email ? vm.newPlayer.email = data.email : null;
+                data.realName ? vm.newPlayer.realName = data.realName : null;
+                data.mobile ? vm.newPlayer.phoneNumber = data.mobile : null;
+                data.nickName ? vm.newPlayer.nickName = data.nickName : null;
+                if (data.referralName) {
+                    vm.newPlayer.referralName = data.referralName;
+                    vm.getReferralPlayer(vm.newPlayer, "change");
+                }
+
+                $scope.safeApply();
+            };
 
             vm.showIPHistory = function () {
                 socketService.$socket($scope.AppSocket, 'getIpHistory', {
@@ -5326,7 +5345,7 @@ define(['js/app'], function (myApp) {
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
                     Object.keys(newPlayerData).forEach(function (key) {
                         if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup") {
+                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup" || key == "referralName") {
                                 //do nothing
                             } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                                 //do nothing
@@ -7939,6 +7958,24 @@ define(['js/app'], function (myApp) {
                     {title: $translate('CONTENT_CHANGED'), data: "fieldEdited"},
                     {title: $translate('curData'), data: "contentBeforeEdited"},
                     {title: $translate('updateData'), data: "contentEdited"},
+                    {
+                        "title": $translate('STATUS'),
+                        "data": 'process',
+                        render: function (data, type, row) {
+                            let text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
+                            text = text === "approved" ? "Approved" : text;
+
+                            let textClass = '';
+                            let fontStyle = {};
+                            if (row.status === 'Pending') {
+                                textClass = "text-danger";
+                                fontStyle = {'font-weight': 'bold'};
+                            }
+
+                            let $link = $('<span>').text(text).addClass(textClass).css(fontStyle);
+                            return $link.prop('outerHTML');
+                        },
+                    }
                 ],
                 "paging": true,
             });
@@ -8006,6 +8043,24 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYER_LEVEL'), data: "playerLevel$"},
                     {title: $translate('PARTNER'), data: "partnerName$"},
                     {title: $translate('REFERRAL'), data: "referralName$"},
+                    {
+                        "title": $translate('STATUS'),
+                        "data": 'process',
+                        render: function (data, type, row) {
+                            let text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
+                            text = text === "approved" ? "Approved" : text;
+
+                            let textClass = '';
+                            let fontStyle = {};
+                            if (row.status === 'Pending') {
+                                textClass = "text-danger";
+                                fontStyle = {'font-weight': 'bold'};
+                            }
+
+                            let $link = $('<span>').text(text).addClass(textClass).css(fontStyle);
+                            return $link.prop('outerHTML');
+                        },
+                    }
                 ],
                 "paging": true,
             });
@@ -13107,6 +13162,7 @@ define(['js/app'], function (myApp) {
                 vm.inputNewPhoneNum = [];
                 vm.phoneNumCSVResult = false;
                 vm.phoneNumTXTResult = false;
+                vm.filterAllPlatform = false;
             };
 
             // compare a new list pf phone numbers with existing player info database
@@ -13115,6 +13171,7 @@ define(['js/app'], function (myApp) {
                 vm.arrayInputPhone = vm.inputNewPhoneNum.split(/,|, /).map((item) => item.trim());
 
                 let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
                     arrayInputPhone: vm.arrayInputPhone
                 };
 
@@ -13133,6 +13190,7 @@ define(['js/app'], function (myApp) {
                 vm.arrayPhoneCSV = vm.splitPhoneCSV.slice(0, vm.splitPhoneCSV.length - 1);
 
                 let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
                     arrayPhoneCSV: vm.arrayPhoneCSV
                 };
 
@@ -13162,6 +13220,7 @@ define(['js/app'], function (myApp) {
                 vm.arrayPhoneTXT = content.split(/,|, /).map((item) => item.trim());
 
                 let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
                     arrayPhoneTXT: vm.arrayPhoneTXT
                 };
 
@@ -16044,7 +16103,6 @@ define(['js/app'], function (myApp) {
                 // add index to data
                 for (let x = 0; x < vm.allProposalType.length; x++) {
                     let groupName = utilService.getProposalGroupValue(vm.allProposalType[x],false);
-                    console.log(groupName);
                     switch (vm.allProposalType[x].name) {
                         case "AddPlayerRewardTask":
                             vm.allProposalType[x].seq = 3.01;

@@ -226,9 +226,7 @@ let dbPlayerReward = {
     applyPlayerTopUpPromo: (topUpProposalData, type) => {
         type = type || 'online';
         let player;
-        if (type === 'aliPay') {
-            console.log('debugging topup promo, inside apply function');
-        }
+
         return new Promise(function (resolve) {
             dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_TOP_UP_PROMO}).lean().then(
                 rewardTypeData => {
@@ -248,22 +246,15 @@ let dbPlayerReward = {
                     player = data[1];
                     if (!promoEvents || promoEvents.length <= 0) {
                         // there is no promotion event going on
-                        if (type === 'aliPay') {
-                            console.log('debugging topup promo, promo event not found');
-                        }
                         return;
                     }
 
                     let promoEventDetail, promotionDetail;
                     for (let i = 0; i < promoEvents.length; i++) {
                         let promoEvent = promoEvents[i];
-                        if (type === 'aliPay') {
-                            console.log('debugging topup promo, event name:', promoEvent.name);
-                        }
 
                         if (dbPlayerReward.isRewardEventForbidden(player, promoEvent._id)) {
                             // the player is not valid for this promotion
-                            if (type === 'aliPay') console.log('debugging topup promo, forbidden triggered, some event skipped');
                             continue;
                         }
 
@@ -274,7 +265,6 @@ let dbPlayerReward = {
                                 case (type === 'online' && Number(promotion.topUpType) == Number(topUpProposalData.data.topupType)):
                                 case (type === 'weChat' && Number(promotion.topUpType) == 98):
                                 case (type === 'aliPay' && Number(promotion.topUpType) == 99):
-                                    if (type === 'aliPay') console.log('debugging topup promo, promotion matched');
                                     promotionDetail = promotion;
                                     promoEventDetail = promoEvent;
                                     break;
@@ -296,6 +286,8 @@ let dbPlayerReward = {
                         console.error("applyPlayerTopUpPromo:there is no relevant promotion");
                         return;
                     }
+
+                    promotionDetail.rewardPercentage = promotionDetail.rewardPercentage || 0;
 
                     let rewardAmount = (Number(topUpProposalData.data.amount) * Number(promotionDetail.rewardPercentage) / 100);
                     if (rewardAmount > 500) {
@@ -323,7 +315,7 @@ let dbPlayerReward = {
                         }
                     ).then(
                         summaryData => {
-                            if (summaryData && summaryData[0] && (summaryData[0].amount + rewardAmount) > 500) {
+                            if (summaryData && summaryData[0] && summaryData[0].amount >= 500) {
                                 Q.reject({
                                     status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                                     name: "DataError",
@@ -331,6 +323,10 @@ let dbPlayerReward = {
                                 });
                             }
                             else {
+                                if( summaryData && summaryData[0] && (rewardAmount + summaryData[0].amount) > 500 ){
+                                    rewardAmount = Math.max( 0, 500 - summaryData[0].amount);
+                                }
+
                                 let proposalData = {
                                     type: promoEventDetail.executeProposal,
 
@@ -341,7 +337,7 @@ let dbPlayerReward = {
                                         platformId: topUpProposalData.data.platformId,
                                         platform: topUpProposalData.data.platform,
                                         rewardAmount: rewardAmount,
-                                        spendingAmount: rewardAmount,
+                                        spendingAmount: rewardAmount*20, //10 times spending amount
                                         applyAmount: 0,
                                         // amount: rewardAmount,
                                         eventId: promoEventDetail._id,
@@ -352,8 +348,6 @@ let dbPlayerReward = {
                                     entryType: constProposalEntryType.SYSTEM,
                                     userType: constProposalUserType.PLAYERS
                                 };
-
-                                if (type === 'aliPay') console.log('debugging topup promo, proposalData:', proposalData);
 
                                 return dbProposal.createProposalWithTypeId(promoEventDetail.executeProposal, proposalData);
                             }

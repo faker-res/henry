@@ -110,7 +110,7 @@ var dbPlayerTopUpRecord = {
                     str = constProposalType.PLAYER_WECHAT_TOP_UP
                 } else if (query && query.mainTopupType == constPlayerTopUpType.QUICKPAY) {
                     str = constProposalType.PLAYER_QUICKPAY_TOP_UP
-                }else {
+                } else {
                     str = {
                         $in: [
                             constProposalType.PLAYER_TOP_UP,
@@ -194,7 +194,7 @@ var dbPlayerTopUpRecord = {
                 var b = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
                     .populate({path: "data.playerObjId", model: dbconfig.collection_players})
-                    .then(proposals=>{
+                    .then(proposals => {
                         proposals = insertRepeatCount(proposals, query.platformId);
                         return proposals
                     });
@@ -535,10 +535,10 @@ var dbPlayerTopUpRecord = {
                         playerId: player._id
                     };
                     if (topUpType) {
-                        if(topUpType == 2){
+                        if (topUpType == 2) {
                             queryObj.topUpType = parseInt(topUpType);
                         }
-                        else{
+                        else {
                             queryObj.topUpType = {$ne: 2};
                         }
                     }
@@ -553,7 +553,7 @@ var dbPlayerTopUpRecord = {
                     }
                     if (bDirty != null) {
                         queryObj.bDirty = bDirty;
-                        if( bDirty == false ){
+                        if (bDirty == false) {
                             queryObj.bDirty = {$ne: true};
                         }
                     }
@@ -614,6 +614,7 @@ var dbPlayerTopUpRecord = {
         var player = null;
         var proposal = null;
         var merchantResponse = null;
+        var merchantResult = null;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).populate(
@@ -671,7 +672,7 @@ var dbPlayerTopUpRecord = {
                     return Q.reject({name: "DataError", message: "Player does not have valid merchant data"});
                 }
 
-                if(userAgent){
+                if (userAgent) {
                     userAgent = retrieveAgent(userAgent);
                 }
 
@@ -700,7 +701,7 @@ var dbPlayerTopUpRecord = {
                     entryType: constProposalEntryType.CLIENT,
                     userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 };
-                newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr,false);
+                newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false);
                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_TOP_UP, newProposal);
             }
         ).then(
@@ -741,20 +742,37 @@ var dbPlayerTopUpRecord = {
         ).then(
             merchantResponseData => {
                 if (merchantResponseData) {
-                    // console.log("merchantResponseData", merchantResponseData);
+
+                    merchantResult = merchantResponseData;
                     merchantResponse = merchantResponseData;
+
+                    var queryObj = {};
+                    let start = new Date();
+                    start.setHours(0, 0, 0, 0);
+                    let end = new Date();
+                    end.setHours(23, 59, 59, 999);
+                    if (merchantResponseData.result.merchantNo) {
+                        queryObj['data.merchantNo'] = merchantResponseData.result.merchantNo;
+                    }
+                    queryObj['data.platformId'] = ObjectId(player.platform._id);
+                    queryObj['mainType'] = 'TopUp';
+                    queryObj["data.validTime"] = {};
+                    queryObj["data.validTime"]["$gte"] = start;
+                    queryObj["data.validTime"]["$lt"] = end;
+                    queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
+                    // calculate this card/acc total usage at today
+                    return dbconfig.collection_proposal.aggregate(
+                        {$match: queryObj},
+                        {
+                            $group: {
+                                _id: null,
+                                totalAmount: {$sum: "$data.amount"},
+                            }
+                        })
+
+                    // console.log("merchantResponseData", merchantResponseData);
+
                     //add request data to proposal and update proposal status to pending
-                    var updateData = {
-                        status: constProposalStatus.PENDING
-                    };
-                    updateData.data = Object.assign({}, proposal.data);
-                    updateData.data.requestId = merchantResponseData.result ? merchantResponseData.result.requestId : "";
-                    updateData.data.merchantNo = merchantResponseData.result ? merchantResponseData.result.merchantNo : "";
-                    return dbconfig.collection_proposal.findOneAndUpdate(
-                        {_id: proposal._id, createTime: proposal.createTime},
-                        updateData,
-                        {new: true}
-                    );
                 }
                 else {
                     return Q.reject({
@@ -764,6 +782,23 @@ var dbPlayerTopUpRecord = {
                         error: Error()
                     });
                 }
+            }
+        ).then(
+            res => {
+                var updateData = {
+                    status: constProposalStatus.PENDING
+                };
+                if (res[0]) {
+                    updateData.data.cardQuota = res[0].totalAmount;
+                }
+                updateData.data = Object.assign({}, proposal.data);
+                updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
+                updateData.data.merchantNo = merchantResponse.result ? merchantResponse.result.merchantNo : "";
+                return dbconfig.collection_proposal.findOneAndUpdate(
+                    {_id: proposal._id, createTime: proposal.createTime},
+                    updateData,
+                    {new: true}
+                );
             }
         ).then(
             proposalData => {
@@ -784,16 +819,18 @@ var dbPlayerTopUpRecord = {
         // );
     },
 
+
     /**
      * add manual topup records of the player
      * @param playerID
      * @param inputData
      */
-        addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS) {
+    addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS) {
         var player = null;
         var proposal = null;
         var request = null;
         let userAgentStr = userAgent;
+        let topUpResult = null;
         return dbPlayerInfo.getManualTopupRequestList(playerId).then(
             retData => {
                 if (retData) {
@@ -826,6 +863,33 @@ var dbPlayerTopUpRecord = {
                 }
             }
         ).then(
+            result => {
+                topUpResult = result;
+                var queryObj = {};
+                let start = new Date();
+                start.setHours(0, 0, 0, 0);
+                let end = new Date();
+                end.setHours(23, 59, 59, 999);
+                if (inputData.groupBankcardList) {
+                    queryObj['data.bankCardNo'] = {'$in': inputData.groupBankcardList}
+                }
+                queryObj['data.platformId'] = ObjectId(player.platform._id);
+                queryObj['mainType'] = 'TopUp';
+                queryObj["data.validTime"] = {};
+                queryObj["data.validTime"]["$gte"] = start;
+                queryObj["data.validTime"]["$lt"] = end;
+                queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
+
+                return dbconfig.collection_proposal.aggregate(
+                    {$match: queryObj},
+                    {
+                        $group: {
+                            _id: null,
+                            totalAmount: {$sum: "$data.amount"},
+                        }
+                    })
+            }
+        ).then(
             res => {
                 //disable bankaccount check for now
                 // if (inputData.lastBankcardNo.length > 0 && fromFPMS) {
@@ -842,8 +906,8 @@ var dbPlayerTopUpRecord = {
                 // }
 
                 let minTopUpAmount;
-                let isPlayerFirstTopUp = res[0];
-                let limitedOfferTopUp = res[1];
+                let isPlayerFirstTopUp = topUpResult[0];
+                let limitedOfferTopUp = topUpResult[1];
 
                 if (isPlayerFirstTopUp) {
                     minTopUpAmount = 1;
@@ -866,7 +930,7 @@ var dbPlayerTopUpRecord = {
                         errorMessage: "Player does not have manual topup permission"
                     });
                 }
-                if(userAgent){
+                if (userAgent) {
                     userAgent = retrieveAgent(userAgent);
                 }
                 let proposalData = Object.assign({}, inputData);
@@ -883,7 +947,7 @@ var dbPlayerTopUpRecord = {
                 proposalData.lastBankcardNo = inputData.lastBankcardNo || "";
                 proposalData.depositTime = inputData.createTime || "";
                 proposalData.inputData = inputData;
-                proposalData.userAgent = userAgent ? userAgent :"";
+                proposalData.userAgent = userAgent ? userAgent : "";
                 proposalData.creator = entryType == "ADMIN" ? {
                     type: 'admin',
                     name: adminName,
@@ -898,14 +962,16 @@ var dbPlayerTopUpRecord = {
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
                 }
-
+                if (res[0]) {
+                    proposalData.cardQuota = res[0].totalAmount || 0;
+                }
                 var newProposal = {
                     creator: proposalData.creator,
                     data: proposalData,
                     entryType: constProposalEntryType[entryType],
                     userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 };
-                newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr,false);//newProposal.isPartner
+                newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false);//newProposal.isPartner
                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_MANUAL_TOP_UP, newProposal);
             }
         ).then(
@@ -950,7 +1016,7 @@ var dbPlayerTopUpRecord = {
                         operateType: entryType == "ADMIN" ? 1 : 0,
                         remark: inputData.remark || ''
                     };
-                    if( fromFPMS ){
+                    if (fromFPMS) {
                         let cTime = inputData.createTime ? new Date(inputData.createTime) : new Date();
                         let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
                         requestData.depositTime = cTimeString || "";
@@ -1101,7 +1167,7 @@ var dbPlayerTopUpRecord = {
             }
         ).then(
             data => {
-                if(proposal){
+                if (proposal) {
                     let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
@@ -1137,7 +1203,7 @@ var dbPlayerTopUpRecord = {
             }
         ).then(
             data => {
-                if(proposal){
+                if (proposal) {
                     let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
@@ -1174,7 +1240,7 @@ var dbPlayerTopUpRecord = {
             }
         ).then(
             data => {
-                if(proposal){
+                if (proposal) {
                     let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
@@ -1509,6 +1575,8 @@ var dbPlayerTopUpRecord = {
         let player = null;
         let proposal = null;
         let request = null;
+        let topupResult = null;
+
 
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
@@ -1526,11 +1594,42 @@ var dbPlayerTopUpRecord = {
                         return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
                     }
                 }
-            ).then(
+            )
+            .then(
+                result => {
+                    topupResult = result;
+
+                    var queryObj = {};
+                    let start = new Date();
+                    start.setHours(0, 0, 0, 0);
+                    let end = new Date();
+                    end.setHours(23, 59, 59, 999);
+                    if (alipayAccount) {
+                        queryObj['data.alipayAccount'] = alipayAccount;
+                    }
+                    queryObj['data.platformId'] = ObjectId(player.platform._id);
+                    // queryObj['typeName'] = constProposalType.PLAYER_ALIPAY_TOP_UP;
+                    queryObj['mainType'] = 'TopUp';
+                    queryObj["data.validTime"] = {};
+                    queryObj["data.validTime"]["$gte"] = start;
+                    queryObj["data.validTime"]["$lt"] = end;
+                    queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
+
+                    return dbconfig.collection_proposal.aggregate(
+                        {$match: queryObj},
+                        {
+                            $group: {
+                                _id: null,
+                                totalAmount: {$sum: "$data.amount"},
+                            }
+                        })
+                }
+            )
+            .then(
                 res => {
                     let minTopUpAmount = player.platform.minTopUpAmount || 0;
-                    let isPlayerFirstTopUp = res[0];
-                    let limitedOfferTopUp = res[1];
+                    let isPlayerFirstTopUp = topupResult[0];
+                    let limitedOfferTopUp = topupResult[1];
 
                     if (isPlayerFirstTopUp) {
                         minTopUpAmount = 1;
@@ -1552,7 +1651,7 @@ var dbPlayerTopUpRecord = {
                             errorMessage: "Player does not have this topup permission"
                         });
                     }
-                    if(userAgent){
+                    if (userAgent) {
                         userAgent = retrieveAgent(userAgent);
                     }
 
@@ -1568,9 +1667,12 @@ var dbPlayerTopUpRecord = {
                     proposalData.alipayName = alipayName;
                     proposalData.alipayAccount = alipayAccount;
                     proposalData.remark = remark;
-                    proposalData.userAgent = userAgent ? userAgent:'';
+                    proposalData.userAgent = userAgent ? userAgent : '';
                     if (createTime) {
                         proposalData.depositeTime = new Date(createTime);
+                    }
+                    if (res[0]) {
+                        proposalData.cardQuota = res[0].totalAmount;
                     }
                     proposalData.creator = entryType === "ADMIN" ? {
                         type: 'admin',
@@ -1594,10 +1696,10 @@ var dbPlayerTopUpRecord = {
                         //createTime: createTime ? new Date(createTime) : new Date(),
                         userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                     };
-                    newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr,false);
+                    newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false);
                     return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
-                }
-            ).then(
+                })
+            .then(
                 proposalData => {
                     if (proposalData) {
                         proposal = proposalData;
@@ -1730,6 +1832,8 @@ var dbPlayerTopUpRecord = {
         let player = null;
         let proposal = null;
         let request = null;
+        let intentionProp = null;
+        let limitedOfferTopUp = null;
 
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
@@ -1744,142 +1848,173 @@ var dbPlayerTopUpRecord = {
                     }
                 }
             ).then(
-                intentionProp => {
-                    let limitedOfferTopUp = intentionProp;
+                result => {
+                    intentionProp = result;
+                    limitedOfferTopUp = intentionProp;
 
-                if (player && player.platform && player.wechatPayGroup && player.wechatPayGroup.wechats && player.wechatPayGroup.wechats.length > 0) {
-                    let minTopUpAmount = player.platform.minTopUpAmount || 0;
-                    if (amount < minTopUpAmount) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_TOP_UP_FAIL,
-                            name: "DataError",
-                            errorMessage: "Top up amount is not enough"
-                        });
-                    }
-
-                    // Check player permission
-                    if (!player.permission || player.permission.disableWechatPay) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_NO_PERMISSION,
-                            name: "DataError",
-                            errorMessage: "Player does not have this topup permission"
-                        });
-                    }
-                    if(userAgent){
-                        userAgent = retrieveAgent(userAgent);
-                    }
-                    let proposalData = {};
-                    proposalData.playerId = playerId;
-                    proposalData.playerObjId = player._id;
-                    proposalData.platformId = player.platform._id;
-                    proposalData.playerLevel = player.playerLevel;
-                    proposalData.platform = player.platform.platformId;
-                    proposalData.playerName = player.name;
-                    proposalData.amount = Number(amount);
-                    proposalData.wechatName = wechatName;
-                    proposalData.wechatAccount = wechatAccount;
-                    proposalData.remark = remark;
-                    proposalData.userAgent = userAgent ? userAgent : "";
-                    if (createTime) {
-                        proposalData.depositeTime = new Date(createTime);
-                    }
-                    proposalData.creator = entryType === "ADMIN" ? {
-                        type: 'admin',
-                        name: adminName,
-                        id: adminId
-                    } : {
-                        type: 'player',
-                        name: player.name,
-                        id: playerId
-                    };
-
-                    // Check Limited Offer Intention
-                    if (limitedOfferTopUp) {
-                        proposalData.limitedOfferObjId = limitedOfferTopUp._id;
-                    }
-
-                    let newProposal = {
-                        creator: proposalData.creator,
-                        data: proposalData,
-                        entryType: constProposalEntryType[entryType],
-                        //createTime: createTime ? new Date(createTime) : new Date(),
-                        userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                    };
-                    newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr,false);
-                    return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_WECHAT_TOP_UP, newProposal);
-                }
-                else {
-                    return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
-                }
-            }
-        ).then(
-            proposalData => {
-                if (proposalData) {
-                    proposal = proposalData;
-                    let cTime = createTime ? new Date(createTime) : new Date();
-                    let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
-                    let requestData = {
-                        proposalId: proposalData.proposalId,
-                        platformId: player.platform.platformId,
-                        userName: player.name,
-                        // realName: wechatName,//player.realName || "",
-                        aliPayAccount: 1,
-                        amount: amount,
-                        groupWechatList: player.wechatPayGroup ? player.wechatPayGroup.wechats : [],
-                        // remark: remark || player.name,
-                        createTime: cTimeString,
-                        operateType: entryType == "ADMIN" ? 1 : 0
-                    };
-                    if (remark) {
-                        requestData.remark = remark;
-                    }
+                    var queryObj = {};
+                    let start = new Date();
+                    start.setHours(0, 0, 0, 0);
+                    let end = new Date();
+                    end.setHours(23, 59, 59, 999);
                     if (wechatAccount) {
-                        requestData.groupWechatList = [wechatAccount];
+                        queryObj['data.wechatAccount'] = wechatAccount;
                     }
-                    //console.log("requestData", requestData);
-                    return pmsAPI.payment_requestWeChatQRAccount(requestData);
+                    queryObj['data.platformId'] = ObjectId(player.platform._id);
+                    queryObj['mainType'] = 'TopUp';
+                    queryObj["data.validTime"] = {};
+                    queryObj["data.validTime"]["$gte"] = start;
+                    queryObj["data.validTime"]["$lt"] = end;
+                    queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
+                    console.log(queryObj);
+                    return dbconfig.collection_proposal.aggregate(
+                        {$match: queryObj},
+                        {
+                            $group: {
+                                _id: null,
+                                totalAmount: {$sum: "$data.amount"},
+                            }
+                        })
                 }
-                else {
-                    return Q.reject({name: "DataError", errorMessage: "Cannot create wechat top up proposal"});
+            ).then(
+                result => {
+
+                    if (player && player.platform && player.wechatPayGroup && player.wechatPayGroup.wechats && player.wechatPayGroup.wechats.length > 0) {
+                        let minTopUpAmount = player.platform.minTopUpAmount || 0;
+                        if (amount < minTopUpAmount) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_TOP_UP_FAIL,
+                                name: "DataError",
+                                errorMessage: "Top up amount is not enough"
+                            });
+                        }
+
+                        // Check player permission
+                        if (!player.permission || player.permission.disableWechatPay) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_NO_PERMISSION,
+                                name: "DataError",
+                                errorMessage: "Player does not have this topup permission"
+                            });
+                        }
+                        if (userAgent) {
+                            userAgent = retrieveAgent(userAgent);
+                        }
+                        let proposalData = {};
+                        proposalData.playerId = playerId;
+                        proposalData.playerObjId = player._id;
+                        proposalData.platformId = player.platform._id;
+                        proposalData.playerLevel = player.playerLevel;
+                        proposalData.platform = player.platform.platformId;
+                        proposalData.playerName = player.name;
+                        proposalData.amount = Number(amount);
+                        proposalData.wechatName = wechatName;
+                        proposalData.wechatAccount = wechatAccount;
+                        proposalData.remark = remark;
+                        proposalData.userAgent = userAgent ? userAgent : "";
+                        if (createTime) {
+                            proposalData.depositeTime = new Date(createTime);
+                        }
+                        if (result[0]) {
+                            proposalData.cardQuota = result[0].totalAmount || 0;
+                        }
+                        proposalData.creator = entryType === "ADMIN" ? {
+                            type: 'admin',
+                            name: adminName,
+                            id: adminId
+                        } : {
+                            type: 'player',
+                            name: player.name,
+                            id: playerId
+                        };
+
+                        // Check Limited Offer Intention
+                        if (limitedOfferTopUp) {
+                            proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                        }
+
+                        let newProposal = {
+                            creator: proposalData.creator,
+                            data: proposalData,
+                            entryType: constProposalEntryType[entryType],
+                            //createTime: createTime ? new Date(createTime) : new Date(),
+                            userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                        };
+                        newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false);
+                        return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_WECHAT_TOP_UP, newProposal);
+                    }
+                    else {
+                        return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                    }
                 }
-            }
-        ).then(
-            requestData => {
-                //console.log("request response", requestData);
-                if (requestData && requestData.result) {
-                    request = requestData;
-                    //add request data to proposal and update proposal status to pending
-                    var updateData = {
-                        status: constProposalStatus.PENDING
+            ).then(
+                proposalData => {
+                    if (proposalData) {
+                        proposal = proposalData;
+                        let cTime = createTime ? new Date(createTime) : new Date();
+                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
+                        let requestData = {
+                            proposalId: proposalData.proposalId,
+                            platformId: player.platform.platformId,
+                            userName: player.name,
+                            // realName: wechatName,//player.realName || "",
+                            aliPayAccount: 1,
+                            amount: amount,
+                            groupWechatList: player.wechatPayGroup ? player.wechatPayGroup.wechats : [],
+                            // remark: remark || player.name,
+                            createTime: cTimeString,
+                            operateType: entryType == "ADMIN" ? 1 : 0
+                        };
+                        if (remark) {
+                            requestData.remark = remark;
+                        }
+                        if (wechatAccount) {
+                            requestData.groupWechatList = [wechatAccount];
+                        }
+                        //console.log("requestData", requestData);
+                        return pmsAPI.payment_requestWeChatQRAccount(requestData);
+                    }
+                    else {
+                        return Q.reject({name: "DataError", errorMessage: "Cannot create wechat top up proposal"});
+                    }
+                }
+            ).then(
+                requestData => {
+                    //console.log("request response", requestData);
+                    if (requestData && requestData.result) {
+                        request = requestData;
+                        //add request data to proposal and update proposal status to pending
+                        var updateData = {
+                            status: constProposalStatus.PENDING
+                        };
+                        updateData.data = Object.assign({}, proposal.data);
+                        updateData.data.requestId = requestData.result.requestId;
+                        updateData.data.proposalId = proposal.proposalId;
+                        updateData.data.weChatAccount = requestData.result.weChatAccount;
+                        updateData.data.weChatQRCode = requestData.result.weChatQRCode;
+                        if (requestData.result.validTime) {
+                            updateData.data.validTime = new Date(requestData.result.validTime);
+                        }
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposal._id, createTime: proposal.createTime},
+                            updateData,
+                            {new: true}
+                        );
+                    }
+                    else {
+                        return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
+                    }
+                }
+            ).then(
+                data => {
+                    return {
+                        proposalId: data.proposalId,
+                        requestId: request.result.requestId,
+                        status: data.status,
+                        result: request.result
                     };
-                    updateData.data = Object.assign({}, proposal.data);
-                    updateData.data.requestId = requestData.result.requestId;
-                    updateData.data.proposalId = proposal.proposalId;
-                    updateData.data.weChatAccount = requestData.result.weChatAccount;
-                    updateData.data.weChatQRCode = requestData.result.weChatQRCode;
-                    if (requestData.result.validTime) {
-                        updateData.data.validTime = new Date(requestData.result.validTime);
-                    }
-                    return dbconfig.collection_proposal.findOneAndUpdate(
-                        {_id: proposal._id, createTime: proposal.createTime},
-                        updateData,
-                        {new: true}
-                    );
                 }
-                else {
-                    return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
-                }
-            }
-        ).then(
-            data => {
-                return {
-                    proposalId: data.proposalId,
-                    requestId: request.result.requestId,
-                    status: data.status,
-                    result: request.result
-                };
-            }
-        );
+            );
     },
 
 
@@ -2098,7 +2233,7 @@ function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount) {
         name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
     }).lean().then(
         proposalTypeData => {
-            if(proposalTypeData){
+            if (proposalTypeData) {
                 return dbconfig.collection_proposal.findOne({
                     'data.platformObjId': platformObjId,
                     'data.playerObjId': playerObjId,
@@ -2214,13 +2349,13 @@ function insertRepeatCount(proposals, platformId) {
             let prevSuccessQuery = {
                 type: {$in: relevantTypeIds},
                 createTime: {$lte: new Date(proposal.createTime)},
-                status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             };
 
             let nextSuccessQuery = {
                 type: {$in: relevantTypeIds},
                 createTime: {$gte: new Date(proposal.createTime)},
-                status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             };
 
             if (merchantNo) {
@@ -2333,7 +2468,6 @@ function insertRepeatCount(proposals, platformId) {
                     }
                     return proposal;
                 }
-
             );
         }
 
@@ -2344,13 +2478,13 @@ function insertRepeatCount(proposals, platformId) {
                 type: {$in: typeIds},
                 createTime: {$lte: proposal.createTime},
                 "data.playerName": playerName,
-                status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             }).sort({createTime: -1}).limit(1);
             let nextSuccessProm = dbconfig.collection_proposal.find({
                 type: {$in: typeIds},
                 createTime: {$gte: proposal.createTime},
                 "data.playerName": playerName,
-                status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             }).sort({createTime: 1}).limit(1);
 
             return Promise.all([prevSuccessProm, nextSuccessProm]).then(
@@ -2466,12 +2600,12 @@ function getMinutesBetweenDates(startDate, endDate) {
     return Math.floor(diff / 60000);
 }
 
-function retrieveAgent(agentInfo){
+function retrieveAgent(agentInfo) {
     let registrationInterface = '';
     let userAgent = agentInfo;
-    if(userAgent==''){
+    if (userAgent == '') {
         registrationInterface = 1;
-    }else{
+    } else {
         if (userAgent.browser.name.indexOf("WebKit") !== -1 || userAgent.browser.name.indexOf("WebView") !== -1) {
             registrationInterface = 2;
         }
