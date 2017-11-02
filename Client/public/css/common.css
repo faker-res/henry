@@ -1534,9 +1534,31 @@ table.stronger-bottom, tr.stronger-bottom > td, td.stronger-bottom {
     width: initial;
     padding: 0 5px;
 }
+
+#proposalRight #proposalAuditDataTableDiv #searchAudit .inlineBlk {
+    margin-right: 5px;
+}
+
+#proposalRight #proposalAuditDataTableDiv #searchAudit .ms-choice,
+#proposalRight #proposalAuditDataTableDiv #searchAudit .ms-choice:active,
+#proposalRight #proposalAuditDataTableDiv #searchAudit .ms-choice:focus {
+    border: 0;
+}
+
+#proposalRight #proposalAuditDataTableDiv #searchAudit .ms-parent {
+    width: 150px !important;
+    display: block;
+}
+
+#proposalAuditDataTableDiv .ms-drop {
+    width: initial;
+    padding: 0 5px;
+}
+
 .selectProposalTypeDiv .ms-parent .ms-drop ul{
     min-height:500px !important;
 }
+
 .ms-drop ul > li > label > input {
     margin-right: 5px;
 }
