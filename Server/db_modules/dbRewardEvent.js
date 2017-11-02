@@ -284,7 +284,7 @@ var dbRewardEvent = {
                                 balancer.processStream(
                                     {
                                         stream: stream,
-                                        batchSize: 1,
+                                        batchSize: 2,
                                         makeRequest: function (playerObjs, request) {
                                             request("player", "savePlayerCredit", {
                                                 playerObjId: playerObjs.map(player => {
@@ -306,25 +306,25 @@ var dbRewardEvent = {
                     );
 
 
-                        // .then(
-                        // data => {
-                        //     let playerObjIds = data.map(player => player._id);
-                        //     //console.log(playerObjIds);
-                        //     let stream = dbconfig.collection_players.find(
-                        //         {
-                        //             _id: {$in: playerObjIds}
-                        //         },
-                        //         {
-                        //             _id: 1,
-                        //             name: 1,
-                        //             platform: 1,
-                        //             validCredit: 1,
-                        //             lockedCredit: 1
-                        //         }
-                        //     ).lean().cursor({batchSize: 200});
-                        //
-                        //
-                        // }
+                    // .then(
+                    // data => {
+                    //     let playerObjIds = data.map(player => player._id);
+                    //     //console.log(playerObjIds);
+                    //     let stream = dbconfig.collection_players.find(
+                    //         {
+                    //             _id: {$in: playerObjIds}
+                    //         },
+                    //         {
+                    //             _id: 1,
+                    //             name: 1,
+                    //             platform: 1,
+                    //             validCredit: 1,
+                    //             lockedCredit: 1
+                    //         }
+                    //     ).lean().cursor({batchSize: 200});
+                    //
+                    //
+                    // }
                     // );
                 };
 
@@ -386,10 +386,18 @@ var dbRewardEvent = {
                                             ).then(
                                                 data => data,
                                                 error => {
-                                                    // Failed when querying CPMS on this provider
-                                                    failedQueryPlayers.push(playerObjId);
+                                                    //todo:: skip qt for now
+                                                    if (platformData.gameProviders[i].providerId != 46) {
+                                                        // Failed when querying CPMS on this provider
+                                                        failedQueryPlayers.push(playerObjId);
 
-                                                    return Q.reject(error);
+                                                        return Q.reject(error);
+                                                    }
+                                                    else {
+                                                        return {
+                                                            credit : 0
+                                                        };
+                                                    }
                                                 }
                                             )
                                         )
