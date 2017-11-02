@@ -5,6 +5,7 @@
   "dependencies": {
     "angular-datepicker": "^1.0.5",
     "angular-translate": "^2.8.1",
+    "angular-ui-grid": "^4.0.7",
     "body-parser": "^1.14.1",
     "del": "^2.2.2",
     "errorhandler": "^1.4.2",
@@ -25,6 +26,7 @@
     "morgan": "^1.6.1",
     "multer": "^1.1.0",
     "pump": "^1.0.2",
-    "rimraf": "^2.6.1"
+    "rimraf": "^2.6.1",
+    "xlsx": "^0.11.7"
   }
 }
