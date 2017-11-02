@@ -6433,6 +6433,26 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+
+        vm.deleteProviderGroup = function (grp, isConfirm) {
+            if (!isConfirm) {
+                vm.modalYesNo = {};
+                vm.modalYesNo.modalTitle = $translate("Delete Provider Group");
+                vm.modalYesNo.modalText = $translate("Delete provider group " + grp.name + "? This will release all rewards amount binded with this group to player.");
+                vm.modalYesNo.actionYes = () => vm.deleteProviderGroup(grp, true);
+                $('#modalYesNo').modal();
+            }
+            else {
+                let sendObj = {
+                    gameProviderGroupObjId: grp._id
+                };
+
+                socketService.$socket($scope.AppSocket, 'deletePlatformProviderGroup', sendObj, function (data) {
+
+                })
+            }
+        };
+
             vm.prepareShowPlayerCredit = function () {
                 vm.creditChange = {
                     finalValidAmount: $translate("Unknown"),

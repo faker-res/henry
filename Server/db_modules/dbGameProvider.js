@@ -368,6 +368,18 @@ var dbGameProvider = {
         });
 
         return Promise.all(promArr);
+    },
+
+    deletePlatformProviderGroup: (gameProviderGroupObjId) => {
+        console.log('gameProviderGroupObjId', gameProviderGroupObjId);
+
+        return dbconfig.collection_rewardTaskGroup.find({
+            providerGroup: gameProviderGroupObjId
+        }).then(
+            rewardTaskGroups => {
+                console.log('rewardTaskGroups', rewardTaskGroups);
+            }
+        )
     }
 };
 
