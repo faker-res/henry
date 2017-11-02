@@ -13162,6 +13162,7 @@ define(['js/app'], function (myApp) {
                 vm.inputNewPhoneNum = [];
                 vm.phoneNumCSVResult = false;
                 vm.phoneNumTXTResult = false;
+                vm.filterAllPlatform = false;
             };
 
             // compare a new list pf phone numbers with existing player info database
