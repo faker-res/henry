@@ -263,16 +263,19 @@ var dbLogger = {
         var smsLog = new dbconfig.collection_smsLog(logData);
         smsLog.save().then().catch(err => errorSavingLog(err, logData));
     },
-    createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, purpose, status, error) {
+    createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, purpose, inputDevice, status, error) {
         if (Object.values(constSMSPurpose).indexOf(purpose) === -1) {
             purpose = constSMSPurpose.UNKNOWN;
         }
+
+        inputDevice = inputDevice || 0;
 
         var logData = {
             type: type,
             message: message,
             platform: platformObjId,
             tel: tel,
+            inputDevice: inputDevice,
             channel: channel,
             purpose: purpose,
             status: status,
