@@ -1264,6 +1264,7 @@ define(['js/app'], function (myApp) {
                     vm.smsRecordQuery.loading = false;
                     var size = data.data.size || 0;
                     var result = data.data.data || [];
+                    vm.vertificationSMSQuery = result;
                     vm.drawVertificationSMSTable(result.map(item => {
                         item.createTime = vm.dateReformat(item.createTime);
                         item.status = $translate(item.status);
@@ -13365,6 +13366,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
                 vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
                 vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup;
+                vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime;
                 $scope.safeApply();
             }
 
@@ -13798,6 +13800,7 @@ define(['js/app'], function (myApp) {
                         requireSMSVerification: srcData.requireSMSVerification,
                         requireSMSVerificationForPasswordUpdate: srcData.requireSMSVerificationForPasswordUpdate,
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
+                        smsVerificationExpireTime: srcData.smsVerificationExpireTime,
                         useProviderGroup: srcData.useProviderGroup
                     }
                 };

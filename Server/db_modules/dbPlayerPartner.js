@@ -59,9 +59,13 @@ let dbPlayerPartner = {
                         return Promise.all([plyProm, partnerProm]);
                     }
                     else {
+                        platformObj.smsVerificationExpireTime = platformObj.smsVerificationExpireTime || 1440;
+                        let smsExpiredDate = new Date();
+                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformObj.smsVerificationExpireTime);
                         let smsProm = dbConfig.collection_smsVerificationLog.findOne({
                             platformId: registerData.platformId,
-                            tel: registerData.phoneNumber
+                            tel: registerData.phoneNumber,
+                            createTime: {$gte: smsExpiredDate}
                         }).sort({createTime: -1});
 
                         return smsProm.then(
@@ -323,12 +327,14 @@ let dbPlayerPartner = {
         let newEncrpytedPhoneNumber = null;
         let playerData = null;
         let partnerData = null;
+        let platform;
 
         // 1. Get current platform detail
         return dbConfig.collection_platform.findOne({
             platformId: platformId,
         }).then(
             platformData => {
+                platform = platformData;
                 platformObjId = platformData._id;
                 if (platformData) {
                     // 2. Get current player and/or partner info
@@ -412,10 +418,14 @@ let dbPlayerPartner = {
         ).then(
             playerData => {
                 if (!playerData || (!playerData[0] && !playerData[1])) {
+                    platform.smsVerificationExpireTime = platform.smsVerificationExpireTime || 1440;
+                    let smsExpiredDate = new Date();
+                    smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platform.smsVerificationExpireTime);
                     // 4. Check if smsCode is matched
                     return dbConfig.collection_smsVerificationLog.findOne({
                         platformObjId: platformObjId,
-                        tel: curPhoneNumber
+                        tel: curPhoneNumber,
+                        createTime: {$gte: smsExpiredDate}
                     }).sort({createTime: -1}).then(
                         verificationSMS => {
                             // Check verification SMS code
@@ -630,10 +640,14 @@ let dbPlayerPartner = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
+                        platform.smsVerificationExpireTime = platform.smsVerificationExpireTime || 1440;
+                        let smsExpiredDate = new Date();
+                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
                         // Check verification SMS match
                         return dbConfig.collection_smsVerificationLog.findOne({
                             platformObjId: playerObj.platform,
-                            tel: playerObj.phoneNumber
+                            tel: playerObj.phoneNumber,
+                            createTime: {$gte: smsExpiredDate}
                         }).sort({createTime: -1}).then(
                             verificationSMS => {
                                 // Check verification SMS code
