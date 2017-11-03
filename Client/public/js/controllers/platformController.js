@@ -13327,6 +13327,14 @@ define(['js/app'], function (myApp) {
                 vm.phoneNumCSVResult = false;
                 vm.phoneNumTXTResult = false;
                 vm.filterAllPlatform = false;
+                vm.resetInputCSV = false;
+                vm.resetInputTXT = false;
+                vm.gridOptions = {};
+            };
+
+            vm.resetUIGrid = function () {
+                vm.gridOptions.data = [];
+                vm.gridOptions.columnDefs = [];
             };
 
             // compare a new list pf phone numbers with existing player info database
@@ -13335,6 +13343,7 @@ define(['js/app'], function (myApp) {
                 vm.arrayInputPhone = vm.inputNewPhoneNum.split(/,|, /).map((item) => item.trim());
 
                 let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
                     platformObjId: vm.selectedPlatform.id,
                     arrayInputPhone: vm.arrayInputPhone
                 };
@@ -13354,6 +13363,7 @@ define(['js/app'], function (myApp) {
                 vm.arrayPhoneCSV = vm.splitPhoneCSV.slice(0, vm.splitPhoneCSV.length - 1);
 
                 let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
                     platformObjId: vm.selectedPlatform.id,
                     arrayPhoneCSV: vm.arrayPhoneCSV
                 };
@@ -13379,11 +13389,23 @@ define(['js/app'], function (myApp) {
                 vm.contentCSV = fileContent;
             };
 
+            // reset phone number CSV
+            vm.resetCSV = function () {
+                vm.contentCSV = false;
+                vm.resetInputCSV = !vm.resetInputCSV;
+                vm.phoneNumCSVResult=false;
+                vm.samePhoneCSV = '';
+                vm.diffPhoneCSV = '';
+                vm.samePhoneTotalCSV = '';
+                vm.diffPhoneTotalCSV = '';
+            };
+
             // upload phone file: txt
             vm.uploadPhoneFileTXT = function(content) {
                 vm.arrayPhoneTXT = content.split(/,|, /).map((item) => item.trim());
 
                 let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
                     platformObjId: vm.selectedPlatform.id,
                     arrayPhoneTXT: vm.arrayPhoneTXT
                 };
@@ -13438,6 +13460,17 @@ define(['js/app'], function (myApp) {
             // display content from TXT file
             vm.showContentTXT = function (fileContent) {
                 vm.contentTXT = fileContent;
+            };
+
+            // reset phone number TXT
+            vm.resetTXT = function () {
+                vm.contentTXT = false;
+                vm.resetInputTXT = !vm.resetInputTXT;
+                vm.phoneNumTXTResult=false;
+                vm.samePhoneTXT = '';
+                vm.diffPhoneTXT = '';
+                vm.samePhoneTotalTXT = '';
+                vm.diffPhoneTotalTXT = '';
             };
             
             // reset phone number textarea
