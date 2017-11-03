@@ -4,8 +4,12 @@
             label Filter All Platform is
             label(style='color:green', ng-if='vm.filterAllPlatform') &nbsp; enabled
             label(style='color:red', ng-if='!vm.filterAllPlatform') &nbsp; disabled
-            button.btn.btn-lg.btn-toggle(type='button', data-toggle='button', aria-pressed='false', autocomplete='off', ng-click='vm.filterAllPlatform=!vm.filterAllPlatform')
-                .handle
+            div(ng-if='!vm.filterAllPlatform')
+                button.btn.btn-lg.btn-toggle(type='button', data-toggle='button', aria-pressed='false', autocomplete='off', ng-click='vm.filterAllPlatform=!vm.filterAllPlatform')
+                    .handle
+            div(ng-if='vm.filterAllPlatform')
+                button.btn.btn-lg.btn-toggle.active(type='button', data-toggle='button', aria-pressed='true', autocomplete='off', ng-click='vm.filterAllPlatform=!vm.filterAllPlatform')
+                    .handle
 
     .col-md-4
         .panel.panel-primary
@@ -21,12 +25,16 @@
                         strong {{"ADD_PHONE_NUMBER_CSV_INSTRUCTION" | translate}}
                 div
                     form
-                        input(type='file', name='file' on-read-file='vm.uploadPhoneFileCSV($fileContent); vm.showContentCSV($fileContent)', ng-click="vm.phoneNumCSVResult=false;")
+                        input(type='file', name='file' on-read-file='vm.uploadPhoneFileCSV($fileContent); vm.showContentCSV($fileContent)', ng-if='!vm.resetInputCSV', ng-click="vm.phoneNumCSVResult=false;")
+                        input(type='file', name='file' on-read-file='vm.uploadPhoneFileCSV($fileContent); vm.showContentCSV($fileContent)', ng-if='vm.resetInputCSV', ng-click="vm.phoneNumCSVResult=false;")
                         br
                         .well(ng-if='vm.contentCSV')
                             label {{"CONTENT_CSV" | translate}}:
                             p {{vm.contentCSV}}
                         .pull-right
+                            button.btn.btn-danger.common-button(ng-click="vm.resetCSV()")
+                                i.fa.fa-refresh
+                                text {{"RESET_CSV" | translate}}
                             button.btn.btn-primary.common-button(ng-click="vm.phoneNumCSVResult=true;")
                                 i.fa.fa-check
                                 text {{"SUBMIT" | translate}}
@@ -63,12 +71,16 @@
                         strong {{"ADD_PHONE_NUMBER_TXT_INSTRUCTION" | translate}}
                 div
                     form
-                        input(type='file', name='file' on-read-file='vm.uploadPhoneFileTXT($fileContent); vm.showContentTXT($fileContent)', ng-click="vm.phoneNumTXTResult=false;")
+                        input(type='file', name='file' on-read-file='vm.uploadPhoneFileTXT($fileContent); vm.showContentTXT($fileContent)', ng-if='!vm.resetInputTXT', ng-click="vm.phoneNumTXTResult=false;")
+                        input(type='file', name='file' on-read-file='vm.uploadPhoneFileTXT($fileContent); vm.showContentTXT($fileContent)', ng-if='vm.resetInputTXT', ng-click="vm.phoneNumTXTResult=false;")
                         br
                         .well(ng-if='vm.contentTXT')
                             label {{"CONTENT_TXT" | translate}}:
                             p(style="word-wrap:break-word; width:100%") {{vm.contentTXT}}
                         .pull-right
+                            button.btn.btn-danger.common-button(ng-click="vm.resetTXT()")
+                                i.fa.fa-refresh
+                                text {{"RESET_TXT" | translate}}
                             button.btn.btn-primary.common-button(ng-click="vm.phoneNumTXTResult=true;")
                                 i.fa.fa-check
                                 text {{"SUBMIT" | translate}}
@@ -134,3 +146,22 @@
                     .alert.alert-success.alert-dismissable(ng-if="vm.copyHere")
                         a.close(href='#', data-dismiss='alert', aria-label='close') ×
                         p {{"COPIED_SUCCESS" | translate}}!
+
+    .col-md-12
+        .panel.panel-primary
+            .panel-heading
+                .fa.fa-file-text.margin-right-5
+                label {{"SUPPORTED_FILE_FORMAT" | translate}}:
+                |  .xls, .xlsx, .xlsm
+            .panel-body
+                div
+                    button.btn.btn-success(type='button', ng-click='vm.resetUIGrid()') Reset Grid
+                    br
+                    br
+                    #grid1.grid(ng-if='vm.gridOptions', ui-grid='vm.gridOptions')
+                        .grid-msg-overlay(ng-show='!vm.gridOptions.data.length')
+                            .msg
+                                .center
+                                    span.muted Select Spreadsheet File
+                                    br
+                                    input(type='file', accept='.xls,.xlsx,.ods', fileread='', opts='vm.gridOptions', multiple='false')

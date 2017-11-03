@@ -1445,7 +1445,7 @@ var proposal = {
             if (returnData[2] && returnData[2][0]) {
                 summaryObj = {
                     amount: returnData[2][0].totalAmount + returnData[2][0].totalRewardAmount + returnData[2][0].totalTopUpAmount + returnData[2][0].totalUpdateAmount + returnData[2][0].totalNegativeProfitAmount + returnData[2][0].totalCommissionAmount
-                }
+                };
             }
             return {data: returnData[0], size: returnData[1], summary: summaryObj};
         });
@@ -2349,7 +2349,7 @@ var proposal = {
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
         query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
 
-        if (data.merchantNo && data.merchantNo.length > 0 && (!data.merchantGroup|| data.merchantGroup.length==0)) {
+        if (data.merchantNo && data.merchantNo.length > 0 && (!data.merchantGroup || data.merchantGroup.length == 0)) {
             query['$or'] = [
                 {'data.merchantNo': {$in: convertStringNumber(data.merchantNo)}},
                 {'data.bankCardNo': {$in: convertStringNumber(data.merchantNo)}},
@@ -2362,23 +2362,25 @@ var proposal = {
 
         if ((!data.merchantNo || data.merchantNo.length == 0) && data.merchantGroup && data.merchantGroup.length > 0) {
             let mGroupList = [];
-            data.merchantGroup.forEach(item=> {
-                item.forEach(sItem=>{
+            data.merchantGroup.forEach(item => {
+                item.forEach(sItem => {
                     mGroupList.push(sItem)
                 })
             })
             query['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
         }
 
-        if (data.merchantNo && data.merchantNo.length > 0  && data.merchantGroup && data.merchantGroup.length > 0) {
-            if(data.merchantGroup.length > 0){
+        if (data.merchantNo && data.merchantNo.length > 0 && data.merchantGroup && data.merchantGroup.length > 0) {
+            if (data.merchantGroup.length > 0) {
                 let mGroupC = [];
                 let mGroupD = [];
-                data.merchantNo.forEach(item=>{
+                data.merchantNo.forEach(item => {
                     mGroupC.push(item);
                 });
-                data.merchantGroup.forEach(item=>{
-                    item.forEach(sItem=>{ mGroupD.push(sItem)});
+                data.merchantGroup.forEach(item => {
+                    item.forEach(sItem => {
+                        mGroupD.push(sItem)
+                    });
                 });
                 query['$or'] = [
                     {'data.merchantNo': {$in: convertStringNumber(mGroupC)}},
@@ -2396,10 +2398,10 @@ var proposal = {
         if (data.proposalNo) {
             query['data.proposalId'] = data.proposalNo;
         }
-        if (data.bankTypeId && data.bankTypeId.length > 0){
+        if (data.bankTypeId && data.bankTypeId.length > 0) {
             query['data.bankTypeId'] = {$in: convertStringNumber(data.bankTypeId)};
         }
-        if (data.userAgent && data.userAgent.length > 0){
+        if (data.userAgent && data.userAgent.length > 0) {
             query['data.userAgent'] = {$in: convertStringNumber(data.userAgent)};
         }
         if (data.status && data.status.length > 0) {
@@ -2434,7 +2436,7 @@ var proposal = {
                 };
         }
         if (data.topupType && data.topupType.length > 0) {
-            query['data.topupType'] = { $in: convertStringNumber(data.topupType)}
+            query['data.topupType'] = {$in: convertStringNumber(data.topupType)}
         }
 
         if (data.depositMethod && data.depositMethod.length > 0) {
@@ -2885,13 +2887,13 @@ function getMinutesBetweenDates(startDate, endDate) {
     return Math.floor(diff / 60000);
 }
 
-function convertStringNumber(Arr){
+function convertStringNumber(Arr) {
     let Arrs = JSON.parse(JSON.stringify(Arr));
     let result = []
-    Arrs.forEach(item=>{
+    Arrs.forEach(item => {
         result.push(String(item));
     })
-    Arrs.forEach(item=>{
+    Arrs.forEach(item => {
         result.push(Number(item));
     })
     return result;

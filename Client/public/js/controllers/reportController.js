@@ -264,58 +264,70 @@ define(['js/app'], function (myApp) {
             //   $('.merchantNoList').selectpicker('refresh');
             // });
         }
-        vm.filterMerchant = function(){
+        vm.filterMerchant = function () {
             vm.merchantCloneList = angular.copy(vm.merchantNoList);
             let agent = vm.queryTopup.userAgent;
             let thirdParty = vm.queryTopup.merchantGroup;
             let mainTopupType = vm.queryTopup.mainTopupType;
             let topupType = vm.queryTopup.topupType;
             let bankTypeId = vm.queryTopup.bankTypeId;
-            if(agent && agent.length > 0){
-                vm.merchantCloneList = vm.merchantCloneList.filter(item=>{
+            if (agent && agent.length > 0) {
+                vm.merchantCloneList = vm.merchantCloneList.filter(item => {
                     let targetDevices = String(item.targetDevices);
                     return agent.indexOf(targetDevices) != -1;
                 });
             }
             // online topup
-            if(thirdParty && thirdParty.length > 0){
+            if (thirdParty && thirdParty.length > 0) {
                 let tpGroup = [];
-                thirdParty.forEach(item=>{
-                    if(item.length > 0){
-                        item.forEach(i=>{ tpGroup.push(i); })
+                thirdParty.forEach(item => {
+                    if (item.length > 0) {
+                        item.forEach(i => {
+                            tpGroup.push(i);
+                        })
                     }
                 })
-                if(tpGroup.length > 0 && vm.merchantCloneList){
-                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{
+                if (tpGroup.length > 0 && vm.merchantCloneList) {
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item => {
                         let mno = String(item.merchantNo);
-                        return tpGroup.indexOf(item.merchantNo) != -1 })
+                        return tpGroup.indexOf(item.merchantNo) != -1
+                    })
                 }
             }
-            if(topupType && topupType.length > 0 && vm.merchantCloneList){
+            if (topupType && topupType.length > 0 && vm.merchantCloneList) {
                 // display online topup type
-                vm.merchantCloneList = vm.merchantCloneList.filter(item=>{
-                    return topupType.indexOf(String(item.topupType)) != -1 })
+                vm.merchantCloneList = vm.merchantCloneList.filter(item => {
+                    return topupType.indexOf(String(item.topupType)) != -1
+                })
             }
             //manual topup
-            if(mainTopupType){
-                if(mainTopupType=='1'||mainTopupType==1){
+            if (mainTopupType) {
+                if (mainTopupType == '1' || mainTopupType == 1) {
                     // 9999 = 'bankcard', if manual topup ,display bankcard only
-                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId == '9999' })
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item => {
+                        return item.merchantTypeId == '9999'
+                    })
                 }
-                else if(mainTopupType=='3'||mainTopupType==3){
+                else if (mainTopupType == '3' || mainTopupType == 3) {
                     // 9999 = 'bankcard', if manual topup ,display bankcard only
-                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId == '9997' })
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item => {
+                        return item.merchantTypeId == '9997'
+                    })
                 }
-                else if(mainTopupType=='4'||mainTopupType==4){
+                else if (mainTopupType == '4' || mainTopupType == 4) {
                     // 9999 = 'bankcard', if manual topup ,display bankcard only
-                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId == '9998' })
-                }else{
-                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId !='9997' && item.merchantTypeId !='9998' && item.merchantTypeId !='9999'})
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item => {
+                        return item.merchantTypeId == '9998'
+                    })
+                } else {
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item => {
+                        return item.merchantTypeId != '9997' && item.merchantTypeId != '9998' && item.merchantTypeId != '9999'
+                    })
                 }
             }
-            if(bankTypeId && (mainTopupType=='1' || mainTopupType==1 ) && vm.merchantCloneList){
+            if (bankTypeId && (mainTopupType == '1' || mainTopupType == 1 ) && vm.merchantCloneList) {
                 // filter selected banktype only
-                vm.merchantCloneList = vm.merchantCloneList.filter(item=>{
+                vm.merchantCloneList = vm.merchantCloneList.filter(item => {
                     //return item.bankTypeId == bankTypeId
                     let bnkId = String(item.bankTypeId)
                     return bankTypeId.indexOf(bnkId) != -1;
@@ -428,7 +440,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPlatformProviderGroup = () => {
-            $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+            $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform._id}).then(function (data) {
                 vm.gameProviderGroup = data.data;
                 $scope.safeApply();
             });
@@ -748,14 +760,14 @@ define(['js/app'], function (myApp) {
                            let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
                            if(merchantTypeId=="9999"){
                              vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
-                           }else if(merchantTypeId=="9998"){
-                             vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
-                           }else if(merchantTypeId=="9997"){
+                           } else if (merchantTypeId == "9998") {
+                               vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
+                           } else if (merchantTypeId == "9997") {
                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
                            }else if(vm.merchantTypes[merchantTypeId]){
-                              vm.merchantNoList[item].merchantTypeName = merchantTypeId ? vm.merchantTypes[merchantTypeId].name :'';
+                               vm.merchantNoList[item].merchantTypeName = merchantTypeId ? vm.merchantTypes[merchantTypeId].name : '';
                            }else{
-                             vm.merchantNoList[item].merchantTypeName = '';
+                               vm.merchantNoList[item].merchantTypeName = '';
                            }
                         });
                         vm.merchantCloneList = angular.copy(vm.merchantNoList);
@@ -1716,14 +1728,14 @@ define(['js/app'], function (myApp) {
 
             var staArr = vm.queryTopup.status ? vm.queryTopup.status : [];
 
-            if(staArr.length > 0){
-                staArr.forEach(item=>{
+            if (staArr.length > 0) {
+                staArr.forEach(item => {
                     if (item == "Success") {
-                            staArr.push("Approved");
-                        }
+                        staArr.push("Approved");
+                    }
                     if (item == "Fail") {
-                            staArr.push("Rejected");
-                        }
+                        staArr.push("Rejected");
+                    }
                 })
             }
 
@@ -1885,7 +1897,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                           if(data){
                               // var text = $translate(vm.allBankTypeList[data] ? vm.allBankTypeList[data]: "");
-                              var text = vm.allBankTypeList?vm.allBankTypeList[data]:"";
+                              var text = vm.allBankTypeList ? vm.allBankTypeList[data] : "";
                               return "<div>" + $translate(text) + "</div>";
                           }else{
                               return "<div>" + '' + "</div>";
