@@ -126,6 +126,7 @@ let dbPlayerInfo = {
                                     _id: verificationSMS._id
                                 }).then(
                                     () => {
+                                        dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                         Q.resolve(true);
                                     }
                                 );
@@ -1356,6 +1357,7 @@ let dbPlayerInfo = {
                                         {_id: verificationSMS._id}
                                     ).then(
                                         () => {
+                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                             return Q.resolve(true);
                                         }
                                     )
@@ -1535,6 +1537,7 @@ let dbPlayerInfo = {
                                         {_id: verificationSMS._id}
                                     ).then(
                                         () => {
+                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                             return Q.resolve(true);
                                         }
                                     )

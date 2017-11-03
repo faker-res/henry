@@ -4,8 +4,8 @@ const constSMSPurpose = {
     OLD_PHONE_NUMBER: 'oldPhoneNumber',
     NEW_PHONE_NUMBER: 'newPhoneNumber',
     UPDATE_PASSWORD: 'updatePassword',
-    UPDATE_PAYMENT_INFO_FIRST: 'updatePaymentInfoFirst',
-    UPDATE_PAYMENT_INFO: 'updatePaymentInfo',
+    UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
+    UPDATE_BANK_INFO: 'updateBankInfo',
     RESET_PASSWORD: 'resetPassword'
 };
 

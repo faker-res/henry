@@ -12,6 +12,7 @@ let dbUtility = require('./../modules/dbutility');
 let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbPartner = require('./../db_modules/dbPartner');
 let dbProposal = require('./../db_modules/dbProposal');
+let dbLogger = require('./../modules/dbLogger');
 
 let dbPlayerPartner = {
     createPlayerPartnerAPI: registerData => {
@@ -79,6 +80,7 @@ let dbPlayerPartner = {
                                         retData => {
                                             let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData, true);
                                             let partnerProm = dbPartner.createPartnerAPI(pRegisterData);
+                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
 
                                             return Promise.all([plyProm, partnerProm]);
                                         }
@@ -200,6 +202,7 @@ let dbPlayerPartner = {
                             {_id: verificationSMS._id}
                         ).then(
                             data => {
+                                dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                 isSMSVerified = true;
                                 let plyProm = dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
                                 let partnerProm = dbPartner.partnerLoginWithSMSAPI(loginData, ua, isSMSVerified);
@@ -435,6 +438,7 @@ let dbPlayerPartner = {
                                     {_id: verificationSMS._id}
                                 ).then(
                                     () => {
+                                        dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                         return Q.resolve(true);
                                     }
                                 )
@@ -657,6 +661,7 @@ let dbPlayerPartner = {
                                         {_id: verificationSMS._id}
                                     ).then(
                                         () => {
+                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                             return Q.resolve(true);
                                         }
                                     )

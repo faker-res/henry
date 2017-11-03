@@ -297,6 +297,19 @@ var dbLogger = {
             }
         );
     },
+
+    logUsedVerificationSMS: (tel, message) => {
+        dbconfig.collection_smsLog.find({tel, message}).sort({createTime:-1}).limit(1).lean().exec().then(
+            smsLogArr => {
+                if (smsLogArr && smsLogArr[0]) {
+                    let smsLog = smsLogArr[0];
+
+                    dbconfig.collection_smsLog.update({_id: smsLog._id}, {used: true});
+                }
+            }
+        )
+    },
+
     getPaymentHistory: function (query) {
         var finalResult = [];
 
