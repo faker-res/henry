@@ -67,6 +67,9 @@ var platformAnnouncementSchema = require('./../schema/platformAnnouncement');
 
 var playerMailSchema = require('./../schema/playerMail');
 
+let playerFeedbackResultSchema = require('./../schema/playerFeedbackResult');
+let playerFeedbackTopicSchema = require('./../schema/playerFeedbackTopic');
+
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -153,6 +156,9 @@ let promoCodeTypeSchema = require('./../schema/promoCodeType');
 let promoCodeTypeModel = db_admin.model('promoCodeType', promoCodeTypeSchema, 'promoCodeType');
 let promoCodeUserGroupSchema = require('./../schema/promoCodeUserGroup');
 let promoCodeUserGroupModel = db_admin.model('promoCodeUserGroup', promoCodeUserGroupSchema, 'promoCodeUserGroup');
+
+let playerFeedbackResultModel = db_admin.model('playerFeedbackResult', playerFeedbackResultSchema, 'playerFeedbackResult');
+let playerFeedbackTopicModel = db_admin.model('playerFeedbackTopic', playerFeedbackTopicSchema, 'playerFeedbackTopic');
 
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
@@ -383,6 +389,9 @@ var dbProperties = {
     collection_csOfficer: csOfficerModel,
     collection_csOfficerUrl: csOfficerUrlModel,
     collection_csPromoteWay: csPromoteWayModel,
+
+    collection_playerFeedbackResult: playerFeedbackResultModel,
+    collection_playerFeedbackTopic: playerFeedbackTopicModel,
 
     //logs
     collection_playerMail: playerMailModel,

@@ -813,7 +813,7 @@ define(['js/app'], function (myApp) {
 
         vm.getRewardList = function (callback) {
             vm.rewardList = [];
-            socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform._id}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: {$in: vm.allPlatformId}}, function (data) {
                 vm.rewardList = data.data;
                 console.log('vm.rewardList', vm.rewardList);
                 $scope.safeApply();
@@ -824,7 +824,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPromotionTypeList = function (callback) {
-            socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform._id}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: {$in: vm.allPlatformId}}, function (data) {
                 console.log('getPromoCodeTypes', data);
                 vm.promoTypeList = data.data;
                 $scope.safeApply();
@@ -1588,7 +1588,7 @@ define(['js/app'], function (myApp) {
                     } else return true;
                 }
             );
-            vm.queryProposal.pageObj.init({maxCount: size}, newSearch);
+            vm.queryAuditProposal.pageObj.init({maxCount: size}, newSearch);
 
             $('#proposalAuditDataTable').empty();
             //no idea why is 7, and 7 is not working, so I change it to 8
@@ -1644,7 +1644,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.updateMultiselectProposal = function () {
-            var allClicked = $("#proposalDataTable tr input:checked[type='checkbox']");
+            var allClicked = $("#proposalAuditDataTable tr input:checked[type='checkbox']");
             vm.multiProposalSelected = [];
             if (allClicked.length > 0) {
                 allClicked.each(function () {
@@ -2579,16 +2579,18 @@ define(['js/app'], function (myApp) {
                         });
                     });
 
-                    utilService.actionAfterLoaded("#proposalDataTablePage", function () {
-                        vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
-                            vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
+                    setTimeout(function() {
+                        utilService.actionAfterLoaded("#proposalDataTablePage", function () {
+                            vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
+                            });
                         });
-                    });
+                    }, 0);
 
                     // for some reason, the pagination wont translate when it does not put inside setTimeout
                     setTimeout(function() {
                         utilService.actionAfterLoaded("#proposalAuditDataTablePage", function () {
-                            vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalAuditDataTablePage", {}, $translate, function (curP, pageSize) {
+                            vm.queryAuditProposal.pageObj = utilService.createPageForPagingTable("#proposalAuditDataTablePage", {}, $translate, function (curP, pageSize) {
                                 vm.commonPageChangeHandler(curP, pageSize, "queryAuditProposal", vm.loadProposalAuditQueryData)
                             });
                         });
