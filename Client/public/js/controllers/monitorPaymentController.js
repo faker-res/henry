@@ -158,18 +158,18 @@ define(['js/app'], function (myApp) {
             })
 
         };
-        vm.merchantsNBcard = function(){
-            Object.keys(vm.merchants).forEach(item=>{
+        vm.merchantsNBcard = function () {
+            Object.keys(vm.merchants).forEach(item => {
                 let merchantTypeId = vm.merchants[item].merchantTypeId;
-                if(merchantTypeId=="9999"){
+                if (merchantTypeId == "9999") {
                     vm.merchants[item].merchantTypeName = $translate('BankCardNo');
-                }else if(merchantTypeId=="9998"){
+                } else if (merchantTypeId == "9998") {
                     vm.merchants[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
-                }else if(merchantTypeId=="9997"){
+                } else if (merchantTypeId == "9997") {
                     vm.merchants[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
-                }else if(vm.merchantTypes[merchantTypeId]){
-                    vm.merchants[item].merchantTypeName = merchantTypeId ? vm.merchantTypes[merchantTypeId].name :'';
-                }else{
+                } else if (vm.merchantTypes[merchantTypeId]) {
+                    vm.merchants[item].merchantTypeName = merchantTypeId ? vm.merchantTypes[merchantTypeId].name : '';
+                } else {
                     vm.merchants[item].merchantTypeName = '';
                 }
             });
@@ -365,58 +365,70 @@ define(['js/app'], function (myApp) {
                 });
             });
         };
-        vm.filterMerchant = function(){
+        vm.filterMerchant = function () {
             vm.merchantCloneList = angular.copy(vm.merchants);
             let agent = vm.paymentMonitorQuery.userAgent;
             let thirdParty = vm.paymentMonitorQuery.merchantGroup;
             let mainTopupType = vm.paymentMonitorQuery.mainTopupType;
             let topupType = vm.paymentMonitorQuery.topupType;
             let bankTypeId = vm.paymentMonitorQuery.bankTypeId;
-            if(agent && agent.length > 0){
-                vm.merchantCloneList = vm.merchantCloneList.filter(item=>{
+            if (agent && agent.length > 0) {
+                vm.merchantCloneList = vm.merchantCloneList.filter(item => {
                     let targetDevices = String(item.targetDevices)
                     return agent.indexOf(targetDevices) != -1;
                 });
             }
             // online topup
-            if(thirdParty && thirdParty.length > 0 ){
+            if (thirdParty && thirdParty.length > 0) {
                 let tpGroup = [];
-                thirdParty.forEach(item=>{
-                    if(item.length > 0){
-                        item.forEach(i=>{ tpGroup.push(i); })
+                thirdParty.forEach(item => {
+                    if (item.length > 0) {
+                        item.forEach(i => {
+                            tpGroup.push(i);
+                        })
                     }
                 })
-                if(tpGroup.length > 0 && vm.merchantCloneList){
-                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{
+                if (tpGroup.length > 0 && vm.merchantCloneList) {
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item => {
                         let mno = String(item.merchantNo);
-                        return tpGroup.indexOf(item.merchantNo) != -1 })
+                        return tpGroup.indexOf(item.merchantNo) != -1
+                    })
                 }
             }
-            if(topupType && topupType.length > 0 && vm.merchantCloneList){
+            if (topupType && topupType.length > 0 && vm.merchantCloneList) {
                 // display online topup type
-                vm.merchantCloneList = vm.merchantCloneList.filter(item=>{
-                    return topupType.indexOf(String(item.topupType)) != -1 })
+                vm.merchantCloneList = vm.merchantCloneList.filter(item => {
+                    return topupType.indexOf(String(item.topupType)) != -1
+                })
             }
             //manual topup
-            if(mainTopupType){
-                if(mainTopupType=='1'||mainTopupType==1){
+            if (mainTopupType) {
+                if (mainTopupType == '1' || mainTopupType == 1) {
                     // 9999 = 'bankcard', if manual topup ,display bankcard only
-                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId == '9999' })
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item => {
+                        return item.merchantTypeId == '9999'
+                    })
                 }
-                else if(mainTopupType=='3'||mainTopupType==3){
+                else if (mainTopupType == '3' || mainTopupType == 3) {
                     // 9999 = 'bankcard', if manual topup ,display bankcard only
-                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId == '9997' })
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item => {
+                        return item.merchantTypeId == '9997'
+                    })
                 }
-                else if(mainTopupType=='4'||mainTopupType==4){
+                else if (mainTopupType == '4' || mainTopupType == 4) {
                     // 9999 = 'bankcard', if manual topup ,display bankcard only
-                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId == '9998' })
-                }else{
-                    vm.merchantCloneList = vm.merchantCloneList.filter(item=>{ return item.merchantTypeId !='9997' && item.merchantTypeId !='9998' && item.merchantTypeId !='9999'})
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item => {
+                        return item.merchantTypeId == '9998'
+                    })
+                } else {
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item => {
+                        return item.merchantTypeId != '9997' && item.merchantTypeId != '9998' && item.merchantTypeId != '9999'
+                    })
                 }
             }
-            if(bankTypeId && (mainTopupType=='1' || mainTopupType==1) && vm.merchantCloneList){
+            if (bankTypeId && (mainTopupType == '1' || mainTopupType == 1) && vm.merchantCloneList) {
                 // filter selected banktype only
-                vm.merchantCloneList = vm.merchantCloneList.filter(item=>{
+                vm.merchantCloneList = vm.merchantCloneList.filter(item => {
                     let bnkId = String(item.bankTypeId)
                     return bankTypeId.indexOf(bnkId) != -1;
                 })
@@ -435,8 +447,8 @@ define(['js/app'], function (myApp) {
                 vm.paymentMonitorQuery.merchantNo = '';
             }
             var staArr = vm.paymentMonitorQuery.status ? vm.paymentMonitorQuery.status : [];
-            if(staArr.length > 0){
-                staArr.forEach(item=>{
+            if (staArr.length > 0) {
+                staArr.forEach(item => {
                     if (item == "Success") {
                         staArr.push("Approved");
                     }

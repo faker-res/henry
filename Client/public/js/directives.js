@@ -243,21 +243,21 @@ angular.module('myApp.directives', [])
       };
   })
 
-    .directive('staticBsp', function($timeout){
-        return  {
-            restrict : 'A',
-            link: function(scope, element, attrs){
-                $timeout(()=>{
+    .directive('staticBsp', function ($timeout) {
+        return {
+            restrict: 'A',
+            link: function (scope, element, attrs) {
+                $timeout(() => {
                     $(element).selectpicker('refresh')
-                },50 )
+                }, 50)
 
-                    if (attrs.ngModel){
-                        scope.$watch(attrs.ngModel,function(){
-                            $(element).selectpicker('refresh');
-                        },true)
-                    }
+                if (attrs.ngModel) {
+                    scope.$watch(attrs.ngModel, function () {
+                        $(element).selectpicker('refresh');
+                    }, true)
                 }
             }
+        }
     })
 
   .directive('rddl', function($timeout){
