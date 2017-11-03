@@ -2769,20 +2769,21 @@ define(['js/app'], function (myApp) {
                     var summary = data.data.summary || {};
                     var tableOptions = {
                         data: tableData,
-                        "order": vm.expenseQuery.aaSorting || [[0, 'desc']],
+                        "order": vm.expenseQuery.aaSorting || [[1, 'desc']],
                     };
 
                     vm.commonProviderGameTableOptions = {
                         columnDefs: [
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [0]},
-                            {'sortCol': 'playerId', bSortable: true, 'aTargets': [1]},
-                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'amount', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
+                            // {'sortCol': 'playerId', bSortable: true, 'aTargets': [2]},
+                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'amount', bSortable: true, 'aTargets': [6]},
                             {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
-                            {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
+                            // {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
                             {targets: '_all', bSortable: false, defaultContent: ' '}
                         ],
                         columns: [
+                            {title: $translate('orderId'), data: "orderNo"},
                             {title: $translate('CREATION_TIME'), data: "createTime$"},
                             //{title: $translate('PLATFORM'), data: "platformId.name"},
                             {title: $translate('PLAYERID'), data: "playerId.name"},
@@ -2790,9 +2791,8 @@ define(['js/app'], function (myApp) {
                             {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
                             {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'sumFloat textRight'},
                             {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
-                            {title: $translate('orderId'), data: "orderId"},
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
-                            {title: $translate('commissionAmount'), data: "commissionAmount$", sClass: 'sumFloat textRight'},
+                            // {title: $translate('commissionAmount'), data: "commissionAmount$", sClass: 'sumFloat textRight'},
                             {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
                         ],
                         "paging": false,
@@ -2829,10 +2829,10 @@ define(['js/app'], function (myApp) {
                     tableOptions = $.extend(true, {}, vm.providerExpenseDataTableOptions, vm.commonProviderGameTableOptions, tableOptions);
                     vm.expenseQuery.pageObj.init({maxCount: vm.expenseQuery.totalCount}, newSearch);
                     utilService.createDatatableWithFooter('#providerExpenseTable', tableOptions, {
-                        4: summary.validAmountAll,
-                        5: summary.amountAll,
+                        5: summary.validAmountAll,
+                        6: summary.amountAll,
                         7: summary.bonusAmountAll,
-                        8: summary.commissionAmountAll
+                        // 8: summary.commissionAmountAll
                     });
                     $('#providerExpenseTable').off('order.dt');
                     $('#providerExpenseTable').on('order.dt', function (event, a, b) {
@@ -13327,6 +13327,14 @@ define(['js/app'], function (myApp) {
                 vm.phoneNumCSVResult = false;
                 vm.phoneNumTXTResult = false;
                 vm.filterAllPlatform = false;
+                vm.resetInputCSV = false;
+                vm.resetInputTXT = false;
+                vm.gridOptions = {};
+            };
+
+            vm.resetUIGrid = function () {
+                vm.gridOptions.data = [];
+                vm.gridOptions.columnDefs = [];
             };
 
             // compare a new list pf phone numbers with existing player info database
@@ -13335,6 +13343,7 @@ define(['js/app'], function (myApp) {
                 vm.arrayInputPhone = vm.inputNewPhoneNum.split(/,|, /).map((item) => item.trim());
 
                 let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
                     platformObjId: vm.selectedPlatform.id,
                     arrayInputPhone: vm.arrayInputPhone
                 };
@@ -13354,6 +13363,7 @@ define(['js/app'], function (myApp) {
                 vm.arrayPhoneCSV = vm.splitPhoneCSV.slice(0, vm.splitPhoneCSV.length - 1);
 
                 let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
                     platformObjId: vm.selectedPlatform.id,
                     arrayPhoneCSV: vm.arrayPhoneCSV
                 };
@@ -13379,11 +13389,23 @@ define(['js/app'], function (myApp) {
                 vm.contentCSV = fileContent;
             };
 
+            // reset phone number CSV
+            vm.resetCSV = function () {
+                vm.contentCSV = false;
+                vm.resetInputCSV = !vm.resetInputCSV;
+                vm.phoneNumCSVResult=false;
+                vm.samePhoneCSV = '';
+                vm.diffPhoneCSV = '';
+                vm.samePhoneTotalCSV = '';
+                vm.diffPhoneTotalCSV = '';
+            };
+
             // upload phone file: txt
             vm.uploadPhoneFileTXT = function(content) {
                 vm.arrayPhoneTXT = content.split(/,|, /).map((item) => item.trim());
 
                 let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
                     platformObjId: vm.selectedPlatform.id,
                     arrayPhoneTXT: vm.arrayPhoneTXT
                 };
@@ -13438,6 +13460,17 @@ define(['js/app'], function (myApp) {
             // display content from TXT file
             vm.showContentTXT = function (fileContent) {
                 vm.contentTXT = fileContent;
+            };
+
+            // reset phone number TXT
+            vm.resetTXT = function () {
+                vm.contentTXT = false;
+                vm.resetInputTXT = !vm.resetInputTXT;
+                vm.phoneNumTXTResult=false;
+                vm.samePhoneTXT = '';
+                vm.diffPhoneTXT = '';
+                vm.samePhoneTotalTXT = '';
+                vm.diffPhoneTotalTXT = '';
             };
             
             // reset phone number textarea

@@ -948,20 +948,20 @@ function socketActionPlayer(socketIO, socket) {
 
         comparePhoneNum: function comparePhoneNum(data){
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformObjId && data.arrayInputPhone);
-            socketUtil.emitter(self.socket, dbPlayerInfo.comparePhoneNum, [data.platformObjId, data.arrayInputPhone], actionName, isValidData);
+            var isValidData = Boolean(data && typeof(data.filterAllPlatform) === "boolean" && data.platformObjId && data.arrayInputPhone);
+            socketUtil.emitter(self.socket, dbPlayerInfo.comparePhoneNum, [data.filterAllPlatform, data.platformObjId, data.arrayInputPhone], actionName, isValidData);
         },
 
         uploadPhoneFileCSV: function uploadPhoneFileCSV(data){
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformObjId && data.arrayPhoneCSV);
-            socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileCSV, [data.platformObjId, data.arrayPhoneCSV], actionName, isValidData);
+            var isValidData = Boolean(data && typeof(data.filterAllPlatform) === "boolean" && data.platformObjId && data.arrayPhoneCSV);
+            socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileCSV, [data.filterAllPlatform, data.platformObjId, data.arrayPhoneCSV], actionName, isValidData);
         },
 
         uploadPhoneFileTXT: function uploadPhoneFileTXT(data){
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformObjId && data.arrayPhoneTXT);
-            socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileTXT, [data.platformObjId, data.arrayPhoneTXT], actionName, isValidData);
+            var isValidData = Boolean(data && typeof(data.filterAllPlatform) === "boolean" && data.platformObjId && data.arrayPhoneTXT);
+            socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileTXT, [data.filterAllPlatform, data.platformObjId, data.arrayPhoneTXT], actionName, isValidData);
         },
 
     };
