@@ -1739,9 +1739,11 @@ var dbPlayerTopUpRecord = {
                             status: constProposalStatus.PENDING
                         };
                         updateData.data = Object.assign({}, proposal.data);
+                        pdateData.data.userAlipayName = updateData.data.alipayName;
                         updateData.data.requestId = requestData.result.requestId;
                         updateData.data.proposalId = proposal.proposalId;
                         updateData.data.alipayAccount = requestData.result.alipayAccount;
+                        updateData.data.alipayName = requestData.result.alipayName;
                         requestData.result.alipayQRCode = requestData.result.alipayQRCode || "";
                         updateData.data.alipayQRCode = requestData.result.alipayQRCode;
                         if (requestData.result.validTime) {
