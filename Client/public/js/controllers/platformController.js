@@ -978,21 +978,28 @@ define(['js/app'], function (myApp) {
 
                 let socketActionLvlUp = '';
                 let socketActionLvlDown = '';
-
-                if (vm.selectedPlatform.data.playerLevelUpPeriod == vm.allPlayerLevelUpPeriod.DAY){
-                    socketActionLvlUp = 'getYesterdaySGTime';
-                } else if (vm.selectedPlatform.data.playerLevelUpPeriod == vm.allPlayerLevelUpPeriod.WEEK){
-                    socketActionLvlUp = 'getLastWeekSGTime';
-                } else if (vm.selectedPlatform.data.playerLevelUpPeriod == vm.allPlayerLevelUpPeriod.MONTH){
-                    socketActionLvlUp = 'getLastMonthSGTime';
+                switch (vm.selectedPlatform.data.playerLevelUpPeriod){
+                    case vm.allPlayerLevelUpPeriod.DAY:
+                        socketActionLvlUp = 'getYesterdaySGTime';
+                        break;
+                    case vm.allPlayerLevelUpPeriod.WEEK:
+                        socketActionLvlUp = 'getLastWeekSGTime';
+                        break;
+                    case vm.allPlayerLevelUpPeriod.MONTH:
+                        socketActionLvlUp = 'getLastMonthSGTime';
+                        break;
                 }
 
-                if (vm.selectedPlatform.data.playerLevelDownPeriod == vm.allPlayerLevelUpPeriod.DAY){
-                    socketActionLvlDown = 'getYesterdaySGTime';
-                } else if (vm.selectedPlatform.data.playerLevelDownPeriod == vm.allPlayerLevelUpPeriod.WEEK){
-                    socketActionLvlDown = 'getLastWeekSGTime';
-                } else if (vm.selectedPlatform.data.playerLevelDownPeriod == vm.allPlayerLevelUpPeriod.MONTH){
-                    socketActionLvlDown = 'getLastMonthSGTime';
+                switch (vm.selectedPlatform.data.playerLevelDownPeriod){
+                    case vm.allPlayerLevelUpPeriod.DAY:
+                        socketActionLvlDown = 'getYesterdaySGTime';
+                        break;
+                    case vm.allPlayerLevelUpPeriod.WEEK:
+                        socketActionLvlDown = 'getLastWeekSGTime';
+                        break;
+                    case vm.allPlayerLevelUpPeriod.MONTH:
+                        socketActionLvlDown = 'getLastMonthSGTime';
+                        break;
                 }
 
                 socketService.$socket($scope.AppSocket, socketActionLvlUp,
