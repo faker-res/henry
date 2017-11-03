@@ -813,7 +813,7 @@ define(['js/app'], function (myApp) {
 
         vm.getRewardList = function (callback) {
             vm.rewardList = [];
-            socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform._id}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: {$in: vm.allPlatformId}}, function (data) {
                 vm.rewardList = data.data;
                 console.log('vm.rewardList', vm.rewardList);
                 $scope.safeApply();
@@ -824,7 +824,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPromotionTypeList = function (callback) {
-            socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform._id}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: {$in: vm.allPlatformId}}, function (data) {
                 console.log('getPromoCodeTypes', data);
                 vm.promoTypeList = data.data;
                 $scope.safeApply();
