@@ -331,6 +331,7 @@ let dbPlayerPartner = {
         let playerData = null;
         let partnerData = null;
         let platform;
+        let verificationSmsDetail;
 
         // 1. Get current platform detail
         return dbConfig.collection_platform.findOne({
@@ -431,6 +432,7 @@ let dbPlayerPartner = {
                         createTime: {$gte: smsExpiredDate}
                     }).sort({createTime: -1}).then(
                         verificationSMS => {
+                            verificationSmsDetail = verificationSMS;
                             // Check verification SMS code
                             if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
                                 verificationSMS = verificationSMS || {};
