@@ -4,8 +4,12 @@
             label Filter All Platform is
             label(style='color:green', ng-if='vm.filterAllPlatform') &nbsp; enabled
             label(style='color:red', ng-if='!vm.filterAllPlatform') &nbsp; disabled
-            button.btn.btn-lg.btn-toggle(type='button', data-toggle='button', aria-pressed='false', autocomplete='off', ng-click='vm.filterAllPlatform=!vm.filterAllPlatform')
-                .handle
+            div(ng-if='!vm.filterAllPlatform')
+                button.btn.btn-lg.btn-toggle(type='button', data-toggle='button', aria-pressed='false', autocomplete='off', ng-click='vm.filterAllPlatform=!vm.filterAllPlatform')
+                    .handle
+            div(ng-if='vm.filterAllPlatform')
+                button.btn.btn-lg.btn-toggle.active(type='button', data-toggle='button', aria-pressed='true', autocomplete='off', ng-click='vm.filterAllPlatform=!vm.filterAllPlatform')
+                    .handle
 
     .col-md-4
         .panel.panel-primary

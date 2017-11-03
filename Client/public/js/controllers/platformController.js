@@ -13127,6 +13127,8 @@ define(['js/app'], function (myApp) {
                 vm.phoneNumCSVResult = false;
                 vm.phoneNumTXTResult = false;
                 vm.filterAllPlatform = false;
+                vm.resetInputCSV = false;
+                vm.resetInputTXT = false;
                 vm.gridOptions = {};
             };
 
@@ -13141,6 +13143,7 @@ define(['js/app'], function (myApp) {
                 vm.arrayInputPhone = vm.inputNewPhoneNum.split(/,|, /).map((item) => item.trim());
 
                 let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
                     platformObjId: vm.selectedPlatform.id,
                     arrayInputPhone: vm.arrayInputPhone
                 };
@@ -13160,6 +13163,7 @@ define(['js/app'], function (myApp) {
                 vm.arrayPhoneCSV = vm.splitPhoneCSV.slice(0, vm.splitPhoneCSV.length - 1);
 
                 let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
                     platformObjId: vm.selectedPlatform.id,
                     arrayPhoneCSV: vm.arrayPhoneCSV
                 };
@@ -13201,6 +13205,7 @@ define(['js/app'], function (myApp) {
                 vm.arrayPhoneTXT = content.split(/,|, /).map((item) => item.trim());
 
                 let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
                     platformObjId: vm.selectedPlatform.id,
                     arrayPhoneTXT: vm.arrayPhoneTXT
                 };
