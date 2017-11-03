@@ -39,7 +39,7 @@ function socketActionPromoCode(socketIO, socket) {
         getPromoCodeTypes: function getPromoCodeTypes(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeTypes, [ObjectId(data.platformObjId)], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeTypes, [data.platformObjId], actionName, isValidData);
         },
 
         getPromoCodeTypeByObjId: function getPromoCodeTypeByObjId(data) {
