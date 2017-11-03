@@ -1448,19 +1448,9 @@ var proposal = {
         ).then(returnData => {
             var summaryObj = {};
             if (returnData[2] && returnData[2][0]) {
-                // debugging use, todo :: remove later
-                console.log("totalAmount", returnData[2][0].totalAmount);
-                console.log("totalRewardAmount", returnData[2][0].totalRewardAmount);
-                console.log("totalTopUpAmount", returnData[2][0].totalTopUpAmount);
-                console.log("totalUpdateAmount", returnData[2][0].totalUpdateAmount);
-                console.log("totalNegativeProfitAmount", returnData[2][0].totalNegativeProfitAmount);
-                console.log("totalCommissionAmount", returnData[2][0].totalCommissionAmount);
-
                 summaryObj = {
-                    amount: parseFloat(returnData[2][0].totalAmount) + parseFloat(returnData[2][0].totalRewardAmount) + parseFloat(returnData[2][0].totalTopUpAmount) + parseFloat(returnData[2][0].totalUpdateAmount) + parseFloat(returnData[2][0].totalNegativeProfitAmount) + parseFloat(returnData[2][0].totalCommissionAmount)
+                    amount: returnData[2][0].totalAmount + returnData[2][0].totalRewardAmount + returnData[2][0].totalTopUpAmount + returnData[2][0].totalUpdateAmount + returnData[2][0].totalNegativeProfitAmount + returnData[2][0].totalCommissionAmount
                 };
-
-                console.log("summaryObj.amount", summaryObj.amount);
             }
             return {data: returnData[0], size: returnData[1], summary: summaryObj};
         });
