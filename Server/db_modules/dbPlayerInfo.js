@@ -1205,17 +1205,17 @@ let dbPlayerInfo = {
                         delete permission[i];
                     }
                 }
-                if (Object.keys(oldData).length !== 0) {
-                    var newLog = new dbconfig.collection_playerPermissionLog({
-                        admin: admin,
-                        platform: query.platform,
-                        player: query._id,
-                        remark: remark,
-                        oldData: oldData,
-                        newData: permission,
-                    });
-                    return newLog.save();
-                } else return true;
+                // if (Object.keys(oldData).length !== 0) {
+                var newLog = new dbconfig.collection_playerPermissionLog({
+                    admin: admin,
+                    platform: query.platform,
+                    player: query._id,
+                    remark: remark,
+                    oldData: oldData,
+                    newData: permission,
+                });
+                return newLog.save();
+                // } else return true;
             },
             function (error) {
                 return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
@@ -1985,7 +1985,6 @@ let dbPlayerInfo = {
                             type = constPlayerCreditChangeType.MANUAL_TOP_UP;
                             break;
                         case constPlayerTopUpType.ALIPAY:
-                            console.log('debugging topup promo, name:', data.name);
                             type = constPlayerCreditChangeType.ALIPAY_TOP_UP;
                             break;
                         case constPlayerTopUpType.QUICKPAY:
@@ -2857,7 +2856,7 @@ let dbPlayerInfo = {
                     {
                         $group: {
                             _id: "$type",
-                            totalAmount: {$sum: "$rewardAmount"}
+                            totalAmount: {$sum: "$data.rewardAmount"}
                         }
                     }
                 );
@@ -2922,7 +2921,7 @@ let dbPlayerInfo = {
                                     eventDescription: rewardParams[i].description,
                                     curRewardAmount: curRewardAmount,
                                     maxRewardAmountPerDay: rewardParams[i].param.maxRewardAmountPerDay,
-                                    spendingAmount: rewardAmount,
+                                    spendingAmount: rewardAmount*20, //10 times spending amount
                                     eventName: rewardParams[i].name,
                                     eventCode: rewardParams[i].code,
                                 }
@@ -4459,7 +4458,24 @@ let dbPlayerInfo = {
                 }
             },
             function (err) {
-                deferred.reject(err);
+                if (bResolve) {
+                    return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+                        playerData => {
+                            deferred.resolve(
+                                {
+                                    playerId: playerId,
+                                    providerId: providerShortId,
+                                    providerCredit: 0,
+                                    playerCredit: playerData.validCredit,
+                                    rewardCredit: playerData.lockedCredit
+                                }
+                            );
+                        }
+                    );
+                }
+                else{
+                    deferred.reject(err);
+                }
             }
         ).then(
             function (data) {
@@ -11003,7 +11019,7 @@ let dbPlayerInfo = {
         )
     },
 
-    comparePhoneNum: function (arrayInputPhone) {
+    comparePhoneNum: function (filterAllPlatform, platformObjId, arrayInputPhone) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayInputPhone.length; i++) {
@@ -11011,11 +11027,20 @@ let dbPlayerInfo = {
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayInputPhone[i]));
         }
 
-        // display phoneNumber from DB without asterisk masking
-        let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone}},
-            {$project: {name: 1, phoneNumber: 1, _id: 0}}
-        ]);
+        // if true, user can filter phone across all platform
+        if(filterAllPlatform) {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        } else {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        }
 
         let diffPhoneList;
         let samePhoneList;
@@ -11036,19 +11061,21 @@ let dbPlayerInfo = {
 
             // display non duplicated phone numbers
             let diffPhone = arrayInputPhone.filter(item => !arrayDbPhone.includes(item));
+            let diffPhoneTotal = diffPhone.length;
             diffPhoneList = diffPhone.join(", ");
 
             // display duplicated phone numbers
             let samePhone = arrayInputPhone.filter(item => arrayDbPhone.includes(item));
+            let samePhoneTotal = samePhone.length;
             samePhoneList = samePhone.join(", ");
 
-            return {samePhoneList: samePhoneList, diffPhoneList: diffPhoneList};
+            return {samePhoneList: samePhoneList, diffPhoneList: diffPhoneList, samePhoneTotal: samePhoneTotal, diffPhoneTotal: diffPhoneTotal};
         }).then(data => {
             return data;
         });
     },
 
-    uploadPhoneFileCSV: function (arrayPhoneCSV) {
+    uploadPhoneFileCSV: function (filterAllPlatform, platformObjId, arrayPhoneCSV) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayPhoneCSV.length; i++) {
@@ -11056,11 +11083,20 @@ let dbPlayerInfo = {
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneCSV[i]));
         }
 
-        // display phoneNumber from DB without asterisk masking
-        let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone}},
-            {$project: {name: 1, phoneNumber: 1, _id: 0}}
-        ]);
+        // if true, user can filter phone across all platform
+        if(filterAllPlatform) {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        } else {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        }
 
         let diffPhoneCSV;
         let samePhoneCSV;
@@ -11081,19 +11117,21 @@ let dbPlayerInfo = {
 
             // display non duplicated phone numbers
             let diffPhone = arrayPhoneCSV.filter(item => !arrayDbPhone.includes(item));
+            let diffPhoneTotalCSV = diffPhone.length;
             diffPhoneCSV = diffPhone.join(", ");
 
             // display duplicated phone numbers
             let samePhone = arrayPhoneCSV.filter(item => arrayDbPhone.includes(item));
+            let samePhoneTotalCSV = samePhone.length;
             samePhoneCSV = samePhone.join(", ");
 
-            return {samePhoneCSV: samePhoneCSV, diffPhoneCSV: diffPhoneCSV};
+            return {samePhoneCSV: samePhoneCSV, diffPhoneCSV: diffPhoneCSV, samePhoneTotalCSV: samePhoneTotalCSV, diffPhoneTotalCSV: diffPhoneTotalCSV};
         }).then(data => {
             return data;
         });
     },
 
-    uploadPhoneFileTXT: function (arrayPhoneTXT) {
+    uploadPhoneFileTXT: function (filterAllPlatform, platformObjId, arrayPhoneTXT) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayPhoneTXT.length; i++) {
@@ -11101,11 +11139,20 @@ let dbPlayerInfo = {
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneTXT[i]));
         }
 
-        // display phoneNumber from DB without asterisk masking
-        let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone}},
-            {$project: {name: 1, phoneNumber: 1, _id: 0}}
-        ]);
+        // if true, user can filter phone across all platform
+        if(filterAllPlatform) {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        } else {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        }
 
         let diffPhoneTXT;
         let samePhoneTXT;
@@ -11126,13 +11173,15 @@ let dbPlayerInfo = {
 
             // display non duplicated phone numbers
             let diffPhone = arrayPhoneTXT.filter(item => !arrayDbPhone.includes(item));
+            let diffPhoneTotalTXT = diffPhone.length;
             diffPhoneTXT = diffPhone.join(", ");
 
             // display duplicated phone numbers
             let samePhone = arrayPhoneTXT.filter(item => arrayDbPhone.includes(item));
+            let samePhoneTotalTXT = samePhone.length;
             samePhoneTXT = samePhone.join(", ");
 
-            return {samePhoneTXT: samePhoneTXT, diffPhoneTXT: diffPhoneTXT};
+            return {samePhoneTXT: samePhoneTXT, diffPhoneTXT: diffPhoneTXT, samePhoneTotalTXT: samePhoneTotalTXT, diffPhoneTotalTXT: diffPhoneTotalTXT};
         }).then(data => {
             return data;
         });
