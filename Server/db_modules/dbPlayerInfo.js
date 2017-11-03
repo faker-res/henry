@@ -127,11 +127,12 @@ let dbPlayerInfo = {
                                 );
                             }
                             else {
+                                let errorMessage = verificationSMS ? "Invalid SMS Validation Code" : "Incorrect SMS Validation Code";
                                 // Verification code is invalid
                                 return Q.reject({
                                     status: constServerCode.VALIDATION_CODE_INVALID,
                                     name: "ValidationError",
-                                    message: "Invalid SMS Validation Code"
+                                    message: errorMessage
                                 });
                             }
                         }
@@ -1372,10 +1373,11 @@ let dbPlayerInfo = {
                                     )
                                 }
                                 else {
+                                    let errorMessage = verificationSMS ? "Invalid SMS Validation Code" : "Incorrect SMS Validation Code";
                                     return Q.reject({
                                         status: constServerCode.VALIDATION_CODE_INVALID,
                                         name: "ValidationError",
-                                        message: "Invalid SMS Validation Code"
+                                        message: errorMessage
                                     });
                                 }
                             }
@@ -1547,10 +1549,11 @@ let dbPlayerInfo = {
                                     )
                                 }
                                 else {
+                                    let errorMessage = verificationSMS ? "Invalid SMS Validation Code" : "Incorrect SMS Validation Code";
                                     return Q.reject({
                                         status: constServerCode.VALIDATION_CODE_INVALID,
                                         name: "ValidationError",
-                                        message: "Invalid SMS Validation Code"
+                                        message: errorMessage
                                     });
                                 }
                             }
