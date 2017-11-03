@@ -727,12 +727,11 @@ let PlayerServiceImplement = function () {
     this.updatePaymentInfo.expectsData = 'playerId: String';
     this.updatePaymentInfo.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        data.userAgent = userAgent;
         let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId) && data.bankName && data.bankAccountName && data.bankAccountType);
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
         }
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePlayerPayment, [data.userAgent, {playerId: conn.playerId}, data], isValidData, true, false, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePlayerPayment, [userAgent, {playerId: conn.playerId}, data], isValidData, true, false, false).then(
             function (res) {
                 if (res) {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS}, data);

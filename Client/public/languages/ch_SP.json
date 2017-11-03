@@ -40,6 +40,15 @@
   "PLAYER_INFORMATION": "玩家资料",
   "PARTNER_INFORMATION": "代理资料",
 
+  "FEEDBACK_RESULT": "回访结果",
+  "ADD_FEEDBACK_RESULT": "添加回访结果",
+  "DELETE_FEEDBACK_RESULT": "删除回访结果",
+  "CHOOSE_FEEDBACK_RESULT": "选择回访结果",
+  "FEEDBACK_TOPIC": "回访主题",
+  "ADD_FEEDBACK_TOPIC": "添加回访主题",
+  "DELETE_FEEDBACK_TOPIC": "删除回访主题",
+  "CHOOSE_FEEDBACK_TOPIC": "选择回访主题",
+
   "SYSTEM_SETTLEMENT": "系统结算",
   "LOGIN_TITLE": "请登录",
   "USER_NAME": "用户名",
@@ -662,6 +671,7 @@
   "PROCESS": "正在处理",
   "SUCCESS": "成功",
   "FAIL": "失败",
+  "FAILURE": "失败",
   "Last hour": "上小时",
   "Player Information": "玩家信息",
   "Last day": "昨天",
@@ -1299,6 +1309,7 @@
   "RESET_TEXTAREA":"重置",
   "COPY_TO_CLIPBOARD":"复制",
   "COPIED_SUCCESS":"复制成功",
+  "FilterAllPlatform":"过滤全部平台",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",

@@ -2946,7 +2946,7 @@ let dbPlayerInfo = {
                                     eventDescription: rewardParams[i].description,
                                     curRewardAmount: curRewardAmount,
                                     maxRewardAmountPerDay: rewardParams[i].param.maxRewardAmountPerDay,
-                                    spendingAmount: rewardAmount,
+                                    spendingAmount: rewardAmount*20, //10 times spending amount
                                     eventName: rewardParams[i].name,
                                     eventCode: rewardParams[i].code,
                                 }
@@ -4483,7 +4483,24 @@ let dbPlayerInfo = {
                 }
             },
             function (err) {
-                deferred.reject(err);
+                if (bResolve) {
+                    return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+                        playerData => {
+                            deferred.resolve(
+                                {
+                                    playerId: playerId,
+                                    providerId: providerShortId,
+                                    providerCredit: 0,
+                                    playerCredit: playerData.validCredit,
+                                    rewardCredit: playerData.lockedCredit
+                                }
+                            );
+                        }
+                    );
+                }
+                else{
+                    deferred.reject(err);
+                }
             }
         ).then(
             function (data) {
@@ -11027,7 +11044,7 @@ let dbPlayerInfo = {
         )
     },
 
-    comparePhoneNum: function (platformObjId, arrayInputPhone) {
+    comparePhoneNum: function (filterAllPlatform, platformObjId, arrayInputPhone) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayInputPhone.length; i++) {
@@ -11035,11 +11052,20 @@ let dbPlayerInfo = {
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayInputPhone[i]));
         }
 
-        // display phoneNumber from DB without asterisk masking
-        let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
-            {$project: {name: 1, phoneNumber: 1, _id: 0}}
-        ]);
+        // if true, user can filter phone across all platform
+        if(filterAllPlatform) {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        } else {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        }
 
         let diffPhoneList;
         let samePhoneList;
@@ -11074,7 +11100,7 @@ let dbPlayerInfo = {
         });
     },
 
-    uploadPhoneFileCSV: function (platformObjId, arrayPhoneCSV) {
+    uploadPhoneFileCSV: function (filterAllPlatform, platformObjId, arrayPhoneCSV) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayPhoneCSV.length; i++) {
@@ -11082,11 +11108,20 @@ let dbPlayerInfo = {
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneCSV[i]));
         }
 
-        // display phoneNumber from DB without asterisk masking
-        let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
-            {$project: {name: 1, phoneNumber: 1, _id: 0}}
-        ]);
+        // if true, user can filter phone across all platform
+        if(filterAllPlatform) {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        } else {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        }
 
         let diffPhoneCSV;
         let samePhoneCSV;
@@ -11121,7 +11156,7 @@ let dbPlayerInfo = {
         });
     },
 
-    uploadPhoneFileTXT: function (platformObjId, arrayPhoneTXT) {
+    uploadPhoneFileTXT: function (filterAllPlatform, platformObjId, arrayPhoneTXT) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayPhoneTXT.length; i++) {
@@ -11129,11 +11164,20 @@ let dbPlayerInfo = {
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneTXT[i]));
         }
 
-        // display phoneNumber from DB without asterisk masking
-        let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
-            {$project: {name: 1, phoneNumber: 1, _id: 0}}
-        ]);
+        // if true, user can filter phone across all platform
+        if(filterAllPlatform) {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        } else {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        }
 
         let diffPhoneTXT;
         let samePhoneTXT;
