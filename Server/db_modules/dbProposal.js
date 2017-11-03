@@ -1461,8 +1461,9 @@ var proposal = {
         });
     },
 
-    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, phoneNumber, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum) {//need
+    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum) {//need
         platformId = Array.isArray(platformId) ?platformId :[platformId];
+
         //check proposal without process
         var prom1 = dbconfig.collection_proposalType.find({platformId: {$in:platformId}}).lean();
 
@@ -1487,61 +1488,40 @@ var proposal = {
                             },
                             status: {$in: statusArr}
                         };
-                        if (userName){
+                        if(userName) {
                             queryObj['data.name'] = userName;
                         }
-                        if (relateUser) {
-                            queryObj["$and"] = [];
-                            queryObj["$and"].push({
-                                $or: [
-                                    {"data.playerName": relateUser},
-                                    {"data.partnerName": relateUser}
-                                ]
-                            })
-                        }
-                        if(phoneNumber){
+                        if(phoneNumber) {
                             queryObj['data.phoneNumber'] = phoneNumber;
-                        }
-                        if (credit) {
-                            queryObj["$and"] = queryObj["$and"] || [];
-                            queryObj["$and"].push({
-                                $or: [
-                                    {"data.amount": credit},
-                                    {"data.rewardAmount": credit}
-                                ]
-                            })
-                        }
-                        if (entryType) {
-                            queryObj.entryType = entryType;
                         }
 
                         var a = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj)
-                                .sort(sortCol).skip(index).limit(size).lean()
-                                .then(
-                                    pdata => {
-                                        pdata.map(item=> {
-                                            // only displayPhoneNum equal true, encode the phone num
-                                            if(item.data && item.data.phone && !displayPhoneNum){
-                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                                            }
-                                            if(item.data && item.data.phoneNumber && !displayPhoneNum){
-                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                            }
-                                            if(item.data && (item.data.playerId || item.data.name)){
-                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId,item.data.name));
-                                            }
+                            .sort(sortCol).skip(index).limit(size).lean()
+                            .then(
+                                pdata => {
+                                    pdata.map(item => {
+                                        // only displayPhoneNum equal true, encode the phone num
+                                        if (item.data && item.data.phone && !displayPhoneNum) {
+                                            item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                        }
+                                        if (item.data && item.data.phoneNumber && !displayPhoneNum) {
+                                            item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                        }
+                                        if (item.data && (item.data.playerId || item.data.name)) {
+                                            playerProm.push(proposal.getPlayerDetails(item.data.playerId, item.data.name,proposalTypesId));
+                                        }
 
-                                            return item
-                                        })
-
-                                        return pdata;
+                                        return item
                                     })
-                                .then(proposals=>{
-                                    proposals = insertPlayerRepeatCount(proposals,platformId[0]);
 
-                                    return proposals
+                                    return pdata;
                                 })
-                        var b = dbconfig.collection_proposal.find(queryObj).count();
+                            .then(proposals => {
+                                proposals = insertPlayerRepeatCount(proposals, platformId[0]);
+
+                                return proposals
+                            })
+                        var b = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj).count();
 
                         return Q.all([a, b])
                     }
@@ -1577,7 +1557,6 @@ var proposal = {
                                         returnData[0][i].data.device = dbutility.getInputDevice(d[0].userAgent,false);
                                     }
                                 }
-
                             }
 
                             if(d[1] && d[1].data && d[1].data.name && d[1].data.name == returnData[0][i].data.name){
@@ -1595,7 +1574,7 @@ var proposal = {
         });
     },
 
-    getPlayerDetails : function(playerID,playerName){
+    getPlayerDetails : function(playerID,playerName,proposalTypesId){
         let playerProm = dbconfig.collection_players.findOne({playerId: playerID})
             .populate({path: 'csOfficer', model: dbconfig.collection_admin, select: "adminName"}).lean().then(
                 data => {
@@ -1603,7 +1582,7 @@ var proposal = {
                 }
             );
         let proposalProm = []
-            proposalProm = dbconfig.collection_proposal.findOne({'data.name': playerName}).select({'proposalId': 1,'data.name':1}).lean().then(data => {
+            proposalProm = dbconfig.collection_proposal.findOne({'data.name': playerName,type: {$in: proposalTypesId}}).select({'proposalId': 1,'data.name':1}).lean().then(data => {
             return data ? data : "";
         });
 

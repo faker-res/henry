@@ -280,19 +280,21 @@ let dbPlayerInfo = {
                             }
                             inputData.domain = filteredDomain;
 
-                            let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
-                                data => {
-                                    if (data) {
-                                        inputData.partner = data._id;
-                                        inputData.partnerId = data.partnerId;
-                                        return inputData;
+                            if(inputData.partnerId){
+                                let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
+                                    data => {
+                                        if (data) {
+                                            inputData.partner = data._id;
+                                            inputData.partnerId = data.partnerId;
+                                            return inputData;
+                                        }
+                                        else {
+                                            return inputData;
+                                        }
                                     }
-                                    else {
-                                        return inputData;
-                                    }
-                                }
-                            );
-                            proms.push(domainProm);
+                                );
+                                proms.push(domainProm);
+                            }
 
                             let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
                                 domain: {

@@ -11,6 +11,7 @@ let constProposalMainType = require('../const/constProposalMainType');
 let constProposalStatus = require('../const/constProposalStatus');
 let queryPhoneLocation = require('query-mobile-phone-area');
 let Q = require("q");
+let ObjectId = mongoose.Types.ObjectId;
 
 var dbPlayerRegistrationIntentRecord = {
 
@@ -62,6 +63,10 @@ var dbPlayerRegistrationIntentRecord = {
                 data.phoneType = queryRes.type;
             }
             dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status);
+        }
+
+        if(typeof(data.platform) != 'object'){
+            data.platform = ObjectId(data.platform);
         }
 
         let newIntentData = {
