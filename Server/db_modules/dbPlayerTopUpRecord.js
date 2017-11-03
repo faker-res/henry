@@ -788,12 +788,12 @@ var dbPlayerTopUpRecord = {
                 var updateData = {
                     status: constProposalStatus.PENDING
                 };
-                if (res[0]) {
-                    updateData.data.cardQuota = res[0].totalAmount;
-                }
                 updateData.data = Object.assign({}, proposal.data);
                 updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
                 updateData.data.merchantNo = merchantResponse.result ? merchantResponse.result.merchantNo : "";
+                if (res[0]) {
+                    updateData.data.cardQuota = res[0].totalAmount;
+                }
                 return dbconfig.collection_proposal.findOneAndUpdate(
                     {_id: proposal._id, createTime: proposal.createTime},
                     updateData,
@@ -1606,7 +1606,7 @@ var dbPlayerTopUpRecord = {
                     let end = new Date();
                     end.setHours(23, 59, 59, 999);
                     if (alipayAccount) {
-                        queryObj['data.alipayAccount'] = {'$in': [String(alipayAccount), Number(alipayAccount)]};
+                        queryObj['data.alipayAccount'] = alipayAccount;
                     }
                     queryObj['data.platformId'] = ObjectId(player.platform._id);
                     // queryObj['typeName'] = constProposalType.PLAYER_ALIPAY_TOP_UP;
@@ -1858,7 +1858,7 @@ var dbPlayerTopUpRecord = {
                     let end = new Date();
                     end.setHours(23, 59, 59, 999);
                     if (wechatAccount) {
-                        queryObj['data.wechatAccount'] = {'$in':[String(wechatAccount), Number(wechatAccount)]};
+                        queryObj['data.wechatAccount'] = wechatAccount;
                     }
                     queryObj['data.platformId'] = ObjectId(player.platform._id);
                     queryObj['mainType'] = 'TopUp';
@@ -2622,7 +2622,11 @@ function convertStringNumber(Arr){
         result.push(String(item));
     })
     Arrs.forEach(item=>{
-        result.push(Number(item));
+        let currentNum = Number(item);
+        if(isNaN(currentNum)==false){
+            result.push(currentNum);
+        }
+
     })
     return result;
 }
