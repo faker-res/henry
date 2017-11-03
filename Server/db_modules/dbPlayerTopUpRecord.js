@@ -1739,7 +1739,7 @@ var dbPlayerTopUpRecord = {
                             status: constProposalStatus.PENDING
                         };
                         updateData.data = Object.assign({}, proposal.data);
-                        pdateData.data.userAlipayName = updateData.data.alipayName;
+                        updateData.data.userAlipayName = updateData.data.alipayName;
                         updateData.data.requestId = requestData.result.requestId;
                         updateData.data.proposalId = proposal.proposalId;
                         updateData.data.alipayAccount = requestData.result.alipayAccount;
