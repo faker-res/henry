@@ -1310,6 +1310,7 @@ var proposalExecutor = {
                 //create reward task for related player
                 //verify data
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount >= 0) {
+                    proposalData.data.proposalId = proposalData.proposalId;
                     changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.rewardAmount, constRewardType.PLAYER_CONSUMPTION_RETURN, proposalData.data).then(
                         () => {
                             //remove all consumption summaries
