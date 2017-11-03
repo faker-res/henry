@@ -3974,7 +3974,7 @@ let dbPlayerInfo = {
                     playerData = data[0];
                     providerData = data[1];
 
-                    return dbRewardTaskGroup.getPlayerRewardTaskGroup(playerData.platform._id, providerData._id, playerData._id);
+                    return dbRewardTaskGroup.getPlayerRewardTaskGroup(playerData.platform._id, providerData._id, playerData._id, new Date());
                 } else {
                     deferred.reject({name: "DataError", message: "Cannot find player or provider"});
                 }
@@ -3989,8 +3989,6 @@ let dbPlayerInfo = {
         ).then(
             rewardTaskGroup => {
                 rewardTaskGroupData = rewardTaskGroup;
-
-                console.log('rewardTaskGroupData', rewardTaskGroupData);
 
                 transferAmount += parseFloat(playerData.validCredit.toFixed(2));
 

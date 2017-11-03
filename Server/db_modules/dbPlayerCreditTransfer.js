@@ -780,7 +780,7 @@ let dbPlayerCreditTransfer = {
      */
     playerCreditTransferToProviderWithProviderGroup: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
         let dPCT = this;
-        let gameAmount = 0, regGameAmount = 0;
+        let gameAmount = 0;
         let rewardAmount = 0;
         let playerCredit = 0;
         let rewardTaskAmount = 0;
@@ -789,7 +789,6 @@ let dbPlayerCreditTransfer = {
         let transferId = new Date().getTime();
         let transferAmount = 0;
         let gameCredit = 0;
-        let isFirstRegistrationReward = false;
 
         let player, gameProviderGroup;
 
@@ -1047,7 +1046,7 @@ let dbPlayerCreditTransfer = {
                         platformId: platform,
                         playerId: playerObjId,
                         providerGroup: gameProviderGroup._id,
-                        status: {$in: [constRewardTaskStatus.STARTED]}
+                        status: {$in: [constRewardTaskStatus.STARTED, constRewardTaskStatus.SYSTEM_UNLOCK]}
                     }).lean();
 
                     if (forSync) {
@@ -1184,10 +1183,20 @@ let dbPlayerCreditTransfer = {
                         }, {
                             rewardAmt: updateObj.rewardAmt,
                             _inputFreeAmt: updateObj._inputFreeAmt,
-                            _inputRewardAmt: updateObj._inputRewardAmt
+                            _inputRewardAmt: updateObj._inputRewardAmt,
+                            inProvider: false
                         }, {
                             new: true
-                        })
+                        }).then(
+                            updatedRewardGroup => {
+                                // Check whether provider group has undergo operation
+                                if (updatedRewardGroup.status == constRewardTaskStatus.SYSTEM_UNLOCK) {
+                                    return dbRewardTask.completeRewardTaskGroup(updatedRewardGroup);
+                                }
+
+                                return true;
+                            }
+                        )
                     } else {
                         return true;
                     }
@@ -1200,7 +1209,6 @@ let dbPlayerCreditTransfer = {
         ).then(
             res => {
                 if (res) {
-                    let updatedRewardGroup = res;
                     let updatePlayerObj = {
                         lastPlayedProvider: null,
                         $inc: {validCredit: updateObj.freeAmt}

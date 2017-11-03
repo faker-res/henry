@@ -6448,7 +6448,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'deletePlatformProviderGroup', sendObj, function (data) {
-
+                    vm.getPlatformProviderGroup();
                 })
             }
         };

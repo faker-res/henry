@@ -2517,7 +2517,7 @@ function changePlayerCredit(playerObjId, platformId, updateAmount, reasonType, d
  * @param [resolveValue] - Optional.  Without this, resolves with the newly created reward task.
  */
 function createRewardTaskForProposal(proposalData, taskData, deferred, rewardType, resolveValue) {
-    let rewardTask;
+    let rewardTask, platform, gameProviderGroup;
     //check if player object id is in the proposal data
     if (!(proposalData && proposalData.data && proposalData.data.playerObjId)) {
         deferred.reject({name: "DBError", message: "Invalid reward proposal data"});
@@ -2527,10 +2527,22 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
     // Add proposalId in reward data
     taskData.proposalId = proposalData.proposalId;
 
-    dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).then(
-        platform => {
+    let gameProviderGroupProm = Promise.resolve(false);
+    let platformProm = dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean();
+
+    // Check whether game provider group exist
+    if (proposalData.data.providerGroup) {
+        gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: proposalData.data.providerGroup}).lean();
+    }
+    ;
+
+    Promise.all([gameProviderGroupProm, platformProm]).then(
+        res => {
+            gameProviderGroup = res[0];
+            platform = res[1];
+
             // Create different process flow for lock provider group reward
-            if (platform.useProviderGroup && proposalData.data.providerGroup) {
+            if (platform.useProviderGroup && proposalData.data.providerGroup && gameProviderGroup) {
                 dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(
                     rewardTaskGroup => {
                         if (rewardTaskGroup) {

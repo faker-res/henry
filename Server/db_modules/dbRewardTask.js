@@ -827,39 +827,43 @@ var dbRewardTask = {
      */
     completeRewardTaskGroup: rewardGroupData => {
         let playerCreditChange;
-        let rewardAmount = rewardGroupData.currentAmt;
+        let rewardAmount = rewardGroupData.rewardAmt;
 
         // Check if player is in game when reward group completed
         if (!rewardGroupData.inProvider) {
             // If player has left game, add the rewardAmt to player's credit
             playerCreditChange = {
                 $inc: {validCredit: rewardAmount}
-            }
-        }
+            };
 
-        return dbRewardTask.findOneAndUpdateWithRetry(
-            dbconfig.collection_players,
-            {_id: rewardGroupData.playerId, platform: rewardGroupData.platformId},
-            playerCreditChange,
-            {new: true}
-        ).then(
-            data => {
-                if (data) {
-                    dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardGroupData.type + ":unlock", data.validCredit, 0, -rewardAmount, null, rewardGroupData);
+            return dbRewardTask.findOneAndUpdateWithRetry(
+                dbconfig.collection_players,
+                {_id: rewardGroupData.playerId, platform: rewardGroupData.platformId},
+                playerCreditChange,
+                {new: true}
+            ).then(
+                data => {
+                    if (data) {
+                        dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardGroupData.type + ":unlock", data.validCredit, 0, -rewardAmount, null, rewardGroupData);
+                    }
+                    else {
+                        return Q.reject({name: "DataError", message: "Can't update reward task and player credit"});
+                    }
+                },
+                error => {
+                    console.log("Update player credit failed when complete reward task", error, rewardGroupData);
+                    return Q.reject({
+                        name: "DBError",
+                        message: "Error updating reward task and player credit",
+                        error: error
+                    });
                 }
-                else {
-                    return Q.reject({name: "DataError", message: "Can't update reward task and player credit"});
-                }
-            },
-            error => {
-                console.log("Update player credit failed when complete reward task", error, rewardGroupData);
-                return Q.reject({
-                    name: "DBError",
-                    message: "Error updating reward task and player credit",
-                    error: error
-                });
-            }
-        );
+            );
+        } else {
+            // Do nothing first if player is still in game
+            // This will be triggered again when player transfer out
+            return true;
+        }
     },
 
     findOneAndUpdateWithRetry: function (model, query, update, options) {

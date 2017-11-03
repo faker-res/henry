@@ -1,9 +1,7 @@
-let encrypt = require('./../modules/encrypt');
 let dbPlatform = require('./../db_modules/dbPlatform');
 let socketUtil = require('./../modules/socketutility');
 let dailyPlatformSettlement = require('./../scheduleTask/dailyPlatformSettlement');
 let weeklyPlatformSettlement = require('./../scheduleTask/weeklyPlatformSettlement');
-let dbPaymentChannel = require('./../db_modules/dbPaymentChannel');
 let mongoose = require('mongoose');
 let ObjectId = mongoose.Types.ObjectId;
 
@@ -14,8 +12,8 @@ const dbAutoProposal = require('./../db_modules/dbAutoProposal');
 const dbGameProvider = require('./../db_modules/dbGameProvider');
 const dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
-let dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
-let dbCsOfficer = require('../db_modules/dbCsOfficer');
+const dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
+const dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
 
 const consumptionReturnEvent = require('./../scheduleTask/consumptionReturnEvent');
 
@@ -380,7 +378,7 @@ function socketActionPlatform(socketIO, socket) {
         deletePlatformProviderGroup: function deletePlatformProviderGroup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.gameProviderGroupObjId);
-            socketUtil.emitter(self.socket, dbGameProvider.deletePlatformProviderGroup, [data.gameProviderGroupObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardTaskGroup.deletePlatformProviderGroup, [data.gameProviderGroupObjId], actionName, isValidData);
         }
 
     };
