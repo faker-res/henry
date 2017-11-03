@@ -122,10 +122,10 @@ var dbPlayerTopUpRecord = {
                     };
                 }
 
-                if (query.depositMethod && query.depositMethod.length > 0){
+                if (query.depositMethod && query.depositMethod.length > 0) {
                     queryObj['data.depositMethod'] = {'$in': convertStringNumber(query.depositMethod)};
                 }
-                if (query.merchantNo && query.merchantNo.length > 0 && (!query.merchantGroup|| query.merchantGroup.length==0)) {
+                if (query.merchantNo && query.merchantNo.length > 0 && (!query.merchantGroup || query.merchantGroup.length == 0)) {
                     queryObj['$or'] = [
                         {'data.merchantNo': {$in: convertStringNumber(query.merchantNo)}},
                         {'data.bankCardNo': {$in: convertStringNumber(query.merchantNo)}},
@@ -137,23 +137,25 @@ var dbPlayerTopUpRecord = {
                 }
                 if ((!query.merchantNo || query.merchantNo.length == 0) && query.merchantGroup && query.merchantGroup.length > 0) {
                     let mGroupList = [];
-                    query.merchantGroup.forEach(item=> {
-                        item.forEach(sItem=>{
+                    query.merchantGroup.forEach(item => {
+                        item.forEach(sItem => {
                             mGroupList.push(sItem)
                         })
                     })
                     queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
                 }
 
-                if (query.merchantNo && query.merchantNo.length > 0  && query.merchantGroup && query.merchantGroup.length > 0) {
-                    if(query.merchantGroup.length > 0){
+                if (query.merchantNo && query.merchantNo.length > 0 && query.merchantGroup && query.merchantGroup.length > 0) {
+                    if (query.merchantGroup.length > 0) {
                         let mGroupC = [];
                         let mGroupD = [];
-                        query.merchantNo.forEach(item=>{
+                        query.merchantNo.forEach(item => {
                             mGroupC.push(item);
                         });
-                        query.merchantGroup.forEach(item=>{
-                            item.forEach(sItem=>{ mGroupD.push(sItem)});
+                        query.merchantGroup.forEach(item => {
+                            item.forEach(sItem => {
+                                mGroupD.push(sItem)
+                            });
                         });
                         queryObj['$or'] = [
                             {'data.merchantNo': {$in: convertStringNumber(mGroupC)}},
@@ -172,12 +174,12 @@ var dbPlayerTopUpRecord = {
                     queryObj['proposalId'] = query.proposalNo;
                 }
                 if (query.topupType && query.topupType.length > 0) {
-                    queryObj['data.topupType'] = { $in: convertStringNumber(query.topupType)}
+                    queryObj['data.topupType'] = {$in: convertStringNumber(query.topupType)}
                 }
-                if(query.bankTypeId && query.bankTypeId.length > 0){
+                if (query.bankTypeId && query.bankTypeId.length > 0) {
                     queryObj['data.bankTypeId'] = {$in: convertStringNumber(query.bankTypeId)};
                 }
-                if(query.userAgent && query.userAgent.length > 0) {
+                if (query.userAgent && query.userAgent.length > 0) {
                     queryObj['data.userAgent'] = {$in: convertStringNumber(query.userAgent)};
                 }
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
@@ -2615,13 +2617,14 @@ function retrieveAgent(agentInfo) {
     }
     return registrationInterface;
 }
-function convertStringNumber(Arr){
+
+function convertStringNumber(Arr) {
     let Arrs = JSON.parse(JSON.stringify(Arr));
     let result = []
-    Arrs.forEach(item=>{
+    Arrs.forEach(item => {
         result.push(String(item));
     })
-    Arrs.forEach(item=>{
+    Arrs.forEach(item => {
         result.push(Number(item));
     })
     return result;
