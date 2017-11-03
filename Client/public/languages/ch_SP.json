@@ -2589,5 +2589,13 @@
   "cardQuota": "收款帐号今日交易额",
   "NEW_WECHAT": "新微信账号",
   "CURRENT_WECHAT": "原微信账号",
-  "RETYPE_WECHAT": "重新输入微信账号"
+  "RETYPE_WECHAT": "重新输入微信账号",
+  "unknown": "未知",
+  "registration": "注册",
+  "oldPhoneNumber": "电话号码（旧）",
+  "newPhoneNumber": "电话号码（新）",
+  "updateBankInfoFirst": "银行卡（首次）",
+  "updateBankInfo": "银行卡（更换）",
+  "resetPassword": "重置密码",
+  "VERIFICATION_CODE": "验证码"
 }

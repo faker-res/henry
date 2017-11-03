@@ -210,6 +210,17 @@ define(['js/app'], function (myApp) {
                 // "tone12": "12.wav"
             };
 
+            vm.allSMSPurpose = {
+                UNKNOWN: 'unknown',
+                REGISTRATION: 'registration',
+                OLD_PHONE_NUMBER: 'oldPhoneNumber',
+                NEW_PHONE_NUMBER: 'newPhoneNumber',
+                UPDATE_PASSWORD: 'updatePassword',
+                UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
+                UPDATE_BANK_INFO: 'updateBankInfo',
+                RESET_PASSWORD: 'resetPassword'
+            };
+
             // Basic library functions
             var Lodash = {
                 keyBy: (array, keyName) => {
@@ -1236,6 +1247,7 @@ define(['js/app'], function (myApp) {
             }
             vm.initVertificationSMS = function () {
                 vm.smsRecordQuery = {};
+                vm.smsRecordQuery.purpose = vm.allSMSPurpose.UNKNOWN;
                 vm.smsRecordQuery.index = 0;
                 vm.smsRecordQuery.limit = 10;
                 vm.initQueryTimeFilter('smsRecordQueryDiv', function () {
@@ -1250,6 +1262,9 @@ define(['js/app'], function (myApp) {
             vm.submitSMSRecordQuery = function (newSearch) {
 
                 var sendQuery = {
+                    recipientName: vm.smsRecordQuery.recipientName,
+                    purpose: vm.smsRecordQuery.purpose,
+                    inputDevice: vm.smsRecordQuery.inputDevice,
                     type: 'registration',
                     status: 'all',
                     tel: vm.smsRecordQuery.phoneNumber || '',
@@ -1280,16 +1295,20 @@ define(['js/app'], function (myApp) {
             vm.drawVertificationSMSTable = function (data, size, newSearch) {
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: data,
-                    order: vm.smsRecordQuery.aaSorting || [[1, 'desc']],
+                    order: vm.smsRecordQuery.aaSorting || [[2, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [2]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {'title': $translate('phoneNumber'), sClass: "wordWrap realNameCell", data: 'tel'},
+                        {'title': $translate('ACCOUNT'), data: 'recipientName'},
+                        {'title': $translate('STATUS'), data: 'status'},
                         {'title': $translate('SENT TIME'), data: 'createTime', bSortable: true},
-                        {'title': $translate('smsVerificationCode'), data: 'message'},
-                        {'title': $translate('STATUS'), data: 'status'}
+                        {'title': $translate('VERIFICATION_CODE'), data: 'message'},
+                        {'title': $translate('Type'), data: 'purpose'},
+                        {'title': $translate('DEVICE'), data: 'inputDevice'},
+                        {'title': $translate('PHONE'), sClass: "wordWrap realNameCell", data: 'tel'},
+                        {'title': $translate('Proposal No'), data: 'proposalId'}
                     ],
                     paging: false,
                 });
