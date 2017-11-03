@@ -18,11 +18,11 @@ var roleChecker = {
         'addPlatformsToDepartmentById', 'removePlatformsFromDepartmentById', 'updatePlatform', 'deletePlatformById',
         'createPlatform', 'startPlatformDailySettlement', 'startPlatformWeeklySettlement',
         'createPlayer', 'createTestPlayerForPlatform', 'deletePlayersById', 'createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus',
-        'createUpdatePlayerEmailProposal', 'createUpdatePlayerQQProposal', 'createUpdatePlayerPhoneProposal', 'updatePlayerPayment', 'resetPlayerPassword',
+        'createUpdatePlayerEmailProposal', 'createUpdatePlayerQQProposal','createUpdatePlayerWeChatProposal', 'createUpdatePlayerPhoneProposal', 'updatePlayerPayment', 'resetPlayerPassword',
         'applyManualTopUpRequest', 'applyBonusRequest', 'applyRewardEvent', 'createUpdatePlayerCreditProposal', 'updatePlayerPermission',
         'createPlayerFeedback',
         'createPartnerWithParent', 'createPartner', 'createPlayerLoginRecord', 'deletePartnersById', 'deletePlayerLoginRecord', 'updatePartner',
-        'createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal', 'createUpdatePartnerBankInfoProposal', 'resetPartnerPassword',
+        'createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal', 'createUpdatePartnerQQProposal', 'createUpdatePartnerBankInfoProposal', 'resetPartnerPassword',
         'addProviderToPlatformById', 'renameProviderInPlatformById', 'updateProviderFromPlatformById', 'removeProviderFromPlatformById', 'attachGameToPlatform', 'detachGameFromPlatform',
         'updateGameStatusToPlatform',
         'addPlatformGameGroup', 'updateGameGroupParent', 'renamePlatformGameGroup', 'updatePlatformGameGroup', 'deleteGameGroup',
@@ -157,6 +157,7 @@ var roleChecker = {
         "getGameTypeList": true,
 
         //todo::to be added to permission list
+        "getCredibilityRemarks": true,
         "countTopUpORConsumptionbyPlatform": true,
         "getPlayerRetention": true,
         "getAllActions": true,
@@ -223,7 +224,7 @@ var roleChecker = {
         Platform: {
             "Platform": {
                 Read: ['getAllPlatforms', 'getPlatform', 'getDepartmentsByPlatformId', 'getPlatformAnnouncementsByPlatformId', 'getPlatformAnnouncementById', 'getAllGameTypes', 'getPlayerLvlPeriodConst', 'getAllGameStatus', 'getAllMessageTypes', 'syncPlatform',
-                    'getPlatformBankCardGroup', 'getPlatformMerchantGroup', 'getPlatformAlipayGroup'],
+                    'getPlatformBankCardGroup', 'getPlatformMerchantGroup', 'getPlatformAlipayGroup','getConsumptionRecordByGameProvider'],
                 Create: ['createPlatform', 'getDepartmentTreeById'],
                 Delete: ['deletePlatformById'],
                 Edit: ['updatePlatform'],
@@ -239,9 +240,9 @@ var roleChecker = {
                 PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement']
             },
             "Player": {
-                Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList',
+                Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",
                     'getPlayersCountByPlatform', 'getPlatform', 'getPlayerStatusChangeLog', 'getPlayerForAttachGroup',
-                    'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo", 'getUpdateCredibilityLog'],
+                    'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo", 'getUpdateCredibilityLog','getPlayerTopUpGroupLog'],
                 AdvancedSearch: ['getPlayerByAdvanceQuery'],
                 Create: ['createPlayer', 'checkPlayerNameValidity'],
                 CreateTrial: ['createTestPlayerForPlatform'],
@@ -249,8 +250,8 @@ var roleChecker = {
                 ForbidTopupTypes: [],
                 AddFeedback: [],
                 FeedbackHistory: [],
-                Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity', 'updatePlayerReferral'],
-                EditContact: ['createUpdatePlayerEmailProposal', 'createUpdatePlayerPhoneProposal', 'createUpdatePlayerQQProposal'],
+                Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity', 'updatePlayerReferral','createUpdateTopUpGroupLog'],
+                EditContact: ['createUpdatePlayerEmailProposal', 'createUpdatePlayerPhoneProposal', 'createUpdatePlayerQQProposal','createUpdatePlayerWeChatProposal'],
                 PaymentInformation: ['updatePlayerPayment', 'createUpdatePlayerBankInfoProposal', 'verifyPlayerBankAccount'],
                 PaymentInformationHistory: ['getPaymentHistory'],
                 ResetPassword: ['resetPlayerPassword'],
@@ -282,7 +283,6 @@ var roleChecker = {
                 ModifyGamePassword: ['modifyGamePassword'],
                 ClearProposalLimit: ['requestClearProposalLimit'],
                 TriggerAutoProposal: ['triggerAutoProposal'],
-                TriggerSavePlayersCredit: ['triggerSavePlayersCredit'],
                 playerDailyCreditLog :['playerCreditDailyLog'],
                 playerApiLog: ['getPlayerApiLog'],
                 rewardTaskLog: ['getPlayerRewardTask'],
@@ -302,7 +302,7 @@ var roleChecker = {
                 Create: ['createPartnerWithParent', 'createPartner', 'createPlayerLoginRecord'],
                 Delete: ['deletePartnersById', 'deletePlayerLoginRecord'],
                 Edit: ['updatePartner', 'checkPartnerFieldValidity', 'checkOwnDomainValidity', 'createUpdatePartnerInfoProposal'],
-                EditContact: ['createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal'],
+                EditContact: ['createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal', 'createUpdatePartnerQQProposal'],
                 BankDetail: ['createUpdatePartnerBankInfoProposal', 'verifyPlayerBankAccount'],
                 ResetPassword: ['resetPartnerPassword'],
                 ApplyBonus: ['applyPartnerBonusRequest'],
@@ -368,7 +368,8 @@ var roleChecker = {
                 autoApproval: ['updateAutoApprovalConfig'],
                 Monitor: [],
                 PlayerValue: ['updatePlayerValueConfig','updatePlayerLevelScores'],
-                Credibility: ['updateCredibilityRemarksInBulk']
+                Credibility: ['updateCredibilityRemarksInBulk'],
+                providerGroup: []
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -403,10 +404,16 @@ var roleChecker = {
                 promoCodeAnalysis: ['getPromoCodeTypeByObjId']
             },
             "RegistrationUrlConfig": {
-                Read: ['getAllOfficer', 'getAllPromoteWay', 'getAllUrl'],
+                Read: ['getAllOfficer', 'getAllPromoteWay', 'getAllUrl', 'getAdminNameByDepartment'],
                 Create: ['createOfficer', 'addPromoteWay', 'addUrl'],
                 Delete: ['deletePromoteWay', 'deleteOfficer', 'deleteUrl'],
                 Update: ['updateUrl']
+            },
+            "devFunc": {
+                Read: ['triggerSavePlayersCredit']
+            },
+            "phoneNumFilter": {
+                FilterAllPlatform: []
             }
         },
         Payment: {
@@ -528,10 +535,11 @@ var roleChecker = {
                 PLAYER_EXPENSE_REPORT: ['getPlayerProviderReport', 'getProviderGamePlayerReport', 'getProviderGameReport', 'getPlayerProviderByGameReport', 'manualDailyProviderSettlement'],
                 PLAYER_REPORT: ['getPlayerReport', 'manualDailyProviderSettlement'],
                 NEWACCOUNT_REPORT: ['getPlayerDomainAnalysisData', 'getNewAccountReportData'],
+                DX_NEWACCOUNT_REPORT: ['getDXNewPlayerReport', 'getAllPromoteWay', 'getDepartmentDetailsByPlatformObjId'],
                 PLAYERPARTNER_REPORT: ['getPartnerPlayers', 'getPartnerSummaryReport', 'getPartnerPlayerBonusReport'],
                 PARTNERPLAYERBOUNS_REPORT: ['getPartnerPlayerBonusReport'],
                 PARTNERCOMMISSION_REPORT: ['getPartnerCommissionReport'],
-                PLAYERDOMAIN_REPORT: ['getPlayerDomainReport'],
+                PLAYERDOMAIN_REPORT: ['getPlayerDomainReport', 'getDepartmentDetailsByPlatformObjId'],
                 WINRATE_REPORT: ['winRateReport']
             },
             Reward: {
@@ -552,7 +560,9 @@ var roleChecker = {
                 PLAYER_FEEDBACK_REPORT: ['getPlayerFeedbackReport', 'getAllFeedbackResultList'],
                 CREDIT_CHANGE_REPORT: ['queryCreditChangeLog'],
                 PLAYER_ALMOST_LEVELUP_REPORT: ['getPlayerAlmostLevelupReport'],
-                ACTIONLOG_REPORT: ['getActionLogPageReport']
+                ACTIONLOG_REPORT: ['getActionLogPageReport'],
+                ONLINE_PAYMENT_MISMATCH_REPORT: ['getMismatchReport'],
+                LIMITED_OFFER_REPORT: ['getLimitedOfferReport']
             }
         },
         Monitor: {

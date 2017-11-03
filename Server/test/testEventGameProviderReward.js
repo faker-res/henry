@@ -337,7 +337,7 @@ describe("Test Game-Provider Reward event", function () {
         if (testEmail) {
             this.timeout(15000);
         }
-        dbPlayerInfo.applyForGameProviderRewardAPI(testPlayersPlayerId[0], testRewardEventId, 500).then(
+        dbPlayerInfo.applyForGameProviderRewardAPI("", testPlayersPlayerId[0], testRewardEventId, 500).then(
             function (data) {
                 proposalId = data._id;
                 done();

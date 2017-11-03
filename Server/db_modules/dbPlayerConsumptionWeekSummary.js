@@ -13,6 +13,7 @@ var dbPlayerGameTypeConsumptionDaySummary = require('../db_modules/dbPlayerGameT
 var dbPlayerGameTypeConsumptionWeekSummary = require('../db_modules/dbPlayerGameTypeConsumptionWeekSummary');
 var dbProposal = require('../db_modules/dbProposal');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
+var dbPlayerReward = require('../db_modules/dbPlayerReward');
 var dbRewardEvent = require('../db_modules/dbRewardEvent');
 //var constGameType = require('../const/constGameType');
 var dbGameType = require('../db_modules/dbGameType');
@@ -232,6 +233,11 @@ var dbPlayerConsumptionWeekSummary = {
                                 if( platformData && platformData.onlyNewCanLogin && !playerData.isNewSystem ){
                                     return;
                                 }
+
+                                if (dbPlayerReward.isRewardEventForbidden(playerData, eventData._id)) {
+                                    return Q.reject({status:constServerCode.PLAYER_NO_PERMISSION, name: "DataError", message: "Player is forbidden for this reward."});
+                                }
+
                                 var returnAmount = 0;
 
                                 // Check all game types and calculate return amount
@@ -410,7 +416,7 @@ var dbPlayerConsumptionWeekSummary = {
      * Start calculate consumption return for player
      * @param {ObjectId} playerId
      */
-    startCalculatePlayerConsumptionReturn: function (playerId, bRequest) {
+    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin) {
         var deferred = Q.defer();
         var platformData = null;
         var playerData = null;
@@ -429,13 +435,18 @@ var dbPlayerConsumptionWeekSummary = {
                         });
                         return;
                     }
+
+                    if (playerData.forbidRewardEvents && playerData.forbidRewardEvents.indexOf("advanceConsumptionReward") !== -1) {
+                        deferred.reject({
+                            status: constServerCode.PLAYER_NO_PERMISSION,
+                            name: "DataError",
+                            errorMessage: "Player does not have this permission"
+                        });
+                        return;
+                    }
+
                     platformData = data.platform;
-                    if (platformData.settlementStatus == constPlatformStatus.READY) {
-                        return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
-                    }
-                    else {
-                        deferred.reject({name: "DataError", message: "Platform is not ready for settlement"});
-                    }
+                    return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect player data"});
@@ -452,9 +463,12 @@ var dbPlayerConsumptionWeekSummary = {
                         platform: playerData.platform._id
                     }, {isConsumptionReturn: true}).then(
                         updatePlayer => {
-                            if (!updatePlayer.isConsumptionReturn) {
+                            if (!updatePlayer.isConsumptionReturn || bAdmin) {
                                 let proms = [];
                                 for (let eventData of eventsData) {
+                                    if (dbPlayerReward.isRewardEventForbidden(updatePlayer, eventsData._id)) {
+                                        continue;
+                                    }
                                     proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest));
                                 }
                                 return Q.all(proms).then(

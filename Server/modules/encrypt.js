@@ -63,7 +63,11 @@ var encrypt = {
         var domain = data.hasOwnProperty('domain') ? data.domain : "";
         var partner = data.hasOwnProperty('partner') ? data.partner : "";
         var loginIps = data.hasOwnProperty('loginIps') ? data.loginIps : "";
-        var credibilityRemarks = data.hasOwnProperty('credibilityRemarks') ? data.credibilityRemarks : "";
+        var credibilityRemarks = data.hasOwnProperty('credibilityRemarks') && data.credibilityRemarks.length !== 0 ? data.credibilityRemarks : "";
+        var creditOperator = data.hasOwnProperty('creditOperator') ? data.creditOperator : "";
+        var creditAmountOne = data.hasOwnProperty('creditAmountOne') ? data.creditAmountOne : "";
+        var creditAmountTwo = data.hasOwnProperty('creditAmountTwo') ? data.creditAmountTwo : "";
+        let referral = data.hasOwnProperty('referral') ? data.referral : "";
 
 
         var query = {};
@@ -121,8 +125,11 @@ var encrypt = {
         if (loginIps !== '') {
             query["loginIps"] = new RegExp('.*' + loginIps + '.*');
         }
-        if (credibilityRemarks) {
-            query["credibilityRemarks"] = {$all: credibilityRemarks};
+        if (credibilityRemarks && credibilityRemarks !== '' && credibilityRemarks.length !== 0) {
+            query["credibilityRemarks"] = {$in: credibilityRemarks};
+        }
+        if (referral !== '') {
+            query["referral"] = referral;
         }
 
         if (validCredit !== '') {
@@ -145,6 +152,23 @@ var encrypt = {
                 query["validCredit"] = {$lt: max};
             } else {
                 // error: Don't know how to interpret this query
+            }
+        }
+
+        if (creditOperator && creditAmountOne) {
+            switch (creditOperator) {
+                case '<=':
+                    query["validCredit"] = {$lte: creditAmountOne};
+                    break;
+                case '>=':
+                    query["validCredit"] = {$gte: creditAmountOne};
+                    break;
+                case '=':
+                    query["validCredit"] = creditAmountOne;
+                    break;
+                case 'range':
+                    if (creditAmountTwo) query["validCredit"] = {$gte: creditAmountOne, $lte: creditAmountTwo};
+                    break;
             }
         }
 
@@ -215,6 +239,19 @@ var encrypt = {
             }
             else {
                 query["platformId"] = data.platformId;
+            }
+            if (data.rewardTypeName) {
+                query["data.eventName"] = data.rewardTypeName;
+            }
+            if (data.promoTypeName) {
+                query["data.PROMO_CODE_TYPE"] = data.promoTypeName;
+            }
+            if (data.relatedAccount) {
+                query["data.playerName"] = data.relatedAccount;
+                query["data.partnerName"] = data.relatedAccount;
+            }
+            if (data.inputDevice) {
+                query.inputDevice = data.inputDevice;
             }
         }
         return query;

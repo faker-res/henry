@@ -294,7 +294,8 @@ var dbPlatformBankCardGroup = {
                 }
             }
         );
-    }
+    },
+
 
 };
 

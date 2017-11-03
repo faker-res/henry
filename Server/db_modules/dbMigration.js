@@ -1188,6 +1188,11 @@ var dbMigration = {
                     bValid = true;
                 }
                 break;
+            case "UpdatePlayerWeChat":
+                if (proposalData && proposalData.updateData && proposalData.updateData.weChat != null) {
+                    bValid = true;
+                }
+                break;
             case "UpdatePlayerBankInfo":
                 bValid = true;
                 break;
@@ -1206,6 +1211,11 @@ var dbMigration = {
                 break;
             case "UpdatePartnerEmail":
                 if (proposalData && proposalData.updateData && proposalData.updateData.email) {
+                    bValid = true;
+                }
+                break;
+            case "UpdatePartnerQQ":
+                if (proposalData && proposalData.updateData && proposalData.updateData.qq) {
                     bValid = true;
                 }
                 break;
@@ -1326,7 +1336,7 @@ var dbMigration = {
                     return Q.reject({name: "DataError", message: "Invalid proposal data"});
                 }
                 var userProm = dbconfig.collection_players.findOne({name: proposalData.loginname}).lean();
-                var partnerProposalType = ["PartnerBonus", "UpdatePartnerBankInfo", "UpdatePartnerPhone", "UpdatePartnerEmail", "UpdatePartnerInfo", ""];
+                var partnerProposalType = ["PartnerBonus", "UpdatePartnerBankInfo", "UpdatePartnerPhone", "UpdatePartnerEmail", "UpdatePartnerInfo", "UpdatePartnerQQ", ""];
                 if (partnerProposalType.indexOf(typeName) >= 0) {
                     bPartnerProposal = true;
                     proposalData.partnerName = proposalData.loginname;

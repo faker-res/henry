@@ -136,7 +136,7 @@
                 <button ng-if="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;Delete&quot;)" ng-disabled="!vm.selectedPlatform" data-toggle="modal" data-target="#modalDeletePlatform" ng-click="vm.initPlatform(false)" class="btn btn-primary common-button">
                     <text>{{"DELETE" | translate}}</text><img class="img-delete"/>
                 </button>
-                <button ng-if="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;Edit&quot;)" ng-disabled="!vm.selectedPlatform" data-toggle="modal" data-target="#modalUpdatePlatform" ng-click="vm.initPlatform(true);vm.getAllDepartmentData();vm.befreUpdatePlatform()" class="btn btn-primary common-button">
+                <button ng-if="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;Edit&quot;)" ng-disabled="!vm.selectedPlatform" data-toggle="modal" data-target="#modalUpdatePlatform" ng-click="vm.initPlatform(true);vm.getAllDepartmentData();vm.beforeUpdatePlatform()" class="btn btn-primary common-button">
                     <text>{{"EDIT" | translate}}</text><img class="img-edit"/>
                 </button>
                 <button ng-show="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;DailySettlement&quot;) &amp;&amp; !vm.selectedPlatform.data.canAutoSettlement &amp;&amp; vm.showDailySettlement" ng-disabled="!vm.selectedPlatform" data-toggle="modal" ng-click="vm.settlementModal(&quot;Daily Settlement&quot;)" class="btn btn-primary common-button">

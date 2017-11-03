@@ -345,7 +345,7 @@ describe("Test first top up event", function () {
         //test on top up record can be used only once
         for(var i = 0; i < 3; i++){
             proms.push(
-                dbPlayerInfo.applyForFirstTopUpRewardProposal(testPlayerObjId, null, [testPlayerRecordId]).then(
+                dbPlayerInfo.applyForFirstTopUpRewardProposal("", testPlayerObjId, null, [testPlayerRecordId]).then(
                     proposal => {
                         numberOfSuccesses++;
                         proposalData = proposal;

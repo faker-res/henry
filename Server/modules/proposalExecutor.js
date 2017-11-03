@@ -107,12 +107,14 @@ var proposalExecutor = {
             this.executions.executePlayerConsumptionReturnFix.des = "Update player credit for consumption return";
             this.executions.executeUpdatePlayerEmail.des = "Update player email";
             this.executions.executeUpdatePlayerQQ.des = "Update player QQ";
+            this.executions.executeUpdatePlayerWeChat.des = "Update player WeChat";
             this.executions.executeUpdatePlayerPhone.des = "Update player phone number";
             this.executions.executeUpdatePlayerBankInfo.des = "Update player bank information";
             this.executions.executeAddPlayerRewardTask.des = "Add player reward task";
             this.executions.executeUpdatePartnerBankInfo.des = "Update partner bank information";
             this.executions.executeUpdatePartnerCredit.des = "Update partner credit";
             this.executions.executeUpdatePartnerEmail.des = "Update partner email";
+            this.executions.executeUpdatePartnerQQ.des = "Update partner QQ";
             this.executions.executeUpdatePartnerPhone.des = "Update partner phone number";
             this.executions.executeUpdatePartnerInfo.des = "Update partner information";
             this.executions.executePlayerTopUp.des = "Help player top up";
@@ -157,12 +159,14 @@ var proposalExecutor = {
             this.rejections.rejectPlayerConsumptionReturnFix.des = "Reject update player credit for consumption return";
             this.rejections.rejectUpdatePlayerEmail.des = "Reject player update email proposal";
             this.rejections.rejectUpdatePlayerQQ.des = "Reject player update QQ proposal";
+            this.rejections.rejectUpdatePlayerWeChat.des = "Reject player update WeChat proposal";
             this.rejections.rejectUpdatePlayerPhone.des = "Reject player update phone number proposal";
             this.rejections.rejectUpdatePlayerBankInfo.des = "Reject player update bank information";
             this.rejections.rejectAddPlayerRewardTask.des = "Reject add player reward task";
             this.rejections.rejectUpdatePartnerBankInfo.des = "Reject partner update bank information";
             this.rejections.rejectUpdatePartnerPhone.des = "Reject partner update phone number";
             this.rejections.rejectUpdatePartnerEmail.des = "Reject partner update email";
+            this.rejections.rejectUpdatePartnerWeChat.des = "Reject partner update weChat";
             this.rejections.rejectUpdatePartnerInfo.des = "Reject partner update information";
             this.rejections.rejectFullAttendance.des = "Reject player full attendance reward";
             this.rejections.rejectGameProviderReward.des = "Reject player for Game Provider Reward";
@@ -457,6 +461,31 @@ var proposalExecutor = {
             },
 
             /**
+             * execution function for update player weChat proposal type
+             */
+            executeUpdatePlayerWeChat: function (proposalData, deferred) {
+                //valid data
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.updateData && proposalData.data.updateData.wechat) {
+                    dbUtil.findOneAndUpdateForShard(
+                        dbconfig.collection_players,
+                        {_id: proposalData.data.playerObjId},
+                        proposalData.data.updateData,
+                        constShardKeys.collection_players
+                    ).then(
+                        function (data) {
+                            deferred.resolve(data);
+                        },
+                        function (err) {
+                            deferred.reject({name: "DataError", message: "Failed to update player weChat", error: err});
+                        }
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect update player weChat proposal data"});
+                }
+            },
+
+            /**
              * execution function for update player phone number proposal type
              */
             executeUpdatePlayerPhone: function (proposalData, deferred) {
@@ -705,6 +734,31 @@ var proposalExecutor = {
             },
 
             /**
+             * execution function for update partner QQ proposal type
+             */
+            executeUpdatePartnerQQ: function (proposalData, deferred) {
+                //data validation
+                if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.updateData.qq) {
+                    dbUtil.findOneAndUpdateForShard(
+                        dbconfig.collection_partner,
+                        {partnerName: proposalData.data.partnerName},
+                        proposalData.data.updateData,
+                        constShardKeys.collection_partner
+                    ).then(
+                        function (data) {
+                            deferred.resolve(data);
+                        },
+                        function (err) {
+                            deferred.reject({name: "DataError", message: "Failed to update partner email", error: err});
+                        }
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect update partner email proposal data"});
+                }
+            },
+
+            /**
              * execution function for update partner email proposal type
              */
             executeUpdatePartnerInfo: function (proposalData, deferred) {
@@ -853,12 +907,15 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
-                        dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
-                        deferred.resolve(proposalData);
+
+                        return dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
                     },
                     function (error) {
                         deferred.reject(error);
                     }
+                ).then(
+                    data => deferred.resolve(proposalData),
+                    error => deferred.reject(error)
                 );
             },
 
@@ -938,14 +995,18 @@ var proposalExecutor = {
                                     }
                                 );
                             }
-                            dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType).then(
-                                data => deferred.resolve(data),
-                                error => deferred.reject(error)
-                            );
+
+                            // DEBUG: Reward sometime not applied issue
+                            console.log('applyForPlatformTransactionReward - Start', proposalData.proposalId);
+
+                            return dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
                         },
                         function (error) {
                             deferred.reject(error);
                         }
+                    ).then(
+                        data => deferred.resolve(data),
+                        error => deferred.reject(error)
                     );
                 }
                 else {
@@ -1128,9 +1189,15 @@ var proposalExecutor = {
                         targetEnable: proposalData.data.targetEnable,
                         useLockedCredit: proposalData.data.useLockedCredit
                     };
-                    if (proposalData.data.providers) {
+
+                    // Target providers or providerGroup
+                    if (proposalData.data.providerGroup) {
+                        taskData.providerGroup = proposalData.data.providerGroup;
+                    }
+                    else if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;
                     }
+
                     var deferred1 = Q.defer();
                     createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_TOP_UP_RETURN, proposalData);
                     deferred1.promise.then(
@@ -1461,7 +1528,8 @@ var proposalExecutor = {
                         eventId: proposalData.data.eventId,
                         maxRewardAmount: proposalData.data.maxRewardAmount,
                         proposalId: proposalData.proposalId,
-                        applyAmount: proposalData.data.applyAmount
+                        applyAmount: proposalData.data.applyAmount,
+                        rewardAmount: proposalData.data.rewardAmount
                     };
                     createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_TOP_UP_REWARD, proposalData);
                 }
@@ -1741,7 +1809,7 @@ var proposalExecutor = {
             },
 
             executePlayerTopUpPromo: function (proposalData, deferred) {
-                dbPlayerInfo.updatePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.amount, proposalData.type.name, proposalData.data.playerName, proposalData.data).then(
+                dbPlayerInfo.updatePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.rewardAmount, proposalData.type.name, proposalData.data.playerName, proposalData.data).then(
                     successData => {
                         deferred.resolve(successData);
                     },
@@ -1933,6 +2001,13 @@ var proposalExecutor = {
             },
 
             /**
+             * reject function for UpdatePlayerQQ proposal
+             */
+            rejectUpdatePlayerWeChat: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
              * reject function for UpdatePlayerPhone proposal
              */
             rejectUpdatePlayerPhone: function (proposalData, deferred) {
@@ -1971,6 +2046,13 @@ var proposalExecutor = {
              * reject function for UpdatePartnerEmail proposal
              */
             rejectUpdatePartnerEmail: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
+             * reject function for UpdatePartnerWeChat proposal
+             */
+            rejectUpdatePartnerWeChat: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 
@@ -2153,9 +2235,10 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
-                    deferred.resolve, deferred.reject
-                );
+                // pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
+                //     deferred.resolve, deferred.reject
+                // );
+                deferred.resolve("Proposal is rejected")
             },
 
             /**
@@ -2444,53 +2527,65 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
     // Add proposalId in reward data
     taskData.proposalId = proposalData.proposalId;
 
-    //check if player has reward task and if player's platform support multi reward
-    dbconfig.collection_rewardTask.findOne(
-        {playerId: proposalData.data.playerObjId, status: constRewardTaskStatus.STARTED, useLockedCredit: true}
-    ).populate(
-        {path: "platformId", model: dbconfig.collection_platform}
-    ).lean().then(
-        curTask => {
-            if (!curTask || (curTask && curTask.platformId && curTask.platformId.canMultiReward)) {
-                return;
-            }
-            else {
-                return Q.reject({name: "DBError", message: "Player already has reward task ongoing"});
-            }
-        }
-    ).then(
-        () => dbRewardTask.createRewardTask(taskData).then(
-            data => rewardTask = data
-        ).catch(
-            error => Q.reject({name: "DBError", message: "Error creating reward task for " + rewardType, error: error})
+    // Create different process flow for lock provider group reward
+    if (proposalData.data.providerGroup) {
+        dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(
+            data => deferred.resolve(resolveValue || rewardTask),
+            error => deferred.reject(error)
         )
-    ).then(
-        () => {
-            if( !taskData.useLockedCredit ){
-                return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
-                    playerData => {
-                        dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
-                    }
-                );
+    } else {
+        //check if player has reward task and if player's platform support multi reward
+        dbconfig.collection_rewardTask.findOne(
+            {playerId: proposalData.data.playerObjId, status: constRewardTaskStatus.STARTED, useLockedCredit: true}
+        ).populate(
+            {path: "platformId", model: dbconfig.collection_platform}
+        ).lean().then(
+            curTask => {
+                if (!curTask || (curTask && curTask.platformId && curTask.platformId.canMultiReward)) {
+                    return;
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Player already has reward task ongoing"});
+                }
             }
-        }
-    ).then(
-        //() => createRewardLogForProposal(taskData.rewardType, proposalData)
-        () => {
-            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
-            //send message if there is any template created for this reward
-            return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
-                rewardTask: taskData
-            });
-        }
-    ).then(
-        function () {
-            deferred.resolve(resolveValue || rewardTask);
-        },
-        function (error) {
-            deferred.reject(error);
-        }
-    );
+        ).then(
+            () => dbRewardTask.createRewardTask(taskData).then(
+                data => rewardTask = data
+            ).catch(
+                error => Q.reject({
+                    name: "DBError",
+                    message: "Error creating reward task for " + rewardType,
+                    error: error
+                })
+            )
+        ).then(
+            () => {
+                if (!taskData.useLockedCredit) {
+                    return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
+                        playerData => {
+                            dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
+                        }
+                    );
+                }
+            }
+        ).then(
+            //() => createRewardLogForProposal(taskData.rewardType, proposalData)
+            () => {
+                SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
+                //send message if there is any template created for this reward
+                return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
+                    rewardTask: taskData
+                });
+            }
+        ).then(
+            function () {
+                deferred.resolve(resolveValue || rewardTask);
+            },
+            function (error) {
+                deferred.reject(error);
+            }
+        );
+    }
 }
 
 function createRewardLogForProposal(rewardTypeName, proposalData) {

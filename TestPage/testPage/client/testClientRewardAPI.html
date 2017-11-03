@@ -282,16 +282,6 @@
 <h3>APPLY PROMO CODE (申请优惠代码)</h3>
 <div class="test-container">
     <div>
-        <label>PlayerObjId ID
-            <input name="platformObjId">
-        </label>
-    </div>
-    <div>
-      <label>Player Name
-        <input name="playerName">
-      </label>
-    </div>
-    <div>
       <label>PromoCode
         <input name="promoCode">
       </label>
@@ -309,6 +299,11 @@
             <input name="platformId">
         </label>
     </div>
+    <div>
+        <label>Status
+            <input name="status">
+        </label>
+    </div>
     <p></p>
     <button data-api-name="getLimitedOffers">Get Limited Offers</button>
     <div>
@@ -318,22 +313,38 @@
 <h3>APPLY LIMITED OFFERS (申请秒杀礼包)</h3>
 <div class="test-container">
     <div>
-        <label>Platform ID
-            <input name="platformId">
-        </label>
-    </div>
-    <div>
-        <label>Player Name
-            <input name="playerName">
-        </label>
-    </div>
-    <div>
         <label>limitedOfferObjId
             <input name="limitedOfferObjId">
         </label>
     </div>
     <p></p>
     <button data-api-name="applyLimitedOffers">Apply Limited Offers</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+<h3>GET LIMITED OFFERS BONUS LIST ()</h3>
+<div class="test-container">
+    <div>
+        <label>Platform ID
+            <input name="platformId">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="getLimitedOfferBonus">GET</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+<h3>SET LIMITED OFFER SHOW INFO ()</h3>
+<div class="test-container">
+    <div>
+        <label>showInfo
+            <input name="showInfo">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="setLimitedOfferShowInfo">GET</button>
     <div>
         <textarea></textarea>
     </div>

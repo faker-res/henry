@@ -143,6 +143,7 @@ var simplifiedChinese = {
     "Invalid player bankcard group data": "玩家无可支付的银行卡",
     "Player does not have online topup permission": "支付方式暂时无法使用，请更换存款方式或者联系在线客服。",
     "Player does not have manual topup permission": "支付方式暂时无法使用，请更换存款方式或者联系在线客服。",
+    "Player does not have this topup permission": "支付方式暂时无法使用，请更换存款方式或者联系在线客服。",
     "Please contact customer service": "请联系在线客服",
     "Referral does not have enough topup amount": "被推荐人充值额度不够",
     "Player does not have enough return amount": "您的洗码额度不足100元，无法提前结算洗码，谢谢",
@@ -176,7 +177,11 @@ var simplifiedChinese = {
     "Invalid image captcha": "图片验证码不正确，请再次输入",
     "Player is forbidden to the game": "连接游戏端失败,稍后再试",
     "Please Set the Bonus PercentageCharges First": "请先设置提款手续费",
-    "Name already existed": "客服名重复"
+    "Name already existed": "客服名重复",
+    "Cant find player current reward.": "游戏正在维护中，请稍后再试",
+    "Player is forbidden for this reward.": "您目前暂无申请此优惠的权限，详情请联系客服。",
+    "SMS is not available": "短信发送失败，请再次尝试",
+    "Cant apply this reward, contact cs": "不符合领取条件，请联系客服"
     //todo::add missing messages here
 
     /*

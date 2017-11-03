@@ -16,7 +16,8 @@ var playerFeedbackSchema = new Schema({
     //content of the feedback
     content: String,
     //result ( Normal, Missed call, PlayerBusy)
-    result: String
+    result: String,
+    topic: String
 });
 
 module.exports = playerFeedbackSchema;

@@ -28,7 +28,7 @@ function callCPMSAPI(service, functionName, data) {
                 message: "Game is not available"
             });
         }
-    }, 30 * 1000);
+    }, 60 * 1000);
     clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
         wsClient => {
             bOpen = true;
@@ -130,6 +130,7 @@ const cpmsAPI = {
     },
 
     player_queryCredit: function (data) {
+        data.requestId = data.username + "_" + data.providerId + "_" + new Date().getTime();
         return callCPMSAPI("player", "queryCredit", data);
     },
 
