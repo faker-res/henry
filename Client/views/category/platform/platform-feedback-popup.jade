@@ -1,0 +1,51 @@
+#modalAddPlayerFeedbackResult.modal.fade(style='background: rgba(0,0,0,0.5);', tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:40%; top: 20vh;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_FEEDBACK_RESULT" | translate}}
+            .modal-body
+                div
+                    label.control-label {{'ADD_FEEDBACK_RESULT' | translate}} &nbsp
+                    .inlineBlk
+                        input.form-control(style='width:120px;', ng-model='vm.addPlayerFeedbackResultData.key', placeholder="{{'FEEDBACK_RESULT_KEY' | translate}}")
+                    .inlineBlk
+                        input.form-control(style='width:120px;', ng-model='vm.addPlayerFeedbackResultData.value', placeholder="{{'FEEDBACK_RESULT' | translate}}")
+                    button.btn.btn-primary(ng-click='vm.addPlayerFeedbackResult();') {{"ADD" | translate}}
+                    span(style="color:green;",ng-show="vm.addPlayerFeedbackResultData.success === true") &nbsp{{vm.addPlayerFeedbackResultData.message | translate}}
+                    span(style="color:red;",ng-show="vm.addPlayerFeedbackResultData.failure === true") &nbsp{{vm.addPlayerFeedbackResultData.message | translate}}
+
+                div
+                    label.control-label {{"DELETE_FEEDBACK_RESULT" | translate}} &nbsp
+                    .inlineBlk
+                        select.form-control(ng-model='vm.deletePlayerFeedbackResultData._id')
+                            option(value='') {{'CHOOSE_FEEDBACK_RESULT' | translate}}
+                            option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v._id}}') {{v.value | translate}}
+                    button.btn.btn-primary(ng-click='vm.deletePlayerFeedbackResult();') {{"DELETE" | translate}}
+                    span(style="color:green;",ng-show="vm.deletePlayerFeedbackResultData.success === true") &nbsp{{vm.deletePlayerFeedbackResultData.message | translate}}
+                    span(style="color:red;",ng-show="vm.deletePlayerFeedbackResultData.failure === true") &nbsp{{vm.deletePlayerFeedbackResultData.message | translate}}
+
+#modalAddPlayerFeedbackTopic.modal.fade(style='background: rgba(0,0,0,0.5);', tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:40%; top: 20vh;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_FEEDBACK_TOPIC" | translate}}
+            .modal-body
+                div
+                    label.control-label {{'ADD_FEEDBACK_TOPIC' | translate}} &nbsp
+                    .inlineBlk
+                        input.form-control(ng-model='vm.addPlayerFeedbackTopicData.value', placeholder="{{'FEEDBACK_TOPIC' | translate}}")
+                    button.btn.btn-primary(ng-click='vm.addPlayerFeedbackTopic();') {{"ADD" | translate}}
+                    span(style="color:green;",ng-show="vm.addPlayerFeedbackTopicData.success === true") &nbsp{{vm.addPlayerFeedbackTopicData.message | translate}}
+                    span(style="color:red;",ng-show="vm.addPlayerFeedbackTopicData.failure === true") &nbsp{{vm.addPlayerFeedbackTopicData.message | translate}}
+
+                div
+                    label.control-label {{"DELETE_FEEDBACK_TOPIC" | translate}} &nbsp
+                    .inlineBlk
+                        select.form-control(ng-model='vm.deletePlayerFeedbackTopicData._id')
+                            option(value='') {{'CHOOSE_FEEDBACK_TOPIC' | translate}}
+                            option(ng-repeat='(i,v) in vm.allPlayerFeedbackTopics', value='{{v._id}}') {{v.value | translate}}
+                    button.btn.btn-primary(ng-click='vm.deletePlayerFeedbackTopic();') {{"DELETE" | translate}}
+                    span(style="color:green;",ng-show="vm.deletePlayerFeedbackTopicData.success === true") &nbsp{{vm.deletePlayerFeedbackTopicData.message | translate}}
+                    span(style="color:red;",ng-show="vm.deletePlayerFeedbackTopicData.failure === true") &nbsp{{vm.deletePlayerFeedbackTopicData.message | translate}}

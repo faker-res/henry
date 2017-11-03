@@ -447,6 +447,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                 lastTopUpResult.requiredConsumption += checkResult[i].requiredConsumption;
                                 lastTopUpResult.initBonusAmount += checkResult[i].initBonusAmount;
                                 lastTopUpResult.bonusAmount += checkResult[i].bonusAmount;
+                                lastTopUpResult.isCleared = isClearCycle;
                             }
 
                             // Check consumption for each cycle

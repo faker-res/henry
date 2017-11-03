@@ -126,6 +126,8 @@ var roleChecker = {
         "getLastMonthSGTime": true,
         "getLastMonthConsumptionReturnSGTime": true,
 
+        "getPlatformProviderGroup": true,
+
         // API Actions - can be ignored
         'createApiUser': true,
         'deleteApiUser': true,
@@ -369,7 +371,7 @@ var roleChecker = {
                 Monitor: [],
                 PlayerValue: ['updatePlayerValueConfig','updatePlayerLevelScores'],
                 Credibility: ['updateCredibilityRemarksInBulk'],
-                providerGroup: []
+                providerGroup: ['deletePlatformProviderGroup']
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -411,6 +413,9 @@ var roleChecker = {
             },
             "devFunc": {
                 Read: ['triggerSavePlayersCredit']
+            },
+            "phoneNumFilter": {
+                FilterAllPlatform: []
             }
         },
         Payment: {

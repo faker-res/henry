@@ -72,6 +72,7 @@ let dbProposal = require('./../db_modules/dbProposal');
 let dbProposalType = require('./../db_modules/dbProposalType');
 let dbRewardEvent = require('./../db_modules/dbRewardEvent');
 let dbRewardTask = require('./../db_modules/dbRewardTask');
+let dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
 let dbPlayerCredibility = require('./../db_modules/dbPlayerCredibility');
 let dbPartner = require('../db_modules/dbPartner');
 
@@ -132,11 +133,12 @@ let dbPlayerInfo = {
                                 );
                             }
                             else {
+                                let errorMessage = verificationSMS ? "Invalid SMS Validation Code" : "Incorrect SMS Validation Code";
                                 // Verification code is invalid
                                 return Q.reject({
                                     status: constServerCode.VALIDATION_CODE_INVALID,
                                     name: "ValidationError",
-                                    message: "Invalid SMS Validation Code"
+                                    message: errorMessage
                                 });
                             }
                         }
@@ -1020,6 +1022,7 @@ let dbPlayerInfo = {
                 }
             );
     },
+
     getOnePlayerInfo: function (query) {
         let playerData;
 
@@ -1035,8 +1038,26 @@ let dbPlayerInfo = {
                 } else return Q.reject({message: "incorrect player result"});
             }).then(
                 platformData => {
+                    if (platformData.useProviderGroup) {
+                        return dbconfig.collection_rewardTaskGroup.find({
+                            platformId: playerData.platform,
+                            playerId: playerData._id,
+                            status: {$in: [constRewardTaskStatus.STARTED]}
+                        })
+                    } else {
+                        return Promise.resolve(false);
+                    }
+                }
+            ).then(
+                rewardTaskGroup => {
+                    if (rewardTaskGroup) {
+                        playerData.lockedCredit = rewardTaskGroup.reduce(
+                            (a, b) => a + b.rewardAmt, 0
+                        )
+                    }
+
                     return dbconfig.collection_playerClientSourceLog.findOne({
-                        platformId: platformData.platformId,
+                        platformId: playerData.platform,
                         playerName: playerData.name
                     }).lean()
                 }
@@ -1211,17 +1232,17 @@ let dbPlayerInfo = {
                         delete permission[i];
                     }
                 }
-                if (Object.keys(oldData).length !== 0) {
-                    var newLog = new dbconfig.collection_playerPermissionLog({
-                        admin: admin,
-                        platform: query.platform,
-                        player: query._id,
-                        remark: remark,
-                        oldData: oldData,
-                        newData: permission,
-                    });
-                    return newLog.save();
-                } else return true;
+                // if (Object.keys(oldData).length !== 0) {
+                var newLog = new dbconfig.collection_playerPermissionLog({
+                    admin: admin,
+                    platform: query.platform,
+                    player: query._id,
+                    remark: remark,
+                    oldData: oldData,
+                    newData: permission,
+                });
+                return newLog.save();
+                // } else return true;
             },
             function (error) {
                 return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
@@ -1363,10 +1384,11 @@ let dbPlayerInfo = {
                                     )
                                 }
                                 else {
+                                    let errorMessage = verificationSMS ? "Invalid SMS Validation Code" : "Incorrect SMS Validation Code";
                                     return Q.reject({
                                         status: constServerCode.VALIDATION_CODE_INVALID,
                                         name: "ValidationError",
-                                        message: "Invalid SMS Validation Code"
+                                        message: errorMessage
                                     });
                                 }
                             }
@@ -1543,10 +1565,11 @@ let dbPlayerInfo = {
                                     )
                                 }
                                 else {
+                                    let errorMessage = verificationSMS ? "Invalid SMS Validation Code" : "Incorrect SMS Validation Code";
                                     return Q.reject({
                                         status: constServerCode.VALIDATION_CODE_INVALID,
                                         name: "ValidationError",
-                                        message: "Invalid SMS Validation Code"
+                                        message: errorMessage
                                     });
                                 }
                             }
@@ -2937,7 +2960,7 @@ let dbPlayerInfo = {
                                     eventDescription: rewardParams[i].description,
                                     curRewardAmount: curRewardAmount,
                                     maxRewardAmountPerDay: rewardParams[i].param.maxRewardAmountPerDay,
-                                    spendingAmount: rewardAmount,
+                                    spendingAmount: rewardAmount*20, //10 times spending amount
                                     eventName: rewardParams[i].name,
                                     eventCode: rewardParams[i].code,
                                 }
@@ -3038,7 +3061,10 @@ let dbPlayerInfo = {
     getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || {registrationTime: -1};
+
         let advancedQuery = {};
+        let isProviderGroup = false;
+
         //todo encrytion ?
         if (data && data.phoneNumber) {
             data.phoneNumber = {$in: [rsaCrypto.encrypt(data.phoneNumber), data.phoneNumber]};
@@ -3054,6 +3080,22 @@ let dbPlayerInfo = {
                     thisPlayer.rewardInfo = rewardData;
                     return thisPlayer;
                 });
+        }
+
+        function getRewardGroupData(thisPlayer) {
+            return dbconfig.collection_rewardTaskGroup.find({
+                platformId: thisPlayer.platform,
+                playerId: thisPlayer._id,
+                status: {$in: [constRewardTaskStatus.STARTED]}
+            }).then(
+                rewardGroupData => {
+                    thisPlayer.rewardGroupInfo = rewardGroupData;
+                    thisPlayer.lockedCredit = rewardGroupData.reduce(
+                        (arr, inc) => arr + inc.rewardAmt, 0
+                    );
+                    return thisPlayer;
+                }
+            )
         }
 
         if (data.bankAccount) {
@@ -3077,56 +3119,70 @@ let dbPlayerInfo = {
             }
         }
 
+        return dbconfig.collection_platform.findOne({
+            _id: platformId
+        }).lean().then(
+            platform => {
+                isProviderGroup = Boolean(platform.useProviderGroup);
 
-        return dbconfig.collection_players
-            .find(advancedQuery, {similarPlayers: 0})
-            .sort(sortObj).skip(index).limit(limit).lean().then(
-                players => {
-                    let calculatePlayerValueProms = [];
-                    for (let i = 0; i < players.length; i++) {
-                        let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
-                        calculatePlayerValueProms.push(calculateProm);
-                    }
-                    return Promise.all(calculatePlayerValueProms);
-
-                }
-            ).then(
-                () => {
-                    var a = dbconfig.collection_players
-                        .find(advancedQuery, {similarPlayers: 0})
-                        .sort(sortObj).skip(index).limit(limit)
-                        .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-                        .populate({path: "partner", model: dbconfig.collection_partner})
-                        .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
-                        .lean().then(
-                            playerData => {
-                                var players = [];
-                                for (var ind in playerData) {
-                                    if (playerData[ind]) {
-                                        if (playerData[ind].referral) {
-                                            playerData[ind].referralName$ = playerData[ind].referral.name;
-                                            playerData[ind].referral = playerData[ind].referral._id;
-                                        }
-
-                                        var newInfo = getRewardData(playerData[ind]);
-                                        players.push(Q.resolve(newInfo));
-                                    }
-                                }
-                                return Q.all(players)
+                return dbconfig.collection_players
+                    .find(advancedQuery, {similarPlayers: 0})
+                    .sort(sortObj).skip(index).limit(limit).lean().then(
+                        players => {
+                            let calculatePlayerValueProms = [];
+                            for (let i = 0; i < players.length; i++) {
+                                let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
+                                calculatePlayerValueProms.push(calculateProm);
                             }
-                        );
-                    var b = dbconfig.collection_players
-                        .find({platform: platformId, $and: [data]}).count();
-                    return Q.all([a, b]);
-                }
-            ).then(
-                data => {
-                    return {data: data[0], size: data[1]}
-                },
-                err => {
-                    return {error: err};
-                }
-            );
+                            return Promise.all(calculatePlayerValueProms);
+
+                        }
+                    )
+            }
+        ).then(
+            () => {
+                var a = dbconfig.collection_players
+                    .find(advancedQuery, {similarPlayers: 0})
+                    .sort(sortObj).skip(index).limit(limit)
+                    .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                    .populate({path: "partner", model: dbconfig.collection_partner})
+                    .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
+                    .lean().then(
+                        playerData => {
+                            var players = [];
+                            for (var ind in playerData) {
+                                if (playerData[ind]) {
+                                    let newInfo;
+
+                                    if (playerData[ind].referral) {
+                                        playerData[ind].referralName$ = playerData[ind].referral.name;
+                                        playerData[ind].referral = playerData[ind].referral._id;
+                                    }
+
+                                    if (isProviderGroup) {
+                                        newInfo = getRewardGroupData(playerData[ind]);
+                                    } else {
+                                        newInfo = getRewardData(playerData[ind]);
+                                    }
+
+                                    players.push(Q.resolve(newInfo));
+                                }
+                            }
+                            return Q.all(players)
+                        }
+                    );
+                var b = dbconfig.collection_players
+                    .find({platform: platformId, $and: [data]}).count();
+                return Q.all([a, b]);
+            }
+        ).then(
+            data => {
+                return {data: data[0], size: data[1]}
+            },
+            err => {
+                return {error: err};
+            }
+        );
     },
 
     getPagePlayerByAdvanceQueryWithTopupTimes: function (platformId, data, index, limit, sortObj) {
@@ -3928,8 +3984,8 @@ let dbPlayerInfo = {
             : dbconfig.collection_players.findOne({playerId: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform});
         let prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
-        let playerData = null;
-        let providerData = null;
+        let playerData, providerData, rewardTaskGroupData;
+        let transferAmount = 0;
 
         Q.all([prom0, prom1]).then(
             data => {
@@ -3937,39 +3993,58 @@ let dbPlayerInfo = {
                     playerData = data[0];
                     providerData = data[1];
 
-                    // Check if player has enough credit to play
-                    if ((parseFloat(data[0].validCredit.toFixed(2)) + data[0].lockedCredit) < 1 || amount == 0) {
-                        deferred.reject({
-                            status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                            name: "DataError",
-                            errorMessage: "Player does not have enough credit."
-                        });
-                        return;
-                    }
-
-                    // Enough credit to proceed
-                    let platformId = playerData.platform ? playerData.platform.platformId : null;
-                    // First log before processing
-                    dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
-                        "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
-
-                    if (playerData.platform.canMultiReward) {
-                        // Platform supporting multiple rewards will use new function first
-                        return dbPlayerCreditTransfer.playerCreditTransferToProvider(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
-                    }
-                    else {
-                        return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
-                    }
+                    return dbRewardTaskGroup.getPlayerRewardTaskGroup(playerData.platform._id, providerData._id, playerData._id, new Date());
                 } else {
                     deferred.reject({name: "DataError", message: "Cannot find player or provider"});
                 }
             },
-            function (err) {
+            err => {
                 deferred.reject({
                     name: "DataError",
                     message: "Failed to retrieve player or provider" + err.message,
                     error: err
                 })
+            }
+        ).then(
+            rewardTaskGroup => {
+                rewardTaskGroupData = rewardTaskGroup;
+
+                transferAmount += parseFloat(playerData.validCredit.toFixed(2));
+
+                if (playerData.platform.useLockedCredit) {
+                    transferAmount += playerData.lockedCredit;
+                }
+
+                if (playerData.platform.useProviderGroup && rewardTaskGroupData && rewardTaskGroupData.rewardAmt) {
+                    transferAmount += rewardTaskGroupData.rewardAmt;
+                }
+
+                // Check if player has enough credit to play
+                if (transferAmount < 1 || amount == 0) {
+                    deferred.reject({
+                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                        name: "DataError",
+                        errorMessage: "Player does not have enough credit."
+                    });
+                    return;
+                }
+
+                // Enough credit to proceed
+                let platformId = playerData.platform ? playerData.platform.platformId : null;
+                // First log before processing
+                dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
+                    "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
+
+                if (playerData.platform.useProviderGroup) {
+                    // Platform supporting provider group
+                    return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
+                        playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                } else if (playerData.platform.canMultiReward) {
+                    // Platform supporting multiple rewards will use new function first
+                    return dbPlayerCreditTransfer.playerCreditTransferToProvider(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                } else {
+                    return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                }
             }
         ).then(
             function (data) {
@@ -4365,7 +4440,11 @@ let dbPlayerInfo = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
 
-                    if (playerObj.platform.canMultiReward) {
+                    if (playerObj.platform.useProviderGroup) {
+                        // Platform supporting provider group
+                        return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
+                            data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                    } else if (playerObj.platform.canMultiReward) {
                         // Platform supporting multiple rewards will use new function first
                         return dbPlayerCreditTransfer.playerCreditTransferFromProvider(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
                     }
@@ -4474,7 +4553,24 @@ let dbPlayerInfo = {
                 }
             },
             function (err) {
-                deferred.reject(err);
+                if (bResolve) {
+                    return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+                        playerData => {
+                            deferred.resolve(
+                                {
+                                    playerId: playerId,
+                                    providerId: providerShortId,
+                                    providerCredit: 0,
+                                    playerCredit: playerData.validCredit,
+                                    rewardCredit: playerData.lockedCredit
+                                }
+                            );
+                        }
+                    );
+                }
+                else{
+                    deferred.reject(err);
+                }
             }
         ).then(
             function (data) {
@@ -7547,6 +7643,7 @@ let dbPlayerInfo = {
                                         gameStatus: gameData.status
                                     });
                                 }
+
                                 if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
                                     return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
                                 }
@@ -11018,7 +11115,7 @@ let dbPlayerInfo = {
         )
     },
 
-    comparePhoneNum: function (arrayInputPhone) {
+    comparePhoneNum: function (filterAllPlatform, platformObjId, arrayInputPhone) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayInputPhone.length; i++) {
@@ -11026,11 +11123,20 @@ let dbPlayerInfo = {
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayInputPhone[i]));
         }
 
-        // display phoneNumber from DB without asterisk masking
-        let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone}},
-            {$project: {name: 1, phoneNumber: 1, _id: 0}}
-        ]);
+        // if true, user can filter phone across all platform
+        if(filterAllPlatform) {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        } else {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        }
 
         let diffPhoneList;
         let samePhoneList;
@@ -11065,7 +11171,7 @@ let dbPlayerInfo = {
         });
     },
 
-    uploadPhoneFileCSV: function (arrayPhoneCSV) {
+    uploadPhoneFileCSV: function (filterAllPlatform, platformObjId, arrayPhoneCSV) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayPhoneCSV.length; i++) {
@@ -11073,11 +11179,20 @@ let dbPlayerInfo = {
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneCSV[i]));
         }
 
-        // display phoneNumber from DB without asterisk masking
-        let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone}},
-            {$project: {name: 1, phoneNumber: 1, _id: 0}}
-        ]);
+        // if true, user can filter phone across all platform
+        if(filterAllPlatform) {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        } else {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        }
 
         let diffPhoneCSV;
         let samePhoneCSV;
@@ -11112,7 +11227,7 @@ let dbPlayerInfo = {
         });
     },
 
-    uploadPhoneFileTXT: function (arrayPhoneTXT) {
+    uploadPhoneFileTXT: function (filterAllPlatform, platformObjId, arrayPhoneTXT) {
         let oldNewPhone = {$in: []};
 
         for (let i = 0; i < arrayPhoneTXT.length; i++) {
@@ -11120,11 +11235,20 @@ let dbPlayerInfo = {
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneTXT[i]));
         }
 
-        // display phoneNumber from DB without asterisk masking
-        let dbPhone = dbconfig.collection_players.aggregate([
-            {$match: {"phoneNumber": oldNewPhone}},
-            {$project: {name: 1, phoneNumber: 1, _id: 0}}
-        ]);
+        // if true, user can filter phone across all platform
+        if(filterAllPlatform) {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        } else {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        }
 
         let diffPhoneTXT;
         let samePhoneTXT;
