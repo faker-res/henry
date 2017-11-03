@@ -11,6 +11,7 @@ var errorUtils = require("./errorUtils.js");
 var constProposalEntryType = require('./../const/constProposalEntryType');
 var constProposalUserType = require('./../const/constProposalUserType');
 var pmsAPI = require('../externalAPI/pmsAPI');
+const constSMSPurpose = require('../const/constSMSPurpose');
 
 var dbLogger = {
 
@@ -262,7 +263,10 @@ var dbLogger = {
         var smsLog = new dbconfig.collection_smsLog(logData);
         smsLog.save().then().catch(err => errorSavingLog(err, logData));
     },
-    createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, status, error) {
+    createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, purpose, status, error) {
+        if (Object.values(constSMSPurpose).indexOf(purpose) === -1) {
+            purpose = constSMSPurpose.UNKNOWN;
+        }
 
         var logData = {
             type: type,
@@ -270,6 +274,7 @@ var dbLogger = {
             platform: platformObjId,
             tel: tel,
             channel: channel,
+            purpose: purpose,
             status: status,
             error: error,
         };

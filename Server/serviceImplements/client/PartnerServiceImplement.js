@@ -4,6 +4,7 @@ var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var PartnerService = require("./../../services/client/ClientServices").PartnerService;
 var dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
 var dbPartner = require('../../db_modules/dbPartner');
+const dbUtility = require('./../../modules/dbutility');
 var constServerCode = require('./../../const/constServerCode');
 var constSystemParam = require('./../../const/constSystemParam');
 var jwt = require('jsonwebtoken');
@@ -370,8 +371,10 @@ var PartnerServiceImplement = function () {
         let randomCode = parseInt(Math.random() * 9000 + 1000);
         conn.phoneNumber = data.phoneNumber;
         conn.smsCode = randomCode;
+        let captchaValidation = conn.captchaCode && data.captcha && conn.captchaCode.toString() === data.captcha.toString();
+        conn.captchaCode = null;
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, 'partner'], isValidData, false, false, true);
     };
 
     this.updatePhoneNumberWithSMS.expectsData = 'partnerId: String, phoneNumber: Number';
