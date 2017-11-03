@@ -5532,7 +5532,12 @@ let dbPlayerInfo = {
                                     console.warn("Invalid topup period '" + topupPeriod + "' or consumption period '" + consumptionPeriod + "' in playerLevel with id: " + level._id);
                                 }
 
-                                const failsEnoughConditions = failsTopupRequirements || failsConsumptionRequirements;
+                                const failsEnoughConditions =
+                                    conditionSet.andConditions
+                                        ? failsTopupRequirements && failsConsumptionRequirements
+                                        : failsTopupRequirements || failsConsumptionRequirements;
+
+                                // const failsEnoughConditions = failsTopupRequirements || failsConsumptionRequirements;
                                 if (failsEnoughConditions) {
                                     levelObjId = previousLevel._id;
                                 }
@@ -5609,11 +5614,11 @@ let dbPlayerInfo = {
                                             isRewardTask: levelUpObj.reward.isRewardTask,
                                             levelValue: levelUpObj.value,
                                             levelName: levelUpObj.name,
+                                            levelOldName: playerObj.playerLevel.name,
                                             playerObjId: playerObj._id,
                                             playerName: playerObj.name,
                                             playerId: playerObj.playerId,
-                                            platformObjId: playerObj.platform,
-                                            levelOldName: playerObj.playerLevel.name,
+                                            platformObjId: playerObj.platform
                                         };
                                         return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
                                     }

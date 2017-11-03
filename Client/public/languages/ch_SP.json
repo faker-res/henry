@@ -2577,5 +2577,7 @@
   "INVOLVED_ACC": "涉及帐号",
   "NEW_WECHAT": "新微信账号",
   "CURRENT_WECHAT": "原微信账号",
-  "RETYPE_WECHAT": "重新输入微信账号"
+  "RETYPE_WECHAT": "重新输入微信账号",
+  "PLAYER_LEVEL_UP_PERIOD": "玩家升级周期设置",
+  "PLAYER_LEVEL_DOWN_PERIOD": "玩家降级周期设置"
 }
