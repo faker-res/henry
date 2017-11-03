@@ -263,6 +263,8 @@ var dbLogger = {
         var smsLog = new dbconfig.collection_smsLog(logData);
         smsLog.save().then().catch(err => errorSavingLog(err, logData));
     },
+
+    // this actually create all the validation sms log instead of just for registration
     createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, purpose, inputDevice, status, error) {
         if (Object.values(constSMSPurpose).indexOf(purpose) === -1) {
             purpose = constSMSPurpose.UNKNOWN;
@@ -270,19 +272,30 @@ var dbLogger = {
 
         inputDevice = inputDevice || 0;
 
-        var logData = {
-            type: type,
-            message: message,
-            platform: platformObjId,
-            tel: tel,
-            inputDevice: inputDevice,
-            channel: channel,
-            purpose: purpose,
-            status: status,
-            error: error,
-        };
-        var smsLog = new dbconfig.collection_smsLog(logData);
-        smsLog.save().then().catch(err => errorSavingLog(err, logData));
+        let phoneQuery = {$in: [rsaCrypto.encrypt(tel), tel]};
+
+        dbconfig.collection_players.findOne({phoneNumber: phoneQuery}, {name: 1}).lean().then(
+            playerData => {
+                var logData = {
+                    type: type,
+                    message: message,
+                    platform: platformObjId,
+                    tel: tel,
+                    inputDevice: inputDevice,
+                    channel: channel,
+                    purpose: purpose,
+                    status: status,
+                    error: error,
+                };
+
+                if (playerData && playerData.name) {
+                    logData.recipientName = playerData.name;
+                }
+
+                var smsLog = new dbconfig.collection_smsLog(logData);
+                smsLog.save().then().catch(err => errorSavingLog(err, logData));
+            }
+        );
     },
     getPaymentHistory: function (query) {
         var finalResult = [];
