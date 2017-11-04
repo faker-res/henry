@@ -2843,7 +2843,16 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.editNewPlayerRemark = function(proposalId, remark){
+                let updateData = {}
+                updateData.data = {remark:remark}
+                socketService.$socket($scope.AppSocket, 'updateProposal', {platform: vm.selectedPlatform.id, proposalId: proposalId}, updateData, function (playerCount) {
+                    // vm.selectedProposal = data.data;
+                    console.log('done');
+                });
 
+
+            }
         /////////////////////////////////Mark::Platform players functions//////////////////
 
             //get all platform players data from server
