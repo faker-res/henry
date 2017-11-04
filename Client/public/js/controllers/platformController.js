@@ -2538,8 +2538,11 @@ define(['js/app'], function (myApp) {
                     vm.newPlayerRecords.pageObj = utilService.createPageForPagingTable("#newPlayerListTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "newPlayerRecords", vm.getNewPlayerListByFilter)
                     });
+
                     vm.getNewPlayerListByFilter(true);
                 });
+
+
             }
 
             vm.getNewPlayerListByFilter = function (newSearch) {
@@ -2552,8 +2555,6 @@ define(['js/app'], function (myApp) {
                     endDate: vm.queryPara.newPlayerRecords.endTime.data('datetimepicker').getLocalDate(),
                     name: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.playerName : null,
                     phoneNumber: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.phoneNumber : null,
-                    relateUser: null,
-                    //relatePlayerId: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.playerId : null,
                     // entryType: vm.queryProposalEntryType,
                     size: newSearch ? 10 : (vm.newPlayerRecords.limit || 10),
                     index: newSearch ? 0 : (vm.newPlayerRecords.index || 0),
@@ -2690,29 +2691,190 @@ define(['js/app'], function (myApp) {
             };
 
 
-        vm.playerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-            $compile(nRow)($scope);
-            vm.operatePlayerListTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
-        };
+            vm.playerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                $compile(nRow)($scope);
+                vm.operatePlayerListTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
+            };
 
-        vm.operatePlayerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-            switch (true) {
+            vm.operatePlayerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                switch (true) {
 
-                case (aData.status == vm.constProposalStatus.FAIL && (aData.$playerAllCount - aData.$playerCurrentCount == 0)): {
-                    $(nRow).css('background-color', 'rgba(255, 153, 153, 100)','important');
-                    //$(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
-                    break;
+                    case (aData.status == vm.constProposalStatus.FAIL && (aData.$playerAllCount - aData.$playerCurrentCount == 0)): {
+                        $(nRow).css('background-color', 'rgba(255, 153, 153, 100)','important');
+                        //$(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                        break;
+                    }
+                    case (aData.status == vm.constProposalStatus.FAIL && (aData.$playerAllCount - aData.$playerCurrentCount > 0)): {
+                        $(nRow).css('background-color', 'rgba(153, 153, 153, 100)','important');
+                        break;
+                    }
+                    default: {
+                        $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
+                        break;
+                    }
                 }
-                case (aData.status == vm.constProposalStatus.FAIL && (aData.$playerAllCount - aData.$playerCurrentCount > 0)): {
-                    $(nRow).css('background-color', 'rgba(153, 153, 153, 100)','important');
-                    break;
-                }
-                default: {
-                    $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
-                    break;
-                }
+            };
+
+            // get attempt number list -- start
+            vm.attemptNumberList = function () {
+                vm.attemptNumberRecords = {totalCount: 0};
+                vm.initQueryTimeFilter('attemptNumberRecords', function () {
+                    vm.attemptNumberRecords.pageObj = utilService.createPageForPagingTable("#attemptNumberListTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "attemptNumberRecords", vm.getNewPlayerListByFilter)
+                    });
+
+                    vm.getAttemptNumberListByFilter(true);
+                });
             }
-        };
+
+            vm.getAttemptNumberListByFilter = function (newSearch) {
+                var selectedStatus = vm.queryPara.attemptNumberList ? [vm.queryPara.attemptNumberList.status] : ["Success", "Fail", "Pending", "Manual"];
+                var sendData = {
+                    adminId: authService.adminId,
+                    platformId: vm.selectedPlatform.id,
+                    type: ["PlayerRegistrationIntention"],
+                    startDate: vm.queryPara.attemptNumberRecords.startTime.data('datetimepicker').getLocalDate(),
+                    endDate: vm.queryPara.attemptNumberRecords.endTime.data('datetimepicker').getLocalDate(),
+                    name: vm.queryPara.attemptNumberList ? vm.queryPara.attemptNumberList.playerName : null,
+                    phoneNumber: vm.queryPara.attemptNumberList ? vm.queryPara.attemptNumberList.phoneNumber : null,
+                    relateUser: null,
+                    size: newSearch ? 10 : (vm.attemptNumberRecords.limit || 10),
+                    index: newSearch ? 0 : (vm.attemptNumberRecords.index || 0),
+                    sortCol: vm.attemptNumberRecords.sortCol || null,
+                    displayPhoneNum: true
+
+                }
+                if (selectedStatus && selectedStatus != "") {
+                    sendData.status = selectedStatus
+                } else {
+                    sendData.status = ["Success", "Fail", "Pending", "Manual"];
+                }
+
+                vm.attemptNumberRecords.loading = true;
+                console.log("Query", sendData);
+                vm.prepareAttemptNumberListRecords(sendData, newSearch);
+                $("#attemptNumberListTable").off('order.dt');
+                $("#attemptNumberListTable").on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'attemptNumberRecords', vm.getAttemptNumberListByFilter);
+                });
+            };
+
+            vm.prepareAttemptNumberListRecords = function (queryData, newSearch) {
+                vm.attemptNumberListRecords = [];
+                socketService.$socket($scope.AppSocket, 'getPlayerProposalsForAdminId', queryData, function (data) {
+                    vm.attemptNumberListRecords = data.data.data;
+                    vm.attemptNumberRecords.totalCount = data.data.size;
+                    vm.attemptNumberRecords.loading = false;
+                    console.log('attempt number list record', data);
+
+                    var tableData = vm.attemptNumberListRecords.map(
+                        record => {
+                            record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
+                            //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                            if(record.status){
+                                if(record.status == "Fail"){
+                                    record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                                else{
+                                    record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                            }
+                            record.playerId = record.data.playerId ? record.data.playerId : "";
+                            record.name = record.data.name ? record.data.name : "";
+                            record.realName = record.data.realName ? record.data.realName : "";
+                            record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
+                            record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+                            record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
+                            record.smsCode = record.data.smsCode ? record.data.smsCode : "";
+                            record.remarks = record.data.remarks ? record.data.remarks : "";
+                            record.device = record.data.device ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
+                            record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
+                            record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
+                            record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
+                            record.proposalId = record.data.proposalId ? record.data.proposalId : "";
+                            return record
+                        }
+                    );
+                    var tableData = vm.attemptNumberListRecords;
+                    var option = $.extend({}, vm.generalDataTableOptions, {
+                        data: tableData,
+                        aoColumnDefs: [
+                            {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                            {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
+                            //{'sortCol': 'data.playerId', bSortable: true, 'aTargets': [2]},
+                            {'sortCol': 'data.name', bSortable: true, 'aTargets': [3]},
+                            {'sortCol': 'data.realName', bSortable: true, 'aTargets': [4]},
+                            {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
+                            {'sortCol': 'data.phoneNumber', bSortable: true, 'aTargets': [7]},
+                            // {targets: '_all', defaultContent: ' ', bSortable: false}
+                        ],
+                        columns: [
+                            {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                            {title: $translate('PLAYERNAME'), data: "name"},
+                            {title: $translate('STATUS'), data: "statusName"},
+                            //{title: $translate('PLAYERID'), data: "playerId"},
+                            {title: $translate('SENT TIME'), data: "createTime"},
+                            {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
+                            {title: $translate('REGISTERED_IP'), data: "lastLoginIp"},
+                            {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
+                            {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
+                            {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
+                            {title: $translate('REMARKS'), data: "remarks"},
+                            {title: $translate('DEVICE'), data: "device"},
+                            {
+                                title: $translate('Function'),
+                                data: "data.phoneNumber",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var playerObjId = row.data._id ? row.data._id : "";
+                                    var link = $('<div>', {});
+
+                                    if (row.data.phoneNumber && row.data.phoneNumber != "") {
+                                        link.append($('<div>', {
+                                            'class': 'fa fa-volume-control-phone',
+                                            'ng-click': 'vm.callNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
+                                            'title': $translate("PHONE")
+                                        }));
+                                        link.append($('<div>', {
+                                            'class': 'fa fa-comment',
+                                            'style': 'padding-left:15px',
+                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
+                                            'title': $translate("PHONE")
+                                        }));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
+                            {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
+                        ],
+                        destroy: true,
+                        paging: false,
+                        autoWidth: true,
+                        initComplete: function (data, type, row) {
+                            $scope.safeApply();
+                        },
+                        createdRow: function (row, data, dataIndex) {
+                            $compile(angular.element(row).contents())($scope);
+
+                        },
+                        fnRowCallback: vm.playerListTableRow
+                    });
+                    var a = utilService.createDatatableWithFooter('#attemptNumberListTable', option, {});
+                    vm.attemptNumberRecords.pageObj.init({maxCount: vm.attemptNumberRecords.totalCount}, newSearch);
+                    setTimeout(function () {
+                        $('#attemptNumberListTable').resize();
+                    }, 300);
+
+                });
+            };
+            // get attempt number list -- end
+
+
+
             vm.prepareRepairTransfer = function () {
                 vm.showPlatformRepair = !vm.showPlatformRepair;
                 if (vm.showPlatformRepair) {
@@ -5600,6 +5762,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.createPlayerRegistrationIntentRecord = function(data){
+
                 var intentData = {
                     name: data.data.name,
                     realName: data.data.realName,
@@ -6063,11 +6226,13 @@ define(['js/app'], function (myApp) {
                     vm.queryPara[field].endTime = utilService.createDatePicker('#' + field + ' .endTime');
                     vm.queryPara[field].startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.queryPara[field].endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                    $scope.safeApply();
+                    if (callback) {
+                        callback();
+                    }
                 });
-                $scope.safeApply();
-                if (callback) {
-                    callback();
-                }
+
             }
 
             /**
@@ -6128,6 +6293,14 @@ define(['js/app'], function (myApp) {
                     vm.playerFeedbackRecord.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.updatePlayerFeedbackData('#modalAddPlayerFeedback', '#playerFeedbackRecordTable', {'dom': 't'});
                 });
+            }
+
+            vm.initPlayerModal = function() {
+                $('#newPlayerListTab').addClass('active');
+                $('#attemptNumberListTab').removeClass('active');
+                $scope.safeApply();
+                vm.playerModalTab = "newPlayerListPanel";
+                vm.newPlayerList();
             }
 
             vm.initFeedbackModal = function() {

@@ -3123,7 +3123,7 @@ function getMinutesBetweenDates(startDate, endDate) {
     return Math.floor(diff / 60000);
 }
 
-function convertStringNumber(Arr) {
+function convertStringNumber(Arr){
     let Arrs = JSON.parse(JSON.stringify(Arr));
     let result = []
     Arrs.forEach(item => {
