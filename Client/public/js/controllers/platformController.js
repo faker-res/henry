@@ -2638,7 +2638,7 @@ define(['js/app'], function (myApp) {
                                 data: "proposalId",
                                 render: function (data, type, row) {
                                     var link = $('<a>', {
-                                        'ng-click': 'vm.showProposalModal("'+data+'",2)'
+                                        'ng-click': 'vm.editNewplayerRemark=false;vm.showProposalModal("'+data+'",2)'
                                     }).text(data);
                                     return link.prop('outerHTML');
                                 }
@@ -3084,12 +3084,16 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.editNewPlayerRemark = function(proposalId, remark){
-                let updateData = {}
-                updateData.data = {remark:remark}
-                socketService.$socket($scope.AppSocket, 'updateProposal', {platform: vm.selectedPlatform.id, proposalId: proposalId}, updateData, function (playerCount) {
-                    // vm.selectedProposal = data.data;
-                    console.log('done');
+            vm.updateNewPlayerRemark = function(proposalId, createTime, remarks){
+                let updateData = {
+                    'proposalId': proposalId,
+                    'adminId':authService.adminId,
+                    'createTime':createTime,
+                    'remarks': remarks
+                }
+                socketService.$socket($scope.AppSocket, 'updateProposalRemarks', updateData, function (playerCount) {
+                    vm.editNewplayerRemark = false;
+                    $scope.safeApply();
                 });
 
 
@@ -12890,6 +12894,7 @@ define(['js/app'], function (myApp) {
                   proposalId: proposalId
               }, function (data) {
                 vm.selectedProposal = data.data;
+
                 let tmpt = vm.proposalTemplate[templateNo];
                 $(tmpt).modal('show');
                 $(tmpt).on('shown.bs.modal', function (e) {

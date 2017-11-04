@@ -72,8 +72,10 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
             tr
                 td 
                 td
-                    div(ng-if='!vm.editNewplayerRemark'){{vm.selectedProposal.data.remark}}
-                    div(ng-if='vm.editNewplayerRemark')
-                        input.form-control(ng-model='vm.selectedProposal.data.editRemark')
-                    div.button.btn.btn-primary(ng-click='vm.editNewPlayerRemark(vm.selectedProposal.proposalId, vm.selectedProposal.data.editRemark)') {{'Edit' | translate}}
+                    div(ng-if='!vm.editNewplayerRemark'){{vm.selectedProposal.data.remarks}}
+                    div
+                        input.form-control(ng-if='vm.editNewplayerRemark',ng-model='vm.selectedProposal.data.editRemark', ng-init='vm.selectedProposal.data.editRemark=vm.selectedProposal.data.remarks')
+                    div.button.btn.btn-primary(ng-click='vm.editNewplayerRemark=true') {{'Edit' | translate}}
+
+                    div.button.btn.btn-primary(ng-click='vm.updateNewPlayerRemark(vm.selectedProposal._id, vm.selectedProposal.createTime, vm.selectedProposal.data.editRemark)') {{'Confirm' | translate}}
 

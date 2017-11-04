@@ -412,7 +412,11 @@ var proposal = {
     updateProposal: function (query, updateData) {
         return dbconfig.collection_proposal.findOneAndUpdate(query, updateData, {new: true}).exec();
     },
-
+    updateProposalRemarks: function (proposalId, createTime, remarks) {
+        let updateData = {};
+        updateData['data.remarks'] = remarks;
+        return dbconfig.collection_proposal.findOneAndUpdate({_id:proposalId, createTime:createTime}, updateData, {new: true}).exec();
+    },
     updateTopupProposal: function (proposalId, status, requestId, orderStatus) {
         var proposalObj = null;
         var type = constPlayerTopUpType.ONLINE;
