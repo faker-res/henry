@@ -155,10 +155,11 @@
                 |  .xls, .xlsx, .xlsm
             .panel-body
                 div
-                    button.btn.btn-success(type='button', ng-click='vm.resetUIGrid()') Reset Grid
+                    button.btn.btn-danger.margin-right-5(type='button', ng-click='vm.resetUIGrid()') Reset Grid
+                    button.btn.btn-success(type='button', ng-click='vm.exportXLSX()') Export as XLSX
                     br
                     br
-                    #grid1.grid(ng-if='vm.gridOptions', ui-grid='vm.gridOptions')
+                    #grid1.grid(ng-if='vm.gridOptions', ui-grid='vm.gridOptions', ui-grid-edit='', ui-grid-exporter='')
                         .grid-msg-overlay(ng-show='!vm.gridOptions.data.length')
                             .msg
                                 .center
