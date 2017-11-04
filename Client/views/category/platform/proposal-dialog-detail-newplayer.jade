@@ -1,0 +1,82 @@
+div
+    .titleBackground.margin-bottom-5.text-center {{'Basic' | translate}}
+    .label-value
+        label {{'Lock Status' | translate}}&nbsp;:&nbsp;
+        label {{vm.selectedProposal.isLocked.adminName || 'not locked' | translate}}
+        //button.pull-right.btn.btn-danger.btn-sm.margin-left-5(ng-if="vm.selectedProposal.showLockBtn", ng-click='vm.lockProposal(vm.selectedProposal.proposalId)') {{'Lock Proposal' | translate}}
+        //button.pull-right.btn.btn-success.btn-sm.margin-left-5(ng-if="vm.selectedProposal.showUnlockBtn", ng-click='vm.unlockProposal(vm.selectedProposal.proposalId)') {{'Unlock Proposal' | translate}}
+    .label-value
+        label {{'TITLE' | translate}}&nbsp;:&nbsp;
+        label {{vm.selectedProposal.type.name || 'none'|translate}}
+    .label-value
+        label {{'STATUS' | translate}}&nbsp;:&nbsp;
+        label {{vm.selectedProposal.status || vm.selectedProposal.process.status || 'none' | translate}}
+    .label-value
+        label {{'PROPOSAL_NO' | translate}}&nbsp;:&nbsp;
+        label {{vm.selectedProposal.proposalId || 'none' | translate}}
+    .label-value
+        label {{'CREATOR' | translate}}&nbsp;:&nbsp;
+        label {{vm.selectedProposal.creator.name || 'System' | translate}}
+    .label-value
+        label {{'CREATION_TIME' | translate}}&nbsp;:&nbsp;
+        label {{vm.dateReformat(vm.selectedProposal.createTime) || 'none'}}
+
+    //.titleBackground.margin-bottom-5.text-center
+    div(style='min-height:30px')
+        hr
+    //hr
+    //div(ng-show='vm.selectedProposal.remark.length > 0')
+        .col-md-12
+            label.text-center {{'remark' | translate}}
+        div(style='height:200px;overflow-auto;')
+            .margin-left-5.wordWrap(ng-repeat='(i,v) in vm.selectedProposal.remark')
+                text.margin-right-5(style='font-style: italic;') &nbsp;&nbsp;&nbsp;&nbsp;{{v.admin.adminName || ('unknown' | translate)}}
+                text.margin-right-5(style='font-style: italic;') ({{vm.dateReformat(v.addTime)}})
+                label {{v.content}}
+div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
+    label {{'UPDATE_DETAIL' | translate}}
+    div(ng-switch-default)
+        .col-md-12(ng-show='vm.selectedProposal.type.name=="PlayerTopUp" && vm.selectedProposal.status=="Pending" && checkViewPermission("Operation","Proposal","RepairPayment")')
+            button.common-btn.btn-primary(ng-click='vm.submitRepairPayment(vm.selectedProposal)') {{'Repair Payment' | translate}}
+            i.margin-left-5.margin-right-5.fa.fa-spinner.fa-spin(ng-show='vm.repairPaymentStage==1')
+            text.text-success(ng-show='vm.repairPaymentStage==2') {{'Success' | translate}}
+            text.text-danger(ng-show='vm.repairPaymentStage==3') {{'Fail' | translate}}
+        table.table(style='width:100%')
+            tr
+                td 
+                td {{vm.selectedProposal.proposalId}}
+            tr
+                td 
+                td {{vm.selectedProposal.status}}
+            tr
+                td 
+                td {{vm.selectedProposal.createTime}}
+            tr
+                td 
+                td {{vm.selectedProposal.settleTime}}
+            tr
+                td 
+                td {{vm.selectedProposal.lastLoginIp[0]}}
+            tr
+                td 
+                td {{vm.selectedProposal.data.phoneNumber}}
+            tr
+                td 
+                td {{vm.selectedProposal.priority}}
+            tr
+                td 
+                td 
+            tr
+                td 
+                td {{vm.selectedProposal.data.smsCode}}
+            tr
+                td 
+                td
+                    div(ng-if='!vm.editNewplayerRemark'){{vm.selectedProposal.data.remark}}
+                    div(ng-if='vm.editNewplayerRemark')input.form-control(ng-model='vm.selectedProposal.data.editRemark')
+                    div.button.btn.btn-primary(ng-click='vm.editNewPlayerRemark(vm.selectedProposal.proposalId, vm.selectedProposal.data.editRemark)' {{'Edit' | translate}}
+
+            //tr(ng-repeat='(i,v) in vm.selectedProposal.data')
+                td {{ i | translate}}
+                td
+                    div(ng-bind-html='vm.showProposalDetailField(vm.selectedProposal,i,v)')
