@@ -2638,7 +2638,7 @@ define(['js/app'], function (myApp) {
                                 data: "proposalId",
                                 render: function (data, type, row) {
                                     var link = $('<a>', {
-                                        'ng-click': 'vm.showProposalModal("'+data+',2'+'")'
+                                        'ng-click': 'vm.showProposalModal("'+data+'",2)'
                                     }).text(data);
                                     return link.prop('outerHTML');
                                 }
@@ -7487,7 +7487,7 @@ define(['js/app'], function (myApp) {
                             data: "proposalId",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.showProposalModal("'+data+',1'+'")'
+                                    'ng-click': 'vm.showProposalModal("'+data+'",1)'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             },
@@ -13051,7 +13051,7 @@ define(['js/app'], function (myApp) {
                             data: "proposalId",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.showProposalModal("'+data+',1'+'")'
+                                    'ng-click': 'vm.showProposalModal("'+data+'",1)'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
