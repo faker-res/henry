@@ -252,6 +252,27 @@ let dbPlayerInfo = {
                             );
                             proms.push(partnerProm);
                         }
+
+                        //check partnerId when create player account manually
+                        if(inputData.partner){
+                            delete inputData.referral;
+                            let partnerObjId = ObjectId(inputData.partner);
+                            let partnerProm = dbconfig.collection_partner.findOne({
+                                _id: partnerObjId,
+                                platform: platformObjId
+                            }).then(
+                                data =>{
+                                    if(data){
+                                        inputData.partnerId = data.partnerId;
+                                        return inputData;
+                                    }else
+                                    {
+                                        delete inputData.partner;
+                                        return inputData;
+                                    }
+                                }
+                            )
+                        }
                         //check if player's domain matches any partner
                         if (inputData.domain) {
                             delete inputData.referral;
@@ -261,18 +282,21 @@ let dbPlayerInfo = {
                             }
                             inputData.domain = filteredDomain;
 
-                            let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
-                                data => {
-                                    if (data) {
-                                        inputData.partner = data._id;
-                                        return inputData;
+                            if(inputData.partnerId){
+                                let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
+                                    data => {
+                                        if (data) {
+                                            inputData.partner = data._id;
+                                            inputData.partnerId = data.partnerId;
+                                            return inputData;
+                                        }
+                                        else {
+                                            return inputData;
+                                        }
                                     }
-                                    else {
-                                        return inputData;
-                                    }
-                                }
-                            );
-                            proms.push(domainProm);
+                                );
+                                proms.push(domainProm);
+                            }
 
                             let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
                                 domain: {
@@ -368,6 +392,7 @@ let dbPlayerInfo = {
                         pdata => {
                             pdata.name = pdata.name.replace(platformPrefix, "");
                             pdata.platformId = platformId;
+                            pdata.partnerId = inputData.partnerId
                             return pdata;
                         }
                     )

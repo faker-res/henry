@@ -183,7 +183,7 @@ var simplifiedChinese = {
     "SMS is not available": "短信发送失败，请再次尝试",
     "Cant apply this reward, contact cs": "不符合领取条件，请联系客服",
     "Incorrect SMS Validation Code": "验证码错误，请再次输入",
-
+    "PARTNER": "代理"
     //todo::add missing messages here
 
     /*
