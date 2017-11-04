@@ -242,7 +242,11 @@ define(['js/app'], function (myApp) {
                         : $.extend(true, {}, value);
                 }
             };
-
+            //specific proposal template
+            vm.proposalTemplate = {
+                1: '#modalProposal',
+                2: '#newPlayerModal'
+            }
             /////////////Victor::Platform functions
             vm.toggleShowPlatformDropDownList = function () {
                 vm.showPlatformDropDownList = !vm.showPlatformDropDownList;
@@ -2628,7 +2632,17 @@ define(['js/app'], function (myApp) {
                             // {targets: '_all', defaultContent: ' ', bSortable: false}
                         ],
                         columns: [
-                            {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                            // {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                            {
+                                title: $translate('proposalId'),
+                                data: "proposalId",
+                                render: function (data, type, row) {
+                                    var link = $('<a>', {
+                                        'ng-click': 'vm.showProposalModal("'+data+',2'+'")'
+                                    }).text(data);
+                                    return link.prop('outerHTML');
+                                }
+                            },
                             {title: $translate('PLAYERNAME'), data: "name"},
                             {title: $translate('STATUS'), data: "statusName"},
                             //{title: $translate('PLAYERID'), data: "playerId"},
@@ -7473,7 +7487,7 @@ define(['js/app'], function (myApp) {
                             data: "proposalId",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.showProposalModal("'+data+'")'
+                                    'ng-click': 'vm.showProposalModal("'+data+',1'+'")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             },
@@ -7578,7 +7592,7 @@ define(['js/app'], function (myApp) {
                     fnRowCallback: function(nRow, aData, iDisplayIndex, iDisplayIndexFull){
                         $(nRow).off('click');
                         $(nRow).find('a').on('click', function () {
-                            vm.showProposalModal(aData.proposalId);
+                            vm.showProposalModal(aData.proposalId, 1);
                         });
                     }
                     // autoWidth: true
@@ -12859,14 +12873,17 @@ define(['js/app'], function (myApp) {
                     })
                 }
             };
-            vm.showProposalModal = function(proposalId){
+
+
+            vm.showProposalModal = function(proposalId, templateNo){
               socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
                   platformId: vm.selectedPlatform.id,
                   proposalId: proposalId
               }, function (data) {
                 vm.selectedProposal = data.data;
-                $('#modalProposal').modal('show');
-                $('#modalProposal').on('shown.bs.modal', function (e) {
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                $(tmpt).on('shown.bs.modal', function (e) {
                   $scope.safeApply();
                 })
 
@@ -13034,7 +13051,7 @@ define(['js/app'], function (myApp) {
                             data: "proposalId",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.showProposalModal("'+data+'")'
+                                    'ng-click': 'vm.showProposalModal("'+data+',1'+'")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
