@@ -2692,11 +2692,11 @@ define(['js/app'], function (myApp) {
                                     }
 
                                     var link = $('<a>', {
-                                        'ng-click': 'vm.createPlayerHelper('+row+')';
+                                        'ng-click': 'vm.createPlayerHelper('+JSON.stringify(row)+')'
                                     }).text(displayTXT);
                                     return link.prop('outerHTML');
                                 }
-                            }
+                            },
                             {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
                             {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
                         ],
@@ -2724,8 +2724,15 @@ define(['js/app'], function (myApp) {
             vm.createPlayerHelper = function(row){
                 console.log(row);
                 vm.prepareCreatePlayer();
+                $('#modalCreatePlayer').css('z-Index',99999).modal();
                 utilService.actionAfterLoaded("#modalCreatePlayer", function () {
-                    // vm.newPlayer = {};
+                    vm.newPlayer.realName = row.realName;
+                    vm.newPlayer.name = row.name;
+                    vm.newPlayer.email = row.email;
+                    vm.newPlayer.domain = row.domain;
+                    vm.newPlayer.phoneNumber = row.phoneNumber;
+                    vm.newPlayer.referral = row.referral;
+
                 });
             }
             vm.playerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
