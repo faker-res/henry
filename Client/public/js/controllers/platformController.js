@@ -2637,8 +2637,9 @@ define(['js/app'], function (myApp) {
                                 title: $translate('proposalId'),
                                 data: "proposalId",
                                 render: function (data, type, row) {
+
                                     var link = $('<a>', {
-                                        'ng-click': 'vm.editNewplayerRemark=false;vm.showProposalModal("'+data+'",2)'
+                                        'ng-click': 'vm.editNewplayerRemark=false;vm.showNewPlayerModal('+JSON.stringify(row)+',2)'
                                     }).text(data);
                                     return link.prop('outerHTML');
                                 }
@@ -3114,15 +3115,16 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.updateNewPlayerRemark = function(proposalId, createTime, remarks){
+            vm.updateNewPlayerRemark = function(pId, remarks){
                 let updateData = {
-                    'proposalId': proposalId,
+                    'pId': pId,
                     'adminId':authService.adminId,
-                    'createTime':createTime,
                     'remarks': remarks
                 }
-                socketService.$socket($scope.AppSocket, 'updateProposalRemarks', updateData, function (playerCount) {
+                socketService.$socket($scope.AppSocket, 'updatePlayerIntentionRemarks', updateData, function (playerCount) {
+                    vm.newPlayerProposal.remarks = remarks;
                     vm.editNewplayerRemark = false;
+                    vm.getNewPlayerListByFilter(true);
                     $scope.safeApply();
                 });
 
@@ -12933,7 +12935,16 @@ define(['js/app'], function (myApp) {
 
               })
             }
+            vm.showNewPlayerModal = function(data, templateNo){
+                vm.newPlayerProposal = data;
 
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                $(tmpt).on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                })
+
+            }
             // display  proposal detail
             vm.showProposalDetailField = function (obj, fieldName, val) {
                 if (!obj) return '';

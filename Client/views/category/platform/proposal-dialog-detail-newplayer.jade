@@ -2,24 +2,24 @@ div
     .titleBackground.margin-bottom-5.text-center {{'Basic' | translate}}
     .label-value
         label {{'Lock Status' | translate}}&nbsp;:&nbsp;
-        label {{vm.selectedProposal.isLocked.adminName || 'not locked' | translate}}
+        label {{vm.newPlayerProposal.isLocked.adminName || 'not locked' | translate}}
         //button.pull-right.btn.btn-danger.btn-sm.margin-left-5(ng-if="vm.selectedProposal.showLockBtn", ng-click='vm.lockProposal(vm.selectedProposal.proposalId)') {{'Lock Proposal' | translate}}
         //button.pull-right.btn.btn-success.btn-sm.margin-left-5(ng-if="vm.selectedProposal.showUnlockBtn", ng-click='vm.unlockProposal(vm.selectedProposal.proposalId)') {{'Unlock Proposal' | translate}}
     .label-value
         label {{'TITLE' | translate}}&nbsp;:&nbsp;
-        label {{vm.selectedProposal.type.name || 'none'|translate}}
+        label {{vm.newPlayerProposal.type.name || 'none'|translate}}
     .label-value
         label {{'STATUS' | translate}}&nbsp;:&nbsp;
-        label {{vm.selectedProposal.status || vm.selectedProposal.process.status || 'none' | translate}}
+        label {{vm.newPlayerProposal.status || vm.newPlayerProposal.process.status || 'none' | translate}}
     .label-value
         label {{'PROPOSAL_NO' | translate}}&nbsp;:&nbsp;
-        label {{vm.selectedProposal.proposalId || 'none' | translate}}
+        label {{vm.newPlayerProposal.proposalId || 'none' | translate}}
     .label-value
         label {{'CREATOR' | translate}}&nbsp;:&nbsp;
-        label {{vm.selectedProposal.creator.name || 'System' | translate}}
+        label {{vm.newPlayerProposal.creator.name || 'System' | translate}}
     .label-value
         label {{'CREATION_TIME' | translate}}&nbsp;:&nbsp;
-        label {{vm.dateReformat(vm.selectedProposal.createTime) || 'none'}}
+        label {{vm.dateReformat(vm.newPlayerProposal.createTime) || 'none'}}
 
     //.titleBackground.margin-bottom-5.text-center
     div(style='min-height:30px')
@@ -44,35 +44,35 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
         table.table(style='width:100%')
             tr
                 td {{'PROPOSAL_ID' | translate}}
-                td {{vm.selectedProposal.proposalId}}
+                td {{vm.newPlayerProposal.proposalId}}
             tr
                 td {{'STATUS' | translate}}
-                td {{vm.selectedProposal.status}}
+                td {{vm.newPlayerProposal.statusName}}
             tr
                 td {{'CREATETIME' | translate}}
-                td {{vm.selectedProposal.createTime}}
+                td {{vm.newPlayerProposal.createTime}}
             tr
                 td {{'REGISTERED_TIME' | translate}}
-                td {{vm.selectedProposal.registrationTime}}
+                td {{vm.newPlayerProposal.registrationTime}}
             tr
                 td {{'REGISTERED_IP' | translate}}
-                td {{vm.selectedProposal.lastLoginIp}}
+                td {{vm.newPlayerProposal.lastLoginIp}}
             tr
                 td {{'PHONE_LOCATION' | translate}}
-                td {{vm.selectedProposal.data.PHONE_LOCATION}}
+                td {{vm.newPlayerProposal.PHONE_LOCATION}}
             tr
                 td {{'DEPOSIT_COUNT' | translate}}
-                td {{vm.selectedProposal.data.topUpTimes}}
+                td {{vm.newPlayerProposal.topUpTimes}}
             tr
                 td {{'VERIFICATION_CODE' | translate}}
-                td {{vm.selectedProposal.data.smsCode}}
+                td {{vm.newPlayerProposal.smsCode}}
             tr
                 td {{'REMARKS' | translate}}
                 td
-                    div(ng-if='!vm.editNewplayerRemark'){{vm.selectedProposal.data.remarks}}
+                    div(ng-if='!vm.editNewplayerRemark'){{vm.newPlayerProposal.remarks}}
                     div
-                        input.form-control(ng-if='vm.editNewplayerRemark',ng-model='vm.selectedProposal.data.editRemark', ng-init='vm.selectedProposal.data.editRemark=vm.selectedProposal.data.remarks')
+                        input.form-control(ng-if='vm.editNewplayerRemark',ng-model='vm.newPlayerProposal.data.editRemark', ng-init='vm.newPlayerProposal.data.editRemark=vm.newPlayerProposal.remarks')
                     div.button.btn.btn-primary(ng-click='vm.editNewplayerRemark=true') {{'Edit' | translate}}
 
-                    div.button.btn.btn-primary(ng-click='vm.updateNewPlayerRemark(vm.selectedProposal._id, vm.selectedProposal.createTime, vm.selectedProposal.data.editRemark)') {{'Confirm' | translate}}
+                    div.button.btn.btn-primary(ng-click='vm.updateNewPlayerRemark(vm.newPlayerProposal._id, vm.newPlayerProposal.data.editRemark)') {{'Confirm' | translate}}
 
