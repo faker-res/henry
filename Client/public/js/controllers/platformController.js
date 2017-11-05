@@ -2545,7 +2545,26 @@ define(['js/app'], function (myApp) {
 
                     vm.getNewPlayerListByFilter(true);
                 });
-
+            }
+            vm.loadPhoneNumberRecord = function(phoneNumber){
+                var selectedStatus = ["Success", "Fail", "Pending", "Manual"];
+                var sendData = {
+                    adminId: authService.adminId,
+                    platformId: vm.selectedPlatform.id,
+                    type: ["PlayerRegistrationIntention"],
+                    phoneNumber: vm.newPlayer.phoneNumber,
+                    size: 10 ,
+                    index:  0 ,
+                    // sortCol: vm.newPlayerRecords.sortCol || null,
+                    displayPhoneNum: true
+                }
+                sendData.status = selectedStatus;
+                $("#sameNumPlayerListTable").modal();
+                vm.prepareNewPlayerListRecords(sendData, true);
+                $("#samePhoneNumTablePage").off('order.dt');
+                $("#samePhoneNumTablePage").on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'newPlayerRecords', vm.getNewPlayerListByFilter);
+                });
 
             }
 

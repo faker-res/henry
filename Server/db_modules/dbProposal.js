@@ -1481,12 +1481,14 @@ var proposal = {
                         }
 
                         var queryObj = {
-                            createTime: {
-                                $gte: new Date(startTime),
-                                $lt: new Date(endTime)
-                            },
                             status: {$in: statusArr}
                         };
+                        if(startTime && endTime){
+                            queryObj['createTime'] = {
+                                $gte: new Date(startTime),
+                                $lt: new Date(endTime)
+                            }
+                        }
                         if(userName) {
                             queryObj['data.name'] = userName;
                         }

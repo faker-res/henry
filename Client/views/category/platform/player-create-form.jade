@@ -44,6 +44,7 @@ form(name="form_new_player", novalidate)
 		.form-group.col-md-6
 			label.control-label *{{"TELEPHONE" | translate}}
 			input.form-control(type="telephone", name="telephone", placeholder='{{"TELEPHONE" | translate}}',ng-pattern="vm.phonePattern", ng-model="vm.newPlayer.phoneNumber", required)
+			div(ng-click="vm.loadPhoneNumberRecord(vm.newPlayer.phoneNumber)") 詳情按鈕
 	.row.margin-left-5.margin-right-5
 		.form-group.col-md-6
 			label.control-label {{"REFERRAL" | translate}}
