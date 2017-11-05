@@ -43,34 +43,31 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
             text.text-danger(ng-show='vm.repairPaymentStage==3') {{'Fail' | translate}}
         table.table(style='width:100%')
             tr
-                td 
+                td {{'PROPOSAL_ID' | translate}}
                 td {{vm.selectedProposal.proposalId}}
             tr
-                td 
+                td {{'STATUS' | translate}}
                 td {{vm.selectedProposal.status}}
             tr
-                td 
+                td {{'CREATETIME' | translate}}
                 td {{vm.selectedProposal.createTime}}
             tr
-                td 
-                td {{vm.selectedProposal.settleTime}}
+                td {{'REGISTERED_TIME' | translate}}
+                td {{vm.selectedProposal.registrationTime}}
             tr
-                td 
-                td {{vm.selectedProposal.lastLoginIp[0]}}
+                td {{'REGISTERED_IP' | translate}}
+                td {{vm.selectedProposal.lastLoginIp}}
             tr
-                td 
-                td {{vm.selectedProposal.data.phoneNumber}}
+                td {{'PHONE_LOCATION' | translate}}
+                td {{vm.selectedProposal.data.PHONE_LOCATION}}
             tr
-                td 
-                td {{vm.selectedProposal.priority}}
+                td {{'DEPOSIT_COUNT' | translate}}
+                td {{vm.selectedProposal.data.topUpTimes}}
             tr
-                td 
-                td 
-            tr
-                td 
+                td {{'VERIFICATION_CODE' | translate}}
                 td {{vm.selectedProposal.data.smsCode}}
             tr
-                td 
+                td {{'REMARKS' | translate}}
                 td
                     div(ng-if='!vm.editNewplayerRemark'){{vm.selectedProposal.data.remarks}}
                     div

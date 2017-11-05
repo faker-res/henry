@@ -2680,6 +2680,23 @@ define(['js/app'], function (myApp) {
                                     return link.prop('outerHTML')
                                 }
                             },
+                            {
+                                title: $translate('function'),
+                                data: "status",
+                                render: function (data, type, row) {
+                                    let displayTXT = '';
+                                    if(data!='Success'){
+                                        displayTXT = '短信/电话/开户';
+                                    }else{
+                                        displayTXT = '短信/电话/回访';
+                                    }
+
+                                    var link = $('<a>', {
+                                        'ng-click': 'vm.createPlayerHelper('+row+')';
+                                    }).text(displayTXT);
+                                    return link.prop('outerHTML');
+                                }
+                            }
                             {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
                             {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
                         ],
@@ -2704,7 +2721,13 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-
+            vm.createPlayerHelper = function(row){
+                console.log(row);
+                vm.prepareCreatePlayer();
+                utilService.actionAfterLoaded("#modalCreatePlayer", function () {
+                    // vm.newPlayer = {};
+                });
+            }
             vm.playerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 $compile(nRow)($scope);
                 vm.operatePlayerListTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);

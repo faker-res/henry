@@ -1460,7 +1460,7 @@ var proposal = {
         });
     },
 
-    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum) {//need
+    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId) {//need
         platformId = Array.isArray(platformId) ?platformId :[platformId];
 
         //check proposal without process
