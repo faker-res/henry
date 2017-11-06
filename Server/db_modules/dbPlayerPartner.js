@@ -332,6 +332,7 @@ let dbPlayerPartner = {
         let partnerData = null;
         let platform;
         let verificationSmsDetail;
+        let smsLogDetail;
 
         // 1. Get current platform detail
         return dbConfig.collection_platform.findOne({
@@ -440,6 +441,7 @@ let dbPlayerPartner = {
                                     {_id: verificationSMS._id}
                                 ).then(
                                     () => {
+                                        smsLogDetail = {tel: verificationSMS.tel, message: verificationSMS.code}
                                         dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                         return Q.resolve(true);
                                     }
@@ -511,7 +513,7 @@ let dbPlayerPartner = {
 
                         };
                         // result.isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData, inputDevice: inputDevice});
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData, inputDevice: inputDevice}, smsLogDetail);
                         break;
                     case 1:
                         inputDevice = dbUtility.getInputDevice(userAgent,true);
