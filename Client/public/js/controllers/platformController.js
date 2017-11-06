@@ -1247,7 +1247,7 @@ define(['js/app'], function (myApp) {
             }
             vm.initVertificationSMS = function () {
                 vm.smsRecordQuery = {};
-                vm.smsRecordQuery.purpose = vm.allSMSPurpose.UNKNOWN;
+                vm.smsRecordQuery.purpose = "";
                 vm.smsRecordQuery.index = 0;
                 vm.smsRecordQuery.limit = 10;
                 vm.initQueryTimeFilter('smsRecordQueryDiv', function () {
@@ -1318,7 +1318,8 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {'title': $translate('PHONE'), sClass: "wordWrap realNameCell", data: 'tel'},
-                        {'title': $translate('Proposal No'), data: 'proposalId'}
+                        {'title': $translate('Proposal No'), data: 'proposalId'},
+                        {'title': $translate('SEND')+$translate('STATUS'), data: 'status'},
                     ],
                     paging: false,
                 });

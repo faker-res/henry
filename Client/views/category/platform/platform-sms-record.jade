@@ -6,10 +6,11 @@
                 input.form-control(ng-model='vm.smsRecordQuery.recipientName')
             .inlineBlk
                 label.control-label {{'PHONENUMBER' | translate}}
-                input.form-control(ng-model='vm.smsRecordQuery.phoneNumber', placeholder="{{'SEARCH' | translate}}" ng-blur="vm.submitSMSRecordQuery(true)")
+                input.form-control(ng-model='vm.smsRecordQuery.phoneNumber', ng-blur="vm.submitSMSRecordQuery(true)")
             .inlineBlk
                 label {{"Type"|translate}}
                 select.form-control(ng-model="vm.smsRecordQuery.purpose", ng-options='v | translate for (i,v) in vm.allSMSPurpose')
+                    option(value='') {{'all'|translate}}
             .inlineBlk
                 label {{"DEVICE"|translate}}
                 select.form-control(ng-model="vm.smsRecordQuery.inputDevice")
