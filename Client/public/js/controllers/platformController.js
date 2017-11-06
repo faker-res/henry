@@ -13420,7 +13420,7 @@ define(['js/app'], function (myApp) {
                 // write workbook (use type 'binary')
                 var wbout = XLSX.write(workbook, wopts);
 
-                saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "test.xlsx");
+                saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
 
                     $scope.safeApply();
                 });
@@ -13553,7 +13553,7 @@ define(['js/app'], function (myApp) {
             // export phone number to txt
             vm.exportTXTFile = function(data) {
                 let fileText = data;
-                let fileName = "phoneNumber.txt";
+                let fileName = "phoneNumberFilter.txt";
                 vm.saveTextAsFile(fileText, fileName);
             };
 
