@@ -18,7 +18,7 @@ var smsLogSchema = new Schema ({
     admin: {type: Schema.ObjectId, ref: 'admin', required: false},
     adminName: {type: String, required: false},
     // Data sent
-    tel: {type: String, required: true},
+    tel: {type: String, required: true, index: true},
     //Action
     message: {type: String, required: true},
     // input device that trigger this sms

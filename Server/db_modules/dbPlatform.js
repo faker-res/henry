@@ -1473,26 +1473,126 @@ var dbPlatform = {
             },
             tel: data.tel || undefined
         };
+
+        data.recipientName ? query.recipientName = data.recipientName : "";
+        data.inputDevice ? query.inputDevice = data.inputDevice : "";
+        data.purpose ? query.purpose = data.purpose : "";
+
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
         addOptionalTimeLimitsToQuery(data, query, 'createTime');
+        let smsLogCount = 0;
         //console.log("query:", query);
         var a = dbconfig.collection_smsLog.find(query).sort(sortCol).skip(index).limit(limit);
         var b = dbconfig.collection_smsLog.find(query).count();
-        return Q.all([a, b]).then(
+        let platformProm = dbconfig.collection_platform.findOne({_id: data.platformObjId}, {smsVerificationExpireTime:1}).lean();
+        return Q.all([a, b, platformProm]).then(
             result => {
-                if (result[0].length > 0) {
-                    result[0].map(function (sms) {
+                smsLogCount = result[1];
+
+                let smsVerificationExpireTime = result[2] && result[2].smsVerificationExpireTime ? result[2].smsVerificationExpireTime : 1440;
+
+                return dbPlatform.getSMSRepeatCount(result[0], smsVerificationExpireTime);
+            }
+        ).then(
+            smsLogsWithCount => {
+                if (smsLogsWithCount.length > 0) {
+                    smsLogsWithCount.map(function (sms) {
                         if (sms.tel) {
                             sms.tel = dbUtility.encodePhoneNum(sms.tel);
                         }
                         return sms
                     })
                 }
-                return {data: result[0], size: result[1]};
+
+                return {
+                    data: smsLogsWithCount,
+                    size: smsLogCount
+                }
             }
         )
 
+    },
+    getSMSRepeatCount: (smsLogs, smsVerificationExpireTime) => {
+        let smsVerificationExpireDate = new Date();
+        smsVerificationExpireDate = smsVerificationExpireDate.setMinutes(smsVerificationExpireDate.getMinutes()-smsVerificationExpireTime);
+
+        if (!(smsLogs && smsLogs.length)) return [];
+
+        let logProms = [];
+
+        for (let i = 0, logLen = smsLogs.length; i < logLen; i++) {
+            let log = JSON.parse(JSON.stringify(smsLogs[i]));
+            logProms.push(insertLogCount(log));
+        }
+
+        return Promise.all(logProms);
+
+        function insertLogCount(log) {
+            let tel = log.tel;
+            let purpose = log.purpose;
+            let isUsed = log.used;
+
+            let lastUsedProm = dbconfig.collection_smsLog.find({tel, purpose, used: true, createTime: {$lt: log.createTime}}, {createTime: 1}).sort({createTime: -1}).limit(1).lean();
+            let nextUsedProm = Promise.resolve(log);
+
+            if (!isUsed) {
+                nextUsedProm = dbconfig.collection_smsLog.find({tel, purpose, used: true, createTime: {$gt: log.createTime}}, {createTime: 1}).sort({createTime: 1}).limit(1).lean();
+            }
+
+            return Promise.all([lastUsedProm, nextUsedProm]).then(
+                data => {
+                    let lastUsedTime;
+                    let nextUsedTime;
+                    if (data && data[0] && data[0][0]) lastUsedTime = data[0][0].createTime;
+                    if (!isUsed && data && data[1] && data[1][0]) nextUsedTime = data[1][0].createTime;
+
+                    let currentCountMatch = {tel, purpose, createTime: {$lte: log.createTime}};
+
+                    if (lastUsedTime) currentCountMatch.createTime.$gt = lastUsedTime;
+
+                    let currentCountProm = dbconfig.collection_smsLog.find(currentCountMatch).count();
+
+                    let totalCountProm;
+
+                    if (isUsed)
+                        totalCountProm = Promise.resolve(0);
+                    else {
+                        let totalCountMatch = {tel, purpose};
+                        if (lastUsedTime) totalCountMatch.createTime.$gt = lastUsedTime;
+                        if (nextUsedTime) totalCountMatch.createTime.$lt = nextUsedTime;
+                        totalCountProm = dbconfig.collection_smsLog.find(totalCountMatch).count();
+                    }
+
+                    let nextSMSCountProm;
+
+                    if (isUsed)
+                        nextSMSCountProm = Promise.resolve(-1);
+                    else if (nextUsedTime || log.createTime < smsVerificationExpireDate)
+                        nextSMSCountProm = Promise.resolve(1);
+                    else
+                        nextSMSCountProm = dbconfig.collection_smsLog.find({tel, createTime: {$gt: log.createTime}}).limit(1).count(true);
+
+                    return Promise.all([currentCountProm, totalCountProm, nextSMSCountProm]);
+                }
+            ).then(
+                countData => {
+                    let currentCount = countData[0];
+                    let totalCount = countData[1];
+                    let nextSMSExistance = countData[2];
+
+                    currentCount = currentCount || 1;
+                    totalCount = totalCount || currentCount;
+                    nextSMSExistance = nextSMSExistance > 1 ? 1 : nextSMSExistance;
+
+                    log.currentCount$ = currentCount;
+                    log.totalCount$ = totalCount;
+                    log.validationStatus$ = nextSMSExistance; // -1 = Used, 0 = Available, 1 = Unavailable
+
+                    return log;
+                }
+            )
+        }
     },
     getPagedPlatformCreditTransferLog: function (playerName, startTime, endTime, provider, type, index, limit, sortCol, status, platformObjId) {
         let queryObject = {};

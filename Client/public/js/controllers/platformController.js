@@ -1272,6 +1272,7 @@ define(['js/app'], function (myApp) {
                     endTime: vm.queryPara['smsRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
                     index: newSearch ? 0 : vm.smsRecordQuery.index,
                     limit: newSearch ? 10 : vm.smsRecordQuery.limit,
+                    platformObjId: vm.selectedPlatform.data._id,
                     sortCol: vm.smsRecordQuery.sortCol
                 }
                 $('#loadVertificationSMSIcon').show();
