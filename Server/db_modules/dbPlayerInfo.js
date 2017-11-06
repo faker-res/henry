@@ -11187,6 +11187,63 @@ let dbPlayerInfo = {
         });
     },
 
+    uploadPhoneFileXLS: function (filterAllPlatform, platformObjId, arrayPhoneXLS) {
+        let oldNewPhone = {$in: []};
+
+        for (let i = 0; i < arrayPhoneXLS.length; i++) {
+            oldNewPhone.$in.push(arrayPhoneXLS[i]);
+            oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneXLS[i]));
+        }
+
+        // if true, user can filter phone across all platform
+        if(filterAllPlatform) {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        } else {
+            // display phoneNumber from DB without asterisk masking
+            var dbPhone = dbconfig.collection_players.aggregate([
+                {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
+                {$project: {name: 1, phoneNumber: 1, _id: 0}}
+            ]);
+        }
+
+        let diffPhoneXLS;
+        let samePhoneXLS;
+        let arrayDbPhone = [];
+
+        // display phoneNumber result that matched input phoneNumber
+        return dbPhone.then(playerData => {
+            // encrypted phoneNumber in DB will be decrypted
+            for (let q = 0; q < playerData.length; q ++) {
+                if (playerData[q].phoneNumber.length > 20) {
+                    playerData[q].phoneNumber = rsaCrypto.decrypt(playerData[q].phoneNumber);
+                }
+            }
+
+            for (let z = 0; z < playerData.length; z ++) {
+                arrayDbPhone.push(playerData[z].phoneNumber);
+            }
+
+            // display non duplicated phone numbers
+            let diffPhone = arrayPhoneXLS.filter(item => !arrayDbPhone.includes(item));
+            let diffPhoneTotalXLS = diffPhone.length;
+            diffPhoneXLS = diffPhone.join(", ");
+
+            // display duplicated phone numbers
+            let samePhone = arrayPhoneXLS.filter(item => arrayDbPhone.includes(item));
+            let samePhoneTotalXLS = samePhone.length;
+            // don't join, remain as array
+            samePhoneXLS = samePhone;
+
+            return {samePhoneXLS: samePhoneXLS, diffPhoneXLS: diffPhoneXLS, samePhoneTotalXLS: samePhoneTotalXLS, diffPhoneTotalXLS: diffPhoneTotalXLS};
+        }).then(data => {
+            return data;
+        });
+    },
+
 };
 
 

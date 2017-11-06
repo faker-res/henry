@@ -13337,18 +13337,53 @@ define(['js/app'], function (myApp) {
                 };
             };
 
-            vm.exportXLSX = function (data) {
+            vm.uploadPhoneFileXLS = function (data) {
                 var data = [
                     [] // header row
                 ];
 
                 var rows = uiGridExporterService.getData(vm.gridApi.grid, uiGridExporterConstants.VISIBLE, uiGridExporterConstants.VISIBLE);
-
                 var sheet = {};
+                var rowArray = [];
+                var rowArrayMerge;
+
+                for(let z = 0; z < rows.length; z++) {
+                    let rowObject = rows[z][0];
+                    let rowObjectValue = Object.values(rowObject);
+                    rowArray.push(rowObjectValue);
+                    rowArrayMerge = [].concat.apply([], rowArray);
+                }
+
+                let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
+                    platformObjId: vm.selectedPlatform.id,
+                    arrayPhoneXLS: rowArrayMerge
+                };
+
+                socketService.$socket($scope.AppSocket, 'uploadPhoneFileXLS', sendData, function (data) {
+                    vm.diffPhoneXLS = data.data.diffPhoneXLS;
+                    vm.samePhoneXLS = data.data.samePhoneXLS;
+                    vm.diffPhoneTotalXLS = data.data.diffPhoneTotalXLS;
+                    vm.samePhoneTotalXLS = data.data.samePhoneTotalXLS;
+
+                    var rowsFilter = rows;
+
+                    for(let x = 0; x < rowsFilter.length; x++) {
+                        let rowObject = rowsFilter[x][0];
+                        let rowObjectValue = Object.values(rowObject);
+
+                        for(let y = 0; y < vm.samePhoneXLS.length; y++) {
+                            if(rowObjectValue == vm.samePhoneXLS[y]) {
+                                rowsFilter.splice(x,1);
+                                --x;
+                                break;
+                            }
+                        }
+                    }
 
                 vm.gridApi.grid.columns.forEach(function (col, i) {
                     if (col.visible) {
-                        var loc = XLSX.utils.encode_cell({r: 0, c: i})
+                        var loc = XLSX.utils.encode_cell({r: 0, c: i});
 
                         sheet[loc] = {
                             v: col.displayName
@@ -13357,7 +13392,7 @@ define(['js/app'], function (myApp) {
                 });
 
                 var endLoc;
-                rows.forEach(function (row, ri) {
+                rowsFilter.forEach(function (row, ri) {
                     ri +=1;
 
                     vm.gridApi.grid.columns.forEach(function (col, ci) {
@@ -13382,11 +13417,16 @@ define(['js/app'], function (myApp) {
                 };
 
                 var wopts = { bookType: 'xlsx', bookSST: false, type: 'binary' };
+                // write workbook (use type 'binary')
                 var wbout = XLSX.write(workbook, wopts);
 
                 saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "test.xlsx");
+
+                    $scope.safeApply();
+                });
             };
 
+            // generate a download
             vm.s2ab = function (s) {
                 var buf = new ArrayBuffer(s.length);
                 var view = new Uint8Array(buf);
