@@ -1284,6 +1284,22 @@ define(['js/app'], function (myApp) {
                         item.createTime = vm.dateReformat(item.createTime);
                         item.status = $translate(item.status);
                         item.purpose = $translate(item.purpose);
+                        //region testing
+                        item.currentCount$ = 1;
+                        item.totalCount$ = 4;
+                        item.validationStatus$ = -1;
+                        //endregion
+                        switch(item.validationStatus$){
+                            case -1:
+                                item.validationStatus$ = "used";
+                                break;
+                            case 0:
+                                item.validationStatus$ = "available";
+                                break;
+                            case 1:
+                                item.validationStatus$ = "unavailable";
+                                break;
+                        }
                         return item;
                     }), size, newSearch);
 
@@ -1303,7 +1319,11 @@ define(['js/app'], function (myApp) {
                     ],
                     columns: [
                         {'title': $translate('ACCOUNT'), data: 'recipientName'},
-                        {'title': $translate('STATUS'), data: 'status'},
+                        {'title': $translate('STATUS'),
+                            render: function (data, type, row){
+                                return $translate(row.validationStatus$) + "(" + row.currentCount$ + "/" + row.totalCount$ + ")";
+                             }
+                        },
                         {'title': $translate('SENT TIME'), data: 'createTime', bSortable: true},
                         {'title': $translate('VERIFICATION_CODE'), data: 'message'},
                         {'title': $translate('Type'), data: 'purpose'},
@@ -1321,7 +1341,9 @@ define(['js/app'], function (myApp) {
                         {'title': $translate('Proposal No'), data: 'proposalId'},
                         {'title': $translate('SEND')+$translate('STATUS'), data: 'status'},
                     ],
+                    bSortClasses: false,
                     paging: false,
+                    fnRowCallback: vm.smsRecordTableRow
                 });
                 vm.smsRecordQuery.tableObj = $('#vertificationSMSRecordTable').DataTable(option);
                 $('#vertificationSMSRecordTable').off('order.dt');
@@ -1333,6 +1355,28 @@ define(['js/app'], function (myApp) {
                     $('#vertificationSMSRecordTable').resize();
                 }, 100);
             }
+
+        vm.smsRecordTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            $compile(nRow)($scope);
+            vm.platformSmsRecordTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
+            //console.log("row", nRow, aData, iDisplayIndex, iDisplayIndexFull);
+        };
+
+        vm.platformSmsRecordTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            switch (aData.validationStatus$) {
+                case "available": {
+                    $(nRow).css('background-color', 'rgba(255, 209, 202, 100)','important');
+                    // $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                    break;
+                }
+                case "unavailable": {
+                    $(nRow).css('background-color', 'rgba(200, 200, 200, 20)','important');
+                    // $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                    break;
+                }
+            }
+        };
+
             vm.checkPlayerExist = function (key, val) {
                 if (!key || !val) {
                     $('#playerValidFalse').addClass('hidden');
