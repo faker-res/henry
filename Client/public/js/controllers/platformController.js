@@ -1283,6 +1283,7 @@ define(['js/app'], function (myApp) {
                     vm.drawVertificationSMSTable(result.map(item => {
                         item.createTime = vm.dateReformat(item.createTime);
                         item.status = $translate(item.status);
+                        item.purpose = $translate(item.purpose);
                         return item;
                     }), size, newSearch);
 
@@ -1306,7 +1307,16 @@ define(['js/app'], function (myApp) {
                         {'title': $translate('SENT TIME'), data: 'createTime', bSortable: true},
                         {'title': $translate('VERIFICATION_CODE'), data: 'message'},
                         {'title': $translate('Type'), data: 'purpose'},
-                        {'title': $translate('DEVICE'), data: 'inputDevice'},
+                        {'title': $translate('DEVICE'),
+                            data: 'inputDevice',
+                            render: function (data, type, row) {
+                                for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
+                                    if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data) {
+                                        return $translate(Object.keys(vm.inputDevice)[i]);
+                                    }
+                                }
+                            }
+                        },
                         {'title': $translate('PHONE'), sClass: "wordWrap realNameCell", data: 'tel'},
                         {'title': $translate('Proposal No'), data: 'proposalId'}
                     ],
