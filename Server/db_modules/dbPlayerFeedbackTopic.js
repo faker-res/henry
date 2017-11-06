@@ -6,7 +6,7 @@ var dbPlayerFeedbackTopic = {
      * Create a new PlayerFeedbackTopic
      * @param {json} data - The data of the PlayerFeedbackTopic. Refer to PlayerFeedbackTopic schema.
      */
-    createPlayerFeedbackTopic : function(playerFeedbackTopicData){
+    createPlayerFeedbackTopic: function (playerFeedbackTopicData) {
         let playerFeedbackTopic = new dbconfig.collection_playerFeedbackTopic(playerFeedbackTopicData);
         return playerFeedbackTopic.save();
     },
@@ -16,7 +16,7 @@ var dbPlayerFeedbackTopic = {
      * @param {String}  query - The query string
      * @param {string} updateData - The update data string
      */
-    updatePlayerFeedbackTopic: function(query, updateData) {
+    updatePlayerFeedbackTopic: function (query, updateData) {
         return dbconfig.collection_playerFeedbackTopic.findOneAndUpdate(query, updateData);
     },
 
@@ -24,7 +24,7 @@ var dbPlayerFeedbackTopic = {
      * Get PlayerFeedbackTopic information
      * @param {String}  query - The query string
      */
-    getPlayerFeedbackTopic : function(query) {
+    getPlayerFeedbackTopic: function (query) {
         return dbconfig.collection_playerFeedbackTopic.find(query);
     },
 
@@ -32,14 +32,14 @@ var dbPlayerFeedbackTopic = {
      * Delete PlayerFeedbackTopic information
      * @param {String}  - ObjectId of the PlayerFeedbackTopic
      */
-    deletePlayerFeedbackTopic : function(playerFeedbackTopicObjId) {
-        return dbconfig.collection_playerFeedbackTopic.remove({_id:playerFeedbackTopicObjId});
+    deletePlayerFeedbackTopic: function (playerFeedbackTopicObjId) {
+        return dbconfig.collection_playerFeedbackTopic.remove({_id: playerFeedbackTopicObjId});
     },
 
     /**
      * Get the information of all the player feedback topics
      */
-    getAllPlayerFeedbackTopics : function() {
+    getAllPlayerFeedbackTopics: function () {
         return dbconfig.collection_playerFeedbackTopic.find().exec();
     }
 };

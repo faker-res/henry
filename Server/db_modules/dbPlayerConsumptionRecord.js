@@ -500,6 +500,105 @@ var dbPlayerConsumptionRecord = {
         return deferred.promise;
     },
 
+    /**
+     * TODO:: WORK IN PROGRESS
+     * @param data
+     */
+    createPlayerConsumptionRecordForProviderGroup: function (data) {
+        let record = null;
+        let newRecord = new dbconfig.collection_playerConsumptionRecord(data);
+
+        return newRecord.save().then(
+            res => {
+                record = res;
+
+                if (record) {
+                    // check player's on-going reward task group
+                    return dbRewardTask.checkPlayerRewardTaskGroupForConsumption(record);
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Error creating consumption record", error: error});
+                }
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error creating consumption record", error: error});
+            }
+        ).then(
+            checkRes => {
+                if (checkRes && !checkRes.bDirty) {
+                    // Update consumption summary record (XIMA purpose)
+                    let recordDateNoon = new Date(moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate().getTime() + 12 * 60 * 60 * 1000);
+                    let summaryDay = recordDateNoon;
+                    let consumptionAmount = record.validAmount ? record.validAmount : record.amount;
+
+                    if (record.createTime.getTime() < recordDateNoon.getTime()) {
+                        summaryDay = new Date(recordDateNoon.getTime() - 24 * 60 * 60 * 1000);
+                    }
+                    let query = {
+                        playerId: record.playerId,
+                        platformId: record.platformId,
+                        gameType: record.gameType,
+                        summaryDay: summaryDay,
+                        bDirty: false
+                    };
+
+                    // Handle left over amount from partial XIMA
+                    if (checkRes && checkRes.nonDirtyAmount > 0) {
+                        consumptionAmount = checkRes.nonDirtyAmount;
+                    }
+
+                    let updateData = {
+                        $inc: {amount: consumptionAmount, validAmount: consumptionAmount}
+                    };
+                    return dbPlayerConsumptionRecord.upsert(query, updateData);
+                }
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error checking player reward task group", error: error});
+            }
+        ).then(
+            () => {
+                // Update player consumption sum
+                return dbconfig.collection_players.findOneAndUpdate(
+                    {_id: record.playerId, platform: record.platformId},
+                    {
+                        $inc: {
+                            consumptionSum: record.validAmount,
+                            dailyConsumptionSum: record.validAmount,
+                            weeklyConsumptionSum: record.validAmount,
+                            pastMonthConsumptionSum: record.validAmount,
+                            consumptionTimes: 1
+                        }
+                    }
+                ).exec();
+            },
+            error => {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Error in upserting consumption summary record",
+                    error: error
+                });
+            }
+        ).then(
+            () => {
+                // Check auto player level up
+                return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId);
+            },
+            error => {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Error in updating player consumption sum",
+                    error: error
+                });
+            }
+        ).then(
+            data => data,
+            error => {
+                return Q.reject({name: "DBError", message: "Error in checking player level", error: error});
+            }
+        );
+    },
+
     addMissingConsumption: function (recordData, resolveError) {
         return dbconfig.collection_playerConsumptionRecord.findOne({orderNo: recordData.orderNo}).lean().then(
             record => {
@@ -525,9 +624,14 @@ var dbPlayerConsumptionRecord = {
     createExternalPlayerConsumptionRecord: function (recordData, resolveError) {
         let verifiedData = null;
         let providerId = recordData.providerId;
+        let isProviderGroup = false;
+
         return dbconfig.collection_platform.findOne({platformId: recordData.platformId}).then(
             platformData => {
                 if (platformData) {
+                    // Check useProviderGroup flag
+                    isProviderGroup = Boolean(platformData.useProviderGroup);
+
                     var prom1 = dbconfig.collection_players.findOne({
                         name: recordData.userName,
                         platform: platformData._id
@@ -602,7 +706,12 @@ var dbPlayerConsumptionRecord = {
                     recordData.providerId = data[2]._id;
 
                     delete recordData.name;
-                    return dbPlayerConsumptionRecord.createPlayerConsumptionRecord(recordData);
+
+                    if (isProviderGroup) {
+                        return dbPlayerConsumptionRecord.createPlayerConsumptionRecordForProviderGroup(recordData);
+                    } else {
+                        return dbPlayerConsumptionRecord.createPlayerConsumptionRecord(recordData);
+                    }
                 } else {
                     const missingList = [];
                     if (verifiedData && !verifiedData[0]) {

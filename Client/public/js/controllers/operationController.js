@@ -2579,7 +2579,7 @@ define(['js/app'], function (myApp) {
                         });
                     });
 
-                    setTimeout(function() {
+                    setTimeout(function () {
                         utilService.actionAfterLoaded("#proposalDataTablePage", function () {
                             vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
                                 vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)

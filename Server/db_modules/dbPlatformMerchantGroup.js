@@ -206,14 +206,20 @@ var dbPlatformMerchantGroup = {
     },
 
     getMerchantNBankCard:function(platformId){
-      var merchantsList = pmsAPI.merchant_getMerchantList({ platformId: platformId,queryId: serverInstance.getQueryId()});
-      var bankCardList = pmsAPI.bankcard_getBankcardList({ platformId: platformId,queryId: serverInstance.getQueryId()});
-    　var weChatList = pmsAPI.weChat_getWechatList({platformId: platformId, queryId: serverInstance.getQueryId()});
-    　var aliPayList = pmsAPI.alipay_getAlipayList({platformId: platformId, queryId: serverInstance.getQueryId()});
-      return Q.all([merchantsList, bankCardList, weChatList, aliPayList]).then(
+        var merchantsList = pmsAPI.merchant_getMerchantList({
+            platformId: platformId,
+            queryId: serverInstance.getQueryId()
+        });
+        var bankCardList = pmsAPI.bankcard_getBankcardList({
+            platformId: platformId,
+            queryId: serverInstance.getQueryId()
+        });
+        var weChatList = pmsAPI.weChat_getWechatList({platformId: platformId, queryId: serverInstance.getQueryId()});
+        var aliPayList = pmsAPI.alipay_getAlipayList({platformId: platformId, queryId: serverInstance.getQueryId()});
+        return Q.all([merchantsList, bankCardList, weChatList, aliPayList]).then(
         data=>{
           let bankcard = [];
-          // bankcard
+            // bankcard
           if(data[1] && data[1].data.length>0){
               data[1].data.map(bcard=>{
                   bcard.merchantNo = bcard.accountNumber;
@@ -222,18 +228,18 @@ var dbPlatformMerchantGroup = {
                   bcard.merchantTypeName = "Bankcard";
               })
           }
-            if(data[2] && data[2].data.length>0){
-                data[2].data.map(bcard=>{
+            if (data[2] && data[2].data.length > 0) {
+                data[2].data.map(bcard => {
                     bcard.merchantNo = bcard.accountNumber;
-                    bcard.name = bcard.accountNumber + '('+ bcard.name + ')';
+                    bcard.name = bcard.accountNumber + '(' + bcard.name + ')';
                     bcard.merchantTypeId = '9998';
                     bcard.merchantTypeName = "WechatCard";
                 })
             }
-            if(data[3] && data[3].data.length>0){
-                data[3].data.map(bcard=>{
+            if (data[3] && data[3].data.length > 0) {
+                data[3].data.map(bcard => {
                     bcard.merchantNo = bcard.accountNumber;
-                    bcard.name = bcard.accountNumber + '('+ bcard.name + ')';
+                    bcard.name = bcard.accountNumber + '(' + bcard.name + ')';
                     bcard.merchantTypeId = '9997';
                     bcard.merchantTypeName = "AliPayAcc";
                 })
@@ -244,7 +250,7 @@ var dbPlatformMerchantGroup = {
           if(!data[0].merchants){
             data[0].merchants = []
           }
-          result.merchants = data[0].merchants.concat(data[1].data).concat(data[2].data).concat(data[3].data);
+            result.merchants = data[0].merchants.concat(data[1].data).concat(data[2].data).concat(data[3].data);
           return result
         })
     }
