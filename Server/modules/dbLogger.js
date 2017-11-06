@@ -11,6 +11,7 @@ var errorUtils = require("./errorUtils.js");
 var constProposalEntryType = require('./../const/constProposalEntryType');
 var constProposalUserType = require('./../const/constProposalUserType');
 var pmsAPI = require('../externalAPI/pmsAPI');
+var rsaCrypto = require('../modules/rsaCrypto');
 const constSMSPurpose = require('../const/constSMSPurpose');
 
 var dbLogger = {
@@ -274,7 +275,7 @@ var dbLogger = {
 
         let phoneQuery = {$in: [rsaCrypto.encrypt(tel), tel]};
 
-        dbconfig.collection_players.findOne({phoneNumber: phoneQuery}, {name: 1}).lean().then(
+        dbconfig.collection_players.findOne({phoneNumber: phoneQuery}, {name: 1, bankAccount: 1}).lean().then(
             playerData => {
                 var logData = {
                     type: type,
@@ -288,8 +289,12 @@ var dbLogger = {
                     error: error,
                 };
 
-                if (playerData && playerData.name) {
-                    logData.recipientName = playerData.name;
+                if (playerData) {
+                    if (playerData.name)
+                        logData.recipientName = playerData.name;
+
+                    if (purpose === constSMSPurpose.UPDATE_BANK_INFO && !playerData.bankAccount)
+                        logData.purpose = constSMSPurpose.UPDATE_BANK_INFO_FIRST;
                 }
 
                 var smsLog = new dbconfig.collection_smsLog(logData);
@@ -304,7 +309,7 @@ var dbLogger = {
                 if (smsLogArr && smsLogArr[0]) {
                     let smsLog = smsLogArr[0];
 
-                    dbconfig.collection_smsLog.update({_id: smsLog._id}, {used: true});
+                    dbconfig.collection_smsLog.update({_id: smsLog._id}, {used: true}).exec();
                 }
             }
         )
