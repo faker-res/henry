@@ -2547,27 +2547,147 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.loadPhoneNumberRecord = function(phoneNumber){
-                var selectedStatus = ["Success", "Fail", "Pending", "Manual"];
+                vm.getCredibilityRemarks();
+                vm.phoneDuplicate = {totalCount: 0};
+                var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
                 var sendData = {
                     adminId: authService.adminId,
                     platformId: vm.selectedPlatform.id,
                     type: ["PlayerRegistrationIntention"],
                     phoneNumber: vm.newPlayer.phoneNumber,
-                    size: 10 ,
-                    index:  0 ,
+                    size: vm.phoneDuplicate.limit || 10,
+                    index: vm.phoneDuplicate.index || 0,
                     // sortCol: vm.newPlayerRecords.sortCol || null,
                     displayPhoneNum: true
                 }
                 sendData.status = selectedStatus;
                 $("#sameNumPlayerListTable").modal();
-                vm.prepareNewPlayerListRecords(sendData, true);
-                $("#samePhoneNumTablePage").off('order.dt');
-                $("#samePhoneNumTablePage").on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'newPlayerRecords', vm.getNewPlayerListByFilter);
+                vm.preparePhoneDuplicateRecords(sendData, true);
+                // $("#samePhoneNumTable").off('order.dt');
+                // $("#samePhoneNumTable").on('order.dt', function (event, a, b) {
+                //     vm.commonSortChangeHandler(a, 'phoneDuplicate', vm.loadPhoneNumberRecord);
+                // });
+                vm.phoneDuplicate.pageObj = utilService.createPageForPagingTable("#samePhoneNumTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "phoneDuplicate", vm.loadPhoneNumberRecord)
                 });
 
             }
 
+            vm.preparePhoneDuplicateRecords = function (queryData, newSearch) {
+                vm.phoneDuplicateListRecords = [];
+                socketService.$socket($scope.AppSocket, 'getPlayerProposalsForAdminId', queryData, function (data) {
+                    vm.phoneDuplicateListRecords = data.data.data;
+                    vm.phoneDuplicate.totalCount = data.data.size;
+                    vm.phoneDuplicate.loading = false;
+                    console.log('new player list record', data);
+
+                    vm.phoneDuplicateListRecords.map(
+                        record => {
+                            let credibilityRemarksTXT = '';
+                            record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
+                            //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                            if(record.status){
+                                if(record.status == "Fail"){
+                                    record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                                else{
+                                    record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                            }
+                            record.playerId = record.data.playerId ? record.data.playerId : "";
+                            record.name = record.data.name ? record.data.name : "";
+                            record.realName = record.data.realName ? record.data.realName : "";
+                            record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
+                            record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+                            record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
+                            record.smsCode = record.data.smsCode ? record.data.smsCode : "";
+                            record.remarks = record.data.remarks ? record.data.remarks : "";
+                            record.device = record.data.device ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
+                            record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
+                            record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
+                            record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
+                            record.proposalId = record.data.proposalId ? record.data.proposalId : "";
+                            record.playerLevelName = record.data.playerLevel ? record.data.playerLevel.name : "";
+                            record.credibilityRemarks = record.data.credibilityRemarks ? vm.credibilityRemarks.filter(item => {
+                                return record.data.credibilityRemarks.includes(item._id);
+                            }):[];
+                            record.credibilityRemarksName = record.credibilityRemarks.map(function(value, index){
+                                let colon = '';
+                                credibilityRemarksTXT += value.name + colon;
+                                return credibilityRemarksTXT;
+                            })||'';
+                            record.valueScore = record.data.valueScore ?record.data.valueScore:"";
+                            record.lastAccessTime = record.data.lastAccessTime ? vm.dateReformat(record.data.lastAccessTime):"";
+                                Object.keys(vm.allPlayersStatusString).filter(item=>{
+                                return record.data.playerStatus == vm.allPlayersStatusString[item];
+                            })[0];
+                            if(record.data.playerStatus){
+                                if(record.data.playerStatus == 3){ record.playerStatusName = $translate("Disable") }
+                                else{
+                                    record.playerStatusName =$translate("Enable") ;
+                                }
+                            }
+
+                            return record
+                        }
+                    );
+                    var tableData = vm.phoneDuplicateListRecords;
+                    var option = $.extend({}, vm.generalDataTableOptions, {
+                        data: tableData,
+                        aoColumnDefs: [
+                            {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                            {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
+                            //{'sortCol': 'data.playerId', bSortable: true, 'aTargets': [2]},
+                            {'sortCol': 'data.name', bSortable: true, 'aTargets': [3]},
+                            {'sortCol': 'data.realName', bSortable: true, 'aTargets': [4]},
+                            {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
+                            {'sortCol': 'data.phoneNumber', bSortable: true, 'aTargets': [7]},
+                            // {targets: '_all', defaultContent: ' ', bSortable: false}
+                        ],
+                        columns: [
+                            {title: $translate('PLAYERNAME'), data: "name"},
+                            {title: $translate('Real Name'), data: "realName"},
+                            {title: $translate('CREDIBILITY'), data: "credibilityRemarksName"},
+                            //{title: $translate('PLAYERID'), data: "playerId"},
+                            {title: $translate('PLAYER_VALUE'), data: "valueScore"},
+                            {
+                                title: $translate('STATUS'), data: "playerStatusName",
+                                render: function (data, type, row) {
+                                    let color = "black";
+                                    if(row.data.playerStatus=='3'||row.data.playerStatus==3){
+                                        color = "red";
+                                    }
+                                    return '<div style="color:'+color+'">'+data+'</div>';
+                                }
+                            },
+                            {title: $translate('PlayerLevel'), data: "playerLevelName"},
+                            {title: $translate('REGISTERED_IP'), data: "lastLoginIp"},
+                            {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
+                            {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
+                            {title: $translate('last_access_time'), data: "lastAccessTime"}
+
+                        ],
+                        destroy: true,
+                        paging: false,
+                        autoWidth: true,
+                        initComplete: function (data, type, row) {
+                            $scope.safeApply();
+                        },
+                        createdRow: function (row, data, dataIndex) {
+                            $compile(angular.element(row).contents())($scope);
+
+                        },
+                        fnRowCallback: vm.playerListTableRow
+                    });
+                    var a = utilService.createDatatableWithFooter('#samePhoneNumTable', option, {});
+                    // vm.phoneDuplicate.pageObj.init({maxCount: vm.phoneDuplicate.totalCount}, newSearch);
+                    setTimeout(function () {
+                        $('#samePhoneNumTable').resize();
+                    }, 300);
+
+                });
+            };
             vm.getNewPlayerListByFilter = function (newSearch) {
                 var selectedStatus = vm.queryPara.newPlayerList ? [vm.queryPara.newPlayerList.status] : ["Success", "Fail", "Pending", "Manual"];
                 var sendData = {
@@ -2705,14 +2825,17 @@ define(['js/app'], function (myApp) {
                                 data: "status",
                                 render: function (data, type, row) {
                                     let displayTXT = '';
-                                    if(data!='Success'){
-                                        displayTXT = '短信/电话/开户';
+                                    let action = '';
+                                    if(data!='Success'&&data!='Manual'){
+                                        displayTXT = $translate('SMS/PHONE/CREATE_ACC');
+                                        action = 'vm.createPlayerHelper('+JSON.stringify(row)+')';
                                     }else{
-                                        displayTXT = '短信/电话/回访';
+                                        displayTXT = $translate('SMS/PHONE/FEEDBACK');
+                                        action = 'vm.submitPlayerFeedbackQuery();vm.platformPageName="Feedback";vm.updatePageTile()';
                                     }
 
                                     var link = $('<a>', {
-                                        'ng-click': 'vm.createPlayerHelper('+JSON.stringify(row)+')'
+                                        'ng-click':action
                                     }).text(displayTXT);
                                     return link.prop('outerHTML');
                                 }
@@ -2746,13 +2869,12 @@ define(['js/app'], function (myApp) {
                 vm.prepareCreatePlayer();
                 $('#modalCreatePlayer').css('z-Index',99999).modal();
                 utilService.actionAfterLoaded("#modalCreatePlayer", function () {
-                    vm.newPlayer.realName = row.realName;
-                    vm.newPlayer.name = row.name;
-                    vm.newPlayer.email = row.email;
-                    vm.newPlayer.domain = row.domain;
-                    vm.newPlayer.phoneNumber = row.phoneNumber;
-                    vm.newPlayer.referral = row.referral;
-
+                    vm.newPlayer.realName = row.data.realName;
+                    vm.newPlayer.name = row.data.name;
+                    vm.newPlayer.email = row.data.email;
+                    vm.newPlayer.domain = row.data.domain;
+                    vm.newPlayer.phoneNumber = row.data.phoneNumber;
+                    vm.newPlayer.referralName = row.data.referral;
                 });
             }
             vm.playerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {

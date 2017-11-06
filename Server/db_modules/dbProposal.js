@@ -1497,6 +1497,7 @@ var proposal = {
                         }
 
                         var a = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj)
+                            .populate({path:'playerId', model:dbconfig.collection_players})
                             .sort(sortCol).skip(index).limit(size).lean()
                             .then(
                                 pdata => {
@@ -1523,7 +1524,6 @@ var proposal = {
                                 return proposals
                             })
                         var b = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj).count();
-
                         return Q.all([a, b])
                     }
                     else {
@@ -1558,6 +1558,21 @@ var proposal = {
                                         returnData[0][i].data.device = dbutility.getInputDevice(d[0].userAgent,false);
                                     }
                                 }
+                                if(d[0].playerLevel){
+                                    returnData[0][i].data.playerLevel = d[0].playerLevel;
+                                }
+                                if(d[0].credibilityRemarks){
+                                    returnData[0][i].data.credibilityRemarks = d[0].credibilityRemarks;
+                                }
+                                if(d[0].valueScore){
+                                    returnData[0][i].data.valueScore = d[0].valueScore;
+                                }
+                                if(d[0].lastAccessTime){
+                                    returnData[0][i].data.lastAccessTime = d[0].lastAccessTime;
+                                }
+                                if(d[0].status){
+                                    returnData[0][i].data.playerStatus = d[0].status;
+                                }
                             }
 
                             if(d[1] && d[1].data && d[1].data.name && d[1].data.name == returnData[0][i].data.name){
@@ -1577,7 +1592,9 @@ var proposal = {
 
     getPlayerDetails : function(playerID,playerName,proposalTypesId){
         let playerProm = dbconfig.collection_players.findOne({playerId: playerID})
-            .populate({path: 'csOfficer', model: dbconfig.collection_admin, select: "adminName"}).lean().then(
+            .populate({path: 'csOfficer', model: dbconfig.collection_admin, select: "adminName"})
+            .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
+            .lean().then(
                 data => {
                     return data ? data : "";
                 }

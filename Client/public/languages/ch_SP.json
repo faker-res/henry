@@ -2596,5 +2596,10 @@
   "NEW_WECHAT": "新微信账号",
   "CURRENT_WECHAT": "原微信账号",
   "RETYPE_WECHAT": "重新输入微信账号",
-  "attempt number list": "尝试次数分布"
+  "attempt number list": "尝试次数分布",
+  "last_access_time": "上次登录时间",
+  "SMS/PHONE/CREATE_ACC": "短信/电话/开户",
+  "SMS/PHONE/FEEDBACK": "短信/电话/回访",
+  "Enable":"启用"
+
 }

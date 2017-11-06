@@ -313,8 +313,8 @@ function socketActionProposal(socketIO, socket) {
         getPlayerProposalsForAdminId: function getPlayerProposalsForAdminId(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.adminId && data.platformId && data.status);
-            var startTime = data.startDate ? data.startDate : new Date(0);
-            var endTime = data.endDate ? data.endDate : new Date();
+            var startTime = data.startDate ? data.startDate:null;
+            var endTime = data.endDate ? data.endDate:null;
             var index = data.index || 0;
             var size = data.size || 10;
             var sortCol = data.sortCol || {"createTime": -1};
