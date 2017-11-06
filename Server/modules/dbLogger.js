@@ -273,7 +273,11 @@ var dbLogger = {
 
         inputDevice = inputDevice || 0;
 
-        let phoneQuery = {$in: [rsaCrypto.encrypt(tel), tel]};
+        let phoneQuery;
+        if (tel) {
+            tel = tel.toString();
+            phoneQuery = {$in: [rsaCrypto.encrypt(tel), tel]};
+        }
 
         dbconfig.collection_players.findOne({phoneNumber: phoneQuery}, {name: 1, bankAccount: 1}).lean().then(
             playerData => {
@@ -310,6 +314,18 @@ var dbLogger = {
                     let smsLog = smsLogArr[0];
 
                     dbconfig.collection_smsLog.update({_id: smsLog._id}, {used: true}).exec();
+                }
+            }
+        )
+    },
+
+    updateSmsLogProposalId: (tel, message, proposalId) => {
+        dbconfig.collection_smsLog.find({tel, message}).sort({createTime:-1}).limit(1).lean().exec().then(
+            smsLogArr => {
+                if (smsLogArr && smsLogArr[0]) {
+                    let smsLog = smsLogArr[0];
+
+                    dbconfig.collection_smsLog.update({_id: smsLog._id}, {proposalId}).exec();
                 }
             }
         )
