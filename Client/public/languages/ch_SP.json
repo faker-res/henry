@@ -2600,6 +2600,8 @@
   "last_access_time": "上次登录时间",
   "SMS/PHONE/CREATE_ACC": "短信/电话/开户",
   "SMS/PHONE/FEEDBACK": "短信/电话/回访",
-  "Enable":"启用"
+  "Enable":"启用",
+  "Duplicate Phone Number": "相同电话开户列表",
+  "DETAIL_INFO":"详情按钮"
 
 }
