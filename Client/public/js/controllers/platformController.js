@@ -2809,6 +2809,8 @@ define(['js/app'], function (myApp) {
                                 render: function (data, type, row) {
                                     data = data || '';
                                     var playerObjId = row.data._id ? row.data._id : "";
+                                    let displayTXT = '';
+                                    let action = '';
                                     var link = $('<div>', {});
 
                                     if (row.data.phoneNumber && row.data.phoneNumber != "") {
@@ -2824,29 +2826,56 @@ define(['js/app'], function (myApp) {
                                             'title': $translate("PHONE")
                                         }));
                                     }
+
+
+                                    if(row.status!='Success'&&row.status!='Manual'){
+                                        displayTXT = $translate('SMS/PHONE/CREATE_ACC');
+                                        action = 'vm.createPlayerHelper('+JSON.stringify(row)+')';
+                                        link.append($('<div>', {
+                                            'class': 'fa fa-user-plus',
+                                            'style': 'padding-left:15px',
+                                            'ng-click': action,
+                                            'title': $translate(displayTXT)
+                                        }));
+
+                                    }else{
+                                        displayTXT = $translate('SMS/PHONE/FEEDBACK');
+                                        action = 'vm.initFeedbackModal()';
+                                        $('#modalAddPlayerFeedback').css('z-Index',1051);
+                                        link.append($('<div>', {
+                                            'class': 'fa fa-envelope-o',
+                                            'style': 'padding-left:15px',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalAddPlayerFeedback',
+                                            'ng-click': action,
+                                            'title': $translate(displayTXT)
+                                        }));
+                                    }
+
                                     return link.prop('outerHTML')
                                 }
                             },
-                            {
-                                title: $translate('function'),
-                                data: "status",
-                                render: function (data, type, row) {
-                                    let displayTXT = '';
-                                    let action = '';
-                                    if(data!='Success'&&data!='Manual'){
-                                        displayTXT = $translate('SMS/PHONE/CREATE_ACC');
-                                        action = 'vm.createPlayerHelper('+JSON.stringify(row)+')';
-                                    }else{
-                                        displayTXT = $translate('SMS/PHONE/FEEDBACK');
-                                        action = 'vm.submitPlayerFeedbackQuery();vm.platformPageName="Feedback";vm.updatePageTile()';
-                                    }
-
-                                    var link = $('<a>', {
-                                        'ng-click':action
-                                    }).text(displayTXT);
-                                    return link.prop('outerHTML');
-                                }
-                            },
+                            // {
+                            //     title: $translate('function'),
+                            //     data: "status",
+                            //     render: function (data, type, row) {
+                            //         let displayTXT = '';
+                            //         let action = '';
+                            //         if(data!='Success'&&data!='Manual'){
+                            //             displayTXT = $translate('SMS/PHONE/CREATE_ACC');
+                            //             action = 'vm.createPlayerHelper('+JSON.stringify(row)+')';
+                            //         }else{
+                            //             displayTXT = $translate('SMS/PHONE/FEEDBACK');
+                            //             action = 'vm.submitPlayerFeedbackQuery();vm.platformPageName="Feedback";vm.updatePageTile()';
+                            //         }
+                            //
+                            //         var link = $('<a>', {
+                            //             'ng-click':action
+                            //         }).text(displayTXT);
+                            //         return link.prop('outerHTML');
+                            //     }
+                            // },
                             {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
                             {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
                         ],
