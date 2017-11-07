@@ -1331,6 +1331,7 @@
   "RESET_GRID":"重置",
   "FILTER_THEN_EXPORT_XLS":"过滤和导出",
   "SELECT_XLS_FILE":"选择Excel文件",
+  "XLS_LENGTH":"总数据",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
@@ -2610,5 +2611,6 @@
   "cardQuota": "收款帐号今日交易额",
   "NEW_WECHAT": "新微信账号",
   "CURRENT_WECHAT": "原微信账号",
-  "RETYPE_WECHAT": "重新输入微信账号"
+  "RETYPE_WECHAT": "重新输入微信账号",
+  "Merchant Name":"名称"
 }
