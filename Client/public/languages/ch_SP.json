@@ -1318,6 +1318,7 @@
   "RESET_GRID":"重置",
   "FILTER_THEN_EXPORT_XLS":"过滤和导出",
   "SELECT_XLS_FILE":"选择Excel文件",
+  "XLS_LENGTH":"总数据",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
