@@ -3162,6 +3162,24 @@ define(['js/app'], function (myApp) {
                                         .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
                                 }
 
+                                // TODO:: Temporary measure to show reward group credit
+                                if (row.rewardGroupInfo && row.rewardGroupInfo.length > 0) {
+                                    link.append($('<i class="fa fa-lock"></i>'))
+                                        .append(
+                                            $('<a>', {
+                                                'class': 'rewardTaskPopover',
+                                                'ng-click': 'vm.rewardTaskPlayerName = "' + row.name + '";', // @todo: escaping issue
+                                                'data-row': JSON.stringify(row),
+                                                'href': '',
+                                                'data-toggle': 'popover',
+                                                'data-trigger': 'focus',
+                                                'data-placement': 'bottom',
+                                                'data-container': 'body'
+                                            }).text(row.lockedCredit.toFixed(2))
+                                        )
+                                        .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
+                                }
+
                                 //}
                                 link.append(
                                     $('<a>', {
@@ -5730,6 +5748,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 let sendQuery = {
+                    admin: authService.adminName,
                     platformObjId: vm.selectedSinglePlayer.platform,
                     playerObjId: vm.selectedSinglePlayer._id,
                     remarks: selectedRemarks,
@@ -6092,17 +6111,24 @@ define(['js/app'], function (myApp) {
                 vm.rewardTotalAmount = 0;
                 vm.creditTransfer.needClose = false;
                 vm.creditTransfer.transferResult = '';
-                vm.getRewardTask(row._id, function (data) {
-                    // Add up amounts from all available reward tasks
-                    let showRewardAmount = 0;
-                    if (data && data.length > 0) {
-                        for (let i = 0; i < data.length; i++) {
-                            showRewardAmount += data[i].currentAmount;
-                        }
-                    }
-                    vm.creditTransfer.showRewardAmount = showRewardAmount;
+
+                if (vm.selectedPlatform.data.useProviderGroup) {
                     vm.creditTransfer.showValidCredit = row.validCredit;
-                });
+                    vm.creditTransfer.showRewardAmount = row.lockedCredit;
+                } else {
+                    vm.getRewardTask(row._id, function (data) {
+                        // Add up amounts from all available reward tasks
+                        let showRewardAmount = 0;
+                        if (data && data.length > 0) {
+                            for (let i = 0; i < data.length; i++) {
+                                showRewardAmount += data[i].currentAmount;
+                            }
+                        }
+                        vm.creditTransfer.showRewardAmount = showRewardAmount;
+                        vm.creditTransfer.showValidCredit = row.validCredit;
+                    });
+                }
+
                 for (var i in vm.platformProviderList) {
                     vm.getPlayerCreditInProvider(row.name, vm.platformProviderList[i].providerId, vm.playerCredit)
                 }
@@ -6408,6 +6434,26 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+
+        vm.deleteProviderGroup = function (grp, isConfirm) {
+            if (!isConfirm) {
+                vm.modalYesNo = {};
+                vm.modalYesNo.modalTitle = $translate("Delete Provider Group");
+                vm.modalYesNo.modalText = $translate("Delete provider group " + grp.name + "? This will release all rewards amount binded with this group to player.");
+                vm.modalYesNo.actionYes = () => vm.deleteProviderGroup(grp, true);
+                $('#modalYesNo').modal();
+            }
+            else {
+                let sendObj = {
+                    gameProviderGroupObjId: grp._id
+                };
+
+                socketService.$socket($scope.AppSocket, 'deletePlatformProviderGroup', sendObj, function (data) {
+                    vm.getPlatformProviderGroup();
+                })
+            }
+        };
+
             vm.prepareShowPlayerCredit = function () {
                 vm.creditChange = {
                     finalValidAmount: $translate("Unknown"),
@@ -9494,38 +9540,42 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-        vm.initPlayerFeedback = function() {
+        vm.initPlayerFeedback = function () {
             console.log("initPlayerFeedback");
             vm.getAllPlayerFeedbackResults();
             vm.getAllPlayerFeedbackTopics();
         };
 
-        vm.getAllPlayerFeedbackResults = function() {
+        vm.getAllPlayerFeedbackResults = function () {
             return $scope.$socketPromise('getAllPlayerFeedbackResults').then(
-                function(data) {
+                function (data) {
                     vm.allPlayerFeedbackResults = data.data;
                     console.log("vm.allPlayerFeedbackResults", data.data);
                     $scope.safeApply();
                 },
                 function (err) {
-                    console.log("vm.allPlayerFeedbackResults",err);
+                    console.log("vm.allPlayerFeedbackResults", err);
                 }
-            ).catch(function(err){console.log("vm.allPlayerFeedbackResults",err)});
+            ).catch(function (err) {
+                console.log("vm.allPlayerFeedbackResults", err)
+            });
         };
-        vm.getAllPlayerFeedbackTopics = function() {
+        vm.getAllPlayerFeedbackTopics = function () {
             return $scope.$socketPromise('getAllPlayerFeedbackTopics').then(
-                function(data) {
+                function (data) {
                     vm.allPlayerFeedbackTopics = data.data;
                     console.log("vm.allPlayerFeedbackTopics", data.data);
                     $scope.safeApply();
                 },
                 function (err) {
-                    console.log("vm.allPlayerFeedbackTopics",err);
+                    console.log("vm.allPlayerFeedbackTopics", err);
                 }
-            ).catch(function(err){console.log("vm.allPlayerFeedbackTopics",err)});
+            ).catch(function (err) {
+                console.log("vm.allPlayerFeedbackTopics", err)
+            });
         };
 
-        vm.clearPlayerFeedBackResultDataStatus = function() {
+        vm.clearPlayerFeedBackResultDataStatus = function () {
             vm.addPlayerFeedbackResultData.message = null;
             vm.addPlayerFeedbackResultData.success = null;
             vm.addPlayerFeedbackResultData.failure = null;
@@ -9534,56 +9584,56 @@ define(['js/app'], function (myApp) {
             vm.deletePlayerFeedbackResultData.success = null;
             vm.deletePlayerFeedbackResultData.failure = null;
         };
-        vm.addPlayerFeedbackResult = function() {
+        vm.addPlayerFeedbackResult = function () {
             vm.clearPlayerFeedBackResultDataStatus();
             let reqData = {};
             reqData.key = vm.addPlayerFeedbackResultData.key;
             reqData.value = vm.addPlayerFeedbackResultData.value;
             console.log(reqData);
             return $scope.$socketPromise('createPlayerFeedbackResult', reqData).then(
-                function(data) {
+                function (data) {
                     console.log("vm.addPlayerFeedbackResults()", data);
                     vm.addPlayerFeedbackResultData.message = "SUCCESS";
                     vm.addPlayerFeedbackResultData.success = true;
                     vm.getAllPlayerFeedbackResults();
                     $scope.safeApply();
                 },
-                function(err) {
+                function (err) {
                     console.log("vm.addPlayerFeedbackResults()ErrIn", err);
                     vm.addPlayerFeedbackResultData.message = "FAILURE";
                     vm.addPlayerFeedbackResultData.failure = true;
                     $scope.safeApply();
                 }
             ).catch(
-                function(err) {
-                    console.log("vm.addPlayerFeedbackResults()ErrOut",err);
+                function (err) {
+                    console.log("vm.addPlayerFeedbackResults()ErrOut", err);
                     vm.addPlayerFeedbackResultData.message = "FAILURE";
                     vm.addPlayerFeedbackResultData.failure = true;
                     $scope.safeApply();
                 }
             );
         };
-        vm.deletePlayerFeedbackResult = function() {
+        vm.deletePlayerFeedbackResult = function () {
             vm.clearPlayerFeedBackResultDataStatus();
             let reqData = {};
             reqData._id = vm.deletePlayerFeedbackResultData._id;
             return $scope.$socketPromise('deletePlayerFeedbackResult', reqData).then(
-                function(data) {
+                function (data) {
                     console.log("vm.addPlayerFeedbackResults()", data);
                     vm.deletePlayerFeedbackResultData.message = "SUCCESS";
                     vm.deletePlayerFeedbackResultData.success = true;
                     vm.getAllPlayerFeedbackResults();
                     $scope.safeApply();
                 },
-                function(err) {
+                function (err) {
                     console.log("vm.addPlayerFeedbackResults()ErrIn", err);
                     vm.deletePlayerFeedbackResultData.message = "FAILURE";
                     vm.deletePlayerFeedbackResultData.failure = true;
                     $scope.safeApply();
                 }
             ).catch(
-                function(err) {
-                    console.log("vm.addPlayerFeedbackResults()Out",err);
+                function (err) {
+                    console.log("vm.addPlayerFeedbackResults()Out", err);
                     vm.deletePlayerFeedbackResultData.message = "FAILURE";
                     vm.deletePlayerFeedbackResultData.failure = true;
                     $scope.safeApply();
@@ -9591,7 +9641,7 @@ define(['js/app'], function (myApp) {
             );
         };
 
-        vm.clearPlayerFeedBackTopicDataStatus = function() {
+        vm.clearPlayerFeedBackTopicDataStatus = function () {
             vm.addPlayerFeedbackTopicData.message = null;
             vm.addPlayerFeedbackTopicData.success = null;
             vm.addPlayerFeedbackTopicData.failure = null;
@@ -9600,56 +9650,56 @@ define(['js/app'], function (myApp) {
             vm.deletePlayerFeedbackTopicData.success = null;
             vm.deletePlayerFeedbackTopicData.failure = null;
         };
-        vm.addPlayerFeedbackTopic = function() {
+        vm.addPlayerFeedbackTopic = function () {
             vm.clearPlayerFeedBackTopicDataStatus();
             let reqData = {};
             reqData.key = vm.addPlayerFeedbackTopicData.value;
             reqData.value = vm.addPlayerFeedbackTopicData.value;
             console.log(reqData);
             return $scope.$socketPromise('createPlayerFeedbackTopic', reqData).then(
-                function(data) {
+                function (data) {
                     console.log("vm.addPlayerFeedbackTopics()", data);
                     vm.addPlayerFeedbackTopicData.message = "SUCCESS";
                     vm.addPlayerFeedbackTopicData.success = true;
                     vm.getAllPlayerFeedbackTopics();
                     $scope.safeApply();
                 },
-                function(err) {
+                function (err) {
                     console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
                     vm.addPlayerFeedbackTopicData.message = "FAILURE";
                     vm.addPlayerFeedbackTopicData.failure = true;
                     $scope.safeApply();
                 }
             ).catch(
-                function(err) {
-                    console.log("vm.addPlayerFeedbackTopics()ErrOut",err);
+                function (err) {
+                    console.log("vm.addPlayerFeedbackTopics()ErrOut", err);
                     vm.addPlayerFeedbackTopicData.message = "FAILURE";
                     vm.addPlayerFeedbackTopicData.failure = true;
                     $scope.safeApply();
                 }
             );
         };
-        vm.deletePlayerFeedbackTopic = function() {
+        vm.deletePlayerFeedbackTopic = function () {
             vm.clearPlayerFeedBackTopicDataStatus();
             let reqData = {};
             reqData._id = vm.deletePlayerFeedbackTopicData._id;
             return $scope.$socketPromise('deletePlayerFeedbackTopic', reqData).then(
-                function(data) {
+                function (data) {
                     console.log("vm.addPlayerFeedbackTopics()", data);
                     vm.deletePlayerFeedbackTopicData.message = "SUCCESS";
                     vm.deletePlayerFeedbackTopicData.success = true;
                     vm.getAllPlayerFeedbackTopics();
                     $scope.safeApply();
                 },
-                function(err) {
+                function (err) {
                     console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
                     vm.deletePlayerFeedbackTopicData.message = "FAILURE";
                     vm.deletePlayerFeedbackTopicData.failure = true;
                     $scope.safeApply();
                 }
             ).catch(
-                function(err) {
-                    console.log("vm.addPlayerFeedbackTopics()Out",err);
+                function (err) {
+                    console.log("vm.addPlayerFeedbackTopics()Out", err);
                     vm.deletePlayerFeedbackTopicData.message = "FAILURE";
                     vm.deletePlayerFeedbackTopicData.failure = true;
                     $scope.safeApply();
