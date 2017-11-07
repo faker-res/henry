@@ -1,9 +1,9 @@
 .row
     .col-md-12(ng-if='checkViewPermission("Platform", "phoneNumFilter", "FilterAllPlatform")')
         .panel-body
-            label Filter All Platform is
-            label(style='color:green', ng-if='vm.filterAllPlatform') &nbsp; enabled
-            label(style='color:red', ng-if='!vm.filterAllPlatform') &nbsp; disabled
+            label {{"FILTER_ALL_PLATFORM" | translate}}:
+            label(style='color:green', ng-if='vm.filterAllPlatform') &nbsp; {{"FILTER_ALL_PLATFORM_ENABLED" | translate}}
+            label(style='color:red', ng-if='!vm.filterAllPlatform') &nbsp; {{"FILTER_ALL_PLATFORM_DISABLED" | translate}}
             div(ng-if='!vm.filterAllPlatform')
                 button.btn.btn-lg.btn-toggle(type='button', data-toggle='button', aria-pressed='false', autocomplete='off', ng-click='vm.filterAllPlatform=!vm.filterAllPlatform')
                     .handle
@@ -53,7 +53,7 @@
                         label(style="color:red") ({{vm.diffPhoneTotalCSV}})
                         p {{vm.diffPhoneCSV}}
                     .pull-right
-                        button.btn.btn-primary.common-button(type='button', ng-csv='vm.diffPhoneCSVArray', filename='phoneNumber.csv')
+                        button.btn.btn-primary.common-button(type='button', ng-csv='vm.diffPhoneCSVArray', filename='phoneNumberFilter.csv')
                             i.fa.fa-check
                             text {{"EXPORT_CSV" | translate}}
 
@@ -154,14 +154,24 @@
                 label {{"SUPPORTED_FILE_FORMAT" | translate}}:
                 |  .xls, .xlsx, .xlsm
             .panel-body
+                .alert.alert-info.alert-dismissable
+                    a.close(href='#', data-dismiss='alert', aria-label='close') ×
+                    i.fa.fa-info-circle.margin-right-5
+                    text
+                        strong {{"ADD_PHONE_NUMBER_XLS_INSTRUCTION" | translate}}
                 div
-                    button.btn.btn-success(type='button', ng-click='vm.resetUIGrid()') Reset Grid
-                    br
-                    br
-                    #grid1.grid(ng-if='vm.gridOptions', ui-grid='vm.gridOptions')
+                    #grid1.grid(ng-if='vm.gridOptions', ui-grid='vm.gridOptions', ui-grid-edit='', ui-grid-exporter='')
                         .grid-msg-overlay(ng-show='!vm.gridOptions.data.length')
                             .msg
                                 .center
-                                    span.muted Select Spreadsheet File
+                                    span.muted {{"SELECT_XLS_FILE" | translate}}
                                     br
-                                    input(type='file', accept='.xls,.xlsx,.ods', fileread='', opts='vm.gridOptions', multiple='false')
+                                    input(type='file', accept='.xls, .xlsx, .xlsm, .ods', fileread='', opts='vm.gridOptions', multiple='false')
+                    br
+                    .pull-right
+                        button.btn.btn-danger.common-button(type='button', ng-click='vm.resetUIGrid()')
+                            i.fa.fa-refresh
+                            text {{"RESET_GRID" | translate}}
+                        button.btn.btn-primary.common-button(type='button', ng-click='vm.uploadPhoneFileXLS()')
+                            i.fa.fa-check
+                            text {{"FILTER_THEN_EXPORT_XLS" | translate}}
