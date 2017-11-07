@@ -5748,6 +5748,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 let sendQuery = {
+                    admin: authService.adminName,
                     platformObjId: vm.selectedSinglePlayer.platform,
                     playerObjId: vm.selectedSinglePlayer._id,
                     remarks: selectedRemarks,
