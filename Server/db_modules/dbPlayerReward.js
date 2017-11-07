@@ -315,7 +315,7 @@ let dbPlayerReward = {
                         }
                     ).then(
                         summaryData => {
-                            if (summaryData && summaryData[0] && (summaryData[0].amount + rewardAmount) > 500) {
+                            if (summaryData && summaryData[0] && summaryData[0].amount >= 500) {
                                 Q.reject({
                                     status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                                     name: "DataError",
@@ -323,6 +323,10 @@ let dbPlayerReward = {
                                 });
                             }
                             else {
+                                if( summaryData && summaryData[0] && (rewardAmount + summaryData[0].amount) > 500 ){
+                                    rewardAmount = Math.max( 0, 500 - summaryData[0].amount);
+                                }
+
                                 let proposalData = {
                                     type: promoEventDetail.executeProposal,
 
@@ -333,7 +337,7 @@ let dbPlayerReward = {
                                         platformId: topUpProposalData.data.platformId,
                                         platform: topUpProposalData.data.platform,
                                         rewardAmount: rewardAmount,
-                                        spendingAmount: rewardAmount,
+                                        spendingAmount: rewardAmount*20, //10 times spending amount
                                         applyAmount: 0,
                                         // amount: rewardAmount,
                                         eventId: promoEventDetail._id,
