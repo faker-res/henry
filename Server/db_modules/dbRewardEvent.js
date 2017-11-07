@@ -304,28 +304,6 @@ var dbRewardEvent = {
                         },
                         error => console.log('[Save player credits] Settlement Server initialization error:', error)
                     );
-
-
-                    // .then(
-                    // data => {
-                    //     let playerObjIds = data.map(player => player._id);
-                    //     //console.log(playerObjIds);
-                    //     let stream = dbconfig.collection_players.find(
-                    //         {
-                    //             _id: {$in: playerObjIds}
-                    //         },
-                    //         {
-                    //             _id: 1,
-                    //             name: 1,
-                    //             platform: 1,
-                    //             validCredit: 1,
-                    //             lockedCredit: 1
-                    //         }
-                    //     ).lean().cursor({batchSize: 200});
-                    //
-                    //
-                    // }
-                    // );
                 };
 
                 if (platformId) {
@@ -353,6 +331,7 @@ var dbRewardEvent = {
         let playerData, platformData;
         let failedQueryPlayers = [];
         let numRetry = retries || 0;
+        let isPlayerSettled = false;
 
         playerObjIds.forEach(
             playerObjId => {
@@ -371,7 +350,16 @@ var dbRewardEvent = {
                             playerData = player;
                             platformData = player.platform;
 
-                            if (platformData && platformData.gameProviders && platformData.gameProviders.length > 0) {
+                            // Check whether player already have record for yesterday
+                            return dbconfig.collection_playerCreditsDailyLog.findOne({
+                                playerObjId: playerData._id,
+                                platformObjId: playerData.platform._id,
+                                createTime: queryTime.endTime
+                            }).lean();
+                        }
+                    ).then(
+                        creditLog => {
+                            if (!creditLog && platformData && platformData.gameProviders && platformData.gameProviders.length > 0) {
                                 let proms = [];
 
                                 for (let i = 0; i < platformData.gameProviders.length; i++) {
@@ -405,6 +393,9 @@ var dbRewardEvent = {
                                 }
                                 return Q.all(proms);
                             }
+                            else {
+                                isPlayerSettled = true;
+                            }
                         }
                     ).then(
                         providerCredit => {
@@ -425,22 +416,24 @@ var dbRewardEvent = {
                         }
                     ).then(
                         gameCredit => {
-                            return dbconfig.collection_playerCreditsDailyLog.update({
-                                    playerObjId: playerData._id,
-                                    platformObjId: playerData.platform._id,
-                                    createTime: bManual ? 0 : queryTime.endTime
-                                },
-                                {
-                                    playerObjId: playerData._id,
-                                    platformObjId: playerData.platform._id,
-                                    validCredit: playerData.validCredit,
-                                    lockedCredit: playerData.lockedCredit,
-                                    gameCredit: gameCredit,
-                                },
-                                {
-                                    upsert: true
-                                }
-                            );
+                            if (!isPlayerSettled) {
+                                return dbconfig.collection_playerCreditsDailyLog.update({
+                                        playerObjId: playerData._id,
+                                        platformObjId: playerData.platform._id,
+                                        createTime: bManual ? 0 : queryTime.endTime
+                                    },
+                                    {
+                                        playerObjId: playerData._id,
+                                        platformObjId: playerData.platform._id,
+                                        validCredit: playerData.validCredit,
+                                        lockedCredit: playerData.lockedCredit,
+                                        gameCredit: gameCredit,
+                                    },
+                                    {
+                                        upsert: true
+                                    }
+                                );
+                            }
                         }
                     ).catch(
                         error => {
@@ -458,8 +451,8 @@ var dbRewardEvent = {
                     // Increment retry count
                     numRetry++;
 
-                    // Retry for 10 times with 1 minute delay, may be configurable
-                    if (numRetry <= 10) {
+                    // Retry for 3 times with 1 minute delay, may be configurable
+                    if (numRetry <= 3) {
                         // SYSTEM LOG
                         console.log('[Save player credits] Players to retry:', failedQueryPlayers, "Retry No.", numRetry);
 

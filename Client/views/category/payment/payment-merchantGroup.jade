@@ -104,7 +104,7 @@
                                 text.blink.margin-left-5.text-danger(ng-if='!vm.includedMerchants') {{'loading merchants' | translate}}...
                         #includedMerchants.panel-collapse.collapse.in
                             .panel-body(style='height:250px;overflow-y:auto')
-                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.includedMerchants', class='{{vm.highlightMerchant[v.merchantNo]}}', ng-click='vm.merchantClicked(i,v,"in")')
+                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.includedMerchants', class='{{vm.highlightMerchant[v.name]}}', ng-click='vm.merchantClicked(i,v,"in")')
                                     table.bg-pale
                                         tr
                                             td.text-center
@@ -131,6 +131,10 @@
                                             td.text-center
                                             td {{'Backstage Merchant ID' | translate}}
                                             td.text-success {{v.merchantId}}
+                                        tr
+                                            td.text-center
+                                            td {{'Merchant Name' | translate}}
+                                            td.text-success {{v.name}}
                                         tr
                                             td.text-center
                                             td {{'SINGLE_LIMIT' | translate}}
@@ -176,7 +180,7 @@
                                 text.blink.margin-left-5.text-danger(ng-if='!vm.excludedMerchants') {{'loading merchants' | translate}}...
                         #excludedMerchants.panel-collapse.collapse
                             .panel-body(style='height:250px;overflow-y:auto')
-                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.excludedMerchants', class='{{vm.highlightMerchant[v.merchantNo]}}', ng-click='vm.merchantClicked(i,v,"ex")')
+                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.excludedMerchants', class='{{vm.highlightMerchant[v.name]}}', ng-click='vm.merchantClicked(i,v,"ex")')
                                     table.bg-pale
                                         tr
                                             td.text-center
@@ -204,6 +208,10 @@
                                             td.text-center
                                             td {{'Backstage Merchant ID' | translate}}
                                             //td.text-success {{v.status}}
+                                        tr
+                                            td.text-center
+                                            td {{'Merchant Name' | translate}}
+                                            td.text-success {{v.name}}
                                         tr
                                             td.text-center
                                             td {{'SINGLE_LIMIT' | translate}}
