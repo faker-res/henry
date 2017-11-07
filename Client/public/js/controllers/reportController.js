@@ -1810,16 +1810,21 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getMerchantName = function(merchantNo){
-          let result = '';
-          if(merchantNo){
-            let merchantName = vm.merchantGroupObj.filter(item=>{
-                return item.list.includes(merchantNo);
-            });
-            result = merchantName[0] ? merchantName[0].name :'';
-          }else{
-            result = '';
-          }
-          return result;
+            let result = '';
+            if (merchantNo) {
+                let merchant = vm.merchantNoList.filter(item => {
+                    return item.merchantNo == merchantNo
+                })
+                if (merchant) {
+                    let merchantName = vm.merchantTypes.filter(item => {
+                        return item.merchantTypeId == merchant[0].merchantTypeId;
+                    })
+                    if (merchantName[0]) {
+                        result = merchantName[0].name;
+                    }
+                }
+            }
+            return result;
         }
 
         vm.initAccs = function(){

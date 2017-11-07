@@ -758,9 +758,9 @@ var dbPlayerTopUpRecord = {
                     }
                     queryObj['data.platformId'] = ObjectId(player.platform._id);
                     queryObj['mainType'] = 'TopUp';
-                    queryObj["data.validTime"] = {};
-                    queryObj["data.validTime"]["$gte"] = start;
-                    queryObj["data.validTime"]["$lt"] = end;
+                    queryObj["createTime"] = {};
+                    queryObj["createTime"]["$gte"] = start;
+                    queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
                     // calculate this card/acc total usage at today
                     return dbconfig.collection_proposal.aggregate(
@@ -790,12 +790,13 @@ var dbPlayerTopUpRecord = {
                 var updateData = {
                     status: constProposalStatus.PENDING
                 };
-                if (res[0]) {
-                    updateData.data.cardQuota = res[0].totalAmount;
-                }
+                console.log(res);
                 updateData.data = Object.assign({}, proposal.data);
                 updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
                 updateData.data.merchantNo = merchantResponse.result ? merchantResponse.result.merchantNo : "";
+                if (res[0]) {
+                    updateData.data.cardQuota = res[0].totalAmount;
+                }
                 return dbconfig.collection_proposal.findOneAndUpdate(
                     {_id: proposal._id, createTime: proposal.createTime},
                     updateData,
@@ -896,7 +897,6 @@ var dbPlayerTopUpRecord = {
                         errorMessage: "Top up amount is not enough"
                     });
                 }
-                console.log(inputData);
                 if (!player.permission || !player.permission.topupManual) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
@@ -1020,9 +1020,9 @@ var dbPlayerTopUpRecord = {
                     }
                     queryObj['data.platformId'] = ObjectId(player.platform._id);
                     queryObj['mainType'] = 'TopUp';
-                    queryObj["data.validTime"] = {};
-                    queryObj["data.validTime"]["$gte"] = start;
-                    queryObj["data.validTime"]["$lt"] = end;
+                    queryObj["createTime"] = {};
+                    queryObj["createTime"]["$gte"] = start;
+                    queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
                     return dbconfig.collection_proposal.aggregate(
                         {$match: queryObj},
@@ -1608,14 +1608,16 @@ var dbPlayerTopUpRecord = {
                     let end = new Date();
                     end.setHours(23, 59, 59, 999);
                     if (alipayAccount) {
-                        queryObj['data.alipayAccount'] = {'$in': [String(alipayAccount), Number(alipayAccount)]};
+                        queryObj['data.alipayAccount'] = alipayAccount;
+                    }
+                    if(alipayName){
+                        queryObj['data.alipayName'] = alipayName;
                     }
                     queryObj['data.platformId'] = ObjectId(player.platform._id);
-                    // queryObj['typeName'] = constProposalType.PLAYER_ALIPAY_TOP_UP;
                     queryObj['mainType'] = 'TopUp';
-                    queryObj["data.validTime"] = {};
-                    queryObj["data.validTime"]["$gte"] = start;
-                    queryObj["data.validTime"]["$lt"] = end;
+                    queryObj["createTime"] = {};
+                    queryObj["createTime"]["$gte"] = start;
+                    queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
                     return dbconfig.collection_proposal.aggregate(
                         {$match: queryObj},
@@ -1632,7 +1634,6 @@ var dbPlayerTopUpRecord = {
                     let minTopUpAmount = player.platform.minTopUpAmount || 0;
                     let isPlayerFirstTopUp = topupResult[0];
                     let limitedOfferTopUp = topupResult[1];
-                    console.log(res);
                     if (isPlayerFirstTopUp) {
                         minTopUpAmount = 1;
                     }
@@ -1862,13 +1863,16 @@ var dbPlayerTopUpRecord = {
                     let end = new Date();
                     end.setHours(23, 59, 59, 999);
                     if (wechatAccount) {
-                        queryObj['data.wechatAccount'] = {'$in':[String(wechatAccount), Number(wechatAccount)]};
+                        queryObj['data.wechatAccount'] = wechatAccount;
+                    }
+                    if(wechatName){
+                        queryObj['data.wechatName'] = wechatName;
                     }
                     queryObj['data.platformId'] = ObjectId(player.platform._id);
                     queryObj['mainType'] = 'TopUp';
-                    queryObj["data.validTime"] = {};
-                    queryObj["data.validTime"]["$gte"] = start;
-                    queryObj["data.validTime"]["$lt"] = end;
+                    queryObj["createTime"] = {};
+                    queryObj["createTime"]["$gte"] = start;
+                    queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
                     return dbconfig.collection_proposal.aggregate(
                         {$match: queryObj},
@@ -1881,7 +1885,6 @@ var dbPlayerTopUpRecord = {
                 }
             ).then(
                 result => {
-
                     if (player && player.platform && player.wechatPayGroup && player.wechatPayGroup.wechats && player.wechatPayGroup.wechats.length > 0) {
                         let minTopUpAmount = player.platform.minTopUpAmount || 0;
                         if (amount < minTopUpAmount) {
@@ -2626,8 +2629,11 @@ function convertStringNumber(Arr) {
     Arrs.forEach(item => {
         result.push(String(item));
     })
-    Arrs.forEach(item => {
-        result.push(Number(item));
+    Arrs.forEach(item=>{
+        let currentNum = Number(item);
+        if(isNaN(currentNum)==false){
+            result.push(currentNum);
+        }
     })
     return result;
 }
