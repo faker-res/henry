@@ -24,7 +24,7 @@
                             .full-width-input-block
                                 label {{v.des}}
                                 input.form-control(ng-if="v.type == 'string' || v.type == 'checkbox'" type="{{v.type}}" ng-model="vm.tempRewardMainTask[i].value")
-                                select.form-control(ng-if="v.type == 'Select'" ng-model="vm.tempRewardMainTask[i].value" ng-options="i as v for (i,v) in v.options")
+                                select.form-control(ng-if="v.type == 'select'" ng-model="vm.tempRewardMainTask[i].value" ng-options="i as v for (i,v) in v.options")
                                 div.dateTimePicker(id="rewardMainTaskDate-{{i}}" style="display: inline-block" ng-if="v.type == 'date'")
                                 select.spicker.form-control(ng-if="v.type == 'multiSelect'" ng-model="vm.tempRewardMainTask[i].value" multiple, data-width='50%' data-actions-box='true')
                                     option(style="display: inline-block" ng-repeat='(i,v) in v.options', value='{{i}}' ng-init='$last && vm.endLoadWeekDay()') {{v}}

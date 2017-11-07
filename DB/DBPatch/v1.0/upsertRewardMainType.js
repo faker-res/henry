@@ -6,13 +6,7 @@ var generalCond = {
     // Reward system code
     code: {index: 1, type: "string", des: "Reward code"},
     // Reward apply type
-    applyType: {
-        index: 2, type: "Select", des: "Reward apply type", options: {
-            1: "Manual Apply",
-            2: "Auto Apply",
-            3: "Batch Apply"
-        }
-    },
+    applyType: {index: 2, type: "select", des: "Reward apply type", options: "rewardApplyType"},
     // Is player manually applicable
     isPlayerApplicable: {index: 3, type: "checkbox", des: "Is player manually applicable"},
     // Is ignore audit
@@ -38,7 +32,7 @@ var topUpCond = {
 
 var periodCond = {
     // Reward apply interval
-    interval: {index: 20, type: "multiSelect", des: "Reward interval", options: "rewardInterval"},
+    interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval"},
     // Top up count between interval check type
     topUpCountType: {index: 21, des: "Top up count between interval type"},
     // Top up count

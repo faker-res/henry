@@ -417,6 +417,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ngSanitize', 'ngCsv']).controll
         4: "Monthly",
         5: "Interval"
     };
+
+    $scope.rewardApplyType = {
+        1: "Manual Apply",
+        2: "Auto Apply",
+        3: "Batch Apply"
+    };
     //////// DOM initialisation operations ////////
 
     $('[data-toggle="tooltip"]').tooltip();
