@@ -1044,6 +1044,13 @@ define(['js/app'], function (myApp) {
                     vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
                 });
                 $scope.safeApply();
+            } else if (choice == "FEEDBACK_REPORT") {
+                vm.feedbackQuery = {};
+                vm.feedbackSummaryData = {};
+                utilService.actionAfterLoaded("#feedbackReportTable", function () {
+                    vm.commonInitTime(vm.winRateQuery, '#feedbackReportQuery');
+                });
+                $scope.safeApply();
             } else if (choice == "ONLINE_PAYMENT_MISMATCH_REPORT") {
                 vm.onlinePaymentMismatchQuery = {type: 'online'};
                 vm.proposalMismatchDetail = {};
