@@ -2350,6 +2350,9 @@ tr.sn-selected, td.sn-selected {
     margin-right: 10px;
 }
 
+.feedbackQueryDiv .inlineBlk {
+    margin-right: 20px;
+}
 .feedbackQueryDiv .inlineBlk label {
     width: 100%;
 }

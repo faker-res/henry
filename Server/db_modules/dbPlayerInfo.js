@@ -3072,7 +3072,6 @@ let dbPlayerInfo = {
                         calculatePlayerValueProms.push(calculateProm);
                     }
                     return Promise.all(calculatePlayerValueProms);
-
                 }
             ).then(
                 () => {

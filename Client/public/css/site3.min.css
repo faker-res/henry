@@ -4763,3 +4763,6 @@ input[type='number'].leftALignNumber {
     border: 1px solid #337AB7;
     border-bottom: none;
 }
+.feedbackQueryDiv .inlineBlk {
+    margin-right: 20px;
+}
