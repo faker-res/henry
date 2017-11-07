@@ -13370,13 +13370,16 @@ define(['js/app'], function (myApp) {
                     $('#newPlayerLevelFirstInput').focus();
                 }, 1);
             };
+            // player level codes==============end===============================
 
+            // phone number filter codes==============start===============================
             vm.phoneNumFilterClicked = function () {
-                vm.phoneNumListResult = false;
+                vm.filterAllPlatform = false;
                 vm.inputNewPhoneNum = [];
                 vm.phoneNumCSVResult = false;
                 vm.phoneNumTXTResult = false;
-                vm.filterAllPlatform = false;
+                vm.phoneNumListResult = false;
+                vm.phoneNumXLSResult = false;
                 vm.resetInputCSV = false;
                 vm.resetInputTXT = false;
                 vm.gridOptions = {
@@ -13387,157 +13390,7 @@ define(['js/app'], function (myApp) {
                 };
             };
 
-            vm.uploadPhoneFileXLS = function (data) {
-                var data = [
-                    [] // header row
-                ];
-
-                var rows = uiGridExporterService.getData(vm.gridApi.grid, uiGridExporterConstants.VISIBLE, uiGridExporterConstants.VISIBLE);
-                var sheet = {};
-                var rowArray = [];
-                var rowArrayMerge;
-
-                for(let z = 0; z < rows.length; z++) {
-                    let rowObject = rows[z][0];
-                    let rowObjectValue = Object.values(rowObject);
-                    rowArray.push(rowObjectValue);
-                    rowArrayMerge = [].concat.apply([], rowArray);
-                }
-
-                let sendData = {
-                    filterAllPlatform: vm.filterAllPlatform,
-                    platformObjId: vm.selectedPlatform.id,
-                    arrayPhoneXLS: rowArrayMerge
-                };
-
-                socketService.$socket($scope.AppSocket, 'uploadPhoneFileXLS', sendData, function (data) {
-                    vm.diffPhoneXLS = data.data.diffPhoneXLS;
-                    vm.samePhoneXLS = data.data.samePhoneXLS;
-                    vm.diffPhoneTotalXLS = data.data.diffPhoneTotalXLS;
-                    vm.samePhoneTotalXLS = data.data.samePhoneTotalXLS;
-
-                    var rowsFilter = rows;
-
-                    for(let x = 0; x < rowsFilter.length; x++) {
-                        let rowObject = rowsFilter[x][0];
-                        let rowObjectValue = Object.values(rowObject);
-
-                        for(let y = 0; y < vm.samePhoneXLS.length; y++) {
-                            if(rowObjectValue == vm.samePhoneXLS[y]) {
-                                rowsFilter.splice(x,1);
-                                --x;
-                                break;
-                            }
-                        }
-                    }
-
-                vm.gridApi.grid.columns.forEach(function (col, i) {
-                    if (col.visible) {
-                        var loc = XLSX.utils.encode_cell({r: 0, c: i});
-
-                        sheet[loc] = {
-                            v: col.displayName
-                        };
-                    }
-                });
-
-                var endLoc;
-                rowsFilter.forEach(function (row, ri) {
-                    ri +=1;
-
-                    vm.gridApi.grid.columns.forEach(function (col, ci) {
-                        var loc = XLSX.utils.encode_cell({r: ri, c: ci});
-
-                        sheet[loc] = {
-                            v: row[ci].value,
-                            t: 's'
-                        };
-
-                        endLoc = loc;
-                    });
-                });
-
-                sheet['!ref'] = XLSX.utils.encode_range({ s: 'A1', e: endLoc });
-
-                var workbook = {
-                    SheetNames: ['Sheet1'],
-                    Sheets: {
-                        Sheet1: sheet
-                    }
-                };
-
-                var wopts = { bookType: 'xlsx', bookSST: false, type: 'binary' };
-                // write workbook (use type 'binary')
-                var wbout = XLSX.write(workbook, wopts);
-
-                saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
-
-                    $scope.safeApply();
-                });
-            };
-
-            // generate a download
-            vm.s2ab = function (s) {
-                var buf = new ArrayBuffer(s.length);
-                var view = new Uint8Array(buf);
-                for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
-                return buf;
-            };
-
-            vm.sheet_from_array_of_arrays = function (data, opts) {
-                var ws = {};
-                // var range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
-                var range = {e: {c:10000000, r:10000000}, s: {c:0, r:0 }};
-                for(var R = 0; R != data.length; ++R) {
-                    for(var C = 0; C != data[R].length; ++C) {
-                        if(range.s.r > R) range.s.r = R;
-                        if(range.s.c > C) range.s.c = C;
-                        if(range.e.r < R) range.e.r = R;
-                        if(range.e.c < C) range.e.c = C;
-                        var cell = {v: data[R][C] };
-                        if(cell.v == null) continue;
-                        var cell_ref = XLSX.utils.encode_cell({c:C,r:R});
-
-                        if(typeof cell.v === 'number') cell.t = 'n';
-                        else if(typeof cell.v === 'boolean') cell.t = 'b';
-                        else if(cell.v instanceof Date) {
-                            cell.t = 'n'; cell.z = XLSX.SSF._table[14];
-                            cell.v = datenum(cell.v);
-                        }
-                        else cell.t = 's';
-
-                        ws[cell_ref] = cell;
-                    }
-                }
-                if(range.s.c < 10000000) ws['!ref'] = XLSX.utils.encode_range(range);
-                return ws;
-            };
-
-            vm.resetUIGrid = function () {
-                vm.gridOptions.data = [];
-                vm.gridOptions.columnDefs = [];
-            };
-
-            // compare a new list pf phone numbers with existing player info database
-            // generate a new list of phone numbers without existing player phone number
-            vm.comparePhoneNum = function() {
-                vm.arrayInputPhone = vm.inputNewPhoneNum.split(/,|, /).map((item) => item.trim());
-
-                let sendData = {
-                    filterAllPlatform: vm.filterAllPlatform,
-                    platformObjId: vm.selectedPlatform.id,
-                    arrayInputPhone: vm.arrayInputPhone
-                };
-
-                socketService.$socket($scope.AppSocket, 'comparePhoneNum', sendData, function (data) {
-                    vm.diffPhoneList = data.data.diffPhoneList;
-                    vm.samePhoneList = data.data.samePhoneList;
-                    vm.diffPhoneTotal = data.data.diffPhoneTotal;
-                    vm.samePhoneTotal = data.data.samePhoneTotal;
-                    $scope.safeApply();
-                });
-            };
-
+            /****************** CSV - start ******************/
             // upload phone file: csv
             vm.uploadPhoneFileCSV = function(content) {
                 vm.splitPhoneCSV = content.split(/\n/g).map((item) => item.trim());
@@ -13574,13 +13427,15 @@ define(['js/app'], function (myApp) {
             vm.resetCSV = function () {
                 vm.contentCSV = false;
                 vm.resetInputCSV = !vm.resetInputCSV;
-                vm.phoneNumCSVResult=false;
+                vm.phoneNumCSVResult = false;
                 vm.samePhoneCSV = '';
                 vm.diffPhoneCSV = '';
                 vm.samePhoneTotalCSV = '';
                 vm.diffPhoneTotalCSV = '';
             };
+            /****************** CSV - end ******************/
 
+            /****************** TXT - start ******************/
             // upload phone file: txt
             vm.uploadPhoneFileTXT = function(content) {
                 vm.arrayPhoneTXT = content.split(/,|, /).map((item) => item.trim());
@@ -13609,7 +13464,6 @@ define(['js/app'], function (myApp) {
 
             // export phone number as txt file
             vm.saveTextAsFile = function(data, filename){
-
                 if(!data) {
                     console.error('Console.save: No data');
                     return;
@@ -13617,17 +13471,16 @@ define(['js/app'], function (myApp) {
 
                 if(!filename) filename = 'console.json';
 
-                let blob = new Blob([data], {type: 'text/plain'}),
-                    event    = document.createEvent('MouseEvents'),
-                    tagA    = document.createElement('a');
+                let blob = new Blob([data], {type: 'text/plain'});
+                let event = document.createEvent('MouseEvents');
+                let tagA = document.createElement('a');
 
                 // for IE:
                 if (window.navigator && window.navigator.msSaveOrOpenBlob) {
                     window.navigator.msSaveOrOpenBlob(blob, filename);
-                }
-                else{
-                    let event = document.createEvent('MouseEvents'),
-                        tagA = document.createElement('a');
+                } else {
+                    let event = document.createEvent('MouseEvents');
+                    let tagA = document.createElement('a');
 
                     tagA.download = filename;
                     tagA.href = window.URL.createObjectURL(blob);
@@ -13647,17 +13500,39 @@ define(['js/app'], function (myApp) {
             vm.resetTXT = function () {
                 vm.contentTXT = false;
                 vm.resetInputTXT = !vm.resetInputTXT;
-                vm.phoneNumTXTResult=false;
+                vm.phoneNumTXTResult = false;
                 vm.samePhoneTXT = '';
                 vm.diffPhoneTXT = '';
                 vm.samePhoneTotalTXT = '';
                 vm.diffPhoneTotalTXT = '';
             };
-            
+            /****************** TXT - end ******************/
+
+            /****************** List - start ******************/
+            // compare a new list pf phone numbers with existing player info database
+            // generate a new list of phone numbers without existing player phone number
+            vm.comparePhoneNum = function() {
+                vm.arrayInputPhone = vm.inputNewPhoneNum.split(/,|, /).map((item) => item.trim());
+
+                let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
+                    platformObjId: vm.selectedPlatform.id,
+                    arrayInputPhone: vm.arrayInputPhone
+                };
+
+                socketService.$socket($scope.AppSocket, 'comparePhoneNum', sendData, function (data) {
+                    vm.diffPhoneList = data.data.diffPhoneList;
+                    vm.samePhoneList = data.data.samePhoneList;
+                    vm.diffPhoneTotal = data.data.diffPhoneTotal;
+                    vm.samePhoneTotal = data.data.samePhoneTotal;
+                    $scope.safeApply();
+                });
+            };
+
             // reset phone number textarea
             vm.resetTextarea = function () {
                 vm.inputNewPhoneNum = '';
-                vm.phoneNumListResult=false;
+                vm.phoneNumListResult = false;
                 vm.samePhoneList = '';
                 vm.diffPhoneList = '';
             };
@@ -13665,27 +13540,151 @@ define(['js/app'], function (myApp) {
             // copy phone number list
             vm.copyToClipboard = function (elementId) {
                 vm.copyHere = false;
-
                 // Create an auxiliary hidden input
                 var aux = document.createElement("input");
-
                 // Get the text from the element passed into the input
                 aux.setAttribute("value", document.getElementById(elementId).innerHTML);
-
                 // Append the aux input to the body
                 document.body.appendChild(aux);
-
                 // Highlight the content
                 aux.select();
-
                 // Execute the copy command
                 document.execCommand("copy");
-
                 // Remove the input from the body
                 document.body.removeChild(aux);
             };
+            /****************** List - end ******************/
 
-            // player level codes==============end===============================
+            /****************** XLS - start ******************/
+            vm.uploadPhoneFileXLS = function (data) {
+                var data = [
+                    [] // header row
+                ];
+                var rows = uiGridExporterService.getData(vm.gridApi.grid, uiGridExporterConstants.VISIBLE, uiGridExporterConstants.VISIBLE);
+                var sheet = {};
+                var rowArray = [];
+                var rowArrayMerge;
+
+                for(let z = 0; z < rows.length; z++) {
+                    let rowObject = rows[z][0];
+                    let rowObjectValue = Object.values(rowObject);
+                    rowArray.push(rowObjectValue);
+                    rowArrayMerge = [].concat.apply([], rowArray);
+                }
+
+                let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
+                    platformObjId: vm.selectedPlatform.id,
+                    arrayPhoneXLS: rowArrayMerge
+                };
+
+                socketService.$socket($scope.AppSocket, 'uploadPhoneFileXLS', sendData, function (data) {
+                    vm.diffPhoneXLS = data.data.diffPhoneXLS;
+                    vm.samePhoneXLS = data.data.samePhoneXLS;
+                    vm.diffPhoneTotalXLS = data.data.diffPhoneTotalXLS;
+                    vm.samePhoneTotalXLS = data.data.samePhoneTotalXLS;
+                    vm.xlsTotal = rows.length;
+                    var rowsFilter = rows;
+
+                    for(let x = 0; x < rowsFilter.length; x++) {
+                        let rowObject = rowsFilter[x][0];
+                        let rowObjectValue = Object.values(rowObject);
+                        for(let y = 0; y < vm.samePhoneXLS.length; y++) {
+                            if(rowObjectValue == vm.samePhoneXLS[y]) {
+                                rowsFilter.splice(x,1);
+                                --x;
+                                break;
+                            }
+                        }
+                    }
+
+                    vm.gridApi.grid.columns.forEach(function (col, i) {
+                        if (col.visible) {
+                            var loc = XLSX.utils.encode_cell({r: 0, c: i});
+                            sheet[loc] = {
+                                v: col.displayName
+                            };
+                        }
+                    });
+
+                    var endLoc;
+                    rowsFilter.forEach(function (row, ri) {
+                        ri +=1;
+                        vm.gridApi.grid.columns.forEach(function (col, ci) {
+                            var loc = XLSX.utils.encode_cell({r: ri, c: ci});
+                            sheet[loc] = {
+                                v: row[ci].value,
+                                t: 's'
+                            };
+                            endLoc = loc;
+                        });
+                    });
+
+                    sheet['!ref'] = XLSX.utils.encode_range({ s: 'A1', e: endLoc });
+                    var workbook = {
+                        SheetNames: ['Sheet1'],
+                        Sheets: {
+                            Sheet1: sheet
+                        }
+                    };
+
+                    var wopts = { bookType: 'xlsx', bookSST: false, type: 'binary' };
+                    // write workbook (use type 'binary')
+                    var wbout = XLSX.write(workbook, wopts);
+                    saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
+
+                    $scope.safeApply();
+                });
+            };
+
+            // generate a download for xls
+            vm.s2ab = function (s) {
+                var buf = new ArrayBuffer(s.length);
+                var view = new Uint8Array(buf);
+                for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+                return buf;
+            };
+
+            // convert data array to spreadsheet format
+            vm.sheet_from_array_of_arrays = function (data, opts) {
+                var ws = {};
+                // var range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
+                var range = {e: {c:10000000, r:10000000}, s: {c:0, r:0 }};
+                for(var R = 0; R != data.length; ++R) {
+                    for(var C = 0; C != data[R].length; ++C) {
+                        if(range.s.r > R) range.s.r = R;
+                        if(range.s.c > C) range.s.c = C;
+                        if(range.e.r < R) range.e.r = R;
+                        if(range.e.c < C) range.e.c = C;
+                        var cell = {v: data[R][C] };
+                        if(cell.v == null) continue;
+                        var cell_ref = XLSX.utils.encode_cell({c:C,r:R});
+
+                        if(typeof cell.v === 'number') cell.t = 'n';
+                        else if(typeof cell.v === 'boolean') cell.t = 'b';
+                        else if(cell.v instanceof Date) {
+                            cell.t = 'n'; cell.z = XLSX.SSF._table[14];
+                            cell.v = datenum(cell.v);
+                        }
+                        else cell.t = 's';
+                        ws[cell_ref] = cell;
+                    }
+                }
+                if(range.s.c < 10000000) ws['!ref'] = XLSX.utils.encode_range(range);
+                return ws;
+            };
+
+            // reset phone number XLS
+            vm.resetUIGrid = function () {
+                vm.gridOptions.data = [];
+                vm.gridOptions.columnDefs = [];
+                vm.xlsTotal = '';
+                vm.samePhoneTotalXLS = '';
+                vm.diffPhoneTotalXLS = '';
+                vm.phoneNumXLSResult = false;
+            };
+            /****************** XLS - end ******************/
+            // phone number filter codes==============end===============================
 
             // partner level codes==============start===============================
 
