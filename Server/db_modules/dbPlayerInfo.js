@@ -187,7 +187,11 @@ let dbPlayerInfo = {
                 validData => {
                     if (validData && validData.isPlayerNameValid) {
                         if (platformObj.allowSamePhoneNumberToRegister === true) {
-                            return {isPhoneNumberValid: true}
+                            return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
+                                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
+                                platform: platformObjId
+                            },platformObj.samePhoneNumberRegisterCount);
+                            // return {isPhoneNumberValid: true}
                         } else {
                             return dbPlayerInfo.isPhoneNumberValidToRegister({
                                 phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
@@ -718,7 +722,11 @@ let dbPlayerInfo = {
             function (data) {
                 if (data.isPlayerNameValid) {
                     if (platformData.allowSamePhoneNumberToRegister === true) {
-                        return {isPhoneNumberValid: true};
+                        return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
+                            phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
+                            platform: playerdata.platform
+                        },platformData.samePhoneNumberRegisterCount);
+                        // return {isPhoneNumberValid: true};
                     } else {
                         return dbPlayerInfo.isPhoneNumberValidToRegister({
                             phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
@@ -5228,6 +5236,18 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne(query).then(
             playerData => {
                 if (playerData) {
+                    return {isPhoneNumberValid: false};
+                } else {
+                    return {isPhoneNumberValid: true};
+                }
+            }
+        );
+    },
+
+    isExceedPhoneNumberValidToRegister: function (query, count) {
+        return dbconfig.collection_players.findOne(query).count().then(
+            playerDataCount => {
+                if (playerDataCount > count) {
                     return {isPhoneNumberValid: false};
                 } else {
                     return {isPhoneNumberValid: true};

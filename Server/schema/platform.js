@@ -83,6 +83,8 @@ var platformSchema = new Schema({
     requireSMSVerificationForPaymentUpdate: {type: Boolean, default: false},
     //allow same phone number to register
     allowSamePhoneNumberToRegister: {type: Boolean, default: true},
+    //same phone number to register count
+    samePhoneNumberRegisterCount: {type: Number, default: 1},
     // Auto approve bonus proposal platform switch
     enableAutoApplyBonus: {type: Boolean, default: false},
     // Auto approve single withdrawal limit
