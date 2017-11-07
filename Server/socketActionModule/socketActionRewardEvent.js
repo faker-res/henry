@@ -6,6 +6,8 @@ var ObjectId = mongoose.Types.ObjectId;
 var dbUtil = require('./../modules/dbutility');
 var constSettlementPeriod = require('./../const/constSettlementPeriod');
 
+const dbRewardMainEvent = require('./../db_modules/dbRewardMainEvent');
+
 function socketActionRewardEvent(socketIO, socket) {
 
     this.socketIO = socketIO;
@@ -88,6 +90,15 @@ function socketActionRewardEvent(socketIO, socket) {
         getAllSettlementPeriod: function getAllSettlementPeriod(data) {
             var actionName = arguments.callee.name;
             self.socket.emit("_" + actionName, {success: true, data: constSettlementPeriod});
+        },
+
+        /**
+         *
+         * @param data
+         */
+        getRewardMainTypesForPlatform: function getRewardMainTypesForPlatform(data) {
+            let actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, dbRewardMainEvent.getRewardMainTypes, [], actionName, true);
         },
     };
     socketActionRewardEvent.actions = this.actions;

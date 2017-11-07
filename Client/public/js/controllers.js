@@ -347,6 +347,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ngSanitize', 'ngCsv']).controll
         '1': 'MerchantUse_CreateAccount',
         '2': 'MerchantUse_Normal'
     };
+    $scope.merchantTopupMainTypeJson = {
+        1: "Online",
+        2: "Manual",
+        3: "Alipay",
+        4: "Wechatpay"
+    };
     $scope.merchantTopupTypeJson = {
         '1': 'NetPay',
         '2': 'WechatQR',
@@ -402,6 +408,14 @@ angular.module('myApp.controllers', ['ui.grid', 'ngSanitize', 'ngCsv']).controll
     $scope.constPartnerStatus = {
         1: "NORMAL",
         2: "FORBID"
+    };
+
+    $scope.rewardInterval = {
+        1: "Daily",
+        2: "Weekly",
+        3: "Biweekly",
+        4: "Monthly",
+        5: "Interval"
     };
     //////// DOM initialisation operations ////////
 

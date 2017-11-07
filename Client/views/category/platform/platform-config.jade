@@ -562,7 +562,10 @@
                                 td {{'Use Provider Group' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.useProviderGroup', ng-disabled='!vm.configTableEdit')
-
+                            tr
+                                td {{'Use Reward Main Group' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.useRewardMainGroup', ng-disabled='!vm.configTableEdit')
                             br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}

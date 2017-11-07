@@ -1,0 +1,31 @@
+.text-center
+    p(ng-if="!vm.curPlatformText")
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+.col-sm-3(ng-if="vm.curPlatformText", style='padding-left:0')
+    .panel.panel-primary(style="min-height:610px")
+        .panel-heading.panel-heading-sm
+            label {{"All Rewards" | translate}}
+        .panel-body
+            ul.list-group.treeview(style='height:567px;overflow-y:auto')
+                li.list-group-item(ng-repeat='(i,v) in vm.allRewardMainType', ng-class='{active: v == vm.showReward}', ng-click='vm.rewardMainTypeClicked(i,v)') {{v.name | translate}}
+.col-sm-9(ng-if="vm.curPlatformText", style='padding-left:0;padding-right:0;')
+    .panel.panel-primary(ng-if='vm.showReward || vm.platformRewardShowEdit()')
+        .panel-heading.panel-heading-sm
+            label {{"REWARD"|translate}}
+        .panel-body(ng-if='vm.platformRewardPageName')
+            form(name='form_showReward', novalidate)
+                button.btn.btn-primary.common-button(style='text-align:center', ng-click='vm.newRewardMainTask(vm.showReward)')
+                    text {{"Add Event"|translate}}
+                    img.img-create
+                br
+                div#rewardMainTasks(ng-repeat="cond in vm.rewardMainTask")
+                    .well
+                        div(ng-repeat="(i,v) in cond")
+                            .full-width-input-block
+                                label {{v.des}}
+                                input.form-control(ng-if="v.type == 'string' || v.type == 'checkbox'" type="{{v.type}}" ng-model="vm.tempRewardMainTask[i].value")
+                                select.form-control(ng-if="v.type == 'Select'" ng-model="vm.tempRewardMainTask[i].value" ng-options="i as v for (i,v) in v.options")
+                                div.dateTimePicker(id="rewardMainTaskDate-{{i}}" style="display: inline-block" ng-if="v.type == 'date'")
+                                select.spicker.form-control(ng-if="v.type == 'multiSelect'" ng-model="vm.tempRewardMainTask[i].value" multiple, data-width='50%' data-actions-box='true')
+                                    option(style="display: inline-block" ng-repeat='(i,v) in v.options', value='{{i}}' ng-init='$last && vm.endLoadWeekDay()') {{v}}
+                        button.common-button.btn.btn-success(ng-click="vm.saveRewardMainTask(vm.tempRewardMainTask)") {{'SAVE' | translate}}

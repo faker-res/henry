@@ -160,6 +160,9 @@ let promoCodeUserGroupModel = db_admin.model('promoCodeUserGroup', promoCodeUser
 let playerFeedbackResultModel = db_admin.model('playerFeedbackResult', playerFeedbackResultSchema, 'playerFeedbackResult');
 let playerFeedbackTopicModel = db_admin.model('playerFeedbackTopic', playerFeedbackTopicSchema, 'playerFeedbackTopic');
 
+let rewardMainTypeSchema = require('../schema/rewardMainType');
+let rewardMainTypeModel = db_admin.model('rewardMainType', rewardMainTypeSchema, 'rewardMainType');
+
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
@@ -392,6 +395,8 @@ var dbProperties = {
 
     collection_playerFeedbackResult: playerFeedbackResultModel,
     collection_playerFeedbackTopic: playerFeedbackTopicModel,
+
+    collection_rewardMainType: rewardMainTypeModel,
 
     //logs
     collection_playerMail: playerMailModel,

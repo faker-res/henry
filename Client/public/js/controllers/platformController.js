@@ -11395,7 +11395,8 @@ define(['js/app'], function (myApp) {
                 } else {
                     return '' + num + '';
                 }
-            }
+            };
+
             vm.rewardTabClicked = function (callback) {
                 vm.forbidRewardRemark = '';
                 vm.dayHrs = {};
@@ -11410,34 +11411,36 @@ define(['js/app'], function (myApp) {
                 if (!authService.checkViewPermission('Platform', 'Reward', 'Read')) {
                     return;
                 }
-                socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
-                    vm.allRewardEvent = data.data;
-                    console.log("vm.allRewardEvent", data.data);
-                    vm.showApplyRewardEvent = data.data.filter(item => {
+
+                if (vm.selectedPlatform.data.useRewardMainGroup) {
+                    socketService.$socket($scope.AppSocket, 'getRewardMainTypesForPlatform', {}, function (data) {
+                        vm.allRewardMainType = data.data;
+                        console.log("vm.allRewardMainType", data.data);
+                    });
+                } else {
+                    socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
+                        vm.allRewardEvent = data.data;
+                        console.log("vm.allRewardEvent", data.data);
+                        vm.showApplyRewardEvent = data.data.filter(item => {
                             return item.needApply
                         }).length > 0
-                    vm.curContentRewardType = {};
-                    $.each(vm.allRewardEvent, function (i, v) {
-                        $.each(vm.allRewardTypes, function (a, b) {
-                            if (b._id == v.type._id) {
-                                vm.curContentRewardType[v._id] = b;
-                                return true;
-                            }
-                        })
-                        //console.log(v);
+                        vm.curContentRewardType = {};
+                        $.each(vm.allRewardEvent, function (i, v) {
+                            $.each(vm.allRewardTypes, function (a, b) {
+                                if (b._id == v.type._id) {
+                                    vm.curContentRewardType[v._id] = b;
+                                    return true;
+                                }
+                            })
+                            //console.log(v);
+                        });
+                        console.log(vm.curContentRewardType);
+                        $scope.safeApply();
+                        if (callback) {
+                            callback();
+                        }
                     });
-                    console.log(vm.curContentRewardType);
-                    $scope.safeApply();
-                    if (callback) {
-                        callback();
-                    }
-                });
-                // socketService.$socket($scope.AppSocket, 'getAllSettlementPeriod', '', function (data) {
-                //     vm.allSettlePeriod = data.data;
-                //     console.log("vm.allSettlePeriod", vm.allSettlePeriod);
-                //     $scope.safeApply();
-                // }, function (data) {
-                // });
+                }
 
                 vm.getPlatformProviderGroup();
             };
@@ -11479,6 +11482,88 @@ define(['js/app'], function (myApp) {
                 console.log('vm.rewardParams', vm.rewardParams);
                 $scope.safeApply();
             };
+
+        vm.rewardMainTypeClicked = function (i, v) {
+            console.log('rewardMainTypeClicked', i, v);
+
+            if (!v) {
+                vm.platformRewardPageName = 'showReward';
+                //vm.highlightRewardEvent = {};
+                //vm.highlightRewardEvent[v.name] = 'bg-bright';
+                vm.showReward = {};
+                vm.initRewardValidTimeDOM(vm.showReward.validStartTime, vm.showReward.validEndTime);
+                console.log('reward', i, v);
+                vm.showRewardTypeData = v;
+                vm.showRewardTypeId = null;
+                vm.rewardParams = {};
+                vm.rewardCondition = {};
+                return;
+            }
+            vm.platformRewardPageName = 'showReward';
+            //vm.highlightRewardEvent = {};
+            //vm.highlightRewardEvent[v.name] = 'bg-bright';
+            vm.showReward = v;
+            vm.initRewardValidTimeDOM(vm.showReward.validStartTime, vm.showReward.validEndTime);
+            console.log('vm.showReward', vm.showReward);
+            vm.showRewardTypeData = v;   // This will probably be overwritten by vm.platformRewardTypeChanged() below
+            //vm.showRewardTypeId = v.type._id;
+            // vm.rewardParams = Lodash.cloneDeep(v.param);
+            // vm.rewardCondition = Lodash.cloneDeep(v.condition);
+
+            vm.rewardMainTask = [];
+            vm.rewardMainCondition = {};
+
+            Object.keys(v.condition).forEach(el => {
+                let mainCond = v.condition[el];
+                let result;
+
+                Object.keys(mainCond).forEach(el => {
+                    let cond = mainCond[el];
+                    vm.rewardMainCondition[cond.index] = {
+                        index: cond.index,
+                        name: el,
+                        des: cond.des,
+                        type: cond.type
+                    };
+
+                    // Get options
+                    switch (cond.options) {
+                        default:
+                            result = $scope[cond.options];
+                            break;
+                    }
+
+                    console.log('$scope[cond.options]', $scope[cond.options]);
+
+                    vm.rewardMainCondition[cond.index].options = result;
+
+                    // Render dateTimePicker
+                    let id = "#rewardMainTaskDate-" + cond.index;
+                    utilService.actionAfterLoaded(id, function () {
+                        vm.rewardMainCondition[cond.index].date = utilService.createDatePicker(id, {
+                            language: 'en',
+                            format: 'yyyy/MM/dd hh:mm:ss'
+                        });
+
+                        vm.rewardMainCondition[cond.index].date.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), -1)));
+                    });
+                })
+            });
+
+            vm.userAgentType = $scope.userAgentType;
+
+            //vm.platformRewardTypeChanged();
+
+            $scope.safeApply();
+        };
+
+        vm.getVariableOptions = function (optName) {
+            switch (optName) {
+                default:
+                    return $scope[optName];
+                    break;
+            }
+        };
 
             vm.platformRewardTypeChanged = function () {
                 $.each(vm.allRewardTypes, function (i, v) {
@@ -11805,7 +11890,41 @@ define(['js/app'], function (myApp) {
                 } else {
                     return true;
                 }
+            };
+
+        vm.newRewardMainTask = function (rewardMainType) {
+            if (!vm.tempRewardMainTask) {
+                vm.tempRewardMainTask = Object.assign({}, vm.rewardMainCondition);
+
+                vm.rewardMainTask.push(vm.tempRewardMainTask);
             }
+        };
+
+        vm.saveRewardMainTask = function (rewardTask) {
+            let saveObj = {};
+
+            for (let obj in rewardTask) {
+                let elem = rewardTask[obj];
+                if (elem.hasOwnProperty("value")) {
+                    saveObj[elem.name] = elem.value;
+                }
+                if (elem.hasOwnProperty('date')) {
+                    saveObj[elem.name] = elem.date.data('datetimepicker').getLocalDate();
+                }
+            }
+
+            console.log('saveObj', saveObj);
+            console.log('vm.rewardMainTask', vm.rewardMainTask);
+
+
+            // socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+            //     vm.platformProvider = data.data.gameProviders;
+            //     $scope.safeApply();
+            // }, function (data) {
+            //     console.log("cannot get gameProvider", data);
+            // });
+        };
+
             vm.clearCanApplyFromClient = function(){
               if(!vm.showReward.needApply){
                 vm.showReward.canApplyFromClient = false;
@@ -11955,7 +12074,7 @@ define(['js/app'], function (myApp) {
                             utilService.actionAfterLoaded(id, function () {
                                 collection[index].expDate = utilService.createDatePicker(id, {
                                     language: 'en',
-                                    format: 'yyyy/MM/dd hh:mm:ss'
+                                    format: 'yyyy/MM/dd hh:mm:ss',
                                 });
                                 collection[index].expDate.data('datetimepicker').setDate(new Date(), 1);
                             });
@@ -13651,6 +13770,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
                 vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
                 vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup;
+                vm.platformBasic.useRewardMainGroup = vm.selectedPlatform.data.useRewardMainGroup;
                 $scope.safeApply();
             }
 
@@ -14084,7 +14204,8 @@ define(['js/app'], function (myApp) {
                         requireSMSVerification: srcData.requireSMSVerification,
                         requireSMSVerificationForPasswordUpdate: srcData.requireSMSVerificationForPasswordUpdate,
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
-                        useProviderGroup: srcData.useProviderGroup
+                        useProviderGroup: srcData.useProviderGroup,
+                        useRewardMainGroup: srcData.useRewardMainGroup
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
