@@ -9435,7 +9435,7 @@ define(['js/app'], function (myApp) {
             //         }
             //     });
             // }
-        vm.submitPlayerFeedbackQuery = function () {
+        vm.submitPlayerFeedbackQuery = function (isNewSearch) {
             if(!vm.selectedPlatform) return;
             console.log('vm.feedback', vm.playerFeedbackQuery);
             let sendQuery = {platform: vm.selectedPlatform.id};
@@ -9587,6 +9587,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
                     query: sendQuery,
                     index: vm.playerFeedbackQuery.index,
+                    limit: vm.playerFeedbackQuery.limit,
                     sortCol: vm.playerFeedbackQuery.sortCol
                 }, function (data) {
                     console.log('_getPlayerFeedbackQuery', data);
@@ -9594,8 +9595,8 @@ define(['js/app'], function (myApp) {
                     console.log(playerList);
                     setTableData(vm.playerFeedbackTable, playerList);
                     vm.playerFeedbackQuery.total = data.data.total || 0;
-                    vm.playerFeedbackQuery.index = data.data.index + 1;
-                    vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total}, true);
+                    vm.playerFeedbackQuery.index = data.data.index || 0;
+                    vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total}, isNewSearch);
                     // vm.playerTable.rows(function (idx, rowData, node) {
                     //     if (rowData._id == result[0]._id) {
                     //         vm.playerTableRowClicked(rowData);

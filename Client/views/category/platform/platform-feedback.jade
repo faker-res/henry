@@ -131,7 +131,7 @@
             .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.submitPlayerFeedbackQuery();') {{"SEARCH_SINGLE" | translate}}
             .inlineBlk
-                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery();') {{"SEARCH_LIST" | translate}}
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_LIST" | translate}}
                 span#platformFeedbackSpin.collapse
                     i.fa.fa-spinner.fa-spin
                 span.margin-left-5
