@@ -288,11 +288,15 @@ var roleChecker = {
                 playerDailyCreditLog :['playerCreditDailyLog'],
                 playerApiLog: ['getPlayerApiLog'],
                 rewardTaskLog: ['getPlayerRewardTask'],
-                UpdatePlayerCredibility: ['updatePlayerCredibilityRemark']
+                UpdatePlayerCredibility: ['updatePlayerCredibilityRemark'],
+                ModifyFeedbackResult: ['createPlayerFeedbackResult','deletePlayerFeedbackResult'],
+                ModifyFeedbackTopic: ['createPlayerFeedbackTopic','deletePlayerFeedbackTopic']
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
-                Create: ['createPlayerFeedback']
+                Create: ['createPlayerFeedback'],
+                ModifyFeedbackResult: ['createPlayerFeedbackResult','deletePlayerFeedbackResult'],
+                ModifyFeedbackTopic: ['createPlayerFeedbackTopic','deletePlayerFeedbackTopic']
             },
             "FeedbackQuery": {
                 Read: ['getPlayerFeedbackQuery', 'getPlayerFeedbackResults', 'getAllPlayerFeedbacks']
@@ -542,7 +546,8 @@ var roleChecker = {
                 PARTNERPLAYERBOUNS_REPORT: ['getPartnerPlayerBonusReport'],
                 PARTNERCOMMISSION_REPORT: ['getPartnerCommissionReport'],
                 PLAYERDOMAIN_REPORT: ['getPlayerDomainReport', 'getDepartmentDetailsByPlatformObjId'],
-                WINRATE_REPORT: ['winRateReport']
+                WINRATE_REPORT: ['winRateReport'],
+                FEEDBACK_REPORT: [],
             },
             Reward: {
                 Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType'],

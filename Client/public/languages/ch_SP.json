@@ -39,6 +39,7 @@
   "UNABLE": "否",
   "PLAYER_INFORMATION": "玩家资料",
   "PARTNER_INFORMATION": "代理资料",
+  "FEEDBACK_RESULT_KEY": "回访结果代码",
   "FEEDBACK_RESULT": "回访结果",
   "ADD_FEEDBACK_RESULT": "添加回访结果",
   "DELETE_FEEDBACK_RESULT": "删除回访结果",
@@ -47,6 +48,10 @@
   "ADD_FEEDBACK_TOPIC": "添加回访主题",
   "DELETE_FEEDBACK_TOPIC": "删除回访主题",
   "CHOOSE_FEEDBACK_TOPIC": "选择回访主题",
+
+  "FEEDBACK_REPORT": "回访报表",
+  "FEEDBACK_TIME_START": "回访时间（开始）",
+  "FEEDBACK_TIME_END": "回访时间（结束）",
 
   "SYSTEM_SETTLEMENT": "系统结算",
   "LOGIN_TITLE": "请登录",
