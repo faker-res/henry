@@ -2598,7 +2598,5 @@
   "updateBankInfo": "银行卡（更换）",
   "resetPassword": "重置密码",
   "VERIFICATION_CODE": "验证码",
-  "used": "成功",
-  "available": "尝试",
-  "unavailable": "尝试"
+  "try": "尝试"
 }

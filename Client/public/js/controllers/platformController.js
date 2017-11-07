@@ -1260,7 +1260,6 @@ define(['js/app'], function (myApp) {
                 })
             }
             vm.submitSMSRecordQuery = function (newSearch) {
-
                 var sendQuery = {
                     recipientName: vm.smsRecordQuery.recipientName,
                     purpose: vm.smsRecordQuery.purpose,
@@ -1285,21 +1284,16 @@ define(['js/app'], function (myApp) {
                         item.createTime = vm.dateReformat(item.createTime);
                         item.status = $translate(item.status);
                         item.purpose = $translate(item.purpose);
-                        //region testing
-                        item.currentCount$ = 1;
-                        item.totalCount$ = 4;
-                        item.validationStatus$ = -1;
-                        //endregion
                         switch(item.validationStatus$){
-                            case -1:
-                                item.validationStatus$ = "used";
-                                break;
                             case 0:
-                                item.validationStatus$ = "available";
-                                break;
                             case 1:
-                                item.validationStatus$ = "unavailable";
+                                item.validationStatus$$ = "try";
                                 break;
+                            case -1:
+                                item.validationStatus$$ = "success";
+                                break;
+                            default:
+                                item.validationStatus$$ = "-";
                         }
                         return item;
                     }), size, newSearch);
@@ -1322,7 +1316,7 @@ define(['js/app'], function (myApp) {
                         {'title': $translate('ACCOUNT'), data: 'recipientName'},
                         {'title': $translate('STATUS'),
                             render: function (data, type, row){
-                                return $translate(row.validationStatus$) + "(" + row.currentCount$ + "/" + row.totalCount$ + ")";
+                                return $translate(row.validationStatus$$) + "(" + row.currentCount$ + "/" + row.totalCount$ + ")";
                              }
                         },
                         {'title': $translate('SENT TIME'), data: 'createTime', bSortable: true},
@@ -1365,12 +1359,12 @@ define(['js/app'], function (myApp) {
 
         vm.platformSmsRecordTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
             switch (aData.validationStatus$) {
-                case "available": {
+                case 0: {
                     $(nRow).css('background-color', 'rgba(255, 209, 202, 100)','important');
                     // $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
                     break;
                 }
-                case "unavailable": {
+                case 1: {
                     $(nRow).css('background-color', 'rgba(200, 200, 200, 20)','important');
                     // $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
                     break;
