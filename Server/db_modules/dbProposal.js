@@ -1371,6 +1371,34 @@ var proposal = {
                                              if(item.data && item.data.phoneNumber && !displayPhoneNum){
                                                  item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                              }
+                                             if (item.data && item.data.updateData){
+                                                 switch(Object.keys(item.data.updateData)[0]){
+                                                     case "phoneNumber":
+                                                         item.data.updateData.phoneNumber = dbutility.encodePhoneNum(item.data.updateData.phoneNumber);
+                                                         break;
+                                                     case "email":
+                                                         let startIndex = Math.max(Math.floor((item.data.updateData.email.length - 4) / 2), 0);
+                                                         item.data.updateData.email = item.data.updateData.email.substr(0, startIndex) + "****" + item.data.updateData.email.substr(startIndex + 4);
+                                                         break;
+                                                     case "qq":
+                                                         let qqNumber = item.data.updateData.qq.substr(0, item.data.updateData.qq.indexOf("@"));
+                                                         let qqIndex = Math.max(Math.floor((qqNumber.length - 4) / 2), 0);
+                                                         let qqNumberEncoded = qqNumber.substr(0, qqIndex) + "****" + qqNumber.substr(qqIndex + 4);
+                                                         item.data.updateData.qq = qqNumberEncoded + "@qq.com";
+                                                         break;
+                                                     case "weChat":
+                                                         let weChatIndex = Math.max(Math.floor((item.data.updateData.weChat.length - 4) / 2), 0);
+                                                         item.data.updateData.weChat = item.data.updateData.weChat.substr(0, weChatIndex) + "****" + item.data.updateData.weChat.substr(weChatIndex + 4);
+                                                         break;
+                                                     case "wechat":
+                                                         let wechatIndex = Math.max(Math.floor((item.data.updateData.wechat.length - 4) / 2), 0);
+                                                         item.data.updateData.wechat = item.data.updateData.wechat.substr(0, wechatIndex) + "****" + item.data.updateData.wechat.substr(wechatIndex + 4);
+                                                         break;
+                                                     case "bankAccount":
+                                                         item.data.updateData.bankAccount = dbutility.encodeBankAcc(item.data.updateData.bankAccount);
+                                                         break;
+                                                 }
+                                             }
                                              return item
                                          })
 

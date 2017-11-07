@@ -2,9 +2,10 @@
 
 define(['js/app'], function (myApp) {
 
-        var injectParams = ['$sce', '$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies", "$timeout"];
+    var injectParams = ['$sce', '$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies", "$timeout", '$http', 'uiGridExporterService', 'uiGridExporterConstants'];
 
-        var platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout) {
+    var platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
+
             var $translate = $filter('translate');
             var vm = this;
 
@@ -5819,6 +5820,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 let sendQuery = {
+                    admin: authService.adminName,
                     platformObjId: vm.selectedSinglePlayer.platform,
                     playerObjId: vm.selectedSinglePlayer._id,
                     remarks: selectedRemarks,
@@ -13489,7 +13491,138 @@ define(['js/app'], function (myApp) {
                 vm.filterAllPlatform = false;
                 vm.resetInputCSV = false;
                 vm.resetInputTXT = false;
-                vm.gridOptions = {};
+                vm.gridOptions = {
+                    enableFiltering: true,
+                    onRegisterApi: function (api) {
+                        vm.gridApi = api;
+                    }
+                };
+            };
+
+            vm.uploadPhoneFileXLS = function (data) {
+                var data = [
+                    [] // header row
+                ];
+
+                var rows = uiGridExporterService.getData(vm.gridApi.grid, uiGridExporterConstants.VISIBLE, uiGridExporterConstants.VISIBLE);
+                var sheet = {};
+                var rowArray = [];
+                var rowArrayMerge;
+
+                for(let z = 0; z < rows.length; z++) {
+                    let rowObject = rows[z][0];
+                    let rowObjectValue = Object.values(rowObject);
+                    rowArray.push(rowObjectValue);
+                    rowArrayMerge = [].concat.apply([], rowArray);
+                }
+
+                let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
+                    platformObjId: vm.selectedPlatform.id,
+                    arrayPhoneXLS: rowArrayMerge
+                };
+
+                socketService.$socket($scope.AppSocket, 'uploadPhoneFileXLS', sendData, function (data) {
+                    vm.diffPhoneXLS = data.data.diffPhoneXLS;
+                    vm.samePhoneXLS = data.data.samePhoneXLS;
+                    vm.diffPhoneTotalXLS = data.data.diffPhoneTotalXLS;
+                    vm.samePhoneTotalXLS = data.data.samePhoneTotalXLS;
+
+                    var rowsFilter = rows;
+
+                    for(let x = 0; x < rowsFilter.length; x++) {
+                        let rowObject = rowsFilter[x][0];
+                        let rowObjectValue = Object.values(rowObject);
+
+                        for(let y = 0; y < vm.samePhoneXLS.length; y++) {
+                            if(rowObjectValue == vm.samePhoneXLS[y]) {
+                                rowsFilter.splice(x,1);
+                                --x;
+                                break;
+                            }
+                        }
+                    }
+
+                vm.gridApi.grid.columns.forEach(function (col, i) {
+                    if (col.visible) {
+                        var loc = XLSX.utils.encode_cell({r: 0, c: i});
+
+                        sheet[loc] = {
+                            v: col.displayName
+                        };
+                    }
+                });
+
+                var endLoc;
+                rowsFilter.forEach(function (row, ri) {
+                    ri +=1;
+
+                    vm.gridApi.grid.columns.forEach(function (col, ci) {
+                        var loc = XLSX.utils.encode_cell({r: ri, c: ci});
+
+                        sheet[loc] = {
+                            v: row[ci].value,
+                            t: 's'
+                        };
+
+                        endLoc = loc;
+                    });
+                });
+
+                sheet['!ref'] = XLSX.utils.encode_range({ s: 'A1', e: endLoc });
+
+                var workbook = {
+                    SheetNames: ['Sheet1'],
+                    Sheets: {
+                        Sheet1: sheet
+                    }
+                };
+
+                var wopts = { bookType: 'xlsx', bookSST: false, type: 'binary' };
+                // write workbook (use type 'binary')
+                var wbout = XLSX.write(workbook, wopts);
+
+                saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
+
+                    $scope.safeApply();
+                });
+            };
+
+            // generate a download
+            vm.s2ab = function (s) {
+                var buf = new ArrayBuffer(s.length);
+                var view = new Uint8Array(buf);
+                for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+                return buf;
+            };
+
+            vm.sheet_from_array_of_arrays = function (data, opts) {
+                var ws = {};
+                // var range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
+                var range = {e: {c:10000000, r:10000000}, s: {c:0, r:0 }};
+                for(var R = 0; R != data.length; ++R) {
+                    for(var C = 0; C != data[R].length; ++C) {
+                        if(range.s.r > R) range.s.r = R;
+                        if(range.s.c > C) range.s.c = C;
+                        if(range.e.r < R) range.e.r = R;
+                        if(range.e.c < C) range.e.c = C;
+                        var cell = {v: data[R][C] };
+                        if(cell.v == null) continue;
+                        var cell_ref = XLSX.utils.encode_cell({c:C,r:R});
+
+                        if(typeof cell.v === 'number') cell.t = 'n';
+                        else if(typeof cell.v === 'boolean') cell.t = 'b';
+                        else if(cell.v instanceof Date) {
+                            cell.t = 'n'; cell.z = XLSX.SSF._table[14];
+                            cell.v = datenum(cell.v);
+                        }
+                        else cell.t = 's';
+
+                        ws[cell_ref] = cell;
+                    }
+                }
+                if(range.s.c < 10000000) ws['!ref'] = XLSX.utils.encode_range(range);
+                return ws;
             };
 
             vm.resetUIGrid = function () {
@@ -13582,7 +13715,7 @@ define(['js/app'], function (myApp) {
             // export phone number to txt
             vm.exportTXTFile = function (data) {
                 let fileText = data;
-                let fileName = "phoneNumber.txt";
+                let fileName = "phoneNumberFilter.txt";
                 vm.saveTextAsFile(fileText, fileName);
             };
 
