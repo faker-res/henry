@@ -13376,6 +13376,7 @@ define(['js/app'], function (myApp) {
                 vm.inputNewPhoneNum = [];
                 vm.phoneNumCSVResult = false;
                 vm.phoneNumTXTResult = false;
+                vm.phoneNumXLSResult = false;
                 vm.filterAllPlatform = false;
                 vm.resetInputCSV = false;
                 vm.resetInputTXT = false;
@@ -13511,6 +13512,7 @@ define(['js/app'], function (myApp) {
                 vm.xlsTotal = '';
                 vm.samePhoneTotalXLS = '';
                 vm.diffPhoneTotalXLS = '';
+                vm.phoneNumXLSResult = false;
             };
 
             // compare a new list pf phone numbers with existing player info database
@@ -13569,7 +13571,7 @@ define(['js/app'], function (myApp) {
             vm.resetCSV = function () {
                 vm.contentCSV = false;
                 vm.resetInputCSV = !vm.resetInputCSV;
-                vm.phoneNumCSVResult=false;
+                vm.phoneNumCSVResult = false;
                 vm.samePhoneCSV = '';
                 vm.diffPhoneCSV = '';
                 vm.samePhoneTotalCSV = '';
