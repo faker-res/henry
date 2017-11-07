@@ -26,7 +26,7 @@ var smsLogSchema = new Schema ({
     // relevant proposal id (if exist)
     proposalId: String,
     // Date of creation
-    createTime: {type: Date, default: Date.now},
+    createTime: {type: Date, default: Date.now, index: true},
     //sms sending status: success or fail
     status: {type: String, required: true, enum: ['success', 'failure']},
     error: {type: Schema.Types.Mixed, required: false},

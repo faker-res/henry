@@ -1559,8 +1559,14 @@ var dbPlatform = {
                         totalCountProm = Promise.resolve(0);
                     else {
                         let totalCountMatch = {tel, purpose};
-                        if (lastUsedTime) totalCountMatch.createTime.$gt = lastUsedTime;
-                        if (nextUsedTime) totalCountMatch.createTime.$lt = nextUsedTime;
+                        if (lastUsedTime) {
+                            if (!totalCountMatch.createTime) totalCountMatch.createTime = {};
+                            totalCountMatch.createTime.$gt = lastUsedTime;
+                        }
+                        if (nextUsedTime) {
+                            if (!totalCountMatch.createTime) totalCountMatch.createTime = {};
+                            totalCountMatch.createTime.$lte = nextUsedTime;
+                        }
                         totalCountProm = dbconfig.collection_smsLog.find(totalCountMatch).count();
                     }
 
