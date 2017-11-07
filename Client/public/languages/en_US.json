@@ -884,6 +884,7 @@
   "RESET_GRID":"Reset",
   "FILTER_THEN_EXPORT_XLS":"Filter and Export",
   "SELECT_XLS_FILE":"Select Excel File",
+  "XLS_LENGTH":"Data length",
 
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",

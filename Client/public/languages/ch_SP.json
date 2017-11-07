@@ -1318,6 +1318,7 @@
   "RESET_GRID":"重置",
   "FILTER_THEN_EXPORT_XLS":"过滤和导出",
   "SELECT_XLS_FILE":"选择Excel文件",
+  "XLS_LENGTH":"总数据",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
@@ -2600,5 +2601,7 @@
   "RETYPE_WECHAT": "重新输入微信账号",
   "IS_ACTIVE": "是否激活",
   "SET": "设置",
-  "PROMO_CODE_MODIFIED": "优惠代码被更改"
+  "PROMO_CODE_MODIFIED": "优惠代码被更改",
+  "Merchant Name":"名称"
+
 }
