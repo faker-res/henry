@@ -57,9 +57,10 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
             tr
                 td {{'REGISTERED_IP' | translate}}
                 td {{vm.newPlayerProposal.lastLoginIp}}
+                    span(ng-if='vm.newPlayerProposal.ipAreaName') ({{vm.newPlayerProposal.ipAreaName||''}})
             tr
                 td {{'PHONE_LOCATION' | translate}}
-                td {{vm.newPlayerProposal.combinedArea}}
+                td {{vm.newPlayerProposal.data.phoneNumber}} ({{vm.newPlayerProposal.combinedArea}})
             tr
                 td {{'DEPOSIT_COUNT' | translate}}
                 td {{vm.newPlayerProposal.topUpTimes}}
@@ -74,5 +75,5 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                         input.form-control(ng-if='vm.editNewplayerRemark',ng-model='vm.newPlayerProposal.data.editRemark', ng-init='vm.newPlayerProposal.data.editRemark=vm.newPlayerProposal.remarks')
                     div.button.btn.btn-primary(ng-click='vm.editNewplayerRemark=true') {{'Edit' | translate}}
 
-                    div.button.btn.btn-primary(ng-click='vm.updateNewPlayerRemark(vm.newPlayerProposal._id, vm.newPlayerProposal.data.editRemark)') {{'Confirm' | translate}}
+                    div.button.btn.btn-primary(ng-if='vm.editNewplayerRemark', ng-click='vm.updateNewPlayerRemark(vm.newPlayerProposal._id, vm.newPlayerProposal.data.editRemark)') {{'CONFIRMATION' | translate}}
 

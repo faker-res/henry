@@ -2544,32 +2544,32 @@ define(['js/app'], function (myApp) {
                     });
 
                     vm.getNewPlayerListByFilter(true);
+
                 });
             }
-            vm.loadPhoneNumberRecord = function(phoneNumber){
+            vm.loadPhoneNumberRecord = function(newSearch){
                 vm.getCredibilityRemarks();
-                vm.phoneDuplicate = {totalCount: 0};
                 var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
                 var sendData = {
                     adminId: authService.adminId,
                     platformId: vm.selectedPlatform.id,
                     type: ["PlayerRegistrationIntention"],
                     phoneNumber: vm.newPlayer.phoneNumber,
-                    size: vm.phoneDuplicate.limit || 10,
-                    index: vm.phoneDuplicate.index || 0,
+                    size: newSearch ? 10 : (vm.phoneDuplicate.limit || 10),
+                    index: newSearch ? 0 : (vm.phoneDuplicate.index || 0),
                     // sortCol: vm.newPlayerRecords.sortCol || null,
                     displayPhoneNum: true
                 }
                 sendData.status = selectedStatus;
-                $("#sameNumPlayerListTable").modal();
+                $("#sameNumPlayerListTable").css('z-Index',1051).modal();
                 vm.preparePhoneDuplicateRecords(sendData, true);
-                // $("#samePhoneNumTable").off('order.dt');
-                // $("#samePhoneNumTable").on('order.dt', function (event, a, b) {
-                //     vm.commonSortChangeHandler(a, 'phoneDuplicate', vm.loadPhoneNumberRecord);
-                // });
-                vm.phoneDuplicate.pageObj = utilService.createPageForPagingTable("#samePhoneNumTablePage", {}, $translate, function (curP, pageSize) {
-                    vm.commonPageChangeHandler(curP, pageSize, "phoneDuplicate", vm.loadPhoneNumberRecord)
+                $("#samePhoneNumTable").off('order.dt');
+                $("#samePhoneNumTable").on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'phoneDuplicate', vm.loadPhoneNumberRecord);
                 });
+                // vm.phoneDuplicate.pageObj = utilService.createPageForPagingTable("#samePhoneNumTablePage", {}, $translate, function (curP, pageSize) {
+                //     vm.commonPageChangeHandler(curP, pageSize, "phoneDuplicate", vm.loadPhoneNumberRecord)
+                // });
 
             }
 
@@ -2617,16 +2617,13 @@ define(['js/app'], function (myApp) {
                                 return credibilityRemarksTXT;
                             })||'';
                             record.valueScore = record.data.valueScore ?record.data.valueScore:"";
+                            record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea):'';
                             record.lastAccessTime = record.data.lastAccessTime ? vm.dateReformat(record.data.lastAccessTime):"";
                                 Object.keys(vm.allPlayersStatusString).filter(item=>{
                                 return record.data.playerStatus == vm.allPlayersStatusString[item];
                             })[0];
-                            if(record.data.playerStatus){
-                                if(record.data.playerStatus == 3){ record.playerStatusName = $translate("Disable") }
-                                else{
-                                    record.playerStatusName =$translate("Enable") ;
-                                }
-                            }
+                            record.playerStatusName = $translate("Enable");
+                            if(record.data.playerStatus == 3){ record.playerStatusName = $translate("Disable") }
 
                             return record
                         }
@@ -2662,7 +2659,7 @@ define(['js/app'], function (myApp) {
                                 }
                             },
                             {title: $translate('PlayerLevel'), data: "playerLevelName"},
-                            {title: $translate('REGISTERED_IP'), data: "lastLoginIp"},
+                            {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
                             {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
                             {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
                             {title: $translate('last_access_time'), data: "lastAccessTime"}
@@ -2681,13 +2678,22 @@ define(['js/app'], function (myApp) {
                         fnRowCallback: vm.playerListTableRow
                     });
                     var a = utilService.createDatatableWithFooter('#samePhoneNumTable', option, {});
-                    // vm.phoneDuplicate.pageObj.init({maxCount: vm.phoneDuplicate.totalCount}, newSearch);
+                    vm.phoneDuplicate.pageObj.init({maxCount: vm.phoneDuplicate.totalCount}, newSearch);
                     setTimeout(function () {
                         $('#samePhoneNumTable').resize();
                     }, 300);
 
                 });
             };
+            vm.getIpAreaName = function(ipArea){
+                let result = '';
+                let province = ipArea.province? ipArea.province:'';
+                let city = ipArea.city ? ipArea.city:'';
+                if(province && city){
+                    result = province + ', ' +  city;
+                }
+                return result
+            }
             vm.getNewPlayerListByFilter = function (newSearch) {
                 var selectedStatus = vm.queryPara.newPlayerList ? [vm.queryPara.newPlayerList.status] : ["Success", "Fail", "Pending", "Manual"];
                 var sendData = {
@@ -2753,6 +2759,7 @@ define(['js/app'], function (myApp) {
                             record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
                             record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
                             record.proposalId = record.data.proposalId ? record.data.proposalId : "";
+                            record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea):'';
                             return record
                         }
                     );
@@ -2788,7 +2795,7 @@ define(['js/app'], function (myApp) {
                             //{title: $translate('PLAYERID'), data: "playerId"},
                             {title: $translate('SENT TIME'), data: "createTime"},
                             {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
-                            {title: $translate('REGISTERED_IP'), data: "lastLoginIp"},
+                            {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
                             {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
                             {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
                             {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
@@ -2867,7 +2874,9 @@ define(['js/app'], function (myApp) {
             vm.createPlayerHelper = function(row){
                 console.log(row);
                 vm.prepareCreatePlayer();
-                $('#modalCreatePlayer').css('z-Index',99999).modal();
+                $('#modalCreatePlayer')
+                    .css('z-Index',1051)
+                    .modal();
                 utilService.actionAfterLoaded("#modalCreatePlayer", function () {
                     vm.newPlayer.realName = row.data.realName;
                     vm.newPlayer.name = row.data.name;
@@ -5312,6 +5321,12 @@ define(['js/app'], function (myApp) {
                 vm.getReferralPlayer(vm.newPlayer, "new");
                 vm.playerCreateResult = null;
                 vm.playerPswverify = null;
+
+                vm.phoneDuplicate = {totalCount: 0, index:0 , limit:10};
+                vm.phoneDuplicate.pageObj = utilService.createPageForPagingTable("#samePhoneNumTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "phoneDuplicate", vm.loadPhoneNumberRecord)
+                });
+
             }
             vm.editPlayerStatus = function (id) {
                 console.log(id);
@@ -13164,7 +13179,7 @@ define(['js/app'], function (myApp) {
                     result = $translate(vm.getDepositMethodbyId[val])
                 } else if (fieldName === 'playerStatus') {
                     result = $translate($scope.constPlayerStatus[val]);
-                } else if (fieldName == 'allowedProviders'){
+                    } else if (fieldName == 'allowedProviders'){
                     let providerName = '';
                     for(var v in val){
                         providerName += val[v].name+', ';
