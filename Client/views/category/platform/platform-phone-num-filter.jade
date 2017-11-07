@@ -160,7 +160,7 @@
                     text
                         strong {{"ADD_PHONE_NUMBER_XLS_INSTRUCTION" | translate}}
                 div
-                    #grid1.grid(ng-if='vm.gridOptions', ui-grid='vm.gridOptions', ui-grid-edit='', ui-grid-exporter='')
+                    #grid1.grid(ng-if='vm.gridOptions', ui-grid='vm.gridOptions', ui-grid-edit='', ui-grid-exporter='', ui-grid-resize-columns='', ui-grid-move-columns='')
                         .grid-msg-overlay(ng-show='!vm.gridOptions.data.length')
                             .msg
                                 .center
@@ -168,6 +168,18 @@
                                     br
                                     input(type='file', accept='.xls, .xlsx, .xlsm, .ods', fileread='', opts='vm.gridOptions', multiple='false')
                     br
+                    .pull-left
+                        label {{"XLS_LENGTH" | translate}}:
+                        | &nbsp;
+                        label(style="color:red") {{vm.xlsTotal}}
+                        br
+                        label {{"DUPLICATE_PHONE" | translate}}:
+                        | &nbsp;
+                        label(style="color:red") {{vm.samePhoneTotalXLS}}
+                        br
+                        label {{"NON_DUPLICATE_PHONE" | translate}}:
+                        | &nbsp;
+                        label(style="color:red") {{vm.diffPhoneTotalXLS}}
                     .pull-right
                         button.btn.btn-danger.common-button(type='button', ng-click='vm.resetUIGrid()')
                             i.fa.fa-refresh

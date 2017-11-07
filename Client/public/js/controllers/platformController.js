@@ -13341,7 +13341,6 @@ define(['js/app'], function (myApp) {
                 var data = [
                     [] // header row
                 ];
-
                 var rows = uiGridExporterService.getData(vm.gridApi.grid, uiGridExporterConstants.VISIBLE, uiGridExporterConstants.VISIBLE);
                 var sheet = {};
                 var rowArray = [];
@@ -13365,13 +13364,12 @@ define(['js/app'], function (myApp) {
                     vm.samePhoneXLS = data.data.samePhoneXLS;
                     vm.diffPhoneTotalXLS = data.data.diffPhoneTotalXLS;
                     vm.samePhoneTotalXLS = data.data.samePhoneTotalXLS;
-
+                    vm.xlsTotal = rows.length;
                     var rowsFilter = rows;
 
                     for(let x = 0; x < rowsFilter.length; x++) {
                         let rowObject = rowsFilter[x][0];
                         let rowObjectValue = Object.values(rowObject);
-
                         for(let y = 0; y < vm.samePhoneXLS.length; y++) {
                             if(rowObjectValue == vm.samePhoneXLS[y]) {
                                 rowsFilter.splice(x,1);
@@ -13381,46 +13379,40 @@ define(['js/app'], function (myApp) {
                         }
                     }
 
-                vm.gridApi.grid.columns.forEach(function (col, i) {
-                    if (col.visible) {
-                        var loc = XLSX.utils.encode_cell({r: 0, c: i});
-
-                        sheet[loc] = {
-                            v: col.displayName
-                        };
-                    }
-                });
-
-                var endLoc;
-                rowsFilter.forEach(function (row, ri) {
-                    ri +=1;
-
-                    vm.gridApi.grid.columns.forEach(function (col, ci) {
-                        var loc = XLSX.utils.encode_cell({r: ri, c: ci});
-
-                        sheet[loc] = {
-                            v: row[ci].value,
-                            t: 's'
-                        };
-
-                        endLoc = loc;
+                    vm.gridApi.grid.columns.forEach(function (col, i) {
+                        if (col.visible) {
+                            var loc = XLSX.utils.encode_cell({r: 0, c: i});
+                            sheet[loc] = {
+                                v: col.displayName
+                            };
+                        }
                     });
-                });
 
-                sheet['!ref'] = XLSX.utils.encode_range({ s: 'A1', e: endLoc });
+                    var endLoc;
+                    rowsFilter.forEach(function (row, ri) {
+                        ri +=1;
+                        vm.gridApi.grid.columns.forEach(function (col, ci) {
+                            var loc = XLSX.utils.encode_cell({r: ri, c: ci});
+                            sheet[loc] = {
+                                v: row[ci].value,
+                                t: 's'
+                            };
+                            endLoc = loc;
+                        });
+                    });
 
-                var workbook = {
-                    SheetNames: ['Sheet1'],
-                    Sheets: {
-                        Sheet1: sheet
-                    }
-                };
+                    sheet['!ref'] = XLSX.utils.encode_range({ s: 'A1', e: endLoc });
+                    var workbook = {
+                        SheetNames: ['Sheet1'],
+                        Sheets: {
+                            Sheet1: sheet
+                        }
+                    };
 
-                var wopts = { bookType: 'xlsx', bookSST: false, type: 'binary' };
-                // write workbook (use type 'binary')
-                var wbout = XLSX.write(workbook, wopts);
-
-                saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
+                    var wopts = { bookType: 'xlsx', bookSST: false, type: 'binary' };
+                    // write workbook (use type 'binary')
+                    var wbout = XLSX.write(workbook, wopts);
+                    saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
 
                     $scope.safeApply();
                 });
@@ -13466,6 +13458,9 @@ define(['js/app'], function (myApp) {
             vm.resetUIGrid = function () {
                 vm.gridOptions.data = [];
                 vm.gridOptions.columnDefs = [];
+                vm.xlsTotal = '';
+                vm.samePhoneTotalXLS = '';
+                vm.diffPhoneTotalXLS = '';
             };
 
             // compare a new list pf phone numbers with existing player info database
@@ -13559,7 +13554,6 @@ define(['js/app'], function (myApp) {
 
             // export phone number as txt file
             vm.saveTextAsFile = function(data, filename){
-
                 if(!data) {
                     console.error('Console.save: No data');
                     return;
@@ -13567,17 +13561,16 @@ define(['js/app'], function (myApp) {
 
                 if(!filename) filename = 'console.json';
 
-                let blob = new Blob([data], {type: 'text/plain'}),
-                    event    = document.createEvent('MouseEvents'),
-                    tagA    = document.createElement('a');
+                let blob = new Blob([data], {type: 'text/plain'});
+                let event = document.createEvent('MouseEvents');
+                let tagA = document.createElement('a');
 
                 // for IE:
                 if (window.navigator && window.navigator.msSaveOrOpenBlob) {
                     window.navigator.msSaveOrOpenBlob(blob, filename);
-                }
-                else{
-                    let event = document.createEvent('MouseEvents'),
-                        tagA = document.createElement('a');
+                } else {
+                    let event = document.createEvent('MouseEvents');
+                    let tagA = document.createElement('a');
 
                     tagA.download = filename;
                     tagA.href = window.URL.createObjectURL(blob);
@@ -13615,22 +13608,16 @@ define(['js/app'], function (myApp) {
             // copy phone number list
             vm.copyToClipboard = function (elementId) {
                 vm.copyHere = false;
-
                 // Create an auxiliary hidden input
                 var aux = document.createElement("input");
-
                 // Get the text from the element passed into the input
                 aux.setAttribute("value", document.getElementById(elementId).innerHTML);
-
                 // Append the aux input to the body
                 document.body.appendChild(aux);
-
                 // Highlight the content
                 aux.select();
-
                 // Execute the copy command
                 document.execCommand("copy");
-
                 // Remove the input from the body
                 document.body.removeChild(aux);
             };
