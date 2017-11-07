@@ -64,7 +64,8 @@
                                 .fa.fa-users.margin-right-5
                                 text.span {{"PLAYER" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'Feedback', 'Read')")
-                            a.common-tab(data-toggle="tab", href="#Feedback", ng-click="vm.submitPlayerFeedbackQuery();vm.platformPageName='Feedback';vm.updatePageTile();")
+                            //a.common-tab(data-toggle="tab", href="#Feedback", ng-click="vm.submitPlayerFeedbackQuery();vm.platformPageName='Feedback';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#Feedback", ng-click="vm.initPlayerFeedback();vm.platformPageName='Feedback';vm.updatePageTile();")
                                 .fa.fa-volume-control-phone.margin-right-5
                                 text.span {{"FEEDBACK" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'FeedbackQuery', 'Read')")
@@ -432,4 +433,5 @@ include ../common-widget/telephone-popover
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.modalYesNo.actionYes()") {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
 
+include platform-player-popup
 include platform-feedback-popup

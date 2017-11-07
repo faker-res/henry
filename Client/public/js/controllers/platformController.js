@@ -237,6 +237,18 @@ define(['js/app'], function (myApp) {
                 vm.selectedPlatformDetailTab = tabName == null ? "backstage-settings" : tabName;
             };
 
+        vm.getAllGameProviders = function (platformId) {
+            if (!platformId) return;
+            socketService.$socket($scope.AppSocket, 'getPlatform', {_id: platformId}, function (data) {
+                vm.allGameProviders = data.data.gameProviders;
+                console.log('vm.allGameProviders', vm.allGameProviders);
+                $scope.safeApply();
+            }, function (err) {
+                console.log("vm.allGameProviders ERROR", err);
+            });
+        };
+
+
             //////////Lin Hao:: Provider List Delay Popup
             utilService.setupPopover({
                 context: ulMenu,
@@ -518,7 +530,7 @@ define(['js/app'], function (myApp) {
                     });
                 })
 
-                Q.all([vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
+                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id),vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
                     function (data) {
                         // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
                         switch (vm.platformPageName) {
@@ -526,7 +538,8 @@ define(['js/app'], function (myApp) {
                                 vm.loadGameGroupData();
                                 break;
                             case "Feedback":
-                                vm.submitPlayerFeedbackQuery();
+                                vm.initPlayerFeedback();
+                                // vm.submitPlayerFeedbackQuery();
                                 break;
                             case "MessageTemplates":
                                 vm.getPlatformMessageTemplates();
@@ -4205,10 +4218,12 @@ define(['js/app'], function (myApp) {
                 //     v.defaultContent = "";
                 // });
                 vm.playerTable = $('#playerDataTable').DataTable(tableOptions);
+                vm.playerFeedbackTable = $('#playerFeedbackDataTable').DataTable(tableOptions);
                 // $('#playerDataTable').DataTable(tableOptions);
 
                 // vm.playerTable.columns.adjust().draw();
                 utilService.setDataTablePageInput('playerDataTable', vm.playerTable, $translate);
+                utilService.setDataTablePageInput('playerFeedbackDataTable', vm.playerFeedbackTable, $translate);
 
                 if (!vm.playersQueryCreated) {
                     createPlayerAdvancedSearchFilters({
@@ -4496,6 +4511,7 @@ define(['js/app'], function (myApp) {
                 $(nRow).off('click');
                 $(nRow).on('click', function () {
                     $('#playerDataTable tbody tr').removeClass('selected');
+                    $('#playerFeedbackDataTable tbody tr').removeClass('selected');
                     $(this).toggleClass('selected');
                     vm.selectedPlayersCount = 1;
                     vm.playerTableRowClicked(aData);
@@ -7827,6 +7843,10 @@ define(['js/app'], function (myApp) {
                     var rowData = vm.playerTableClickedRow.data();
                     rowData.feedbackTimes++;
                     vm.playerTableClickedRow.data(rowData).draw();
+
+                    if(vm.platformPageName=='Feedback') {
+                        vm.submitPlayerFeedbackQuery();
+                    }
                     $scope.safeApply();
                 });
             }
@@ -9410,69 +9430,215 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
-            vm.submitPlayerFeedbackQuery = function (index) {
-                if (!vm.selectedPlatform)return;
-                console.log('vm.feedback', vm.playerFeedbackQuery);
-                var sendQuery = {platform: vm.selectedPlatform.id};
-                if (vm.playerFeedbackQuery.isRealPlayer == "1") {
-                    sendQuery.isRealPlayer = true;
-                } else if (vm.playerFeedbackQuery.isRealPlayer == "2") {
-                    sendQuery.isTestPlayer = true;
+            // vm.submitPlayerFeedbackQuery = function (index) {
+            //     if (!vm.selectedPlatform)return;
+            //     console.log('vm.feedback', vm.playerFeedbackQuery);
+            //     var sendQuery = {platform: vm.selectedPlatform.id};
+            //     if (vm.playerFeedbackQuery.isRealPlayer == "1") {
+            //         sendQuery.isRealPlayer = true;
+            //     } else if (vm.playerFeedbackQuery.isRealPlayer == "2") {
+            //         sendQuery.isTestPlayer = true;
+            //     }
+            //     if (vm.playerFeedbackQuery.playerLevel != "all") {
+            //         sendQuery.playerLevel = vm.playerFeedbackQuery.playerLevel;
+            //     }
+            //     if (vm.playerFeedbackQuery.trustLevel != "all") {
+            //         sendQuery.trustLevel = vm.playerFeedbackQuery.trustLevel;
+            //     }
+            //     if (vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').getLocalDate()
+            //         || vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').getLocalDate()) {
+            //         sendQuery.lastAccessTime = {
+            //             $gte: vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').getLocalDate() || new Date(0),
+            //             $lt: vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').getLocalDate() || new Date(),
+            //         };
+            //     }
+            //     if (vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').getLocalDate()
+            //         || vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').getLocalDate()) {
+            //         sendQuery.lastFeedbackTime = {
+            //             $gte: vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').getLocalDate() || new Date(0),
+            //             $lt: vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').getLocalDate() || new Date(),
+            //         }
+            //     }
+            //
+            //     if (vm.playerFeedbackQuery.topUpTimes != "-1") {
+            //         switch (vm.playerFeedbackQuery.topUpTimes) {
+            //             case "0":
+            //                 sendQuery.topUpTimes = {
+            //                     $gte: 0,
+            //                     $lte: 1
+            //                 };
+            //                 break;
+            //             case "1"://today
+            //                 sendQuery.topUpTimes = {
+            //                     $gte: 2
+            //                 };
+            //                 break;
+            //         }
+            //     }
+            //
+            //     if (vm.playerFeedbackQuery.isNewSystem === 'old') {
+            //         sendQuery.isNewSystem = {$ne : true};
+            //     } else if (vm.playerFeedbackQuery.isNewSystem === 'new') {
+            //         sendQuery.isNewSystem = true;
+            //     }
+            //
+            //     if (vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
+            //         sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+            //     }
+            //
+            //     $('#platformFeedbackSpin').show();
+            //     console.log('sendQuery', sendQuery);
+            //     socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
+            //         query: sendQuery,
+            //         index: vm.feedbackPlayersPara.index - 1
+            //     }, function (data) {
+            //         console.log('_getPlayerFeedbackQuery', data);
+            //         vm.curFeedbackPlayer = data.data.data;
+            //         vm.feedbackPlayersPara.total = data.data.total || 0;
+            //         vm.feedbackPlayersPara.index = data.data.index + 1;
+            //         $('#platformFeedbackSpin').hide();
+            //         if (!vm.curFeedbackPlayer) {
+            //             $scope.safeApply();
+            //             return;
+            //         }
+            //
+            //         vm.addFeedback = {
+            //             playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
+            //             platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
+            //         };
+            //         if (vm.curFeedbackPlayer._id) {
+            //             vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+            //                 vm.curPlayerFeedbackDetail = data;
+            //                 $scope.safeApply();
+            //             })
+            //         } else {
+            //             vm.curPlayerFeedbackDetail = {};
+            //             $scope.safeApply();
+            //         }
+            //     });
+            // }
+        vm.submitPlayerFeedbackQuery = function (isNewSearch) {
+            if(!vm.selectedPlatform) return;
+            console.log('vm.feedback', vm.playerFeedbackQuery);
+            let sendQuery = {platform: vm.selectedPlatform.id};
+            let sendQueryOr = [];
+
+            if(vm.playerFeedbackQuery.playerType && vm.playerFeedbackQuery.playerType!=null) {
+                sendQuery.playerType = vm.playerFeedbackQuery.playerType;
+            }
+
+            if(vm.playerFeedbackQuery.playerLevel !== "all") {
+                sendQuery.playerLevel = vm.playerFeedbackQuery.playerLevel;
+            }
+
+            if(vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
+                sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+            }
+
+            if(vm.playerFeedbackQuery.lastAccess === "range") {
+                sendQuery.lastAccessTime = {
+                    $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessFormal)),
+                    $gte: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessLatter)),
+                };
+            } else {
+                let range = vm.playerFeedbackQuery.lastAccess.split("-");
+                sendQuery.lastAccessTime = {
+                    $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), parseInt(range[0])))
+                };
+                if(range[1]) {
+                    sendQuery.lastAccessTime["$gte"] = utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), parseInt(range[1])));
                 }
-                if (vm.playerFeedbackQuery.playerLevel != "all") {
-                    sendQuery.playerLevel = vm.playerFeedbackQuery.playerLevel;
-                }
-                if (vm.playerFeedbackQuery.trustLevel != "all") {
-                    sendQuery.trustLevel = vm.playerFeedbackQuery.trustLevel;
-                }
-                if (vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').getLocalDate()
-                    || vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').getLocalDate()) {
-                    sendQuery.lastAccessTime = {
-                        $gte: vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').getLocalDate() || new Date(0),
-                        $lt: vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').getLocalDate() || new Date(),
-                    };
-                }
-                if (vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').getLocalDate()
-                    || vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').getLocalDate()) {
-                    sendQuery.lastFeedbackTime = {
-                        $gte: vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').getLocalDate() || new Date(0),
-                        $lt: vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').getLocalDate() || new Date(),
+            }
+
+            if(vm.playerFeedbackQuery.filterFeedback) {
+                let lastFeedbackTimeExist = {
+                    lastFeedbackTime: null
+                };
+                let lastFeedbackTime = {
+                    lastFeedbackTime: {
+                        $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
                     }
-                }
+                };
+                sendQueryOr.push(lastFeedbackTimeExist);
+                sendQueryOr.push(lastFeedbackTime);
+                sendQuery["$or"] = sendQueryOr;
+            }
 
-                if (vm.playerFeedbackQuery.topUpTimes != "-1") {
-                    switch (vm.playerFeedbackQuery.topUpTimes) {
-                        case "0":
+            if(vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal!=null) {
+                switch(vm.playerFeedbackQuery.depositCountOperator) {
+                    case ">=":
+                        sendQuery.topUpTimes = {
+                            $gte: vm.playerFeedbackQuery.depositCountFormal
+                        };
+                        break;
+                    case "=":
+                        sendQuery.topUpTimes = vm.playerFeedbackQuery.depositCountFormal;
+                        break;
+                    case "<=":
+                        sendQuery.topUpTimes = {
+                            $lte: vm.playerFeedbackQuery.depositCountFormal
+                        };
+                        break;
+                    case "range":
+                        if(vm.playerFeedbackQuery.depositCountLatter!=null) {
                             sendQuery.topUpTimes = {
-                                $gte: 0,
-                                $lte: 1
+                                $lte: vm.playerFeedbackQuery.depositCountLatter,
+                                $gte: vm.playerFeedbackQuery.depositCountFormal
                             };
-                            break;
-                        case "1"://today
-                            sendQuery.topUpTimes = {
-                                $gte: 2
+                        }
+                        break;
+                }
+            }
+
+            if(vm.playerFeedbackQuery.playerValueOperator && vm.playerFeedbackQuery.playerValueFormal!=null) {
+                switch(vm.playerFeedbackQuery.playerValueOperator) {
+                    case ">=":
+                        sendQuery.valueScore = {
+                            $gte: vm.playerFeedbackQuery.playerValueFormal
+                        };
+                        break;
+                    case "=":
+                        sendQuery.valueScore = vm.playerFeedbackQuery.playerValueFormal;
+                        break;
+                    case "<=":
+                        sendQuery.valueScore = {
+                            $lte: vm.playerFeedbackQuery.playerValueFormal
+                        };
+                        break;
+                    case "range":
+                        if(vm.playerFeedbackQuery.playerValueLatter!=null) {
+                            sendQuery.valueScore = {
+                                $lte: vm.playerFeedbackQuery.playerValueLatter,
+                                $gte: vm.playerFeedbackQuery.playerValueFormal
                             };
-                            break;
-                    }
+                        }
+                        break;
                 }
+            }
 
-                if (vm.playerFeedbackQuery.isNewSystem === 'old') {
-                    sendQuery.isNewSystem = {$ne : true};
-                } else if (vm.playerFeedbackQuery.isNewSystem === 'new') {
-                    sendQuery.isNewSystem = true;
-                }
+            if(vm.playerFeedbackQuery.gameProviderId.length > 0) {
+                sendQuery.gameProviderPlayed = {$in: vm.playerFeedbackQuery.gameProviderId};
+            }
 
-                if (vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
-                    sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
-                }
+            if(vm.playerFeedbackQuery.isNewSystem === "old") {
+                sendQuery.isNewSystem = {$ne : true};
+            } else if (vm.playerFeedbackQuery.isNewSystem === "new") {
+                sendQuery.isNewSystem = true;
+            }
 
-                $('#platformFeedbackSpin').show();
-                console.log('sendQuery', sendQuery);
-                socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
+            $('#platformFeedbackSpin').show();
+            console.log('sendQuery', sendQuery);
+            console.log('vm.playerFeedbackSearchType', vm.playerFeedbackSearchType);
+            if(vm.playerFeedbackSearchType == "one") {
+                socketService.$socket($scope.AppSocket, 'getSinglePlayerFeedbackQuery', {
                     query: sendQuery,
                     index: vm.feedbackPlayersPara.index - 1
                 }, function (data) {
-                    console.log('_getPlayerFeedbackQuery', data);
+                    console.log('_getSinglePlayerFeedbackQuery', data);
+                    let playerList = [];
+                    playerList.push(data.data.data);
+                    setTableData(vm.playerFeedbackTable, playerList);
+
                     vm.curFeedbackPlayer = data.data.data;
                     vm.feedbackPlayersPara.total = data.data.total || 0;
                     vm.feedbackPlayersPara.index = data.data.index + 1;
@@ -9490,13 +9656,67 @@ define(['js/app'], function (myApp) {
                         vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
                             vm.curPlayerFeedbackDetail = data;
                             $scope.safeApply();
-                        })
+                        });
+                        vm.getPlayerCredibilityComment(vm.curFeedbackPlayer._id);
+                        $scope.safeApply();
                     } else {
                         vm.curPlayerFeedbackDetail = {};
                         $scope.safeApply();
                     }
                 });
             }
+            else {
+                socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
+                    query: sendQuery,
+                    index: vm.playerFeedbackQuery.index,
+                    limit: vm.playerFeedbackQuery.limit,
+                    sortCol: vm.playerFeedbackQuery.sortCol
+                }, function (data) {
+                    console.log('_getPlayerFeedbackQuery', data);
+                    let playerList = data.data.data;
+                    console.log(playerList);
+                    setTableData(vm.playerFeedbackTable, playerList);
+                    vm.playerFeedbackQuery.total = data.data.total || 0;
+                    vm.playerFeedbackQuery.index = data.data.index || 0;
+                    vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total}, isNewSearch);
+                    // vm.playerTable.rows(function (idx, rowData, node) {
+                    //     if (rowData._id == result[0]._id) {
+                    //         vm.playerTableRowClicked(rowData);
+                    //         vm.selectedPlayersCount = 1;
+                    //         $(node).addClass('selected');
+                    //         found = true;
+                    //     }
+                    // })
+
+                    vm.curFeedbackPlayer = data.data.data;
+                    vm.feedbackPlayersPara.total = data.data.total || 0;
+                    vm.feedbackPlayersPara.index = data.data.index + 1;
+                    $('#platformFeedbackSpin').hide();
+                    if (!vm.curFeedbackPlayer) {
+                        $scope.safeApply();
+                        return;
+                    }
+
+                    vm.addFeedback = {
+                        playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
+                        platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
+                    };
+                    if (vm.curFeedbackPlayer._id) {
+                        vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                            vm.curPlayerFeedbackDetail = data;
+                            $scope.safeApply();
+                        });
+                        vm.getPlayerCredibilityComment(vm.curFeedbackPlayer._id);
+                        $scope.safeApply();
+                    } else {
+                        vm.curPlayerFeedbackDetail = {};
+                        $scope.safeApply();
+                    }
+                });
+            }
+            vm.playerCredibilityComment = [];
+            $scope.safeApply();
+        };
             vm.getFeedbackPlayer = function (inc) {
                 if (inc == '+') {
                     vm.feedbackPlayersPara.index += 1;
@@ -9514,7 +9734,8 @@ define(['js/app'], function (myApp) {
                     vm.feedbackPlayersPara.index = 1;
                 }
                 vm.curPlayerFeedbackDetail = [];
-                vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
+                vm.submitPlayerFeedbackQuery();
+                // vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
                 $scope.safeApply();
             }
             vm.addPlayerFeedback = function (data) {
@@ -9524,15 +9745,17 @@ define(['js/app'], function (myApp) {
                     createTime: Date.now(),
                     adminId: authService.adminId,
                     content: data.content,
-                    result: data.result
+                    result: data.result,
+                    topic: data.topic
                 };
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function () {
                     vm.addFeedback.content = "";
                     vm.addFeedback.result = "";
-                    vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
+                    // vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
+                    vm.submitPlayerFeedbackQuery();
                 });
-            }
+            };
             vm.getPlayerCreditinFeedbackInfo = function () {
                 vm.curFeedbackPlayer.gameCredit = {};
                 for (var i in vm.platformProviderList) {
@@ -9542,8 +9765,51 @@ define(['js/app'], function (myApp) {
 
         vm.initPlayerFeedback = function () {
             console.log("initPlayerFeedback");
-            vm.getAllPlayerFeedbackResults();
-            vm.getAllPlayerFeedbackTopics();
+            vm.playerFeedbackQuery.index = 1;
+            vm.playerFeedbackSearchType = "many";
+            vm.playerFeedbackQuery = {};
+            vm.playerFeedbackQuery.playerType = "Real Player (all)";
+            vm.playerFeedbackQuery.playerLevel = "all";
+            vm.playerFeedbackQuery.lastAccess = "15-28";
+            setTimeout(
+                () => {
+                    vm.setupRemarksMultiInputFeedback();
+                    vm.setupGameProviderMultiInputFeedback();
+                });
+            utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
+                vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
+
+                    var isChange = false;
+                    if (pageSize != vm.playerFeedbackQuery.limit) {
+                        isChange = true;
+                        vm.playerFeedbackQuery.limit = pageSize;
+                    }
+                    if ((curP - 1) * pageSize != vm.playerFeedbackQuery.index) {
+                        isChange = true;
+                        vm.playerFeedbackQuery.index = (curP - 1) * pageSize;
+                    }
+                    if (isChange) return vm.submitPlayerFeedbackQuery();
+                });
+                $('#playerFeedbackDataTable').on('order.dt', function (event, a) {
+                    if (!a.aaSorting[0]) return;
+                    var sortCol = a.aaSorting[0][0];
+                    var sortDire = a.aaSorting[0][1];
+                    var sortKey = a.aoColumns[sortCol].data;
+
+                    if (sortKey) {
+                        vm.playerFeedbackQuery.sortCol = vm.playerFeedbackQuery.sortCol || {};
+                        var preVal = vm.playerFeedbackQuery.sortCol[sortKey];
+                        vm.playerFeedbackQuery.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                        if (vm.playerFeedbackQuery.sortCol[sortKey] != preVal) {
+                            vm.playerFeedbackQuery.sortCol = {};
+                            vm.playerFeedbackQuery.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                            vm.submitPlayerFeedbackQuery();
+                        }
+                    }
+                });
+            });
+
+            $scope.safeApply();
         };
 
         vm.getAllPlayerFeedbackResults = function () {
@@ -15453,7 +15719,6 @@ define(['js/app'], function (myApp) {
 
                 setTimeout(
                     function () {
-                        vm.initPlayerFeedback();
                         vm.initFeedbackQuery();
 
                         vm.queryPara = {};
@@ -15502,7 +15767,7 @@ define(['js/app'], function (myApp) {
                                 if (!a.aaSorting[0]) return;
                                 var sortCol = a.aaSorting[0][0];
                                 var sortDire = a.aaSorting[0][1];
-                                var sortKey = a.aoColumns[sortCol].data
+                                var sortKey = a.aoColumns[sortCol].data;
                                 // vm.playerTableQuery.aaSorting = a.aaSorting;
 
                                 if (sortKey) {
@@ -15539,7 +15804,7 @@ define(['js/app'], function (myApp) {
                         });
 
 
-                        Q.all([]).then(
+                        Q.all([vm.getAllPlayerFeedbackResults(),vm.getAllPlayerFeedbackTopics()]).then(
                             function (data) {
                                 // This init data will be a list of undefineds.
                                 // The above promises don't actually produce data, they just promise to set their vm variables!
@@ -15970,10 +16235,11 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.getPlayerCredibilityComment = function () {
+        vm.getPlayerCredibilityComment = function (playerObjId) {
+            playerObjId = playerObjId || vm.selectedSinglePlayer._id;
             vm.playerCredibilityComment = [];
             let query = {
-                playerObjId: vm.selectedSinglePlayer._id
+                playerObjId: playerObjId
             };
             socketService.$socket($scope.AppSocket, 'getUpdateCredibilityLog', query, function (data) {
                     vm.playerCredibilityComment = data.data;
@@ -16023,20 +16289,33 @@ define(['js/app'], function (myApp) {
                 vm.advancedQueryObj = {};
                 vm.advancedPlayerQuery(true);
             })
-        })
+        });
 
         vm.setupRemarksMultiInputFeedback = function () {
             let remarkSelect = $('select#selectCredibilityRemarkFeedback');
-            if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
-                return;
-            }
+            // if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
+            //     return;
+            // }
             remarkSelect.multipleSelect({
-                showCheckbox  : true,
+                showCheckbox: true,
                 allSelected: $translate("All Selected"),
                 selectAllText: $translate("Select All"),
                 displayValues: false,
                 countSelected: $translate('# of % selected')
             });
+            remarkSelect.multipleSelect("uncheckAll");
+            $scope.safeApply();
+        };
+        vm.setupGameProviderMultiInputFeedback = function () {
+            let gameProviderSelect = $('select#selectGameProvider');
+            gameProviderSelect.multipleSelect({
+                showCheckbox: true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
+            });
+            gameProviderSelect.multipleSelect("uncheckAll");
             $scope.safeApply();
         };
 
@@ -16105,7 +16384,7 @@ define(['js/app'], function (myApp) {
                                 },
                                 index: 0,
                                 limit: 100
-                            }
+                            };
                             socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', sendQuery2, function (data2) {
                                 size += data2.data.size || 0;
                                 result = result.concat(data2.data.data);
