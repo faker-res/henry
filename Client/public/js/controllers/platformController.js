@@ -2562,7 +2562,7 @@ define(['js/app'], function (myApp) {
                 }
                 sendData.status = selectedStatus;
                 $("#sameNumPlayerListTable").css('z-Index',1051).modal();
-                vm.preparePhoneDuplicateRecords(sendData, true);
+                vm.preparePhoneDuplicateRecords(sendData, newSearch);
                 $("#samePhoneNumTable").off('order.dt');
                 $("#samePhoneNumTable").on('order.dt', function (event, a, b) {
                     vm.commonSortChangeHandler(a, 'phoneDuplicate', vm.loadPhoneNumberRecord);
@@ -5322,7 +5322,7 @@ define(['js/app'], function (myApp) {
                 vm.playerCreateResult = null;
                 vm.playerPswverify = null;
 
-                vm.phoneDuplicate = {totalCount: 0, index:0 , limit:10};
+                vm.phoneDuplicate = {totalCount: 0};
                 vm.phoneDuplicate.pageObj = utilService.createPageForPagingTable("#samePhoneNumTablePage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "phoneDuplicate", vm.loadPhoneNumberRecord)
                 });
@@ -5579,7 +5579,7 @@ define(['js/app'], function (myApp) {
                                 $(".topupGroupRecordTablePage").show();
 
                                 utilService.createDatatableWithFooter('.topupGroupRecordTable', tableOptions, {});
-                                cvm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
+                                vm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
                                 $scope.safeApply()
                             }
                         }
