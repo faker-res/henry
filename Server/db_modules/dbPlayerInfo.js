@@ -11072,6 +11072,17 @@ let dbPlayerInfo = {
         );
     },
 
+
+    setBonusShowInfo: (playerId, platformId, showInfoState) => {
+        return dbUtility.findOneAndUpdateForShard(
+            dbconfig.collection_players,
+            {playerId: playerId},
+            {"viewInfo.showInfoState": showInfoState},
+            constShardKeys.collection_players
+        )
+
+    },
+
     createUpdateTopUpGroupLog: (player, adminId, bankGroup, remark) => {
         remark = remark || "";
         let proms = [];

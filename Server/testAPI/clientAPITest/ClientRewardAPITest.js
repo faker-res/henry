@@ -213,6 +213,12 @@
         this.rewardService.setLimitedOfferShowInfo.once(callback);
     };
 
+    proto.setBonusShowInfo = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.setBonusShowInfo.request(data);
+        this.rewardService.setBonusShowInfo.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientRewardAPITest;
     } else {
