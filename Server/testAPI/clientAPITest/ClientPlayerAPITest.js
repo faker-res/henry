@@ -515,6 +515,22 @@
         this.playerService.notifyNewMail.addListener(responseFunc);
     };
 
+    proto.manualPlayerLevelUp = function (callback, requestData) {
+        var thisObj = this;
+        var data = requestData || {};
+
+        thisObj.playerService.manualPlayerLevelUp.request(data);
+        thisObj.playerService.manualPlayerLevelUp.once(function (data) {
+            // newTestPlayerObjId = data && data.data ? data.data._id : null;
+            // newTestPlayerId = data && data.data ? data.data.playerId : null;
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+
+
+    };
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

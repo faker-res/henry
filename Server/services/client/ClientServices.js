@@ -78,7 +78,8 @@
                 "readMail",
                 "getUnreadMail",
                 "deleteAllMail",
-                "deleteMail"
+                "deleteMail",
+                "manualPlayerLevelUp"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

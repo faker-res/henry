@@ -382,7 +382,7 @@ let dbPlayerCredibility = {
         }
     },
 
-    createUpdateCredibilityLog: (platform, player, remarks, comment) => {
+    createUpdateCredibilityLog: (adminName, platform, player, remarks, comment) => {
         comment = comment || "";
         return dbconfig.collection_playerCredibilityRemark.find({_id: {$in: remarks}}).lean().then(
             remarksData => {
@@ -392,6 +392,7 @@ let dbPlayerCredibility = {
                 }
 
                 return dbconfig.collection_playerCredibilityUpdateLog({
+                    admin: adminName,
                     platform: platform,
                     player: player,
                     credibilityRemarkNames: credibilityRemarkNames,

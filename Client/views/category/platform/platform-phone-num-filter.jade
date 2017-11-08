@@ -1,47 +1,63 @@
 .row
-    .col-md-4
-        .panel.panel-primary
-            .panel-heading
-                .fa.fa-file-text.margin-right-5
-                label {{"SUPPORTED_FILE_FORMAT" | translate}}:
-                |  .csv
-            .panel-body
-                .alert.alert-info.alert-dismissable
-                    a.close(href='#', data-dismiss='alert', aria-label='close') ×
-                    i.fa.fa-info-circle.margin-right-5
-                    text
-                        strong {{"ADD_PHONE_NUMBER_CSV_INSTRUCTION" | translate}}
-                div
-                    form
-                        input(type='file', name='file' on-read-file='vm.uploadPhoneFileCSV($fileContent); vm.showContentCSV($fileContent)', ng-click="vm.phoneNumCSVResult=false;")
-                        br
-                        .well(ng-if='vm.contentCSV')
-                            label {{"CONTENT_CSV" | translate}}:
-                            p {{vm.contentCSV}}
-                        .pull-right
-                            button.btn.btn-primary.common-button(ng-click="vm.phoneNumCSVResult=true;")
-                                i.fa.fa-check
-                                text {{"SUBMIT" | translate}}
-                // display result
-                div(ng-if="vm.phoneNumCSVResult")
-                    br
-                    label {{"RESULT" | translate}}:
-                    .well
-                        label {{"DUPLICATE_PHONE" | translate}}:
-                        | &nbsp;
-                        label(style="color:red") ({{vm.samePhoneTotalCSV}})
-                        p {{vm.samePhoneCSV}}
-                    .well
-                        label {{"NON_DUPLICATE_PHONE" | translate}}:
-                        | &nbsp;
-                        label(style="color:red") ({{vm.diffPhoneTotalCSV}})
-                        p {{vm.diffPhoneCSV}}
-                    .pull-right
-                        button.btn.btn-primary.common-button(type='button', ng-csv='vm.diffPhoneCSVArray', filename='phoneNumber.csv')
-                            i.fa.fa-check
-                            text {{"EXPORT_CSV" | translate}}
+    .col-md-12(ng-if='checkViewPermission("Platform", "phoneNumFilter", "FilterAllPlatform")')
+        .panel-body
+            label {{"FILTER_ALL_PLATFORM" | translate}}:
+            label(style='color:green', ng-if='vm.filterAllPlatform') &nbsp; {{"FILTER_ALL_PLATFORM_ENABLED" | translate}}
+            label(style='color:red', ng-if='!vm.filterAllPlatform') &nbsp; {{"FILTER_ALL_PLATFORM_DISABLED" | translate}}
+            div(ng-if='!vm.filterAllPlatform')
+                button.btn.btn-lg.btn-toggle(type='button', data-toggle='button', aria-pressed='false', autocomplete='off', ng-click='vm.filterAllPlatform=!vm.filterAllPlatform')
+                    .handle
+            div(ng-if='vm.filterAllPlatform')
+                button.btn.btn-lg.btn-toggle.active(type='button', data-toggle='button', aria-pressed='true', autocomplete='off', ng-click='vm.filterAllPlatform=!vm.filterAllPlatform')
+                    .handle
 
-    .col-md-4
+    //.col-md-4
+    //    .panel.panel-primary
+    //        .panel-heading
+    //            .fa.fa-file-text.margin-right-5
+    //            label {{"SUPPORTED_FILE_FORMAT" | translate}}:
+    //            |  .csv
+    //        .panel-body
+    //            .alert.alert-info.alert-dismissable
+    //                a.close(href='#', data-dismiss='alert', aria-label='close') ×
+    //                i.fa.fa-info-circle.margin-right-5
+    //                text
+    //                    strong {{"ADD_PHONE_NUMBER_CSV_INSTRUCTION" | translate}}
+    //            div
+    //                form
+    //                    input(type='file', name='file' on-read-file='vm.uploadPhoneFileCSV($fileContent); vm.showContentCSV($fileContent)', ng-if='!vm.resetInputCSV', ng-click="vm.phoneNumCSVResult=false;")
+    //                    input(type='file', name='file' on-read-file='vm.uploadPhoneFileCSV($fileContent); vm.showContentCSV($fileContent)', ng-if='vm.resetInputCSV', ng-click="vm.phoneNumCSVResult=false;")
+    //                    br
+    //                    .well(ng-if='vm.contentCSV')
+    //                        label {{"CONTENT_CSV" | translate}}:
+    //                        p {{vm.contentCSV}}
+    //                    .pull-right
+    //                        button.btn.btn-danger.common-button(ng-click="vm.resetCSV()")
+    //                            i.fa.fa-refresh
+    //                            text {{"RESET_CSV" | translate}}
+    //                        button.btn.btn-primary.common-button(ng-click="vm.phoneNumCSVResult=true;")
+    //                            i.fa.fa-check
+    //                            text {{"SUBMIT" | translate}}
+    //            // display result
+    //            div(ng-if="vm.phoneNumCSVResult")
+    //                br
+    //                label {{"RESULT" | translate}}:
+    //                .well
+    //                    label {{"DUPLICATE_PHONE" | translate}}:
+    //                    | &nbsp;
+    //                    label(style="color:red") ({{vm.samePhoneTotalCSV}})
+    //                    p {{vm.samePhoneCSV}}
+    //                .well
+    //                    label {{"NON_DUPLICATE_PHONE" | translate}}:
+    //                    | &nbsp;
+    //                    label(style="color:red") ({{vm.diffPhoneTotalCSV}})
+    //                    p {{vm.diffPhoneCSV}}
+    //                .pull-right
+    //                    button.btn.btn-primary.common-button(type='button', ng-csv='vm.diffPhoneCSVArray', filename='phoneNumberFilter.csv')
+    //                        i.fa.fa-check
+    //                        text {{"EXPORT_CSV" | translate}}
+
+    .col-md-6
         .panel.panel-primary
             .panel-heading
                 .fa.fa-file-text.margin-right-5
@@ -55,12 +71,16 @@
                         strong {{"ADD_PHONE_NUMBER_TXT_INSTRUCTION" | translate}}
                 div
                     form
-                        input(type='file', name='file' on-read-file='vm.uploadPhoneFileTXT($fileContent); vm.showContentTXT($fileContent)', ng-click="vm.phoneNumTXTResult=false;")
+                        input(type='file', name='file' on-read-file='vm.uploadPhoneFileTXT($fileContent); vm.showContentTXT($fileContent)', ng-if='!vm.resetInputTXT', ng-click="vm.phoneNumTXTResult=false;")
+                        input(type='file', name='file' on-read-file='vm.uploadPhoneFileTXT($fileContent); vm.showContentTXT($fileContent)', ng-if='vm.resetInputTXT', ng-click="vm.phoneNumTXTResult=false;")
                         br
                         .well(ng-if='vm.contentTXT')
                             label {{"CONTENT_TXT" | translate}}:
                             p(style="word-wrap:break-word; width:100%") {{vm.contentTXT}}
                         .pull-right
+                            button.btn.btn-danger.common-button(ng-click="vm.resetTXT()")
+                                i.fa.fa-refresh
+                                text {{"RESET_TXT" | translate}}
                             button.btn.btn-primary.common-button(ng-click="vm.phoneNumTXTResult=true;")
                                 i.fa.fa-check
                                 text {{"SUBMIT" | translate}}
@@ -83,7 +103,7 @@
                             i.fa.fa-check
                             text {{"EXPORT_TXT" | translate}}
 
-    .col-md-4
+    .col-md-6
         .panel.panel-primary
             .panel-heading
                 .fa.fa-phone.margin-right-5
@@ -127,3 +147,43 @@
                         a.close(href='#', data-dismiss='alert', aria-label='close') ×
                         p {{"COPIED_SUCCESS" | translate}}!
 
+    .col-md-12
+        .panel.panel-primary
+            .panel-heading
+                .fa.fa-file-text.margin-right-5
+                label {{"SUPPORTED_FILE_FORMAT" | translate}}:
+                |  .csv, .xls, .xlsx, .xlsm, .ods
+            .panel-body
+                .alert.alert-info.alert-dismissable
+                    a.close(href='#', data-dismiss='alert', aria-label='close') ×
+                    i.fa.fa-info-circle.margin-right-5
+                    text
+                        strong {{"ADD_PHONE_NUMBER_XLS_INSTRUCTION" | translate}}
+                div
+                    #grid1.grid(ng-if='vm.gridOptions', ui-grid='vm.gridOptions', ui-grid-edit='', ui-grid-exporter='', ui-grid-resize-columns='', ui-grid-move-columns='')
+                        .grid-msg-overlay(ng-show='!vm.gridOptions.data.length')
+                            .msg
+                                .center
+                                    span.muted {{"SELECT_XLS_FILE" | translate}}
+                                    br
+                                    input(type='file', accept='.csv, .xls, .xlsx, .xlsm, .ods', fileread='', opts='vm.gridOptions', multiple='false')
+                    br
+                    .pull-left(ng-if="vm.phoneNumXLSResult")
+                        label {{"XLS_LENGTH" | translate}}:
+                        | &nbsp;
+                        label(style="color:red") {{vm.xlsTotal}}
+                        br
+                        label {{"DUPLICATE_PHONE" | translate}}:
+                        | &nbsp;
+                        label(style="color:red") {{vm.samePhoneTotalXLS}}
+                        br
+                        label {{"NON_DUPLICATE_PHONE" | translate}}:
+                        | &nbsp;
+                        label(style="color:red") {{vm.diffPhoneTotalXLS}}
+                    .pull-right
+                        button.btn.btn-danger.common-button(type='button', ng-click='vm.resetUIGrid()')
+                            i.fa.fa-refresh
+                            text {{"RESET_GRID" | translate}}
+                        button.btn.btn-primary.common-button(type='button', ng-click='vm.phoneNumXLSResult=true; vm.uploadPhoneFileXLS()')
+                            i.fa.fa-check
+                            text {{"FILTER_THEN_EXPORT_XLS" | translate}}

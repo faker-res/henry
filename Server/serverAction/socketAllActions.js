@@ -36,6 +36,8 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionUtility'),
     require('./../socketActionModule/socketActionPromoCode'),
     require('./../socketActionModule/socketActionCsOfficer'),
+    require('./../socketActionModule/socketActionPlayerFeedbackResult'),
+    require('./../socketActionModule/socketActionPlayerFeedbackTopic'),
 ];
 
 var socketActions = [

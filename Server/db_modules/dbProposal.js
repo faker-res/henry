@@ -18,6 +18,7 @@ var dbPlatform = require('./../db_modules/dbPlatform');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var dbPartner = require('./../db_modules/dbPartner');
+var dbLogger = require('./../modules/dbLogger');
 var proposalExecutor = require('./../modules/proposalExecutor');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
@@ -127,7 +128,7 @@ var proposal = {
             })
     },
 
-    createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData) {
+    createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
         function getStepInfo(result) {
             return dbconfig.collection_proposalProcess.findOne({_id: result.process})
                 .then(processData => {
@@ -149,6 +150,9 @@ var proposal = {
 
         return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
             data => {
+                if (smsLogInfo && data && data.proposalId)
+                    dbLogger.updateSmsLogProposalId(smsLogInfo.tel, smsLogInfo.message, data.proposalId);
+
                 if (data && data.process) {
                     return getStepInfo(Object.assign({}, data));
                 } else {
@@ -412,7 +416,11 @@ var proposal = {
     updateProposal: function (query, updateData) {
         return dbconfig.collection_proposal.findOneAndUpdate(query, updateData, {new: true}).exec();
     },
-
+    updatePlayerIntentionRemarks: function (id, remarks) {
+        let updateData = {};
+        updateData['data.remarks'] = remarks;
+        return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate({_id:ObjectId(id)}, updateData, {new: true}).exec();
+    },
     updateTopupProposal: function (proposalId, status, requestId, orderStatus) {
         var proposalObj = null;
         var type = constPlayerTopUpType.ONLINE;
@@ -696,11 +704,6 @@ var proposal = {
                             ).then(
                                 () => {
                                     let updateData = { status: status, isLocked:null};
-                                    if( status == constProposalStatus.APPROVED ){
-                                        if(proposalData.mainType=='TopUp'){
-                                            updateData['data.cardQuota'] = (proposalData.data.cardQuota ||0) + (proposalData.data.amount||0);
-                                        }
-                                    }
                                     return dbconfig.collection_proposal.findOneAndUpdate(
                                         {_id: proposalData._id, createTime: proposalData.createTime},
                                         updateData,
@@ -1248,7 +1251,7 @@ var proposal = {
         });
     },
 
-    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName) {//need
+    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName, inputDevice) {//need
         platformId = Array.isArray(platformId) ?platformId :[platformId];
 
         //check proposal without process
@@ -1356,6 +1359,9 @@ var proposal = {
                         if (entryType) {
                             queryObj.entryType = entryType;
                         }
+
+                        inputDevice ? queryObj.inputDevice = inputDevice : null;
+
                         var sortKey = (Object.keys(sortCol))[0];
                         var a = sortKey != 'relatedAmount' ?
                             dbconfig.collection_proposal.find(queryObj)
@@ -1364,6 +1370,8 @@ var proposal = {
                                 // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
                                 .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
                                 .populate({path: 'isLocked', model: dbconfig.collection_admin})
+                                .populate({path: 'data.playerObjId', model: dbconfig.collection_players})
+                                //.populate({path: 'data.playerObjId.csOfficer', model: dbconfig.collection_csOfficerUrl})
                                 .sort(sortCol).skip(index).limit(size).lean()
                                 .then(
                                      pdata => {
@@ -1374,6 +1382,34 @@ var proposal = {
                                              }
                                              if(item.data && item.data.phoneNumber && !displayPhoneNum){
                                                  item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                             }
+                                             if (item.data && item.data.updateData){
+                                                 switch(Object.keys(item.data.updateData)[0]){
+                                                     case "phoneNumber":
+                                                         item.data.updateData.phoneNumber = dbutility.encodePhoneNum(item.data.updateData.phoneNumber);
+                                                         break;
+                                                     case "email":
+                                                         let startIndex = Math.max(Math.floor((item.data.updateData.email.length - 4) / 2), 0);
+                                                         item.data.updateData.email = item.data.updateData.email.substr(0, startIndex) + "****" + item.data.updateData.email.substr(startIndex + 4);
+                                                         break;
+                                                     case "qq":
+                                                         let qqNumber = item.data.updateData.qq.substr(0, item.data.updateData.qq.indexOf("@"));
+                                                         let qqIndex = Math.max(Math.floor((qqNumber.length - 4) / 2), 0);
+                                                         let qqNumberEncoded = qqNumber.substr(0, qqIndex) + "****" + qqNumber.substr(qqIndex + 4);
+                                                         item.data.updateData.qq = qqNumberEncoded + "@qq.com";
+                                                         break;
+                                                     case "weChat":
+                                                         let weChatIndex = Math.max(Math.floor((item.data.updateData.weChat.length - 4) / 2), 0);
+                                                         item.data.updateData.weChat = item.data.updateData.weChat.substr(0, weChatIndex) + "****" + item.data.updateData.weChat.substr(weChatIndex + 4);
+                                                         break;
+                                                     case "wechat":
+                                                         let wechatIndex = Math.max(Math.floor((item.data.updateData.wechat.length - 4) / 2), 0);
+                                                         item.data.updateData.wechat = item.data.updateData.wechat.substr(0, wechatIndex) + "****" + item.data.updateData.wechat.substr(wechatIndex + 4);
+                                                         break;
+                                                     case "bankAccount":
+                                                         item.data.updateData.bankAccount = dbutility.encodeBankAcc(item.data.updateData.bankAccount);
+                                                         break;
+                                                 }
                                              }
                                              return item
                                          })
@@ -1405,11 +1441,11 @@ var proposal = {
                                         var prom = getDoc(aggr[index].docId);
                                         // only displayPhoneNum equal true, encode the phone num
                                         if(prom.data && prom.data.phone && !displayPhoneNum){
-                                             prom.data.phone = dbutility.encodePhoneNum(prom.data.phone);
-                                         }
+                                            prom.data.phone = dbutility.encodePhoneNum(prom.data.phone);
+                                        }
                                         if(prom.data && prom.data.phoneNumber && !displayPhoneNum){
-                                             prom.data.phoneNumber = dbutility.encodePhoneNum(prom.data.phoneNumber);
-                                         }
+                                            prom.data.phoneNumber = dbutility.encodePhoneNum(prom.data.phoneNumber);
+                                        }
                                         retData.push(prom);
                                     }
                                     return Q.all(retData);
@@ -1423,9 +1459,9 @@ var proposal = {
                                 $group: {
                                     _id: null,
                                     totalAmount: {$sum: "$data.amount"},
-                                    totalRewardAmount: {$sum: {
-                                        $cond: [ { "$ifNull": ["$data.rewardAmount", false] }, "$data.rewardAmount", 0 ]
-                                    }},
+                                    totalRewardAmount: {$sum: {$cond:[
+                                        {$eq: ["$data.rewardAmount", NaN]}, 0, "$data.rewardAmount"
+                                    ]}},
                                     // totalRewardAmount: {$sum: "$data.rewardAmount"},
                                     totalTopUpAmount: {$sum: "$data.topUpAmount"},
                                     totalUpdateAmount: {$sum: "$data.updateAmount"},
@@ -1449,10 +1485,389 @@ var proposal = {
             if (returnData[2] && returnData[2][0]) {
                 summaryObj = {
                     amount: returnData[2][0].totalAmount + returnData[2][0].totalRewardAmount + returnData[2][0].totalTopUpAmount + returnData[2][0].totalUpdateAmount + returnData[2][0].totalNegativeProfitAmount + returnData[2][0].totalCommissionAmount
-                }
+                };
             }
+
             return {data: returnData[0], size: returnData[1], summary: summaryObj};
         });
+    },
+
+    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId) {//need
+        platformId = Array.isArray(platformId) ?platformId :[platformId];
+
+        //check proposal without process
+        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in:platformId}}).lean();
+
+        let playerProm = [];
+        return Q.all([prom1]).then(//removed , prom2
+            data => {
+                if (data && data[0]) { // removed  && data[1]
+                    var types = data[0];
+                    // var processes = data[1];
+                    if (types && types.length > 0) {
+                        var proposalTypesId = [];
+                        for (var i = 0; i < types.length; i++) {
+                            if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
+                                proposalTypesId.push(types[i]._id);
+                            }
+                        }
+
+                        var queryObj = {
+                            status: {$in: statusArr}
+                        };
+                        if(startTime && endTime){
+                            queryObj['createTime'] = {
+                                $gte: new Date(startTime),
+                                $lt: new Date(endTime)
+                            }
+                        }
+                        if(userName) {
+                            queryObj['data.name'] = userName;
+                        }
+                        if(phoneNumber) {
+                            queryObj['data.phoneNumber'] = phoneNumber;
+                        }
+
+                        if(size >= 0){
+                            var a = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj)
+                                    .populate({path:'playerId', model:dbconfig.collection_players})
+                            .sort(sortCol).skip(index).limit(size).lean()
+                            .then(
+                                pdata => {
+                                    pdata.map(item => {
+                                        // only displayPhoneNum equal true, encode the phone num
+                                        if (item.data && item.data.phone && !displayPhoneNum) {
+                                            item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                        }
+                                        if (item.data && item.data.phoneNumber && !displayPhoneNum) {
+                                            item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                        }
+                                        if (item.data && (item.data.playerId || item.data.name)) {
+                                            playerProm.push(proposal.getPlayerDetails(item.data.playerId, item.data.name,proposalTypesId));
+                                        }
+
+                                        return item
+                                    })
+
+                                    return pdata;
+                                })
+                            .then(proposals => {
+                                proposals = insertPlayerRepeatCount(proposals, platformId[0]);
+
+                                return proposals
+                            })
+                        }else{
+                            a = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj)
+                                .then(
+                                    pdata => {
+                                        pdata.map(item => {
+                                            // only displayPhoneNum equal true, encode the phone num
+                                            if (item.data && item.data.phone && !displayPhoneNum) {
+                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                            }
+                                            if (item.data && item.data.phoneNumber && !displayPhoneNum) {
+                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                            }
+                                            if (item.data && (item.data.playerId || item.data.name)) {
+                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId, item.data.name,proposalTypesId));
+                                            }
+
+                                            return item
+                                        })
+
+                                        return pdata;
+                                    })
+                                .then(proposals => {
+                                    proposals = insertPlayerRepeatCount(proposals, platformId[0]);
+
+                                    return proposals
+                                })
+                        }
+
+                        var b = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj).count();
+                        return Q.all([a, b])
+                    }
+                    else {
+                        return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
+                    }
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform proposal related data"});
+                }
+            }
+        ).then(returnData => {
+            return Q.all(playerProm).then(data => {
+
+                data.map(d => {
+                    if(d && ((d[0] && d[0].playerId) || (d[1] && d[1].data.name))){
+                        for(var i = 0; i < returnData[0].length; i ++){
+                            if(d[0] && d[0].playerId && d[0].playerId == returnData[0][i].data.playerId){
+                                if(d[0].csOfficer){
+                                    returnData[0][i].data.csOfficer = d[0].csOfficer.adminName;
+                                }
+                                if(d[0].promoteWay){
+                                    returnData[0][i].data.promoteWay = d[0].promoteWay;
+                                }
+                                if(d[0].registrationTime){
+                                    returnData[0][i].data.registrationTime = d[0].registrationTime;
+                                }
+                                if(d[0].topUpTimes){
+                                    returnData[0][i].data.topUpTimes = d[0].topUpTimes;
+                                }
+                                if(d[0].userAgent){
+                                    for(var j = 0; j < d[0].userAgent.length; j ++){
+                                        returnData[0][i].data.device = dbutility.getInputDevice(d[0].userAgent,false);
+                                    }
+                                }
+                                if(d[0].playerLevel){
+                                    returnData[0][i].data.playerLevel = d[0].playerLevel;
+                                }
+                                if(d[0].credibilityRemarks){
+                                    returnData[0][i].data.credibilityRemarks = d[0].credibilityRemarks;
+                                }
+                                if(d[0].valueScore){
+                                    returnData[0][i].data.valueScore = d[0].valueScore;
+                                }
+                                if(d[0].lastAccessTime){
+                                    returnData[0][i].data.lastAccessTime = d[0].lastAccessTime;
+                                }
+                                if(d[0].status){
+                                    returnData[0][i].data.playerStatus = d[0].status;
+                                }
+                            }
+
+                            if(d[1] && d[1].data && d[1].data.name && d[1].data.name == returnData[0][i].data.name){
+                                if(d[1].proposalId){
+                                    returnData[0][i].data.proposalId = d[1].proposalId;
+                                }
+                            }
+                        }
+                    }
+                })
+
+                return {data: returnData[0], size: returnData[1]};
+            })
+
+        });
+    },
+
+    getPlayerDetails : function(playerID,playerName,proposalTypesId){
+        let playerProm = dbconfig.collection_players.findOne({playerId: playerID})
+            .populate({path: 'csOfficer', model: dbconfig.collection_admin, select: "adminName"})
+            .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
+            .lean().then(
+                data => {
+                    return data ? data : "";
+                }
+            );
+        let proposalProm = []
+            proposalProm = dbconfig.collection_proposal.findOne({'data.name': playerName,type: {$in: proposalTypesId}}).select({'proposalId': 1,'data.name':1}).lean().then(data => {
+            return data ? data : "";
+        });
+
+        return Q.all([playerProm,proposalProm]).then(data =>{
+            return data;
+        })
+    },
+
+    getPlayerSelfRegistrationRecordList: function(startTime, endTime, statusArr){
+        var queryObj = {
+            createTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            },
+            status: {$in: statusArr}
+        };
+
+        var returnArr = [];
+        var recordArr = [];
+        var prom =[];
+
+        var totalHeadCount = 0;
+
+        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name",queryObj).lean().then(dataList =>{
+            dataList.map(playerName =>{
+                prom.push(dbconfig.collection_playerRegistrationIntentRecord.find({'data.name': playerName}).sort({createTime: -1}));
+                totalHeadCount += 1;
+            })
+            return Q.all(prom);
+        }).then(details =>{
+            details.map(data =>{
+                data.map(d =>{
+                    if(!recordArr.find(r => r.name == d.data.name)){
+                        recordArr.push({name: d.data.name,status: d.status, attemptNo: 1});
+                    }else{
+                        var indexNo = recordArr.findIndex(r => r.name == d.data.name);
+                        recordArr[indexNo].status = recordArr[indexNo].status != "Success" ? d.status : recordArr[indexNo].status;
+                        recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
+                    }
+                })
+            })
+
+            return recordArr;
+        }).then(playerAttemptNumber =>{
+            var firstFail = playerAttemptNumber.filter(function(event){return event.status == 'Fail' && event.attemptNo == 1}).length;
+            var secondFail = playerAttemptNumber.filter(function(event){return event.status == 'Fail' && event.attemptNo == 2}).length;
+            var thirdFail = playerAttemptNumber.filter(function(event){return event.status == 'Fail' && event.attemptNo == 3}).length;
+            var fouthFail = playerAttemptNumber.filter(function(event){return event.status == 'Fail' && event.attemptNo == 4}).length;
+            var fifthFail = playerAttemptNumber.filter(function(event){return event.status == 'Fail' && event.attemptNo == 5}).length;
+            var fifthUpFail = playerAttemptNumber.filter(function(event){return event.status == 'Fail' && event.attemptNo > 5}).length;
+
+            var firstSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 1}).length;
+            var secondSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 2}).length;
+            var thirdSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 3}).length;
+            var fouthSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 4}).length;
+            var fifthSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 5}).length;
+            var fifthUpSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo > 5}).length;
+
+            var firstFailPercent = totalHeadCount ? (firstFail/ totalHeadCount * 100).toFixed(2) : 0;
+            var secondFailPercent = totalHeadCount ? (secondFail/ totalHeadCount * 100).toFixed(2) : 0;
+            var thirdFailPercent = totalHeadCount ? (thirdFail/ totalHeadCount * 100).toFixed(2) : 0;
+            var fouthFailPercent = totalHeadCount ? (fouthFail/ totalHeadCount * 100).toFixed(2) : 0;
+            var fifthFailPercent = totalHeadCount ? (fifthFail/ totalHeadCount * 100).toFixed(2) : 0;
+            var fifthUpFailPercent = totalHeadCount ? (fifthUpFail/ totalHeadCount * 100).toFixed(2) : 0;
+
+            var firstSuccessPercent = totalHeadCount ? (firstSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var secondSuccessPercent = totalHeadCount ? (secondSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var thirdSuccessPercent = totalHeadCount ? (thirdSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var fouthSuccessPercent = totalHeadCount ? (fouthSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var fifthSuccessPercent = totalHeadCount ? (fifthSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var fifthUpSuccessPercent = totalHeadCount ? (fifthUpSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+
+            var arr = [];
+
+            arr.push({selfRegistrationTotalSuccess: "HEAD_COUNT", totalAttempt: totalHeadCount, firstFail: firstFail, secondFail: secondFail, thirdFail: thirdFail,
+                fouthFail: fouthFail, fifthFail: fifthFail, fifthUpFail: fifthUpFail, firstSuccess: firstSuccess, secondSuccess: secondSuccess,
+                thirdSuccess: thirdSuccess, fouthSuccess: fouthSuccess, fifthSuccess: fifthSuccess, fifthUpSuccess: fifthUpSuccess})
+
+            arr.push({selfRegistrationTotalSuccess: "PERCENTAGE", totalAttempt: 100.00, firstFail: firstFailPercent, secondFail: secondFailPercent,
+                thirdFail: thirdFailPercent, fouthFail: fouthFailPercent, fifthFail: fifthFailPercent, fifthUpFail: fifthUpFailPercent,
+                firstSuccess: firstSuccessPercent, secondSuccess: secondSuccessPercent, thirdSuccess: thirdSuccessPercent, fouthSuccess: fouthSuccessPercent,
+                fifthSuccess: fifthSuccessPercent, fifthUpSuccess: fifthUpSuccessPercent})
+
+            return arr;
+
+        });
+    },
+
+    getPlayerManualRegistrationRecordList: function(startTime, endTime, statusArr){
+        var queryObj = {
+            createTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            },
+            status: {$in: statusArr}
+        };
+
+
+        var recordArr = [];
+        var prom =[];
+
+        var totalHeadCount = 0;
+
+        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name",queryObj).lean().then(dataList =>{
+            dataList.map(playerName =>{
+                prom.push(dbconfig.collection_playerRegistrationIntentRecord.find({'data.name': playerName}).sort({createTime: -1}));
+                totalHeadCount += 1;
+            })
+            return Q.all(prom);
+        }).then(details =>{
+            details.map(data =>{
+                data.map(d =>{
+                    if(!recordArr.find(r => r.name == d.data.name)){
+                        recordArr.push({name: d.data.name,status: d.status, attemptNo: 1});
+                    }else{
+                        var indexNo = recordArr.findIndex(r => r.name == d.data.name);
+                        recordArr[indexNo].status = recordArr[indexNo].status != "Success" ? d.status : recordArr[indexNo].status;
+                        recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
+                    }
+                })
+            })
+            return recordArr;
+        }).then(playerAttemptNumber =>{
+            var manualSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Manual'}).length;
+            var firstSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 1}).length;
+            var secondSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 2}).length;
+            var thirdSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 3}).length;
+            var fouthSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 4}).length;
+            var fifthSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 5}).length;
+            var fifthUpSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo > 5}).length;
+
+            var manualSuccessPercent = totalHeadCount ? (manualSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var firstSuccessPercent = totalHeadCount ? (firstSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var secondSuccessPercent = totalHeadCount ? (secondSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var thirdSuccessPercent = totalHeadCount ? (thirdSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var fouthSuccessPercent = totalHeadCount ? (fouthSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var fifthSuccessPercent = totalHeadCount ? (fifthSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var fifthUpSuccessPercent = totalHeadCount ? (fifthUpSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+
+            var returnArr = [];
+
+            returnArr.push({manualRegistrationTotalSuccess: "HEAD_COUNT", totalSuccess: totalHeadCount, manualSuccess: manualSuccess, firstSuccess: firstSuccess,
+                secondSuccess: secondSuccess, thirdSuccess: thirdSuccess, fouthSuccess: fouthSuccess, fifthSuccess: fifthSuccess, fifthUpSuccess: fifthUpSuccess})
+
+            returnArr.push({manualRegistrationTotalSuccess: "PERCENTAGE", totalSuccess: 100.00, manualSuccess: manualSuccessPercent, firstSuccess: firstSuccessPercent,
+                secondSuccess: secondSuccessPercent, thirdSuccess: thirdSuccessPercent, fouthSuccess: fouthSuccessPercent, fifthSuccess: fifthSuccessPercent, fifthUpSuccess: fifthUpSuccessPercent})
+
+            return returnArr;
+        });
+    },
+
+    getPlayerRegistrationIntentRecordByStatus: function(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, attemptNo){
+        var queryObj = {
+            createTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            },
+        };
+
+        if(statusArr){
+            queryObj.status = {$in: statusArr};
+        }
+
+        var returnArr = [];
+        var recordArr = [];
+        var prom =[];
+
+        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name",queryObj).lean().then(dataList =>{
+            dataList.map(playerName =>{
+                prom.push(dbconfig.collection_playerRegistrationIntentRecord.find({'data.name': playerName}).sort({createTime: -1}));
+            })
+            return Q.all(prom);
+        }).then(details =>{
+            details.map(data =>{
+                data.map(d =>{
+                    if(!recordArr.find(r => r.name == d.data.name)){
+                        recordArr.push({name: d.data.name,status: d.status, attemptNo: 1});
+                    }else{
+                        var indexNo = recordArr.findIndex(r => r.name == d.data.name);
+                        if(indexNo >= 0){
+                            recordArr[indexNo].status = recordArr[indexNo].status != "Success" ? d.status : recordArr[indexNo].status;
+                            recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
+                        }
+                    }
+                })
+            })
+
+            return recordArr;
+        }).then(playerAttemptNumber =>{
+            if(attemptNo == 0){
+                return playerAttemptNumber.filter(function(event){return statusArr.includes(event.status) && event.attemptNo > 5})
+            }else if(attemptNo < 0){
+                return playerAttemptNumber;
+            }else {
+                return playerAttemptNumber.filter(function(event){return statusArr.includes(event.status) && event.attemptNo == attemptNo})
+            }
+        }).then(data => {
+            let statusArray = ["Success", "Fail", "Manual"];
+            data.map(d => {
+                userName = d.name;
+                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArray, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum);
+                returnArr.push(p);
+            })
+        }).then(data => {
+            return Promise.all(returnArr)
+        })
     },
 
     /**
@@ -1520,7 +1935,7 @@ var proposal = {
                         path: "process",
                         model: dbconfig.collection_proposalProcess
                     }).populate({path: "type", model: dbconfig.collection_proposalType});
-                    var c = dbconfig.collection_proposal.aggregate(
+                    var c = dbconfig.collection_proposal.aggregate([
                         {
                             $match: {
                                 type: {$in: proposalTypeIdList},
@@ -1531,11 +1946,19 @@ var proposal = {
                             $group: {
                                 _id: null,
                                 totalAmount: {$sum: "$data.amount"},
-                                totalRewardAmount: {$sum: "$data.rewardAmount"},
-                                totalTopUpAmount: {$sum: "$data.topUpAmount"}
+                                totalRewardAmount: {$sum: {$cond:[
+                                    {$eq: ["$data.rewardAmount", NaN]},
+                                    0,
+                                    "$data.rewardAmount"
+                                ]}},
+                                // totalRewardAmount: {$sum: "$data.rewardAmount"},
+                                totalTopUpAmount: {$sum: "$data.topUpAmount"},
+                                totalUpdateAmount: {$sum: "$data.updateAmount"},
+                                totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
+                                totalCommissionAmount: {$sum: "$data.commissionAmount"}
                             }
                         }
-                    );
+                    ]);
                     return Q.all([a, b, c]);
                 },
                 function (error) {
@@ -1582,6 +2005,7 @@ var proposal = {
                 reqData["$and"].push({$or: orQuery});
                 delete reqData["data.eventName"];
             }
+
             if (reqData["data.PROMO_CODE_TYPE"]) {
                 let dataCheck = {"data.PROMO_CODE_TYPE":{$in: reqData["data.PROMO_CODE_TYPE"]}};
                 let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
@@ -1602,7 +2026,7 @@ var proposal = {
             var b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                 .populate({path: "type", model: dbconfig.collection_proposalType})
                 .populate({path: "process", model: dbconfig.collection_proposalProcess});
-            var c = dbconfig.collection_proposal.aggregate(
+            var c = dbconfig.collection_proposal.aggregate([
                 {
                     $match: reqData
                 },
@@ -1610,11 +2034,18 @@ var proposal = {
                     $group: {
                         _id: null,
                         totalAmount: {$sum: "$data.amount"},
-                        totalRewardAmount: {$sum: "$data.rewardAmount"},
-                        totalTopUpAmount: {$sum: "$data.topUpAmount"}
+                        totalRewardAmount: {$sum: {$cond:[
+                            {$eq: ["$data.rewardAmount", NaN]},
+                            0,
+                            "$data.rewardAmount"
+                        ]}},
+                        totalTopUpAmount: {$sum: "$data.topUpAmount"},
+                        totalUpdateAmount: {$sum: "$data.updateAmount"},
+                        totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
+                        totalCommissionAmount: {$sum: "$data.commissionAmount"}
                     }
                 }
-            );
+            ]);
             Q.all([a, b, c]).then(
                 function (data) {
                     totalSize = data[0];
@@ -1673,6 +2104,9 @@ var proposal = {
                     total += summary[0].totalAmount;
                     total += summary[0].totalRewardAmount;
                     total += summary[0].totalTopUpAmount;
+                    total += summary[0].totalUpdateAmount;
+                    total += summary[0].totalNegativeProfitAmount;
+                    total += summary[0].totalCommissionAmount;
                 }
                 deferred.resolve({
                     size: totalSize,
@@ -2343,43 +2777,63 @@ var proposal = {
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
         query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
 
-        if (data.merchantNo && data.merchantNo.length > 0 && !data.merchantGroup) {
+        if (data.merchantNo && data.merchantNo.length > 0 && (!data.merchantGroup || data.merchantGroup.length == 0)) {
             query['$or'] = [
-              {'data.merchantNo': {$in: data.merchantNo}},
-              {'data.bankCardNo': {$in: data.merchantNo}},
-              {'data.accountNo': {$in: data.merchantNo}}
+                {'data.merchantNo': {$in: convertStringNumber(data.merchantNo)}},
+                {'data.bankCardNo': {$in: convertStringNumber(data.merchantNo)}},
+                {'data.accountNo': {$in: convertStringNumber(data.merchantNo)}},
+                {'data.alipayAccount': {$in: convertStringNumber(data.merchantNo)}},
+                {'data.wechatAccount': {$in: convertStringNumber(data.merchantNo)}},
+                {'data.weChatAccount': {$in: convertStringNumber(data.merchantNo)}}
             ]
         }
 
-        if (!data.merchantNo && data.merchantGroup) {
-            query['data.merchantNo'] = {$in: data.merchantGroup};
+        if ((!data.merchantNo || data.merchantNo.length == 0) && data.merchantGroup && data.merchantGroup.length > 0) {
+            let mGroupList = [];
+            data.merchantGroup.forEach(item => {
+                item.forEach(sItem => {
+                    mGroupList.push(sItem)
+                })
+            })
+            query['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
         }
 
-        if (data.merchantNo && data.merchantNo.length >0 && data.merchantGroup) {
-            query['$and'] = [
-                {'data.merchantNo': {$in: data.merchantNo}},
-                {'data.merchantNo': {$in: data.merchantGroup}}
-            ]
+        if (data.merchantNo && data.merchantNo.length > 0 && data.merchantGroup && data.merchantGroup.length > 0) {
+            if (data.merchantGroup.length > 0) {
+                let mGroupC = [];
+                let mGroupD = [];
+                data.merchantNo.forEach(item => {
+                    mGroupC.push(item);
+                });
+                data.merchantGroup.forEach(item => {
+                    item.forEach(sItem => {
+                        mGroupD.push(sItem)
+                    });
+                });
+                query['$or'] = [
+                    {'data.merchantNo': {$in: convertStringNumber(mGroupC)}},
+                    {'data.merchantNo': {$in: convertStringNumber(mGroupD)}}
+                ]
+            }
         }
 
         if (data.orderId) {
             query['data.requestId'] = data.orderId;
         }
-
         if (data.playerName) {
             query['data.playerName'] = data.playerName;
         }
         if (data.proposalNo) {
             query['data.proposalId'] = data.proposalNo;
         }
-        if (data.bankTypeId){
-            query['data.bankTypeId'] = data.bankTypeId;
+        if (data.bankTypeId && data.bankTypeId.length > 0) {
+            query['data.bankTypeId'] = {$in: convertStringNumber(data.bankTypeId)};
         }
-        if (data.userAgent){
-            query['data.userAgent'] = data.userAgent;
+        if (data.userAgent && data.userAgent.length > 0) {
+            query['data.userAgent'] = {$in: convertStringNumber(data.userAgent)};
         }
         if (data.status && data.status.length > 0) {
-            query['status'] = {$in: data.status};
+            query['status'] = {$in: convertStringNumber(data.status)};
         }
         let mainTopUpType;
         switch (String(data.mainTopupType)) {
@@ -2409,13 +2863,12 @@ var proposal = {
                     ]
                 };
         }
-        data.topupType = Number(data.topupType)
-        if (data.topupType) {
-            query['data.topupType'] = data.topupType;
+        if (data.topupType && data.topupType.length > 0) {
+            query['data.topupType'] = {$in: convertStringNumber(data.topupType)}
         }
 
-        if (data.depositMethod) {
-            query['data.depositMethod'] = data.depositMethod;
+        if (data.depositMethod && data.depositMethod.length > 0) {
+            query['data.depositMethod'] = {'$in': convertStringNumber(data.depositMethod)};
         }
 
         let proposalCount, proposals;
@@ -2821,6 +3274,107 @@ function insertRepeatCount(proposals, platformId) {
     });
 }
 
+function insertPlayerRepeatCount(proposals, platformId) {
+    return new Promise(function (resolve) {
+        let insertedProposals = [];
+
+        if (!proposals || proposals.length === 0) {
+            resolve([]);
+        }
+
+        let promises = [];
+
+        for (let i = 0; i < proposals.length; i++) {
+            let prom = new Promise(function (res) {
+                let proposal = JSON.parse(JSON.stringify(proposals[i]));
+                if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
+                    Promise.all([handleSuccessProposal(proposal)]).then(
+                        () => {
+                            insertedProposals[i] = proposal;
+                            res();
+                        }
+                    )
+                } else {
+                    Promise.all([handleFailurePlayer(proposal)]).then(
+                        () => {
+                            insertedProposals[i] = proposal;
+                            res();
+                        }
+                    )
+                }
+            });
+
+            promises.push(prom);
+        }
+
+        Promise.all(promises).then(
+            () => {
+                resolve(insertedProposals);
+            }
+        );
+
+        function handleFailurePlayer(proposal) {
+            let playerName = proposal.data.name;
+
+            let allCountQuery = {
+                "data.name": playerName
+            };
+
+            let currentCountQuery = {
+                createTime: {
+                    $lte: new Date(proposal.createTime)
+                },
+                "data.name": playerName
+            };
+
+            let allCountProm = dbconfig.collection_playerRegistrationIntentRecord.find(allCountQuery).count();
+            let currentCountProm = dbconfig.collection_playerRegistrationIntentRecord.find(currentCountQuery).count();
+
+            return Promise.all([allCountProm, currentCountProm]).then(
+                countData => {
+                    let allCount = countData[0];
+                    let currentCount = countData[1];
+
+                    proposal.$playerAllCount = allCount;
+                    proposal.$playerCurrentCount = currentCount;
+
+                    return proposal;
+                }
+            );
+        }
+
+        function handleSuccessProposal(proposal) {
+            let playerName = proposal.data.name;
+
+            let allCountQuery = {
+                "data.name": playerName
+            };
+
+            let currentCountQuery = {
+                createTime: {
+                    $lte: new Date(proposal.createTime)
+                },
+                "data.name": playerName
+            };
+
+            let allCountProm = dbconfig.collection_playerRegistrationIntentRecord.find(allCountQuery).count();
+            let currentCountProm = dbconfig.collection_playerRegistrationIntentRecord.find(currentCountQuery).count();
+
+            return Promise.all([allCountProm, currentCountProm]).then(
+                countData => {
+                    let allCount = countData[0];
+                    let currentCount = countData[1];
+
+                    proposal.$playerAllCount = allCount;
+                    proposal.$playerCurrentCount = currentCount;
+
+                    return proposal;
+                }
+            );
+        }
+    });
+}
+
 function getTopUpProposalTypeIds(platformId) {
     let mainTopUpTypes = {
         $in: [
@@ -2860,6 +3414,18 @@ function asyncLoop(count, func, callback) {
 function getMinutesBetweenDates(startDate, endDate) {
     var diff = endDate.getTime() - startDate.getTime();
     return Math.floor(diff / 60000);
+}
+
+function convertStringNumber(Arr){
+    let Arrs = JSON.parse(JSON.stringify(Arr));
+    let result = []
+    Arrs.forEach(item => {
+        result.push(String(item));
+    })
+    Arrs.forEach(item => {
+        result.push(Number(item));
+    })
+    return result;
 }
 
 var proto = proposalFunc.prototype;

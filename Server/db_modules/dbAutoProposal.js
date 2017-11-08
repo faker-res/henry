@@ -447,6 +447,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                 lastTopUpResult.requiredConsumption += checkResult[i].requiredConsumption;
                                 lastTopUpResult.initBonusAmount += checkResult[i].initBonusAmount;
                                 lastTopUpResult.bonusAmount += checkResult[i].bonusAmount;
+                                lastTopUpResult.isCleared = isClearCycle;
                             }
 
                             // Check consumption for each cycle
@@ -778,7 +779,7 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
     }).sort({createTime: -1}).limit(1).lean().then(
         retData => {
             if (retData && retData[0]) {
-                return retData[0].settleTime ? retData[0].settleTime : retData[0].createTime;
+                return retData[0].createTime;
             }
         }
     );

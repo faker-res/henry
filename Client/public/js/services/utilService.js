@@ -722,6 +722,7 @@ define([], function () {
                 case "UpdatePartnerEmail":
                 case "UpdatePartnerPhone":
                 case "UpdatePartnerQQ":
+                case "UpdatePartnerWeChat":
                     groupName = "PARTNER_INFORMATION";
                     break;
                 case "UpdatePlayerCredit":
