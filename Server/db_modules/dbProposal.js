@@ -18,6 +18,7 @@ var dbPlatform = require('./../db_modules/dbPlatform');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var dbPartner = require('./../db_modules/dbPartner');
+var dbLogger = require('./../modules/dbLogger');
 var proposalExecutor = require('./../modules/proposalExecutor');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
@@ -127,7 +128,7 @@ var proposal = {
             })
     },
 
-    createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData) {
+    createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
         function getStepInfo(result) {
             return dbconfig.collection_proposalProcess.findOne({_id: result.process})
                 .then(processData => {
@@ -149,6 +150,9 @@ var proposal = {
 
         return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
             data => {
+                if (smsLogInfo && data && data.proposalId)
+                    dbLogger.updateSmsLogProposalId(smsLogInfo.tel, smsLogInfo.message, data.proposalId);
+
                 if (data && data.process) {
                     return getStepInfo(Object.assign({}, data));
                 } else {
@@ -1948,7 +1952,10 @@ var proposal = {
                                     "$data.rewardAmount"
                                 ]}},
                                 // totalRewardAmount: {$sum: "$data.rewardAmount"},
-                                totalTopUpAmount: {$sum: "$data.topUpAmount"}
+                                totalTopUpAmount: {$sum: "$data.topUpAmount"},
+                                totalUpdateAmount: {$sum: "$data.updateAmount"},
+                                totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
+                                totalCommissionAmount: {$sum: "$data.commissionAmount"}
                             }
                         }
                     ]);
@@ -2032,7 +2039,10 @@ var proposal = {
                             0,
                             "$data.rewardAmount"
                         ]}},
-                        totalTopUpAmount: {$sum: "$data.topUpAmount"}
+                        totalTopUpAmount: {$sum: "$data.topUpAmount"},
+                        totalUpdateAmount: {$sum: "$data.updateAmount"},
+                        totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
+                        totalCommissionAmount: {$sum: "$data.commissionAmount"}
                     }
                 }
             ]);
@@ -2094,6 +2104,9 @@ var proposal = {
                     total += summary[0].totalAmount;
                     total += summary[0].totalRewardAmount;
                     total += summary[0].totalTopUpAmount;
+                    total += summary[0].totalUpdateAmount;
+                    total += summary[0].totalNegativeProfitAmount;
+                    total += summary[0].totalCommissionAmount;
                 }
                 deferred.resolve({
                     size: totalSize,

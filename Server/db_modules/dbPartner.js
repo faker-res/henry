@@ -59,25 +59,40 @@ let dbPartner = {
                                 });
                             }
                             else {
-                                if (partnerData.parent) {
-                                    return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
-                                        parentData => {
-                                            if (parentData) {
-                                                partnerData.parent = parentData._id;
-                                                return dbPartner.createPartnerWithParent(partnerData);
+                                return dbPartner.isExceedPhoneNumberValidToRegister({
+                                    phoneNumber: partnerData.phoneNumber,
+                                    platform: partnerData.platform
+                                }, platformData.samePhoneNumberRegisterCount).then (
+                                    function (isValid) {
+                                        if (isValid.isPhoneNumberValid) {
+                                            if (partnerData.parent) {
+                                                return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
+                                                    parentData => {
+                                                        if (parentData) {
+                                                            partnerData.parent = parentData._id;
+                                                            return dbPartner.createPartnerWithParent(partnerData);
+                                                        }
+                                                        else {
+                                                            return Q.reject({
+                                                                name: "DataError",
+                                                                message: "Cannot find parent partner"
+                                                            });
+                                                        }
+                                                    }
+                                                );
                                             }
                                             else {
-                                                return Q.reject({
-                                                    name: "DataError",
-                                                    message: "Cannot find parent partner"
-                                                });
+                                                return dbPartner.createPartner(partnerData);
                                             }
                                         }
-                                    );
-                                }
-                                else {
-                                    return dbPartner.createPartner(partnerData);
-                                }
+                                        else {
+                                            return Q.reject({
+                                                name: "DataError",
+                                                message: "Phone number already exists"
+                                            });
+                                        }
+                                    }
+                                );
                             }
                         },
                         function (error) {
@@ -139,7 +154,11 @@ let dbPartner = {
                     }
 
                     if (platformData.allowSamePhoneNumberToRegister === true) {
-                        return {isPhoneNumberValid: true};
+                        return dbPartner.isExceedPhoneNumberValidToRegister({
+                            phoneNumber: partnerdata.phoneNumber,
+                            platform: partnerdata.platform
+                        }, platformData.samePhoneNumberRegisterCount);
+                        // return {isPhoneNumberValid: true};
                     } else {
                         return dbPartner.isPhoneNumberValidToRegister({
                             phoneNumber: partnerdata.phoneNumber,
@@ -1439,10 +1458,14 @@ let dbPartner = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
+                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                        let smsExpiredDate = new Date();
+                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
                         // Check verification SMS match
                         return dbconfig.collection_smsVerificationLog.findOne({
                             platformObjId: partnerObj.platform,
-                            tel: partnerObj.phoneNumber
+                            tel: partnerObj.phoneNumber,
+                            createTime: {$gte: smsExpiredDate}
                         }).sort({createTime: -1}).then(
                             verificationSMS => {
                                 // Check verification SMS code
@@ -1452,6 +1475,7 @@ let dbPartner = {
                                         {_id: verificationSMS._id}
                                     ).then(
                                         () => {
+                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                             return Q.resolve(true);
                                         }
                                     )
@@ -4126,6 +4150,18 @@ let dbPartner = {
         return dbconfig.collection_partner.findOne(query).then(
             partnerData => {
                 if (partnerData) {
+                    return {isPhoneNumberValid: false};
+                } else {
+                    return {isPhoneNumberValid: true};
+                }
+            }
+        );
+    },
+
+    isExceedPhoneNumberValidToRegister: function (query, count) {
+        return dbconfig.collection_partner.findOne(query).count().then(
+            partnerDataCount => {
+                if (partnerDataCount > count) {
                     return {isPhoneNumberValid: false};
                 } else {
                     return {isPhoneNumberValid: true};

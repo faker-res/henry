@@ -557,6 +557,11 @@
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.showAllowSamePhoneNumberToRegister', ng-disabled='!vm.configTableEdit')
                             tr
+                                td {{'samePhoneNumberRegisterCount' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.samePhoneNumberRegisterCount}}
+                                    input(type='number', ng-show='vm.configTableEdit && vm.platformBasic.showAllowSamePhoneNumberToRegister', min=1, ng-model='vm.platformBasic.samePhoneNumberRegisterCount')
+                            tr
                                 td {{'PLAYER_MULTIPLE_REWARD' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
@@ -572,6 +577,11 @@
                                 td {{'SMS_VERIFICATION_FOR_PAYMENT_UPDATE' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerificationForPaymentUpdate', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'SMS_EXPIRED_TIME' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showMinTopupAmount}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showMinTopupAmount')
                             tr
                                 td {{'CAPTCHA_VERIFICATION_FOR_LOGIN' | translate}}
                                 td

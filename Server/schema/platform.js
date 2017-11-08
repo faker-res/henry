@@ -81,8 +81,12 @@ var platformSchema = new Schema({
     requireSMSVerificationForPasswordUpdate: {type: Boolean, default: false},
     // SMS Verification Setting For Payment Update
     requireSMSVerificationForPaymentUpdate: {type: Boolean, default: false},
+    // SMS Verification Expired Time (in Minute)
+    smsVerificationExpireTime: {type: Number, default: 1440},
     //allow same phone number to register
     allowSamePhoneNumberToRegister: {type: Boolean, default: true},
+    //same phone number to register count
+    samePhoneNumberRegisterCount: {type: Number, default: 1},
     // Auto approve bonus proposal platform switch
     enableAutoApplyBonus: {type: Boolean, default: false},
     // Auto approve single withdrawal limit
