@@ -219,6 +219,17 @@ define(['js/app'], function (myApp) {
                 // "tone12": "12.wav"
             };
 
+            vm.allSMSPurpose = {
+                UNKNOWN: 'unknown',
+                REGISTRATION: 'registration',
+                OLD_PHONE_NUMBER: 'oldPhoneNumber',
+                NEW_PHONE_NUMBER: 'newPhoneNumber',
+                UPDATE_PASSWORD: 'updatePassword',
+                UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
+                UPDATE_BANK_INFO: 'updateBankInfo',
+                RESET_PASSWORD: 'resetPassword'
+            };
+
             vm.constProposalStatus = {
                 PREPENDING: "PrePending",
                 PENDING: "Pending",
@@ -1308,6 +1319,7 @@ define(['js/app'], function (myApp) {
             }
             vm.initVertificationSMS = function () {
                 vm.smsRecordQuery = {};
+                vm.smsRecordQuery.purpose = "";
                 vm.smsRecordQuery.index = 0;
                 vm.smsRecordQuery.limit = 10;
                 vm.initQueryTimeFilter('smsRecordQueryDiv', function () {
@@ -1320,8 +1332,10 @@ define(['js/app'], function (myApp) {
                 })
             }
             vm.submitSMSRecordQuery = function (newSearch) {
-
                 var sendQuery = {
+                    recipientName: vm.smsRecordQuery.recipientName,
+                    purpose: vm.smsRecordQuery.purpose,
+                    inputDevice: vm.smsRecordQuery.inputDevice,
                     type: 'registration',
                     status: 'all',
                     tel: vm.smsRecordQuery.phoneNumber || '',
@@ -1329,6 +1343,7 @@ define(['js/app'], function (myApp) {
                     endTime: vm.queryPara['smsRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
                     index: newSearch ? 0 : vm.smsRecordQuery.index,
                     limit: newSearch ? 10 : vm.smsRecordQuery.limit,
+                    platformObjId: vm.selectedPlatform.data._id,
                     sortCol: vm.smsRecordQuery.sortCol
                 }
                 $('#loadVertificationSMSIcon').show();
@@ -1336,9 +1351,22 @@ define(['js/app'], function (myApp) {
                     vm.smsRecordQuery.loading = false;
                     var size = data.data.size || 0;
                     var result = data.data.data || [];
+                    vm.vertificationSMSQuery = result;
                     vm.drawVertificationSMSTable(result.map(item => {
                         item.createTime = vm.dateReformat(item.createTime);
                         item.status = $translate(item.status);
+                        item.purpose = $translate(item.purpose);
+                        switch(item.validationStatus$){
+                            case 0:
+                            case 1:
+                                item.validationStatus$$ = "try";
+                                break;
+                            case -1:
+                                item.validationStatus$$ = "success";
+                                break;
+                            default:
+                                item.validationStatus$$ = "-";
+                        }
                         return item;
                     }), size, newSearch);
 
@@ -1351,18 +1379,38 @@ define(['js/app'], function (myApp) {
             vm.drawVertificationSMSTable = function (data, size, newSearch) {
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: data,
-                    order: vm.smsRecordQuery.aaSorting || [[1, 'desc']],
+                    order: vm.smsRecordQuery.aaSorting || [[2, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [2]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {'title': $translate('phoneNumber'), sClass: "wordWrap realNameCell", data: 'tel'},
+                        {'title': $translate('ACCOUNT'), data: 'recipientName'},
+                        {'title': $translate('STATUS'),
+                            render: function (data, type, row){
+                                return $translate(row.validationStatus$$) + "(" + row.currentCount$ + "/" + row.totalCount$ + ")";
+                             }
+                        },
                         {'title': $translate('SENT TIME'), data: 'createTime', bSortable: true},
-                        {'title': $translate('smsVerificationCode'), data: 'message'},
-                        {'title': $translate('STATUS'), data: 'status'}
+                        {'title': $translate('VERIFICATION_CODE'), data: 'message'},
+                        {'title': $translate('Type'), data: 'purpose'},
+                        {'title': $translate('DEVICE'),
+                            data: 'inputDevice',
+                            render: function (data, type, row) {
+                                for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
+                                    if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data) {
+                                        return $translate(Object.keys(vm.inputDevice)[i]);
+                                    }
+                                }
+                            }
+                        },
+                        {'title': $translate('PHONE'), sClass: "wordWrap realNameCell", data: 'tel'},
+                        {'title': $translate('Proposal No'), data: 'proposalId'},
+                        {'title': $translate('SEND')+$translate('STATUS'), data: 'status'},
                     ],
+                    bSortClasses: false,
                     paging: false,
+                    fnRowCallback: vm.smsRecordTableRow
                 });
                 vm.smsRecordQuery.tableObj = $('#vertificationSMSRecordTable').DataTable(option);
                 $('#vertificationSMSRecordTable').off('order.dt');
@@ -1374,6 +1422,28 @@ define(['js/app'], function (myApp) {
                     $('#vertificationSMSRecordTable').resize();
                 }, 100);
             }
+
+        vm.smsRecordTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            $compile(nRow)($scope);
+            vm.platformSmsRecordTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
+            //console.log("row", nRow, aData, iDisplayIndex, iDisplayIndexFull);
+        };
+
+        vm.platformSmsRecordTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            switch (aData.validationStatus$) {
+                case 0: {
+                    $(nRow).css('background-color', 'rgba(255, 209, 202, 100)','important');
+                    // $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                    break;
+                }
+                case 1: {
+                    $(nRow).css('background-color', 'rgba(200, 200, 200, 20)','important');
+                    // $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                    break;
+                }
+            }
+        };
+
             vm.checkPlayerExist = function (key, val) {
                 if (!key || !val) {
                     $('#playerValidFalse').addClass('hidden');
@@ -15232,6 +15302,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
                 vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
                 vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup;
+                vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime;
                 $scope.safeApply();
             }
 
@@ -15673,6 +15744,7 @@ define(['js/app'], function (myApp) {
                         requireSMSVerification: srcData.requireSMSVerification,
                         requireSMSVerificationForPasswordUpdate: srcData.requireSMSVerificationForPasswordUpdate,
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
+                        smsVerificationExpireTime: srcData.smsVerificationExpireTime,
                         useProviderGroup: srcData.useProviderGroup
                     }
                 };

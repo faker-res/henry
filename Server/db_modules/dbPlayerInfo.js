@@ -108,9 +108,14 @@ let dbPlayerInfo = {
                         return Q.resolve(true);
                     }
 
+                    platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                    let smsExpiredDate = new Date();
+                    smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
+
                     let smsProm = dbconfig.collection_smsVerificationLog.findOne({
                         platformId: platformId,
-                        tel: inputData.phoneNumber
+                        tel: inputData.phoneNumber,
+                        createTime: {$gte: smsExpiredDate}
                     }).sort({createTime: -1});
 
                     return smsProm.then(
@@ -122,6 +127,7 @@ let dbPlayerInfo = {
                                     _id: verificationSMS._id
                                 }).then(
                                     () => {
+                                        dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                         Q.resolve(true);
                                     }
                                 );
@@ -1380,10 +1386,14 @@ let dbPlayerInfo = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
+                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                        let smsExpiredDate = new Date();
+                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
                         // Check verification SMS match
                         return dbconfig.collection_smsVerificationLog.findOne({
                             platformObjId: playerObj.platform,
-                            tel: playerObj.phoneNumber
+                            tel: playerObj.phoneNumber,
+                            createTime: {$gte: smsExpiredDate}
                         }).sort({createTime: -1}).then(
                             verificationSMS => {
                                 // Check verification SMS code
@@ -1393,6 +1403,7 @@ let dbPlayerInfo = {
                                         {_id: verificationSMS._id}
                                     ).then(
                                         () => {
+                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                             return Q.resolve(true);
                                         }
                                     )
@@ -1521,6 +1532,7 @@ let dbPlayerInfo = {
     updatePlayerPayment: function (userAgent, query, updateData, skipSMSVerification) {
         let playerObj = null;
         let platformObjId;
+        let smsLogData;
         // Get platform
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
@@ -1556,10 +1568,14 @@ let dbPlayerInfo = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
+                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                        let smsExpiredDate = new Date();
+                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
                         // Check verification SMS match
                         return dbconfig.collection_smsVerificationLog.findOne({
                             platformObjId: playerObj.platform,
-                            tel: playerObj.phoneNumber
+                            tel: playerObj.phoneNumber,
+                            createTime: {$gte: smsExpiredDate}
                         }).sort({createTime: -1}).then(
                             verificationSMS => {
                                 // Check verification SMS code
@@ -1569,6 +1585,8 @@ let dbPlayerInfo = {
                                         {_id: verificationSMS._id}
                                     ).then(
                                         () => {
+                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
+                                            smsLogData = {tel: verificationSMS.tel, message: verificationSMS.code};
                                             return Q.resolve(true);
                                         }
                                     )
@@ -1604,7 +1622,7 @@ let dbPlayerInfo = {
                 let inputDeviceData = dbUtility.getInputDevice(userAgent,false);
                 updateData.isPlayerInit = true;
                 updateData.playerName = playerObj.name;
-                dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {data: updateData, inputDevice: inputDeviceData});
+                dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {data: updateData, inputDevice: inputDeviceData}, smsLogData);
                 return updatedData;
             }
         )
