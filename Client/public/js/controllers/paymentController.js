@@ -984,7 +984,7 @@ define(['js/app'], function (myApp) {
         vm.merchantClicked = function (i, v, which) {
             console.log('merchant clicked', i, v, which);
             vm.highlightMerchant = {};
-            vm.highlightMerchant[v.merchantNo] = 'bg-pale'
+            vm.highlightMerchant[v.name] = 'bg-pale'
             vm.curMerchant = v;
         }
 
