@@ -1044,6 +1044,13 @@ define(['js/app'], function (myApp) {
                     vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
                 });
                 $scope.safeApply();
+            } else if (choice == "FEEDBACK_REPORT") {
+                vm.feedbackQuery = {};
+                vm.feedbackSummaryData = {};
+                utilService.actionAfterLoaded("#feedbackReportTable", function () {
+                    vm.commonInitTime(vm.winRateQuery, '#feedbackReportQuery');
+                });
+                $scope.safeApply();
             } else if (choice == "ONLINE_PAYMENT_MISMATCH_REPORT") {
                 vm.onlinePaymentMismatchQuery = {type: 'online'};
                 vm.proposalMismatchDetail = {};
@@ -2639,17 +2646,20 @@ define(['js/app'], function (myApp) {
             let admins = [];
             let csPromoteWay = [];
 
-            if (vm.playerDomain.departments) {
-                if (vm.playerDomain.roles) {
-                    vm.pdQueryRoles.map(e => {
-                        if (vm.playerDomain.roles.indexOf(e._id) >= 0) {
-                            e.users.map(f => admins.push(f._id))
-                        }
-                    })
-                } else {
-                    vm.pdQueryRoles.map(e => e.users.map(f => admins.push(f._id)))
+            if(vm.playerDomain){
+                if (vm.playerDomain.departments) {
+                    if (vm.playerDomain.roles) {
+                        vm.pdQueryRoles.map(e => {
+                            if (vm.playerDomain.roles.indexOf(e._id) >= 0) {
+                                e.users.map(f => admins.push(f._id))
+                            }
+                        })
+                    } else {
+                        vm.pdQueryRoles.map(e => e.users.map(f => admins.push(f._id)))
+                    }
                 }
             }
+
 
             var sendquery = {
                 platform: vm.curPlatformId,

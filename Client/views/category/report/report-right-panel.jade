@@ -638,6 +638,93 @@
             span.text-danger.margin-left-5 {{vm.partnerCommissionQuery.message | translate}}
             table.common-table#partnerCommissionTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
             #partnerCommissionTablePage
+        div(ng-if='vm.showPageName=="FEEDBACK_REPORT"')
+            #feedbackReportQuery.block-query.col-md-12.well
+                div
+                    label {{"USER TYPE"|translate}}
+                    select.form-control(ng-model='vm.feedbackQuery.userType', style='max-width:300px')
+                        option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
+                        option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
+                        option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                        option(value='Test Player') {{'TEST_PLAYER' | translate}}
+                div
+                    label {{"FEEDBACK_TIME_START" | translate}}
+                    .startTime
+                div
+                    label {{"FEEDBACK_TIME_END" | translate}}
+                    .endTime
+                div
+                    label {{"ACCUMULATE_DAYS" | translate}}
+                    input.form-control.span.input-sm(type="Number" ng-model="vm.feedbackQuery.days")
+                div
+                    label {{"FEEDBACK_RESULT"|translate}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.csPromoteWay', multiple, data-actions-box='true')
+                        option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
+                div
+                    label {{"FEEDBACK_TOPIC"|translate}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.departments', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryRole()")
+                        option(ng-repeat='(i,v) in vm.queryDepartments', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.departmentName}}
+                div
+                    label {{"REGISTRATION_ROLE"|translate}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.roles', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryAdmins()")
+                        option(ng-repeat='(i,v) in vm.queryRoles', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.roleName}}
+                div
+                    label {{"REGISTRATION_ADMIN"|translate}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.admins', multiple, data-actions-box='true' data-width="200px")
+                        option(ng-repeat='(i,v) in vm.queryAdmins', value='{{v.adminName}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
+                div
+                    label {{"PlayerValue"|translate}}
+                    select.form-control(ng-model="vm.feedbackQuery.valueScoreOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.playerScoreValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackQuery.valueScoreOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.playerScoreValueTwo" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.valueScoreOperator === 'range'")
+                div
+                    label {{"TOP_UP_TIMES"|translate}}
+                    select.form-control(ng-model="vm.feedbackQuery.topUpTimesOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpTimesValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackQuery.topUpTimesOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.topUpTimesOperator === 'range'")
+                div
+                    label {{"BonusTime"|translate}}
+                    select.form-control(ng-model="vm.feedbackQuery.bonusTimesOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.bonusTimesValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackQuery.bonusTimesOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.bonusTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.bonusTimesOperator === 'range'")
+                div
+                    label {{"TOTAL_TOP_UP"|translate}}
+                    select.form-control(ng-model="vm.feedbackQuery.topUpAmountOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackQuery.topUpAmountOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountValueTwo" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.topUpAmountOperator === 'range'")
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchFeedbackReport(true)') {{'SEARCH' | translate}}
+                    span#feedbackReportTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.feedbackQuery.totalCount}} {{"records" | translate}}
+            table.common-table#feedbackReportTable.display(style="width:100% ;overflow-x: scroll")
+
         // rewards report
         div(ng-if='vm.currentRewardCode')
             .panel.panel-primary
