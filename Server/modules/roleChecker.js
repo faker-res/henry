@@ -99,6 +99,7 @@ var roleChecker = {
         'getPlayerConsumptionReturn': true,
         'getPagePlayerByAdvanceQuery': true,
         'getQueryProposalsForAdminId': true,
+        'getPlayerProposalsForAdminId': true,
         "getOnePlayerInfo": true,
         "getManualTopupRequestList": true,
         "queryBonusProposal": true,
@@ -125,6 +126,8 @@ var roleChecker = {
         "getYesterdaySGTime": true,
         "getLastMonthSGTime": true,
         "getLastMonthConsumptionReturnSGTime": true,
+
+        "getPlatformProviderGroup": true,
 
         // API Actions - can be ignored
         'createApiUser': true,
@@ -279,7 +282,7 @@ var roleChecker = {
                 ConsumptionReturnFix: ['createReturnFixProposal'],
                 ManualUnlockRewardTask: ['manualUnlockRewardTask'],
                 PlatformCreditTransferLog: ['getPagedPlatformCreditTransferLog', 'getAllPlayerCreditTransferStatus'],
-                NewPlayerList:['getQueryProposalsForAdminId'],
+                NewPlayerList:['getQueryProposalsForAdminId', 'getPlayerProposalsForAdminId'],
                 ModifyGamePassword: ['modifyGamePassword'],
                 ClearProposalLimit: ['requestClearProposalLimit'],
                 TriggerAutoProposal: ['triggerAutoProposal'],
@@ -369,7 +372,7 @@ var roleChecker = {
                 Monitor: [],
                 PlayerValue: ['updatePlayerValueConfig','updatePlayerLevelScores'],
                 Credibility: ['updateCredibilityRemarksInBulk'],
-                providerGroup: []
+                providerGroup: ['deletePlatformProviderGroup']
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -411,6 +414,9 @@ var roleChecker = {
             },
             "devFunc": {
                 Read: ['triggerSavePlayersCredit']
+            },
+            "phoneNumFilter": {
+                FilterAllPlatform: []
             }
         },
         Payment: {
@@ -479,7 +485,7 @@ var roleChecker = {
         },
         Operation: {
             Proposal: {
-                Read: ['getProposalTypeByPlatformId', "getFullProposalProcess", 'getQueryApprovalProposalsForAdminId', "getQueryProposalsForAdminId"],
+                Read: ['getProposalTypeByPlatformId', "getFullProposalProcess", 'getQueryApprovalProposalsForAdminId', "getQueryProposalsForAdminId", "getRewardEventsForPlatform", "getPromoCodeTypes"],
                 ProposalListRead: ['getAvailableProposalsForAdminId'],
                 ProposalListDetail: ['getAvailableProposalsForAdminId'],
                 ApproveProposal: ["updateProposalProcessStep"],

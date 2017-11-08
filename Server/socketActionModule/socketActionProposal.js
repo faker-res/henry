@@ -301,8 +301,50 @@ function socketActionProposal(socketIO, socket) {
             var index = data.index || 0;
             var size = data.size || 10;
             var sortCol = data.sortCol || {"createTime": -1};
-            socketUtil.emitter(self.socket, dbProposal.getQueryProposalsForPlatformId, [data.platformId, data.type, data.status, data.credit, data.name, data.relateUser, data.relatePlayerId, data.entryType, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.playerId, data.eventName, data.promoTypeName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getQueryProposalsForPlatformId, [data.platformId, data.type, data.status, data.credit, data.name, data.relateUser, data.relatePlayerId, data.entryType, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.playerId, data.eventName, data.promoTypeName, data.inputDevice], actionName, isValidData);
         },
+
+        getPlayerProposalsForAdminId: function getPlayerProposalsForAdminId(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.adminId && data.platformId && data.status);
+            var startTime = data.startDate ? data.startDate : new Date(0);
+            var endTime = data.endDate ? data.endDate : new Date();
+            var index = data.index || 0;
+            var size = data.size || 10;
+            var sortCol = data.sortCol || {"createTime": -1};
+            socketUtil.emitter(self.socket, dbProposal.getPlayerProposalsForPlatformId, [data.platformId, data.type, data.status, data.name, data.phoneNumber,  startTime, endTime, index, size, sortCol, data.displayPhoneNum], actionName, isValidData);
+        },
+
+        /**
+         * get all the player registration intent and calculate the fail and success rate
+         */
+        getPlayerSelfRegistrationRecordList: function getPlayerSelfRegistrationRecordList(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.status);
+            var startTime = data.startDate ? data.startDate : new Date(0);
+            var endTime = data.endDate ? data.endDate : new Date();
+            socketUtil.emitter(self.socket, dbProposal.getPlayerSelfRegistrationRecordList, [startTime, endTime, data.status], actionName, isValidData);
+        },
+
+        getPlayerManualRegistrationRecordList: function getPlayerManualRegistrationRecordList(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.status);
+            var startTime = data.startDate ? data.startDate : new Date(0);
+            var endTime = data.endDate ? data.endDate : new Date();
+            socketUtil.emitter(self.socket, dbProposal.getPlayerManualRegistrationRecordList, [startTime, endTime, data.status], actionName, isValidData);
+        },
+
+        getPlayerRegistrationIntentRecordByStatus: function getPlayerRegistrationIntentRecordByStatus(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.adminId && data.platformId);
+            var startTime = data.startDate ? data.startDate : new Date(0);
+            var endTime = data.endDate ? data.endDate : new Date();
+            var index = -1;
+            var size = -1;
+            var sortCol = data.sortCol || {"createTime": -1};
+            socketUtil.emitter(self.socket, dbProposal.getPlayerRegistrationIntentRecordByStatus, [data.platformId, data.type, data.status, data.name, data.phoneNumber,  startTime, endTime, index, size, sortCol, data.displayPhoneNum,data.attemptNo], actionName, isValidData);
+        },
+
 
         /**
          * Create new Proposal Process

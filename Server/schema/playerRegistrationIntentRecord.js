@@ -19,8 +19,14 @@ var playerRegistrationIntentRecordSchema = new Schema({
     //playerId
     playerId: String,
     //platformId
-    platform: {type: Schema.ObjectId}
+    platform: {type: Schema.ObjectId},
+    //proposal data
+    data: {type: JSON, default: {}},
 
 });
+
+playerRegistrationIntentRecordSchema.index({"data.name": 1});
+playerRegistrationIntentRecordSchema.index({"data.playerId": 1});
+playerRegistrationIntentRecordSchema.index({"data.partnerId": 1});
 
 module.exports = playerRegistrationIntentRecordSchema;

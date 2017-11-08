@@ -2,9 +2,9 @@
 
 define(['js/app'], function (myApp) {
 
-    var injectParams = ['$sce', '$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies", "$timeout"];
+    var injectParams = ['$sce', '$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies", "$timeout", '$http', 'uiGridExporterService', 'uiGridExporterConstants'];
 
-    var platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout) {
+    var platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
             var $translate = $filter('translate');
             var vm = this;
 
@@ -199,8 +199,9 @@ define(['js/app'], function (myApp) {
 
             vm.newPlayerListStatus = {
                 Success: $translate("Success"),
-                Fail: $translate("Fail"),
-                Pending: $translate("Pending")
+                Fail: $translate("Attempt"),
+                Pending: $translate("Pending"),
+                Manual: $translate("Manual")
             };
 
             vm.soundChoice = {
@@ -216,6 +217,22 @@ define(['js/app'], function (myApp) {
                 // "tone10": "10.wav",
                 // "tone11": "11.wav",
                 // "tone12": "12.wav"
+            };
+
+            vm.constProposalStatus = {
+                PREPENDING: "PrePending",
+                PENDING: "Pending",
+                AUTOAUDIT: "AutoAudit",
+                PROCESSING: "Processing",
+                APPROVED: "Approved",
+                REJECTED: "Rejected",
+                SUCCESS: "Success",
+                FAIL: "Fail",
+                CANCEL: "Cancel",
+                EXPIRED: "Expired",
+                UNDETERMINED: "Undetermined",
+                RECOVER: "Recover",
+                MANUAL:"Manual"
             };
 
             // Basic library functions
@@ -2559,14 +2576,15 @@ define(['js/app'], function (myApp) {
                     vm.newPlayerRecords.pageObj = utilService.createPageForPagingTable("#newPlayerListTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "newPlayerRecords", vm.getNewPlayerListByFilter)
                     });
+
                     vm.getNewPlayerListByFilter(true);
                 });
+
+
             }
 
             vm.getNewPlayerListByFilter = function (newSearch) {
-
-
-                var selectedStatus = vm.queryPara.newPlayerList ? [vm.queryPara.newPlayerList.status] : ["Success", "Fail", "Pending"];
+                var selectedStatus = vm.queryPara.newPlayerList ? [vm.queryPara.newPlayerList.status] : ["Success", "Fail", "Pending", "Manual"];
                 var sendData = {
                     adminId: authService.adminId,
                     platformId: vm.selectedPlatform.id,
@@ -2574,8 +2592,7 @@ define(['js/app'], function (myApp) {
                     startDate: vm.queryPara.newPlayerRecords.startTime.data('datetimepicker').getLocalDate(),
                     endDate: vm.queryPara.newPlayerRecords.endTime.data('datetimepicker').getLocalDate(),
                     name: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.playerName : null,
-                    relateUser: null,
-                    relatePlayerId: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.playerId : null,
+                    phoneNumber: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.phoneNumber : null,
                     // entryType: vm.queryProposalEntryType,
                     size: newSearch ? 10 : (vm.newPlayerRecords.limit || 10),
                     index: newSearch ? 0 : (vm.newPlayerRecords.index || 0),
@@ -2586,7 +2603,7 @@ define(['js/app'], function (myApp) {
                 if (selectedStatus && selectedStatus != "") {
                     sendData.status = selectedStatus
                 } else {
-                    sendData.status = ["Success", "Fail", "Pending"];
+                    sendData.status = ["Success", "Fail", "Pending", "Manual"];
                 }
 
                 vm.newPlayerRecords.loading = true;
@@ -2600,21 +2617,37 @@ define(['js/app'], function (myApp) {
 
             vm.prepareNewPlayerListRecords = function (queryData, newSearch) {
                 vm.newPlayerListRecords = [];
-                socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', queryData, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPlayerProposalsForAdminId', queryData, function (data) {
                     vm.newPlayerListRecords = data.data.data;
                     vm.newPlayerRecords.totalCount = data.data.size;
-                    var summary = data.data.summary || {};
                     vm.newPlayerRecords.loading = false;
-                    console.log('consumption record', data);
+                    console.log('new player list record', data);
 
                     var tableData = vm.newPlayerListRecords.map(
                         record => {
-                            record.createTime = vm.dateReformat(record.createTime);
-                            record.statusName = $translate(record.status);
+                            record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
+                            //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                            if(record.status){
+                                if(record.status == "Fail"){
+                                    record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                                else{
+                                    record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                            }
                             record.playerId = record.data.playerId ? record.data.playerId : "";
                             record.name = record.data.name ? record.data.name : "";
                             record.realName = record.data.realName ? record.data.realName : "";
                             record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
+                            record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+                            record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
+                            record.smsCode = record.data.smsCode ? record.data.smsCode : "";
+                            record.remarks = record.data.remarks ? record.data.remarks : "";
+                            record.device = record.data.device ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
+                            record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
+                            record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
+                            record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
+                            record.proposalId = record.data.proposalId ? record.data.proposalId : "";
                             return record
                         }
                     );
@@ -2623,25 +2656,33 @@ define(['js/app'], function (myApp) {
                         data: tableData,
                         aoColumnDefs: [
                             {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                            {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
-                            {'sortCol': 'data.playerId', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'data.name', bSortable: true, 'aTargets': [3]},
-                            {'sortCol': 'data.realName', bSortable: true, 'aTargets': [4]},
+                            {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
+                            {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
+                            {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
                             {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
-                            {'sortCol': 'data.phoneNumber', bSortable: true, 'aTargets': [7]},
-                            // {targets: '_all', defaultContent: ' ', bSortable: false}
+                            {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
+                            {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
+                            {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
+                            {'sortCol': 'remarks', bSortable: true, 'aTargets': [9]},
+                            {'sortCol': 'device', bSortable: true, 'aTargets': [10]},
+                            {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [12]},
+                            {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
                         ],
                         columns: [
                             {title: $translate('PROPOSAL_ID'), data: "proposalId"},
-                            {title: $translate('STATUS'), data: "statusName"},
-                            {title: $translate('PLAYERID'), data: "playerId"},
                             {title: $translate('PLAYERNAME'), data: "name"},
-                            {title: $translate('REAL_NAME'), data: "realName"},
-                            {title: $translate('IP_ADDRESS'), data: "lastLoginIp"},
-                            {title: $translate('CREATETIME'), data: "createTime"},
+                            {title: $translate('STATUS'), data: "statusName"},
+                            {title: $translate('SENT TIME'), data: "createTime"},
+                            {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
+                            {title: $translate('REGISTERED_IP'), data: "lastLoginIp"},
+                            {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
+                            {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
+                            {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
+                            {title: $translate('REMARKS'), data: "remarks"},
+                            {title: $translate('DEVICE'), data: "device"},
                             {
-                                title: $translate('phoneNumber'),
+                                title: $translate('Function'),
                                 data: "data.phoneNumber",
                                 advSearch: true,
                                 "sClass": "",
@@ -2665,7 +2706,553 @@ define(['js/app'], function (myApp) {
                                     }
                                     return link.prop('outerHTML')
                                 }
-                            }
+                            },
+                            {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
+                            {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
+                        ],
+                        bSortClasses: false,
+                        destroy: true,
+                        paging: false,
+                        autoWidth: true,
+                        initComplete: function (data, type, row) {
+                            $scope.safeApply();
+                        },
+                        createdRow: function (row, data, dataIndex) {
+                            $compile(angular.element(row).contents())($scope);
+
+                        },
+                        fnRowCallback: vm.playerListTableRow
+                    });
+                    var a = utilService.createDatatableWithFooter('#newPlayerListTable', option, {});
+                    vm.newPlayerRecords.pageObj.init({maxCount: vm.newPlayerRecords.totalCount}, newSearch);
+                    setTimeout(function () {
+                        $('#newPlayerListTable').resize();
+                    }, 300);
+
+                });
+            };
+
+
+            vm.playerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                $compile(nRow)($scope);
+                vm.operatePlayerListTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
+            };
+
+            vm.operatePlayerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                switch (true) {
+
+                    case (aData.status == vm.constProposalStatus.FAIL && (aData.$playerAllCount - aData.$playerCurrentCount == 0)): {
+                        $(nRow).css('background-color', 'rgba(255, 153, 153, 100)','important');
+                        //$(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                        break;
+                    }
+                    case (aData.status == vm.constProposalStatus.FAIL && (aData.$playerAllCount - aData.$playerCurrentCount > 0)): {
+                        $(nRow).css('background-color', 'rgba(153, 153, 153, 100)','important');
+                        break;
+                    }
+                    default: {
+                        $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
+                        break;
+                    }
+                }
+            };
+
+            // get attempt number list -- start
+            vm.playerRegistrationSuccessRateList = function () {
+                vm.playerRegistrationRecords = {totalCount: 0};
+                vm.initQueryTimeFilter('attemptNumberRecords', function () {
+                    vm.playerRegistrationRecords.pageObj = utilService.createPageForPagingTable("#playerRegistrationIntentRecordsTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "playerRegistrationRecords", vm.preparePlayerRegistrationIntentRecordsByStatus)
+                    });
+
+                    vm.getPlayerRegistrationSucccessRateListByFilter(true);
+                });
+            }
+
+            //vm.getPlayerRegistrationSucccessRateListByFilter = function (newSearch) {
+        vm.getPlayerRegistrationSucccessRateListByFilter = function () {
+                var selectedStatus = vm.queryPara.attemptNumberList ? [vm.queryPara.attemptNumberList.status] : ["Success", "Fail", "Pending", "Manual"];
+                var sendData = {
+                    adminId: authService.adminId,
+                    platformId: vm.selectedPlatform.id,
+                    type: ["PlayerRegistrationIntention"],
+                    startDate: vm.queryPara.attemptNumberRecords.startTime.data('datetimepicker').getLocalDate(),
+                    endDate: vm.queryPara.attemptNumberRecords.endTime.data('datetimepicker').getLocalDate(),
+                    relateUser: null,
+                    //sortCol: vm.playerRegistrationRecords.sortCol || null,
+                    displayPhoneNum: true
+                }
+                vm.playerRegistrationRecords.loading = true;
+                console.log("Query", sendData);
+                vm.prepareSelfRegistrationSuccessRateRecords(sendData);
+                vm.prepareRegistrationDistributionRecords(sendData);
+
+            };
+
+            vm.prepareSelfRegistrationSuccessRateRecords = function (queryData) {
+                queryData.status = ["Success", "Fail"];
+                vm.selfRegistrationSuccessRateRecords = [];
+                socketService.$socket($scope.AppSocket, 'getPlayerSelfRegistrationRecordList', queryData, function (data) {
+                    vm.selfRegistrationSuccessRateRecords = data.data;
+                    //vm.playerRegistrationRecords.totalCount = data.data.size;
+                    vm.playerRegistrationRecords.loading = false;
+                    console.log('self registration success rate record', data);
+
+                    var tableData = vm.selfRegistrationSuccessRateRecords.map(
+                        record => {
+                            record.selfRegistrationTotalSuccess = record.selfRegistrationTotalSuccess ? $translate(record.selfRegistrationTotalSuccess) : "";
+                            record.totalAttempt = record.totalAttempt ? $translate(record.totalAttempt) : "";
+                            return record ? record : "";
+                        }
+                    );
+                    var tableData = vm.selfRegistrationSuccessRateRecords;
+                    var option = $.extend({}, vm.generalDataTableOptions, {
+                        data: tableData,
+                        columns: [
+                            {title: $translate('SELF_REGISTER_SUCCESS_RATE'), data: $translate('selfRegistrationTotalSuccess')},
+                            {
+                                title: $translate('TOTAL_ATTEMPT'),
+                                data: "totalAttempt",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        let statusArr = ["Success","Fail"];
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"-1",' + JSON.stringify(statusArr) + ');',
+                                        }).text(data));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('ATTEMPT') + "(1/1)",
+                                data: "firstFail",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Fail");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('ATTEMPT') + "(2/2)",
+                                data: "secondFail",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2","Fail");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('ATTEMPT') + "(3/3)",
+                                data: "thirdFail",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3","Fail");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('ATTEMPT') + "(4/4)",
+                                data: "fouthFail",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4","Fail");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('ATTEMPT') + "(5/5)",
+                                data: "fifthFail",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5","Fail");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('ATTEMPT') + "(5UP)",
+                                data: "fifthUpFail",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0","Fail");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(1/1)",
+                                data: "firstSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(2/2)",
+                                data: "secondSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(3/3)",
+                                data: "thirdSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(4/4)",
+                                data: "fouthSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(5/5)",
+                                data: "fifthSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(5UP)",
+                                data: "fifthUpSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                        ],
+                        destroy: true,
+                        paging: false,
+                        autoWidth: true,
+                        initComplete: function (data, type, row) {
+                            $scope.safeApply();
+                        },
+                        createdRow: function (row, data, dataIndex) {
+                            $compile(angular.element(row).contents())($scope);
+                        },
+                        fnRowCallback: vm.playerListTableRow
+                    });
+                    var a = utilService.createDatatableWithFooter('#selfRegistrationSuccessRateTable', option, {});
+                    //vm.playerRegistrationRecords.pageObj.init({maxCount: vm.playerRegistrationRecords.totalCount}, newSearch);
+                    setTimeout(function () {
+                        $('#selfRegistrationSuccessRateTable').resize();
+                    }, 300);
+
+                });
+            };
+
+            vm.prepareRegistrationDistributionRecords = function (queryData) {
+                queryData.status = ["Success", "Manual"];
+                vm.registrationDistributionRecords = [];
+                socketService.$socket($scope.AppSocket, 'getPlayerManualRegistrationRecordList', queryData, function (data) {
+                    vm.registrationDistributionRecords = data.data;
+                    //vm.registrationDistributionRecords.totalCount = data.data.size;
+                    vm.registrationDistributionRecords.loading = false;
+                    console.log('registration distribution record', data);
+
+                    var tableData = vm.registrationDistributionRecords.map(
+                        record => {
+                            record.manualRegistrationTotalSuccess = record.manualRegistrationTotalSuccess ? $translate(record.manualRegistrationTotalSuccess) : "";
+                            record.totalSuccess = record.totalSuccess ? $translate(record.totalSuccess) : "";
+                            return record ? record : "";
+                        }
+                    );
+                    var tableData = vm.registrationDistributionRecords;
+                    var option = $.extend({}, vm.generalDataTableOptions, {
+                        data: tableData,
+                        columns: [
+                             {title: $translate('MANUAL/SELF_REGISTER_RATE'), data: "manualRegistrationTotalSuccess"},
+                            {
+                                title: $translate('TOTAL_REGISTRATION'),
+                                data: "totalSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        let statusArr = ["Success","Manual"]
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"-1",' + JSON.stringify(statusArr) + ');',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('MANUAL'),
+                                data: "manualSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Manual");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(1/1)",
+                                data: "firstSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(2/2)",
+                                data: "secondSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(3/3)",
+                                data: "thirdSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(4/4)",
+                                data: "fouthSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(5/5)",
+                                data: "fifthSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(5UP)",
+                                data: "fifthUpSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
                         ],
                         destroy: true,
                         paging: false,
@@ -2676,16 +3263,189 @@ define(['js/app'], function (myApp) {
                         createdRow: function (row, data, dataIndex) {
                             $compile(angular.element(row).contents())($scope);
 
-                        }
+                        },
+                        fnRowCallback: vm.playerListTableRow
                     });
-                    var a = utilService.createDatatableWithFooter('#newPlayerListTable', option, {});
-                    vm.newPlayerRecords.pageObj.init({maxCount: vm.newPlayerRecords.totalCount}, newSearch);
+                    var a = utilService.createDatatableWithFooter('#registrationDistributionRecordsTable', option, {});
+                    //vm.playerRegistrationRecords.pageObj.init({maxCount: vm.playerRegistrationRecords.totalCount}, newSearch);
                     setTimeout(function () {
-                        $('#newPlayerListTable').resize();
+                        $('#registrationDistributionRecordsTable').resize();
                     }, 300);
 
                 });
             };
+
+            vm.setPreparePlayerRegistrationIntentRecordsByStatusParam = function(queryData,attemptNo,status){
+                vm.queryData = queryData;
+                vm.attemptNo = attemptNo;
+                vm.status = status;
+
+                vm.preparePlayerRegistrationIntentRecordsByStatus(true);
+            }
+
+            vm.preparePlayerRegistrationIntentRecordsByStatus = function(newSearch){
+                vm.queryData.attemptNo = vm.attemptNo ? vm.attemptNo : 0;
+                vm.queryData.status = Array.isArray(vm.status) ? vm.status :[vm.status];
+                vm.playerRegistrationRecords.loading = true;
+
+                vm.queryData.size = newSearch ? 10 : (vm.playerRegistrationRecords.limit || 10);
+                vm.queryData.index = newSearch ? 0 : (vm.playerRegistrationRecords.index || 0);
+                vm.queryData.sortCol = vm.playerRegistrationRecords.sortCol;
+                socketService.$socket($scope.AppSocket, 'getPlayerRegistrationIntentRecordByStatus', vm.queryData, function (data) {
+                    vm.newPlayerListRecords = data.data;
+
+                    vm.playerRegistrationRecords.loading = false;
+                    console.log('player registration intent record', data);
+
+                    let arr = [];
+
+                    var tableData = vm.newPlayerListRecords.map(
+                        records => {
+                            records.data.map(record => {
+                                record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
+                                if(record.status){
+                                    if(record.status == "Fail"){
+                                        record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                    }
+                                    else{
+                                        record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                    }
+                                }
+                                record.playerId = record.data.playerId ? record.data.playerId : "";
+                                record.name = record.data.name ? record.data.name : "";
+                                record.realName = record.data.realName ? record.data.realName : "";
+                                record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
+                                record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+                                record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
+                                record.smsCode = record.data.smsCode ? record.data.smsCode : "";
+                                record.remarks = record.data.remarks ? record.data.remarks : "";
+                                record.device = record.data.device ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
+                                record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
+                                record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
+                                record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
+                                record.proposalId = record.data.proposalId ? record.data.proposalId : "";
+                                arr.push(record);
+                            })
+                            return arr;
+                        }
+                    );
+
+                    vm.playerRegistrationRecords.totalCount = tableData[0].length;
+                    var limit = tableData[0].length < vm.queryData.index + vm.queryData.size ? tableData[0].length :  vm.queryData.index + vm.queryData.size
+
+                    vm.sortProposalRegistrationIntentRecord = function(data,sortCol){
+                        var keyName = Object.keys(sortCol)[0];
+                        var sorting = sortCol[keyName];
+                        var result = data.sort(function(a,b) {
+                            if ( a[keyName] < b[keyName] )
+                                return -1*sorting;
+                            if ( a[keyName] > b[keyName] )
+                                return 1*sorting;
+                            return 0;
+                        });
+
+                        return result;
+                    }
+
+                    if(vm.queryData.sortCol){
+                        //tableData = tableData[0].sort(vm.queryData.sortCol).slice(vm.queryData.index,limit);
+                        //tableData[0] = JSON.parse(JSON.stringify(tableData[0]));
+                        tableData = vm.sortProposalRegistrationIntentRecord(tableData[0],vm.queryData.sortCol).slice(vm.queryData.index,limit);
+                    }else {
+                        // tableData = tableData[0].sort(function(a,b) {if ( a.createTime < b.createTime )return 1;if ( a.createTime > b.createTime )return -1;return 0;})
+                        //     .slice(vm.queryData.index,limit);
+                        tableData = vm.sortProposalRegistrationIntentRecord(tableData[0],{createTime: -1}).slice(vm.queryData.index,limit);
+                    }
+
+                    var option = $.extend({}, vm.generalDataTableOptions, {
+                        data: tableData,
+                        aoColumnDefs: [
+                            {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                            {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
+                            {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
+                            {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
+                            {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
+                            {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
+                            {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
+                            {'sortCol': 'remarks', bSortable: true, 'aTargets': [9]},
+                            {'sortCol': 'device', bSortable: true, 'aTargets': [10]},
+                            {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [12]},
+                            {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
+                        ],
+                        columns: [
+                            {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                            {title: $translate('PLAYERNAME'), data: "name"},
+                            {title: $translate('STATUS'), data: "statusName"},
+                            //{title: $translate('PLAYERID'), data: "playerId"},
+                            {title: $translate('SENT TIME'), data: "createTime"},
+                            {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
+                            {title: $translate('REGISTERED_IP'), data: "lastLoginIp"},
+                            {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
+                            {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
+                            {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
+                            {title: $translate('REMARKS'), data: "remarks"},
+                            {title: $translate('DEVICE'), data: "device"},
+                            {
+                                title: $translate('Function'),
+                                data: "data.phoneNumber",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var playerObjId = row.data._id ? row.data._id : "";
+                                    var link = $('<div>', {});
+
+                                    if (row.data.phoneNumber && row.data.phoneNumber != "") {
+                                        link.append($('<div>', {
+                                            'class': 'fa fa-volume-control-phone',
+                                            'ng-click': 'vm.callNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
+                                            'title': $translate("PHONE")
+                                        }));
+                                        link.append($('<div>', {
+                                            'class': 'fa fa-comment',
+                                            'style': 'padding-left:15px',
+                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
+                                            'title': $translate("PHONE")
+                                        }));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
+                            {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
+                        ],
+                        bSortClasses: false,
+                        destroy: true,
+                        paging: false,
+                        autoWidth: true,
+                        initComplete: function (data, type, row) {
+                            $scope.safeApply();
+                        },
+                        createdRow: function (row, data, dataIndex) {
+                            $compile(angular.element(row).contents())($scope);
+
+                        },
+                        fnRowCallback: vm.playerListTableRow
+                    });
+                    var a = utilService.createDatatableWithFooter('#playerRegistrationIntentRecordsTable', option, {});
+
+                    vm.playerRegistrationRecords.pageObj.init({maxCount: vm.playerRegistrationRecords.totalCount}, newSearch);
+                    $('#playerRegistrationIntentRecordsTable').off('order.dt');
+                    $('#playerRegistrationIntentRecordsTable').on('order.dt', function (event, a, b) {
+                        vm.commonSortChangeHandler(a, 'playerRegistrationRecords', vm.preparePlayerRegistrationIntentRecordsByStatus);
+                    });
+                    setTimeout(function () {
+                        $('#playerRegistrationIntentRecordsTable').resize();
+                    }, 300);
+
+                });
+            };
+            // get attempt number list -- end
+
+
+
             vm.prepareRepairTransfer = function () {
                 vm.showPlatformRepair = !vm.showPlatformRepair;
                 if (vm.showPlatformRepair) {
@@ -2800,39 +3560,38 @@ define(['js/app'], function (myApp) {
                         item.amount$ = item.amount.toFixed(2);
                         item.bonusAmount$ = item.bonusAmount.toFixed(2);
                         item.commissionAmount$ = item.commissionAmount.toFixed(2);
+                        item.canConsumptionReturn$ = Boolean(!item.bDirty) ? $translate('ABLE') : $translate('UNABLE');
                         return item;
                     }) : [];
                     vm.expenseQuery.totalCount = data.data.count || 0;
                     var summary = data.data.summary || {};
                     var tableOptions = {
                         data: tableData,
-                        "order": vm.expenseQuery.aaSorting || [[0, 'desc']],
+                        "order": vm.expenseQuery.aaSorting || [[1, 'desc']],
                     };
 
                     vm.commonProviderGameTableOptions = {
                         columnDefs: [
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [0]},
-                            {'sortCol': 'playerId', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'amount', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
+                            // {'sortCol': 'playerId', bSortable: true, 'aTargets': [2]},
+                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'amount', bSortable: true, 'aTargets': [6]},
                             {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
-                            {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
+                            // {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
                             {targets: '_all', bSortable: false, defaultContent: ' '}
                         ],
                         columns: [
+                            {title: $translate('orderId'), data: "orderNo"},
                             {title: $translate('CREATION_TIME'), data: "createTime$"},
                             //{title: $translate('PLATFORM'), data: "platformId.name"},
-                            {title: $translate('PLAYERID'), data: "playerId.name", sClass: 'sumText'},
-                            {title: $translate('providerId'), data: "providerId.name", sClass: 'sumText'},
-                            {title: $translate('GAME_TITLE'), data: "gameId.name"},
+                            {title: $translate('PLAYERID'), data: "playerId.name"},
+                            {title: $translate('providerId'), data: "providerId.name"},
+                            {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
                             {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'sumFloat textRight'},
                             {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
-                            {title: $translate('orderId'), data: "orderId"},
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
-                            {
-                                title: $translate('commissionAmount'), data: "commissionAmount$",
-                                sClass: 'sumFloat textRight'
-                            },
+                            // {title: $translate('commissionAmount'), data: "commissionAmount$", sClass: 'sumFloat textRight'},
+                            {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
                         ],
                         "paging": false,
                         "language": {
@@ -2868,10 +3627,10 @@ define(['js/app'], function (myApp) {
                     tableOptions = $.extend(true, {}, vm.providerExpenseDataTableOptions, vm.commonProviderGameTableOptions, tableOptions);
                     vm.expenseQuery.pageObj.init({maxCount: vm.expenseQuery.totalCount}, newSearch);
                     utilService.createDatatableWithFooter('#providerExpenseTable', tableOptions, {
-                        3: summary.validAmountAll,
-                        4: summary.amountAll,
-                        6: summary.bonusAmountAll,
-                        7: summary.commissionAmountAll
+                        5: summary.validAmountAll,
+                        6: summary.amountAll,
+                        7: summary.bonusAmountAll,
+                        // 8: summary.commissionAmountAll
                     });
                     $('#providerExpenseTable').off('order.dt');
                     $('#providerExpenseTable').on('order.dt', function (event, a, b) {
@@ -3201,6 +3960,24 @@ define(['js/app'], function (myApp) {
                                         .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
                                 }
 
+                                // TODO:: Temporary measure to show reward group credit
+                                if (row.rewardGroupInfo && row.rewardGroupInfo.length > 0) {
+                                    link.append($('<i class="fa fa-lock"></i>'))
+                                        .append(
+                                            $('<a>', {
+                                                'class': 'rewardTaskPopover',
+                                                'ng-click': 'vm.rewardTaskPlayerName = "' + row.name + '";', // @todo: escaping issue
+                                                'data-row': JSON.stringify(row),
+                                                'href': '',
+                                                'data-toggle': 'popover',
+                                                'data-trigger': 'focus',
+                                                'data-placement': 'bottom',
+                                                'data-container': 'body'
+                                            }).text(row.lockedCredit.toFixed(2))
+                                        )
+                                        .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
+                                }
+
                                 //}
                                 link.append(
                                     $('<a>', {
@@ -3249,21 +4026,6 @@ define(['js/app'], function (myApp) {
                                 return utilService.getFormatTime(data);
                             }
                         },
-                        // {
-                        //     "visible": false,
-                        //     title: $translate('REGISTRATION_TIME_END'),
-                        //     data: 'registrationEndTime',
-                        //     advSearch: true,
-                        //     filterConfig: {
-                        //         type: "datetimepicker",
-                        //         id: "regEndDateTimePicker",
-                        //         options: {
-                        //             language: 'en',
-                        //             format: 'dd/MM/yyyy hh:mm:ss',
-                        //         }
-                        //     },
-                        //     "sClass": "alignLeft"
-                        // },
                         {
                             title: $translate('LAST_ACCESS_TIME'),
                             data: 'lastAccessTime',
@@ -3282,22 +4044,6 @@ define(['js/app'], function (myApp) {
                                 return utilService.getFormatTime(data);
                             }
                         },
-                        // {
-                        //     "visible": false,
-                        //     title: $translate('LAST_ACCESS_TIME_END'),
-                        //     data: 'lastAccessEndTime',
-                        //     advSearch: true,
-                        //     type: "datetimepicker",
-                        //     filterConfig: {
-                        //         type: "datetimepicker",
-                        //         id: "lastAccessEndDateTimePicker",
-                        //         options: {
-                        //             language: 'en',
-                        //             format: 'dd/MM/yyyy hh:mm:ss',
-                        //         }
-                        //     },
-                        //     "sClass": "alignLeft"
-                        // },
                         {title: $translate('LOGIN_TIMES'), data: "loginTimes",
                             render: function (data, type, row) {
                                 data = data || '0';
@@ -3704,6 +4450,39 @@ define(['js/app'], function (myApp) {
                         //         }
                         //     }
                         // },
+                        {
+                            // keep for date time
+                            // todo :: use createDatePicker after it load instead
+                            "visible": false,
+                            title: $translate('REGISTRATION_TIME_END'),
+                            data: 'registrationEndTime',
+                            advSearch: true,
+                            filterConfig: {
+                                type: "datetimepicker",
+                                id: "regEndDateTimePicker",
+                                options: {
+                                    language: 'en',
+                                    format: 'dd/MM/yyyy hh:mm:ss',
+                                }
+                            },
+                            "sClass": "alignLeft"
+                        },
+                        {
+                            "visible": false,
+                            title: $translate('LAST_ACCESS_TIME_END'),
+                            data: 'lastAccessEndTime',
+                            advSearch: true,
+                            type: "datetimepicker",
+                            filterConfig: {
+                                type: "datetimepicker",
+                                id: "lastAccessEndDateTimePicker",
+                                options: {
+                                    language: 'en',
+                                    format: 'dd/MM/yyyy hh:mm:ss',
+                                }
+                            },
+                            "sClass": "alignLeft"
+                        },
                     ],
                     //"autoWidth": false,
                     "scrollX": true,
@@ -4667,7 +5446,24 @@ define(['js/app'], function (myApp) {
                         $('body').off('click', partnerIpHistoryHandler);
                     }
                 });
-            }
+            };
+
+            vm.createPlayerFromIntention = function (data) {
+                vm.prepareCreatePlayer();
+                $('#modalCreatePlayer').modal();
+                if (!data || !vm.newPlayer) return;
+                data.name ? vm.newPlayer.name = data.name : null;
+                data.email ? vm.newPlayer.email = data.email : null;
+                data.realName ? vm.newPlayer.realName = data.realName : null;
+                data.mobile ? vm.newPlayer.phoneNumber = data.mobile : null;
+                data.nickName ? vm.newPlayer.nickName = data.nickName : null;
+                if (data.referralName) {
+                    vm.newPlayer.referralName = data.referralName;
+                    vm.getReferralPlayer(vm.newPlayer, "change");
+                }
+
+                $scope.safeApply();
+            };
 
             vm.showIPHistory = function () {
                 socketService.$socket($scope.AppSocket, 'getIpHistory', {
@@ -5365,7 +6161,7 @@ define(['js/app'], function (myApp) {
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
                     Object.keys(newPlayerData).forEach(function (key) {
                         if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup") {
+                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup" || key == "referralName") {
                                 //do nothing
                             } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                                 //do nothing
@@ -5524,6 +6320,7 @@ define(['js/app'], function (myApp) {
                     });
                 } else {
                     socketService.$socket($scope.AppSocket, 'createPlayer', vm.newPlayer, function (data) {
+                        vm.createPlayerRegistrationIntentRecord(data);
                         vm.playerCreateResult = data;
                         vm.getPlatformPlayersData();
                         $scope.safeApply;
@@ -5534,6 +6331,38 @@ define(['js/app'], function (myApp) {
                     });
                 }
             };
+
+            vm.createPlayerRegistrationIntentRecord = function(data){
+
+                var intentData = {
+                    name: data.data.name,
+                    realName: data.data.realName,
+                    password: data.data.password,
+                    platformId: data.data.platformId,
+                    domain: data.data.domain,
+                    phoneNumber: data.data.phoneNumber,
+                    email: data.data.email,
+                    smsCode: "",
+                    lastLoginIp:data.data.lastLoginIp,
+                    loginIps: data.data.loginIps,
+                    userAgent: data.data.userAgent,
+                    phoneProvince: data.data.phoneProvince,
+                    phoneCity: data.data.phoneCity,
+                    phoneType: data.data.phoneType,
+                    partnerId: data.data.partnerId,
+                    isOnline: data.data.isOnline,
+                    playerId: data.data.playerId,
+                    remarks: data.data.partnerId ? $translate("PARTNER") + ": " + data.data.partnerId : "",
+                    status: vm.constProposalStatus.MANUAL,
+                    platform: data.data.platform
+                };
+
+                socketService.$socket($scope.AppSocket, 'createPlayerRegistrationIntentRecord', intentData, function (data) {
+                    console.log('player registration intent record created',data);
+                }, function (err) {
+                    console.log('player registration intent record creation failed',err);
+                });
+            }
 
             vm.showPartnerSelectModal = function (editingObj) {
                 vm.showPartnerFilterLevel = null;
@@ -5750,6 +6579,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 let sendQuery = {
+                    admin: authService.adminName,
                     platformObjId: vm.selectedSinglePlayer.platform,
                     playerObjId: vm.selectedSinglePlayer._id,
                     remarks: selectedRemarks,
@@ -5968,11 +6798,13 @@ define(['js/app'], function (myApp) {
                     vm.queryPara[field].endTime = utilService.createDatePicker('#' + field + ' .endTime');
                     vm.queryPara[field].startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.queryPara[field].endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                    $scope.safeApply();
+                    if (callback) {
+                        callback();
+                    }
                 });
-                $scope.safeApply();
-                if (callback) {
-                    callback();
-                }
+
             }
 
             /**
@@ -6033,6 +6865,14 @@ define(['js/app'], function (myApp) {
                     vm.playerFeedbackRecord.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.updatePlayerFeedbackData('#modalAddPlayerFeedback', '#playerFeedbackRecordTable', {'dom': 't'});
                 });
+            }
+
+            vm.initPlayerModal = function() {
+                $('#newPlayerListTab').addClass('active');
+                $('#attemptNumberListTab').removeClass('active');
+                $scope.safeApply();
+                vm.playerModalTab = "newPlayerListPanel";
+                vm.newPlayerList();
             }
 
             vm.initFeedbackModal = function() {
@@ -6112,17 +6952,24 @@ define(['js/app'], function (myApp) {
                 vm.rewardTotalAmount = 0;
                 vm.creditTransfer.needClose = false;
                 vm.creditTransfer.transferResult = '';
-                vm.getRewardTask(row._id, function (data) {
-                    // Add up amounts from all available reward tasks
-                    let showRewardAmount = 0;
-                    if (data && data.length > 0) {
-                        for (let i = 0; i < data.length; i++) {
-                            showRewardAmount += data[i].currentAmount;
-                        }
-                    }
-                    vm.creditTransfer.showRewardAmount = showRewardAmount;
+
+                if (vm.selectedPlatform.data.useProviderGroup) {
                     vm.creditTransfer.showValidCredit = row.validCredit;
-                });
+                    vm.creditTransfer.showRewardAmount = row.lockedCredit;
+                } else {
+                    vm.getRewardTask(row._id, function (data) {
+                        // Add up amounts from all available reward tasks
+                        let showRewardAmount = 0;
+                        if (data && data.length > 0) {
+                            for (let i = 0; i < data.length; i++) {
+                                showRewardAmount += data[i].currentAmount;
+                            }
+                        }
+                        vm.creditTransfer.showRewardAmount = showRewardAmount;
+                        vm.creditTransfer.showValidCredit = row.validCredit;
+                    });
+                }
+
                 for (var i in vm.platformProviderList) {
                     vm.getPlayerCreditInProvider(row.name, vm.platformProviderList[i].providerId, vm.playerCredit)
                 }
@@ -6428,6 +7275,26 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+
+        vm.deleteProviderGroup = function (grp, isConfirm) {
+            if (!isConfirm) {
+                vm.modalYesNo = {};
+                vm.modalYesNo.modalTitle = $translate("Delete Provider Group");
+                vm.modalYesNo.modalText = $translate("Delete provider group " + grp.name + "? This will release all rewards amount binded with this group to player.");
+                vm.modalYesNo.actionYes = () => vm.deleteProviderGroup(grp, true);
+                $('#modalYesNo').modal();
+            }
+            else {
+                let sendObj = {
+                    gameProviderGroupObjId: grp._id
+                };
+
+                socketService.$socket($scope.AppSocket, 'deletePlatformProviderGroup', sendObj, function (data) {
+                    vm.getPlatformProviderGroup();
+                })
+            }
+        };
+
             vm.prepareShowPlayerCredit = function () {
                 vm.creditChange = {
                     finalValidAmount: $translate("Unknown"),
@@ -7789,7 +8656,8 @@ define(['js/app'], function (myApp) {
                     createTime: Date.now(),
                     adminId: authService.adminId,
                     content: vm.playerFeedback.content,
-                    result: vm.playerFeedback.result
+                    result: vm.playerFeedback.result,
+                    topic: vm.playerFeedback.topic
                 };
                 console.log('add feedback', sendData);
                 socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function (data) {
@@ -7978,6 +8846,24 @@ define(['js/app'], function (myApp) {
                     {title: $translate('CONTENT_CHANGED'), data: "fieldEdited"},
                     {title: $translate('curData'), data: "contentBeforeEdited"},
                     {title: $translate('updateData'), data: "contentEdited"},
+                    {
+                        "title": $translate('STATUS'),
+                        "data": 'process',
+                        render: function (data, type, row) {
+                            let text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
+                            text = text === "approved" ? "Approved" : text;
+
+                            let textClass = '';
+                            let fontStyle = {};
+                            if (row.status === 'Pending') {
+                                textClass = "text-danger";
+                                fontStyle = {'font-weight': 'bold'};
+                            }
+
+                            let $link = $('<span>').text(text).addClass(textClass).css(fontStyle);
+                            return $link.prop('outerHTML');
+                        },
+                    }
                 ],
                 "paging": true,
             });
@@ -8045,6 +8931,24 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYER_LEVEL'), data: "playerLevel$"},
                     {title: $translate('PARTNER'), data: "partnerName$"},
                     {title: $translate('REFERRAL'), data: "referralName$"},
+                    {
+                        "title": $translate('STATUS'),
+                        "data": 'process',
+                        render: function (data, type, row) {
+                            let text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
+                            text = text === "approved" ? "Approved" : text;
+
+                            let textClass = '';
+                            let fontStyle = {};
+                            if (row.status === 'Pending') {
+                                textClass = "text-danger";
+                                fontStyle = {'font-weight': 'bold'};
+                            }
+
+                            let $link = $('<span>').text(text).addClass(textClass).css(fontStyle);
+                            return $link.prop('outerHTML');
+                        },
+                    }
                 ],
                 "paging": true,
             });
@@ -8096,7 +9000,7 @@ define(['js/app'], function (myApp) {
                         item.bankStr = vm.allBankTypeList[item.bankName] || item.bankName || $translate('Unknown');
                         item.createTime$ = vm.dateReformat(item.changeTime);
                         return item;
-                    })
+                    });
                     vm.paymetHistoryCount = data.data.length;
                     vm.drawPlayerPaymentHistory(drawData);
                 }, null, true);
@@ -9475,7 +10379,174 @@ define(['js/app'], function (myApp) {
                 for (var i in vm.platformProviderList) {
                     vm.getPlayerCreditInProvider(vm.curFeedbackPlayer.name, vm.platformProviderList[i].providerId, vm.curFeedbackPlayer.gameCredit)
                 }
-            }
+            };
+
+        vm.initPlayerFeedback = function () {
+            console.log("initPlayerFeedback");
+            vm.getAllPlayerFeedbackResults();
+            vm.getAllPlayerFeedbackTopics();
+        };
+
+        vm.getAllPlayerFeedbackResults = function () {
+            return $scope.$socketPromise('getAllPlayerFeedbackResults').then(
+                function (data) {
+                    vm.allPlayerFeedbackResults = data.data;
+                    console.log("vm.allPlayerFeedbackResults", data.data);
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log("vm.allPlayerFeedbackResults", err);
+                }
+            ).catch(function (err) {
+                console.log("vm.allPlayerFeedbackResults", err)
+            });
+        };
+        vm.getAllPlayerFeedbackTopics = function () {
+            return $scope.$socketPromise('getAllPlayerFeedbackTopics').then(
+                function (data) {
+                    vm.allPlayerFeedbackTopics = data.data;
+                    console.log("vm.allPlayerFeedbackTopics", data.data);
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log("vm.allPlayerFeedbackTopics", err);
+                }
+            ).catch(function (err) {
+                console.log("vm.allPlayerFeedbackTopics", err)
+            });
+        };
+
+        vm.clearPlayerFeedBackResultDataStatus = function () {
+            vm.addPlayerFeedbackResultData.message = null;
+            vm.addPlayerFeedbackResultData.success = null;
+            vm.addPlayerFeedbackResultData.failure = null;
+
+            vm.deletePlayerFeedbackResultData.message = null;
+            vm.deletePlayerFeedbackResultData.success = null;
+            vm.deletePlayerFeedbackResultData.failure = null;
+        };
+        vm.addPlayerFeedbackResult = function () {
+            vm.clearPlayerFeedBackResultDataStatus();
+            let reqData = {};
+            reqData.key = vm.addPlayerFeedbackResultData.key;
+            reqData.value = vm.addPlayerFeedbackResultData.value;
+            console.log(reqData);
+            return $scope.$socketPromise('createPlayerFeedbackResult', reqData).then(
+                function (data) {
+                    console.log("vm.addPlayerFeedbackResults()", data);
+                    vm.addPlayerFeedbackResultData.message = "SUCCESS";
+                    vm.addPlayerFeedbackResultData.success = true;
+                    vm.getAllPlayerFeedbackResults();
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log("vm.addPlayerFeedbackResults()ErrIn", err);
+                    vm.addPlayerFeedbackResultData.message = "FAILURE";
+                    vm.addPlayerFeedbackResultData.failure = true;
+                    $scope.safeApply();
+                }
+            ).catch(
+                function (err) {
+                    console.log("vm.addPlayerFeedbackResults()ErrOut", err);
+                    vm.addPlayerFeedbackResultData.message = "FAILURE";
+                    vm.addPlayerFeedbackResultData.failure = true;
+                    $scope.safeApply();
+                }
+            );
+        };
+        vm.deletePlayerFeedbackResult = function () {
+            vm.clearPlayerFeedBackResultDataStatus();
+            let reqData = {};
+            reqData._id = vm.deletePlayerFeedbackResultData._id;
+            return $scope.$socketPromise('deletePlayerFeedbackResult', reqData).then(
+                function (data) {
+                    console.log("vm.addPlayerFeedbackResults()", data);
+                    vm.deletePlayerFeedbackResultData.message = "SUCCESS";
+                    vm.deletePlayerFeedbackResultData.success = true;
+                    vm.getAllPlayerFeedbackResults();
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log("vm.addPlayerFeedbackResults()ErrIn", err);
+                    vm.deletePlayerFeedbackResultData.message = "FAILURE";
+                    vm.deletePlayerFeedbackResultData.failure = true;
+                    $scope.safeApply();
+                }
+            ).catch(
+                function (err) {
+                    console.log("vm.addPlayerFeedbackResults()Out", err);
+                    vm.deletePlayerFeedbackResultData.message = "FAILURE";
+                    vm.deletePlayerFeedbackResultData.failure = true;
+                    $scope.safeApply();
+                }
+            );
+        };
+
+        vm.clearPlayerFeedBackTopicDataStatus = function () {
+            vm.addPlayerFeedbackTopicData.message = null;
+            vm.addPlayerFeedbackTopicData.success = null;
+            vm.addPlayerFeedbackTopicData.failure = null;
+
+            vm.deletePlayerFeedbackTopicData.message = null;
+            vm.deletePlayerFeedbackTopicData.success = null;
+            vm.deletePlayerFeedbackTopicData.failure = null;
+        };
+        vm.addPlayerFeedbackTopic = function () {
+            vm.clearPlayerFeedBackTopicDataStatus();
+            let reqData = {};
+            reqData.key = vm.addPlayerFeedbackTopicData.value;
+            reqData.value = vm.addPlayerFeedbackTopicData.value;
+            console.log(reqData);
+            return $scope.$socketPromise('createPlayerFeedbackTopic', reqData).then(
+                function (data) {
+                    console.log("vm.addPlayerFeedbackTopics()", data);
+                    vm.addPlayerFeedbackTopicData.message = "SUCCESS";
+                    vm.addPlayerFeedbackTopicData.success = true;
+                    vm.getAllPlayerFeedbackTopics();
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
+                    vm.addPlayerFeedbackTopicData.message = "FAILURE";
+                    vm.addPlayerFeedbackTopicData.failure = true;
+                    $scope.safeApply();
+                }
+            ).catch(
+                function (err) {
+                    console.log("vm.addPlayerFeedbackTopics()ErrOut", err);
+                    vm.addPlayerFeedbackTopicData.message = "FAILURE";
+                    vm.addPlayerFeedbackTopicData.failure = true;
+                    $scope.safeApply();
+                }
+            );
+        };
+        vm.deletePlayerFeedbackTopic = function () {
+            vm.clearPlayerFeedBackTopicDataStatus();
+            let reqData = {};
+            reqData._id = vm.deletePlayerFeedbackTopicData._id;
+            return $scope.$socketPromise('deletePlayerFeedbackTopic', reqData).then(
+                function (data) {
+                    console.log("vm.addPlayerFeedbackTopics()", data);
+                    vm.deletePlayerFeedbackTopicData.message = "SUCCESS";
+                    vm.deletePlayerFeedbackTopicData.success = true;
+                    vm.getAllPlayerFeedbackTopics();
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
+                    vm.deletePlayerFeedbackTopicData.message = "FAILURE";
+                    vm.deletePlayerFeedbackTopicData.failure = true;
+                    $scope.safeApply();
+                }
+            ).catch(
+                function (err) {
+                    console.log("vm.addPlayerFeedbackTopics()Out", err);
+                    vm.deletePlayerFeedbackTopicData.message = "FAILURE";
+                    vm.deletePlayerFeedbackTopicData.failure = true;
+                    $scope.safeApply();
+                }
+            );
+        };
             ///////////////////////////////// player feedback //////////////////////////////////////////
 
 
@@ -9526,7 +10597,7 @@ define(['js/app'], function (myApp) {
                     });
                     vm.submitAdminPlayerFeedbackQuery(true);
                 })
-            }
+            };
 
             vm.submitAdminPlayerFeedbackQuery = function (newSearch) {
 
@@ -9565,7 +10636,7 @@ define(['js/app'], function (myApp) {
                     vm.drawFeedbackAdminTable(data.data.size, newSearch, data.data.summary);
                     $('#loadPlayerFeedbackAdminIcon').hide();
                 });
-            }
+            };
             vm.drawFeedbackAdminTable = function (size, newSearch, summary) {
                 var showData = [];
                 $.each(vm.feedbackAdmins, function (i, j) {
@@ -9574,7 +10645,7 @@ define(['js/app'], function (myApp) {
                     j.topupTimes$ = (j.result == 'Normal') ? j.topupTimes : 0;
                     j.amount$ = (j.result == 'Normal') ? (j.amount).toFixed(2) : new Number(0).toFixed(2);
                     showData.push(j);
-                })
+                });
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: showData,
                     order: vm.feedbackAdminQuery.aaSorting || [[2, 'desc']],
@@ -13183,36 +14254,35 @@ define(['js/app'], function (myApp) {
                     $('#newPlayerLevelFirstInput').focus();
                 }, 1);
             };
+            // player level codes==============end===============================
 
+            // phone number filter codes==============start===============================
             vm.phoneNumFilterClicked = function () {
-                vm.phoneNumListResult = false;
+                vm.filterAllPlatform = false;
                 vm.inputNewPhoneNum = [];
                 vm.phoneNumCSVResult = false;
                 vm.phoneNumTXTResult = false;
-            };
-
-            // compare a new list pf phone numbers with existing player info database
-            // generate a new list of phone numbers without existing player phone number
-            vm.comparePhoneNum = function() {
-                vm.arrayInputPhone = vm.inputNewPhoneNum.split(/,|, /).map((item) => item.trim());
-
-                let sendData = {
-                    arrayInputPhone: vm.arrayInputPhone
+                vm.phoneNumListResult = false;
+                vm.phoneNumXLSResult = false;
+                vm.resetInputCSV = false;
+                vm.resetInputTXT = false;
+                vm.gridOptions = {
+                    enableFiltering: true,
+                    onRegisterApi: function (api) {
+                        vm.gridApi = api;
+                    }
                 };
-
-                socketService.$socket($scope.AppSocket, 'comparePhoneNum', sendData, function (data) {
-                    vm.diffPhoneList = data.data.diffPhoneList;
-                    vm.samePhoneList = data.data.samePhoneList;
-                    $scope.safeApply();
-                });
             };
 
+            /****************** CSV - start ******************/
             // upload phone file: csv
             vm.uploadPhoneFileCSV = function(content) {
                 vm.splitPhoneCSV = content.split(/\n/g).map((item) => item.trim());
                 vm.arrayPhoneCSV = vm.splitPhoneCSV.slice(0, vm.splitPhoneCSV.length - 1);
 
                 let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
+                    platformObjId: vm.selectedPlatform.id,
                     arrayPhoneCSV: vm.arrayPhoneCSV
                 };
 
@@ -13226,6 +14296,8 @@ define(['js/app'], function (myApp) {
                     });
 
                     vm.samePhoneCSV = data.data.samePhoneCSV;
+                    vm.diffPhoneTotalCSV = data.data.diffPhoneTotalCSV;
+                    vm.samePhoneTotalCSV = data.data.samePhoneTotalCSV;
                     $scope.safeApply();
                 });
             };
@@ -13235,17 +14307,34 @@ define(['js/app'], function (myApp) {
                 vm.contentCSV = fileContent;
             };
 
+            // reset phone number CSV
+            vm.resetCSV = function () {
+                vm.contentCSV = false;
+                vm.resetInputCSV = !vm.resetInputCSV;
+                vm.phoneNumCSVResult = false;
+                vm.samePhoneCSV = '';
+                vm.diffPhoneCSV = '';
+                vm.samePhoneTotalCSV = '';
+                vm.diffPhoneTotalCSV = '';
+            };
+            /****************** CSV - end ******************/
+
+            /****************** TXT - start ******************/
             // upload phone file: txt
             vm.uploadPhoneFileTXT = function(content) {
                 vm.arrayPhoneTXT = content.split(/,|, /).map((item) => item.trim());
 
                 let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
+                    platformObjId: vm.selectedPlatform.id,
                     arrayPhoneTXT: vm.arrayPhoneTXT
                 };
 
                 socketService.$socket($scope.AppSocket, 'uploadPhoneFileTXT', sendData, function (data) {
                     vm.diffPhoneTXT = data.data.diffPhoneTXT;
                     vm.samePhoneTXT = data.data.samePhoneTXT;
+                    vm.diffPhoneTotalTXT = data.data.diffPhoneTotalTXT;
+                    vm.samePhoneTotalTXT = data.data.samePhoneTotalTXT;
                     $scope.safeApply();
                 });
             };
@@ -13253,13 +14342,12 @@ define(['js/app'], function (myApp) {
             // export phone number to txt
             vm.exportTXTFile = function(data) {
                 let fileText = data;
-                let fileName = "phoneNumber.txt";
+                let fileName = "phoneNumberFilter.txt";
                 vm.saveTextAsFile(fileText, fileName);
             };
 
             // export phone number as txt file
             vm.saveTextAsFile = function(data, filename){
-
                 if(!data) {
                     console.error('Console.save: No data');
                     return;
@@ -13267,17 +14355,16 @@ define(['js/app'], function (myApp) {
 
                 if(!filename) filename = 'console.json';
 
-                let blob = new Blob([data], {type: 'text/plain'}),
-                    event    = document.createEvent('MouseEvents'),
-                    tagA    = document.createElement('a');
+                let blob = new Blob([data], {type: 'text/plain'});
+                let event = document.createEvent('MouseEvents');
+                let tagA = document.createElement('a');
 
                 // for IE:
                 if (window.navigator && window.navigator.msSaveOrOpenBlob) {
                     window.navigator.msSaveOrOpenBlob(blob, filename);
-                }
-                else{
-                    let event = document.createEvent('MouseEvents'),
-                        tagA = document.createElement('a');
+                } else {
+                    let event = document.createEvent('MouseEvents');
+                    let tagA = document.createElement('a');
 
                     tagA.download = filename;
                     tagA.href = window.URL.createObjectURL(blob);
@@ -13292,11 +14379,44 @@ define(['js/app'], function (myApp) {
             vm.showContentTXT = function (fileContent) {
                 vm.contentTXT = fileContent;
             };
-            
+
+            // reset phone number TXT
+            vm.resetTXT = function () {
+                vm.contentTXT = false;
+                vm.resetInputTXT = !vm.resetInputTXT;
+                vm.phoneNumTXTResult = false;
+                vm.samePhoneTXT = '';
+                vm.diffPhoneTXT = '';
+                vm.samePhoneTotalTXT = '';
+                vm.diffPhoneTotalTXT = '';
+            };
+            /****************** TXT - end ******************/
+
+            /****************** List - start ******************/
+            // compare a new list pf phone numbers with existing player info database
+            // generate a new list of phone numbers without existing player phone number
+            vm.comparePhoneNum = function() {
+                vm.arrayInputPhone = vm.inputNewPhoneNum.split(/,|, /).map((item) => item.trim());
+
+                let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
+                    platformObjId: vm.selectedPlatform.id,
+                    arrayInputPhone: vm.arrayInputPhone
+                };
+
+                socketService.$socket($scope.AppSocket, 'comparePhoneNum', sendData, function (data) {
+                    vm.diffPhoneList = data.data.diffPhoneList;
+                    vm.samePhoneList = data.data.samePhoneList;
+                    vm.diffPhoneTotal = data.data.diffPhoneTotal;
+                    vm.samePhoneTotal = data.data.samePhoneTotal;
+                    $scope.safeApply();
+                });
+            };
+
             // reset phone number textarea
             vm.resetTextarea = function () {
                 vm.inputNewPhoneNum = '';
-                vm.phoneNumListResult=false;
+                vm.phoneNumListResult = false;
                 vm.samePhoneList = '';
                 vm.diffPhoneList = '';
             };
@@ -13304,27 +14424,151 @@ define(['js/app'], function (myApp) {
             // copy phone number list
             vm.copyToClipboard = function (elementId) {
                 vm.copyHere = false;
-
                 // Create an auxiliary hidden input
                 var aux = document.createElement("input");
-
                 // Get the text from the element passed into the input
                 aux.setAttribute("value", document.getElementById(elementId).innerHTML);
-
                 // Append the aux input to the body
                 document.body.appendChild(aux);
-
                 // Highlight the content
                 aux.select();
-
                 // Execute the copy command
                 document.execCommand("copy");
-
                 // Remove the input from the body
                 document.body.removeChild(aux);
             };
+            /****************** List - end ******************/
 
-            // player level codes==============end===============================
+            /****************** XLS - start ******************/
+            vm.uploadPhoneFileXLS = function (data) {
+                var data = [
+                    [] // header row
+                ];
+                var rows = uiGridExporterService.getData(vm.gridApi.grid, uiGridExporterConstants.VISIBLE, uiGridExporterConstants.VISIBLE);
+                var sheet = {};
+                var rowArray = [];
+                var rowArrayMerge;
+
+                for(let z = 0; z < rows.length; z++) {
+                    let rowObject = rows[z][0];
+                    let rowObjectValue = Object.values(rowObject);
+                    rowArray.push(rowObjectValue);
+                    rowArrayMerge = [].concat.apply([], rowArray);
+                }
+
+                let sendData = {
+                    filterAllPlatform: vm.filterAllPlatform,
+                    platformObjId: vm.selectedPlatform.id,
+                    arrayPhoneXLS: rowArrayMerge
+                };
+
+                socketService.$socket($scope.AppSocket, 'uploadPhoneFileXLS', sendData, function (data) {
+                    vm.diffPhoneXLS = data.data.diffPhoneXLS;
+                    vm.samePhoneXLS = data.data.samePhoneXLS;
+                    vm.diffPhoneTotalXLS = data.data.diffPhoneTotalXLS;
+                    vm.samePhoneTotalXLS = data.data.samePhoneTotalXLS;
+                    vm.xlsTotal = rows.length;
+                    var rowsFilter = rows;
+
+                    for(let x = 0; x < rowsFilter.length; x++) {
+                        let rowObject = rowsFilter[x][0];
+                        let rowObjectValue = Object.values(rowObject);
+                        for(let y = 0; y < vm.samePhoneXLS.length; y++) {
+                            if(rowObjectValue == vm.samePhoneXLS[y]) {
+                                rowsFilter.splice(x,1);
+                                --x;
+                                break;
+                            }
+                        }
+                    }
+
+                    vm.gridApi.grid.columns.forEach(function (col, i) {
+                        if (col.visible) {
+                            var loc = XLSX.utils.encode_cell({r: 0, c: i});
+                            sheet[loc] = {
+                                v: col.displayName
+                            };
+                        }
+                    });
+
+                    var endLoc;
+                    rowsFilter.forEach(function (row, ri) {
+                        ri +=1;
+                        vm.gridApi.grid.columns.forEach(function (col, ci) {
+                            var loc = XLSX.utils.encode_cell({r: ri, c: ci});
+                            sheet[loc] = {
+                                v: row[ci].value,
+                                t: 's'
+                            };
+                            endLoc = loc;
+                        });
+                    });
+
+                    sheet['!ref'] = XLSX.utils.encode_range({ s: 'A1', e: endLoc });
+                    var workbook = {
+                        SheetNames: ['Sheet1'],
+                        Sheets: {
+                            Sheet1: sheet
+                        }
+                    };
+
+                    var wopts = { bookType: 'xlsx', bookSST: false, type: 'binary' };
+                    // write workbook (use type 'binary')
+                    var wbout = XLSX.write(workbook, wopts);
+                    saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
+
+                    $scope.safeApply();
+                });
+            };
+
+            // generate a download for xls
+            vm.s2ab = function (s) {
+                var buf = new ArrayBuffer(s.length);
+                var view = new Uint8Array(buf);
+                for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+                return buf;
+            };
+
+            // convert data array to spreadsheet format
+            vm.sheet_from_array_of_arrays = function (data, opts) {
+                var ws = {};
+                // var range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
+                var range = {e: {c:10000000, r:10000000}, s: {c:0, r:0 }};
+                for(var R = 0; R != data.length; ++R) {
+                    for(var C = 0; C != data[R].length; ++C) {
+                        if(range.s.r > R) range.s.r = R;
+                        if(range.s.c > C) range.s.c = C;
+                        if(range.e.r < R) range.e.r = R;
+                        if(range.e.c < C) range.e.c = C;
+                        var cell = {v: data[R][C] };
+                        if(cell.v == null) continue;
+                        var cell_ref = XLSX.utils.encode_cell({c:C,r:R});
+
+                        if(typeof cell.v === 'number') cell.t = 'n';
+                        else if(typeof cell.v === 'boolean') cell.t = 'b';
+                        else if(cell.v instanceof Date) {
+                            cell.t = 'n'; cell.z = XLSX.SSF._table[14];
+                            cell.v = datenum(cell.v);
+                        }
+                        else cell.t = 's';
+                        ws[cell_ref] = cell;
+                    }
+                }
+                if(range.s.c < 10000000) ws['!ref'] = XLSX.utils.encode_range(range);
+                return ws;
+            };
+
+            // reset phone number XLS
+            vm.resetUIGrid = function () {
+                vm.gridOptions.data = [];
+                vm.gridOptions.columnDefs = [];
+                vm.xlsTotal = '';
+                vm.samePhoneTotalXLS = '';
+                vm.diffPhoneTotalXLS = '';
+                vm.phoneNumXLSResult = false;
+            };
+            /****************** XLS - end ******************/
+            // phone number filter codes==============end===============================
 
             // partner level codes==============start===============================
 
@@ -15100,6 +16344,7 @@ define(['js/app'], function (myApp) {
 
                 setTimeout(
                     function () {
+                        vm.initPlayerFeedback();
                         vm.initFeedbackQuery();
 
                         vm.queryPara = {};
@@ -15113,6 +16358,10 @@ define(['js/app'], function (myApp) {
                         vm.showPlayerAccountingDetailTab(null);
                         vm.platformAction = null;
                         vm.showTopupTab(null);
+                        vm.addPlayerFeedbackResultData = {};
+                        vm.deletePlayerFeedbackResultData = {};
+                        vm.addPlayerFeedbackTopicData = {};
+                        vm.deletePlayerFeedbackTopicData = {};
                         // vm.allGameStatusString = {};
                         vm.credibilityRemarks = [];
                         vm.gameStatus = {};
@@ -15158,7 +16407,7 @@ define(['js/app'], function (myApp) {
                                     }
                                 }
                             });
-                        })
+                        });
 
 
                         $('#partnerDataTable').on('order.dt', function (event, a, b) {
@@ -16128,7 +17377,6 @@ define(['js/app'], function (myApp) {
                 // add index to data
                 for (let x = 0; x < vm.allProposalType.length; x++) {
                     let groupName = utilService.getProposalGroupValue(vm.allProposalType[x],false);
-                    console.log(groupName);
                     switch (vm.allProposalType[x].name) {
                         case "AddPlayerRewardTask":
                             vm.allProposalType[x].seq = 3.01;

@@ -181,7 +181,10 @@ var simplifiedChinese = {
     "Cant find player current reward.": "游戏正在维护中，请稍后再试",
     "Player is forbidden for this reward.": "您目前暂无申请此优惠的权限，详情请联系客服。",
     "SMS is not available": "短信发送失败，请再次尝试",
-    "Cant apply this reward, contact cs": "不符合领取条件，请联系客服"
+    "Cant apply this reward, contact cs": "不符合领取条件，请联系客服",
+    "PARTNER": "代理",
+    "Incorrect SMS Validation Code": "验证码错误，请再次输入",
+
     //todo::add missing messages here
 
     /*

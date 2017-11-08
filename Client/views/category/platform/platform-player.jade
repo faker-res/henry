@@ -104,7 +104,7 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Create')", ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareCreatePlayer()', data-toggle="modal", data-target='#modalCreatePlayer')
             text {{"CREATE_NEW_PLAYER" | translate}}
             img.img-create
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.newPlayerList()', data-target='#modalNewPlayerList')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.initPlayerModal();vm.getNewPlayerListByFilter();', data-target='#modalNewPlayerList')
             text {{"new player list" | translate}}
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform','Player', 'Read')",ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareShowProviderExpense()')
@@ -554,8 +554,14 @@ include modalGameCreditLog
                                 input.form-control(ng-model='vm.playerFeedback.adminId')
                             .form-group
                                 label.control-label {{'FEEDBACK_RESULTS' | translate}}
-                                select.form-control(ng-model='vm.playerFeedback.result', required)
-                                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackString', value='{{v}}') {{v|translate}}
+                                button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
+                                select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.result', required)
+                                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
+                            .form-group
+                                label.control-label {{'FEEDBACK_TOPIC' | translate}}
+                                button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
+                                select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.topic', required)
+                                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackTopics', value='{{v.key}}') {{v.value}}
                             .form-group
                                 label.control-label {{'FEEDBACK_CONTENT' | translate}}
                                 .textareaDetail
@@ -580,12 +586,14 @@ include modalGameCreditLog
                                 th {{'RESULT' | translate}}
                                 th {{'CONTENT' | translate}}
                                 th {{'adminName' | translate}}
+                                th {{"FEEDBACK_TOPIC" | translate}}
                         tbody(ng-if='vm.playerFeedbackData.data.length>0')
                             tr(ng-repeat='(i,v) in vm.playerFeedbackData.data')
                                 td(style='min-width:150px;') {{vm.dateReformat(v.createTime)}}
                                 td {{v.result | translate}}
                                 td(style='white-space: normal;word-wrap: break-word;max-width: 300px;') {{v.content}}
                                 td {{v.adminId.adminName}}
+                                td {{v.topic}}
 
             .modal-footer(ng-if="vm.feedbackModalTab === 'addFeedbackPanel'")
                 button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='form_feedback.$invalid', ng-click="vm.updatePlayerFeedback();") {{"ADD" | translate}}
@@ -2206,8 +2214,26 @@ include modalGameCreditLog
                 h4.modal-title {{"new player list"|translate}}
             .modal-body
                 .panel.panel-primary
-                    .panel-body
+
+                    ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
+                        .pull-left.padding-all-5
+                        li.active(id = 'newPlayerListTab', ng-show="checkViewPermission('Platform', 'Player','AddFeedback')")
+                            a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.playerModalTab = \'newPlayerListPanel\';vm.newPlayerList();')
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"new player list" | translate}}
+                        li(id = 'attemptNumberListTab',ng-show="checkViewPermission('Platform', 'Player','FeedbackHistory')")
+                            a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.playerModalTab = \'attemptNumberListPanel\';vm.playerRegistrationSuccessRateList();')
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"attempt number list" | translate}}
+
+                    #newPlayerListPanel.panel-body(ng-if="vm.playerModalTab === 'newPlayerListPanel'")
                         #newPlayerRecords.adminLogQueryDiv
+                            .inlineBlk
+                                label {{'PLAYERNAME' | translate}}
+                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerName', required)
+                            .inlineBlk
+                                label {{'REGISTERED_PHONE_NUMBER' | translate}}
+                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.phoneNumber', required)
                             .inlineBlk
                                 label {{'START_DATE' | translate}}
                                 .startTime
@@ -2216,32 +2242,41 @@ include modalGameCreditLog
                                 .endTime
                             .inlineBlk
                                 label {{'STATUS' | translate}}
-                                select.form-control(ng-model='vm.queryPara.newPlayerList.status', ng-options='i as a for (i,a) in vm.newPlayerListStatus')
+                                select.form-control(ng-model='vm.queryPara.newPlayerList.status', ng-options='i as a | translate for (i,a) in vm.newPlayerListStatus')
                                     option(value='',) {{'any' | translate}}
-                            //.inlineBlk
-                                label {{'Search limit(Max rows)' | translate}}
-                                select.form-control.limit(ng-model='vm.queryPara.newPlayerList.limit')
-                                    option 50
-                                    option 100
-                                    option 200
-                                    option(value='-1') {{'Unlimited' | translate}}
-                            .inlineBlk
-                                label {{'PLAYERID' | translate}}
-                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerId', required)
-                            .inlineBlk
-                                label {{'PLAYERNAME' | translate}}
-                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerName', required)
-
                             .inlineBlk
                                 button.btn.btn-primary(ng-click='vm.getNewPlayerListByFilter(true)') {{'SEARCH' | translate}}
                         .well
                             .row
                                 .col-md-12
                                     p
-                                    label {{"Total" | translate}} {{vm.playerDailyExpenseLog.totalCount}} {{"records" | translate}}
+                                    label {{"Total" | translate}} {{vm.newPlayerRecords.totalCount}} {{"records" | translate}}
                                     i.fa.fa-spin.fa-spinner(ng-show='vm.playerDailyExpenseLog.loading')
                                     table#newPlayerListTable.common-table.display(style='width:100%')
                                     #newPlayerListTablePage
+
+                    #attemptNumberListPanel.panel-body(ng-if="vm.playerModalTab === 'attemptNumberListPanel'")
+                        #attemptNumberRecords.adminLogQueryDiv
+                            .inlineBlk
+                                label {{'START_DATE' | translate}}
+                                .startTime
+                            .inlineBlk
+                                label {{'END_DATE' | translate}}
+                                .endTime
+                            .inlineBlk
+                                button.btn.btn-primary(ng-click='vm.getPlayerRegistrationSucccessRateListByFilter()') {{'SEARCH' | translate}}
+                        .well
+                            .row
+                                .col-md-12
+                                    p
+                                    table#selfRegistrationSuccessRateTable.common-table.display(style='width:100%')
+                                    #selfRegistrationSuccessRateTablePage
+                                    table#registrationDistributionRecordsTable.common-table.display(style='width:100%')
+                                    #registrationDistributionRecordsTablePage
+                                    label {{"Total" | translate}} {{vm.playerRegistrationRecords.totalCount}} {{"records" | translate}}
+                                    i.fa.fa-spin.fa-spinner(ng-show='vm.playerRegistrationRecords.loading')
+                                    table#playerRegistrationIntentRecordsTable.common-table.display(style='width:100%')
+                                    #playerRegistrationIntentRecordsTablePage
 
 
 #modalPlayerTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
