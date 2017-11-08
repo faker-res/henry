@@ -2622,6 +2622,9 @@
   "NEW_WECHAT": "新微信账号",
   "CURRENT_WECHAT": "原微信账号",
   "RETYPE_WECHAT": "重新输入微信账号",
+  "IS_ACTIVE": "是否激活",
+  "SET": "设置",
+  "PROMO_CODE_MODIFIED": "优惠代码被更改",
   "samePhoneNumberRegisterCount": "相同电话号码开户次数",
   "unknown": "未知",
   "registration": "注册",
@@ -2630,7 +2633,6 @@
   "updateBankInfoFirst": "银行卡（首次）",
   "updateBankInfo": "银行卡（更换）",
   "resetPassword": "重置密码",
-  "VERIFICATION_CODE": "验证码",
   "try": "尝试",
   "PLAYER_LEVEL_UP_PERIOD": "玩家升级周期设置",
   "PLAYER_LEVEL_DOWN_PERIOD": "玩家降级周期设置",
@@ -2648,4 +2650,5 @@
   "TOTAL_ATTEMPT": "总尝试",
   "TOTAL_REGISTRATION": "总开户",
   "Merchant Name":"名称"
+
 }

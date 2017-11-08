@@ -406,7 +406,7 @@ var roleChecker = {
                 monitor: [],
                 smsContentConfig: [],
                 userGroupConfig: [],
-                activatePromoCode: [],
+                activatePromoCode: ['updatePromoCodesActive'],
                 applyPromoCode: [],
                 promoCodeAnalysis: ['getPromoCodeTypeByObjId']
             },
