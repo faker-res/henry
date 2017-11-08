@@ -32,13 +32,12 @@
   "PROMO_CODE_NAME": "优惠代码名称",
   "RELATED_ACCOUNT": "相关账号",
 
-  "CREATE_NEW_PLAYER":"开户",
-
   "CONSUMPTION_RETURN_ABILITY": "可否洗码",
   "ABLE": "可",
   "UNABLE": "否",
   "PLAYER_INFORMATION": "玩家资料",
   "PARTNER_INFORMATION": "代理资料",
+  "FEEDBACK_RESULT_KEY": "回访结果代码",
   "FEEDBACK_RESULT": "回访结果",
   "ADD_FEEDBACK_RESULT": "添加回访结果",
   "DELETE_FEEDBACK_RESULT": "删除回访结果",
@@ -48,6 +47,20 @@
   "DELETE_FEEDBACK_TOPIC": "删除回访主题",
   "CHOOSE_FEEDBACK_TOPIC": "选择回访主题",
 
+  "FEEDBACK_REPORT": "回访报表",
+  "FEEDBACK_TIME_START": "回访时间（开始）",
+  "FEEDBACK_TIME_END": "回访时间（结束）",
+
+  "GAME_LOBBY": "游戏大厅",
+  "LAST_ACCESS_TILL_NOW": "上次登入（距今）",
+  "FILTER_FEEDBACK_DAY": "过滤回访（天）",
+  "SEARCH_SINGLE": "单一搜索",
+  "SEARCH_LIST": "列表展示",
+
+  "DAYS": "天",
+  "DAYS_AND_ABOVE": "天以上",
+
+  "CREATE_NEW_PLAYER":"开户",
   "SYSTEM_SETTLEMENT": "系统结算",
   "LOGIN_TITLE": "请登录",
   "USER_NAME": "用户名",
