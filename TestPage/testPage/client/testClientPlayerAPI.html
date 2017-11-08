@@ -324,6 +324,11 @@
             <input id="phoneinput" type=text name="phoneNumber">
         </label>
     </div>
+    <div>
+        <label>Purpose
+            <input type=text name="purpose">
+        </label>
+    </div>
     <button id="getVerificationCode" data-api-name="getSMSCode">Get Verification Code</button>
     <p>
         <!--<div>-->
@@ -346,6 +351,11 @@
     <div>
         <label>platformId
             <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Purpose
+            <input type=text name="purpose">
         </label>
     </div>
     <button id="getVerificationCodeAfterLogin" data-api-name="sendSMSCodeToPlayer">Get Verification Code</button>
@@ -1287,6 +1297,27 @@
         <div>
             <textarea></textarea>
         </div>
+    </div>
+</div>
+
+<h3>MANUAL PLAYER LEVEL UP (玩家前端自助判断升级)</h3>
+
+<div class="test-container">
+    <div>
+        <label name="playerObjId">Player ObjectId
+            <input id="playerObjId" name="playerObjId" type=text>
+        </label>
+    </div>
+    <div>
+        <label >Platform ObjectId
+            <input id="platformObjId" type=text name="platformObjId">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="manualPlayerLevelUp" data-api-name="manualPlayerLevelUp">Manual Level Up</button>
     </div>
 </div>
 
