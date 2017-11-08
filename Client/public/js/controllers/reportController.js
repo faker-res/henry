@@ -271,7 +271,7 @@ define(['js/app'], function (myApp) {
             let mainTopupType = vm.queryTopup.mainTopupType;
             let topupType = vm.queryTopup.topupType;
             let bankTypeId = vm.queryTopup.bankTypeId;
-            if (agent && agent.length > 0) {
+            if (agent && agent.length > 0 && vm.merchantCloneList) {
                 vm.merchantCloneList = vm.merchantCloneList.filter(item => {
                     let targetDevices = String(item.targetDevices);
                     return agent.indexOf(targetDevices) != -1;
@@ -301,7 +301,7 @@ define(['js/app'], function (myApp) {
                 })
             }
             //manual topup
-            if (mainTopupType) {
+            if (mainTopupType && vm.merchantCloneList) {
                 if (mainTopupType == '1' || mainTopupType == 1) {
                     // 9999 = 'bankcard', if manual topup ,display bankcard only
                     vm.merchantCloneList = vm.merchantCloneList.filter(item => {
@@ -1818,7 +1818,7 @@ define(['js/app'], function (myApp) {
 
         vm.getMerchantName = function(merchantNo){
             let result = '';
-            if (merchantNo) {
+            if (merchantNo && vm.merchantNoList) {
                 let merchant = vm.merchantNoList.filter(item => {
                     return item.merchantNo == merchantNo
                 })
