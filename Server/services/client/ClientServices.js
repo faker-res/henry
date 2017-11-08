@@ -258,7 +258,8 @@
                 "getLimitedOffers",
                 "applyLimitedOffers",
                 "getLimitedOfferBonus",
-                "setLimitedOfferShowInfo"
+                "setLimitedOfferShowInfo",
+                "setBonusShowInfo"
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

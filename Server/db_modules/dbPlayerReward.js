@@ -910,6 +910,9 @@ let dbPlayerReward = {
                 })
             .then(
                 playerRecord => {
+                    // get the  ExtraBonusInfor state of the player: enable or disable the msg showing
+                    let showInfo = (playerRecord.viewInfo.showInfoState)?1:0;
+
                     if (playerRecord && playerRecord._id) {
                         var query = {
                             "playerObjId": playerRecord._id,
@@ -919,6 +922,7 @@ let dbPlayerReward = {
                             query.status = status;
                         }
                         playerData = playerRecord;
+
                         return dbConfig.collection_promoCode.find(query)
                             .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
                             .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean()
@@ -963,7 +967,7 @@ let dbPlayerReward = {
                                         }
                                     });
                                     let result = {
-                                        "showInfo": 1,
+                                        "showInfo":showInfo,
                                         "usedList": usedListArr,
                                         "noUseList": noUseListArr,
                                         "expiredList": expiredListArr,
