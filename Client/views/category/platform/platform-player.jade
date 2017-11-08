@@ -104,7 +104,7 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Create')", ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareCreatePlayer()', data-toggle="modal", data-target='#modalCreatePlayer')
             text {{"CREATE_NEW_PLAYER" | translate}}
             img.img-create
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.newPlayerList()', data-target='#modalNewPlayerList')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.initPlayerModal()', data-target='#modalNewPlayerList')
             text {{"new player list" | translate}}
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform','Player', 'Read')",ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareShowProviderExpense()')
@@ -1360,6 +1360,71 @@ include modalGameCreditLog
                     table#playerCreditLogTbl.common-table.display(style='min-width:100%')
                     #playerCreditLogTblPage.height30
 
+
+#modalPlayerApiLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Player API Log" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                #playerApiLogQuery.well
+                    .inlineBlk
+                        label {{"Start date" | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{"End date" | translate}}
+                        .endTime
+                    .inlineBlk
+                        label {{"API Action" | translate}}
+                        select.form-control.apiAction(ng-model='vm.playerApiLog.apiAction')
+                            option(value='') {{'ALL' | translate}}
+                            option(value="player - create") {{"玩家开户" | translate}}
+                            option(value="login") {{"login" | translate}}
+                            option(value="createPlayerPartner") {{"玩家+代理开户" | translate}}
+                            option(value="loginPlayerPartner") {{"玩家+代理登录" | translate}}
+                            option(value="updatePaymentInfo") {{"修改玩家的支付信息" | translate}}
+                            option(value="updatePlayerPartnerPaymentInfo") {{"修改玩家+代理的支付信息" | translate}}
+                            option(value="updatePassword") {{"修改玩家登录密码" | translate}}
+                            option(value="updatePasswordPlayerPartner") {{"修改玩家+代理登录密码" | translate}}
+                            option(value="updateSmsSetting") {{"设置短信通知" | translate}}
+                            option(value="player - update") {{"修改玩家信息" | translate}}
+                            option(value="updatePhotoUrl") {{"修改玩家头像" | translate}}
+                            option(value="getLoginURL") {{"登陆游戏" | translate}}
+                            option(value="modifyGamePassword") {{"修改游戏密码" | translate}}
+                            option(value="topUpIntention - add") {{"添加充值意向" | translate}}
+                            option(value="topUpIntention - update") {{"修改充值意向" | translate}}
+                            option(value="requestConsumeRebate") {{"申请结算消费返点" | translate}}
+                            option(value="createFirstTopUpRewardProposal") {{"创建首冲奖励提案" | translate}}
+                            option(value="applyProviderReward") {{"申请游戏提供商奖励" | translate}}
+                            option(value="applyRewardEvent") {{"申请奖励活动" | translate}}
+                    button.btn.btn-primary.common-button(ng-click='vm.getPlayerApiLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
+                div
+                    label {{"Total" | translate}} {{vm.playerApiLog.totalCount}} {{"records" | translate}}
+                    table#playerApiLogTbl.common-table.display(style='min-width:100%')
+                    #playerApiLogTblPage.height30
+
+#sameNumPlayerListTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:95%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Duplicate Phone Number"|translate}}
+            .modal-body
+                .panel.panel-primary
+
+                    #newPlayerListPanel.panel-body
+                        .well
+                            .row
+                                .col-md-12
+                                    p
+                                    label {{"Total" | translate}} {{vm.phoneDuplicate.totalCount}} {{"records" | translate}}
+                                    i.fa.fa-spin.fa-spinner(ng-show='vm.playerDailyExpenseLog.loading')
+                                    table#samePhoneNumTable.common-table.display(style='width:100%')
+                                    #samePhoneNumTablePage
+
+
+
 #modalNewPlayerList.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:95%;')
         .modal-content
@@ -1368,8 +1433,26 @@ include modalGameCreditLog
                 h4.modal-title {{"new player list"|translate}}
             .modal-body
                 .panel.panel-primary
-                    .panel-body
+
+                    ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
+                        .pull-left.padding-all-5
+                        li.active(id = 'newPlayerListTab', ng-show="checkViewPermission('Platform', 'Player','AddFeedback')")
+                            a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.playerModalTab = \'newPlayerListPanel\';vm.newPlayerList();')
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"new player list" | translate}}
+                        li(id = 'attemptNumberListTab',ng-show="checkViewPermission('Platform', 'Player','FeedbackHistory')")
+                            a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.playerModalTab = \'attemptNumberListPanel\';vm.playerRegistrationSuccessRateList();')
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"attempt number list" | translate}}
+
+                    #newPlayerListPanel.panel-body(ng-if="vm.playerModalTab === 'newPlayerListPanel'")
                         #newPlayerRecords.adminLogQueryDiv
+                            .inlineBlk
+                                label {{'PLAYERNAME' | translate}}
+                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerName', required)
+                            .inlineBlk
+                                label {{'REGISTERED_PHONE_NUMBER' | translate}}
+                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.phoneNumber', required)
                             .inlineBlk
                                 label {{'START_DATE' | translate}}
                                 .startTime
@@ -1378,32 +1461,41 @@ include modalGameCreditLog
                                 .endTime
                             .inlineBlk
                                 label {{'STATUS' | translate}}
-                                select.form-control(ng-model='vm.queryPara.newPlayerList.status', ng-options='i as a for (i,a) in vm.newPlayerListStatus')
+                                select.form-control(ng-model='vm.queryPara.newPlayerList.status', ng-options='i as a | translate for (i,a) in vm.newPlayerListStatus')
                                     option(value='',) {{'any' | translate}}
-                            //.inlineBlk
-                                label {{'Search limit(Max rows)' | translate}}
-                                select.form-control.limit(ng-model='vm.queryPara.newPlayerList.limit')
-                                    option 50
-                                    option 100
-                                    option 200
-                                    option(value='-1') {{'Unlimited' | translate}}
-                            .inlineBlk
-                                label {{'PLAYERID' | translate}}
-                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerId', required)
-                            .inlineBlk
-                                label {{'PLAYERNAME' | translate}}
-                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerName', required)
-
                             .inlineBlk
                                 button.btn.btn-primary(ng-click='vm.getNewPlayerListByFilter(true)') {{'SEARCH' | translate}}
                         .well
                             .row
                                 .col-md-12
                                     p
-                                    label {{"Total" | translate}} {{vm.playerDailyExpenseLog.totalCount}} {{"records" | translate}}
+                                    label {{"Total" | translate}} {{vm.newPlayerRecords.totalCount}} {{"records" | translate}}
                                     i.fa.fa-spin.fa-spinner(ng-show='vm.playerDailyExpenseLog.loading')
                                     table#newPlayerListTable.common-table.display(style='width:100%')
                                     #newPlayerListTablePage
+
+                    #attemptNumberListPanel.panel-body(ng-if="vm.playerModalTab === 'attemptNumberListPanel'")
+                        #attemptNumberRecords.adminLogQueryDiv
+                            .inlineBlk
+                                label {{'START_DATE' | translate}}
+                                .startTime
+                            .inlineBlk
+                                label {{'END_DATE' | translate}}
+                                .endTime
+                            .inlineBlk
+                                button.btn.btn-primary(ng-click='vm.getPlayerRegistrationSucccessRateListByFilter()') {{'SEARCH' | translate}}
+                        .well
+                            .row
+                                .col-md-12
+                                    p
+                                    table#selfRegistrationSuccessRateTable.common-table.display(style='width:100%')
+                                    #selfRegistrationSuccessRateTablePage
+                                    table#registrationDistributionRecordsTable.common-table.display(style='width:100%')
+                                    #registrationDistributionRecordsTablePage
+                                    label {{"Total" | translate}} {{vm.playerRegistrationRecords.totalCount}} {{"records" | translate}}
+                                    i.fa.fa-spin.fa-spinner(ng-show='vm.playerRegistrationRecords.loading')
+                                    table#playerRegistrationIntentRecordsTable.common-table.display(style='width:100%')
+                                    #playerRegistrationIntentRecordsTablePage
 
 
 

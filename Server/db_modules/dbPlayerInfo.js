@@ -252,6 +252,27 @@ let dbPlayerInfo = {
                             );
                             proms.push(partnerProm);
                         }
+
+                        //check partnerId when create player account manually
+                        if(inputData.partner){
+                            delete inputData.referral;
+                            let partnerObjId = ObjectId(inputData.partner);
+                            let partnerProm = dbconfig.collection_partner.findOne({
+                                _id: partnerObjId,
+                                platform: platformObjId
+                            }).then(
+                                data =>{
+                                    if(data){
+                                        inputData.partnerId = data.partnerId;
+                                        return inputData;
+                                    }else
+                                    {
+                                        delete inputData.partner;
+                                        return inputData;
+                                    }
+                                }
+                            )
+                        }
                         //check if player's domain matches any partner
                         if (inputData.domain) {
                             delete inputData.referral;
@@ -261,18 +282,21 @@ let dbPlayerInfo = {
                             }
                             inputData.domain = filteredDomain;
 
-                            let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
-                                data => {
-                                    if (data) {
-                                        inputData.partner = data._id;
-                                        return inputData;
+                            if(inputData.partnerId){
+                                let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
+                                    data => {
+                                        if (data) {
+                                            inputData.partner = data._id;
+                                            inputData.partnerId = data.partnerId;
+                                            return inputData;
+                                        }
+                                        else {
+                                            return inputData;
+                                        }
                                     }
-                                    else {
-                                        return inputData;
-                                    }
-                                }
-                            );
-                            proms.push(domainProm);
+                                );
+                                proms.push(domainProm);
+                            }
 
                             let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
                                 domain: {
@@ -368,6 +392,7 @@ let dbPlayerInfo = {
                         pdata => {
                             pdata.name = pdata.name.replace(platformPrefix, "");
                             pdata.platformId = platformId;
+                            pdata.partnerId = inputData.partnerId
                             return pdata;
                         }
                     )
@@ -5448,6 +5473,53 @@ let dbPlayerInfo = {
     },
 
     /**
+     * Check if player can level up manually
+     *
+     * @param {String|ObjectId} playerObjId
+     * @returns {Promise.<*>}
+     */
+    manualPlayerLevelUp: function (playerObjId, platformObjId) {
+
+        if (!platformObjId) {
+            throw Error("platformObjId was not provided!");
+        }
+        else {
+            return dbconfig.collection_platform.findOne({"_id": platformObjId}).then(
+                (platformData) => {
+                    if (platformData.manualPlayerLevelUp) {
+                        const playerProm = dbconfig.collection_players.findOne({_id: playerObjId}).populate({
+                            path: "playerLevel",
+                            model: dbconfig.collection_playerLevel
+                        }).lean().exec();
+
+                        const levelsProm = dbconfig.collection_playerLevel.find({
+                            platform: platformObjId
+                        }).sort({value: 1}).lean().exec();
+
+                        return Q.all([playerProm, levelsProm]).spread(
+                            function (player, playerLevels) {
+                                if (!player){
+                                    return Q.reject({name: "DataError", message: "Cannot find player"});
+                                }
+                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                            },
+                            function () {
+                                return Q.reject({name: "DataError", message: "Cannot find player"});
+                            }
+
+                        );
+                    }
+                    else {
+                        return Q.resolve(true);
+                    }
+                }, (error) => {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            );
+        }
+    },
+
+    /**
      * Check if player can level down.
      *
      * @param {PlayerInfo} player
@@ -5580,7 +5652,12 @@ let dbPlayerInfo = {
                                     console.warn("Invalid topup period '" + topupPeriod + "' or consumption period '" + consumptionPeriod + "' in playerLevel with id: " + level._id);
                                 }
 
-                                const failsEnoughConditions = failsTopupRequirements || failsConsumptionRequirements;
+                                const failsEnoughConditions =
+                                    conditionSet.andConditions
+                                        ? failsTopupRequirements && failsConsumptionRequirements
+                                        : failsTopupRequirements || failsConsumptionRequirements;
+
+                                // const failsEnoughConditions = failsTopupRequirements || failsConsumptionRequirements;
                                 if (failsEnoughConditions) {
                                     levelObjId = previousLevel._id;
                                 }
@@ -5657,6 +5734,7 @@ let dbPlayerInfo = {
                                             isRewardTask: levelUpObj.reward.isRewardTask,
                                             levelValue: levelUpObj.value,
                                             levelName: levelUpObj.name,
+                                            levelOldName: playerObj.playerLevel.name,
                                             playerObjId: playerObj._id,
                                             playerName: playerObj.name,
                                             playerId: playerObj.playerId,
