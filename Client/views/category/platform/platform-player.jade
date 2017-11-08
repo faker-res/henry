@@ -2222,7 +2222,7 @@ include modalGameCreditLog
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"new player list" | translate}}
                         li(id = 'attemptNumberListTab',ng-show="checkViewPermission('Platform', 'Player','FeedbackHistory')")
-                            a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.playerModalTab = \'attemptNumberListPanel\';vm.attemptNumberList();')
+                            a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.playerModalTab = \'attemptNumberListPanel\';vm.playerRegistrationSuccessRateList();')
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"attempt number list" | translate}}
 
@@ -2264,15 +2264,19 @@ include modalGameCreditLog
                                 label {{'END_DATE' | translate}}
                                 .endTime
                             .inlineBlk
-                                button.btn.btn-primary(ng-click='vm.getAttemptNumberListByFilter(true)') {{'SEARCH' | translate}}
+                                button.btn.btn-primary(ng-click='vm.getPlayerRegistrationSucccessRateListByFilter()') {{'SEARCH' | translate}}
                         .well
                             .row
                                 .col-md-12
                                     p
-                                    label {{"Total" | translate}} {{vm.attemptNumberRecords.totalCount}} {{"records" | translate}}
-                                    i.fa.fa-spin.fa-spinner(ng-show='vm.attemptNumberRecords.loading')
-                                    table#attemptNumberListTable.common-table.display(style='width:100%')
-                                    #attemptNumberListTablePage
+                                    table#selfRegistrationSuccessRateTable.common-table.display(style='width:100%')
+                                    #selfRegistrationSuccessRateTablePage
+                                    table#registrationDistributionRecordsTable.common-table.display(style='width:100%')
+                                    #registrationDistributionRecordsTablePage
+                                    label {{"Total" | translate}} {{vm.playerRegistrationRecords.totalCount}} {{"records" | translate}}
+                                    i.fa.fa-spin.fa-spinner(ng-show='vm.playerRegistrationRecords.loading')
+                                    table#playerRegistrationIntentRecordsTable.common-table.display(style='width:100%')
+                                    #playerRegistrationIntentRecordsTablePage
 
 
 #modalPlayerTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')

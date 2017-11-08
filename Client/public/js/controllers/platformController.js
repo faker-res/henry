@@ -2618,20 +2618,23 @@ define(['js/app'], function (myApp) {
                         data: tableData,
                         aoColumnDefs: [
                             {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                            {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
-                            //{'sortCol': 'data.playerId', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'data.name', bSortable: true, 'aTargets': [3]},
-                            {'sortCol': 'data.realName', bSortable: true, 'aTargets': [4]},
+                            {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
+                            {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
+                            {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
                             {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
-                            {'sortCol': 'data.phoneNumber', bSortable: true, 'aTargets': [7]},
-                            // {targets: '_all', defaultContent: ' ', bSortable: false}
+                            {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
+                            {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
+                            {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
+                            {'sortCol': 'remarks', bSortable: true, 'aTargets': [9]},
+                            {'sortCol': 'device', bSortable: true, 'aTargets': [10]},
+                            {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [12]},
+                            {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
                         ],
                         columns: [
                             {title: $translate('PROPOSAL_ID'), data: "proposalId"},
                             {title: $translate('PLAYERNAME'), data: "name"},
                             {title: $translate('STATUS'), data: "statusName"},
-                            //{title: $translate('PLAYERID'), data: "playerId"},
                             {title: $translate('SENT TIME'), data: "createTime"},
                             {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
                             {title: $translate('REGISTERED_IP'), data: "lastLoginIp"},
@@ -2669,6 +2672,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
                             {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
                         ],
+                        bSortClasses: false,
                         destroy: true,
                         paging: false,
                         autoWidth: true,
@@ -2716,18 +2720,19 @@ define(['js/app'], function (myApp) {
             };
 
             // get attempt number list -- start
-            vm.attemptNumberList = function () {
-                vm.attemptNumberRecords = {totalCount: 0};
+            vm.playerRegistrationSuccessRateList = function () {
+                vm.playerRegistrationRecords = {totalCount: 0};
                 vm.initQueryTimeFilter('attemptNumberRecords', function () {
-                    vm.attemptNumberRecords.pageObj = utilService.createPageForPagingTable("#attemptNumberListTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "attemptNumberRecords", vm.getNewPlayerListByFilter)
+                    vm.playerRegistrationRecords.pageObj = utilService.createPageForPagingTable("#playerRegistrationIntentRecordsTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "playerRegistrationRecords", vm.preparePlayerRegistrationIntentRecordsByStatus)
                     });
 
-                    vm.getAttemptNumberListByFilter(true);
+                    vm.getPlayerRegistrationSucccessRateListByFilter(true);
                 });
             }
 
-            vm.getAttemptNumberListByFilter = function (newSearch) {
+            //vm.getPlayerRegistrationSucccessRateListByFilter = function (newSearch) {
+        vm.getPlayerRegistrationSucccessRateListByFilter = function () {
                 var selectedStatus = vm.queryPara.attemptNumberList ? [vm.queryPara.attemptNumberList.status] : ["Success", "Fail", "Pending", "Manual"];
                 var sendData = {
                     adminId: authService.adminId,
@@ -2735,79 +2740,601 @@ define(['js/app'], function (myApp) {
                     type: ["PlayerRegistrationIntention"],
                     startDate: vm.queryPara.attemptNumberRecords.startTime.data('datetimepicker').getLocalDate(),
                     endDate: vm.queryPara.attemptNumberRecords.endTime.data('datetimepicker').getLocalDate(),
-                    name: vm.queryPara.attemptNumberList ? vm.queryPara.attemptNumberList.playerName : null,
-                    phoneNumber: vm.queryPara.attemptNumberList ? vm.queryPara.attemptNumberList.phoneNumber : null,
                     relateUser: null,
-                    size: newSearch ? 10 : (vm.attemptNumberRecords.limit || 10),
-                    index: newSearch ? 0 : (vm.attemptNumberRecords.index || 0),
-                    sortCol: vm.attemptNumberRecords.sortCol || null,
+                    //sortCol: vm.playerRegistrationRecords.sortCol || null,
                     displayPhoneNum: true
-
                 }
-                if (selectedStatus && selectedStatus != "") {
-                    sendData.status = selectedStatus
-                } else {
-                    sendData.status = ["Success", "Fail", "Pending", "Manual"];
-                }
-
-                vm.attemptNumberRecords.loading = true;
+                vm.playerRegistrationRecords.loading = true;
                 console.log("Query", sendData);
-                vm.prepareAttemptNumberListRecords(sendData, newSearch);
-                $("#attemptNumberListTable").off('order.dt');
-                $("#attemptNumberListTable").on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'attemptNumberRecords', vm.getAttemptNumberListByFilter);
+                vm.prepareSelfRegistrationSuccessRateRecords(sendData);
+                vm.prepareRegistrationDistributionRecords(sendData);
+
+            };
+
+            vm.prepareSelfRegistrationSuccessRateRecords = function (queryData) {
+                queryData.status = ["Success", "Fail"];
+                vm.selfRegistrationSuccessRateRecords = [];
+                socketService.$socket($scope.AppSocket, 'getPlayerSelfRegistrationRecordList', queryData, function (data) {
+                    vm.selfRegistrationSuccessRateRecords = data.data;
+                    //vm.playerRegistrationRecords.totalCount = data.data.size;
+                    vm.playerRegistrationRecords.loading = false;
+                    console.log('self registration success rate record', data);
+
+                    var tableData = vm.selfRegistrationSuccessRateRecords.map(
+                        record => {
+                            record.selfRegistrationTotalSuccess = record.selfRegistrationTotalSuccess ? $translate(record.selfRegistrationTotalSuccess) : "";
+                            record.totalAttempt = record.totalAttempt ? $translate(record.totalAttempt) : "";
+                            return record ? record : "";
+                        }
+                    );
+                    var tableData = vm.selfRegistrationSuccessRateRecords;
+                    var option = $.extend({}, vm.generalDataTableOptions, {
+                        data: tableData,
+                        columns: [
+                            {title: $translate('SELF_REGISTER_SUCCESS_RATE'), data: $translate('selfRegistrationTotalSuccess')},
+                            {
+                                title: $translate('TOTAL_ATTEMPT'),
+                                data: "totalAttempt",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        let statusArr = ["Success","Fail"];
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"-1",' + JSON.stringify(statusArr) + ');',
+                                        }).text(data));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('ATTEMPT') + "(1/1)",
+                                data: "firstFail",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Fail");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('ATTEMPT') + "(2/2)",
+                                data: "secondFail",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2","Fail");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('ATTEMPT') + "(3/3)",
+                                data: "thirdFail",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3","Fail");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('ATTEMPT') + "(4/4)",
+                                data: "fouthFail",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4","Fail");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('ATTEMPT') + "(5/5)",
+                                data: "fifthFail",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5","Fail");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('ATTEMPT') + "(5UP)",
+                                data: "fifthUpFail",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0","Fail");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(1/1)",
+                                data: "firstSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(2/2)",
+                                data: "secondSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(3/3)",
+                                data: "thirdSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(4/4)",
+                                data: "fouthSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(5/5)",
+                                data: "fifthSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(5UP)",
+                                data: "fifthUpSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                        ],
+                        destroy: true,
+                        paging: false,
+                        autoWidth: true,
+                        initComplete: function (data, type, row) {
+                            $scope.safeApply();
+                        },
+                        createdRow: function (row, data, dataIndex) {
+                            $compile(angular.element(row).contents())($scope);
+                        },
+                        fnRowCallback: vm.playerListTableRow
+                    });
+                    var a = utilService.createDatatableWithFooter('#selfRegistrationSuccessRateTable', option, {});
+                    //vm.playerRegistrationRecords.pageObj.init({maxCount: vm.playerRegistrationRecords.totalCount}, newSearch);
+                    setTimeout(function () {
+                        $('#selfRegistrationSuccessRateTable').resize();
+                    }, 300);
+
                 });
             };
 
-            vm.prepareAttemptNumberListRecords = function (queryData, newSearch) {
-                vm.attemptNumberListRecords = [];
-                socketService.$socket($scope.AppSocket, 'getPlayerProposalsForAdminId', queryData, function (data) {
-                    vm.attemptNumberListRecords = data.data.data;
-                    vm.attemptNumberRecords.totalCount = data.data.size;
-                    vm.attemptNumberRecords.loading = false;
-                    console.log('attempt number list record', data);
+            vm.prepareRegistrationDistributionRecords = function (queryData) {
+                queryData.status = ["Success", "Manual"];
+                vm.registrationDistributionRecords = [];
+                socketService.$socket($scope.AppSocket, 'getPlayerManualRegistrationRecordList', queryData, function (data) {
+                    vm.registrationDistributionRecords = data.data;
+                    //vm.registrationDistributionRecords.totalCount = data.data.size;
+                    vm.registrationDistributionRecords.loading = false;
+                    console.log('registration distribution record', data);
 
-                    var tableData = vm.attemptNumberListRecords.map(
+                    var tableData = vm.registrationDistributionRecords.map(
                         record => {
-                            record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
-                            //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                            if(record.status){
-                                if(record.status == "Fail"){
-                                    record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                                }
-                                else{
-                                    record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                                }
-                            }
-                            record.playerId = record.data.playerId ? record.data.playerId : "";
-                            record.name = record.data.name ? record.data.name : "";
-                            record.realName = record.data.realName ? record.data.realName : "";
-                            record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
-                            record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
-                            record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
-                            record.smsCode = record.data.smsCode ? record.data.smsCode : "";
-                            record.remarks = record.data.remarks ? record.data.remarks : "";
-                            record.device = record.data.device ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
-                            record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
-                            record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
-                            record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
-                            record.proposalId = record.data.proposalId ? record.data.proposalId : "";
-                            return record
+                            record.manualRegistrationTotalSuccess = record.manualRegistrationTotalSuccess ? $translate(record.manualRegistrationTotalSuccess) : "";
+                            record.totalSuccess = record.totalSuccess ? $translate(record.totalSuccess) : "";
+                            return record ? record : "";
                         }
                     );
-                    var tableData = vm.attemptNumberListRecords;
+                    var tableData = vm.registrationDistributionRecords;
+                    var option = $.extend({}, vm.generalDataTableOptions, {
+                        data: tableData,
+                        columns: [
+                             {title: $translate('MANUAL/SELF_REGISTER_RATE'), data: "manualRegistrationTotalSuccess"},
+                            {
+                                title: $translate('TOTAL_REGISTRATION'),
+                                data: "totalSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        let statusArr = ["Success","Manual"]
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"-1",' + JSON.stringify(statusArr) + ');',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('MANUAL'),
+                                data: "manualSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Manual");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(1/1)",
+                                data: "firstSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(2/2)",
+                                data: "secondSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(3/3)",
+                                data: "thirdSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(4/4)",
+                                data: "fouthSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(5/5)",
+                                data: "fifthSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                            {
+                                title: $translate('SUCCESS') + "(5UP)",
+                                data: "fifthUpSuccess",
+                                advSearch: true,
+                                "sClass": "",
+                                render: function (data, type, row) {
+                                    data = data || '';
+                                    var link = $('<div>', {});
+                                    if (data != "" && data != "0.00") {
+                                        link.append($('<a>', {
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0","Success");',
+                                        }).text(data ? data : 0));
+                                    }
+                                    else{
+                                        link.append($('<div>', {}).text(data ? data : 0));
+                                    }
+                                    return link.prop('outerHTML')
+                                }
+                            },
+                        ],
+                        destroy: true,
+                        paging: false,
+                        autoWidth: true,
+                        initComplete: function (data, type, row) {
+                            $scope.safeApply();
+                        },
+                        createdRow: function (row, data, dataIndex) {
+                            $compile(angular.element(row).contents())($scope);
+
+                        },
+                        fnRowCallback: vm.playerListTableRow
+                    });
+                    var a = utilService.createDatatableWithFooter('#registrationDistributionRecordsTable', option, {});
+                    //vm.playerRegistrationRecords.pageObj.init({maxCount: vm.playerRegistrationRecords.totalCount}, newSearch);
+                    setTimeout(function () {
+                        $('#registrationDistributionRecordsTable').resize();
+                    }, 300);
+
+                });
+            };
+
+            vm.setPreparePlayerRegistrationIntentRecordsByStatusParam = function(queryData,attemptNo,status){
+                vm.queryData = queryData;
+                vm.attemptNo = attemptNo;
+                vm.status = status;
+
+                vm.preparePlayerRegistrationIntentRecordsByStatus(true);
+            }
+
+            vm.preparePlayerRegistrationIntentRecordsByStatus = function(newSearch){
+                vm.queryData.attemptNo = vm.attemptNo ? vm.attemptNo : 0;
+                vm.queryData.status = Array.isArray(vm.status) ? vm.status :[vm.status];
+                vm.playerRegistrationRecords.loading = true;
+
+                vm.queryData.size = newSearch ? 10 : (vm.playerRegistrationRecords.limit || 10);
+                vm.queryData.index = newSearch ? 0 : (vm.playerRegistrationRecords.index || 0);
+                vm.queryData.sortCol = vm.playerRegistrationRecords.sortCol;
+                socketService.$socket($scope.AppSocket, 'getPlayerRegistrationIntentRecordByStatus', vm.queryData, function (data) {
+                    vm.newPlayerListRecords = data.data;
+
+                    vm.playerRegistrationRecords.loading = false;
+                    console.log('player registration intent record', data);
+
+                    let arr = [];
+
+                    var tableData = vm.newPlayerListRecords.map(
+                        records => {
+                            records.data.map(record => {
+                                record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
+                                if(record.status){
+                                    if(record.status == "Fail"){
+                                        record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                    }
+                                    else{
+                                        record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                    }
+                                }
+                                record.playerId = record.data.playerId ? record.data.playerId : "";
+                                record.name = record.data.name ? record.data.name : "";
+                                record.realName = record.data.realName ? record.data.realName : "";
+                                record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
+                                record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+                                record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
+                                record.smsCode = record.data.smsCode ? record.data.smsCode : "";
+                                record.remarks = record.data.remarks ? record.data.remarks : "";
+                                record.device = record.data.device ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
+                                record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
+                                record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
+                                record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
+                                record.proposalId = record.data.proposalId ? record.data.proposalId : "";
+                                arr.push(record);
+                            })
+                            return arr;
+                        }
+                    );
+
+                    vm.playerRegistrationRecords.totalCount = tableData[0].length;
+                    var limit = tableData[0].length < vm.queryData.index + vm.queryData.size ? tableData[0].length :  vm.queryData.index + vm.queryData.size
+
+                    vm.sortProposalRegistrationIntentRecord = function(data,sortCol){
+                        var keyName = Object.keys(sortCol)[0];
+                        var sorting = sortCol[keyName];
+                        var result = data.sort(function(a,b) {
+                            if ( a[keyName] < b[keyName] )
+                                return -1*sorting;
+                            if ( a[keyName] > b[keyName] )
+                                return 1*sorting;
+                            return 0;
+                        });
+
+                        return result;
+                    }
+
+                    if(vm.queryData.sortCol){
+                        //tableData = tableData[0].sort(vm.queryData.sortCol).slice(vm.queryData.index,limit);
+                        //tableData[0] = JSON.parse(JSON.stringify(tableData[0]));
+                        tableData = vm.sortProposalRegistrationIntentRecord(tableData[0],vm.queryData.sortCol).slice(vm.queryData.index,limit);
+                    }else {
+                        // tableData = tableData[0].sort(function(a,b) {if ( a.createTime < b.createTime )return 1;if ( a.createTime > b.createTime )return -1;return 0;})
+                        //     .slice(vm.queryData.index,limit);
+                        tableData = vm.sortProposalRegistrationIntentRecord(tableData[0],{createTime: -1}).slice(vm.queryData.index,limit);
+                    }
+
                     var option = $.extend({}, vm.generalDataTableOptions, {
                         data: tableData,
                         aoColumnDefs: [
                             {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                            {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
-                            //{'sortCol': 'data.playerId', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'data.name', bSortable: true, 'aTargets': [3]},
-                            {'sortCol': 'data.realName', bSortable: true, 'aTargets': [4]},
+                            {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
+                            {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
+                            {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
                             {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
-                            {'sortCol': 'data.phoneNumber', bSortable: true, 'aTargets': [7]},
-                            // {targets: '_all', defaultContent: ' ', bSortable: false}
+                            {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
+                            {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
+                            {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
+                            {'sortCol': 'remarks', bSortable: true, 'aTargets': [9]},
+                            {'sortCol': 'device', bSortable: true, 'aTargets': [10]},
+                            {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [12]},
+                            {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
                         ],
                         columns: [
                             {title: $translate('PROPOSAL_ID'), data: "proposalId"},
@@ -2851,6 +3378,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
                             {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
                         ],
+                        bSortClasses: false,
                         destroy: true,
                         paging: false,
                         autoWidth: true,
@@ -2863,10 +3391,15 @@ define(['js/app'], function (myApp) {
                         },
                         fnRowCallback: vm.playerListTableRow
                     });
-                    var a = utilService.createDatatableWithFooter('#attemptNumberListTable', option, {});
-                    vm.attemptNumberRecords.pageObj.init({maxCount: vm.attemptNumberRecords.totalCount}, newSearch);
+                    var a = utilService.createDatatableWithFooter('#playerRegistrationIntentRecordsTable', option, {});
+
+                    vm.playerRegistrationRecords.pageObj.init({maxCount: vm.playerRegistrationRecords.totalCount}, newSearch);
+                    $('#playerRegistrationIntentRecordsTable').off('order.dt');
+                    $('#playerRegistrationIntentRecordsTable').on('order.dt', function (event, a, b) {
+                        vm.commonSortChangeHandler(a, 'playerRegistrationRecords', vm.preparePlayerRegistrationIntentRecordsByStatus);
+                    });
                     setTimeout(function () {
-                        $('#attemptNumberListTable').resize();
+                        $('#playerRegistrationIntentRecordsTable').resize();
                     }, 300);
 
                 });
