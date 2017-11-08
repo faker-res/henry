@@ -127,6 +127,8 @@ var roleChecker = {
         "getLastMonthSGTime": true,
         "getLastMonthConsumptionReturnSGTime": true,
 
+        "getPlatformProviderGroup": true,
+
         // API Actions - can be ignored
         'createApiUser': true,
         'deleteApiUser': true,
@@ -370,7 +372,7 @@ var roleChecker = {
                 Monitor: [],
                 PlayerValue: ['updatePlayerValueConfig','updatePlayerLevelScores'],
                 Credibility: ['updateCredibilityRemarksInBulk'],
-                providerGroup: []
+                providerGroup: ['deletePlatformProviderGroup']
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -483,7 +485,7 @@ var roleChecker = {
         },
         Operation: {
             Proposal: {
-                Read: ['getProposalTypeByPlatformId', "getFullProposalProcess", 'getQueryApprovalProposalsForAdminId', "getQueryProposalsForAdminId"],
+                Read: ['getProposalTypeByPlatformId', "getFullProposalProcess", 'getQueryApprovalProposalsForAdminId', "getQueryProposalsForAdminId", "getRewardEventsForPlatform", "getPromoCodeTypes"],
                 ProposalListRead: ['getAvailableProposalsForAdminId'],
                 ProposalListDetail: ['getAvailableProposalsForAdminId'],
                 ApproveProposal: ["updateProposalProcessStep"],

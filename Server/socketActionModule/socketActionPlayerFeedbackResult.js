@@ -42,7 +42,7 @@ function socketActionPlayerFeedbackResult(socketIO, socket) {
          */
         getAllPlayerFeedbackResults: function getAllPlayerFeedbackResults() {
             let actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, dbPlayerFeedbackResult.getAllPlayerFeedbackResults,[{}], actionName, true);
+            socketUtil.emitter(self.socket, dbPlayerFeedbackResult.getAllPlayerFeedbackResults, [{}], actionName, true);
         },
 
         /**

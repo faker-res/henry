@@ -1366,21 +1366,49 @@ var proposal = {
                                 //.populate({path: 'data.playerObjId.csOfficer', model: dbconfig.collection_csOfficerUrl})
                                 .sort(sortCol).skip(index).limit(size).lean()
                                 .then(
-                                    pdata => {
-                                        pdata.map(item=> {
-                                            // only displayPhoneNum equal true, encode the phone num
-                                            if(item.data && item.data.phone && !displayPhoneNum){
-                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                                            }
-                                            if(item.data && item.data.phoneNumber && !displayPhoneNum){
-                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                            }
-                                            return item
-                                        })
+                                     pdata => {
+                                         pdata.map(item=> {
+                                             // only displayPhoneNum equal true, encode the phone num
+                                             if(item.data && item.data.phone && !displayPhoneNum){
+                                                 item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                             }
+                                             if(item.data && item.data.phoneNumber && !displayPhoneNum){
+                                                 item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                             }
+                                             if (item.data && item.data.updateData){
+                                                 switch(Object.keys(item.data.updateData)[0]){
+                                                     case "phoneNumber":
+                                                         item.data.updateData.phoneNumber = dbutility.encodePhoneNum(item.data.updateData.phoneNumber);
+                                                         break;
+                                                     case "email":
+                                                         let startIndex = Math.max(Math.floor((item.data.updateData.email.length - 4) / 2), 0);
+                                                         item.data.updateData.email = item.data.updateData.email.substr(0, startIndex) + "****" + item.data.updateData.email.substr(startIndex + 4);
+                                                         break;
+                                                     case "qq":
+                                                         let qqNumber = item.data.updateData.qq.substr(0, item.data.updateData.qq.indexOf("@"));
+                                                         let qqIndex = Math.max(Math.floor((qqNumber.length - 4) / 2), 0);
+                                                         let qqNumberEncoded = qqNumber.substr(0, qqIndex) + "****" + qqNumber.substr(qqIndex + 4);
+                                                         item.data.updateData.qq = qqNumberEncoded + "@qq.com";
+                                                         break;
+                                                     case "weChat":
+                                                         let weChatIndex = Math.max(Math.floor((item.data.updateData.weChat.length - 4) / 2), 0);
+                                                         item.data.updateData.weChat = item.data.updateData.weChat.substr(0, weChatIndex) + "****" + item.data.updateData.weChat.substr(weChatIndex + 4);
+                                                         break;
+                                                     case "wechat":
+                                                         let wechatIndex = Math.max(Math.floor((item.data.updateData.wechat.length - 4) / 2), 0);
+                                                         item.data.updateData.wechat = item.data.updateData.wechat.substr(0, wechatIndex) + "****" + item.data.updateData.wechat.substr(wechatIndex + 4);
+                                                         break;
+                                                     case "bankAccount":
+                                                         item.data.updateData.bankAccount = dbutility.encodeBankAcc(item.data.updateData.bankAccount);
+                                                         break;
+                                                 }
+                                             }
+                                             return item
+                                         })
 
-                                        return pdata;
-                                    })
-                            :
+                                         return pdata;
+                                 })
+                                :
                             dbconfig.collection_proposal.aggregate(
                                 {$match: queryObj},
                                 {
@@ -2715,7 +2743,7 @@ var proposal = {
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
         query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
 
-        if (data.merchantNo && data.merchantNo.length > 0 && (!data.merchantGroup|| data.merchantGroup.length==0)) {
+        if (data.merchantNo && data.merchantNo.length > 0 && (!data.merchantGroup || data.merchantGroup.length == 0)) {
             query['$or'] = [
                 {'data.merchantNo': {$in: convertStringNumber(data.merchantNo)}},
                 {'data.bankCardNo': {$in: convertStringNumber(data.merchantNo)}},
@@ -2728,23 +2756,25 @@ var proposal = {
 
         if ((!data.merchantNo || data.merchantNo.length == 0) && data.merchantGroup && data.merchantGroup.length > 0) {
             let mGroupList = [];
-            data.merchantGroup.forEach(item=> {
-                item.forEach(sItem=>{
+            data.merchantGroup.forEach(item => {
+                item.forEach(sItem => {
                     mGroupList.push(sItem)
                 })
             })
             query['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
         }
 
-        if (data.merchantNo && data.merchantNo.length > 0  && data.merchantGroup && data.merchantGroup.length > 0) {
-            if(data.merchantGroup.length > 0){
+        if (data.merchantNo && data.merchantNo.length > 0 && data.merchantGroup && data.merchantGroup.length > 0) {
+            if (data.merchantGroup.length > 0) {
                 let mGroupC = [];
                 let mGroupD = [];
-                data.merchantNo.forEach(item=>{
+                data.merchantNo.forEach(item => {
                     mGroupC.push(item);
                 });
-                data.merchantGroup.forEach(item=>{
-                    item.forEach(sItem=>{ mGroupD.push(sItem)});
+                data.merchantGroup.forEach(item => {
+                    item.forEach(sItem => {
+                        mGroupD.push(sItem)
+                    });
                 });
                 query['$or'] = [
                     {'data.merchantNo': {$in: convertStringNumber(mGroupC)}},
@@ -2762,10 +2792,10 @@ var proposal = {
         if (data.proposalNo) {
             query['data.proposalId'] = data.proposalNo;
         }
-        if (data.bankTypeId && data.bankTypeId.length > 0){
+        if (data.bankTypeId && data.bankTypeId.length > 0) {
             query['data.bankTypeId'] = {$in: convertStringNumber(data.bankTypeId)};
         }
-        if (data.userAgent && data.userAgent.length > 0){
+        if (data.userAgent && data.userAgent.length > 0) {
             query['data.userAgent'] = {$in: convertStringNumber(data.userAgent)};
         }
         if (data.status && data.status.length > 0) {
@@ -2800,7 +2830,7 @@ var proposal = {
                 };
         }
         if (data.topupType && data.topupType.length > 0) {
-            query['data.topupType'] = { $in: convertStringNumber(data.topupType)}
+            query['data.topupType'] = {$in: convertStringNumber(data.topupType)}
         }
 
         if (data.depositMethod && data.depositMethod.length > 0) {
@@ -3352,13 +3382,13 @@ function getMinutesBetweenDates(startDate, endDate) {
     return Math.floor(diff / 60000);
 }
 
-function convertStringNumber(Arr){
+function convertStringNumber(Arr) {
     let Arrs = JSON.parse(JSON.stringify(Arr));
     let result = []
-    Arrs.forEach(item=>{
+    Arrs.forEach(item => {
         result.push(String(item));
     })
-    Arrs.forEach(item=>{
+    Arrs.forEach(item => {
         result.push(Number(item));
     })
     return result;
