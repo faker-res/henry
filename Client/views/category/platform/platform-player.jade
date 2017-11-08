@@ -104,7 +104,7 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Create')", ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareCreatePlayer()', data-toggle="modal", data-target='#modalCreatePlayer')
             text {{"CREATE_NEW_PLAYER" | translate}}
             img.img-create
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.initPlayerModal();vm.getNewPlayerListByFilter();', data-target='#modalNewPlayerList')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.initPlayerModal()', data-target='#modalNewPlayerList')
             text {{"new player list" | translate}}
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform','Player', 'Read')",ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareShowProviderExpense()')

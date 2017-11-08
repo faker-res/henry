@@ -2749,7 +2749,6 @@ define(['js/app'], function (myApp) {
                             record.playerId = record.data.playerId ? record.data.playerId : "";
                             record.name = record.data.name ? record.data.name : "";
                             record.realName = record.data.realName ? record.data.realName : "";
-                            record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
                             record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
                             record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
                             record.smsCode = record.data.smsCode ? record.data.smsCode : "";
@@ -2772,7 +2771,7 @@ define(['js/app'], function (myApp) {
                             {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
                             {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
                             {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
                             {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
                             {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
                             {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
@@ -3500,7 +3499,6 @@ define(['js/app'], function (myApp) {
                                 record.playerId = record.data.playerId ? record.data.playerId : "";
                                 record.name = record.data.name ? record.data.name : "";
                                 record.realName = record.data.realName ? record.data.realName : "";
-                                record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
                                 record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
                                 record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
                                 record.smsCode = record.data.smsCode ? record.data.smsCode : "";
@@ -3510,6 +3508,7 @@ define(['js/app'], function (myApp) {
                                 record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
                                 record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
                                 record.proposalId = record.data.proposalId ? record.data.proposalId : "";
+                                record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea):'';
                                 arr.push(record);
                             })
                             return arr;
@@ -3551,7 +3550,7 @@ define(['js/app'], function (myApp) {
                             {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
                             {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
                             {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
                             {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
                             {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
                             {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
@@ -3567,7 +3566,7 @@ define(['js/app'], function (myApp) {
                             //{title: $translate('PLAYERID'), data: "playerId"},
                             {title: $translate('SENT TIME'), data: "createTime"},
                             {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
-                            {title: $translate('REGISTERED_IP'), data: "lastLoginIp"},
+                            {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
                             {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
                             {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
                             {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
@@ -3581,6 +3580,8 @@ define(['js/app'], function (myApp) {
                                 render: function (data, type, row) {
                                     data = data || '';
                                     var playerObjId = row.data._id ? row.data._id : "";
+                                    let displayTXT = '';
+                                    let action = '';
                                     var link = $('<div>', {});
 
                                     if (row.data.phoneNumber && row.data.phoneNumber != "") {
@@ -3596,6 +3597,33 @@ define(['js/app'], function (myApp) {
                                             'title': $translate("PHONE")
                                         }));
                                     }
+
+
+                                    if(row.status!='Success'&&row.status!='Manual'){
+                                        displayTXT = $translate('SMS/PHONE/CREATE_ACC');
+                                        action = 'vm.createPlayerHelper('+JSON.stringify(row)+')';
+                                        link.append($('<div>', {
+                                            'class': 'fa fa-user-plus',
+                                            'style': 'padding-left:15px',
+                                            'ng-click': action,
+                                            'title': $translate(displayTXT)
+                                        }));
+
+                                    }else{
+                                        displayTXT = $translate('SMS/PHONE/FEEDBACK');
+                                        action = 'vm.initNewPlayerFeedbackModal('+JSON.stringify(row)+')';
+                                        $('#modalAddPlayerFeedback').css('z-Index',1051);
+                                        link.append($('<div>', {
+                                            'class': 'fa fa-envelope-o',
+                                            'style': 'padding-left:15px',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalAddPlayerFeedback',
+                                            'ng-click': action,
+                                            'title': $translate(displayTXT)
+                                        }));
+                                    }
+
                                     return link.prop('outerHTML')
                                 }
                             },
