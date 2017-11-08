@@ -177,6 +177,14 @@ define(['js/app'], function (myApp) {
                 WEEK: "WEEK",
                 MONTH: "MONTH"
             };
+            vm.allPlayerLevelUpPeriod = {
+                DAY: 1,
+                WEEK: 2,
+                MONTH: 3
+                // 1: "DAY",
+                // 2: "WEEK",
+                // 3: "MONTH"
+            };
             vm.topUpTypeList = {
                 1: 'TOPUPMANUAL',
                 2: 'TOPUPONLINE',
@@ -985,7 +993,33 @@ define(['js/app'], function (myApp) {
                     status: 'ready'
                 };
 
-                socketService.$socket($scope.AppSocket, 'getLastMonthSGTime',
+                let socketActionLvlUp = '';
+                let socketActionLvlDown = '';
+                switch (vm.selectedPlatform.data.playerLevelUpPeriod){
+                    case vm.allPlayerLevelUpPeriod.DAY:
+                        socketActionLvlUp = 'getYesterdaySGTime';
+                        break;
+                    case vm.allPlayerLevelUpPeriod.WEEK:
+                        socketActionLvlUp = 'getLastWeekSGTime';
+                        break;
+                    case vm.allPlayerLevelUpPeriod.MONTH:
+                        socketActionLvlUp = 'getLastMonthSGTime';
+                        break;
+                }
+
+                switch (vm.selectedPlatform.data.playerLevelDownPeriod){
+                    case vm.allPlayerLevelUpPeriod.DAY:
+                        socketActionLvlDown = 'getYesterdaySGTime';
+                        break;
+                    case vm.allPlayerLevelUpPeriod.WEEK:
+                        socketActionLvlDown = 'getLastWeekSGTime';
+                        break;
+                    case vm.allPlayerLevelUpPeriod.MONTH:
+                        socketActionLvlDown = 'getLastMonthSGTime';
+                        break;
+                }
+
+                socketService.$socket($scope.AppSocket, socketActionLvlUp,
                     {},
                     ret => {
                         vm.playerLevelSettlement.lvlUpStartTime = vm.dateReformat(ret.data.startTime);
@@ -993,11 +1027,15 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     });
 
-                socketService.$socket($scope.AppSocket, 'getLastMonthConsumptionReturnSGTime',
+                socketService.$socket($scope.AppSocket, socketActionLvlDown,
                     {},
                     ret => {
-                        vm.playerLevelSettlement.lvlDownStartTime = vm.dateReformat(ret.data.startTime);
-                        vm.playerLevelSettlement.lvlDownEndTime = vm.dateReformat(ret.data.endTime);
+                        let dateStart = new Date (ret.data.startTime);
+                        let dateEnd = new Date (ret.data.endTime);
+                        dateStart.setHours (dateStart.getHours() + 12);
+                        dateEnd.setHours (dateEnd.getHours() + 12);
+                        vm.playerLevelSettlement.lvlDownStartTime = vm.dateReformat(dateStart);
+                        vm.playerLevelSettlement.lvlDownEndTime = vm.dateReformat(dateEnd);
                         $scope.safeApply();
                     });
 
@@ -14061,10 +14099,15 @@ define(['js/app'], function (myApp) {
             vm.getAllPlayerLevels = function () {
                 vm.playerIDArr = [];
                 vm.autoCheckPlayerLevelUp = null;
+                vm.manualPlayerLevelUp = null;
                 return $scope.$socketPromise('getPlayerLevelByPlatformId', {platformId: vm.selectedPlatform.id})
                     .then(function (data) {
+                        vm.playerLevelPeriod = {};
                         vm.allPlayerLvl = data.data;
                         vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
+                        vm.manualPlayerLevelUp = vm.selectedPlatform.data.manualPlayerLevelUp;
+                        vm.playerLevelPeriod.playerLevelUpPeriod = vm.selectedPlatform.data.playerLevelUpPeriod?vm.selectedPlatform.data.playerLevelUpPeriod: vm.allPlayerLevelUpPeriod.MONTH;
+                        vm.playerLevelPeriod.playerLevelDownPeriod = vm.selectedPlatform.data.playerLevelDownPeriod?vm.selectedPlatform.data.playerLevelDownPeriod: vm.allPlayerLevelUpPeriod.MONTH;
                         vm.allPlayerLvlReordered = false;
                         vm.sortPlayerLevels();
                         console.log("vm.allPlayerLvl", data.data);
@@ -14075,9 +14118,38 @@ define(['js/app'], function (myApp) {
                                 vm.playerLvlData[v._id] = v;
                             })
                         }
+                        vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod);
+                        vm.playerLevelPeriod.levelDownPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelDownPeriod);
+                        vm.changeLevelPeriodAllField();
                         $scope.safeApply();
                     });
             };
+
+            vm.getPlayerLevelUpPeriodName = function(value){
+                let name='';
+                for (let i = 0; i < Object.keys(vm.allPlayerLevelUpPeriod).length; i++){
+                    if(vm.allPlayerLevelUpPeriod[Object.keys(vm.allPlayerLevelUpPeriod)[i]] == value){
+                        name = Object.keys(vm.allPlayerLevelUpPeriod)[i];
+                        break;
+                    }
+                }
+                return name;
+            }
+
+            //force change all field (follow period setting)
+            vm.changeLevelPeriodAllField = function (){
+                for (let i = 0; i < vm.allPlayerLvl.length; i++){
+                    for (let j = 0; j < vm.allPlayerLvl[i].levelDownConfig.length; j++){
+                        vm.allPlayerLvl[i].levelDownConfig[j].consumptionPeriod = vm.playerLevelPeriod.levelDownPeriodName;
+                        vm.allPlayerLvl[i].levelDownConfig[j].topupPeriod = vm.playerLevelPeriod.levelDownPeriodName;
+                    }
+                    for (let k = 0; k < vm.allPlayerLvl[i].levelUpConfig.length; k++){
+                        vm.allPlayerLvl[i].levelUpConfig[k].consumptionPeriod = vm.playerLevelPeriod.levelUpPeriodName;
+                        vm.allPlayerLvl[i].levelUpConfig[k].topupPeriod = vm.playerLevelPeriod.levelUpPeriodName;
+                    }
+                }
+            }
+
 
             vm.sortPlayerLevels = function () {
                 vm.allPlayerLvl.sort((a, b) => a.value - b.value);
@@ -14108,12 +14180,21 @@ define(['js/app'], function (myApp) {
                     value: vm.allPlayerLvl.length,
                     levelUpConfig: [{
                         topupLimit: 1,
-                        topupPeriod: period,
+                        // topupPeriod: period,
+                        topupPeriod: vm.playerLevelPeriod.levelUpPeriodName,
                         consumptionLimit: 1,
-                        consumptionPeriod: period,
+                        // consumptionPeriod: period,
+                        consumptionPeriod: vm.playerLevelPeriod.levelUpPeriodName,
                         andConditions: true
                     }],
-                    levelDownConfig: []
+                    levelDownConfig: [{
+                        // topupMinimum: 1,
+                        // topupPeriod: period,
+                        topupPeriod: vm.playerLevelPeriod.levelDownPeriodName,
+                        // consumptionMinimum: 1,
+                        // consumptionPeriod: period,
+                        consumptionPeriod: vm.playerLevelPeriod.levelDownPeriodName
+                    }]
                 };
             }
             vm.configAddPlayerLevelValid = function () {
@@ -14853,7 +14934,12 @@ define(['js/app'], function (myApp) {
                 switch (choice) {
                     case 'player':
                         console.log('vm.playerLvlData', vm.playerLvlData);
-                        updatePlatformBasic({autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp});
+                        updatePlatformBasic({
+                            autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
+                            manualPlayerLevelUp: vm.manualPlayerLevelUp,
+                            playerLevelUpPeriod: vm.playerLevelPeriod.playerLevelUpPeriod,
+                            playerLevelDownPeriod: vm.playerLevelPeriod.playerLevelDownPeriod
+                        });
                         if (vm.allPlayerLvlReordered) {
                             // Number the levels correctly.  (This should only really be needed if something went wrong on a previous attempt.)
                             vm.ensurePlayerLevelOrder();
@@ -15008,6 +15094,9 @@ define(['js/app'], function (myApp) {
                         allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
+                        manualPlayerLevelUp: srcData.manualPlayerLevelUp,
+                        playerLevelUpPeriod: srcData.playerLevelUpPeriod,
+                        playerLevelDownPeriod: srcData.playerLevelDownPeriod,
                         requireLogInCaptcha: srcData.requireLogInCaptcha,
                         requireCaptchaInSMS: srcData.requireCaptchaInSMS,
                         onlyNewCanLogin: srcData.onlyNewCanLogin,

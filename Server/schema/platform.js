@@ -107,6 +107,12 @@ var platformSchema = new Schema({
     canMultiReward: {type: Boolean, default: false},
     // Auto check player level up
     autoCheckPlayerLevelUp: {type: Boolean, default: false},
+    // manual check player level up (perform by player)
+    manualPlayerLevelUp: {type: Boolean, default: false},
+    // player level up period (default 3 = monthly)
+    playerLevelUpPeriod: {type: Number, default: 3},
+    // player level down period (default 3 = monthly)
+    playerLevelDownPeriod: {type: Number, default: 3},
     // user login require captcha verfication
     requireLogInCaptcha: {type: Boolean, default: false},
     // user get SMS code with captcha
