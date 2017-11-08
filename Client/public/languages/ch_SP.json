@@ -2602,6 +2602,7 @@
   "CUSTOMER_SERVICE": "客服",
   "MANUAL": "手工",
   "Attempt": "尝试",
+  "ATTEMPT": "尝试",
   "cardQuota": "收款帐号今日交易额",
   "NEW_WECHAT": "新微信账号",
   "CURRENT_WECHAT": "原微信账号",
@@ -2613,5 +2614,11 @@
   "Enable":"启用",
   "Duplicate Phone Number": "相同电话开户列表",
   "DETAIL_INFO":"详情按钮",
+  "HEAD_COUNT": "人数",
+  "PERCENTAGE": "百分比",
+  "SELF_REGISTER_SUCCESS_RATE": "自助成功率分析",
+  "MANUAL/SELF_REGISTER_RATE": "手工/自助开户分布",
+  "TOTAL_ATTEMPT": "总尝试",
+  "TOTAL_REGISTRATION": "总开户",
   "Merchant Name":"名称"
 }
