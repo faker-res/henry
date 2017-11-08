@@ -567,6 +567,7 @@ var dbUtility = {
                 if (!res.city && res.province) {
                     res.city = res.province
                 }
+                console.log(res);
                 deferred.resolve(res);
             }
         });

@@ -250,7 +250,11 @@ define(['js/app'], function (myApp) {
                         : $.extend(true, {}, value);
                 }
             };
-
+            //specific proposal template
+            vm.proposalTemplate = {
+                1: '#modalProposal',
+                2: '#newPlayerModal'
+            }
             /////////////Victor::Platform functions
             vm.toggleShowPlatformDropDownList = function () {
                 vm.showPlatformDropDownList = !vm.showPlatformDropDownList;
@@ -2578,11 +2582,156 @@ define(['js/app'], function (myApp) {
                     });
 
                     vm.getNewPlayerListByFilter(true);
-                });
 
+                });
+            }
+            vm.loadPhoneNumberRecord = function(newSearch){
+                vm.getCredibilityRemarks();
+                var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
+                var sendData = {
+                    adminId: authService.adminId,
+                    platformId: vm.selectedPlatform.id,
+                    type: ["PlayerRegistrationIntention"],
+                    phoneNumber: vm.newPlayer.phoneNumber,
+                    size: newSearch ? 10 : (vm.phoneDuplicate.limit || 10),
+                    index: newSearch ? 0 : (vm.phoneDuplicate.index || 0),
+                    // sortCol: vm.newPlayerRecords.sortCol || null,
+                    displayPhoneNum: true
+                }
+                sendData.status = selectedStatus;
+                $("#sameNumPlayerListTable").css('z-Index',1051).modal();
+                vm.preparePhoneDuplicateRecords(sendData, newSearch);
+                $("#samePhoneNumTable").off('order.dt');
+                $("#samePhoneNumTable").on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'phoneDuplicate', vm.loadPhoneNumberRecord);
+                });
+                // vm.phoneDuplicate.pageObj = utilService.createPageForPagingTable("#samePhoneNumTablePage", {}, $translate, function (curP, pageSize) {
+                //     vm.commonPageChangeHandler(curP, pageSize, "phoneDuplicate", vm.loadPhoneNumberRecord)
+                // });
 
             }
 
+            vm.preparePhoneDuplicateRecords = function (queryData, newSearch) {
+                vm.phoneDuplicateListRecords = [];
+                socketService.$socket($scope.AppSocket, 'getPlayerProposalsForAdminId', queryData, function (data) {
+                    vm.phoneDuplicateListRecords = data.data.data;
+                    vm.phoneDuplicate.totalCount = data.data.size;
+                    vm.phoneDuplicate.loading = false;
+                    console.log('new player list record', data);
+
+                    vm.phoneDuplicateListRecords.map(
+                        record => {
+                            let credibilityRemarksTXT = '';
+                            record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
+                            //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                            if(record.status){
+                                if(record.status == "Fail"){
+                                    record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                                else{
+                                    record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                            }
+                            record.playerId = record.data.playerId ? record.data.playerId : "";
+                            record.name = record.data.name ? record.data.name : "";
+                            record.realName = record.data.realName ? record.data.realName : "";
+                            record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
+                            record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+                            record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
+                            record.smsCode = record.data.smsCode ? record.data.smsCode : "";
+                            record.remarks = record.data.remarks ? record.data.remarks : "";
+                            record.device = record.data.device ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
+                            record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
+                            record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
+                            record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
+                            record.proposalId = record.data.proposalId ? record.data.proposalId : "";
+                            record.playerLevelName = record.data.playerLevel ? record.data.playerLevel.name : "";
+                            record.credibilityRemarks = record.data.credibilityRemarks ? vm.credibilityRemarks.filter(item => {
+                                return record.data.credibilityRemarks.includes(item._id);
+                            }):[];
+                            record.credibilityRemarksName = record.credibilityRemarks.map(function(value, index){
+                                let colon = '';
+                                credibilityRemarksTXT += value.name + colon;
+                                return credibilityRemarksTXT;
+                            })||'';
+                            record.valueScore = record.data.valueScore ?record.data.valueScore:"";
+                            record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea):'';
+                            record.lastAccessTime = record.data.lastAccessTime ? vm.dateReformat(record.data.lastAccessTime):"";
+                                Object.keys(vm.allPlayersStatusString).filter(item=>{
+                                return record.data.playerStatus == vm.allPlayersStatusString[item];
+                            })[0];
+                            record.playerStatusName = $translate("Enable");
+                            if(record.data.playerStatus == 3){ record.playerStatusName = $translate("Disable") }
+
+                            return record
+                        }
+                    );
+                    var tableData = vm.phoneDuplicateListRecords;
+                    var option = $.extend({}, vm.generalDataTableOptions, {
+                        data: tableData,
+                        aoColumnDefs: [
+                            {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                            {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
+                            //{'sortCol': 'data.playerId', bSortable: true, 'aTargets': [2]},
+                            {'sortCol': 'data.name', bSortable: true, 'aTargets': [3]},
+                            {'sortCol': 'data.realName', bSortable: true, 'aTargets': [4]},
+                            {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
+                            {'sortCol': 'data.phoneNumber', bSortable: true, 'aTargets': [7]},
+                            // {targets: '_all', defaultContent: ' ', bSortable: false}
+                        ],
+                        columns: [
+                            {title: $translate('PLAYERNAME'), data: "name"},
+                            {title: $translate('Real Name'), data: "realName"},
+                            {title: $translate('CREDIBILITY'), data: "credibilityRemarksName"},
+                            //{title: $translate('PLAYERID'), data: "playerId"},
+                            {title: $translate('PLAYER_VALUE'), data: "valueScore"},
+                            {
+                                title: $translate('STATUS'), data: "playerStatusName",
+                                render: function (data, type, row) {
+                                    let color = "black";
+                                    if(row.data.playerStatus=='3'||row.data.playerStatus==3){
+                                        color = "red";
+                                    }
+                                    return '<div style="color:'+color+'">'+data+'</div>';
+                                }
+                            },
+                            {title: $translate('PlayerLevel'), data: "playerLevelName"},
+                            {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
+                            {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
+                            {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
+                            {title: $translate('last_access_time'), data: "lastAccessTime"}
+
+                        ],
+                        destroy: true,
+                        paging: false,
+                        autoWidth: true,
+                        initComplete: function (data, type, row) {
+                            $scope.safeApply();
+                        },
+                        createdRow: function (row, data, dataIndex) {
+                            $compile(angular.element(row).contents())($scope);
+
+                        },
+                        fnRowCallback: vm.playerListTableRow
+                    });
+                    var a = utilService.createDatatableWithFooter('#samePhoneNumTable', option, {});
+                    vm.phoneDuplicate.pageObj.init({maxCount: vm.phoneDuplicate.totalCount}, newSearch);
+                    setTimeout(function () {
+                        $('#samePhoneNumTable').resize();
+                    }, 300);
+
+                });
+            };
+            vm.getIpAreaName = function(ipArea){
+                let result = '';
+                let province = ipArea.province? ipArea.province:'';
+                let city = ipArea.city ? ipArea.city:'';
+                if(province && city){
+                    result = province + ', ' +  city;
+                }
+                return result
+            }
             vm.getNewPlayerListByFilter = function (newSearch) {
                 var selectedStatus = vm.queryPara.newPlayerList ? [vm.queryPara.newPlayerList.status] : ["Success", "Fail", "Pending", "Manual"];
                 var sendData = {
@@ -2638,7 +2787,6 @@ define(['js/app'], function (myApp) {
                             record.playerId = record.data.playerId ? record.data.playerId : "";
                             record.name = record.data.name ? record.data.name : "";
                             record.realName = record.data.realName ? record.data.realName : "";
-                            record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
                             record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
                             record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
                             record.smsCode = record.data.smsCode ? record.data.smsCode : "";
@@ -2648,6 +2796,7 @@ define(['js/app'], function (myApp) {
                             record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
                             record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
                             record.proposalId = record.data.proposalId ? record.data.proposalId : "";
+                            record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea):'';
                             return record
                         }
                     );
@@ -2660,7 +2809,7 @@ define(['js/app'], function (myApp) {
                             {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
                             {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
                             {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
                             {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
                             {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
                             {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
@@ -2670,12 +2819,23 @@ define(['js/app'], function (myApp) {
                             {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
                         ],
                         columns: [
-                            {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                            // {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                            {
+                                title: $translate('proposalId'),
+                                data: "proposalId",
+                                render: function (data, type, row) {
+
+                                    var link = $('<a>', {
+                                        'ng-click': 'vm.editNewplayerRemark=false;vm.showNewPlayerModal('+JSON.stringify(row)+',2)'
+                                    }).text(data);
+                                    return link.prop('outerHTML');
+                                }
+                            },
                             {title: $translate('PLAYERNAME'), data: "name"},
                             {title: $translate('STATUS'), data: "statusName"},
                             {title: $translate('SENT TIME'), data: "createTime"},
                             {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
-                            {title: $translate('REGISTERED_IP'), data: "lastLoginIp"},
+                            {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
                             {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
                             {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
                             {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
@@ -2689,6 +2849,8 @@ define(['js/app'], function (myApp) {
                                 render: function (data, type, row) {
                                     data = data || '';
                                     var playerObjId = row.data._id ? row.data._id : "";
+                                    let displayTXT = '';
+                                    let action = '';
                                     var link = $('<div>', {});
 
                                     if (row.data.phoneNumber && row.data.phoneNumber != "") {
@@ -2704,9 +2866,56 @@ define(['js/app'], function (myApp) {
                                             'title': $translate("PHONE")
                                         }));
                                     }
+
+
+                                    if(row.status!='Success'&&row.status!='Manual'){
+                                        displayTXT = $translate('SMS/PHONE/CREATE_ACC');
+                                        action = 'vm.createPlayerHelper('+JSON.stringify(row)+')';
+                                        link.append($('<div>', {
+                                            'class': 'fa fa-user-plus',
+                                            'style': 'padding-left:15px',
+                                            'ng-click': action,
+                                            'title': $translate(displayTXT)
+                                        }));
+
+                                    }else{
+                                        displayTXT = $translate('SMS/PHONE/FEEDBACK');
+                                        action = 'vm.initNewPlayerFeedbackModal('+JSON.stringify(row)+')';
+                                        $('#modalAddPlayerFeedback').css('z-Index',1051);
+                                        link.append($('<div>', {
+                                            'class': 'fa fa-envelope-o',
+                                            'style': 'padding-left:15px',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalAddPlayerFeedback',
+                                            'ng-click': action,
+                                            'title': $translate(displayTXT)
+                                        }));
+                                    }
+
                                     return link.prop('outerHTML')
                                 }
                             },
+                            // {
+                            //     title: $translate('function'),
+                            //     data: "status",
+                            //     render: function (data, type, row) {
+                            //         let displayTXT = '';
+                            //         let action = '';
+                            //         if(data!='Success'&&data!='Manual'){
+                            //             displayTXT = $translate('SMS/PHONE/CREATE_ACC');
+                            //             action = 'vm.createPlayerHelper('+JSON.stringify(row)+')';
+                            //         }else{
+                            //             displayTXT = $translate('SMS/PHONE/FEEDBACK');
+                            //             action = 'vm.submitPlayerFeedbackQuery();vm.platformPageName="Feedback";vm.updatePageTile()';
+                            //         }
+                            //
+                            //         var link = $('<a>', {
+                            //             'ng-click':action
+                            //         }).text(displayTXT);
+                            //         return link.prop('outerHTML');
+                            //     }
+                            // },
                             {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
                             {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
                         ],
@@ -2732,7 +2941,21 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-
+            vm.createPlayerHelper = function(row){
+                console.log(row);
+                vm.prepareCreatePlayer();
+                $('#modalCreatePlayer')
+                    .css('z-Index',1051)
+                    .modal();
+                utilService.actionAfterLoaded("#modalCreatePlayer", function () {
+                    vm.newPlayer.realName = row.data.realName;
+                    vm.newPlayer.name = row.data.name;
+                    vm.newPlayer.email = row.data.email;
+                    vm.newPlayer.domain = row.data.domain;
+                    vm.newPlayer.phoneNumber = row.data.phoneNumber;
+                    vm.newPlayer.referralName = row.data.referral;
+                });
+            }
             vm.playerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 $compile(nRow)($scope);
                 vm.operatePlayerListTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
@@ -3314,7 +3537,6 @@ define(['js/app'], function (myApp) {
                                 record.playerId = record.data.playerId ? record.data.playerId : "";
                                 record.name = record.data.name ? record.data.name : "";
                                 record.realName = record.data.realName ? record.data.realName : "";
-                                record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
                                 record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
                                 record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
                                 record.smsCode = record.data.smsCode ? record.data.smsCode : "";
@@ -3324,6 +3546,7 @@ define(['js/app'], function (myApp) {
                                 record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
                                 record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
                                 record.proposalId = record.data.proposalId ? record.data.proposalId : "";
+                                record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea):'';
                                 arr.push(record);
                             })
                             return arr;
@@ -3365,7 +3588,7 @@ define(['js/app'], function (myApp) {
                             {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
                             {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
                             {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
                             {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
                             {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
                             {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
@@ -3381,7 +3604,7 @@ define(['js/app'], function (myApp) {
                             //{title: $translate('PLAYERID'), data: "playerId"},
                             {title: $translate('SENT TIME'), data: "createTime"},
                             {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
-                            {title: $translate('REGISTERED_IP'), data: "lastLoginIp"},
+                            {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
                             {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
                             {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
                             {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
@@ -3395,6 +3618,8 @@ define(['js/app'], function (myApp) {
                                 render: function (data, type, row) {
                                     data = data || '';
                                     var playerObjId = row.data._id ? row.data._id : "";
+                                    let displayTXT = '';
+                                    let action = '';
                                     var link = $('<div>', {});
 
                                     if (row.data.phoneNumber && row.data.phoneNumber != "") {
@@ -3410,6 +3635,33 @@ define(['js/app'], function (myApp) {
                                             'title': $translate("PHONE")
                                         }));
                                     }
+
+
+                                    if(row.status!='Success'&&row.status!='Manual'){
+                                        displayTXT = $translate('SMS/PHONE/CREATE_ACC');
+                                        action = 'vm.createPlayerHelper('+JSON.stringify(row)+')';
+                                        link.append($('<div>', {
+                                            'class': 'fa fa-user-plus',
+                                            'style': 'padding-left:15px',
+                                            'ng-click': action,
+                                            'title': $translate(displayTXT)
+                                        }));
+
+                                    }else{
+                                        displayTXT = $translate('SMS/PHONE/FEEDBACK');
+                                        action = 'vm.initNewPlayerFeedbackModal('+JSON.stringify(row)+')';
+                                        $('#modalAddPlayerFeedback').css('z-Index',1051);
+                                        link.append($('<div>', {
+                                            'class': 'fa fa-envelope-o',
+                                            'style': 'padding-left:15px',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalAddPlayerFeedback',
+                                            'ng-click': action,
+                                            'title': $translate(displayTXT)
+                                        }));
+                                    }
+
                                     return link.prop('outerHTML')
                                 }
                             },
@@ -3641,7 +3893,21 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.updateNewPlayerRemark = function(pId, remarks){
+                let updateData = {
+                    'pId': pId,
+                    'adminId':authService.adminId,
+                    'remarks': remarks
+                }
+                socketService.$socket($scope.AppSocket, 'updatePlayerIntentionRemarks', updateData, function (playerCount) {
+                    vm.newPlayerProposal.remarks = remarks;
+                    vm.editNewplayerRemark = false;
+                    vm.getNewPlayerListByFilter(true);
+                    $scope.safeApply();
+                });
 
+
+            }
         /////////////////////////////////Mark::Platform players functions//////////////////
 
             //get all platform players data from server
@@ -5683,6 +5949,12 @@ define(['js/app'], function (myApp) {
                 vm.getReferralPlayer(vm.newPlayer, "new");
                 vm.playerCreateResult = null;
                 vm.playerPswverify = null;
+
+                vm.phoneDuplicate = {totalCount: 0};
+                vm.phoneDuplicate.pageObj = utilService.createPageForPagingTable("#samePhoneNumTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "phoneDuplicate", vm.loadPhoneNumberRecord)
+                });
+
             }
             vm.editPlayerStatus = function (id) {
                 console.log(id);
@@ -5935,7 +6207,7 @@ define(['js/app'], function (myApp) {
                                 $(".topupGroupRecordTablePage").show();
 
                                 utilService.createDatatableWithFooter('.topupGroupRecordTable', tableOptions, {});
-                                cvm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
+                                vm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
                                 $scope.safeApply()
                             }
                         }
@@ -6868,6 +7140,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.initPlayerModal = function() {
+
                 $('#newPlayerListTab').addClass('active');
                 $('#attemptNumberListTab').removeClass('active');
                 $scope.safeApply();
@@ -6875,13 +7148,27 @@ define(['js/app'], function (myApp) {
                 vm.newPlayerList();
             }
 
-            vm.initFeedbackModal = function() {
+            vm.initFeedbackModal = function(selectedPlayer) {
+                vm.selectedSinglePlayer = selectedPlayer;
                 $('#addFeedbackTab').addClass('active');
                 $('#feedbackHistoryTab').removeClass('active');
                 $scope.safeApply();
                 vm.feedbackModalTab = "addFeedbackPanel";
             }
+            vm.initNewPlayerFeedbackModal = function(selectedPlayer) {
+                vm.selectedSinglePlayer = selectedPlayer;
 
+                socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', {playerId: selectedPlayer.playerId}, function (data) {
+                    console.log(data);
+                    let id = data.data._id ? data.data._id : '';
+                    selectedPlayer._id = id;
+                    vm.selectedSinglePlayer = selectedPlayer;
+                    $('#addFeedbackTab').addClass('active');
+                    $('#feedbackHistoryTab').removeClass('active');
+                    $scope.safeApply();
+                    vm.feedbackModalTab = "addFeedbackPanel";
+                });
+            }
             vm.initMessageModal = function() {
                 $('#sendMessageToPlayerTab').addClass('active');
                 $('#messageLogTab').removeClass('active');
@@ -8045,7 +8332,7 @@ define(['js/app'], function (myApp) {
                             data: "proposalId",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.showProposalModal("'+data+'")'
+                                    'ng-click': 'vm.showProposalModal("'+data+'",1)'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             },
@@ -8150,7 +8437,7 @@ define(['js/app'], function (myApp) {
                     fnRowCallback: function(nRow, aData, iDisplayIndex, iDisplayIndexFull){
                         $(nRow).off('click');
                         $(nRow).find('a').on('click', function () {
-                            vm.showProposalModal(aData.proposalId);
+                            vm.showProposalModal(aData.proposalId, 1);
                         });
                     }
                     // autoWidth: true
@@ -13431,20 +13718,33 @@ define(['js/app'], function (myApp) {
                     })
                 }
             };
-            vm.showProposalModal = function(proposalId){
+
+
+            vm.showProposalModal = function(proposalId, templateNo){
               socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
                   platformId: vm.selectedPlatform.id,
                   proposalId: proposalId
               }, function (data) {
                 vm.selectedProposal = data.data;
-                $('#modalProposal').modal('show');
-                $('#modalProposal').on('shown.bs.modal', function (e) {
+
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                $(tmpt).on('shown.bs.modal', function (e) {
                   $scope.safeApply();
                 })
 
               })
             }
+            vm.showNewPlayerModal = function(data, templateNo){
+                vm.newPlayerProposal = data;
 
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                $(tmpt).on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                })
+
+            }
             // display  proposal detail
             vm.showProposalDetailField = function (obj, fieldName, val) {
                 if (!obj) return '';
@@ -13523,7 +13823,7 @@ define(['js/app'], function (myApp) {
                     result = $translate(vm.getDepositMethodbyId[val])
                 } else if (fieldName === 'playerStatus') {
                     result = $translate($scope.constPlayerStatus[val]);
-                } else if (fieldName == 'allowedProviders'){
+                    } else if (fieldName == 'allowedProviders'){
                     let providerName = '';
                     for(var v in val){
                         providerName += val[v].name+', ';
@@ -13606,7 +13906,7 @@ define(['js/app'], function (myApp) {
                             data: "proposalId",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.showProposalModal("'+data+'")'
+                                    'ng-click': 'vm.showProposalModal("'+data+'",1)'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }

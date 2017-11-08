@@ -184,7 +184,6 @@ var simplifiedChinese = {
     "Cant apply this reward, contact cs": "不符合领取条件，请联系客服",
     "PARTNER": "代理",
     "Incorrect SMS Validation Code": "验证码错误，请再次输入",
-
     //todo::add missing messages here
 
     /*
