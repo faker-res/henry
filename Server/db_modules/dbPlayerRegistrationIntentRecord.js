@@ -10,7 +10,10 @@ let constProposalUserType = require('../const/constProposalUserType');
 let constProposalMainType = require('../const/constProposalMainType');
 let constProposalStatus = require('../const/constProposalStatus');
 let queryPhoneLocation = require('query-mobile-phone-area');
+const request = require('request');
+var geoip = require('geoip-lite');
 let Q = require("q");
+
 let ObjectId = mongoose.Types.ObjectId;
 
 var dbPlayerRegistrationIntentRecord = {
@@ -55,6 +58,7 @@ var dbPlayerRegistrationIntentRecord = {
             userType: data.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
         };
 
+        //data.ipArea = geoip('210.21.84.23');
         if( data.phoneNumber ){
             var queryRes = queryPhoneLocation(data.phoneNumber);
             if (queryRes) {
@@ -73,9 +77,17 @@ var dbPlayerRegistrationIntentRecord = {
             status: status,
             data: data
         };
-
-        var newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-        return newRecord.save();
+        dbUtil.getGeoIp(data.lastLoginIp).then(
+            ipData=>{
+                if(data){
+                    data.ipArea = ipData;
+                }else{
+                    data.ipArea = {'province':'', 'city':''};
+                }
+                var newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+                return newRecord.save();
+            }
+        )
     },
 
     createPlayerRegistrationIntentionProposal: (platform, data, status) => {

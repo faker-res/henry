@@ -2206,6 +2206,27 @@ include modalGameCreditLog
                     label {{"Total" | translate}} {{vm.playerApiLog.totalCount}} {{"records" | translate}}
                     table#playerApiLogTbl.common-table.display(style='min-width:100%')
                     #playerApiLogTblPage.height30
+
+#sameNumPlayerListTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:95%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Duplicate Phone Number"|translate}}
+            .modal-body
+                .panel.panel-primary
+
+                    #newPlayerListPanel.panel-body
+                        .well
+                            .row
+                                .col-md-12
+                                    p
+                                    label {{"Total" | translate}} {{vm.phoneDuplicate.totalCount}} {{"records" | translate}}
+                                    i.fa.fa-spin.fa-spinner(ng-show='vm.playerDailyExpenseLog.loading')
+                                    table#samePhoneNumTable.common-table.display(style='width:100%')
+                                    #samePhoneNumTablePage
+
+
 #modalNewPlayerList.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:95%;')
         .modal-content
