@@ -1822,7 +1822,7 @@ define(['js/app'], function (myApp) {
                 let merchant = vm.merchantNoList.filter(item => {
                     return item.merchantNo == merchantNo
                 })
-                if (merchant) {
+                if (merchant.length > 0) {
                     let merchantName = vm.merchantTypes.filter(item => {
                         return item.merchantTypeId == merchant[0].merchantTypeId;
                     })
