@@ -536,7 +536,7 @@ var roleChecker = {
         Report: {
             General: {
                 Read: ['getPlatform', 'getProposalTypeByPlatformId'],
-                TOPUP_REPORT: ['topupReport'],
+                TOPUP_REPORT: ['topupReport', "getMerchantTypeList"],
                 PROPOSAL_REPORT: ['getProposalStaticsReport'],
                 PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],
                 PLAYER_EXPENSE_REPORT: ['getPlayerProviderReport', 'getProviderGamePlayerReport', 'getProviderGameReport', 'getPlayerProviderByGameReport', 'manualDailyProviderSettlement'],
