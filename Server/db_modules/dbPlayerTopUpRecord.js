@@ -1609,10 +1609,9 @@ var dbPlayerTopUpRecord = {
                     end.setHours(23, 59, 59, 999);
                     if (alipayAccount) {
                         queryObj['data.alipayAccount'] = alipayAccount;
-                    }
-                    if(alipayName){
+                    }else if(alipayName){
                         queryObj['data.alipayName'] = alipayName;
-                    }
+                    }else{}
                     queryObj['data.platformId'] = ObjectId(player.platform._id);
                     queryObj['mainType'] = 'TopUp';
                     queryObj["createTime"] = {};
@@ -1866,8 +1865,12 @@ var dbPlayerTopUpRecord = {
                         queryObj['data.wechatAccount'] = wechatAccount;
                     }
                     if(wechatName){
-                        queryObj['data.wechatName'] = wechatName;
+                        queryObj['$or'] = [
+                            {'data.wechatName': wechatName},
+                            {'data.weChatName': wechatName}
+                        ]
                     }
+
                     queryObj['data.platformId'] = ObjectId(player.platform._id);
                     queryObj['mainType'] = 'TopUp';
                     queryObj["createTime"] = {};
