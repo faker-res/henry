@@ -1952,7 +1952,10 @@ var proposal = {
                                     "$data.rewardAmount"
                                 ]}},
                                 // totalRewardAmount: {$sum: "$data.rewardAmount"},
-                                totalTopUpAmount: {$sum: "$data.topUpAmount"}
+                                totalTopUpAmount: {$sum: "$data.topUpAmount"},
+                                totalUpdateAmount: {$sum: "$data.updateAmount"},
+                                totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
+                                totalCommissionAmount: {$sum: "$data.commissionAmount"}
                             }
                         }
                     ]);
@@ -2036,7 +2039,10 @@ var proposal = {
                             0,
                             "$data.rewardAmount"
                         ]}},
-                        totalTopUpAmount: {$sum: "$data.topUpAmount"}
+                        totalTopUpAmount: {$sum: "$data.topUpAmount"},
+                        totalUpdateAmount: {$sum: "$data.updateAmount"},
+                        totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
+                        totalCommissionAmount: {$sum: "$data.commissionAmount"}
                     }
                 }
             ]);
@@ -2098,6 +2104,9 @@ var proposal = {
                     total += summary[0].totalAmount;
                     total += summary[0].totalRewardAmount;
                     total += summary[0].totalTopUpAmount;
+                    total += summary[0].totalUpdateAmount;
+                    total += summary[0].totalNegativeProfitAmount;
+                    total += summary[0].totalCommissionAmount;
                 }
                 deferred.resolve({
                     size: totalSize,
