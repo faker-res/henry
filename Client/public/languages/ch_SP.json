@@ -2622,6 +2622,7 @@
   "NEW_WECHAT": "新微信账号",
   "CURRENT_WECHAT": "原微信账号",
   "RETYPE_WECHAT": "重新输入微信账号",
+  "samePhoneNumberRegisterCount": "相同电话号码开户次数",
   "unknown": "未知",
   "registration": "注册",
   "oldPhoneNumber": "电话号码（旧）",
