@@ -1106,6 +1106,9 @@
   "SEND_MESSAGE": "Send Message",
   "MANUAL_TOP_UP": "Manual Top Up",
   "CANCEL_BONUS": "Cancel Bonus",
-  "UPDATE_PAYMENT_INFO": "Update Payment Info"
+  "UPDATE_PAYMENT_INFO": "Update Payment Info",
+  "IS_ACTIVE": "Active",
+  "SET": "Set",
+  "PROMO_CODE_MODIFIED": "Promo Code Modified"
 
 }
