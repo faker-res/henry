@@ -1660,7 +1660,7 @@ var proposal = {
 
         var totalHeadCount = 0;
 
-        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name",queryObj).then(dataList =>{
+        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name",queryObj).lean().then(dataList =>{
             dataList.map(playerName =>{
                 prom.push(dbconfig.collection_playerRegistrationIntentRecord.find({'data.name': playerName}).sort({createTime: -1}));
                 totalHeadCount += 1;
@@ -1740,7 +1740,7 @@ var proposal = {
 
         var totalHeadCount = 0;
 
-        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name",queryObj).then(dataList =>{
+        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name",queryObj).lean().then(dataList =>{
             dataList.map(playerName =>{
                 prom.push(dbconfig.collection_playerRegistrationIntentRecord.find({'data.name': playerName}).sort({createTime: -1}));
                 totalHeadCount += 1;
@@ -1804,7 +1804,7 @@ var proposal = {
         var recordArr = [];
         var prom =[];
 
-        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name",queryObj).then(dataList =>{
+        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name",queryObj).lean().then(dataList =>{
             dataList.map(playerName =>{
                 prom.push(dbconfig.collection_playerRegistrationIntentRecord.find({'data.name': playerName}).sort({createTime: -1}));
             })
