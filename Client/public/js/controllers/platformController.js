@@ -2840,7 +2840,7 @@ define(['js/app'], function (myApp) {
 
                                     }else{
                                         displayTXT = $translate('SMS/PHONE/FEEDBACK');
-                                        action = 'vm.initFeedbackModal()';
+                                        action = 'vm.initNewPlayerFeedbackModal('+JSON.stringify(row)+')';
                                         $('#modalAddPlayerFeedback').css('z-Index',1051);
                                         link.append($('<div>', {
                                             'class': 'fa fa-envelope-o',
@@ -6540,6 +6540,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.initPlayerModal = function() {
+
                 $('#newPlayerListTab').addClass('active');
                 $('#attemptNumberListTab').removeClass('active');
                 $scope.safeApply();
@@ -6547,13 +6548,27 @@ define(['js/app'], function (myApp) {
                 vm.newPlayerList();
             }
 
-            vm.initFeedbackModal = function() {
+            vm.initFeedbackModal = function(selectedPlayer) {
+                vm.selectedSinglePlayer = selectedPlayer;
                 $('#addFeedbackTab').addClass('active');
                 $('#feedbackHistoryTab').removeClass('active');
                 $scope.safeApply();
                 vm.feedbackModalTab = "addFeedbackPanel";
             }
+            vm.initNewPlayerFeedbackModal = function(selectedPlayer) {
+                vm.selectedSinglePlayer = selectedPlayer;
 
+                socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', {playerId: selectedPlayer.playerId}, function (data) {
+                    console.log(data);
+                    let id = data.data._id ? data.data._id : '';
+                    selectedPlayer._id = id;
+                    vm.selectedSinglePlayer = selectedPlayer;
+                    $('#addFeedbackTab').addClass('active');
+                    $('#feedbackHistoryTab').removeClass('active');
+                    $scope.safeApply();
+                    vm.feedbackModalTab = "addFeedbackPanel";
+                });
+            }
             vm.initMessageModal = function() {
                 $('#sendMessageToPlayerTab').addClass('active');
                 $('#messageLogTab').removeClass('active');
