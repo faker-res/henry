@@ -513,7 +513,10 @@ let dbPlayerPartner = {
 
                         };
                         // result.isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData, inputDevice: inputDevice}, smsLogDetail);
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {
+                            data: playerUpdateData,
+                            inputDevice: inputDevice
+                        }, smsLogDetail);
                         break;
                     case 1:
                         inputDevice = dbUtility.getInputDevice(userAgent,true);

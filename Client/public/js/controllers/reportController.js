@@ -1785,10 +1785,10 @@ define(['js/app'], function (myApp) {
                         item.merchantName = vm.getMerchantName(item.data.merchantNo);
                         item.merchantNo$ = item.data.merchantNo != null ? item.data.merchantNo
                             : item.data.bankCardNo != null ? item.data.bankCardNo
-                            : item.data.wechatAccount != null ? item.data.wechatAccount
+                                : item.data.wechatAccount != null ? item.data.wechatAccount
                             : item.data.weChatAccount != null ? item.data.weChatAccount
-                            : item.data.alipayAccount != null ? item.data.alipayAccount
-                            : item.data.accountNo != null ? item.data.accountNo
+                                        : item.data.alipayAccount != null ? item.data.alipayAccount
+                                            : item.data.accountNo != null ? item.data.accountNo
                             : null;
                             item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                             item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
@@ -2644,7 +2644,7 @@ define(['js/app'], function (myApp) {
             let admins = [];
             let csPromoteWay = [];
 
-            if(vm.playerDomain){
+            if (vm.playerDomain) {
                 if (vm.playerDomain.departments) {
                     if (vm.playerDomain.roles) {
                         vm.pdQueryRoles.map(e => {
