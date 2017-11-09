@@ -1578,8 +1578,7 @@ var dbPlayerTopUpRecord = {
         let player = null;
         let proposal = null;
         let request = null;
-        let topupResult = null;
-
+        let pmsData = null;
 
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
@@ -1599,41 +1598,10 @@ var dbPlayerTopUpRecord = {
                 }
             )
             .then(
-                result => {
-                    topupResult = result;
-
-                    var queryObj = {};
-                    let start = new Date();
-                    start.setHours(0, 0, 0, 0);
-                    let end = new Date();
-                    end.setHours(23, 59, 59, 999);
-                    if (alipayAccount) {
-                        queryObj['data.alipayAccount'] = alipayAccount;
-                    }
-                    if(alipayName){
-                        queryObj['data.alipayName'] = alipayName;
-                    }
-                    queryObj['data.platformId'] = ObjectId(player.platform._id);
-                    queryObj['mainType'] = 'TopUp';
-                    queryObj["createTime"] = {};
-                    queryObj["createTime"]["$gte"] = start;
-                    queryObj["createTime"]["$lt"] = end;
-                    queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
-                    return dbconfig.collection_proposal.aggregate(
-                        {$match: queryObj},
-                        {
-                            $group: {
-                                _id: null,
-                                totalAmount: {$sum: "$data.amount"},
-                            }
-                        })
-                }
-            )
-            .then(
                 res => {
                     let minTopUpAmount = player.platform.minTopUpAmount || 0;
-                    let isPlayerFirstTopUp = topupResult[0];
-                    let limitedOfferTopUp = topupResult[1];
+                    let isPlayerFirstTopUp = res[0];
+                    let limitedOfferTopUp = res[1];
                     if (isPlayerFirstTopUp) {
                         minTopUpAmount = 1;
                     }
@@ -1674,9 +1642,7 @@ var dbPlayerTopUpRecord = {
                     if (createTime) {
                         proposalData.depositeTime = new Date(createTime);
                     }
-                    if (res[0]) {
-                        proposalData.cardQuota = res[0].totalAmount;
-                    }
+
                     proposalData.creator = entryType === "ADMIN" ? {
                         type: 'admin',
                         name: adminName,
@@ -1730,27 +1696,60 @@ var dbPlayerTopUpRecord = {
                         return Q.reject({name: "DataError", errorMessage: "Cannot create alipay top up proposal"});
                     }
                 }
+
             ).then(
-                requestData => {
+                pmsResult=>{
+                    pmsData = pmsResult;
+                    var queryObj = {};
+                    let start = new Date();
+                    start.setHours(0, 0, 0, 0);
+                    let end = new Date();
+                    end.setHours(23, 59, 59, 999);
+                    if (alipayAccount) {
+                        queryObj['data.alipayAccount'] = pmsResult.result.alipayAccount;
+                    }else if(alipayName){
+                        queryObj['data.alipayName'] = pmsResult.result.alipayName;
+                    }else{}
+                    queryObj['data.platformId'] = ObjectId(player.platform._id);
+                    queryObj['mainType'] = 'TopUp';
+                    queryObj["createTime"] = {};
+                    queryObj["createTime"]["$gte"] = start;
+                    queryObj["createTime"]["$lt"] = end;
+                    queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
+                    console.log(queryObj);
+                    return dbconfig.collection_proposal.aggregate(
+                        {$match: queryObj},
+                        {
+                            $group: {
+                                _id: null,
+                                totalAmount: {$sum: "$data.amount"},
+                            }
+                        })
+                }
+            ).then(
+                res => {
                     //console.log("request response", requestData);
-                    if (requestData && requestData.result) {
-                        request = requestData;
+                    if (pmsData && pmsData.result) {
+                        request = pmsData;
                         //add request data to proposal and update proposal status to pending
                         var updateData = {
                             status: constProposalStatus.PENDING
                         };
                         updateData.data = Object.assign({}, proposal.data);
                         updateData.data.userAlipayName = updateData.data.alipayName;
-                        updateData.data.requestId = requestData.result.requestId;
+                        updateData.data.requestId = pmsData.result.requestId;
                         updateData.data.proposalId = proposal.proposalId;
-                        updateData.data.alipayAccount = requestData.result.alipayAccount;
-                        updateData.data.alipayName = requestData.result.alipayName;
-                        requestData.result.alipayQRCode = requestData.result.alipayQRCode || "";
-                        updateData.data.alipayQRCode = requestData.result.alipayQRCode;
-                        if (requestData.result.validTime) {
-                            updateData.data.validTime = new Date(requestData.result.validTime);
+                        updateData.data.alipayAccount = pmsData.result.alipayAccount;
+                        updateData.data.alipayName = pmsData.result.alipayName;
+                        pmsData.result.alipayQRCode = pmsData.result.alipayQRCode || "";
+                        updateData.data.alipayQRCode = pmsData.result.alipayQRCode;
+                        if (pmsData.result.validTime) {
+                            updateData.data.validTime = new Date(pmsData.result.validTime);
                         }
-                        // requestData.result.alipayName = alipayName;
+                        if (res[0]) {
+                            updateData.data.cardQuota = res[0].totalAmount;
+                        }
+
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},
                             updateData,
@@ -1837,9 +1836,7 @@ var dbPlayerTopUpRecord = {
         let player = null;
         let proposal = null;
         let request = null;
-        let intentionProp = null;
-        let limitedOfferTopUp = null;
-
+        let pmsData = null;
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}
@@ -1853,38 +1850,8 @@ var dbPlayerTopUpRecord = {
                     }
                 }
             ).then(
-                result => {
-                    intentionProp = result;
-                    limitedOfferTopUp = intentionProp;
-
-                    var queryObj = {};
-                    let start = new Date();
-                    start.setHours(0, 0, 0, 0);
-                    let end = new Date();
-                    end.setHours(23, 59, 59, 999);
-                    if (wechatAccount) {
-                        queryObj['data.wechatAccount'] = wechatAccount;
-                    }
-                    if(wechatName){
-                        queryObj['data.wechatName'] = wechatName;
-                    }
-                    queryObj['data.platformId'] = ObjectId(player.platform._id);
-                    queryObj['mainType'] = 'TopUp';
-                    queryObj["createTime"] = {};
-                    queryObj["createTime"]["$gte"] = start;
-                    queryObj["createTime"]["$lt"] = end;
-                    queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
-                    return dbconfig.collection_proposal.aggregate(
-                        {$match: queryObj},
-                        {
-                            $group: {
-                                _id: null,
-                                totalAmount: {$sum: "$data.amount"},
-                            }
-                        })
-                }
-            ).then(
-                result => {
+                intentionProp => {
+                    let limitedOfferTopUp = intentionProp;
                     if (player && player.platform && player.wechatPayGroup && player.wechatPayGroup.wechats && player.wechatPayGroup.wechats.length > 0) {
                         let minTopUpAmount = player.platform.minTopUpAmount || 0;
                         if (amount < minTopUpAmount) {
@@ -1921,9 +1888,7 @@ var dbPlayerTopUpRecord = {
                         if (createTime) {
                             proposalData.depositeTime = new Date(createTime);
                         }
-                        if (result[0]) {
-                            proposalData.cardQuota = result[0].totalAmount || 0;
-                        }
+
                         proposalData.creator = entryType === "ADMIN" ? {
                             type: 'admin',
                             name: adminName,
@@ -1984,21 +1949,61 @@ var dbPlayerTopUpRecord = {
                     }
                 }
             ).then(
-                requestData => {
+                pmsResult => {
+
+                    pmsData = pmsResult;
+                    var queryObj = {};
+                    let start = new Date();
+                    start.setHours(0, 0, 0, 0);
+                    let end = new Date();
+                    end.setHours(23, 59, 59, 999);
+                    if (pmsData.result.weChatAccount) {
+                        queryObj['$or']= [
+                            {'data.wechatAccount':pmsData.result.weChatAccount},
+                            {'data.weChatAccount':pmsData.result.weChatAccount}
+                        ]
+                    }
+                    if(pmsData.result.weChatName){
+                        queryObj['$or'] = [
+                            {'data.wechatName': pmsData.result.weChatName},
+                            {'data.weChatName': pmsData.result.weChatName}
+                        ]
+                    }
+
+                    queryObj['data.platformId'] = ObjectId(player.platform._id);
+                    queryObj['mainType'] = 'TopUp';
+                    queryObj["createTime"] = {};
+                    queryObj["createTime"]["$gte"] = start;
+                    queryObj["createTime"]["$lt"] = end;
+                    queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
+                    return dbconfig.collection_proposal.aggregate(
+                        {$match: queryObj},
+                        {
+                            $group: {
+                                _id: null,
+                                totalAmount: {$sum: "$data.amount"},
+                            }
+                        })
+                }
+            ).then(
+                res => {
                     //console.log("request response", requestData);
-                    if (requestData && requestData.result) {
-                        request = requestData;
+                    if (pmsData && pmsData.result) {
+                        request = pmsData;
                         //add request data to proposal and update proposal status to pending
                         var updateData = {
                             status: constProposalStatus.PENDING
                         };
                         updateData.data = Object.assign({}, proposal.data);
-                        updateData.data.requestId = requestData.result.requestId;
+                        updateData.data.requestId = pmsData.result.requestId;
                         updateData.data.proposalId = proposal.proposalId;
-                        updateData.data.weChatAccount = requestData.result.weChatAccount;
-                        updateData.data.weChatQRCode = requestData.result.weChatQRCode;
-                        if (requestData.result.validTime) {
-                            updateData.data.validTime = new Date(requestData.result.validTime);
+                        updateData.data.weChatAccount = pmsData.result.weChatAccount;
+                        updateData.data.weChatQRCode = pmsData.result.weChatQRCode;
+                        if (pmsData.result.validTime) {
+                            updateData.data.validTime = new Date(pmsData.result.validTime);
+                        }
+                        if (res[0]) {
+                            updateData.data.cardQuota = res[0].totalAmount || 0;
                         }
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},

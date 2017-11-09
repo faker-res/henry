@@ -276,7 +276,7 @@ const dbPlayerMail = {
     sendVerificationCodeToPlayer: function (playerId, smsCode, platformId, captchaValidation, purpose, inputDevice) {
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platform => {
-                platformObjId = platform._id;
+                let platformObjId = platform._id;
                 return dbconfig.collection_players.findOne({
                     playerId: playerId,
                     platform: platformObjId
