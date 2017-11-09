@@ -13038,7 +13038,6 @@ define(['js/app'], function (myApp) {
                 vm.rewardCondition = Lodash.cloneDeep(v.condition);
                 vm.platformRewardTypeChanged();
 
-
                 console.log('vm.rewardParams', vm.rewardParams);
                 $scope.safeApply();
             };
@@ -13051,6 +13050,54 @@ define(['js/app'], function (myApp) {
                         return true;
                     }
                 });
+
+                // Handling for reward group
+                if (vm.showRewardTypeData.isGrouped) {
+                    vm.rewardMainTask = [];
+                    vm.rewardMainCondition = {};
+
+                    let params = vm.showRewardTypeData.params;
+
+                    Object.keys(params.condition).forEach(el => {
+                        let mainCond = params.condition[el];
+                        let result;
+
+                        Object.keys(mainCond).forEach(el => {
+                            let cond = mainCond[el];
+                            vm.rewardMainCondition[cond.index] = {
+                                index: cond.index,
+                                name: el,
+                                des: cond.des,
+                                type: cond.type
+                            };
+
+                            // Get options
+                            switch (cond.options) {
+                                default:
+                                    result = $scope[cond.options];
+                                    break;
+                            }
+
+                            console.log('$scope[cond.options]', $scope[cond.options]);
+
+                            vm.rewardMainCondition[cond.index].options = result;
+
+                            // Render dateTimePicker
+                            let id = "#rewardMainTaskDate-" + cond.index;
+                            utilService.actionAfterLoaded(id, function () {
+                                vm.rewardMainCondition[cond.index].date = utilService.createDatePicker(id, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss'
+                                });
+
+                                vm.rewardMainCondition[cond.index].date.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), -1)));
+                            });
+                        })
+                    });
+
+                    console.log('vm.rewardMainTask', vm.rewardMainTask);
+                    console.log('vm.rewardMainCondition', vm.rewardMainCondition);
+                }
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
 
@@ -13701,7 +13748,7 @@ define(['js/app'], function (myApp) {
                 sendData.canApplyFromClient = vm.showReward.canApplyFromClient;
                 sendData.validStartTime = vm.showReward.validStartTime || null;
                 sendData.validEndTime = vm.showReward.validEndTime || null;
-                console.log('vm.showRewardTypeStringData', vm.showRewardTypeStringData);
+                console.log('vm.showReward', vm.showReward);
                 console.log(vm.showReward);
                 console.log("newReward", sendData);
                 socketService.$socket($scope.AppSocket, 'createRewardEvent', sendData, function (data) {

@@ -157,11 +157,7 @@
                             .row
                                 include ./platform-partner
                         #Reward.tab-pane.fade
-                            .switch(ng-switch="vm.selectedPlatform.data.useRewardMainGroup")
-                                .switch(ng-switch-when="false")
-                                    include platform-reward
-                                .switch(ng-switch-when="true")
-                                    include platform-reward-main-group
+                            include platform-reward
                         #Proposal.tab-pane.fade
                             include ./../proposal/proposal-home
                         #Config.tab-pane.fade
