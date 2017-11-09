@@ -10,6 +10,7 @@ let constProposalUserType = require('../const/constProposalUserType');
 let constProposalMainType = require('../const/constProposalMainType');
 let constProposalStatus = require('../const/constProposalStatus');
 let queryPhoneLocation = require('query-mobile-phone-area');
+let constRegistrationIntentRecordStatus = require("../const/constRegistrationIntentRecordStatus.js");
 const request = require('request');
 var geoip = require('geoip-lite');
 let Q = require("q");
@@ -74,20 +75,30 @@ var dbPlayerRegistrationIntentRecord = {
         }
 
         let newIntentData = {
-            status: status,
-            data: data
+            status: constRegistrationIntentRecordStatus[status.toString().toUpperCase()],
+            data: data,
+            name: data.name
         };
-        dbUtil.getGeoIp(data.lastLoginIp).then(
-            ipData=>{
-                if(data){
-                    data.ipArea = ipData;
-                }else{
-                    data.ipArea = {'province':'', 'city':''};
+
+        if(data.lastLoginIp && data.lastLoginIp != "undefined"){
+            dbUtil.getGeoIp(data.lastLoginIp).then(
+                ipData=>{
+                    if(data){
+                        data.ipArea = ipData;
+                    }else{
+                        data.ipArea = {'province':'', 'city':''};
+                    }
+
+                    return data;
                 }
-                var newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+            ).then(data => {
+                let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
                 return newRecord.save();
-            }
-        )
+            })
+        }else{
+            let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+            return newRecord.save();
+        }
     },
 
     createPlayerRegistrationIntentionProposal: (platform, data, status) => {
