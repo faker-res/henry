@@ -30,6 +30,11 @@ function socketActionUtility(socketIO, socket) {
         getLastMonthConsumptionReturnSGTime: function getLastMonthConsumptionReturnSGTime() {
             let actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, dbUtility.getLastMonthConsumptionReturnSGTime, [], actionName, true);
+        },
+
+        getLastWeekSGTime: function getLastWeekSGTime() {
+            let actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, dbUtility.getLastWeekSGTime, [], actionName, true);
         }
     };
     socketActionUtility.actions = this.actions;

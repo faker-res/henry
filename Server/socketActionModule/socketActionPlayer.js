@@ -886,8 +886,8 @@ function socketActionPlayer(socketIO, socket) {
         },
         updatePlayerCredibilityRemark: function updatePlayerCredibilityRemark(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.playerObjId && data.remarks);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.platformObjId, data.playerObjId, data.remarks, data.comment], actionName, isValidData);
+            let isValidData = Boolean(data && data.admin && data.platformObjId && data.playerObjId && data.remarks);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.admin, data.platformObjId, data.playerObjId, data.remarks, data.comment], actionName, isValidData);
         },
 
         createUpdateTopUpGroupLog: function createUpdateTopUpGroupLog(data) {
@@ -962,6 +962,12 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && typeof(data.filterAllPlatform) === "boolean" && data.platformObjId && data.arrayPhoneTXT);
             socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileTXT, [data.filterAllPlatform, data.platformObjId, data.arrayPhoneTXT], actionName, isValidData);
+        },
+
+        uploadPhoneFileXLS: function uploadPhoneFileXLS(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && typeof(data.filterAllPlatform) === "boolean" && data.platformObjId && data.arrayPhoneXLS);
+            socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileXLS, [data.filterAllPlatform, data.platformObjId, data.arrayPhoneXLS], actionName, isValidData);
         },
 
     };

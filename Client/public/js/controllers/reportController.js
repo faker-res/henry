@@ -271,7 +271,7 @@ define(['js/app'], function (myApp) {
             let mainTopupType = vm.queryTopup.mainTopupType;
             let topupType = vm.queryTopup.topupType;
             let bankTypeId = vm.queryTopup.bankTypeId;
-            if (agent && agent.length > 0) {
+            if (agent && agent.length > 0 && vm.merchantCloneList) {
                 vm.merchantCloneList = vm.merchantCloneList.filter(item => {
                     let targetDevices = String(item.targetDevices);
                     return agent.indexOf(targetDevices) != -1;
@@ -301,7 +301,7 @@ define(['js/app'], function (myApp) {
                 })
             }
             //manual topup
-            if (mainTopupType) {
+            if (mainTopupType && vm.merchantCloneList) {
                 if (mainTopupType == '1' || mainTopupType == 1) {
                     // 9999 = 'bankcard', if manual topup ,display bankcard only
                     vm.merchantCloneList = vm.merchantCloneList.filter(item => {
@@ -1042,6 +1042,13 @@ define(['js/app'], function (myApp) {
                 vm.winRateQuery.providerId = 'all';
                 utilService.actionAfterLoaded("#winRateTable", function () {
                     vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
+                });
+                $scope.safeApply();
+            } else if (choice == "FEEDBACK_REPORT") {
+                vm.feedbackQuery = {};
+                vm.feedbackSummaryData = {};
+                utilService.actionAfterLoaded("#feedbackReportTable", function () {
+                    vm.commonInitTime(vm.winRateQuery, '#feedbackReportQuery');
                 });
                 $scope.safeApply();
             } else if (choice == "ONLINE_PAYMENT_MISMATCH_REPORT") {
@@ -1811,11 +1818,11 @@ define(['js/app'], function (myApp) {
 
         vm.getMerchantName = function(merchantNo){
             let result = '';
-            if (merchantNo) {
+            if (merchantNo && vm.merchantNoList) {
                 let merchant = vm.merchantNoList.filter(item => {
                     return item.merchantNo == merchantNo
                 })
-                if (merchant) {
+                if (merchant.length > 0) {
                     let merchantName = vm.merchantTypes.filter(item => {
                         return item.merchantTypeId == merchant[0].merchantTypeId;
                     })
@@ -2639,17 +2646,20 @@ define(['js/app'], function (myApp) {
             let admins = [];
             let csPromoteWay = [];
 
-            if (vm.playerDomain.departments) {
-                if (vm.playerDomain.roles) {
-                    vm.pdQueryRoles.map(e => {
-                        if (vm.playerDomain.roles.indexOf(e._id) >= 0) {
-                            e.users.map(f => admins.push(f._id))
-                        }
-                    })
-                } else {
-                    vm.pdQueryRoles.map(e => e.users.map(f => admins.push(f._id)))
+            if(vm.playerDomain){
+                if (vm.playerDomain.departments) {
+                    if (vm.playerDomain.roles) {
+                        vm.pdQueryRoles.map(e => {
+                            if (vm.playerDomain.roles.indexOf(e._id) >= 0) {
+                                e.users.map(f => admins.push(f._id))
+                            }
+                        })
+                    } else {
+                        vm.pdQueryRoles.map(e => e.users.map(f => admins.push(f._id)))
+                    }
                 }
             }
+
 
             var sendquery = {
                 platform: vm.curPlatformId,
