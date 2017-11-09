@@ -181,7 +181,7 @@ const dbPlayerMail = {
             }
         );
     },
-  
+
     sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice) {
         let lastMin = moment().subtract(1, 'minutes');
         let channel = null;

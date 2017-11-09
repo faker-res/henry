@@ -915,7 +915,7 @@ let dbPlayerReward = {
             .then(
                 playerRecord => {
                     // get the  ExtraBonusInfor state of the player: enable or disable the msg showing
-                    let showInfo = (playerRecord.viewInfo.showInfoState)?1:0;
+                    let showInfo = (playerRecord.viewInfo.showInfoState) ? 1 : 0;
 
                     if (playerRecord && playerRecord._id) {
                         var query = {
@@ -971,7 +971,7 @@ let dbPlayerReward = {
                                         }
                                     });
                                     let result = {
-                                        "showInfo":showInfo,
+                                        "showInfo": showInfo,
                                         "usedList": usedListArr,
                                         "noUseList": noUseListArr,
                                         "expiredList": expiredListArr,

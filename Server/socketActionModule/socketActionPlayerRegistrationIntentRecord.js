@@ -18,7 +18,7 @@ function socketActionPlayerRegistrationIntentRecord(socketIO, socket) {
         createPlayerRegistrationIntentRecord: function createPlayerRegistrationIntentRecord(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data); // TODO add the mandatory fields later
-            socketUtil.emitter(self.socket, dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecord, [data,data.status], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecord, [data, data.status], actionName, isValidData);
         },
         /**
          * Get PlayerRegistrationIntentRecord by _id
