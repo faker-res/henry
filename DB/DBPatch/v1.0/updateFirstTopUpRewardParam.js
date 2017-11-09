@@ -447,3 +447,8 @@ db.rewardParam.update({
 }, {
     upsert: true
 });
+
+var param100Cursor = db.rewardParam.find({"name": type100});
+var param100 = param100Cursor.next();
+
+db.rewardType.update({"name": type100}, {$set: {params: param100._id, des: type100}}, {upsert: true});

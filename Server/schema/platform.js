@@ -117,8 +117,6 @@ var platformSchema = new Schema({
     useLockedCredit: {type: Boolean, default: false},
     // Use new type of provider group lock
     useProviderGroup: {type: Boolean, default: false},
-    // Use new type of reward type group
-    useRewardMainGroup: {type: Boolean, default: false},
     // maximum length for player name included platform prefix
     playerNameMaxLength: {type: Number, default: 0},
     // minimum length for player name included platform prefix
