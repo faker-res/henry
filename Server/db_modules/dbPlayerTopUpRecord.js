@@ -2005,7 +2005,6 @@ var dbPlayerTopUpRecord = {
                         if (res[0]) {
                             updateData.data.cardQuota = res[0].totalAmount || 0;
                         }
-                        console.log(res[0]);
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},
                             updateData,
