@@ -511,10 +511,10 @@ define(['js/app'], function (myApp) {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.merchantNo$ = item.data.merchantNo ? item.data.merchantNo
                             : item.data.wechatAccount ? item.data.wechatAccount
-                            :item.data.weChatAccount != null ? item.data.weChatAccount
-                            : item.data.alipayAccount ? item.data.alipayAccount
-                            : item.data.bankCardNo ? item.data.bankCardNo
-                            : item.data.accountNo ? item.data.accountNo : null;
+                                : item.data.weChatAccount != null ? item.data.weChatAccount
+                                    : item.data.alipayAccount ? item.data.alipayAccount
+                                        : item.data.bankCardNo ? item.data.bankCardNo
+                                            : item.data.accountNo ? item.data.accountNo : null;
                         item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                         item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         item.status$ = $translate(item.status);

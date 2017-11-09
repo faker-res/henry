@@ -69,7 +69,7 @@ var dbPlayerRegistrationIntentRecord = {
             dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status);
         }
 
-        if(typeof(data.platform) != 'object'){
+        if (typeof(data.platform) != 'object') {
             data.platform = ObjectId(data.platform);
         }
 
@@ -78,11 +78,11 @@ var dbPlayerRegistrationIntentRecord = {
             data: data
         };
         dbUtil.getGeoIp(data.lastLoginIp).then(
-            ipData=>{
-                if(data){
+            ipData => {
+                if (data) {
                     data.ipArea = ipData;
-                }else{
-                    data.ipArea = {'province':'', 'city':''};
+                } else {
+                    data.ipArea = {'province': '', 'city': ''};
                 }
                 var newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
                 return newRecord.save();
@@ -104,7 +104,11 @@ var dbPlayerRegistrationIntentRecord = {
                                 if(proposalData.status != constProposalStatus.SUCCESS){
                                     dbconfig.collection_proposal.findOneAndUpdate(
                                         {_id: proposalData._id, createTime: proposalData.createTime},
-                                        {status: status, "data.realName": data.data.realName,"data.playerId": data.data.playerId}
+                                        {
+                                            status: status,
+                                            "data.realName": data.data.realName,
+                                            "data.playerId": data.data.playerId
+                                        }
                                     ).then();
                                 }
                             }

@@ -55,8 +55,8 @@ let dbPlayerLevelInfo = {
 
         return dbconfig.collection_platform.findOne({"_id": platformObjId}).then(
             (platformData) => {
-                let platformPeriod = upOrDown? platformData.playerLevelUpPeriod: platformData.playerLevelDownPeriod;
-                if (platformPeriod){
+                let platformPeriod = upOrDown ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
+                if (platformPeriod) {
                     if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
                         period = dbUtil.getYesterdaySGTime();
                     } else if (platformPeriod == constPlayerLevelUpPeriod.WEEK) {
@@ -64,15 +64,15 @@ let dbPlayerLevelInfo = {
                     } else if (platformPeriod == constPlayerLevelUpPeriod.MONTH) {
                         period = dbUtil.getLastMonthSGTime();
                     }
-                }else {
+                } else {
                     period = dbUtil.getLastMonthSGTime();
                 }
 
-                if (!upOrDown){
+                if (!upOrDown) {
                     period.startTime = moment(period.startTime).add(12, 'hours').toDate();
                     period.endTime = moment(period.endTime).add(12, 'hours').toDate();
                 }
-                console.log('check level time',period);
+                console.log('check level time', period);
 
                 return dbconfig.collection_playerLevel.find({platform: platformObjId}).sort({value: 1}).lean().then(
                     levels => {
@@ -145,7 +145,7 @@ let dbPlayerLevelInfo = {
             .populate(
                 {path: "playerLevel", model: dbconfig.collection_playerLevel}
                 // ,{path: "platform", model: dbconfig.collection_platform, select: ["playerLevelUpPeriod","playerLevelDownPeriod"]}]
-                ).lean();
+            ).lean();
 
         let topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
             {

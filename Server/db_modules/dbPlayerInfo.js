@@ -196,7 +196,7 @@ let dbPlayerInfo = {
                             return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
                                 phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
                                 platform: platformObjId
-                            },platformObj.samePhoneNumberRegisterCount);
+                            }, platformObj.samePhoneNumberRegisterCount);
                             // return {isPhoneNumberValid: true}
                         } else {
                             return dbPlayerInfo.isPhoneNumberValidToRegister({
@@ -264,19 +264,18 @@ let dbPlayerInfo = {
                         }
 
                         //check partnerId when create player account manually
-                        if(inputData.partner){
+                        if (inputData.partner) {
                             delete inputData.referral;
                             let partnerObjId = ObjectId(inputData.partner);
                             let partnerProm = dbconfig.collection_partner.findOne({
                                 _id: partnerObjId,
                                 platform: platformObjId
                             }).then(
-                                data =>{
-                                    if(data){
+                                data => {
+                                    if (data) {
                                         inputData.partnerId = data.partnerId;
                                         return inputData;
-                                    }else
-                                    {
+                                    } else {
                                         delete inputData.partner;
                                         return inputData;
                                     }
@@ -292,7 +291,7 @@ let dbPlayerInfo = {
                             }
                             inputData.domain = filteredDomain;
 
-                            if(inputData.partnerId){
+                            if (inputData.partnerId) {
                                 let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
                                     data => {
                                         if (data) {
@@ -756,7 +755,7 @@ let dbPlayerInfo = {
                         return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
                             phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
                             platform: playerdata.platform
-                        },platformData.samePhoneNumberRegisterCount);
+                        }, platformData.samePhoneNumberRegisterCount);
                         // return {isPhoneNumberValid: true};
                     } else {
                         return dbPlayerInfo.isPhoneNumberValidToRegister({
@@ -1630,7 +1629,10 @@ let dbPlayerInfo = {
                 let inputDeviceData = dbUtility.getInputDevice(userAgent,false);
                 updateData.isPlayerInit = true;
                 updateData.playerName = playerObj.name;
-                dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {data: updateData, inputDevice: inputDeviceData}, smsLogData);
+                dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {
+                    data: updateData,
+                    inputDevice: inputDeviceData
+                }, smsLogData);
                 return updatedData;
             }
         )
@@ -5536,7 +5538,7 @@ let dbPlayerInfo = {
 
                         return Q.all([playerProm, levelsProm]).spread(
                             function (player, playerLevels) {
-                                if (!player){
+                                if (!player) {
                                     return Q.reject({name: "DataError", message: "Cannot find player"});
                                 }
                                 return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
@@ -5544,7 +5546,6 @@ let dbPlayerInfo = {
                             function () {
                                 return Q.reject({name: "DataError", message: "Cannot find player"});
                             }
-
                         );
                     }
                     else {
@@ -11403,7 +11404,7 @@ let dbPlayerInfo = {
         }
 
         // if true, user can filter phone across all platform
-        if(filterAllPlatform) {
+        if (filterAllPlatform) {
             // display phoneNumber from DB without asterisk masking
             var dbPhone = dbconfig.collection_players.aggregate([
                 {$match: {"phoneNumber": oldNewPhone}},
@@ -11424,13 +11425,13 @@ let dbPlayerInfo = {
         // display phoneNumber result that matched input phoneNumber
         return dbPhone.then(playerData => {
             // encrypted phoneNumber in DB will be decrypted
-            for (let q = 0; q < playerData.length; q ++) {
+            for (let q = 0; q < playerData.length; q++) {
                 if (playerData[q].phoneNumber.length > 20) {
                     playerData[q].phoneNumber = rsaCrypto.decrypt(playerData[q].phoneNumber);
                 }
             }
 
-            for (let z = 0; z < playerData.length; z ++) {
+            for (let z = 0; z < playerData.length; z++) {
                 arrayDbPhone.push(playerData[z].phoneNumber);
             }
 
@@ -11445,7 +11446,12 @@ let dbPlayerInfo = {
             // don't join, remain as array
             samePhoneXLS = samePhone;
 
-            return {samePhoneXLS: samePhoneXLS, diffPhoneXLS: diffPhoneXLS, samePhoneTotalXLS: samePhoneTotalXLS, diffPhoneTotalXLS: diffPhoneTotalXLS};
+            return {
+                samePhoneXLS: samePhoneXLS,
+                diffPhoneXLS: diffPhoneXLS,
+                samePhoneTotalXLS: samePhoneTotalXLS,
+                diffPhoneTotalXLS: diffPhoneTotalXLS
+            };
         }).then(data => {
             return data;
         });
