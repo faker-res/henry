@@ -99,6 +99,7 @@ var roleChecker = {
         'getPlayerConsumptionReturn': true,
         'getPagePlayerByAdvanceQuery': true,
         'getQueryProposalsForAdminId': true,
+        'getPlayerProposalsForAdminId': true,
         "getOnePlayerInfo": true,
         "getManualTopupRequestList": true,
         "queryBonusProposal": true,
@@ -281,18 +282,22 @@ var roleChecker = {
                 ConsumptionReturnFix: ['createReturnFixProposal'],
                 ManualUnlockRewardTask: ['manualUnlockRewardTask'],
                 PlatformCreditTransferLog: ['getPagedPlatformCreditTransferLog', 'getAllPlayerCreditTransferStatus'],
-                NewPlayerList:['getQueryProposalsForAdminId'],
+                NewPlayerList:['getQueryProposalsForAdminId', 'getPlayerProposalsForAdminId'],
                 ModifyGamePassword: ['modifyGamePassword'],
                 ClearProposalLimit: ['requestClearProposalLimit'],
                 TriggerAutoProposal: ['triggerAutoProposal'],
                 playerDailyCreditLog :['playerCreditDailyLog'],
                 playerApiLog: ['getPlayerApiLog'],
                 rewardTaskLog: ['getPlayerRewardTask'],
-                UpdatePlayerCredibility: ['updatePlayerCredibilityRemark']
+                UpdatePlayerCredibility: ['updatePlayerCredibilityRemark'],
+                ModifyFeedbackResult: ['createPlayerFeedbackResult','deletePlayerFeedbackResult'],
+                ModifyFeedbackTopic: ['createPlayerFeedbackTopic','deletePlayerFeedbackTopic']
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
-                Create: ['createPlayerFeedback']
+                Create: ['createPlayerFeedback'],
+                ModifyFeedbackResult: ['createPlayerFeedbackResult','deletePlayerFeedbackResult'],
+                ModifyFeedbackTopic: ['createPlayerFeedbackTopic','deletePlayerFeedbackTopic']
             },
             "FeedbackQuery": {
                 Read: ['getPlayerFeedbackQuery', 'getPlayerFeedbackResults', 'getAllPlayerFeedbacks']
@@ -401,7 +406,7 @@ var roleChecker = {
                 monitor: [],
                 smsContentConfig: [],
                 userGroupConfig: [],
-                activatePromoCode: [],
+                activatePromoCode: ['updatePromoCodesActive'],
                 applyPromoCode: [],
                 promoCodeAnalysis: ['getPromoCodeTypeByObjId']
             },
@@ -531,7 +536,7 @@ var roleChecker = {
         Report: {
             General: {
                 Read: ['getPlatform', 'getProposalTypeByPlatformId'],
-                TOPUP_REPORT: ['topupReport'],
+                TOPUP_REPORT: ['topupReport', "getMerchantTypeList"],
                 PROPOSAL_REPORT: ['getProposalStaticsReport'],
                 PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],
                 PLAYER_EXPENSE_REPORT: ['getPlayerProviderReport', 'getProviderGamePlayerReport', 'getProviderGameReport', 'getPlayerProviderByGameReport', 'manualDailyProviderSettlement'],
@@ -542,7 +547,8 @@ var roleChecker = {
                 PARTNERPLAYERBOUNS_REPORT: ['getPartnerPlayerBonusReport'],
                 PARTNERCOMMISSION_REPORT: ['getPartnerCommissionReport'],
                 PLAYERDOMAIN_REPORT: ['getPlayerDomainReport', 'getDepartmentDetailsByPlatformObjId'],
-                WINRATE_REPORT: ['winRateReport']
+                WINRATE_REPORT: ['winRateReport'],
+                FEEDBACK_REPORT: [],
             },
             Reward: {
                 Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType'],

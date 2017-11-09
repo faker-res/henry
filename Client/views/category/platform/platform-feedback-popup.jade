@@ -1,4 +1,4 @@
-#modalAddPlayerFeedbackResult.modal.fade(style='background: rgba(0,0,0,0.5);', tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+#modalAddPlayerFeedbackResult.modal.fade(style='background: rgba(0,0,0,0.5);z-index:1052', tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:40%; top: 20vh;')
         .modal-content
             .modal-header
@@ -25,7 +25,7 @@
                     span(style="color:green;",ng-show="vm.deletePlayerFeedbackResultData.success === true") &nbsp{{vm.deletePlayerFeedbackResultData.message | translate}}
                     span(style="color:red;",ng-show="vm.deletePlayerFeedbackResultData.failure === true") &nbsp{{vm.deletePlayerFeedbackResultData.message | translate}}
 
-#modalAddPlayerFeedbackTopic.modal.fade(style='background: rgba(0,0,0,0.5);', tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+#modalAddPlayerFeedbackTopic.modal.fade(style='background: rgba(0,0,0,0.5);z-index:1052', tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:40%; top: 20vh;')
         .modal-content
             .modal-header

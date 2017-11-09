@@ -9,6 +9,7 @@ const dbUtil = require('./../modules/dbutility');
 const constProposalStatus = require('../const/constProposalStatus');
 const constProposalType = require('../const/constProposalType');
 const constSystemParam = require('./../const/constSystemParam');
+const constPlayerLevelUpPeriod = require('./../const/constPlayerLevelUpPeriod');
 
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
 
@@ -49,37 +50,64 @@ let dbPlayerLevelInfo = {
     },
 
     startPlatformPlayerLevelSettlement: (platformObjId, upOrDown) => {
-        let lastMonth = dbUtil.getLastMonthSGTime();
+        // let lastMonth = dbUtil.getLastMonthSGTime();
+        let period = {};
 
-        return dbconfig.collection_playerLevel.find({platform: platformObjId}).sort({value: 1}).lean().then(
-            levels => {
-                let stream = dbconfig.collection_players.find(
-                    {platform: platformObjId}
-                ).cursor({batchSize: 10000});
+        return dbconfig.collection_platform.findOne({"_id": platformObjId}).then(
+            (platformData) => {
+                let platformPeriod = upOrDown? platformData.playerLevelUpPeriod: platformData.playerLevelDownPeriod;
+                if (platformPeriod){
+                    if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
+                        period = dbUtil.getYesterdaySGTime();
+                    } else if (platformPeriod == constPlayerLevelUpPeriod.WEEK) {
+                        period = dbUtil.getLastWeekSGTime();
+                    } else if (platformPeriod == constPlayerLevelUpPeriod.MONTH) {
+                        period = dbUtil.getLastMonthSGTime();
+                    }
+                }else {
+                    period = dbUtil.getLastMonthSGTime();
+                }
 
-                let balancer = new SettlementBalancer();
-                return balancer.initConns().then(function () {
-                    return balancer.processStream(
-                        {
-                            stream: stream,
-                            batchSize: constSystemParam.BATCH_SIZE,
-                            makeRequest: function (playerIdObjs, request) {
-                                request("player", "performPlatformPlayerLevelSettlement", {
-                                    playerObjIds: playerIdObjs.map(function (playerIdObj) {
-                                        return playerIdObj._id;
-                                    }),
-                                    platformObjId: platformObjId,
-                                    levels: levels,
-                                    startTime: lastMonth.startTime,
-                                    endTime: lastMonth.endTime,
-                                    upOrDown: upOrDown
-                                });
-                            }
-                        }
-                    );
-                });
+                if (!upOrDown){
+                    period.startTime = moment(period.startTime).add(12, 'hours').toDate();
+                    period.endTime = moment(period.endTime).add(12, 'hours').toDate();
+                }
+                console.log('check level time',period);
+
+                return dbconfig.collection_playerLevel.find({platform: platformObjId}).sort({value: 1}).lean().then(
+                    levels => {
+                        let stream = dbconfig.collection_players.find(
+                            {platform: platformObjId}
+                        ).cursor({batchSize: 10000});
+
+                        let balancer = new SettlementBalancer();
+                        return balancer.initConns().then(function () {
+                            return balancer.processStream(
+                                {
+                                    stream: stream,
+                                    batchSize: constSystemParam.BATCH_SIZE,
+                                    makeRequest: function (playerIdObjs, request) {
+                                        request("player", "performPlatformPlayerLevelSettlement", {
+                                            playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                                return playerIdObj._id;
+                                            }),
+                                            platformObjId: platformObjId,
+                                            levels: levels,
+                                            startTime: period.startTime,
+                                            endTime: period.endTime,
+                                            upOrDown: upOrDown
+                                        });
+                                    }
+                                }
+                            );
+                        });
+                    }
+                )
+
+            }, (error) => {
+                return Q.reject({name: "DataError", message: "Cannot find platform"});
             }
-        )
+        );
     },
 
     /**
@@ -111,10 +139,13 @@ let dbPlayerLevelInfo = {
      * @param {Boolean} upOrDown - True: Level up; False: Level Down
      */
     processPlayerLevelMigration: (playerObjId, platformObjId, levels, startTime, endTime, upOrDown) => {
-        let consumptionTime = dbUtil.getLastMonthConsumptionReturnSGTime();
+        // let consumptionTime = dbUtil.getLastMonthConsumptionReturnSGTime();
 
         let playerProm = dbconfig.collection_players.findOne({_id: playerObjId})
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
+            .populate(
+                {path: "playerLevel", model: dbconfig.collection_playerLevel}
+                // ,{path: "platform", model: dbconfig.collection_platform, select: ["playerLevelUpPeriod","playerLevelDownPeriod"]}]
+                ).lean();
 
         let topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
             {
@@ -140,8 +171,8 @@ let dbPlayerLevelInfo = {
                 $match: {
                     platformId: ObjectId(platformObjId),
                     createTime: {
-                        $gte: new Date(consumptionTime.startTime),
-                        $lt: new Date(consumptionTime.endTime)
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
                     },
                     playerId: ObjectId(playerObjId)
                 }

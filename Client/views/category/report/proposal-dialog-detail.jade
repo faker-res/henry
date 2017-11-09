@@ -194,7 +194,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                 //alipay
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && !vm.selectedProposal.from_old_system')
                     td {{'Member AliPayAcc' | translate }}
-                    td {{ vm.selectedProposal.data.alipayName }}
+                    td {{ vm.selectedProposal.data.userAlipayName || ""}}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && !vm.selectedProposal.from_old_system')
                     td {{'Our AliPayAccName' | translate }}
                     td {{ vm.selectedProposal.card.name }}
@@ -217,7 +217,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                 //alipay old records
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && vm.selectedProposal.from_old_system')
                     td {{'Member AliPayAcc' | translate }}
-                    td {{ vm.selectedProposal.data.alipayName }}
+                    td {{ vm.selectedProposal.data.userAlipayName || "" }}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerAlipayTopUp" && vm.selectedProposal.from_old_system')
                     td {{'Our AliPayAccName' | translate }}
                     td {{ vm.selectedProposal.card.name }}

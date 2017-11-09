@@ -1458,10 +1458,14 @@ let dbPartner = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
+                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                        let smsExpiredDate = new Date();
+                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
                         // Check verification SMS match
                         return dbconfig.collection_smsVerificationLog.findOne({
                             platformObjId: partnerObj.platform,
-                            tel: partnerObj.phoneNumber
+                            tel: partnerObj.phoneNumber,
+                            createTime: {$gte: smsExpiredDate}
                         }).sort({createTime: -1}).then(
                             verificationSMS => {
                                 // Check verification SMS code
@@ -1471,12 +1475,13 @@ let dbPartner = {
                                         {_id: verificationSMS._id}
                                     ).then(
                                         () => {
+                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                             return Q.resolve(true);
                                         }
                                     )
                                 }
                                 else {
-                                    let errorMessage = verificationSMS ? "Invalid SMS Validation Code" : "Incorrect SMS Validation Code";
+                                    let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
                                     return Q.reject({
                                         status: constServerCode.VALIDATION_CODE_INVALID,
                                         name: "ValidationError",

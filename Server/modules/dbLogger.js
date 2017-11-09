@@ -11,6 +11,8 @@ var errorUtils = require("./errorUtils.js");
 var constProposalEntryType = require('./../const/constProposalEntryType');
 var constProposalUserType = require('./../const/constProposalUserType');
 var pmsAPI = require('../externalAPI/pmsAPI');
+var rsaCrypto = require('../modules/rsaCrypto');
+const constSMSPurpose = require('../const/constSMSPurpose');
 
 var dbLogger = {
 
@@ -262,20 +264,78 @@ var dbLogger = {
         var smsLog = new dbconfig.collection_smsLog(logData);
         smsLog.save().then().catch(err => errorSavingLog(err, logData));
     },
-    createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, status, error) {
 
-        var logData = {
-            type: type,
-            message: message,
-            platform: platformObjId,
-            tel: tel,
-            channel: channel,
-            status: status,
-            error: error,
-        };
-        var smsLog = new dbconfig.collection_smsLog(logData);
-        smsLog.save().then().catch(err => errorSavingLog(err, logData));
+    // this actually create all the validation sms log instead of just for registration
+    createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, purpose, inputDevice, status, error) {
+        let smsPurposes = Object.keys(constSMSPurpose).map(function(key) {
+            return constSMSPurpose[key];
+        });
+
+        // if (Object.values(constSMSPurpose).indexOf(purpose) === -1) {
+        if (smsPurposes.indexOf(purpose) === -1) {
+            purpose = constSMSPurpose.UNKNOWN;
+        }
+
+        inputDevice = inputDevice || 0;
+
+        let phoneQuery;
+        if (tel) {
+            tel = tel.toString();
+            phoneQuery = {$in: [rsaCrypto.encrypt(tel), tel]};
+        }
+
+        dbconfig.collection_players.findOne({phoneNumber: phoneQuery}, {name: 1, bankAccount: 1}).lean().then(
+            playerData => {
+                var logData = {
+                    type: type,
+                    message: message,
+                    platform: platformObjId,
+                    tel: tel,
+                    inputDevice: inputDevice,
+                    channel: channel,
+                    purpose: purpose,
+                    status: status,
+                    error: error,
+                };
+
+                if (playerData) {
+                    if (playerData.name)
+                        logData.recipientName = playerData.name;
+
+                    if (purpose === constSMSPurpose.UPDATE_BANK_INFO && !playerData.bankAccount)
+                        logData.purpose = constSMSPurpose.UPDATE_BANK_INFO_FIRST;
+                }
+
+                var smsLog = new dbconfig.collection_smsLog(logData);
+                smsLog.save().then().catch(err => errorSavingLog(err, logData));
+            }
+        );
     },
+
+    logUsedVerificationSMS: (tel, message) => {
+        dbconfig.collection_smsLog.find({tel, message}).sort({createTime:-1}).limit(1).lean().exec().then(
+            smsLogArr => {
+                if (smsLogArr && smsLogArr[0]) {
+                    let smsLog = smsLogArr[0];
+
+                    dbconfig.collection_smsLog.update({_id: smsLog._id}, {used: true}).exec();
+                }
+            }
+        )
+    },
+
+    updateSmsLogProposalId: (tel, message, proposalId) => {
+        dbconfig.collection_smsLog.find({tel, message}).sort({createTime:-1}).limit(1).lean().exec().then(
+            smsLogArr => {
+                if (smsLogArr && smsLogArr[0]) {
+                    let smsLog = smsLogArr[0];
+
+                    dbconfig.collection_smsLog.update({_id: smsLog._id}, {proposalId}).exec();
+                }
+            }
+        )
+    },
+
     getPaymentHistory: function (query) {
         var finalResult = [];
 
