@@ -71,7 +71,8 @@ function createTestPlatformAndPlayerAndPartner (generatedData) {
                     partnerName: "testPartner" +  Date.now(),
                     realName: "testRealName" + Date.now(),
                     platform: generatedData.testPlatformId,
-                    level: generatedData.testPartnerLevel._id
+                    level: generatedData.testPartnerLevel._id,
+                    phoneNumber: "123123123"
                 }
             );
         }
