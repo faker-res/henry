@@ -1610,7 +1610,7 @@ var dbPlayerTopUpRecord = {
                     if (alipayAccount) {
                         queryObj['data.alipayAccount'] = alipayAccount;
                     }
-                    if(alipayName){
+                    if (alipayName) {
                         queryObj['data.alipayName'] = alipayName;
                     }
                     queryObj['data.platformId'] = ObjectId(player.platform._id);
@@ -1865,7 +1865,7 @@ var dbPlayerTopUpRecord = {
                     if (wechatAccount) {
                         queryObj['data.wechatAccount'] = wechatAccount;
                     }
-                    if(wechatName){
+                    if (wechatName) {
                         queryObj['data.wechatName'] = wechatName;
                     }
                     queryObj['data.platformId'] = ObjectId(player.platform._id);

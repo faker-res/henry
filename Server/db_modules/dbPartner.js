@@ -62,7 +62,7 @@ let dbPartner = {
                                 return dbPartner.isExceedPhoneNumberValidToRegister({
                                     phoneNumber: partnerData.phoneNumber,
                                     platform: partnerData.platform
-                                }, platformData.samePhoneNumberRegisterCount).then (
+                                }, platformData.samePhoneNumberRegisterCount).then(
                                     function (isValid) {
                                         if (isValid.isPhoneNumberValid) {
                                             if (partnerData.parent) {

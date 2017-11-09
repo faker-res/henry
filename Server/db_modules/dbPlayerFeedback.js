@@ -335,7 +335,7 @@ var dbPlayerFeedback = {
                 query.isRealPlayer = true;
                 query.partner = {$ne: null};
         }
-        if("playerType" in query) {
+        if ("playerType" in query) {
             delete query.playerType;
         }
         let player = dbconfig.collection_players.find(query).skip(index).limit(1)
@@ -370,7 +370,7 @@ var dbPlayerFeedback = {
                 query.isRealPlayer = true;
                 query.partner = {$ne: null};
         }
-        if("playerType" in query) {
+        if ("playerType" in query) {
             delete query.playerType;
         }
         let players = dbconfig.collection_players.find(query).skip(index).limit(limit)

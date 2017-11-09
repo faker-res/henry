@@ -283,7 +283,7 @@ var roleChecker = {
                 ConsumptionReturnFix: ['createReturnFixProposal'],
                 ManualUnlockRewardTask: ['manualUnlockRewardTask'],
                 PlatformCreditTransferLog: ['getPagedPlatformCreditTransferLog', 'getAllPlayerCreditTransferStatus'],
-                NewPlayerList:['getQueryProposalsForAdminId', 'getPlayerProposalsForAdminId'],
+                NewPlayerList: ['getQueryProposalsForAdminId', 'getPlayerProposalsForAdminId'],
                 ModifyGamePassword: ['modifyGamePassword'],
                 ClearProposalLimit: ['requestClearProposalLimit'],
                 TriggerAutoProposal: ['triggerAutoProposal'],
@@ -291,14 +291,14 @@ var roleChecker = {
                 playerApiLog: ['getPlayerApiLog'],
                 rewardTaskLog: ['getPlayerRewardTask'],
                 UpdatePlayerCredibility: ['updatePlayerCredibilityRemark'],
-                ModifyFeedbackResult: ['createPlayerFeedbackResult','deletePlayerFeedbackResult'],
-                ModifyFeedbackTopic: ['createPlayerFeedbackTopic','deletePlayerFeedbackTopic']
+                ModifyFeedbackResult: ['createPlayerFeedbackResult', 'deletePlayerFeedbackResult'],
+                ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic']
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
                 Create: ['createPlayerFeedback'],
-                ModifyFeedbackResult: ['createPlayerFeedbackResult','deletePlayerFeedbackResult'],
-                ModifyFeedbackTopic: ['createPlayerFeedbackTopic','deletePlayerFeedbackTopic']
+                ModifyFeedbackResult: ['createPlayerFeedbackResult', 'deletePlayerFeedbackResult'],
+                ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic']
             },
             "FeedbackQuery": {
                 Read: ['getPlayerFeedbackQuery', 'getPlayerFeedbackResults', 'getAllPlayerFeedbacks']

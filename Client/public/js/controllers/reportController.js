@@ -2646,7 +2646,7 @@ define(['js/app'], function (myApp) {
             let admins = [];
             let csPromoteWay = [];
 
-            if(vm.playerDomain){
+            if (vm.playerDomain) {
                 if (vm.playerDomain.departments) {
                     if (vm.playerDomain.roles) {
                         vm.pdQueryRoles.map(e => {
