@@ -11355,8 +11355,8 @@ define(['js/app'], function (myApp) {
                 $.each(vm.feedbackAdmins, function (i, j) {
                     j.createTime$ = utilService.getFormatTime(j.createTime);
                     j.result$ = $translate(j.result);
-                    j.topupTimes$ = (j.result == 'Normal') ? j.topupTimes : 0;
-                    j.amount$ = (j.result == 'Normal') ? (j.amount).toFixed(2) : new Number(0).toFixed(2);
+                    j.topupTimes$ = j.topupTimes || 0;
+                    j.amount$ = j.amount ? (j.amount).toFixed(2) : new Number(0).toFixed(2);
                     showData.push(j);
                 });
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
