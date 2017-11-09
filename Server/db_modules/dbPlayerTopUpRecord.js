@@ -790,7 +790,6 @@ var dbPlayerTopUpRecord = {
                 var updateData = {
                     status: constProposalStatus.PENDING
                 };
-                console.log(res);
                 updateData.data = Object.assign({}, proposal.data);
                 updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
                 updateData.data.merchantNo = merchantResponse.result ? merchantResponse.result.merchantNo : "";
