@@ -53,7 +53,8 @@ var dbLogger = {
         };
 
         // remove extra info on credit change log data
-        delete logData.data.devCheckMsg;
+        logData.data && logData.data.devCheckMsg ? delete logData.data.devCheckMsg : "";
+
 
         var record = new dbconfig.collection_creditChangeLog(logData);
         record.save().then().catch(err => errorSavingLog(err, logData));

@@ -117,7 +117,8 @@ describe("Test consumption return reward event", function () {
                 name: "testpayer"+ i + date.getTime(),
                 platform: testPlatformId,
                 password: "123",
-                playerLevel: testPlayerLevels[i%testPlayerLevels.length]
+                playerLevel: testPlayerLevels[i%testPlayerLevels.length],
+                phoneNumber: "11111111" + i,
             };
             proms.push( dbPlayerInfo.createPlayerInfo(playerData) );
         }

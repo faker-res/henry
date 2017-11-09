@@ -69,6 +69,7 @@ function createTestPlatformAndPlayerAndPartner (generatedData) {
             return dbPartner.createPartner(
                 {
                     partnerName: "testPartner" +  Date.now(),
+                    realName: "testRealName" + Date.now(),
                     platform: generatedData.testPlatformId,
                     level: generatedData.testPartnerLevel._id
                 }
@@ -84,7 +85,8 @@ function createTestPlatformAndPlayerAndPartner (generatedData) {
                     platform: generatedData.testPlatformId,
                     partner: generatedData.testPartnerId,
                     password: "123",
-                    lastLoginIp: "1.180.233.173"
+                    lastLoginIp: "1.180.233.173",
+                    phoneNumber: "11111111" + new Date().getTime()
                 }
             );
         }
@@ -410,6 +412,7 @@ function createPartnerAndChildren (partnerTreeConfig, currentDepth, parentPartne
     return func({
         parent: parentPartner && parentPartner._id,
         partnerName: "testPartner" + Date.now() + Math.random(),
+        realName: "testRealName" + Date.now() + Math.random(),
         platform: generatedData.testPlatformId,
         level: partnerLevel
     }).then(

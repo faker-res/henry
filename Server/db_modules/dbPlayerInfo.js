@@ -2073,7 +2073,7 @@ let dbPlayerInfo = {
 
                     let promArr = [recordProm, logProm, levelProm];
 
-                    if (proposalData.data.limitedOfferObjId) {
+                    if (proposalData && proposalData.data && proposalData.data.limitedOfferObjId) {
                         let newProp;
                         let limitedOfferProm = dbUtility.findOneAndUpdateForShard(
                             dbconfig.collection_proposal,

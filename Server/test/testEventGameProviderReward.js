@@ -291,6 +291,7 @@ describe("Test Game-Provider Reward event", function () {
                 password: "123",
                 //games: [testGameId2, testGameId],
                 validCredit: 1000,
+                phoneNumber: "11111111" + i
                 //email: emailRecipient
             };
             proms.push(dbPlayerInfo.createPlayerInfo(playerData));
