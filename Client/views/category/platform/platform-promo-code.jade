@@ -503,9 +503,21 @@
 
                 // Tab - Activate Promo Code
                 div(ng-if='vm.selectedPromoCodeTab=="activatePromoCode" && checkViewPermission("Platform", "promoCode", "activatePromoCode")')
-                    label {{"SET_PROMO_CODE_FLAG" | translate}}
-                    .pull-right
-                        button.btn.btn-primary.common-button(ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("validActive")') {{"SET" | translate}}
+                    #promoCodeActivate.block-query.col-md-12.well
+                        div
+                            label.control-label {{'START_CREATE_TIME' | translate}}
+                            .startCreateTime
+                        div
+                            label.control-label {{'END_CREATE_TIME' | translate}}
+                            .endCreateTime
+                        div
+                            label {{"IS_ACTIVE" | translate}}
+                            select.form-control(ng-model='vm.promoCodeActivate.flag')
+                                option(value='false') {{'NO' | translate}}
+                                option(value='true') {{"YES" | translate}}
+                        .pull-right
+                            button.btn.btn-primary.common-button(ng-click='vm.setPromoCodeActivate()') {{"SET" | translate}}
+                            label {{vm.promoCodeActivate.message}}
 
                 // Tab - Promo Code Analysis
                 div(ng-if='vm.selectedPromoCodeTab=="promoCodeAnalysis" && checkViewPermission("Platform", "promoCode", "promoCodeAnalysis")')

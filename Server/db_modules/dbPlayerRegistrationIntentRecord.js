@@ -70,7 +70,7 @@ var dbPlayerRegistrationIntentRecord = {
             dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status);
         }
 
-        if(typeof(data.platform) != 'object'){
+        if (typeof(data.platform) != 'object') {
             data.platform = ObjectId(data.platform);
         }
 
@@ -115,7 +115,11 @@ var dbPlayerRegistrationIntentRecord = {
                                 if(proposalData.status != constProposalStatus.SUCCESS){
                                     dbconfig.collection_proposal.findOneAndUpdate(
                                         {_id: proposalData._id, createTime: proposalData.createTime},
-                                        {status: status, "data.realName": data.data.realName,"data.playerId": data.data.playerId}
+                                        {
+                                            status: status,
+                                            "data.realName": data.data.realName,
+                                            "data.playerId": data.data.playerId
+                                        }
                                     ).then();
                                 }
                             }

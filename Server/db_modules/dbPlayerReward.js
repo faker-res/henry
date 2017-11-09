@@ -323,8 +323,8 @@ let dbPlayerReward = {
                                 });
                             }
                             else {
-                                if( summaryData && summaryData[0] && (rewardAmount + summaryData[0].amount) > 500 ){
-                                    rewardAmount = Math.max( 0, 500 - summaryData[0].amount);
+                                if (summaryData && summaryData[0] && (rewardAmount + summaryData[0].amount) > 500) {
+                                    rewardAmount = Math.max(0, 500 - summaryData[0].amount);
                                 }
 
                                 let proposalData = {
@@ -337,7 +337,7 @@ let dbPlayerReward = {
                                         platformId: topUpProposalData.data.platformId,
                                         platform: topUpProposalData.data.platform,
                                         rewardAmount: rewardAmount,
-                                        spendingAmount: rewardAmount*20, //10 times spending amount
+                                        spendingAmount: rewardAmount * 20, //10 times spending amount
                                         applyAmount: 0,
                                         // amount: rewardAmount,
                                         eventId: promoEventDetail._id,
@@ -914,6 +914,9 @@ let dbPlayerReward = {
                 })
             .then(
                 playerRecord => {
+                    // get the  ExtraBonusInfor state of the player: enable or disable the msg showing
+                    let showInfo = (playerRecord.viewInfo.showInfoState) ? 1 : 0;
+
                     if (playerRecord && playerRecord._id) {
                         var query = {
                             "playerObjId": playerRecord._id,
@@ -923,6 +926,7 @@ let dbPlayerReward = {
                             query.status = status;
                         }
                         playerData = playerRecord;
+
                         return dbConfig.collection_promoCode.find(query)
                             .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
                             .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean()
@@ -967,7 +971,7 @@ let dbPlayerReward = {
                                         }
                                     });
                                     let result = {
-                                        "showInfo": 1,
+                                        "showInfo": showInfo,
                                         "usedList": usedListArr,
                                         "noUseList": noUseListArr,
                                         "expiredList": expiredListArr,
@@ -1936,6 +1940,18 @@ let dbPlayerReward = {
         )
 
 
+    },
+    updatePromoCodesActive: (platformObjId, data) => {
+        return dbConfig.collection_promoCode.update({
+            platformObjId: platformObjId,
+            createTime: {$gte: new Date(data.startCreateTime), $lt: new Date(data.endCreateTime)}
+        }, {
+            $set: {
+                isActive: data.flag
+            }
+        }, {
+            multi: true
+        }).exec();
     }
 };
 
@@ -2124,6 +2140,7 @@ function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo) {
         }
     );
 }
+
 
 /**
  * Expire promo code in all platforms pass expirationTime
