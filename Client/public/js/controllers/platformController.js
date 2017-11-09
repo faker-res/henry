@@ -13083,19 +13083,26 @@ define(['js/app'], function (myApp) {
                                     break;
                             }
 
-                            console.log('$scope[cond.options]', $scope[cond.options]);
-
                             vm.rewardMainCondition[cond.index].options = result;
+
+                            // Get value
+                            if (vm.showReward && vm.showReward.condition && vm.showReward.condition.hasOwnProperty(el)) {
+                                vm.rewardMainCondition[cond.index].value = vm.showReward.condition[el];
+                            }
 
                             // Render dateTimePicker
                             let id = "#rewardMainTaskDate-" + cond.index;
                             utilService.actionAfterLoaded(id, function () {
-                                vm.rewardMainCondition[cond.index].date = utilService.createDatePicker(id, {
+                                let dateValue = vm.rewardMainCondition[cond.index].value;
+
+                                vm.rewardMainCondition[cond.index].value = utilService.createDatePicker(id, {
                                     language: 'en',
                                     format: 'yyyy/MM/dd hh:mm:ss'
                                 });
 
-                                vm.rewardMainCondition[cond.index].date.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), -1)));
+                                if (dateValue) {
+                                    vm.rewardMainCondition[cond.index].value.data('datetimepicker').setDate(utilService.getLocalTime(new Date(dateValue)));
+                                }
                             });
                         })
                     });
@@ -13743,18 +13750,47 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.submitReward = function () {
-                var sendData = vm.showReward;
-                sendData.name = vm.showReward.name;
-                sendData.description = vm.showReward.description;
-                sendData.platform = vm.selectedPlatform.id;
-                sendData.param = vm.rewardParams;
-                sendData.condition = vm.rewardCondition;
-                sendData.type = vm.showRewardTypeData._id;
-                sendData.canApplyFromClient = vm.showReward.canApplyFromClient;
-                sendData.validStartTime = vm.showReward.validStartTime || null;
-                sendData.validEndTime = vm.showReward.validEndTime || null;
-                console.log('vm.showReward', vm.showReward);
-                console.log(vm.showReward);
+                let sendData = {
+                    platform: vm.selectedPlatform.id,
+                    type: vm.showRewardTypeData._id,
+                    condition: {}
+                };
+
+                if (vm.showRewardTypeData.isGrouped === true) {
+                    // Set condition
+                    Object.keys(vm.rewardMainCondition).forEach(e => {
+                        if (vm.rewardMainCondition[e].value !== undefined) {
+                            let condName = vm.rewardMainCondition[e].name;
+                            let condType = vm.rewardMainCondition[e].type;
+                            let condValue = vm.rewardMainCondition[e].value;
+
+                            // Save name and code to outer level
+                            if (condName == "name" || condName == "code") {
+                                sendData[condName] = condValue;
+                            }
+
+                            // Get time string in object type
+                            if (condType == "date") {
+                                condValue = condValue.data('datetimepicker').getLocalDate();
+                            }
+
+                            // Save reward condition
+                            sendData.condition[condName] = condValue;
+                        }
+                    })
+                } else {
+                    sendData = vm.showReward;
+                    sendData.name = vm.showReward.name;
+                    sendData.description = vm.showReward.description;
+                    sendData.param = vm.rewardParams;
+                    sendData.condition = vm.rewardCondition;
+                    sendData.type = vm.showRewardTypeData._id;
+                    sendData.canApplyFromClient = vm.showReward.canApplyFromClient;
+                    sendData.validStartTime = vm.showReward.validStartTime || null;
+                    sendData.validEndTime = vm.showReward.validEndTime || null;
+                }
+                console.log('vm.showRewardTypeData', vm.showRewardTypeData);
+                console.log('vm.rewardMainCondition', vm.rewardMainCondition);
                 console.log("newReward", sendData);
                 socketService.$socket($scope.AppSocket, 'createRewardEvent', sendData, function (data) {
                     //vm.allGameProvider = data.data;
@@ -13765,7 +13801,7 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     console.log("created not", data);
                 });
-            }
+            };
 
             // platform-reward end =============================================================================
 
