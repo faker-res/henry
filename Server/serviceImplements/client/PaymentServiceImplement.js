@@ -24,7 +24,7 @@ var PaymentServiceImplement = function () {
             let userAgent = uaParser(userAgentConn);
             data.userAgent = userAgent;
         }
-        var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount && Number.isInteger(data.amount));
+        var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
         var merchantUseType = data.merchantUseType || 1;
         var clientType = data.clientType || 1;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addOnlineTopupRequest, [data.userAgent, conn.playerId, data, merchantUseType, clientType], isValidData);
@@ -113,7 +113,7 @@ var PaymentServiceImplement = function () {
             let userAgent = uaParser(userAgentConn);
             data.userAgent = userAgent;
         }
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && Number.isInteger(data.amount));
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && Number.isInteger(data.amount) && data.amount < 10000000);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [data.userAgent, conn.playerId, data, "CLIENT"], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
@@ -145,7 +145,7 @@ var PaymentServiceImplement = function () {
             let userAgent = uaParser(userAgentConn);
             data.userAgent = userAgent;
         }
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName && Number.isInteger(data.amount));
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName && Number.isInteger(data.amount) && data.amount < 10000000);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [data.userAgent, conn.playerId, data.amount, data.alipayName, data.alipayAccount, "CLIENT"], isValidData);
     };
 
@@ -157,7 +157,7 @@ var PaymentServiceImplement = function () {
             let userAgent = uaParser(userAgentConn);
             data.userAgent = userAgent;
         }
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && Number.isInteger(data.amount));
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && Number.isInteger(data.amount) && data.amount < 10000000);
         // if ([10, 20, 50, 100].indexOf(data.amount) < 0) {
         //     isValidData = false;
         // }
