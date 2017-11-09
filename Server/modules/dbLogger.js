@@ -267,7 +267,7 @@ var dbLogger = {
 
     // this actually create all the validation sms log instead of just for registration
     createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, purpose, inputDevice, status, error) {
-        let smsPurposes = Object.keys(constSMSPurpose).map(function(key) {
+        let smsPurposes = Object.keys(constSMSPurpose).map(function (key) {
             return constSMSPurpose[key];
         });
 
