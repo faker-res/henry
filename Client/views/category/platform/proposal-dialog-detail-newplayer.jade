@@ -1,0 +1,79 @@
+div
+    .titleBackground.margin-bottom-5.text-center {{'Basic' | translate}}
+    .label-value
+        label {{'Lock Status' | translate}}&nbsp;:&nbsp;
+        label {{vm.newPlayerProposal.isLocked.adminName || 'not locked' | translate}}
+        //button.pull-right.btn.btn-danger.btn-sm.margin-left-5(ng-if="vm.selectedProposal.showLockBtn", ng-click='vm.lockProposal(vm.selectedProposal.proposalId)') {{'Lock Proposal' | translate}}
+        //button.pull-right.btn.btn-success.btn-sm.margin-left-5(ng-if="vm.selectedProposal.showUnlockBtn", ng-click='vm.unlockProposal(vm.selectedProposal.proposalId)') {{'Unlock Proposal' | translate}}
+    .label-value
+        label {{'TITLE' | translate}}&nbsp;:&nbsp;
+        label {{vm.newPlayerProposal.type.name || 'none'|translate}}
+    .label-value
+        label {{'STATUS' | translate}}&nbsp;:&nbsp;
+        label {{vm.newPlayerProposal.status || vm.newPlayerProposal.process.status || 'none' | translate}}
+    .label-value
+        label {{'PROPOSAL_NO' | translate}}&nbsp;:&nbsp;
+        label {{vm.newPlayerProposal.proposalId || 'none' | translate}}
+    .label-value
+        label {{'CREATOR' | translate}}&nbsp;:&nbsp;
+        label {{vm.newPlayerProposal.creator.name || 'System' | translate}}
+    .label-value
+        label {{'CREATION_TIME' | translate}}&nbsp;:&nbsp;
+        label {{vm.dateReformat(vm.newPlayerProposal.createTime) || 'none'}}
+
+    //.titleBackground.margin-bottom-5.text-center
+    div(style='min-height:30px')
+        hr
+    //hr
+    //div(ng-show='vm.selectedProposal.remark.length > 0')
+        .col-md-12
+            label.text-center {{'remark' | translate}}
+        div(style='height:200px;overflow-auto;')
+            .margin-left-5.wordWrap(ng-repeat='(i,v) in vm.selectedProposal.remark')
+                text.margin-right-5(style='font-style: italic;') &nbsp;&nbsp;&nbsp;&nbsp;{{v.admin.adminName || ('unknown' | translate)}}
+                text.margin-right-5(style='font-style: italic;') ({{vm.dateReformat(v.addTime)}})
+                label {{v.content}}
+div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
+    label {{'UPDATE_DETAIL' | translate}}
+    div(ng-switch-default)
+        .col-md-12(ng-show='vm.selectedProposal.type.name=="PlayerTopUp" && vm.selectedProposal.status=="Pending" && checkViewPermission("Operation","Proposal","RepairPayment")')
+            button.common-btn.btn-primary(ng-click='vm.submitRepairPayment(vm.selectedProposal)') {{'Repair Payment' | translate}}
+            i.margin-left-5.margin-right-5.fa.fa-spinner.fa-spin(ng-show='vm.repairPaymentStage==1')
+            text.text-success(ng-show='vm.repairPaymentStage==2') {{'Success' | translate}}
+            text.text-danger(ng-show='vm.repairPaymentStage==3') {{'Fail' | translate}}
+        table.table(style='width:100%')
+            tr
+                td {{'PROPOSAL_ID' | translate}}
+                td {{vm.newPlayerProposal.proposalId}}
+            tr
+                td {{'STATUS' | translate}}
+                td {{vm.newPlayerProposal.statusName}}
+            tr
+                td {{'CREATETIME' | translate}}
+                td {{vm.newPlayerProposal.createTime}}
+            tr
+                td {{'REGISTERED_TIME' | translate}}
+                td {{vm.newPlayerProposal.registrationTime}}
+            tr
+                td {{'REGISTERED_IP' | translate}}
+                td {{vm.newPlayerProposal.lastLoginIp}}
+                    span(ng-if='vm.newPlayerProposal.ipAreaName') ({{vm.newPlayerProposal.ipAreaName||''}})
+            tr
+                td {{'PHONE_LOCATION' | translate}}
+                td {{vm.newPlayerProposal.data.phoneNumber}} ({{vm.newPlayerProposal.combinedArea}})
+            tr
+                td {{'DEPOSIT_COUNT' | translate}}
+                td {{vm.newPlayerProposal.topUpTimes}}
+            tr
+                td {{'VERIFICATION_CODE' | translate}}
+                td {{vm.newPlayerProposal.smsCode}}
+            tr
+                td {{'REMARKS' | translate}}
+                td
+                    div(ng-if='!vm.editNewplayerRemark'){{vm.newPlayerProposal.remarks}}
+                    div
+                        input.form-control(ng-if='vm.editNewplayerRemark',ng-model='vm.newPlayerProposal.data.editRemark', ng-init='vm.newPlayerProposal.data.editRemark=vm.newPlayerProposal.remarks')
+                    div.button.btn.btn-primary(ng-click='vm.editNewplayerRemark=true') {{'Edit' | translate}}
+
+                    div.button.btn.btn-primary(ng-if='vm.editNewplayerRemark', ng-click='vm.updateNewPlayerRemark(vm.newPlayerProposal._id, vm.newPlayerProposal.data.editRemark)') {{'CONFIRMATION' | translate}}
+

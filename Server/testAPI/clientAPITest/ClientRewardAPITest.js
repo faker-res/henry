@@ -201,6 +201,24 @@
         this.rewardService.applyLimitedOffers.once(callback);
     };
 
+    proto.getLimitedOfferBonus = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.getLimitedOfferBonus.request(data);
+        this.rewardService.getLimitedOfferBonus.once(callback);
+    };
+
+    proto.setLimitedOfferShowInfo = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.setLimitedOfferShowInfo.request(data);
+        this.rewardService.setLimitedOfferShowInfo.once(callback);
+    };
+
+    proto.setBonusShowInfo = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.setBonusShowInfo.request(data);
+        this.rewardService.setBonusShowInfo.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientRewardAPITest;
     } else {

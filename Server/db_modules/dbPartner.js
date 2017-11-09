@@ -59,25 +59,40 @@ let dbPartner = {
                                 });
                             }
                             else {
-                                if (partnerData.parent) {
-                                    return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
-                                        parentData => {
-                                            if (parentData) {
-                                                partnerData.parent = parentData._id;
-                                                return dbPartner.createPartnerWithParent(partnerData);
+                                return dbPartner.isExceedPhoneNumberValidToRegister({
+                                    phoneNumber: partnerData.phoneNumber,
+                                    platform: partnerData.platform
+                                }, platformData.samePhoneNumberRegisterCount).then (
+                                    function (isValid) {
+                                        if (isValid.isPhoneNumberValid) {
+                                            if (partnerData.parent) {
+                                                return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
+                                                    parentData => {
+                                                        if (parentData) {
+                                                            partnerData.parent = parentData._id;
+                                                            return dbPartner.createPartnerWithParent(partnerData);
+                                                        }
+                                                        else {
+                                                            return Q.reject({
+                                                                name: "DataError",
+                                                                message: "Cannot find parent partner"
+                                                            });
+                                                        }
+                                                    }
+                                                );
                                             }
                                             else {
-                                                return Q.reject({
-                                                    name: "DataError",
-                                                    message: "Cannot find parent partner"
-                                                });
+                                                return dbPartner.createPartner(partnerData);
                                             }
                                         }
-                                    );
-                                }
-                                else {
-                                    return dbPartner.createPartner(partnerData);
-                                }
+                                        else {
+                                            return Q.reject({
+                                                name: "DataError",
+                                                message: "Phone number already exists"
+                                            });
+                                        }
+                                    }
+                                );
                             }
                         },
                         function (error) {
@@ -139,7 +154,11 @@ let dbPartner = {
                     }
 
                     if (platformData.allowSamePhoneNumberToRegister === true) {
-                        return {isPhoneNumberValid: true};
+                        return dbPartner.isExceedPhoneNumberValidToRegister({
+                            phoneNumber: partnerdata.phoneNumber,
+                            platform: partnerdata.platform
+                        }, platformData.samePhoneNumberRegisterCount);
+                        // return {isPhoneNumberValid: true};
                     } else {
                         return dbPartner.isPhoneNumberValidToRegister({
                             phoneNumber: partnerdata.phoneNumber,
@@ -1172,13 +1191,19 @@ let dbPartner = {
                         os: userAgent.os.name || '',
                     };
                     var bExit = false;
-                    newAgentArray.forEach(
-                        agent => {
-                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
-                                bExit = true;
+                    if(newAgentArray && typeof newAgentArray.forEach == "function" ){
+                        newAgentArray.forEach(
+                            agent => {
+                                if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                    bExit = true;
+                                }
                             }
-                        }
-                    );
+                        );
+                    }
+                    else{
+                        newAgentArray = [];
+                        bExit = true;
+                    }
                     if (!bExit) {
                         newAgentArray.push(uaObj);
                     }
@@ -1289,13 +1314,19 @@ let dbPartner = {
                         os: userAgent.os.name || '',
                     };
                     let bExit = false;
-                    newAgentArray.forEach(
-                        agent => {
-                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
-                                bExit = true;
+                    if(newAgentArray && typeof newAgentArray.forEach == "function" ){
+                        newAgentArray.forEach(
+                            agent => {
+                                if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                    bExit = true;
+                                }
                             }
-                        }
-                    );
+                        );
+                    }
+                    else{
+                        newAgentArray = [];
+                        bExit = true;
+                    }
                     if (!bExit) {
                         newAgentArray.push(uaObj);
                     }
@@ -1427,10 +1458,14 @@ let dbPartner = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
+                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                        let smsExpiredDate = new Date();
+                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
                         // Check verification SMS match
                         return dbconfig.collection_smsVerificationLog.findOne({
                             platformObjId: partnerObj.platform,
-                            tel: partnerObj.phoneNumber
+                            tel: partnerObj.phoneNumber,
+                            createTime: {$gte: smsExpiredDate}
                         }).sort({createTime: -1}).then(
                             verificationSMS => {
                                 // Check verification SMS code
@@ -1440,15 +1475,17 @@ let dbPartner = {
                                         {_id: verificationSMS._id}
                                     ).then(
                                         () => {
+                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                             return Q.resolve(true);
                                         }
                                     )
                                 }
                                 else {
+                                    let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
                                     return Q.reject({
                                         status: constServerCode.VALIDATION_CODE_INVALID,
                                         name: "ValidationError",
-                                        message: "Invalid SMS Validation Code"
+                                        message: errorMessage
                                     });
                                 }
                             }
@@ -1506,19 +1543,21 @@ let dbPartner = {
         );
     },
 
-    updatePartnerBankInfo: function (partnerId, bankData) {
+    updatePartnerBankInfo: function (userAgent, partnerId, bankData) {
         return dbconfig.collection_partner.findOne({partnerId: partnerId}).then(
             partnerData => {
                 if (partnerData) {
                     if (partnerData.bankName || partnerData.bankAccount || partnerData.bankAccountName || partnerData.bankAccountType || partnerData.bankAccountCity || partnerData.bankAddress) {
                         // bankData.partnerName = partnerData.partnerName;
                         // bankData.parternId = partnerData.partnerId;
+                        let inputDevice = dbutility.getInputDevice(userAgent,true);
                         return dbProposal.createProposalWithTypeNameWithProcessInfo(partnerData.platform, constProposalType.UPDATE_PARTNER_BANK_INFO, {
                             data: {
                                 partnerName: partnerData.partnerName,
                                 parternId: partnerData.partnerId,
                                 updateData: bankData
-                            }
+                            },
+                            inputDeivce: inputDevice
                         });
                     }
                     else {
@@ -1825,10 +1864,10 @@ let dbPartner = {
     /*
      * Apply bonus
      */
-    applyBonus: function (partnerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
+    applyBonus: function (userAgent, partnerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
         let partner = null;
         let bonusDetail = null;
-        let bUpdateCredit = false;
+        let bUpdateCredit = false;;
         let resetCredit = function (partnerObjId, platformObjId, credit, error) {
             //reset partner credit if credit is incorrect
             return dbconfig.collection_partner.findOneAndUpdate({
@@ -2015,6 +2054,7 @@ let dbPartner = {
                                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                     userType: constProposalUserType.PARTNERS,
                                 };
+                                newProposal.inputDevice = dbutility.getInputDevice(userAgent,true);
                                 return dbProposal.createProposalWithTypeName(partner.platform._id, constProposalType.PARTNER_BONUS, newProposal);
                             }
                         }
@@ -4110,6 +4150,18 @@ let dbPartner = {
         return dbconfig.collection_partner.findOne(query).then(
             partnerData => {
                 if (partnerData) {
+                    return {isPhoneNumberValid: false};
+                } else {
+                    return {isPhoneNumberValid: true};
+                }
+            }
+        );
+    },
+
+    isExceedPhoneNumberValidToRegister: function (query, count) {
+        return dbconfig.collection_partner.findOne(query).count().then(
+            partnerDataCount => {
+                if (partnerDataCount > count) {
                     return {isPhoneNumberValid: false};
                 } else {
                     return {isPhoneNumberValid: true};

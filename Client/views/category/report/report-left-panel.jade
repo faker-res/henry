@@ -33,6 +33,8 @@
                                 text {{'PLAYER_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.NEWACCOUNT_REPORT}}" ng-click='vm.loadPage("NEWACCOUNT_REPORT")', ng-if="checkViewPermission('Report', 'General', 'NEWACCOUNT_REPORT')")
                                 text {{'NEWACCOUNT_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.DX_NEWACCOUNT_REPORT}}" ng-click='vm.loadPage("DX_NEWACCOUNT_REPORT")', ng-if="checkViewPermission('Report', 'General', 'DX_NEWACCOUNT_REPORT')")
+                                text {{'DX_NEWACCOUNT_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PLAYERPARTNER_REPORT}}" ng-click='vm.loadPage("PLAYERPARTNER_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYERPARTNER_REPORT')")
                                 text {{'PLAYERPARTNER_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PARTNERPLAYERBOUNS_REPORT}}" ng-click='vm.loadPage("PARTNERPLAYERBOUNS_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PARTNERPLAYERBOUNS_REPORT')")
@@ -43,6 +45,8 @@
                                 text {{'PLAYERDOMAIN_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.WINRATE_REPORT}}" ng-click='vm.loadPage("WINRATE_REPORT")', ng-if="checkViewPermission('Report', 'General', 'WINRATE_REPORT')")
                                 text {{'WINRATE_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.FEEDBACK_REPORT}}" ng-click='vm.loadPage("FEEDBACK_REPORT")', ng-if="checkViewPermission('Report', 'General', 'FEEDBACK_REPORT')")
+                                text {{'FEEDBACK_REPORT' | translate}}
 
             .panel.panel-default
                 .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#reportCategory", href='#rewardReports')
@@ -91,8 +95,10 @@
                                 text {{'PLAYER_ALMOST_LEVELUP_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.ACTIONLOG_REPORT}}" ng-click='vm.loadPage("ACTIONLOG_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'ACTIONLOG_REPORT')")
                                 text {{'ACTIONLOG_REPORT' | translate}}
-                            li.list-group-item(class="{{vm.seleDataType.ONLINE_PAYMENT_MISMATCH_REPORT}}" ng-click='vm.loadPage("ONLINE_PAYMENT_MISMATCH_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'ACTIONLOG_REPORT')")
+                            li.list-group-item(class="{{vm.seleDataType.ONLINE_PAYMENT_MISMATCH_REPORT}}" ng-click='vm.loadPage("ONLINE_PAYMENT_MISMATCH_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'ONLINE_PAYMENT_MISMATCH_REPORT')")
                                 text {{'ONLINE_PAYMENT_MISMATCH_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.LIMITED_OFFER_REPORT}}" ng-click='vm.loadPage("LIMITED_OFFER_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'LIMITED_OFFER_REPORT')")
+                                text {{'LIMITED_OFFER_REPORT' | translate}}
 
 
 

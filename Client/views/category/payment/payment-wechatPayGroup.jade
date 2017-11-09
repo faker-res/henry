@@ -41,13 +41,26 @@
                     label.text-danger {{"NO_WECHATPAY_GROUP_MESSAGE" | translate}}
                 .well
                     .inlineBlk.margin-right-5
-                        .control-label {{"TITLE" | translate}}
-                        input.input-sm.form-control(type='text', ng-model='vm.filterWechatPayTitle')
+                        .control-label {{"Wechat Account" | translate}}
+                        select.input-sm.form-control.merchantNoList(id="selectWechatAccount" ng-model='vm.filterWechatPayAcc', ng-options="a.accountNumber for a in vm.allWechatList", style='max-width:200px', ng-init='vm.filterWechatPayAcc="all"' ng-change='vm.WechatPayAccChanged();',multiple,bsp,rddl)
+                        //select.input-sm.form-control(ng-model='vm.filterWechatPayAcc', style='max-width:200px', ng-init='vm.filterWechatPayAcc="all"' ng-change='vm.WechatPayAccChanged();')
+                        //    option(value='all') {{'any' | translate}}
+                        //    option(ng-repeat='(i,v) in vm.allWechatList', value='{{i}}') {{v.accountNumber | translate}}
                     .inlineBlk.margin-right-5
-                        .control-label {{"ACCOUNT" | translate}}
-                        input.input-sm.form-control(type='text', ng-model='vm.filterWechatPayAcc')
+                        .control-label {{"Wechat Nickname" | translate}}
+                        select.input-sm.form-control.merchantNoList(id="selectWechatNickname" ng-model='vm.filterWechatPayName', ng-options="a.name for a in vm.allWechatList", style='max-width:200px', ng-init='vm.filterWechatPayName="all"' ng-change='vm.WechatPayNameChanged();',multiple,bsp,rddl)
+                        //select.input-sm.form-control(ng-model='vm.filterWechatPayName', style='max-width:200px', ng-init='vm.filterWechatPayName="all"' ng-change='vm.WechatPayNameChanged();')
+                        //    option(value='all') {{'any' | translate}}
+                        //    option(ng-repeat='(i,v) in vm.allWechatList', value='{{i}}') {{v.name | translate}}
+                    //.inlineBlk.margin-right-5
+                    //    .control-label {{"TITLE" | translate}}
+                    //    input.input-sm.form-control(type='text', ng-model='vm.filterWechatPayTitle')
+                    //.inlineBlk.margin-right-5
+                    //    .control-label {{"ACCOUNT" | translate}}
+                    //    input.input-sm.form-control(type='text', ng-model='vm.filterWechatPayAcc')
                     .inlineBlk
-                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.wechatPayGroupClicked(1,vm.SelectedWechatPayGroupNode)") {{"FILTER" | translate}}
+                        //button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.wechatPayGroupClicked(1,vm.SelectedWechatPayGroupNode)") {{"FILTER" | translate}}
+                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.wechatPayFilter(1,vm.SelectedWechatPayGroupNode)") {{"FILTER" | translate}}
                 #WechatPayList.panel-group(ng-if='vm.SelectedWechatPayGroupNode')
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#WechatPayList", href='#includedWechatPays', ng-click='vm.showWechatPayCate="include";vm.toggleBankType()')
@@ -60,19 +73,37 @@
                                 a.platformBankcardDiv(ng-repeat='(i,v) in vm.includedWechatPays', class='{{vm.highlightWechatPay[v.accountNumber]}}', ng-click='vm.wechatPayClicked(i,v,"in")')
                                     table.bg-pale
                                         tr
-                                            td.text-center(rowspan="5")
-                                                i.fa.fa-money.text-danger
-                                            td {{'TITLE' | translate}}
-                                            td.text-success {{v.name}}
+                                            td {{'STATUS' | translate}}
+                                            td(ng-class="{'text-disabled': v.state === 'DISABLED'}").text-success {{v.state| translate}}
                                         tr
-                                            td {{'ACCOUNT' | translate}}
+                                            td {{'Wechat Account' | translate}}
                                             td.text-success {{v.accountNumber}}
                                         tr
-                                            td {{'QUOTA' | translate}}
-                                            td.text-success {{v.quota}}
+                                            td {{'Wechat Name' | translate}}
+                                            td.text-success {{v.name}}
                                         tr
-                                            td {{'STATE' | translate}}
-                                            td.text-success {{v.state | translate}}
+                                            td {{'Wechat Nickname' | translate}}
+                                            td.text-success {{v.nickName}}
+                                        tr
+                                            td {{'SINGLE_LIMIT' | translate}}
+                                            td.text-success {{v.singleLimit}}
+                                        tr
+                                            td {{'DAY_LIMIT' | translate}}
+                                            td.text-success {{v.quota}}
+                                        //tr
+                                        //    td.text-center(rowspan="5")
+                                        //        i.fa.fa-money.text-danger
+                                        //    td {{'TITLE' | translate}}
+                                        //    td.text-success {{v.name}}
+                                        //tr
+                                        //    td {{'ACCOUNT' | translate}}
+                                        //    td.text-success {{v.accountNumber}}
+                                        //tr
+                                        //    td {{'QUOTA' | translate}}
+                                        //    td.text-success {{v.quota}}
+                                        //tr
+                                        //    td {{'STATE' | translate}}
+                                        //    td.text-success {{v.state | translate}}
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#WechatPayList", href='#excludedWechatPays', ng-click='vm.showWechatPayCate="exclude";vm.toggleBankType()')
                             h4.panel-title
@@ -84,19 +115,37 @@
                                 a.platformBankcardDiv(ng-repeat='(i,v) in vm.excludedWechatPays', class='{{vm.highlightWechatPay[v.accountNumber]}}', ng-click='vm.wechatPayClicked(i,v,"ex")')
                                     table.bg-pale
                                         tr
-                                            td.text-center(rowspan="5")
-                                                i.fa.fa-money.text-danger
-                                            td {{'TITLE' | translate}}
-                                            td.text-success {{v.name}}
+                                            td {{'STATUS' | translate}}
+                                            td(ng-class="{'text-disabled': v.state === 'DISABLED'}").text-success {{v.state| translate}}
                                         tr
-                                            td {{'ACCOUNT' | translate}}
+                                            td {{'Wechat Account' | translate}}
                                             td.text-success {{v.accountNumber}}
                                         tr
-                                            td {{'QUOTA' | translate}}
-                                            td.text-success {{v.quota}}
+                                            td {{'Wechat Name' | translate}}
+                                            td.text-success {{v.name}}
                                         tr
-                                            td {{'STATE' | translate}}
-                                            td.text-success {{v.state | translate}}
+                                            td {{'Wechat Nickname' | translate}}
+                                            td.text-success {{v.nickName}}
+                                        tr
+                                            td {{'SINGLE_LIMIT' | translate}}
+                                            td.text-success {{v.singleLimit}}
+                                        tr
+                                            td {{'DAY_LIMIT' | translate}}
+                                            td.text-success {{v.quota}}
+                                        //tr
+                                        //    td.text-center(rowspan="5")
+                                        //        i.fa.fa-money.text-danger
+                                        //    td {{'TITLE' | translate}}
+                                        //    td.text-success {{v.name}}
+                                        //tr
+                                        //    td {{'ACCOUNT' | translate}}
+                                        //    td.text-success {{v.accountNumber}}
+                                        //tr
+                                        //    td {{'QUOTA' | translate}}
+                                        //    td.text-success {{v.quota}}
+                                        //tr
+                                        //    td {{'STATE' | translate}}
+                                        //    td.text-success {{v.state | translate}}
                 .panel.panel-info(ng-if='vm.curWechatPay')
                     .panel-heading.panel-heading-sm
                         h4.panel-title(style='display:inline-block') {{'WechatPay' | translate}} : {{vm.curWechatPay.name}}

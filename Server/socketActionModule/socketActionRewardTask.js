@@ -73,7 +73,8 @@ function socketActionRewardTask(socketIO, socket) {
         applyPreviousConsecutiveLoginReward: function applyPreviousConsecutiveLoginReward(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.code);
-            socketUtil.emitter(self.socket, dbPlayerReward.applyConsecutiveLoginReward, [data.playerId, data.code, getAdminId(), getAdminName(), true], actionName, isValidData);
+            let userAgent = "";
+            socketUtil.emitter(self.socket, dbPlayerReward.applyConsecutiveLoginReward, [userAgent, data.playerId, data.code, getAdminId(), getAdminName(), true], actionName, isValidData);
         },
 
         /**

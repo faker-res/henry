@@ -59,14 +59,18 @@ let RewardServiceImplement = function () {
 
     this.createFirstTopUpRewardProposal.expectsData = 'topUpRecordId: [], code: String';
     this.createFirstTopUpRewardProposal.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        data.userAgent = userAgent;
         var isValidData = Boolean(data && conn.playerId && data.topUpRecordId && data.code);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.applyForFirstTopUpRewardProposal, [null, conn.playerId, data.topUpRecordId, data.code], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.applyForFirstTopUpRewardProposal, [data.userAgent, null, conn.playerId, data.topUpRecordId, data.code], isValidData);
     };
 
     this.applyProviderReward.expectsData = 'code: String, amount: Number|String';
     this.applyProviderReward.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        data.userAgent = userAgent;
         var isValidData = Boolean(data && data.code && conn.playerId && data.amount);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.applyForGameProviderRewardAPI, [conn.playerId, data.code, data.amount], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.applyForGameProviderRewardAPI, [data.userAgent, conn.playerId, data.code, data.amount], isValidData);
     };
 
     this.applyRewardEvent.expectsData = 'code: String';
@@ -74,7 +78,9 @@ let RewardServiceImplement = function () {
         var isValidData = Boolean(data && conn.playerId && data.code);
         data.data = data.data || {};
         data.data.requestId = data.requestId || "";
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyRewardEvent, [conn.playerId, data.code, data.data], isValidData, true, false, false).then(
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        data.userAgent = userAgent;
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyRewardEvent, [data.userAgent, conn.playerId, data.code, data.data], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
@@ -116,22 +122,49 @@ let RewardServiceImplement = function () {
         let isValidData = Boolean(data && data.platformId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getPromoCode, [data.playerId, data.platformId, data.status], isValidData, false, false, true);
     };
-    this.applyPromoCode.expectsData = 'platformObjId: String';
+    this.applyPromoCode.expectsData = 'promoCode: Number|String';
     this.applyPromoCode.onRequest = function(wsFunc, conn, data){
-        let isValidData = Boolean(data && data.playerName && data.promoCode);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyPromoCode, [ObjectId(data.platformObjId), data.playerName, data.promoCode], isValidData, false, false, true);
+        let isValidData = Boolean(data && conn.playerId && data.promoCode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyPromoCode, [conn.playerId, data.promoCode], isValidData, false, false, true);
     };
     this.getLimitedOffers.expectsData = 'platformId: String';
     this.getLimitedOffers.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getLimitedOffers, [data.platformId], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getLimitedOffers, [data.platformId, conn.playerId, data.status], isValidData, false, false, true);
     };
-    this.applyLimitedOffers.expectsData = 'playerName: String, platformId: String, limitedOfferObjId: String';
+    this.applyLimitedOffers.expectsData = 'limitedOfferObjId: String';
     this.applyLimitedOffers.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.platformId && data.playerName && data.limitedOfferObjId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyLimitedOffers, [data.platformId, data.playerName, ObjectId(data.limitedOfferObjId)], isValidData, false, false, true);
+        let isValidData = Boolean(data && data.limitedOfferObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyLimitedOffers, [conn.playerId, ObjectId(data.limitedOfferObjId)], isValidData);
     };
 
+    this.getLimitedOfferBonus.expectsData = 'platformId: String';
+    this.getLimitedOfferBonus.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getLimitedOfferBonus, [data.platformId], isValidData, false, false, true);
+    };
+
+    this.setLimitedOfferShowInfo.expectsData = 'showInfo: Number|String';
+    this.setLimitedOfferShowInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data);
+
+        if (conn.viewInfo) {
+            conn.viewInfo.limitedOfferInfo = data.showInfo;
+        } else {
+            conn.viewInfo = {limitedOfferInfo: data.showInfo};
+        }
+
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setShowInfo, [conn.playerId, "limitedOfferInfo", data.showInfo], isValidData, false, false, true);
+    };
+
+    // to enable or disable showing BonusShowInfo
+    this.setBonusShowInfo.expectsData = 'playerId: String, platformId: String, showInfoState: Number|Boolean';
+    this.setBonusShowInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId);
+
+
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setBonusShowInfo, [data.playerId, data.platformId, data.showInfoState], isValidData, false, false, true);
+    };
 };
 
 

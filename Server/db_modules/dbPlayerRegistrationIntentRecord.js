@@ -9,7 +9,12 @@ let constProposalEntryType = require('../const/constProposalEntryType');
 let constProposalUserType = require('../const/constProposalUserType');
 let constProposalMainType = require('../const/constProposalMainType');
 let constProposalStatus = require('../const/constProposalStatus');
+let queryPhoneLocation = require('query-mobile-phone-area');
+const request = require('request');
+var geoip = require('geoip-lite');
 let Q = require("q");
+
+let ObjectId = mongoose.Types.ObjectId;
 
 var dbPlayerRegistrationIntentRecord = {
 
@@ -52,11 +57,37 @@ var dbPlayerRegistrationIntentRecord = {
             entryType: data.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
             userType: data.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
         };
+
+        //data.ipArea = geoip('210.21.84.23');
         if( data.phoneNumber ){
+            var queryRes = queryPhoneLocation(data.phoneNumber);
+            if (queryRes) {
+                data.phoneProvince = queryRes.province;
+                data.phoneCity = queryRes.city;
+                data.phoneType = queryRes.type;
+            }
             dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status);
         }
-        var newRecord = new dbconfig.collection_playerRegistrationIntentRecord(data);
-        return newRecord.save();
+
+        if(typeof(data.platform) != 'object'){
+            data.platform = ObjectId(data.platform);
+        }
+
+        let newIntentData = {
+            status: status,
+            data: data
+        };
+        dbUtil.getGeoIp(data.lastLoginIp).then(
+            ipData=>{
+                if(data){
+                    data.ipArea = ipData;
+                }else{
+                    data.ipArea = {'province':'', 'city':''};
+                }
+                var newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+                return newRecord.save();
+            }
+        )
     },
 
     createPlayerRegistrationIntentionProposal: (platform, data, status) => {
@@ -73,7 +104,7 @@ var dbPlayerRegistrationIntentRecord = {
                                 if(proposalData.status != constProposalStatus.SUCCESS){
                                     dbconfig.collection_proposal.findOneAndUpdate(
                                         {_id: proposalData._id, createTime: proposalData.createTime},
-                                        {status: status, "data.realName": data.data.realName}
+                                        {status: status, "data.realName": data.data.realName,"data.playerId": data.data.playerId}
                                     ).then();
                                 }
                             }

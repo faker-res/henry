@@ -130,7 +130,8 @@ var dbPlayerConsumptionRecord = {
             createTime: {
                 $gte: startTime,
                 $lt: endTime
-            }
+            },
+            isDuplicate: {$ne: true}
         };
         if (providerObjId) {
             matchObj.providerId = providerObjId
@@ -163,6 +164,73 @@ var dbPlayerConsumptionRecord = {
         return Q.all([a, b, c]).then(result => {
             return {data: result[0], count: result[1], summary: result[2] ? result[2][0] : {}}
         })
+    },
+    getConsumptionRecordByGameProvider: function (data, platformId, providerObjId, playerName, index, limit, sortCol) {
+        var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
+        var endTime = data.endTime ? new Date(data.endTime) : new Date();
+        index = index || 0;
+        limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
+        sortCol = sortCol || {createTime: -1};
+
+        var matchObj = {
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
+            },
+            isDuplicate: {$ne: true}
+        };
+        if (providerObjId) {
+            matchObj.providerId = providerObjId;
+        }
+        if (platformId) {
+            matchObj.platformId = platformId;
+        }
+
+        let playerProm;
+
+        if (playerName) {
+            playerProm = dbconfig.collection_players.findOne({name: playerName}, {_id: 1}).lean();
+        }
+        else {
+            playerProm = Promise.resolve('noData');
+        }
+
+        return playerProm.then(
+            playerData => {
+                if (playerData !== 'noData') {
+                    if(playerData){
+                        matchObj.playerId = playerData._id;
+                    }
+                    else {
+                        return Promise.all([[], 0, []]);
+                    }
+                }
+
+                var a = dbconfig.collection_playerConsumptionRecord.find(matchObj)
+                    .populate({path: "playerId", model: dbconfig.collection_players})
+                    .populate({path: "gameId", model: dbconfig.collection_game})
+                    .populate({path: "platformId", model: dbconfig.collection_platform})
+                    .populate({path: "providerId", model: dbconfig.collection_gameProvider})
+                    .sort(sortCol).skip(index).limit(limit);
+
+                var b = dbconfig.collection_playerConsumptionRecord.find(matchObj).count();
+                var c = dbconfig.collection_playerConsumptionRecord.aggregate({
+                        $match: matchObj
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            validAmountAll: {$sum: "$validAmount"},
+                            amountAll: {$sum: "$amount"},
+                            bonusAmountAll: {$sum: "$bonusAmount"},
+                            commissionAmountAll: {$sum: "$commissionAmount"},
+                        }
+                    });
+                return Q.all([a, b, c]);
+            }
+        ).then(result => {
+            return {data: result[0], count: result[1], summary: result[2] ? result[2][0] : {}}
+        });
     },
     /**
      * Upsert without shardkey
@@ -432,6 +500,105 @@ var dbPlayerConsumptionRecord = {
         return deferred.promise;
     },
 
+    /**
+     * TODO:: WORK IN PROGRESS
+     * @param data
+     */
+    createPlayerConsumptionRecordForProviderGroup: function (data) {
+        let record = null;
+        let newRecord = new dbconfig.collection_playerConsumptionRecord(data);
+
+        return newRecord.save().then(
+            res => {
+                record = res;
+
+                if (record) {
+                    // check player's on-going reward task group
+                    return dbRewardTask.checkPlayerRewardTaskGroupForConsumption(record);
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Error creating consumption record", error: error});
+                }
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error creating consumption record", error: error});
+            }
+        ).then(
+            checkRes => {
+                if (checkRes && !checkRes.bDirty) {
+                    // Update consumption summary record (XIMA purpose)
+                    let recordDateNoon = new Date(moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate().getTime() + 12 * 60 * 60 * 1000);
+                    let summaryDay = recordDateNoon;
+                    let consumptionAmount = record.validAmount ? record.validAmount : record.amount;
+
+                    if (record.createTime.getTime() < recordDateNoon.getTime()) {
+                        summaryDay = new Date(recordDateNoon.getTime() - 24 * 60 * 60 * 1000);
+                    }
+                    let query = {
+                        playerId: record.playerId,
+                        platformId: record.platformId,
+                        gameType: record.gameType,
+                        summaryDay: summaryDay,
+                        bDirty: false
+                    };
+
+                    // Handle left over amount from partial XIMA
+                    if (checkRes && checkRes.nonDirtyAmount > 0) {
+                        consumptionAmount = checkRes.nonDirtyAmount;
+                    }
+
+                    let updateData = {
+                        $inc: {amount: consumptionAmount, validAmount: consumptionAmount}
+                    };
+                    return dbPlayerConsumptionRecord.upsert(query, updateData);
+                }
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error checking player reward task group", error: error});
+            }
+        ).then(
+            () => {
+                // Update player consumption sum
+                return dbconfig.collection_players.findOneAndUpdate(
+                    {_id: record.playerId, platform: record.platformId},
+                    {
+                        $inc: {
+                            consumptionSum: record.validAmount,
+                            dailyConsumptionSum: record.validAmount,
+                            weeklyConsumptionSum: record.validAmount,
+                            pastMonthConsumptionSum: record.validAmount,
+                            consumptionTimes: 1
+                        }
+                    }
+                ).exec();
+            },
+            error => {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Error in upserting consumption summary record",
+                    error: error
+                });
+            }
+        ).then(
+            () => {
+                // Check auto player level up
+                return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId);
+            },
+            error => {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Error in updating player consumption sum",
+                    error: error
+                });
+            }
+        ).then(
+            data => data,
+            error => {
+                return Q.reject({name: "DBError", message: "Error in checking player level", error: error});
+            }
+        );
+    },
+
     addMissingConsumption: function (recordData, resolveError) {
         return dbconfig.collection_playerConsumptionRecord.findOne({orderNo: recordData.orderNo}).lean().then(
             record => {
@@ -457,9 +624,14 @@ var dbPlayerConsumptionRecord = {
     createExternalPlayerConsumptionRecord: function (recordData, resolveError) {
         let verifiedData = null;
         let providerId = recordData.providerId;
+        let isProviderGroup = false;
+
         return dbconfig.collection_platform.findOne({platformId: recordData.platformId}).then(
             platformData => {
                 if (platformData) {
+                    // Check useProviderGroup flag
+                    isProviderGroup = Boolean(platformData.useProviderGroup);
+
                     var prom1 = dbconfig.collection_players.findOne({
                         name: recordData.userName,
                         platform: platformData._id
@@ -534,7 +706,12 @@ var dbPlayerConsumptionRecord = {
                     recordData.providerId = data[2]._id;
 
                     delete recordData.name;
-                    return dbPlayerConsumptionRecord.createPlayerConsumptionRecord(recordData);
+
+                    if (isProviderGroup) {
+                        return dbPlayerConsumptionRecord.createPlayerConsumptionRecordForProviderGroup(recordData);
+                    } else {
+                        return dbPlayerConsumptionRecord.createPlayerConsumptionRecord(recordData);
+                    }
                 } else {
                     const missingList = [];
                     if (verifiedData && !verifiedData[0]) {
@@ -1603,6 +1780,46 @@ var dbPlayerConsumptionRecord = {
                 data: result
             }
         })
+    },
+    getProviderLatestTimeRecord: function(providerId,platformObjId) {
+        let platform;
+
+        let gameProviderProm = dbconfig.collection_gameProvider.findOne({providerId: providerId}).lean();
+        let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+
+        return Promise.all([gameProviderProm, platformProm]).then(
+            data => {
+                let gameProviderData = data[0];
+                platform = data[1];
+                return dbconfig.collection_playerConsumptionRecord.findOne({providerId: gameProviderData._id}).sort({createTime: -1}).limit(1).lean();
+            }
+        ).then(
+            lastestConsumptionRecord => {
+                if (!lastestConsumptionRecord) return
+
+                var currentDate = new Date();
+                var latestCreateTime = new Date(lastestConsumptionRecord.createTime);
+                var difference = currentDate - latestCreateTime ;
+                var resultInMinutes = Math.round(difference / 60000);
+                var recordStatus = {createTime: latestCreateTime, delayStatusColor:"rgb(255,255,255)" };
+
+                if(platform){
+                    let consumptionTimeConfig = platform.consumptionTimeConfig;
+                    if(consumptionTimeConfig && consumptionTimeConfig.length > 0){
+                        consumptionTimeConfig = consumptionTimeConfig.sort(function(configA, configB){
+                            return configA.duration - configB.duration;
+                        });
+
+                        for(let i =0; i < consumptionTimeConfig.length; i ++) {
+                            recordStatus.delayStatusColor = consumptionTimeConfig[i].color;
+                            if (resultInMinutes <= consumptionTimeConfig[i].duration) break;
+                        }
+                    }
+                }
+
+                return recordStatus;
+            }
+        );
     },
     getConsumptionTotalAmountForProvider: function (startTime, endTime, providerId) {
         const matchObj = {

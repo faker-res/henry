@@ -347,7 +347,8 @@ function socketActionPartner(socketIO, socket) {
         applyPartnerBonusRequest: function applyPartnerBonusRequest(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.partnerId && data.bonusId && data.amount);
-            socketUtil.emitter(self.socket, dbPartner.applyBonus, [data.partnerId, data.bonusId, data.amount, data.honoreeDetail, data.bForce, {
+            let userAgent = '';
+            socketUtil.emitter(self.socket, dbPartner.applyBonus, [userAgent, data.partnerId, data.bonusId, data.amount, data.honoreeDetail, data.bForce, {
                 type: "admin",
                 name: getAdminName(),
                 id: getAdminId()

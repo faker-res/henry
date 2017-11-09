@@ -12,6 +12,7 @@ let dbUtility = require('./../modules/dbutility');
 let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbPartner = require('./../db_modules/dbPartner');
 let dbProposal = require('./../db_modules/dbProposal');
+let dbLogger = require('./../modules/dbLogger');
 
 let dbPlayerPartner = {
     createPlayerPartnerAPI: registerData => {
@@ -59,9 +60,13 @@ let dbPlayerPartner = {
                         return Promise.all([plyProm, partnerProm]);
                     }
                     else {
+                        platformObj.smsVerificationExpireTime = platformObj.smsVerificationExpireTime || 1440;
+                        let smsExpiredDate = new Date();
+                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformObj.smsVerificationExpireTime);
                         let smsProm = dbConfig.collection_smsVerificationLog.findOne({
                             platformId: registerData.platformId,
-                            tel: registerData.phoneNumber
+                            tel: registerData.phoneNumber,
+                            createTime: {$gte: smsExpiredDate}
                         }).sort({createTime: -1});
 
                         return smsProm.then(
@@ -75,6 +80,7 @@ let dbPlayerPartner = {
                                         retData => {
                                             let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData, true);
                                             let partnerProm = dbPartner.createPartnerAPI(pRegisterData);
+                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
 
                                             return Promise.all([plyProm, partnerProm]);
                                         }
@@ -196,6 +202,7 @@ let dbPlayerPartner = {
                             {_id: verificationSMS._id}
                         ).then(
                             data => {
+                                dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                 isSMSVerified = true;
                                 let plyProm = dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
                                 let partnerProm = dbPartner.partnerLoginWithSMSAPI(loginData, ua, isSMSVerified);
@@ -317,18 +324,22 @@ let dbPlayerPartner = {
      * @param smsCode
      * @param targetType - 0: Player, 1: Partner, 2: Player Partner
      */
-    updatePhoneNumberWithSMS: function (platformId, userId, newPhoneNumber, smsCode, targetType) {
+    updatePhoneNumberWithSMS: function (userAgent, platformId, userId, newPhoneNumber, smsCode, targetType) {
         let platformObjId = null;
         let curPhoneNumber = null;
         let newEncrpytedPhoneNumber = null;
         let playerData = null;
         let partnerData = null;
+        let platform;
+        let verificationSmsDetail;
+        let smsLogDetail;
 
         // 1. Get current platform detail
         return dbConfig.collection_platform.findOne({
             platformId: platformId,
         }).then(
             platformData => {
+                platform = platformData;
                 platformObjId = platformData._id;
                 if (platformData) {
                     // 2. Get current player and/or partner info
@@ -412,12 +423,17 @@ let dbPlayerPartner = {
         ).then(
             playerData => {
                 if (!playerData || (!playerData[0] && !playerData[1])) {
+                    platform.smsVerificationExpireTime = platform.smsVerificationExpireTime || 1440;
+                    let smsExpiredDate = new Date();
+                    smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platform.smsVerificationExpireTime);
                     // 4. Check if smsCode is matched
                     return dbConfig.collection_smsVerificationLog.findOne({
                         platformObjId: platformObjId,
-                        tel: curPhoneNumber
+                        tel: curPhoneNumber,
+                        createTime: {$gte: smsExpiredDate}
                     }).sort({createTime: -1}).then(
                         verificationSMS => {
+                            verificationSmsDetail = verificationSMS;
                             // Check verification SMS code
                             if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
                                 verificationSMS = verificationSMS || {};
@@ -425,6 +441,8 @@ let dbPlayerPartner = {
                                     {_id: verificationSMS._id}
                                 ).then(
                                     () => {
+                                        smsLogDetail = {tel: verificationSMS.tel, message: verificationSMS.code}
+                                        dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                         return Q.resolve(true);
                                     }
                                 )
@@ -480,8 +498,10 @@ let dbPlayerPartner = {
                 // data.data.updateData && data.data.updateData.phoneNumber
                 let player, partner, playerUpdateData, partnerUpdateData;
                 let updatePhoneNumber = dbUtility.encodePhoneNum(newPhoneNumber);
+                let inputDevice = 0;
                 switch (targetType) {
                     case 0:
+                        inputDevice = dbUtility.getInputDevice(userAgent,false);
                         player = result;
                         playerUpdateData = {
                             isPlayerInit: true,
@@ -493,9 +513,10 @@ let dbPlayerPartner = {
 
                         };
                         // result.isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData});
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData, inputDevice: inputDevice}, smsLogDetail);
                         break;
                     case 1:
+                        inputDevice = dbUtility.getInputDevice(userAgent,true);
                         partner = result;
                         partnerUpdateData = {
                             isPlayerInit: true,
@@ -507,9 +528,11 @@ let dbPlayerPartner = {
 
                         };
                         // result.isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData});
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevice});
                         break;
                     case 2:
+                        let inputDevicePlayer = dbUtility.getInputDevice(userAgent,false);
+                        let inputDevicePartner = dbUtility.getInputDevice(userAgent,true);
                         player = result[0];
                         playerUpdateData = {
                             isPlayerInit: true,
@@ -532,8 +555,8 @@ let dbPlayerPartner = {
                         };
                         // result[0].isPlayerInit = true;
                         // result[1].isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData});
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData});
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData, inputDevice: inputDevicePlayer});
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevicePartner});
                         break;
                 }
 
@@ -625,10 +648,14 @@ let dbPlayerPartner = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
+                        platform.smsVerificationExpireTime = platform.smsVerificationExpireTime || 1440;
+                        let smsExpiredDate = new Date();
+                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
                         // Check verification SMS match
                         return dbConfig.collection_smsVerificationLog.findOne({
                             platformObjId: playerObj.platform,
-                            tel: playerObj.phoneNumber
+                            tel: playerObj.phoneNumber,
+                            createTime: {$gte: smsExpiredDate}
                         }).sort({createTime: -1}).then(
                             verificationSMS => {
                                 // Check verification SMS code
@@ -638,6 +665,7 @@ let dbPlayerPartner = {
                                         {_id: verificationSMS._id}
                                     ).then(
                                         () => {
+                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                             return Q.resolve(true);
                                         }
                                     )

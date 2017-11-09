@@ -434,10 +434,17 @@ define([], function () {
             $(tableId).append($tfoot);
             option.footerCallback = function (row, data, start, end, display) {
                 var api = this.api();
+
+                // Special variable for dxNewPlayerReport
+                let totalWinLoss = 0;
+                let totalConsumption = 0;
+                //special variable for playerReport
+                let consumptionBonusAmount = 0;
+                let validConsumptionAmount = 0;
+
                 api.columns().every(function (i, v) {
                     var classes = (this.nodes() && this.nodes()[0]) ? this.nodes()[0].className : '';
                     var htmlStr = null;
-
                     var totalValue = null, pageValue = null;
                     if (classes.indexOf('sumFloat') > -1) {
                         if (sumData && sumData[i]) {
@@ -453,6 +460,31 @@ define([], function () {
                         totalValue = getFloat(totalValue).toFixed(2);
                         pageValue = getFloat(pageValue).toFixed(2);
                         htmlStr = gethtmlStr(pageValue, totalValue);
+
+                        // Special handling for dxNewPlayerReport
+                        if (i == 16) {
+                            totalConsumption = pageValue;
+                        } else if (i == 17) {
+                            totalWinLoss = pageValue;
+                        }
+                        //special handling for player report
+                        if (i == 15) {
+                            validConsumptionAmount = pageValue;
+                        } else if (i == 16) {
+                            consumptionBonusAmount = pageValue;
+                        }
+                    }else if (classes.indexOf('playerReportProfit') > -1) {
+                        if (sumData && sumData[i]) {
+                            totalValue = sumData[i]
+                        } else {
+                            totalValue = api.column(i).data().reduce(function (a, b) {
+                                return getFloat(a) + getFloat(b);
+                            })
+                        }
+                        pageValue = (-consumptionBonusAmount) / validConsumptionAmount * 100;
+                        totalValue = getFloat(totalValue).toFixed(2);
+                        pageValue = getFloat(pageValue).toFixed(2);
+                        htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
                     } else if (classes.indexOf('sumInt') > -1) {
                         if (sumData && sumData[i]) {
                             totalValue = sumData[i]
@@ -467,6 +499,12 @@ define([], function () {
                         htmlStr = gethtmlStr(pageValue, totalValue);
                     } else if (classes.indexOf('sumText') > -1) {
                         htmlStr = gethtmlStr($trans('Page Total'), $trans('All Pages'));
+                    } else if (classes.indexOf('sumProfit') > -1) {
+                        totalValue = (-totalWinLoss) / totalConsumption * 100;
+                        totalValue = getFloat(totalValue).toFixed(2);
+                        totalValue = "".concat(totalValue, "%");
+                        pageValue = totalValue;
+                        htmlStr = gethtmlStr(pageValue, totalValue);
                     } else {
                         $(this.footer()).html('');
                         return true;
@@ -493,7 +531,7 @@ define([], function () {
                 curPage: 1,
                 maxPage: 0,
                 pageSize: (tblObj && tblObj.pageSize) ? tblObj.pageSize : 10
-            }
+            };
             $(id).append(newPage.prop('innerHTML'));
             $(id).find(".jumpText").text(trans("Jump to"));
             $(id).find(".first_page").text(1).hide();
@@ -567,7 +605,7 @@ define([], function () {
                 //     $(id).find('.pageSize').val(retObj.pageSize);
                 //     retObj.jump();
                 // });
-            }
+            };
             retObj.updateCurPage = function (event) {
                 var className = event.target.className;
                 if (className.indexOf('jumpPage') > -1) return;
@@ -591,7 +629,7 @@ define([], function () {
                     retObj.curPage = retObj.maxPage
                 }
                 funcName.call(this, retObj.curPage, retObj.pageSize);
-            }
+            };
             retObj.jump = function () {
                 if (retObj.curPage < 1) {
                     retObj.curPage = 1;
@@ -599,14 +637,14 @@ define([], function () {
                     retObj.curPage = retObj.maxPage
                 }
                 funcName.call(this, retObj.curPage, retObj.pageSize);
-            }
+            };
             return retObj;
-        }
+        };
         this.format2 = function (number) {
             if (parseFloat(number) !== NaN) {
                 return parseFloat(number).toFixed(2);
             } else return number;
-        }
+        };
         this.fitText = function (ele) {
             var $ele = $(ele) ? $($(ele).first()[0]) : null;
             if (!$ele) {
@@ -627,33 +665,28 @@ define([], function () {
                 $ele.css("font-size", fontSize + "px");
             }
             return $ele;
-        }
-        this.getProposalGroupValue = function (proposalType) {
+        };
+
+        this.getProposalGroupValue = function (proposalType, performTranslation) {
+            let groupName = "";
+            performTranslation = performTranslation === false ? false : true;
             switch (proposalType.name) {
-                case "UpdatePlayerInfo":
-                case "UpdatePlayerCredit":
-                case "FixPlayerCreditTransfer":
-                case "UpdatePlayerEmail":
-                case "UpdatePlayerQQ":
-                case "UpdatePlayerPhone":
-                case "UpdatePlayerBankInfo":
-                case "AddPlayerRewardTask":
-                case "UpdatePartnerBankInfo":
-                case "UpdatePartnerPhone":
-                case "UpdatePartnerEmail":
-                case "UpdatePartnerInfo":
-                case "UpdatePartnerCredit":
-                    return $trans("Player Proposal");
+                case "PlayerQuickpayTopUp":
+                    groupName = "omit";
+                    break;
                 case "ManualPlayerTopUp":
                 case "PlayerAlipayTopUp":
                 case "PlayerTopUp":
                 case "PlayerWechatTopUp":
-                case "PlayerQuickpayTopUp":
-                    return $trans("Topup Proposal");
+                    groupName = "Topup Proposal";
+                    break;
                 case "PlayerBonus":
                 case "PartnerBonus":
-                    return $trans("Bonus Proposal");
+                    groupName = "Bonus Proposal";
+                    break;
+                case "AddPlayerRewardTask":
                 case "PlayerLevelUp":
+                case "PlayerPromoCodeReward":
                 case "PlatformTransactionReward":
                 case "PlayerTopUpReturn":
                 case "PlayerConsumptionIncentive":
@@ -674,13 +707,91 @@ define([], function () {
                 case "PlayerTopUpPromo":
                 case "PlayerPacketRainReward":
                 case "PlayerConsecutiveConsumptionReward":
-                    return $trans("Reward Proposal");
-                case "PlayerConsumptionReturnFix":
-                    return $trans("ReturnFix Proposal");
+                    groupName = "Reward Proposal";
+                    break;
+                case "UpdatePlayerInfo":
+                case "UpdatePlayerBankInfo":
+                case "UpdatePlayerEmail":
+                case "UpdatePlayerPhone":
+                case "UpdatePlayerQQ":
+                case "UpdatePlayerWeChat":
+                    groupName = "PLAYER_INFORMATION";
+                    break;
+                case "UpdatePartnerInfo":
+                case "UpdatePartnerBankInfo":
+                case "UpdatePartnerEmail":
+                case "UpdatePartnerPhone":
+                case "UpdatePartnerQQ":
+                case "UpdatePartnerWeChat":
+                    groupName = "PARTNER_INFORMATION";
+                    break;
+                case "UpdatePlayerCredit":
+                case "FixPlayerCreditTransfer":
+                case "UpdatePartnerCredit":
+                case "ManualUnlockPlayerReward":
+                case "PlayerLevelMigration":
+                case "PlayerRegistrationIntention":
+                case "PlayerLimitedOfferIntention":
                 default:
-                    return $trans("Others");
+                    groupName = "Others";
+                    break;
             }
-        }
+            return (performTranslation) ? $trans(groupName) : groupName;
+        };
+
+        // this.getProposalGroupValue = function (proposalType) {
+        //     switch (proposalType.name) {
+        //         case "UpdatePlayerInfo":
+        //         case "UpdatePlayerCredit":
+        //         case "FixPlayerCreditTransfer":
+        //         case "UpdatePlayerEmail":
+        //         case "UpdatePlayerQQ":
+        //         case "UpdatePlayerPhone":
+        //         case "UpdatePlayerBankInfo":
+        //         case "AddPlayerRewardTask":
+        //         case "UpdatePartnerBankInfo":
+        //         case "UpdatePartnerPhone":
+        //         case "UpdatePartnerEmail":
+        //         case "UpdatePartnerInfo":
+        //         case "UpdatePartnerCredit":
+        //             return $trans("Player Proposal");
+        //         case "ManualPlayerTopUp":
+        //         case "PlayerAlipayTopUp":
+        //         case "PlayerTopUp":
+        //         case "PlayerWechatTopUp":
+        //         case "PlayerQuickpayTopUp":
+        //             return $trans("Topup Proposal");
+        //         case "PlayerBonus":
+        //         case "PartnerBonus":
+        //             return $trans("Bonus Proposal");
+        //         case "PlayerLevelUp":
+        //         case "PlatformTransactionReward":
+        //         case "PlayerTopUpReturn":
+        //         case "PlayerConsumptionIncentive":
+        //         case "PartnerTopUpReturn":
+        //         case "PlayerTopUpReward":
+        //         case "PlayerReferralReward":
+        //         case "PlayerConsumptionReturn":
+        //         case "FirstTopUp":
+        //         case "PlayerRegistrationReward":
+        //         case "FullAttendance":
+        //         case "PartnerConsumptionReturn":
+        //         case "PartnerIncentiveReward":
+        //         case "PartnerReferralReward":
+        //         case "GameProviderReward":
+        //         case "PlayerDoubleTopUpReward":
+        //         case "PlayerConsecutiveLoginReward":
+        //         case "PlayerEasterEggReward":
+        //         case "PlayerTopUpPromo":
+        //         case "PlayerPacketRainReward":
+        //         case "PlayerConsecutiveConsumptionReward":
+        //             return $trans("Reward Proposal");
+        //         case "PlayerConsumptionReturnFix":
+        //             return $trans("ReturnFix Proposal");
+        //         default:
+        //             return $trans("Others");
+        //     }
+        // }
     };
 
 

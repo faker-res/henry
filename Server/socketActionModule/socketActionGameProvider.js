@@ -105,6 +105,14 @@ function socketActionGame(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getPagedGameProviderConsumptionRecord, argArr, actionName, isValidData);
         },
 
+        getConsumptionRecordByGameProvider: function getConsumptionRecordByGameProvider(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.providerObjId);
+
+            var argArr = [data, ObjectId(data.platformId), data.providerObjId && data.providerObjId != 'all' ? ObjectId(data.providerObjId) : null, data.playerName, data.index, data.limit, data.sortCol];
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getConsumptionRecordByGameProvider, argArr, actionName, isValidData);
+        },
+
         /**
          * Get all game status
          */
@@ -149,7 +157,16 @@ function socketActionGame(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.providerIds);
             socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getConsumptionIntervalByProvider, [data.providerIds], actionName, isValidData);
-        }
+        },
+
+        /**
+         * Get latest time record of provider
+         * @param {json} data - It has to contain platformId
+         */
+        getProviderLatestTimeRecord: function getProviderLatestTimeRecord(data) {
+            let actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getProviderLatestTimeRecord, [data.providerId,data.platformObjId], actionName);
+        },
     };
     socketActionGame.actions = this.actions;
 };
