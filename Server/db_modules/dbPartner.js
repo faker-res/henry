@@ -62,7 +62,7 @@ let dbPartner = {
                                 return dbPartner.isExceedPhoneNumberValidToRegister({
                                     phoneNumber: partnerData.phoneNumber,
                                     platform: partnerData.platform
-                                }, platformData.samePhoneNumberRegisterCount).then (
+                                }, platformData.samePhoneNumberRegisterCount).then(
                                     function (isValid) {
                                         if (isValid.isPhoneNumberValid) {
                                             if (partnerData.parent) {
@@ -1481,7 +1481,7 @@ let dbPartner = {
                                     )
                                 }
                                 else {
-                                    let errorMessage = verificationSMS ? "Invalid SMS Validation Code" : "Incorrect SMS Validation Code";
+                                    let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
                                     return Q.reject({
                                         status: constServerCode.VALIDATION_CODE_INVALID,
                                         name: "ValidationError",

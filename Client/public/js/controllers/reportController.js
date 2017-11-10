@@ -1778,19 +1778,17 @@ define(['js/app'], function (myApp) {
                 $('#topupTableSpin').hide();
                 console.log('topup', data);
                 vm.queryTopup.totalCount = data.data.size;
-
                 vm.drawTopupReport(
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.status$ = $translate(item.status);
                         item.merchantName = vm.getMerchantName(item.data.merchantNo);
-                        item.merchantNo$ = item.data.merchantNo != null
-                            ? item.data.merchantNo
-                            : item.data.wechatAccount != null
-                            ? item.data.wechatAccount
+                        item.merchantNo$ = item.data.merchantNo != null ? item.data.merchantNo
+                            : item.data.bankCardNo != null ? item.data.bankCardNo
+                                : item.data.wechatAccount != null ? item.data.wechatAccount
                             : item.data.weChatAccount != null ? item.data.weChatAccount
-                            : item.data.alipayAccount != null
-                            ? item.data.alipayAccount
+                                        : item.data.alipayAccount != null ? item.data.alipayAccount
+                                            : item.data.accountNo != null ? item.data.accountNo
                             : null;
                             item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                             item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
@@ -2646,7 +2644,7 @@ define(['js/app'], function (myApp) {
             let admins = [];
             let csPromoteWay = [];
 
-            if(vm.playerDomain){
+            if (vm.playerDomain) {
                 if (vm.playerDomain.departments) {
                     if (vm.playerDomain.roles) {
                         vm.pdQueryRoles.map(e => {

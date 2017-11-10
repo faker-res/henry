@@ -1485,7 +1485,7 @@ var dbPlatform = {
         //console.log("query:", query);
         var a = dbconfig.collection_smsLog.find(query).sort(sortCol).skip(index).limit(limit);
         var b = dbconfig.collection_smsLog.find(query).count();
-        let platformProm = dbconfig.collection_platform.findOne({_id: data.platformObjId}, {smsVerificationExpireTime:1}).lean();
+        let platformProm = dbconfig.collection_platform.findOne({_id: data.platformObjId}, {smsVerificationExpireTime: 1}).lean();
         return Q.all([a, b, platformProm]).then(
             result => {
                 smsLogCount = result[1];
@@ -1515,7 +1515,7 @@ var dbPlatform = {
     },
     getSMSRepeatCount: (smsLogs, smsVerificationExpireTime) => {
         let smsVerificationExpireDate = new Date();
-        smsVerificationExpireDate = smsVerificationExpireDate.setMinutes(smsVerificationExpireDate.getMinutes()-smsVerificationExpireTime);
+        smsVerificationExpireDate = smsVerificationExpireDate.setMinutes(smsVerificationExpireDate.getMinutes() - smsVerificationExpireTime);
 
         if (!(smsLogs && smsLogs.length)) return [];
 
@@ -1533,11 +1533,21 @@ var dbPlatform = {
             let purpose = log.purpose;
             let isUsed = log.used;
 
-            let lastUsedProm = dbconfig.collection_smsLog.find({tel, purpose, used: true, createTime: {$lt: log.createTime}}, {createTime: 1}).sort({createTime: -1}).limit(1).lean();
+            let lastUsedProm = dbconfig.collection_smsLog.find({
+                tel,
+                purpose,
+                used: true,
+                createTime: {$lt: log.createTime}
+            }, {createTime: 1}).sort({createTime: -1}).limit(1).lean();
             let nextUsedProm = Promise.resolve(log);
 
             if (!isUsed) {
-                nextUsedProm = dbconfig.collection_smsLog.find({tel, purpose, used: true, createTime: {$gt: log.createTime}}, {createTime: 1}).sort({createTime: 1}).limit(1).lean();
+                nextUsedProm = dbconfig.collection_smsLog.find({
+                    tel,
+                    purpose,
+                    used: true,
+                    createTime: {$gt: log.createTime}
+                }, {createTime: 1}).sort({createTime: 1}).limit(1).lean();
             }
 
             return Promise.all([lastUsedProm, nextUsedProm]).then(
@@ -1577,7 +1587,10 @@ var dbPlatform = {
                     else if (nextUsedTime || log.createTime < smsVerificationExpireDate)
                         nextSMSCountProm = Promise.resolve(1);
                     else
-                        nextSMSCountProm = dbconfig.collection_smsLog.find({tel, createTime: {$gt: log.createTime}}).limit(1).count(true);
+                        nextSMSCountProm = dbconfig.collection_smsLog.find({
+                            tel,
+                            createTime: {$gt: log.createTime}
+                        }).limit(1).count(true);
 
                     return Promise.all([currentCountProm, totalCountProm, nextSMSCountProm]);
                 }

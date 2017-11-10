@@ -267,7 +267,12 @@ var dbLogger = {
 
     // this actually create all the validation sms log instead of just for registration
     createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, purpose, inputDevice, status, error) {
-        if (Object.values(constSMSPurpose).indexOf(purpose) === -1) {
+        let smsPurposes = Object.keys(constSMSPurpose).map(function (key) {
+            return constSMSPurpose[key];
+        });
+
+        // if (Object.values(constSMSPurpose).indexOf(purpose) === -1) {
+        if (smsPurposes.indexOf(purpose) === -1) {
             purpose = constSMSPurpose.UNKNOWN;
         }
 
@@ -308,7 +313,7 @@ var dbLogger = {
     },
 
     logUsedVerificationSMS: (tel, message) => {
-        dbconfig.collection_smsLog.find({tel, message}).sort({createTime:-1}).limit(1).lean().exec().then(
+        dbconfig.collection_smsLog.find({tel, message}).sort({createTime: -1}).limit(1).lean().exec().then(
             smsLogArr => {
                 if (smsLogArr && smsLogArr[0]) {
                     let smsLog = smsLogArr[0];
@@ -320,7 +325,7 @@ var dbLogger = {
     },
 
     updateSmsLogProposalId: (tel, message, proposalId) => {
-        dbconfig.collection_smsLog.find({tel, message}).sort({createTime:-1}).limit(1).lean().exec().then(
+        dbconfig.collection_smsLog.find({tel, message}).sort({createTime: -1}).limit(1).lean().exec().then(
             smsLogArr => {
                 if (smsLogArr && smsLogArr[0]) {
                     let smsLog = smsLogArr[0];
