@@ -78,7 +78,8 @@
                 "readMail",
                 "getUnreadMail",
                 "deleteAllMail",
-                "deleteMail"
+                "deleteMail",
+                "manualPlayerLevelUp"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -258,7 +259,8 @@
                 "getLimitedOffers",
                 "applyLimitedOffers",
                 "getLimitedOfferBonus",
-                "setLimitedOfferShowInfo"
+                "setLimitedOfferShowInfo",
+                "setBonusShowInfo"
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

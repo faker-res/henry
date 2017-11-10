@@ -964,7 +964,7 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileTXT, [data.filterAllPlatform, data.platformObjId, data.arrayPhoneTXT], actionName, isValidData);
         },
 
-        uploadPhoneFileXLS: function uploadPhoneFileXLS(data){
+        uploadPhoneFileXLS: function uploadPhoneFileXLS(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && typeof(data.filterAllPlatform) === "boolean" && data.platformObjId && data.arrayPhoneXLS);
             socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileXLS, [data.filterAllPlatform, data.platformObjId, data.arrayPhoneXLS], actionName, isValidData);

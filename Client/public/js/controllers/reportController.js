@@ -271,7 +271,7 @@ define(['js/app'], function (myApp) {
             let mainTopupType = vm.queryTopup.mainTopupType;
             let topupType = vm.queryTopup.topupType;
             let bankTypeId = vm.queryTopup.bankTypeId;
-            if (agent && agent.length > 0) {
+            if (agent && agent.length > 0 && vm.merchantCloneList) {
                 vm.merchantCloneList = vm.merchantCloneList.filter(item => {
                     let targetDevices = String(item.targetDevices);
                     return agent.indexOf(targetDevices) != -1;
@@ -301,7 +301,7 @@ define(['js/app'], function (myApp) {
                 })
             }
             //manual topup
-            if (mainTopupType) {
+            if (mainTopupType && vm.merchantCloneList) {
                 if (mainTopupType == '1' || mainTopupType == 1) {
                     // 9999 = 'bankcard', if manual topup ,display bankcard only
                     vm.merchantCloneList = vm.merchantCloneList.filter(item => {
@@ -1849,19 +1849,17 @@ define(['js/app'], function (myApp) {
                 $('#topupTableSpin').hide();
                 console.log('topup', data);
                 vm.queryTopup.totalCount = data.data.size;
-
                 vm.drawTopupReport(
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.status$ = $translate(item.status);
                         item.merchantName = vm.getMerchantName(item.data.merchantNo);
-                        item.merchantNo$ = item.data.merchantNo != null
-                            ? item.data.merchantNo
-                            : item.data.wechatAccount != null
-                            ? item.data.wechatAccount
+                        item.merchantNo$ = item.data.merchantNo != null ? item.data.merchantNo
+                            : item.data.bankCardNo != null ? item.data.bankCardNo
+                                : item.data.wechatAccount != null ? item.data.wechatAccount
                             : item.data.weChatAccount != null ? item.data.weChatAccount
-                            : item.data.alipayAccount != null
-                            ? item.data.alipayAccount
+                                        : item.data.alipayAccount != null ? item.data.alipayAccount
+                                            : item.data.accountNo != null ? item.data.accountNo
                             : null;
                             item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                             item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
@@ -1889,11 +1887,11 @@ define(['js/app'], function (myApp) {
 
         vm.getMerchantName = function(merchantNo){
             let result = '';
-            if (merchantNo) {
+            if (merchantNo && vm.merchantNoList) {
                 let merchant = vm.merchantNoList.filter(item => {
                     return item.merchantNo == merchantNo
                 })
-                if (merchant) {
+                if (merchant.length > 0) {
                     let merchantName = vm.merchantTypes.filter(item => {
                         return item.merchantTypeId == merchant[0].merchantTypeId;
                     })
@@ -3005,17 +3003,20 @@ define(['js/app'], function (myApp) {
             let admins = [];
             let csPromoteWay = [];
 
-            if (vm.playerDomain.departments) {
-                if (vm.playerDomain.roles) {
-                    vm.pdQueryRoles.map(e => {
-                        if (vm.playerDomain.roles.indexOf(e._id) >= 0) {
-                            e.users.map(f => admins.push(f._id))
-                        }
-                    })
-                } else {
-                    vm.pdQueryRoles.map(e => e.users.map(f => admins.push(f._id)))
+            if (vm.playerDomain) {
+                if (vm.playerDomain.departments) {
+                    if (vm.playerDomain.roles) {
+                        vm.pdQueryRoles.map(e => {
+                            if (vm.playerDomain.roles.indexOf(e._id) >= 0) {
+                                e.users.map(f => admins.push(f._id))
+                            }
+                        })
+                    } else {
+                        vm.pdQueryRoles.map(e => e.users.map(f => admins.push(f._id)))
+                    }
                 }
             }
+
 
             var sendquery = {
                 platform: vm.curPlatformId,

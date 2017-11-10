@@ -61,7 +61,7 @@ var dbPlayerFeedback = {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {};
 
-        function getTopupCoountWithinPeriod(feedback) {
+        function getTopUpCountWithinPeriod(feedback) {
             return dbconfig.collection_playerTopUpRecord.aggregate([
                 {
                     $match: {
@@ -142,13 +142,15 @@ var dbPlayerFeedback = {
                 var proms = [];
                 returnedData.forEach(
                     feedback => {
-                        if (feedback.result == constPlayerFeedbackResult.NORMAL) {
-                            proms.push(
-                                getTopupCoountWithinPeriod(feedback)
-                            )
-                        } else {
-                            proms.push(Q.resolve({}));
-                        }
+                        // if (feedback.result == constPlayerFeedbackResult.NORMAL) {
+                        //     proms.push(
+                        //         getTopupCountWithinPeriod(feedback)
+                        //     )
+                        // } else {
+                        //     proms.push(Q.resolve({}));
+                        // }
+
+                        proms.push(getTopUpCountWithinPeriod(feedback));
                     }
                 );
                 return Q.all(proms);
@@ -445,7 +447,7 @@ var dbPlayerFeedback = {
                 query.isRealPlayer = true;
                 query.partner = {$ne: null};
         }
-        if("playerType" in query) {
+        if ("playerType" in query) {
             delete query.playerType;
         }
         let player = dbconfig.collection_players.find(query).skip(index).limit(1)
@@ -480,7 +482,7 @@ var dbPlayerFeedback = {
                 query.isRealPlayer = true;
                 query.partner = {$ne: null};
         }
-        if("playerType" in query) {
+        if ("playerType" in query) {
             delete query.playerType;
         }
         let players = dbconfig.collection_players.find(query).skip(index).limit(limit)

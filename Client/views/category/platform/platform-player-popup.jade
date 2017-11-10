@@ -483,11 +483,14 @@
                                     table.paddingTbl(style='min-width:100%')
                                         thead
                                             tr
+                                                th {{"OPERATOR_NAME" | translate}}
                                                 th {{"TIME" | translate}}
                                                 th {{"CREDIBILITY" | translate}}
                                                 th {{"remark" | translate}}
                                         tbody
                                             tr(ng-repeat='(i, data) in vm.playerCredibilityComment')
+                                                td(style="text-align:center;border: 1px solid #0099CC")
+                                                    text {{data.admin}}
                                                 td(style= "border: 1px solid #0099CC")
                                                     text {{data.createTime}}
                                                 td(style="text-align:center;border: 1px solid #0099CC")
