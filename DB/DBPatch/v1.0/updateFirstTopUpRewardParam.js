@@ -503,3 +503,27 @@ var param101Cursor = db.rewardParam.find({ "name": type101 });
 var param101 = param101Cursor.next();
 
 db.rewardType.update({ "name": type101 }, { $set: { params: param101._id, des: type101, isGrouped: true } }, { upsert: true });
+
+// region输值反利
+var type102 = "PlayerLoseReturnReward";
+
+db.rewardParam.update({
+    "name": type102
+}, {
+    $set: {
+        condition: {
+            generalCond: generalCond,
+            topUpCond: topUpCond,
+            periodCond: periodCond,
+            consumptionCond: consumptionCond,
+        }
+    }
+}, {
+    upsert: true
+});
+
+var param102Cursor = db.rewardParam.find({"name": type102});
+var param102 = param102Cursor.next();
+
+db.rewardType.update({"name": type102}, {$set: {params: param102._id, des: type102, isGrouped: true}}, {upsert: true});
+//endregion

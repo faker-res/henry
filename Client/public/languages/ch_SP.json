@@ -2665,6 +2665,7 @@
   "TOTAL_REGISTRATION": "总开户",
   "Merchant Name":"名称",
   "RESPONSE_TIMEOUT": "回应超时",
-  "Whitelisting Phone Number": "电话号码白名单（一行一个）"
+  "Whitelisting Phone Number": "电话号码白名单（一行一个）",
+  "PlayerLoseReturnReward": "输值反利"
 
 }
