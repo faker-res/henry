@@ -347,6 +347,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         '1': 'MerchantUse_CreateAccount',
         '2': 'MerchantUse_Normal'
     };
+    $scope.merchantTopupMainTypeJson = {
+        1: "Online",
+        2: "Manual",
+        3: "Alipay",
+        4: "Wechatpay"
+    };
     $scope.merchantTopupTypeJson = {
         '1': 'NetPay',
         '2': 'WechatQR',
@@ -402,6 +408,27 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.constPartnerStatus = {
         1: "NORMAL",
         2: "FORBID"
+    };
+
+    $scope.rewardInterval = {
+        1: "Daily",
+        2: "Weekly",
+        3: "Biweekly",
+        4: "Monthly",
+        5: "Interval"
+    };
+
+    $scope.rewardApplyType = {
+        1: "Manual Apply",
+        2: "Auto Apply",
+        3: "Batch Apply"
+    };
+
+    $scope.intervalType = {
+        1: "Greater and equal to (>=)",
+        2: "Less than and equal to (<=)",
+        3: "Equal to (=)",
+        4: "Interval (>=, <)"
     };
     //////// DOM initialisation operations ////////
 
@@ -546,7 +573,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
             // let url = "http://eu.tel400.me/cti/previewcallout.action";//http://101.78.133.213/cti/previewcallout.action";
 
-            let urls = ["http://eu.tel400.me/cti/previewcallout.action", "http://jinbailitw.tel400.me/cti/previewcallout.action"];
+            let urls = ["http://eu.tel400.me/cti/previewcallout.action", "http://jinbailitw.tel400.me/cti/previewcallout.action", "http://jinbailicro.tel400.me/cti/previewcallout.action"];
 
             urls.forEach(
                 url => {

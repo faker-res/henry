@@ -250,7 +250,7 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(data && data.proposalId && data.adminId && data.memo);
             socketUtil.emitter(self.socket, dbProposal.updateProposalProcessStep, [data.proposalId, data.adminId, data.memo, data.bApprove, data.remark], actionName, isValidData);
         },
-        updatePlayerIntentionRemarks: function updatePlayerIntentionRemarks(data){
+        updatePlayerIntentionRemarks: function updatePlayerIntentionRemarks(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.pId && data.adminId);
             socketUtil.emitter(self.socket, dbProposal.updatePlayerIntentionRemarks, [data.pId, data.remarks], actionName, isValidData);
@@ -313,12 +313,12 @@ function socketActionProposal(socketIO, socket) {
         getPlayerProposalsForAdminId: function getPlayerProposalsForAdminId(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.adminId && data.platformId && data.status);
-            var startTime = data.startDate ? data.startDate:null;
-            var endTime = data.endDate ? data.endDate:null;
+            var startTime = data.startDate ? data.startDate : null;
+            var endTime = data.endDate ? data.endDate : null;
             var index = data.index || 0;
             var size = data.size || 10;
             var sortCol = data.sortCol || {"createTime": -1};
-            socketUtil.emitter(self.socket, dbProposal.getPlayerProposalsForPlatformId, [data.platformId, data.type, data.status, data.name, data.phoneNumber,  startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.proposalId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getPlayerProposalsForPlatformId, [data.platformId, data.type, data.status, data.name, data.phoneNumber, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.proposalId], actionName, isValidData);
         },
 
         /**
@@ -348,7 +348,7 @@ function socketActionProposal(socketIO, socket) {
             var index = -1;
             var size = -1;
             var sortCol = data.sortCol || {"createTime": -1};
-            socketUtil.emitter(self.socket, dbProposal.getPlayerRegistrationIntentRecordByStatus, [data.platformId, data.type, data.status, data.name, data.phoneNumber,  startTime, endTime, index, size, sortCol, data.displayPhoneNum,data.attemptNo], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getPlayerRegistrationIntentRecordByStatus, [data.platformId, data.type, data.status, data.name, data.phoneNumber, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.attemptNo], actionName, isValidData);
         },
 
 
