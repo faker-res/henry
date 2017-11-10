@@ -145,6 +145,7 @@ define(['js/app'], function (myApp) {
                     vm.merchantGroups = getMerchantGroups(vm.merchants, vm.merchantTypes);
                     vm.merchantNumbers = getMerchantNumbers(vm.merchants);
                     vm.getPaymentMonitorRecord();
+                    vm.merchantGroupCloneList = vm.merchantGroups;
                 }
             );
 
@@ -367,6 +368,7 @@ define(['js/app'], function (myApp) {
         };
         vm.filterMerchant = function () {
             vm.merchantCloneList = angular.copy(vm.merchants);
+            vm.merchantGroupCloneList = vm.merchantGroups;
             let agent = vm.paymentMonitorQuery.userAgent;
             let thirdParty = vm.paymentMonitorQuery.merchantGroup;
             let mainTopupType = vm.paymentMonitorQuery.mainTopupType;
@@ -395,12 +397,7 @@ define(['js/app'], function (myApp) {
                     })
                 }
             }
-            if (topupType && topupType.length > 0 && vm.merchantCloneList) {
-                // display online topup type
-                vm.merchantCloneList = vm.merchantCloneList.filter(item => {
-                    return topupType.indexOf(String(item.topupType)) != -1
-                })
-            }
+
             //manual topup
             if (mainTopupType) {
                 if (mainTopupType == '1' || mainTopupType == 1) {
@@ -433,6 +430,29 @@ define(['js/app'], function (myApp) {
                     return bankTypeId.indexOf(bnkId) != -1;
                 })
             }
+            if (topupType && topupType.length > 0 && vm.merchantCloneList) {
+                // display online topup type
+                vm.merchantCloneList = vm.merchantCloneList.filter(item => {
+                    return topupType.indexOf(String(item.topupType)) != -1
+                });
+                vm.merchantGroupCloneList = vm.merchantGroupCloneList.filter(
+                    item=>{
+                        let thirdPartyGroup = [];
+                        vm.merchantCloneList.forEach(item=>{
+                            if(thirdPartyGroup.indexOf(item.merchantTypeName) === -1){
+                                thirdPartyGroup.push(item.merchantTypeName);
+                            }
+                        })
+                        return thirdPartyGroup.indexOf(item.name)!==-1 && item.name
+                    }
+                )
+                vm.merchantCloneList.forEach(item=>{
+                    console.log(item.name + '->' + item.merchantNo + '->' +item.topupType+' <> '+item.merchantTypeName)
+                })
+
+            }
+
+
         }
         vm.getPaymentMonitorRecord = function (isNewSearch) {
             if (isNewSearch) {
@@ -688,8 +708,15 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight playerCount"},
 
                     {title: $translate('START_TIME'), data: "startTime$"},
-                    {title: $translate('END_TIME'), data: "endTime$"}
-
+                    {title: $translate('END_TIME'), data: "endTime$",
+                        render: function(data, type, row){
+                            var text = '';
+                            if(row.status=='Success' && row.status=='Approved'){
+                                text = data ? $translate(data):'';
+                            }
+                            return '<div>'+ text + '</div>'
+                        }
+                    }
                 ],
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {

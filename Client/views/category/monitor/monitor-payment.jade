@@ -33,7 +33,7 @@ div
                 option(value='9') 京东钱包扫码支付(JdPayQR)
         div(style='max-width:125px')
             label {{'3rd Party Platform' | translate}}
-            select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroups', multiple, bsp, data-actions-box='true')
+            select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroupCloneList', multiple, bsp, data-actions-box='true')
         div(style='max-width:125px')
             label {{'DEPOSIT_METHOD' | translate}}
             select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.depositMethod', multiple, static-bsp, data-actions-box='true')

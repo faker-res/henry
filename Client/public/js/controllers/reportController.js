@@ -266,6 +266,7 @@ define(['js/app'], function (myApp) {
         }
         vm.filterMerchant = function () {
             vm.merchantCloneList = angular.copy(vm.merchantNoList);
+            vm.merchantGroupCloneList = vm.merchantGroupObj;
             let agent = vm.queryTopup.userAgent;
             let thirdParty = vm.queryTopup.merchantGroup;
             let mainTopupType = vm.queryTopup.mainTopupType;
@@ -298,7 +299,18 @@ define(['js/app'], function (myApp) {
                 // display online topup type
                 vm.merchantCloneList = vm.merchantCloneList.filter(item => {
                     return topupType.indexOf(String(item.topupType)) != -1
-                })
+                });
+                vm.merchantGroupCloneList = vm.merchantGroupCloneList.filter(
+                    item=>{
+                        let thirdPartyGroup = [];
+                        vm.merchantCloneList.forEach(item=>{
+                            if(thirdPartyGroup.indexOf(item.merchantTypeName) === -1){
+                                thirdPartyGroup.push(item.merchantTypeName);
+                            }
+                        })
+                        return thirdPartyGroup.indexOf(item.name)!==-1 && item.name
+                    }
+                )
             }
             //manual topup
             if (mainTopupType && vm.merchantCloneList) {
@@ -333,6 +345,8 @@ define(['js/app'], function (myApp) {
                     return bankTypeId.indexOf(bnkId) != -1;
                 })
             }
+
+
         }
 
             // display  proposal detail
@@ -772,6 +786,8 @@ define(['js/app'], function (myApp) {
                         });
                         vm.merchantCloneList = angular.copy(vm.merchantNoList);
                         vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
+                        // vm.merchantGroupCloneList = angular.copy(vm.merchantGroupObj);
+                        vm.merchantGroupCloneList = vm.merchantGroupObj;
                     }
 
                     $scope.safeApply();
@@ -1805,6 +1821,8 @@ define(['js/app'], function (myApp) {
                         item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
                         item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime):"";
 
+
+
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch
                 );
@@ -1921,7 +1939,10 @@ define(['js/app'], function (myApp) {
                     {title: $translate('START_TIME'), data: "startTime$"},
                     {title: $translate('END_TIME'), data: "endTime$",
                         render: function (data, type, row) {
-                            var text = $translate(data ?data : "");
+                            var text = '';
+                            if(row.status=='Success' || row.status=='Approved'){
+                                text = data ? data : '';
+                            }
                             return "<div>" +text + "</div>";
                         }
                     },

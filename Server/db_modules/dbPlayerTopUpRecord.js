@@ -138,10 +138,13 @@ var dbPlayerTopUpRecord = {
                 if ((!query.merchantNo || query.merchantNo.length == 0) && query.merchantGroup && query.merchantGroup.length > 0) {
                     let mGroupList = [];
                     query.merchantGroup.forEach(item => {
-                        item.forEach(sItem => {
-                            mGroupList.push(sItem)
-                        })
+                        if(item.list.length > 0){
+                            item.list.forEach(sItem => {
+                                mGroupList.push(sItem)
+                            })
+                        }
                     })
+                    // console.log(mGroupList);
                     queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
                 }
 
@@ -190,7 +193,6 @@ var dbPlayerTopUpRecord = {
                     return type._id;
                 });
                 queryObj.type = {$in: typeIds};
-                console.log(queryObj);
                 // console.log('queryObj', JSON.stringify(queryObj, null, 4));
                 var a = dbconfig.collection_proposal.find(queryObj).count();
                 var b = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
