@@ -15532,9 +15532,20 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
                 vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
                 vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup;
-                vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime;
+                vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime
+                vm.platformBasic.whiteListingPhoneNumbers$ = "";
+
+                if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
+                    let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
+                    for (let i=0, len = phones.length; i < len; i++) {
+                        let phone = phones[i];
+                        vm.platformBasic.whiteListingPhoneNumbers$ += phone;
+                        i !== (len-1) ? vm.platformBasic.whiteListingPhoneNumbers$ += "\n" : "";
+                    }
+                }
+
                 $scope.safeApply();
-            }
+            };
 
             vm.getBonusBasic = () => {
 
@@ -15953,6 +15964,16 @@ define(['js/app'], function (myApp) {
             }
 
             function updatePlatformBasic(srcData) {
+                let whiteListingPhoneNumbers = [];
+
+                if (srcData.whiteListingPhoneNumbers$) {
+                    let phones = srcData.whiteListingPhoneNumbers$.split(/\r?\n/);
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i].trim();
+                        if (phone) whiteListingPhoneNumbers.push(phone);
+                    }
+                }
+
                 let sendData = {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
@@ -15976,7 +15997,8 @@ define(['js/app'], function (myApp) {
                         requireSMSVerificationForPasswordUpdate: srcData.requireSMSVerificationForPasswordUpdate,
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
                         smsVerificationExpireTime: srcData.smsVerificationExpireTime,
-                        useProviderGroup: srcData.useProviderGroup
+                        useProviderGroup: srcData.useProviderGroup,
+                        whiteListingPhoneNumbers: whiteListingPhoneNumbers
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
