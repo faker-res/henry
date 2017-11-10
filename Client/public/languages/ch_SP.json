@@ -2655,6 +2655,8 @@
   "MANUAL/SELF_REGISTER_RATE": "手工/自助开户分布",
   "TOTAL_ATTEMPT": "总尝试",
   "TOTAL_REGISTRATION": "总开户",
-  "Merchant Name": "名称"
+  "Merchant Name":"名称",
+  "RESPONSE_TIMEOUT": "回应超时",
+  "Whitelisting Phone Number": "电话号码白名单（一行一个）"
 
 }

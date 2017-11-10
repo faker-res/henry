@@ -12,6 +12,7 @@ var constProposalType = require('./../const/constProposalType');
 var constProposalStepStatus = require('./../const/constProposalStepStatus');
 var constProposalStatus = require('./../const/constProposalStatus');
 var constProposalMainType = require('./../const/constProposalMainType');
+var constRegistrationIntentRecordStatus = require("../const/constRegistrationIntentRecordStatus.js");
 var dbProposalProcess = require('./../db_modules/dbProposalProcess');
 var dbProposalType = require('./../db_modules/dbProposalType');
 var dbPlatform = require('./../db_modules/dbPlatform');
@@ -1513,7 +1514,8 @@ var proposal = {
                         }
 
                         var queryObj = {
-                            status: {$in: statusArr}
+                            status: {$in: statusArr},
+                            data:  { $exists: true, $ne: null } 
                         };
                         if (startTime && endTime) {
                             queryObj['createTime'] = {
@@ -1701,65 +1703,47 @@ var proposal = {
                         recordArr.push({name: d.data.name, status: d.status, attemptNo: 1});
                     } else {
                         var indexNo = recordArr.findIndex(r => r.name == d.data.name);
-                        recordArr[indexNo].status = recordArr[indexNo].status != "Success" ? d.status : recordArr[indexNo].status;
-                        recordArr[indexNo].attemptNo = recordArr[indexNo].attemptNo + 1;
+                        recordArr[indexNo].status = recordArr[indexNo].status != constRegistrationIntentRecordStatus.SUCCESS ? d.status : recordArr[indexNo].status;
+                        recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
                     }
                 })
             })
 
             return recordArr;
-        }).then(playerAttemptNumber => {
-            var firstFail = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Fail' && event.attemptNo == 1
-            }).length;
-            var secondFail = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Fail' && event.attemptNo == 2
-            }).length;
-            var thirdFail = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Fail' && event.attemptNo == 3
-            }).length;
-            var fouthFail = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Fail' && event.attemptNo == 4
-            }).length;
-            var fifthFail = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Fail' && event.attemptNo == 5
-            }).length;
-            var fifthUpFail = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Fail' && event.attemptNo > 5
-            }).length;
+        }).then(playerAttemptNumber =>{
+            var firstFail = playerAttemptNumber.filter(function(event){return (event.status == constRegistrationIntentRecordStatus.FAIL || event.status == constRegistrationIntentRecordStatus.INTENT ||
+                event.status == constRegistrationIntentRecordStatus.VERIFICATION_CODE) && event.attemptNo == 1}).length;
+            var secondFail = playerAttemptNumber.filter(function(event){return (event.status == constRegistrationIntentRecordStatus.FAIL || event.status == constRegistrationIntentRecordStatus.INTENT ||
+                event.status == constRegistrationIntentRecordStatus.VERIFICATION_CODE) && event.attemptNo == 2}).length;
+            var thirdFail = playerAttemptNumber.filter(function(event){return (event.status == constRegistrationIntentRecordStatus.FAIL || event.status == constRegistrationIntentRecordStatus.INTENT ||
+                event.status == constRegistrationIntentRecordStatus.VERIFICATION_CODE) && event.attemptNo == 3}).length;
+            var fouthFail = playerAttemptNumber.filter(function(event){return (event.status == constRegistrationIntentRecordStatus.FAIL || event.status == constRegistrationIntentRecordStatus.INTENT ||
+                event.status == constRegistrationIntentRecordStatus.VERIFICATION_CODE) && event.attemptNo == 4}).length;
+            var fifthFail = playerAttemptNumber.filter(function(event){return (event.status == constRegistrationIntentRecordStatus.FAIL || event.status == constRegistrationIntentRecordStatus.INTENT ||
+                event.status == constRegistrationIntentRecordStatus.VERIFICATION_CODE) && event.attemptNo == 5}).length;
+            var fifthUpFail = playerAttemptNumber.filter(function(event){return (event.status == constRegistrationIntentRecordStatus.FAIL || event.status == constRegistrationIntentRecordStatus.INTENT ||
+                event.status == constRegistrationIntentRecordStatus.VERIFICATION_CODE) && event.attemptNo > 5}).length;
 
-            var firstSuccess = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Success' && event.attemptNo == 1
-            }).length;
-            var secondSuccess = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Success' && event.attemptNo == 2
-            }).length;
-            var thirdSuccess = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Success' && event.attemptNo == 3
-            }).length;
-            var fouthSuccess = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Success' && event.attemptNo == 4
-            }).length;
-            var fifthSuccess = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Success' && event.attemptNo == 5
-            }).length;
-            var fifthUpSuccess = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Success' && event.attemptNo > 5
-            }).length;
+            var firstSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 1}).length;
+            var secondSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 2}).length;
+            var thirdSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 3}).length;
+            var fouthSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 4}).length;
+            var fifthSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 5}).length;
+            var fifthUpSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo > 5}).length;
 
-            var firstFailPercent = totalHeadCount ? (firstFail / totalHeadCount * 100).toFixed(2) : 0;
-            var secondFailPercent = totalHeadCount ? (secondFail / totalHeadCount * 100).toFixed(2) : 0;
-            var thirdFailPercent = totalHeadCount ? (thirdFail / totalHeadCount * 100).toFixed(2) : 0;
-            var fouthFailPercent = totalHeadCount ? (fouthFail / totalHeadCount * 100).toFixed(2) : 0;
-            var fifthFailPercent = totalHeadCount ? (fifthFail / totalHeadCount * 100).toFixed(2) : 0;
-            var fifthUpFailPercent = totalHeadCount ? (fifthUpFail / totalHeadCount * 100).toFixed(2) : 0;
+            var firstFailPercent = totalHeadCount ? (firstFail/ totalHeadCount * 100).toFixed(2) : 0;
+            var secondFailPercent = totalHeadCount ? (secondFail/ totalHeadCount * 100).toFixed(2) : 0;
+            var thirdFailPercent = totalHeadCount ? (thirdFail/ totalHeadCount * 100).toFixed(2) : 0;
+            var fouthFailPercent = totalHeadCount ? (fouthFail/ totalHeadCount * 100).toFixed(2) : 0;
+            var fifthFailPercent = totalHeadCount ? (fifthFail/ totalHeadCount * 100).toFixed(2) : 0;
+            var fifthUpFailPercent = totalHeadCount ? (fifthUpFail/ totalHeadCount * 100).toFixed(2) : 0;
 
-            var firstSuccessPercent = totalHeadCount ? (firstSuccess / totalHeadCount * 100).toFixed(2) : 0;
-            var secondSuccessPercent = totalHeadCount ? (secondSuccess / totalHeadCount * 100).toFixed(2) : 0;
-            var thirdSuccessPercent = totalHeadCount ? (thirdSuccess / totalHeadCount * 100).toFixed(2) : 0;
-            var fouthSuccessPercent = totalHeadCount ? (fouthSuccess / totalHeadCount * 100).toFixed(2) : 0;
-            var fifthSuccessPercent = totalHeadCount ? (fifthSuccess / totalHeadCount * 100).toFixed(2) : 0;
-            var fifthUpSuccessPercent = totalHeadCount ? (fifthUpSuccess / totalHeadCount * 100).toFixed(2) : 0;
+            var firstSuccessPercent = totalHeadCount ? (firstSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var secondSuccessPercent = totalHeadCount ? (secondSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var thirdSuccessPercent = totalHeadCount ? (thirdSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var fouthSuccessPercent = totalHeadCount ? (fouthSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var fifthSuccessPercent = totalHeadCount ? (fifthSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var fifthUpSuccessPercent = totalHeadCount ? (fifthUpSuccess/ totalHeadCount * 100).toFixed(2) : 0;
 
             var arr = [];
 
@@ -1830,42 +1814,28 @@ var proposal = {
                         recordArr.push({name: d.data.name, status: d.status, attemptNo: 1});
                     } else {
                         var indexNo = recordArr.findIndex(r => r.name == d.data.name);
-                        recordArr[indexNo].status = recordArr[indexNo].status != "Success" ? d.status : recordArr[indexNo].status;
-                        recordArr[indexNo].attemptNo = recordArr[indexNo].attemptNo + 1;
+                        recordArr[indexNo].status = recordArr[indexNo].status != constRegistrationIntentRecordStatus.SUCCESS ? d.status : recordArr[indexNo].status;
+                        recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
                     }
                 })
             })
             return recordArr;
-        }).then(playerAttemptNumber => {
-            var manualSuccess = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Manual'
-            }).length;
-            var firstSuccess = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Success' && event.attemptNo == 1
-            }).length;
-            var secondSuccess = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Success' && event.attemptNo == 2
-            }).length;
-            var thirdSuccess = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Success' && event.attemptNo == 3
-            }).length;
-            var fouthSuccess = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Success' && event.attemptNo == 4
-            }).length;
-            var fifthSuccess = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Success' && event.attemptNo == 5
-            }).length;
-            var fifthUpSuccess = playerAttemptNumber.filter(function (event) {
-                return event.status == 'Success' && event.attemptNo > 5
-            }).length;
+        }).then(playerAttemptNumber =>{
+            var manualSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.MANUAL}).length;
+            var firstSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 1}).length;
+            var secondSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 2}).length;
+            var thirdSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 3}).length;
+            var fouthSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 4}).length;
+            var fifthSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 5}).length;
+            var fifthUpSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo > 5}).length;
 
-            var manualSuccessPercent = totalHeadCount ? (manualSuccess / totalHeadCount * 100).toFixed(2) : 0;
-            var firstSuccessPercent = totalHeadCount ? (firstSuccess / totalHeadCount * 100).toFixed(2) : 0;
-            var secondSuccessPercent = totalHeadCount ? (secondSuccess / totalHeadCount * 100).toFixed(2) : 0;
-            var thirdSuccessPercent = totalHeadCount ? (thirdSuccess / totalHeadCount * 100).toFixed(2) : 0;
-            var fouthSuccessPercent = totalHeadCount ? (fouthSuccess / totalHeadCount * 100).toFixed(2) : 0;
-            var fifthSuccessPercent = totalHeadCount ? (fifthSuccess / totalHeadCount * 100).toFixed(2) : 0;
-            var fifthUpSuccessPercent = totalHeadCount ? (fifthUpSuccess / totalHeadCount * 100).toFixed(2) : 0;
+            var manualSuccessPercent = totalHeadCount ? (manualSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var firstSuccessPercent = totalHeadCount ? (firstSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var secondSuccessPercent = totalHeadCount ? (secondSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var thirdSuccessPercent = totalHeadCount ? (thirdSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var fouthSuccessPercent = totalHeadCount ? (fouthSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var fifthSuccessPercent = totalHeadCount ? (fifthSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var fifthUpSuccessPercent = totalHeadCount ? (fifthUpSuccess/ totalHeadCount * 100).toFixed(2) : 0;
 
             var returnArr = [];
 
@@ -1925,29 +1895,26 @@ var proposal = {
                         recordArr.push({name: d.data.name, status: d.status, attemptNo: 1});
                     } else {
                         var indexNo = recordArr.findIndex(r => r.name == d.data.name);
-                        if (indexNo >= 0) {
-                            recordArr[indexNo].status = recordArr[indexNo].status != "Success" ? d.status : recordArr[indexNo].status;
-                            recordArr[indexNo].attemptNo = recordArr[indexNo].attemptNo + 1;
+                        if(indexNo >= 0){
+                            recordArr[indexNo].status = recordArr[indexNo].status != constRegistrationIntentRecordStatus.SUCCESS ? d.status : recordArr[indexNo].status;
+                            recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
                         }
                     }
                 })
             })
 
             return recordArr;
-        }).then(playerAttemptNumber => {
-            if (attemptNo == 0) {
-                return playerAttemptNumber.filter(function (event) {
-                    return statusArr.includes(event.status) && event.attemptNo > 5
-                })
-            } else if (attemptNo < 0) {
+        }).then(playerAttemptNumber =>{
+            if(attemptNo == 0){
+                return playerAttemptNumber.filter(function(event){return statusArr.includes(parseInt(event.status)) && event.attemptNo > 5})
+            }else if(attemptNo < 0){
                 return playerAttemptNumber;
-            } else {
-                return playerAttemptNumber.filter(function (event) {
-                    return statusArr.includes(event.status) && event.attemptNo == attemptNo
-                })
+            }else {
+                return playerAttemptNumber.filter(function(event){return statusArr.includes(parseInt(event.status)) && event.attemptNo == attemptNo})
             }
         }).then(data => {
-            let statusArray = ["Success", "Fail", "Manual"];
+            let statusArray = [constRegistrationIntentRecordStatus.INTENT,constRegistrationIntentRecordStatus.VERIFICATION_CODE,constRegistrationIntentRecordStatus.SUCCESS,constRegistrationIntentRecordStatus.FAIL
+                ,constRegistrationIntentRecordStatus.MANUAL];
             data.map(d => {
                 userName = d.name;
                 let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArray, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum);
@@ -3375,7 +3342,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
         for (let i = 0; i < proposals.length; i++) {
             let prom = new Promise(function (res) {
                 let proposal = JSON.parse(JSON.stringify(proposals[i]));
-                if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
+                if (proposal.status === constRegistrationIntentRecordStatus.SUCCESS || proposal.status === constRegistrationIntentRecordStatus.APPROVED) {
                     Promise.all([handleSuccessProposal(proposal)]).then(
                         () => {
                             insertedProposals[i] = proposal;
@@ -3402,7 +3369,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
         );
 
         function handleFailurePlayer(proposal) {
-            let playerName = proposal.data.name;
+            let playerName = proposal.data ? proposal.data.name : "";
 
             let allCountQuery = {
                 "data.name": playerName
@@ -3432,7 +3399,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
         }
 
         function handleSuccessProposal(proposal) {
-            let playerName = proposal.data.name;
+            let playerName = proposal.data ? proposal.data.name : "";
 
             let allCountQuery = {
                 "data.name": playerName
