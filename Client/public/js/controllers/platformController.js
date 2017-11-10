@@ -9531,7 +9531,7 @@ define(['js/app'], function (myApp) {
                 sendQuery.playerLevel = vm.playerFeedbackQuery.playerLevel;
             }
 
-            if(vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
+            if(vm.playerFeedbackQuery.credibilityRemarks && vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
                 sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
             }
 
@@ -9616,7 +9616,7 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            if(vm.playerFeedbackQuery.gameProviderId.length > 0) {
+            if(vm.playerFeedbackQuery.gameProviderId && vm.playerFeedbackQuery.gameProviderId.length > 0) {
                 sendQuery.gameProviderPlayed = {$in: vm.playerFeedbackQuery.gameProviderId};
             }
 
@@ -9765,7 +9765,8 @@ define(['js/app'], function (myApp) {
 
         vm.initPlayerFeedback = function () {
             console.log("initPlayerFeedback");
-            vm.playerFeedbackQuery.index = 1;
+            vm.playerFeedbackQuery.index = 0;
+            vm.playerFeedbackQuery.limit= 10;
             vm.playerFeedbackSearchType = "many";
             vm.playerFeedbackQuery = {};
             vm.playerFeedbackQuery.playerType = "Real Player (all)";
@@ -9777,7 +9778,7 @@ define(['js/app'], function (myApp) {
                     vm.setupGameProviderMultiInputFeedback();
                 });
             utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
-                vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
+                vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit}, $translate, function (curP, pageSize) {
 
                     var isChange = false;
                     if (pageSize != vm.playerFeedbackQuery.limit) {

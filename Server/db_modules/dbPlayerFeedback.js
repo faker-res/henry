@@ -1,5 +1,7 @@
 var dbconfig = require('./../modules/dbproperties');
 var Q = require("q");
+var SettlementBalancer = require('../settlementModule/settlementBalancer');
+var moment = require('moment-timezone');
 var constSystemParam = require('../const/constSystemParam');
 var mongoose = require('mongoose');
 var constPlayerFeedbackResult = require('./../const/constPlayerFeedbackResult');
@@ -223,6 +225,114 @@ var dbPlayerFeedback = {
                 return {data: data[0], size: data[1]}
             }
         )
+    },
+
+    getPlayerFeedbackReportAdvance: function (platform, query, index, limit, sortCol) {
+        limit = limit ? limit : 20;
+        index = index ? index : 0;
+        query = query ? query : {};
+
+        let startDate = new Date(query.start);
+        let endDate = new Date(query.end);
+        let result = [];
+
+        let matchObjFeedback = {
+            platform: platform,
+            createTime: {$gte: startDate, $lt: endDate}
+        };
+        if(query.result) {
+            matchObjFeedback.result = query.result;
+        }
+        if(query.topic) {
+            matchObjFeedback.topic = query.topic;
+        }
+
+        switch (query.playerType) {
+            case 'Test Player':
+                query.isRealPlayer = false;
+                break;
+            case 'Real Player (all)':
+                query.isRealPlayer = true;
+                break;
+            case 'Real Player (Individual)':
+                query.isRealPlayer = true;
+                query.partner = null;
+                break;
+            case 'Real Player (Under Partner)':
+                query.isRealPlayer = true;
+                query.partner = {$ne: null};
+        }
+        if("playerType" in query) {
+            delete query.playerType;
+        }
+
+        let stream = dbconfig.collection_playerFeedback.aggregate([
+            {
+                $match: matchObjFeedback
+            }
+        ]).cursor({batchSize: 100}).allowDiskUse(true).exec();
+
+        let balancer = new SettlementBalancer();
+        return balancer.initConns().then(function () {
+            return Q(
+                balancer.processStream(
+                    {
+                        stream: stream,
+                        batchSize: constSystemParam.BATCH_SIZE,
+                        makeRequest: function (feedbackIdObjs, request) {
+                            request("player", "getConsumptionDetailOfPlayers", {
+                                platformId: platform,
+                                startTime: query.start,
+                                endTime: moment(query.start).add(query.days, "day"),
+                                query: query,
+                                playerObjIds: feedbackIdObjs.map(function (feedbackIdObj) {
+                                    return feedbackIdObj._id;
+                                }),
+                                option: {
+                                    isFeedback: true
+                                }
+                            });
+                        },
+                        processResponse: function (record) {
+                            result = result.concat(record.data);
+                        }
+                    }
+                )
+            );
+        }).then(
+            () => {
+                // handle index limit sortcol here
+                if (Object.keys(sortCol).length > 0) {
+                    result.sort(function (a, b) {
+                        if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
+                            return 1 * sortCol[Object.keys(sortCol)[0]];
+                        } else {
+                            return -1 * sortCol[Object.keys(sortCol)[0]];
+                        }
+                    });
+                }
+                else {
+                    result.sort(function (a, b) {
+                        if (a._id > b._id) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    });
+                }
+
+
+                let outputResult = [];
+                for (let i = 0, len = limit; i < len; i++) {
+                    result[index + i] ? outputResult.push(result[index + i]) : null;
+                }
+
+                // Output filter admin (which is CS officer)
+                outputResult = query.admins && query.admins.length > 0 ? outputResult.filter(e => query.admins.indexOf(e.feedback.adminId._id) >= 0) : outputResult;
+
+                return {size: result.length, data: outputResult};
+            }
+        );
     },
 
     // getPlayerFeedbackQuery: function (query, index) {
