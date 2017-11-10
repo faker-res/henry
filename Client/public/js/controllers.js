@@ -423,6 +423,13 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         2: "Auto Apply",
         3: "Batch Apply"
     };
+
+    $scope.intervalType = {
+        1: "Greater and equal to (>=)",
+        2: "Less than and equal to (<=)",
+        3: "Equal to (=)",
+        4: "Interval (>=, <)"
+    };
     //////// DOM initialisation operations ////////
 
     $('[data-toggle="tooltip"]').tooltip();

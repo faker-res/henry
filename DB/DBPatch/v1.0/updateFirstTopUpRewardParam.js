@@ -389,18 +389,14 @@ var topUpCond = {
     // Online top up type
     onlineTopUpType: {index: 12, type: "multiSelect", des: "Online top up type", options: "merchantTopupTypeJson"},
     // Bank card type
-    bankCardType: {index: 13, des: "Bank card type"}
+    bankCardType: {index: 13, type: "multiSelect", des: "Bank card type"}
 };
 
 var periodCond = {
     // Reward apply interval
     interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval"},
     // Top up count between interval check type
-    topUpCountType: {index: 21, des: "Top up count between interval type"},
-    // Top up count
-    topUpCount: {index: 22, des: "Top up count between interval"},
-    // Top up count 2 if interval is selected
-    topUpCount2: {index: 23, des: "Top up count between interval 2"}
+    topUpCountType: {index: 21, type: "interval", des: "Top up count between interval type", options: "intervalType"}
 };
 
 var latestTopUpCond = {
@@ -413,14 +409,18 @@ var latestTopUpCond = {
     // Allow to apply if there is withdrawal after top up
     allowApplyAfterWithdrawal: {index: 31, type: "checkbox", des: "Allow to apply if there is withdrawal after top up"},
     // Ignore checks for certain rewards that applied with this top up
-    ignoreTopUpDirtyCheckForReward: {index: 32, des: "Ignore the following rewards that applied with top up"}
+    ignoreTopUpDirtyCheckForReward: {
+        index: 32,
+        type: "multiSelect",
+        des: "Ignore the following rewards that applied with top up"
+    }
 };
 
 var consumptionCond = {
     // Is consumption shared with XIMA
     isSharedWithXIMA: {index: 40, type: "checkbox", des: "Consumption can be shared with XIMA"},
     // Provider group binded with this reward
-    providerGroup: {index: 41, des: "Provider group"},
+    providerGroup: {index: 41, type: "multiSelect", des: "Provider group"},
 };
 
 var dynamicCond = {
