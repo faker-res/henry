@@ -879,6 +879,7 @@ var proposalExecutor = {
                             );
                         }
                         dbPlayerReward.applyPlayerTopUpPromo(proposalData);
+                        dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
 
                         deferred.resolve(proposalData);
                     },
@@ -909,6 +910,7 @@ var proposalExecutor = {
                         // }
 
                         return dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
+                        dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
                     },
                     function (error) {
                         deferred.reject(error);
@@ -966,6 +968,10 @@ var proposalExecutor = {
                         //     );
                         // }
                         dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'weChat');
+                        if(proposalData.data.bonusCode){
+                            dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                        }
+
                         deferred.resolve(proposalData);
                     },
                     function (error) {
