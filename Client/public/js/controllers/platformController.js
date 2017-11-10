@@ -199,10 +199,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.newPlayerListStatus = {
-                Success: $translate("Success"),
-                Fail: $translate("Attempt"),
-                Pending: $translate("Pending"),
-                Manual: $translate("Manual")
+                SUCCESS: "SUCCESS",
+                ATTEMPT: "ATTEMPT",
+                MANUAL: "MANUAL"
             };
 
             vm.soundChoice = {
@@ -245,6 +244,14 @@ define(['js/app'], function (myApp) {
                 UNDETERMINED: "Undetermined",
                 RECOVER: "Recover",
                 MANUAL: "Manual"
+            };
+
+            vm.constRegistrationIntentRecordStatus = {
+                INTENT: 1,
+                VERIFICATION_CODE: 2,
+                SUCCESS: 3,
+                FAIL: 4,
+                MANUAL: 5,
             };
 
             // Basic library functions
@@ -2697,7 +2704,9 @@ define(['js/app'], function (myApp) {
             }
         vm.loadPhoneNumberRecord = function (newSearch) {
                 vm.getCredibilityRemarks();
-                var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
+                //var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
+                var selectedStatus = [vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE,
+                    vm.constRegistrationIntentRecordStatus.SUCCESS, vm.constRegistrationIntentRecordStatus.FAIL, vm.constRegistrationIntentRecordStatus.MANUAL];
                 var sendData = {
                     adminId: authService.adminId,
                     platformId: vm.selectedPlatform.id,
@@ -2734,12 +2743,15 @@ define(['js/app'], function (myApp) {
                             let credibilityRemarksTXT = '';
                             record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
                             //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                            if (record.status) {
-                                if (record.status == "Fail") {
-                                    record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                            if(record.status){
+                                if(record.status == vm.constRegistrationIntentRecordStatus.SUCCESS){
+                                    record.statusName = record.status ? $translate("Success") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                 }
-                                else {
-                                    record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                else if(record.status == vm.constRegistrationIntentRecordStatus.MANUAL){
+                                    //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                    record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }else{
+                                    record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                 }
                             }
                             record.playerId = record.data.playerId ? record.data.playerId : "";
@@ -2845,7 +2857,23 @@ define(['js/app'], function (myApp) {
                 return result
             }
             vm.getNewPlayerListByFilter = function (newSearch) {
-                var selectedStatus = vm.queryPara.newPlayerList ? [vm.queryPara.newPlayerList.status] : ["Success", "Fail", "Pending", "Manual"];
+                // var selectedStatus = vm.queryPara.newPlayerList ? [vm.constRegistrationIntentRecordStatus[vm.queryPara.newPlayerList.status]] : [vm.constRegistrationIntentRecordStatus.INTENT,
+                //     vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE, vm.constRegistrationIntentRecordStatus.SUCCESS,
+                //     vm.constRegistrationIntentRecordStatus.FAIL, vm.constRegistrationIntentRecordStatus.MANUAL];
+                var selectedStatus;
+
+                if(vm.queryPara.newPlayerList){
+                    if(vm.queryPara.newPlayerList.status == "ATTEMPT"){
+                        selectedStatus = [vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE, vm.constRegistrationIntentRecordStatus.FAIL];
+                    }else{
+                        selectedStatus = [vm.constRegistrationIntentRecordStatus[vm.queryPara.newPlayerList.status]];
+                    }
+                }
+                else{
+                    selectedStatus = [vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE, vm.constRegistrationIntentRecordStatus.SUCCESS,
+                                    vm.constRegistrationIntentRecordStatus.FAIL, vm.constRegistrationIntentRecordStatus.MANUAL];
+                }
+
                 var sendData = {
                     adminId: authService.adminId,
                     platformId: vm.selectedPlatform.id,
@@ -2864,7 +2892,8 @@ define(['js/app'], function (myApp) {
                 if (selectedStatus && selectedStatus != "") {
                     sendData.status = selectedStatus
                 } else {
-                    sendData.status = ["Success", "Fail", "Pending", "Manual"];
+                    sendData.status = [vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE,
+                        vm.constRegistrationIntentRecordStatus.SUCCESS, vm.constRegistrationIntentRecordStatus.FAIL, vm.constRegistrationIntentRecordStatus.MANUAL];
                 }
 
                 vm.newPlayerRecords.loading = true;
@@ -2888,27 +2917,30 @@ define(['js/app'], function (myApp) {
                         record => {
                             record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
                             //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                            if (record.status) {
-                                if (record.status == "Fail") {
+                            if(record.status){
+                                if(record.status == vm.constRegistrationIntentRecordStatus.SUCCESS){
+                                    record.statusName = record.status ? $translate("Success") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                                else if(record.status == vm.constRegistrationIntentRecordStatus.MANUAL){
+                                    //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                    record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }else{
                                     record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                 }
-                                else {
-                                    record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                                }
                             }
-                            record.playerId = record.data.playerId ? record.data.playerId : "";
-                            record.name = record.data.name ? record.data.name : "";
-                            record.realName = record.data.realName ? record.data.realName : "";
-                            record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
-                            record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
-                            record.smsCode = record.data.smsCode ? record.data.smsCode : "";
-                            record.remarks = record.data.remarks ? record.data.remarks : "";
-                            record.device = record.data.device ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
-                            record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
-                            record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
-                            record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
-                            record.proposalId = record.data.proposalId ? record.data.proposalId : "";
-                            record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea) : '';
+                            record.playerId = (record.data && record.data.playerId) ? record.data.playerId : "";
+                            record.name = (record.data && record.name) ? record.name : "";
+                            record.realName = (record.data && record.data.realName) ? record.data.realName : "";
+                            record.combinedArea = (record.data && (record.data.phoneProvince && record.data.phoneCity)) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+                            record.topUpTimes = (record.data && record.data.topUpTimes) ? record.data.topUpTimes : 0;
+                            record.smsCode = (record.data && record.data.smsCode) ? record.data.smsCode : "";
+                            record.remarks = (record.data && record.data.remarks) ? record.data.remarks : "";
+                            record.device = (record.data && record.data.device) ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
+                            record.promoteWay = (record.data && record.data.promoteWay) ? record.data.promoteWay : "";
+                            record.csOfficer = (record.data && record.data.csOfficer) ? record.data.csOfficer : "";
+                            record.registrationTime = (record.data && record.data.registrationTime) ? vm.dateReformat(record.data.registrationTime) : "";
+                            record.proposalId = (record.data && record.data.proposalId) ? record.data.proposalId : "";
+                            record.ipAreaName = (record.data && record.data.ipArea) ? vm.getIpAreaName(record.data.ipArea):'';
                             return record
                         }
                     );
@@ -2960,7 +2992,7 @@ define(['js/app'], function (myApp) {
                                 "sClass": "",
                                 render: function (data, type, row) {
                                     data = data || '';
-                                    var playerObjId = row.data._id ? row.data._id : "";
+                                    //var playerObjId = row.data._id ? row.data._id : "";
                                     let displayTXT = '';
                                     let action = '';
                                     var link = $('<div>', {});
@@ -2979,8 +3011,7 @@ define(['js/app'], function (myApp) {
                                         }));
                                     }
 
-
-                                    if (row.status != 'Success' && row.status != 'Manual') {
+                                    if(row.status!=vm.constRegistrationIntentRecordStatus.SUCCESS &&row.status!= vm.constRegistrationIntentRecordStatus.MANUAL){
                                         displayTXT = $translate('SMS/PHONE/CREATE_ACC');
                                         action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                         link.append($('<div>', {
@@ -3008,26 +3039,7 @@ define(['js/app'], function (myApp) {
                                     return link.prop('outerHTML')
                                 }
                             },
-                            // {
-                            //     title: $translate('function'),
-                            //     data: "status",
-                            //     render: function (data, type, row) {
-                            //         let displayTXT = '';
-                            //         let action = '';
-                            //         if(data!='Success'&&data!='Manual'){
-                            //             displayTXT = $translate('SMS/PHONE/CREATE_ACC');
-                            //             action = 'vm.createPlayerHelper('+JSON.stringify(row)+')';
-                            //         }else{
-                            //             displayTXT = $translate('SMS/PHONE/FEEDBACK');
-                            //             action = 'vm.submitPlayerFeedbackQuery();vm.platformPageName="Feedback";vm.updatePageTile()';
-                            //         }
-                            //
-                            //         var link = $('<a>', {
-                            //             'ng-click':action
-                            //         }).text(displayTXT);
-                            //         return link.prop('outerHTML');
-                            //     }
-                            // },
+
                             {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
                             {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
                         ],
@@ -3075,14 +3087,15 @@ define(['js/app'], function (myApp) {
 
             vm.operatePlayerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 switch (true) {
-
-                    case (aData.status == vm.constProposalStatus.FAIL && (aData.$playerAllCount - aData.$playerCurrentCount == 0)): {
-                        $(nRow).css('background-color', 'rgba(255, 153, 153, 100)', 'important');
+                    case ((aData.status == vm.constRegistrationIntentRecordStatus.INTENT || aData.status == vm.constRegistrationIntentRecordStatus.FAIL ||
+                    aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount == 0)): {
+                        $(nRow).css('background-color', 'rgba(255, 153, 153, 100)','important');
                         //$(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
                         break;
                     }
-                    case (aData.status == vm.constProposalStatus.FAIL && (aData.$playerAllCount - aData.$playerCurrentCount > 0)): {
-                        $(nRow).css('background-color', 'rgba(153, 153, 153, 100)', 'important');
+                    case ((aData.status == vm.constRegistrationIntentRecordStatus.INTENT || aData.status == vm.constRegistrationIntentRecordStatus.FAIL ||
+                        aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount > 0)): {
+                        $(nRow).css('background-color', 'rgba(153, 153, 153, 100)','important');
                         break;
                     }
                     default: {
@@ -3106,7 +3119,7 @@ define(['js/app'], function (myApp) {
 
             //vm.getPlayerRegistrationSucccessRateListByFilter = function (newSearch) {
         vm.getPlayerRegistrationSucccessRateListByFilter = function () {
-                var selectedStatus = vm.queryPara.attemptNumberList ? [vm.queryPara.attemptNumberList.status] : ["Success", "Fail", "Pending", "Manual"];
+                //var selectedStatus = vm.queryPara.attemptNumberList ? [vm.queryPara.attemptNumberList.status] : ["Success", "Fail", "Pending", "Manual"];
                 var sendData = {
                     adminId: authService.adminId,
                     platformId: vm.selectedPlatform.id,
@@ -3125,7 +3138,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareSelfRegistrationSuccessRateRecords = function (queryData) {
-                queryData.status = ["Success", "Fail"];
+                queryData.status = [vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE, vm.constRegistrationIntentRecordStatus.SUCCESS,
+                                    vm.constRegistrationIntentRecordStatus.FAIL];
                 vm.selfRegistrationSuccessRateRecords = [];
                 socketService.$socket($scope.AppSocket, 'getPlayerSelfRegistrationRecordList', queryData, function (data) {
                     vm.selfRegistrationSuccessRateRecords = data.data;
@@ -3141,6 +3155,7 @@ define(['js/app'], function (myApp) {
                         }
                     );
                     var tableData = vm.selfRegistrationSuccessRateRecords;
+                    var failStatusArr =[vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE, vm.constRegistrationIntentRecordStatus.FAIL];
                     var option = $.extend({}, vm.generalDataTableOptions, {
                         data: tableData,
                         columns: [
@@ -3157,7 +3172,8 @@ define(['js/app'], function (myApp) {
                                     data = data || '';
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
-                                        let statusArr = ["Success", "Fail"];
+                                        let statusArr = [vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE, vm.constRegistrationIntentRecordStatus.SUCCESS,
+                                            vm.constRegistrationIntentRecordStatus.FAIL];
                                         link.append($('<a>', {
                                             'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"-1",' + JSON.stringify(statusArr) + ');',
                                         }).text(data));
@@ -3178,7 +3194,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Fail");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1",' + JSON.stringify(failStatusArr) + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3197,7 +3213,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2","Fail");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2",' + JSON.stringify(failStatusArr) + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3216,7 +3232,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3","Fail");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3",' + JSON.stringify(failStatusArr) + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3235,7 +3251,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4","Fail");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4",' + JSON.stringify(failStatusArr) + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3254,7 +3270,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5","Fail");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5",' + JSON.stringify(failStatusArr) + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3273,7 +3289,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0","Fail");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0",' + JSON.stringify(failStatusArr) + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3292,7 +3308,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3311,7 +3327,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3330,7 +3346,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3349,7 +3365,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3368,7 +3384,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3387,7 +3403,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3418,7 +3434,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareRegistrationDistributionRecords = function (queryData) {
-                queryData.status = ["Success", "Manual"];
+                queryData.status = [vm.constRegistrationIntentRecordStatus.SUCCESS, vm.constRegistrationIntentRecordStatus.MANUAL];
                 vm.registrationDistributionRecords = [];
                 socketService.$socket($scope.AppSocket, 'getPlayerManualRegistrationRecordList', queryData, function (data) {
                     vm.registrationDistributionRecords = data.data;
@@ -3447,7 +3463,7 @@ define(['js/app'], function (myApp) {
                                     data = data || '';
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
-                                        let statusArr = ["Success", "Manual"]
+                                        let statusArr = [vm.constRegistrationIntentRecordStatus.SUCCESS,vm.constRegistrationIntentRecordStatus.MANUAL]
                                         link.append($('<a>', {
                                             'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"-1",' + JSON.stringify(statusArr) + ');',
                                         }).text(data ? data : 0));
@@ -3468,7 +3484,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Manual");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1",' + vm.constRegistrationIntentRecordStatus.MANUAL + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3487,7 +3503,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3506,7 +3522,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3525,7 +3541,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3544,7 +3560,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3563,7 +3579,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3582,7 +3598,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -3642,12 +3658,14 @@ define(['js/app'], function (myApp) {
                         records => {
                             records.data.map(record => {
                                 record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
-                                if (record.status) {
-                                    if (record.status == "Fail") {
-                                        record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                if(record.status){
+                                    if(record.status == vm.constRegistrationIntentRecordStatus.SUCCESS){
+                                        record.statusName = record.status ? $translate("SUCCESS") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                     }
-                                    else {
-                                        record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                    else if(record.status == vm.constRegistrationIntentRecordStatus.MANUAL){
+                                        record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                    }else{
+                                        record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                     }
                                 }
                                 record.playerId = record.data.playerId ? record.data.playerId : "";
@@ -3714,7 +3732,18 @@ define(['js/app'], function (myApp) {
                             {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
                         ],
                         columns: [
-                            {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                            //{title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                            {
+                                title: $translate('proposalId'),
+                                data: "proposalId",
+                                render: function (data, type, row) {
+
+                                    var link = $('<a>', {
+                                        'ng-click': 'vm.editNewplayerRemark=false;vm.showNewPlayerModal('+JSON.stringify(row)+',2)'
+                                    }).text(data);
+                                    return link.prop('outerHTML');
+                                }
+                            },
                             {title: $translate('PLAYERNAME'), data: "name"},
                             {title: $translate('STATUS'), data: "statusName"},
                             //{title: $translate('PLAYERID'), data: "playerId"},
@@ -3752,8 +3781,7 @@ define(['js/app'], function (myApp) {
                                         }));
                                     }
 
-
-                                    if (row.status != 'Success' && row.status != 'Manual') {
+                                    if(row.status!=vm.constRegistrationIntentRecordStatus.SUCCESS && row.status!=vm.constRegistrationIntentRecordStatus.MANUAL){
                                         displayTXT = $translate('SMS/PHONE/CREATE_ACC');
                                         action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                         link.append($('<div>', {
