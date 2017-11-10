@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter) {
+angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporter', 'ui.grid.resizeColumns', 'ui.grid.moveColumns', 'ngSanitize', 'ngCsv']).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter) {
     //todo::disable console log for production
     // if(CONFIG.NODE_ENV != "local"){
     //     window.console = { log: function(){}, warn: function(){}, error: function(){}, info: function(){} };
@@ -66,9 +66,9 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             query: 'token=' + token,
             //todo::add secure flag for https
             //secure: true
-            //set connection timeout to 50 seconds
-            timeout: 50000,
-            reconnectionDelay: 2000,
+            //set connection timeout to 10 seconds
+            timeout: 10000,
+            reconnectionDelay: 1000,
             reconnection: true,
             "transports": ["websocket"]
         });
@@ -347,6 +347,12 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         '1': 'MerchantUse_CreateAccount',
         '2': 'MerchantUse_Normal'
     };
+    $scope.merchantTopupMainTypeJson = {
+        1: "Online",
+        2: "Manual",
+        3: "Alipay",
+        4: "Wechatpay"
+    };
     $scope.merchantTopupTypeJson = {
         '1': 'NetPay',
         '2': 'WechatQR',
@@ -354,13 +360,21 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         '4': 'WechatApp',
         '5': 'AlipayApp',
         '6': 'FASTPAY',
-        '7': 'QQPAYQR'
+        '7': 'QQPAYQR',
+        '8': 'UnPayQR',
+        '9': 'JdPayQR'
     };
     $scope.merchantTargetDeviceJson = {
         '1': "clientType_Web",
         '2': "clientType_Application",
-        '3': 'clientType_Both'
+        '3': 'clientType_Both',
+        '4': 'clientType_H5'
     };
+    $scope.userAgentType = {
+        '1': "WEB",
+        '2': "APP",
+        '3': "H5",
+    }
     $scope.constProposalEntryType = {
         0: "ENTRY_TYPE_CLIENT",
         1: "ENTRY_TYPE_ADMIN",
@@ -394,6 +408,27 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
     $scope.constPartnerStatus = {
         1: "NORMAL",
         2: "FORBID"
+    };
+
+    $scope.rewardInterval = {
+        1: "Daily",
+        2: "Weekly",
+        3: "Biweekly",
+        4: "Monthly",
+        5: "Interval"
+    };
+
+    $scope.rewardApplyType = {
+        1: "Manual Apply",
+        2: "Auto Apply",
+        3: "Batch Apply"
+    };
+
+    $scope.intervalType = {
+        1: "Greater and equal to (>=)",
+        2: "Less than and equal to (<=)",
+        3: "Equal to (=)",
+        4: "Interval (>=, <)"
     };
     //////// DOM initialisation operations ////////
 
@@ -536,58 +571,65 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
                 return;
             }
 
-            let url = "http://eu.tel400.me/cti/previewcallout.action";//http://101.78.133.213/cti/previewcallout.action";
-            let now = new Date();
-            let formattedNow = $filter('date')(now, "yyyyMMdd");
-            let firstLevelMd5 = convertToMD5(adminData.callerId + "");
-            let password = convertToMD5(firstLevelMd5 + formattedNow);
-            //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
-            let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
+            // let url = "http://eu.tel400.me/cti/previewcallout.action";//http://101.78.133.213/cti/previewcallout.action";
 
-            $.ajax({
-                url: urlWithParams,
-                dataType: "jsonp",
-                type: "get",
-                success: function (e) {
-                    console.log("ok", e);
-                    //{“result”:”1”}
-                    // 1：成功
-                    // -1：失败，入参的参数不合法
-                    // -2：失败，坐席工号不存在
-                    // -3：失败，密码错误
-                    // -4：失败，系统错误
-                    // -5: 失败，URL错误
-                    if (e.result && e.result == "1") {
-                        alert("正在呼叫。。。");
-                    }
-                    else if (e.result && e.result == "-1") {
-                        alert("失败，入参的参数不合法。");
-                    }
-                    else if (e.result && e.result == "-2") {
-                        alert("失败，坐席工号不存在。");
-                    }
-                    else if (e.result && e.result == "-3") {
-                        alert("失败，密码错误。");
-                    }
-                    else if (e.result && e.result == "-4") {
-                        alert("失败，系统错误。");
-                    }
-                    else if (e.result && e.result == "-5") {
-                        alert("失败，URL错误。");
-                    }
-                    else {
-                        alert("失败，Uknown错误。" + e);
-                    }
-                },
-                error: function (e) {
-                    console.log("error", e);
-                    if (e && e.status == 200) {
-                        alert("正在呼叫。。。");
-                    } else {
-                        alert("呼叫超时请重试");
-                    }
+            let urls = ["http://eu.tel400.me/cti/previewcallout.action", "http://jinbailitw.tel400.me/cti/previewcallout.action", "http://jinbailicro.tel400.me/cti/previewcallout.action"];
+
+            urls.forEach(
+                url => {
+                    let now = new Date();
+                    let formattedNow = $filter('date')(now, "yyyyMMdd");
+                    let firstLevelMd5 = convertToMD5(adminData.callerId + "");
+                    let password = convertToMD5(firstLevelMd5 + formattedNow);
+                    //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
+                    let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
+
+                    $.ajax({
+                        url: urlWithParams,
+                        dataType: "jsonp",
+                        type: "get",
+                        success: function (e) {
+                            console.log("ok", e);
+                            //{“result”:”1”}
+                            // 1：成功
+                            // -1：失败，入参的参数不合法
+                            // -2：失败，坐席工号不存在
+                            // -3：失败，密码错误
+                            // -4：失败，系统错误
+                            // -5: 失败，URL错误
+                            if (e.result && e.result == "1") {
+                                alert("正在呼叫。。。");
+                            }
+                            else if (e.result && e.result == "-1") {
+                                alert("失败，入参的参数不合法。");
+                            }
+                            else if (e.result && e.result == "-2") {
+                                alert("失败，坐席工号不存在。");
+                            }
+                            else if (e.result && e.result == "-3") {
+                                alert("失败，密码错误。");
+                            }
+                            else if (e.result && e.result == "-4") {
+                                alert("失败，系统错误。");
+                            }
+                            else if (e.result && e.result == "-5") {
+                                alert("失败，URL错误。");
+                            }
+                            else {
+                                alert("失败，Uknown错误。" + e);
+                            }
+                        },
+                        error: function (e) {
+                            console.log("error", e);
+                            if (e && e.status == 200) {
+                                alert("正在呼叫。。。");
+                            } else {
+                                alert("呼叫超时请重试");
+                            }
+                        }
+                    });
                 }
-            });
+            );
         }
 
         function onFail(error) {
@@ -1056,8 +1098,9 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
     $scope.changeServer = (server) => {
         $cookies.put('curFPMSServer', server);
         $scope.connectSocket();
-    }
+    };
     $scope.changeLogoImg = (url) =>{
         $scope.companyLogo = url;
-    }
+    };
+
 });

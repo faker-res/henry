@@ -217,7 +217,7 @@ var dbPlatformGameStatus = {
                             games = games.filter(
                                 function (obj) {
                                     return groupGames.some(function (game) {
-                                        return game.equals(obj);
+                                        return game && game.gameId == obj.gameId;
                                     });
                                 }
                             )
@@ -244,7 +244,6 @@ var dbPlatformGameStatus = {
             data => {
                 platformGames = data;
                 if (platformGames && platformGames.length > 0) {
-                    platformGames = platformGames.filter(game => game.status != 4);
                     var queryObj = {_id: {$in: platformGames.map(game => game.game)}};
                     if( playGameType ){
                         queryObj.playGameType = playGameType;
@@ -260,6 +259,7 @@ var dbPlatformGameStatus = {
             games => {
                 if (games && games.length > 0) {
                     var platformGamesMap = {};
+                    games = games.filter(game => game.status != 4);
                     platformGames.forEach(game => platformGamesMap[game.game] = game);
                     games.forEach(
                         game => {

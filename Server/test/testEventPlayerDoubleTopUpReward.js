@@ -294,7 +294,7 @@ describe("Test player consumption incentive event", function () {
     return;
 
     it('player should apply for player consumption incentive reward', function (done) {
-        dbPlayerInfo.applyConsumptionIncentive(testPlayerShortId, testRewardEventCode).then(
+        dbPlayerInfo.applyConsumptionIncentive("", testPlayerShortId, testRewardEventCode).then(
             function (data) {
                 if (data) {
                     //console.log(data);

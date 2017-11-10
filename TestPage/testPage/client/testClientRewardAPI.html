@@ -282,16 +282,6 @@
 <h3>APPLY PROMO CODE (申请优惠代码)</h3>
 <div class="test-container">
     <div>
-        <label>PlayerObjId ID
-            <input name="platformObjId">
-        </label>
-    </div>
-    <div>
-      <label>Player Name
-        <input name="playerName">
-      </label>
-    </div>
-    <div>
       <label>PromoCode
         <input name="promoCode">
       </label>
@@ -309,6 +299,11 @@
             <input name="platformId">
         </label>
     </div>
+    <div>
+        <label>Status
+            <input name="status">
+        </label>
+    </div>
     <p></p>
     <button data-api-name="getLimitedOffers">Get Limited Offers</button>
     <div>
@@ -317,16 +312,6 @@
 </div>
 <h3>APPLY LIMITED OFFERS (申请秒杀礼包)</h3>
 <div class="test-container">
-    <div>
-        <label>Platform ID
-            <input name="platformId">
-        </label>
-    </div>
-    <div>
-        <label>Player Name
-            <input name="playerName">
-        </label>
-    </div>
     <div>
         <label>limitedOfferObjId
             <input name="limitedOfferObjId">
@@ -338,52 +323,101 @@
         <textarea></textarea>
     </div>
 </div>
-<script>
-    require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
-        function (ClientServices, WebSocketClient, TestHelper, ClientRewardAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {
-            var Client = function (url) {
+<h3>GET LIMITED OFFERS BONUS LIST ()</h3>
+<div class="test-container">
+    <div>
+        <label>Platform ID
+            <input name="platformId">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="getLimitedOfferBonus">GET</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+<h3>SET LIMITED OFFER SHOW INFO ()</h3>
+<div class="test-container">
+    <div>
+        <label>showInfo
+            <input name="showInfo">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="setLimitedOfferShowInfo">GET</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+<h3>SET showInfo State()</h3>
+<div class="test-container">
+    <div>
+        <label>Player ID
+            <input name="playerId">
+        </label>
+    </div>
+    <div>
+        <label>Platform ID
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>showInfo State
+            <input name="showInfoState">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="setBonusShowInfo">SET</button>
+    <div>
+        <textarea></textarea>
+    </div>
 
-                WebSocketClient.call(this, url);
+    <script>
+        require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
+            function (ClientServices, WebSocketClient, TestHelper, ClientRewardAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {
+                var Client = function (url) {
 
-                var RewardService = new ClientServices.RewardService();
-                this.addService(RewardService);
+                    WebSocketClient.call(this, url);
 
-                var playerService = new ClientServices.PlayerService();
-                this.addService(playerService);
+                    var RewardService = new ClientServices.RewardService();
+                    this.addService(RewardService);
 
-                var conService = new ClientServices.ConnectionService();
-                this.addService(conService);
-            };
+                    var playerService = new ClientServices.PlayerService();
+                    this.addService(playerService);
 
-            var proto = Client.prototype = Object.create(WebSocketClient.prototype);
-            proto.constructor = Client;
+                    var conService = new ClientServices.ConnectionService();
+                    this.addService(conService);
+                };
 
-            var client = new Client(TestHelper.websocketURL);
-            client.connect();
+                var proto = Client.prototype = Object.create(WebSocketClient.prototype);
+                proto.constructor = Client;
 
-            client.addEventListener("open", function () {
-                var RewardService = client.getService("reward");
-                var clientRewardAPITest = new ClientRewardAPITest(RewardService);
+                var client = new Client(TestHelper.websocketURL);
+                client.connect();
 
-                var connectionService = client.getService("connection");
-                var connAPITest = new ClientConnectionAPITest(connectionService);
+                client.addEventListener("open", function () {
+                    var RewardService = client.getService("reward");
+                    var clientRewardAPITest = new ClientRewardAPITest(RewardService);
 
-                connAPITest.setLang(function (data) {
-                    console.log('setlang data.....', data);
+                    var connectionService = client.getService("connection");
+                    var connAPITest = new ClientConnectionAPITest(connectionService);
+
+                    connAPITest.setLang(function (data) {
+                        console.log('setlang data.....', data);
+                    });
+
+                    TestHelper.loginCookiePlayer(client, ClientPlayerAPITest);
+
+                    TestHelper.setAPIName('ClientServices.reward');
+                    TestHelper.attachListeners(clientRewardAPITest);
                 });
 
-                TestHelper.loginCookiePlayer(client, ClientPlayerAPITest);
-
-                TestHelper.setAPIName('ClientServices.reward');
-                TestHelper.attachListeners(clientRewardAPITest);
-            });
-
-            TestHelper.addReconnectOnCloseListener(client);
-        }
-    );
+                TestHelper.addReconnectOnCloseListener(client);
+            }
+        );
 
 
-</script>
+    </script>
 </body>
 </html>
 </body>

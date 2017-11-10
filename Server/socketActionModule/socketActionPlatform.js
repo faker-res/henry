@@ -1,9 +1,7 @@
-let encrypt = require('./../modules/encrypt');
 let dbPlatform = require('./../db_modules/dbPlatform');
 let socketUtil = require('./../modules/socketutility');
 let dailyPlatformSettlement = require('./../scheduleTask/dailyPlatformSettlement');
 let weeklyPlatformSettlement = require('./../scheduleTask/weeklyPlatformSettlement');
-let dbPaymentChannel = require('./../db_modules/dbPaymentChannel');
 let mongoose = require('mongoose');
 let ObjectId = mongoose.Types.ObjectId;
 
@@ -11,10 +9,11 @@ let constPlayerCreditTransferStatus = require('./../const/constPlayerCreditTrans
 let constPartnerCommissionSettlementMode = require('./../const/constPartnerCommissionSettlementMode');
 
 const dbAutoProposal = require('./../db_modules/dbAutoProposal');
+const dbGameProvider = require('./../db_modules/dbGameProvider');
 const dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
-let dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
-let dbCsOfficer = require('../db_modules/dbCsOfficer');
+const dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
+const dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
 
 const consumptionReturnEvent = require('./../scheduleTask/consumptionReturnEvent');
 
@@ -229,7 +228,7 @@ function socketActionPlatform(socketIO, socket) {
         triggerSavePlayersCredit: function triggerSavePlayersCredit(data) {
             let actionName = arguments.callee.name;
             let isDataValid = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbRewardEvent.startSavePlayersCredit, [data.platformObjId], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbRewardEvent.startSavePlayersCredit, [data.platformObjId, true], actionName, isDataValid);
         },
 
         changeStatusToPendingFromAutoAudit: function changeStatusToPendingFromAutoAudit(data) {
@@ -362,6 +361,24 @@ function socketActionPlatform(socketIO, socket) {
         generateObjectId: function generateObjectId(){
           let actionName = arguments.callee.name;
           socketUtil.emitter(self.socket, dbPlatform.generateObjectId, [], actionName, true);
+        },
+
+        getPlatformProviderGroup: function getPlatformProviderGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbGameProvider.getPlatformProviderGroup, [data.platformObjId], actionName, isValidData);
+        },
+
+        updatePlatformProviderGroup: function updatePlatformProviderGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.gameProviderGroup);
+            socketUtil.emitter(self.socket, dbGameProvider.updatePlatformProviderGroup, [data.platformObjId, data.gameProviderGroup], actionName, isValidData);
+        },
+
+        deletePlatformProviderGroup: function deletePlatformProviderGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.gameProviderGroupObjId);
+            socketUtil.emitter(self.socket, dbRewardTaskGroup.deletePlatformProviderGroup, [data.gameProviderGroupObjId], actionName, isValidData);
         }
 
     };

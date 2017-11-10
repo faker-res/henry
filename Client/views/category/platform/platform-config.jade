@@ -32,6 +32,8 @@
                         span {{"Player Value" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "credibility"}', ng-click='vm.configTabClicked("credibility")')
                         span {{"Player Credibility" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "providerGroup"}', ng-click='vm.configTabClicked("providerGroup")')
+                        span {{"Lock Lobby Group" | translate}}
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
@@ -56,6 +58,24 @@
                                 td
                                     text(ng-show='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.autoCheckPlayerLevelUp', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'PLAYER_SELF_LEVELUP' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit')
+                                    input(type='checkbox', ng-model='vm.manualPlayerLevelUp', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'PLAYER_LEVEL_UP_PERIOD' | translate}}
+                                td(style='width:25%')
+                                    text(ng-if='!vm.configTableEdit') {{ vm.playerLevelPeriod.levelUpPeriodName | translate }}
+                                    select.form-control(style='width:30%;margin:auto' ng-change='vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod); vm.changeLevelPeriodAllField()'
+                                    ng-if='vm.configTableEdit', ng-model='vm.playerLevelPeriod.playerLevelUpPeriod', ng-options='v as i | translate for (i,v) in vm.allPlayerLevelUpPeriod',required)
+                            tr
+                                td {{'PLAYER_LEVEL_DOWN_PERIOD' | translate}}
+                                td(style='width:25%')
+                                    text(ng-if='!vm.configTableEdit') {{ vm.playerLevelPeriod.levelDownPeriodName | translate }}
+                                    select.form-control(style='width:30%;margin:auto' ng-change='vm.playerLevelPeriod.levelDownPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelDownPeriod); vm.changeLevelPeriodAllField()'
+                                    ng-if='vm.configTableEdit', ng-model='vm.playerLevelPeriod.playerLevelDownPeriod', ng-options='v as i | translate for (i,v) in vm.allPlayerLevelUpPeriod', required)
+
                     br
                     br
                     div(ng-if='vm.allGameTypes' style="margin-bottom:5px")
@@ -130,16 +150,16 @@
                                             input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.topupLimit', required)
                                             text(ng-if='!vm.configTableEdit') {{oneConfig.topupLimit | number : 2}}
                                         td
-                                            text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.topupPeriod | translate}}
-                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.topupPeriod', required)
-                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
+                                            text {{"LEVEL"+oneConfig.topupPeriod | translate}}
+                                            //select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.topupPeriod', required)
+                                            //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
                                             input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.consumptionLimit', required)
                                             text(ng-if='!vm.configTableEdit') {{oneConfig.consumptionLimit | number : 2}}
                                         td
-                                            text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.consumptionPeriod | translate}}
-                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', required)
-                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
+                                            text {{"LEVEL"+oneConfig.consumptionPeriod | translate}}
+                                            //select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', required)
+                                            //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
                                             input(type='checkbox', ng-model='oneConfig.andConditions', ng-disabled='!vm.configTableEdit')
                                         td(ng-if='vm.configTableEdit')
@@ -152,22 +172,26 @@
                                         td(ng-if='vm.configTableEdit && j == 0', rowspan='{{level.levelDownConfig.length}}')
                                             //a.fa.fa-plus-circle(ng-click='level.levelDownConfig.push({})', title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
                                         td(ng-style="{borderLeft: vm.configTableEdit ? '0px' : ''}")
-                                            input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.topupMinimum', ng-change="vm.playerLvlDownChange(i,j,'topupMinimum')", required)
+                                            //input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.topupMinimum', ng-change="vm.playerLvlDownChange(i,j,'topupMinimum')", required)
+                                            input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.topupMinimum', required)
                                             text(ng-if='!vm.configTableEdit') {{oneConfig.topupMinimum | number : 2}}
                                         td
-                                            text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.topupPeriod | translate}}
-                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.topupPeriod', ng-disabled="oneConfig.consumptionMinimum", required)
-                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='oneConfig.topupMinimum && j!=="NONE"', value='{{j}}') {{"LEVEL"+i | translate}}
+                                            text {{"LEVEL"+oneConfig.topupPeriod | translate}}
+                                            //select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.topupPeriod', ng-disabled="oneConfig.consumptionMinimum", required)
+                                            //select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.topupPeriod', required)
+                                            //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='oneConfig.topupMinimum && j!=="NONE"', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
-                                            input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.consumptionMinimum', ng-change="vm.playerLvlDownChange(i,j,'consumptionMinimum')", required)
+                                            //input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.consumptionMinimum', ng-change="vm.playerLvlDownChange(i,j,'consumptionMinimum')", required)
+                                            input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.consumptionMinimum', required)
                                             text(ng-if='!vm.configTableEdit') {{oneConfig.consumptionMinimum | number : 2}}
                                         td
-                                            text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.consumptionPeriod | translate}}
-                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', ng-disabled="oneConfig.topupMinimum", required)
-                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='oneConfig.consumptionMinimum && j!=="NONE"', value='{{j}}') {{"LEVEL"+i | translate}}
+                                            text {{"LEVEL"+oneConfig.consumptionPeriod | translate}}
+                                            //select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', ng-disabled="oneConfig.topupMinimum", required)
+                                            //select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', required)
+                                            //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='oneConfig.consumptionMinimum && j!=="NONE"', value='{{j}}') {{"LEVEL"+i | translate}}
                                         //- TAG_MIX_PERIOD_OR_TOO_COMPLEX
                                         td(ng-class='{warning: vm.levelDownConditionIsTooComplex(oneConfig)}', title='{{vm.levelDownConditionIsTooComplex(oneConfig) ? "OR operation with daily and weekly requirements is not currently supported" : "" | translate}}')
-                                            //input(type='checkbox', ng-model='oneConfig.andConditions', ng-disabled='!vm.configTableEdit')
+                                            input(type='checkbox', ng-model='oneConfig.andConditions', ng-disabled='!vm.configTableEdit')
                                         td(ng-if='vm.configTableEdit')
                                             a.fa.fa-times-circle(ng-if='level.levelDownConfig.length > 1', ng-click='level.levelDownConfig.splice(j,1)', title='{{"REMOVE_THIS_LEVEL_DOWN_CONDITION" | translate}}')
 
@@ -198,13 +222,15 @@
                                         td
                                             input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelUpConfig[0].topupLimit', required)
                                         td
-                                            select.form-control(ng-model='vm.newPlayerLvl.levelUpConfig[0].topupPeriod', required)
-                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
+                                            text {{vm.newPlayerLvl.levelUpConfig[0].topupPeriod | translate}}
+                                            //select.form-control(ng-model='vm.newPlayerLvl.levelUpConfig[0].topupPeriod', required)
+                                            //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
                                             input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelUpConfig[0].consumptionLimit', required)
                                         td
-                                            select.form-control(ng-model='vm.newPlayerLvl.levelUpConfig[0].consumptionPeriod', required)
-                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
+                                            text {{vm.newPlayerLvl.levelUpConfig[0].consumptionPeriod | translate}}
+                                            //select.form-control(ng-model='vm.newPlayerLvl.levelUpConfig[0].consumptionPeriod', required)
+                                            //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
                                             input(type='checkbox', ng-model='vm.newPlayerLvl.levelUpConfig[0].andConditions')
                                         //td(ng-repeat='(key,title) in vm.allGameTypes')
@@ -217,17 +243,23 @@
                                             text {{"Level Down Conditions" | translate}}
                                     tr
                                         td
-                                            input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelDownConfig[0].topupMinimum', ng-change="vm.playerLvlDownChange(-1,j,'topupMinimum')", required)
+                                            //input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelDownConfig[0].topupMinimum', ng-change="vm.playerLvlDownChange(-1,j,'topupMinimum')", required)
+                                            input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelDownConfig[0].topupMinimum', required)
                                         td
-                                            select.form-control(ng-model='vm.newPlayerLvl.levelDownConfig[0].topupPeriod',ng-disabled="vm.newPlayerLvl.levelDownConfig[0].consumptionMinimum", required)
-                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='vm.newPlayerLvl.levelDownConfig[0].topupMinimum && i!=="NONE"', value='{{j}}') {{"LEVEL"+i | translate}}
+                                            //select.form-control(ng-model='vm.newPlayerLvl.levelDownConfig[0].topupPeriod',ng-disabled="vm.newPlayerLvl.levelDownConfig[0].consumptionMinimum", required)
+                                            text {{vm.newPlayerLvl.levelDownConfig[0].topupPeriod | translate}}
+                                            //select.form-control(ng-model='vm.newPlayerLvl.levelDownConfig[0].topupPeriod', required)
+                                            //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='vm.newPlayerLvl.levelDownConfig[0].topupMinimum && i!=="NONE"', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
-                                            input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelDownConfig[0].consumptionMinimum', ng-change="vm.playerLvlDownChange(-1,j,'consumptionMinimum')", required)
+                                            //input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelDownConfig[0].consumptionMinimum', ng-change="vm.playerLvlDownChange(-1,j,'consumptionMinimum')", required)
+                                            input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelDownConfig[0].consumptionMinimum', required)
                                         td
-                                            select.form-control(ng-model='vm.newPlayerLvl.levelDownConfig[0].consumptionPeriod',ng-disabled="vm.newPlayerLvl.levelDownConfig[0].topupMinimum", required)
-                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='vm.newPlayerLvl.levelDownConfig[0].consumptionMinimum && i!=="NONE"',value='{{j}}') {{"LEVEL"+i | translate}}
+                                            //select.form-control(ng-model='vm.newPlayerLvl.levelDownConfig[0].consumptionPeriod',ng-disabled="vm.newPlayerLvl.levelDownConfig[0].topupMinimum", required)
+                                            text {{vm.newPlayerLvl.levelDownConfig[0].consumptionPeriod | translate}}
+                                            //select.form-control(ng-model='vm.newPlayerLvl.levelDownConfig[0].consumptionPeriod', required)
+                                            //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='vm.newPlayerLvl.levelDownConfig[0].consumptionMinimum && i!=="NONE"',value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
-                                            // input(type='checkbox', ng-model='vm.newPlayerLvl.levelDownConfig[0].andConditions')
+                                            input(type='checkbox', ng-model='vm.newPlayerLvl.levelDownConfig[0].andConditions')
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI();')
                             text {{'ADD_LEVEL' | translate}}
@@ -525,9 +557,35 @@
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.showAllowSamePhoneNumberToRegister', ng-disabled='!vm.configTableEdit')
                             tr
+                                td {{'samePhoneNumberRegisterCount' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.samePhoneNumberRegisterCount}}
+                                    input(type='number', ng-show='vm.configTableEdit && vm.platformBasic.showAllowSamePhoneNumberToRegister', min=1, ng-model='vm.platformBasic.samePhoneNumberRegisterCount')
+                            tr
+                                td {{'Whitelisting Phone Number' | translate}}
+                                td
+                                    textarea(ng-model='vm.platformBasic.whiteListingPhoneNumbers$', ng-disabled='!vm.configTableEdit')
+                            tr
                                 td {{'PLAYER_MULTIPLE_REWARD' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'SMS_VERIFICATION' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerification', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'SMS_VERIFICATION_FOR_PASSWORD_UPDATE' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerificationForPasswordUpdate', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'SMS_VERIFICATION_FOR_PAYMENT_UPDATE' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerificationForPaymentUpdate', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'SMS_EXPIRED_TIME' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showMinTopupAmount}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showMinTopupAmount')
                             tr
                                 td {{'CAPTCHA_VERIFICATION_FOR_LOGIN' | translate}}
                                 td
@@ -544,6 +602,10 @@
                                 td {{'USE_LOCK_CREDIT' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.useLockedCredit', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Use Provider Group' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.useProviderGroup', ng-disabled='!vm.configTableEdit')
 
                             br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
@@ -551,6 +613,61 @@
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("platformBasic")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("platformBasic")') {{"CONFIRM" | translate}}
+
+                    /// start of 投注记录收录报告
+
+                    br
+                    br
+                    <label class="ng-binding">投注记录收录报告</label>
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th(width="40%") {{'Provider Delay Duration' | translate}}
+                                th(width="40%") {{'COLOR_CODE' | translate}}
+                                th(width="20%") {{'INLINE_EDIT' | translate}}
+                        tbody
+                            // before edit enabled
+                            tr(ng-repeat='config in vm.durationGroupConfig', ng-if='!vm.delayDurationGroupInlineEdit')
+                                td(style="background-color:{{config.color}}", ng-click="vm.selectedDelayDurationGroup=config;") {{config.duration}}
+                                td(style="background-color:{{config.color}}") {{config.color}}
+                                td(style="background-color:{{config.color}}")
+                                    button.btn.btn-primary.common-button(ng-click="vm.delayDurationGroupInlineEdit=true")
+                                        i.fa.fa-pencil-square-o
+                                        text {{'EDIT' | translate}}
+                                    button.btn.btn-danger.common-button(ng-click=" vm.durationGroupConfig.splice($index, 1);vm.saveDelayDurationGroup();")
+                                        i.fa.fa-trash
+                                        text {{'DELETE' | translate}}
+                            // after edit enabled
+                            tr(ng-repeat='config in vm.durationGroupConfig', ng-if='vm.delayDurationGroupInlineEdit')
+                                td(style="background-color:{{config.color}}", ng-click="vm.selectedDelayDurationGroup=config;")
+                                    input.form-control(type="text", ng-model="config.duration")
+                                td(style="background-color:{{config.color}}")
+                                    input.form-control(colorpicker="rgb", type="text", ng-model="config.color")
+                                td(style="background-color:{{config.color}}")
+                                    button.btn.btn-success.common-button(ng-click="vm.delayDurationGroupInlineEdit=false; vm.saveDelayDurationGroup();")
+                                        i.fa.fa-floppy-o
+                                        text {{'SAVE' | translate}}
+                                    button.btn.btn-danger.common-button(ng-click="vm.delayDurationGroupInlineEdit=false; vm.saveDelayDurationGroup();")
+                                        i.fa.fa-times
+                                        text {{'CANCEL' | translate}}
+                            tr(ng-if='vm.delayDurationGroupEdit')
+                                td(colspan="3")
+                                    strong {{'Add Provider Delay Duration' | translate}}
+                            tr(ng-if='vm.delayDurationGroupEdit')
+                                td
+                                    input(type='number' , ng-model='vm.newDelayDurationGroup.duration')
+                                td
+                                    input(colorpicker="rgb", style="background-color:{{vm.newDelayDurationGroup.color}}", type="text", ng-model="vm.newDelayDurationGroup.color")
+                                td(colspan="2")
+                                    i.fa.fa-plus(ng-click='vm.durationGroupConfig.push(vm.newDelayDurationGroup); vm.newDelayDurationGroup={};')
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if="!vm.delayDurationGroupEdit", ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.delayDurationGroupEdit', ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit;') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.delayDurationGroupEdit', ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit;vm.saveDelayDurationGroup()') {{"CONFIRM" | translate}}
+
+                /// end of 投注记录收录报告
 
                 div(ng-if='vm.selectedConfigTab=="bonusBasic"')
                     //bonus basic
@@ -916,6 +1033,37 @@
                                         tr.text-center
                                             td.text-center(colspan=3)
                                                 i.fa.fa-plus.text-success(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("neutral", "add", {})')
+
+                div(ng-if='vm.selectedConfigTab=="providerGroup"')
+                    table#providerGroupTable.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{"Provider Group Name" | translate}}
+                                th(width="600px") {{"Provider" | translate}}
+                                th(ng-if='vm.configTableEdit') {{"ACTION" | translate}}
+                        tbody
+                            tr(ng-repeat='group in vm.gameProviderGroup')
+                                td
+                                    input.form-control(disabled, ng-model='group.name')
+                                td
+                                    select.spicker.form-control(disabled, ng-model='group.providers', multiple data-width="600px")
+                                        option(ng-repeat='(i,v) in vm.availableGameProviders', value='{{v._id}}' ng-init="$last && vm.endLoadWeekDay()" ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
+                                td(ng-if='vm.configTableEdit')
+                                    button.btn.btn-danger.common-button(ng-click='vm.deleteProviderGroup(group)') {{"Delete" | translate}}
+                            tr(ng-if='vm.configTableEdit')
+                                td
+                                    input.form-control(ng-model='vm.newProviderGroup.name')
+                                td
+                                    select.spicker.form-control(ng-model='vm.newProviderGroup.providers', multiple, data-actions-box='true' data-width="600px" ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                        option(ng-repeat='(i,v) in vm.availableGameProviders', value='{{v._id}}' ng-init="$last && vm.endLoadWeekDay()" ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
+                                td
+                                    i.fa.fa-plus(ng-click='vm.gameProviderGroup.push(vm.newProviderGroup); vm.newProviderGroup={};')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'providerGroup')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("providerGroup")') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("providerGroup")') {{"CONFIRM" | translate}}
+                        label(ng-if="vm.providerGroupConfig.showWarning") {{"There are unallocated providers" | translate}}
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
                         form(name="platformAnnouncementsForm")

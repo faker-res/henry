@@ -228,7 +228,53 @@ angular.module('myApp.directives', [])
     };
   })
 
-  .directive('ezNormalButton', function () {
+  .directive('bsp', function($timeout){
+      return  {
+          restrict : 'A',
+          link: function(scope, element, attrs){
+              if (attrs.ngOptions && / in /.test(attrs.ngOptions)) {
+                  scope.$watch(attrs.ngOptions.split(' in ')[1], function() {
+                      scope.$applyAsync(function () {
+                          $(element).selectpicker('refresh');
+                      });
+                  }, true);
+              }
+          }
+      };
+  })
+
+    .directive('staticBsp', function ($timeout) {
+        return {
+            restrict: 'A',
+            link: function (scope, element, attrs) {
+                $timeout(() => {
+                    $(element).selectpicker('refresh')
+                }, 50)
+
+                if (attrs.ngModel) {
+                    scope.$watch(attrs.ngModel, function () {
+                        $(element).selectpicker('refresh');
+                    }, true)
+                }
+            }
+        }
+    })
+
+  .directive('rddl', function($timeout){
+      return  {
+          restrict : 'A',
+          link: function(scope, element, attrs){
+              if (attrs.ngModel){
+                  scope.$watch(attrs.ngModel,function(){
+                      $(element).selectpicker('destroy');
+                      $(element).selectpicker();
+                  },true)
+              }
+          }
+      };
+  })
+
+    .directive('ezNormalButton', function () {
     return {
       restrict: 'E',
       replace: true,
@@ -238,4 +284,52 @@ angular.module('myApp.directives', [])
     };
   })
 
+    // read content inside uploaded file
+    .directive('onReadFile', function ($parse) {
+        return {
+            restrict: 'A',
+            scope: false,
+            link: function(scope, element, attrs) {
+                var fn = $parse(attrs.onReadFile);
+                element.on('change', function(onChangeEvent) {
+                    var reader = new FileReader();
+                    reader.onload = function(onLoadEvent) {
+                        scope.$apply(function() {
+                            fn(scope, {$fileContent:onLoadEvent.target.result});
+                        });
+                    };
+                    reader.readAsText((onChangeEvent.srcElement || onChangeEvent.target).files[0]);
+                });
+            }
+        };
+    })
+
+    // sheetjs.com js-xlsx - spreadsheet parser and writer
+    .directive('fileread', [function () {
+        return {
+            scope: {
+                opts: '='
+            },
+            link: function ($scope, $elm, $attrs) {
+                $elm.on('change', function (changeEvent) {
+                    let reader = new FileReader();
+                    reader.onload = function (evt) {
+                        $scope.$apply(function () {
+                            var data = evt.target.result;
+                            var workbook = XLSX.read(data, {type: 'binary'});
+                            var headerNames = XLSX.utils.sheet_to_json( workbook.Sheets[workbook.SheetNames[0]], { header: 1 })[0];
+                            var data = XLSX.utils.sheet_to_json( workbook.Sheets[workbook.SheetNames[0]]);
+                            $scope.opts.columnDefs = [];
+                            headerNames.forEach(function (h) {
+                                $scope.opts.columnDefs.push({ field: h });
+                            });
+                            $scope.opts.data = data;
+                            $elm.val(null);
+                        });
+                    };
+                    reader.readAsBinaryString(changeEvent.target.files[0]);
+                });
+            }
+        }
+    }])
 ;
