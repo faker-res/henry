@@ -13011,7 +13011,7 @@ define(['js/app'], function (myApp) {
                     vm.allRewardEvent = data.data;
                     console.log("vm.allRewardEvent", data.data);
                     vm.showApplyRewardEvent = data.data.filter(item => {
-                        return item.needApply
+                        return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1")
                     }).length > 0
                     vm.curContentRewardType = {};
                     $.each(vm.allRewardEvent, function (i, v) {
@@ -13877,8 +13877,8 @@ define(['js/app'], function (myApp) {
                             if (condType == "date") {
                                 condValue = condValue.data('datetimepicker').getLocalDate();
                             }
-                            //
-                            // // Save reward condition
+
+                            // Save reward condition
                             curReward.condition[condName] = condValue;
                         }
                     });
