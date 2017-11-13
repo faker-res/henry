@@ -72,16 +72,16 @@ describe("Test player credit transfter", function () {
         );
     });
 
-    it('it should get player locked credit', function (done) {
-        dbPlayerInfo.getPlayerInfo({_id: testPlayerId}).then(
-            function (data) {
-                if (data) {
-                    data.lockedCredit.should.not.equal(0);
-                    done();
-                }
-            }
-        );
-    });
+    // it('it should get player locked credit', function (done) {
+    //     dbPlayerInfo.getPlayerInfo({_id: testPlayerId}).then(
+    //         function (data) {
+    //             if (data) {
+    //                 data.lockedCredit.should.not.equal(0);
+    //                 done();
+    //             }
+    //         }
+    //     );
+    // });
 
 
     //todo::enable this later

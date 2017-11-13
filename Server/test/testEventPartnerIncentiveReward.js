@@ -229,10 +229,12 @@ describe("Test Partner Incentive Reward event", function () {
         for (var i = 0; i < testPartnerNum; i++) {
             var playerData = {
                 partnerName: "testPartner" + i + date,
+                realName: "testRealName" + i + date,
                 platform: testPlatformId,
                 password: "123",
                 level: testParterLevelIds[i%testParterLevelIds.length],
-                validConsumptionSum: 20 * i
+                validConsumptionSum: 20 * i,
+                phoneNumber: "11111111" + i
             };
             proms.push(dbPartner.createPartner(playerData));
         }
@@ -265,7 +267,8 @@ describe("Test Partner Incentive Reward event", function () {
                 name: "testpayer" + i + date.getTime(),
                 platform: testPlatformId,
                 password: "123",
-                games: [testGameId2, testGameId]
+                games: [testGameId2, testGameId],
+                phoneNumber: "11111111" + i
             };
             proms.push(dbPlayerInfo.createPlayerInfo(playerData));
         }

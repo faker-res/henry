@@ -254,6 +254,7 @@ describe("Test Player registration Reward event", function () {
                 name: "testplayer" + i + date.getTime(),
                 platform: testPlatformId,
                 password: "123",
+                phoneNumber: "11111111" + i
                 //games: [testGameId2, testGameId],
                 //validCredit: 0
                 //email: emailRecipient
