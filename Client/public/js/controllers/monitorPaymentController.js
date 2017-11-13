@@ -168,9 +168,12 @@ define(['js/app'], function (myApp) {
                     vm.merchants[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
                 } else if (merchantTypeId == "9997") {
                     vm.merchants[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
-                } else if (vm.merchantTypes[merchantTypeId]) {
-                    vm.merchants[item].merchantTypeName = merchantTypeId ? vm.merchantTypes[merchantTypeId].name : '';
-                } else {
+                }else if(merchantTypeId != "9997" && merchantTypeId!= "9998" && merchantTypeId!= "9999"){
+                    let merchantInfo = vm.merchantTypes.filter(mitem=>{
+                        return mitem.merchantTypeId == merchantTypeId;
+                    })
+                    vm.merchants[item].merchantTypeName  = merchantInfo[0] ? merchantInfo[0].name:"";
+                } else{
                     vm.merchants[item].merchantTypeName = '';
                 }
             });

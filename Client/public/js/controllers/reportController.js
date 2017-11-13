@@ -298,8 +298,12 @@ define(['js/app'], function (myApp) {
             if (topupType && topupType.length > 0 && vm.merchantCloneList) {
                 // display online topup type
                 vm.merchantCloneList = vm.merchantCloneList.filter(item => {
+                    if(topupType.indexOf(String(item.topupType)) != -1){
+                        console.log( $scope.merchantTopupTypeJson[item.topupType]+ '...'+item.merchantTypeId+ item.merchantTypeName);
+                    }
                     return topupType.indexOf(String(item.topupType)) != -1
                 });
+
                 vm.merchantGroupCloneList = vm.merchantGroupCloneList.filter(
                     item=>{
                         let thirdPartyGroup = [];
@@ -778,10 +782,13 @@ define(['js/app'], function (myApp) {
                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
                            } else if (merchantTypeId == "9997") {
                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
-                           }else if(vm.merchantTypes[merchantTypeId]){
-                               vm.merchantNoList[item].merchantTypeName = merchantTypeId ? vm.merchantTypes[merchantTypeId].name : '';
-                           }else{
-                               vm.merchantNoList[item].merchantTypeName = '';
+                           }else if(merchantTypeId != "9997" && merchantTypeId!= "9998" && merchantTypeId!= "9999"){
+                               let merchantInfo = vm.merchantTypes.filter(mitem=>{
+                                   return mitem.merchantTypeId == merchantTypeId;
+                               })
+                               vm.merchantNoList[item].merchantTypeName  = merchantInfo[0] ? merchantInfo[0].name:"";
+                           } else{
+                                vm.merchantNoList[item].merchantTypeName = '';
                            }
                         });
                         vm.merchantCloneList = angular.copy(vm.merchantNoList);
