@@ -13090,9 +13090,10 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainTask = [];
                     vm.rewardMainCondition = {};
                     vm.rewardMainParam = {};
+                    vm.isPlayerLevelDiff = false;
+                    vm.isDynamicRewardAmt = false;
+                    vm.rewardMainParamEntry = [{}];
 
-                    let isPlayerLevelDiff = false;
-                    let isDynamicRewardAmt = false;
                     let params = vm.showRewardTypeData.params;
 
                     Object.keys(params.condition).forEach(el => {
@@ -13119,12 +13120,12 @@ define(['js/app'], function (myApp) {
 
                             // Get player level different reward flag
                             if (el == "isPlayerLevelDiff" && vm.showReward.condition[el] === true) {
-                                isPlayerLevelDiff = true;
+                                vm.isPlayerLevelDiff = true;
                             }
 
                             // Get reward dynamic amount flag
                             if (el == "isDynamicRewardAmount" && vm.showReward.condition[el] === true) {
-                                isDynamicRewardAmt = true;
+                                vm.isDynamicRewardAmt = true;
                             }
 
                             // Get value
@@ -13149,7 +13150,7 @@ define(['js/app'], function (myApp) {
                         })
                     });
 
-                    vm.changeRewardParamLayout(null, isDynamicRewardAmt);
+                    vm.changeRewardParamLayout();
 
                     console.log('params', params);
                     console.log('vm.rewardMainTask', vm.rewardMainTask);
@@ -13436,24 +13437,49 @@ define(['js/app'], function (myApp) {
                 vm.showRewardFormValid = true;
             };
 
-        vm.changeRewardParamLayout = (model, isDynamicRewardAmt) => {
-            console.log('changeRewardParamLayout', isDynamicRewardAmt);
+        vm.changeRewardParamLayout = (model) => {
             console.log('vm.showRewardTypeData.params', vm.showRewardTypeData.params);
             console.log('model', model);
 
-            if (model && model.name == "isDynamicRewardAmount" && model.value === true) {
-                isDynamicRewardAmt = true;
+            // Check whether reward is dyanmic amount
+            if (model && model.name == "isDynamicRewardAmount") {
+                vm.isDynamicRewardAmt = model.value;
             }
 
-            let paramType = isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+            // Check whether reward is differ by player level
+            if (model && model.name == "isPlayerLevelDiff") {
+                vm.isPlayerLevelDiff = model.value;
+            }
+
+            let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
 
             vm.rewardMainParam = Object.assign({}, paramType);
+
+
+            vm.rewardMainParamTable = [];
+
+            console.log('vm.isPlayerLevelDiff', vm.isPlayerLevelDiff);
+
+            if (vm.isPlayerLevelDiff) {
+                vm.allPlayerLvl.forEach((e, idx) => {
+                    vm.rewardMainParamTable.push({
+                        header: vm.rewardMainParam.rewardParam,
+                        value: [{}]
+                    });
+                });
+            } else {
+                vm.rewardMainParamTable.push({
+                    header: vm.rewardMainParam.rewardParam,
+                    value: [{}]
+                });
+            }
+
+
             delete vm.rewardMainParam.rewardParam;
 
-            vm.rewardMainParamTable = paramType.rewardParam;
-
             console.log('vm.rewardMainParam', vm.rewardMainParam);
-        }
+            console.log('vm.rewardMainParamTable', vm.rewardMainParamTable);
+        };
 
             /**
              * Re-order the properties in obj to match the order of the properties in preferredOrderObj.
@@ -13812,11 +13838,18 @@ define(['js/app'], function (myApp) {
                             // // Save reward condition
                             curReward.condition[condName] = condValue;
                         }
+                    });
+
+                    // Set param
+                    Object.keys(vm.rewardMainParamTable).forEach(e => {
+                        console.log('e', e);
+                        console.log('vm.rewardMainParamTable[e]', vm.rewardMainParamTable[e]);
                     })
+
+                    console.log('vm.rewardMainParamTable', vm.rewardMainParamTable);
                 } else {
 
                 }
-
 
 
                 var sendData = {
