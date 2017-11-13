@@ -13184,31 +13184,16 @@ define(['js/app'], function (myApp) {
 
                     // Set param table value
                     Object.keys(paramType.rewardParam).forEach(el => {
-                        console.log('paramType.rewardParam el', el);
-                        console.log('paramType.rewardParam[el]', paramType.rewardParam[el]);
-
                         if (vm.isPlayerLevelDiff) {
                             if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
                                 vm.showReward.param.rewardParam.forEach((el, idx) => {
-                                    vm.rewardMainParamTable[idx].value = el.value;
+                                    vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
                                 })
                             }
+                        } else {
+                            vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value;
                         }
-
-                        // // Get value
-                        // if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam.hasOwnProperty(el)) {
-                        //     vm.rewardMainParam[el] = paramType[el];
-                        //     vm.rewardMainParam[el].value = vm.showReward.param[el];
-                        // }
                     });
-
-
-
-                    console.log('params', params);
-                    console.log('vm.rewardMainTask', vm.rewardMainTask);
-                    console.log('vm.rewardMainCondition', vm.rewardMainCondition);
-                    console.log('vm.rewardMainParam', vm.rewardMainParam);
-                    console.log('vm.rewardMainParamTable', vm.rewardMainParamTable);
                 }
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
