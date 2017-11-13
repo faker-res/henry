@@ -202,7 +202,12 @@ define(['js/app'], function (myApp) {
               if(merchantTypeId=="9999"){
                 item.merchantTypeName = $translate('BankCardNo');
               }else{
-                item.merchantTypeName = vm.merchantTypes[merchantTypeId] ? vm.merchantTypes[merchantTypeId].name : "";
+                    let merchantInfo = vm.merchantTypes.filter(mitem=>{
+                        return mitem.merchantTypeId == merchantTypeId;
+                    })
+                    item.merchantTypeName  = merchantInfo[0] ? merchantInfo[0].name:"";
+
+                // item.merchantTypeName = vm.merchantTypes[merchantTypeId] ? vm.merchantTypes[merchantTypeId].name : "";
               }
             }else{
               item.merchantTypeName = '';
