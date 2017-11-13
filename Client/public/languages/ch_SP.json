@@ -64,6 +64,9 @@
   "DAYS": "天",
   "DAYS_AND_ABOVE": "天以上",
 
+  "consumptionReward": "投注额奖励",
+  "Check consumption source by provider": "（领优惠前）检查投注额来源游戏厅",
+
   "CREATE_NEW_PLAYER":"开户",
   "SYSTEM_SETTLEMENT": "系统结算",
   "LOGIN_TITLE": "请登录",
