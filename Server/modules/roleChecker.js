@@ -420,6 +420,7 @@ var roleChecker = {
                 Read: ['triggerSavePlayersCredit']
             },
             "phoneNumFilter": {
+                Read: [],
                 FilterAllPlatform: []
             }
         },
