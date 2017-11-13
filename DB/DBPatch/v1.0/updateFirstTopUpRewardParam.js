@@ -516,6 +516,7 @@ db.rewardParam.update({
             topUpCond: topUpCond,
             periodCond: periodCond,
             consumptionCond: consumptionCond,
+            ignoreTopUpBDirtyCond: ignoreTopUpBDirtyCond,
         }
     }
 }, {
