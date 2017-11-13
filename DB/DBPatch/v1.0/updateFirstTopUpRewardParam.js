@@ -370,7 +370,7 @@ var generalCond = {
     // Reward apply type
     applyType: {index: 2, type: "select", des: "Reward apply type", options: "rewardApplyType"},
     // Is player manually applicable
-    isPlayerApplicable: {index: 3, type: "checkbox", des: "Is player manually applicable"},
+    canApplyFromClient: {index: 3, type: "checkbox", des: "Is player manually applicable"},
     // Is ignore audit
     isIgnoreAudit: {index: 4, type: "checkbox", des: "Is ignore audit"},
     // Reward start time

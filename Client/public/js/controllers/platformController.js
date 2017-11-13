@@ -13192,7 +13192,7 @@ define(['js/app'], function (myApp) {
                             }
                         } else {
                             if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
-                                vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value;
+                                vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
                         }
                     });
                 }
@@ -13863,21 +13863,17 @@ define(['js/app'], function (myApp) {
                 };
 
                 if (vm.showRewardTypeData.isGrouped === true) {
-                    let condData = {};
-
                     // Set condition
                     Object.keys(vm.rewardMainCondition).forEach(e => {
                         if (vm.rewardMainCondition[e].value !== undefined) {
-                            console.log('e', vm.rewardMainCondition[e]);
                             let condName = vm.rewardMainCondition[e].name;
                             let condType = vm.rewardMainCondition[e].type;
                             let condValue = vm.rewardMainCondition[e].value;
 
-                            // // Save name and code to outer level
-                            // if (condName == "name" || condName == "code") {
-                            //     sendData[condName] = condValue;
-                            // }
-                            //
+                            // Save name and code to outer level
+                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient") {
+                                curReward[condName] = condValue;
+                            }
                             // Get time string in object type
                             if (condType == "date") {
                                 condValue = condValue.data('datetimepicker').getLocalDate();
@@ -13960,7 +13956,7 @@ define(['js/app'], function (myApp) {
                             let condValue = vm.rewardMainCondition[e].value;
 
                             // Save name and code to outer level
-                            if (condName == "name" || condName == "code") {
+                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient") {
                                 sendData[condName] = condValue;
                             }
 
