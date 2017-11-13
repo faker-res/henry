@@ -146,6 +146,8 @@
   "Consumption can be shared with XIMA": "优惠产生流水可同时享受洗码",
   "Provider group": "锁定大厅",
   "Reward amount is dynamically changed": "优惠金额随著存款变动",
+  "Reward limit in interval": "周期内奖励次数",
+  "Reward step needed": "玩家是否需依照阶梯向上爬",
   "UPDATE_ADMIN": "更新用户资料",
   "PERMISSION": "权限",
   "Permission History": "权限记录",

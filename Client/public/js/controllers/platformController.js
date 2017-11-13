@@ -13089,7 +13089,10 @@ define(['js/app'], function (myApp) {
                 if (vm.showRewardTypeData.isGrouped) {
                     vm.rewardMainTask = [];
                     vm.rewardMainCondition = {};
+                    vm.rewardMainParam = {};
 
+                    let isPlayerLevelDiff = false;
+                    let isDynamicRewardAmt = false;
                     let params = vm.showRewardTypeData.params;
 
                     Object.keys(params.condition).forEach(el => {
@@ -13114,6 +13117,16 @@ define(['js/app'], function (myApp) {
 
                             vm.rewardMainCondition[cond.index].options = result;
 
+                            // Get player level different reward flag
+                            if (el == "isPlayerLevelDiff" && vm.showReward.condition[el] === true) {
+                                isPlayerLevelDiff = true;
+                            }
+
+                            // Get reward dynamic amount flag
+                            if (el == "isDynamicRewardAmount" && vm.showReward.condition[el] === true) {
+                                isDynamicRewardAmt = true;
+                            }
+
                             // Get value
                             if (vm.showReward && vm.showReward.condition && vm.showReward.condition.hasOwnProperty(el)) {
                                 vm.rewardMainCondition[cond.index].value = vm.showReward.condition[el];
@@ -13136,8 +13149,12 @@ define(['js/app'], function (myApp) {
                         })
                     });
 
+                    vm.changeRewardParamLayout(null, isDynamicRewardAmt);
+
+                    console.log('params', params);
                     console.log('vm.rewardMainTask', vm.rewardMainTask);
                     console.log('vm.rewardMainCondition', vm.rewardMainCondition);
+                    console.log('vm.rewardMainParam', vm.rewardMainParam);
                 }
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
@@ -13417,7 +13434,26 @@ define(['js/app'], function (myApp) {
                 console.log("vm.rewardCondition:", vm.rewardCondition);
                 console.log("vm.rewardParams:", vm.rewardParams);
                 vm.showRewardFormValid = true;
+            };
+
+        vm.changeRewardParamLayout = (model, isDynamicRewardAmt) => {
+            console.log('changeRewardParamLayout', isDynamicRewardAmt);
+            console.log('vm.showRewardTypeData.params', vm.showRewardTypeData.params);
+            console.log('model', model);
+
+            if (model && model.name == "isDynamicRewardAmount" && model.value === true) {
+                isDynamicRewardAmt = true;
             }
+
+            let paramType = isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+
+            vm.rewardMainParam = Object.assign({}, paramType);
+            delete vm.rewardMainParam.rewardParam;
+
+            vm.rewardMainParamTable = paramType.rewardParam;
+
+            console.log('vm.rewardMainParam', vm.rewardMainParam);
+        }
 
             /**
              * Re-order the properties in obj to match the order of the properties in preferredOrderObj.
@@ -13752,10 +13788,44 @@ define(['js/app'], function (myApp) {
                     validEndTime: vm.showReward.validEndTime || null,
                 };
 
+                if (vm.showRewardTypeData.isGrouped === true) {
+                    let condData = {};
+
+                    // Set condition
+                    Object.keys(vm.rewardMainCondition).forEach(e => {
+                        if (vm.rewardMainCondition[e].value !== undefined) {
+                            console.log('e', vm.rewardMainCondition[e]);
+                            let condName = vm.rewardMainCondition[e].name;
+                            let condType = vm.rewardMainCondition[e].type;
+                            let condValue = vm.rewardMainCondition[e].value;
+
+                            // // Save name and code to outer level
+                            // if (condName == "name" || condName == "code") {
+                            //     sendData[condName] = condValue;
+                            // }
+                            //
+                            // Get time string in object type
+                            if (condType == "date") {
+                                condValue = condValue.data('datetimepicker').getLocalDate();
+                            }
+                            //
+                            // // Save reward condition
+                            curReward.condition[condName] = condValue;
+                        }
+                    })
+                } else {
+
+                }
+
+
+
                 var sendData = {
                     query: {_id: vm.showReward._id},
                     updateData: curReward
                 };
+
+                console.log('editReward sendData', sendData);
+
                 socketService.$socket($scope.AppSocket, 'updateRewardEvent', sendData, function (data) {
                     vm.rewardTabClicked();
                     vm.platformRewardPageName = 'showReward';

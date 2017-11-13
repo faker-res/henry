@@ -378,7 +378,7 @@ var generalCond = {
     // Reward end time
     endTime: {index: 6, type: "date", des: "Reward end time"},
     // Is differentiate reward by player level
-    isPlayerLevelDiff: {index: 7, type: "checkbox", des: "Reward differentiate by player level"}
+    isPlayerLevelDiff: {index: 7, type: "checkbox", des: "Reward differentiate by player level", default: false}
 };
 
 var topUpCond = {
@@ -442,6 +442,40 @@ db.rewardParam.update({
             latestTopUpCond: latestTopUpCond,
             consumptionCond: consumptionCond,
             dynamicCond: dynamicCond
+        },
+        param: {
+            tblOptFixed: {
+                playerLvl: "",
+                isMultiStepReward: "",
+                isSteppingReward: {type: "checkbox", des: "Reward step needed"},
+                countInRewardInterval: {type: "number", des: "Reward limit in interval"},
+                rewardParam: {
+                    rewardLvl: "",
+                    minTopUpAmount: "",
+                    rewardAmount: "",
+                    spendingTimes: "",
+                    forbidWithdrawAfterApply: "",
+                    forbidWithdrawIfBalanceAfterUnlock: "",
+                    remark: ""
+                }
+            },
+            tblOptDynamic: {
+                playerLvl: "",
+                isMultiStepReward: "",
+                isSteppingReward: "",
+                countInRewardInterval: "",
+                dailyMaxRewardAmount: {type: "number", des: "Daily Reward Limit"},
+                rewardParam: {
+                    rewardLvl: "",
+                    minTopUpAmount: "",
+                    rewardPercentage: "",
+                    maxRewardInSingleTopUp: "",
+                    spendingTimes: "",
+                    forbidWithdrawAfterApply: "",
+                    forbidWithdrawIfBalanceAfterUnlock: "",
+                    remark: ""
+                }
+            }
         }
     }
 }, {
