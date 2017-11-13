@@ -10532,7 +10532,9 @@ let dbPlayerInfo = {
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                     return playerIdObj._id;
                                 }),
-                                isDX: true
+                                option: {
+                                    isDX: true
+                                }
                             });
                         },
                         processResponse: function (record) {
@@ -10609,7 +10611,8 @@ let dbPlayerInfo = {
         );
     },
 
-    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, isDX) {
+    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option) {
+        option = option || {};
         let proms = [];
         let proposalType = [];
 
@@ -10619,7 +10622,7 @@ let dbPlayerInfo = {
                 for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
                     let prom;
 
-                    if (isDX) {
+                    if (option.isDX) {
                         prom = dbconfig.collection_players.findOne({
                             _id: playerObjIds[p]
                         }).then(
@@ -10632,7 +10635,33 @@ let dbPlayerInfo = {
                         );
 
                         proms.push(prom);
-                    } else {
+                    } else if (option.isFeedback) {
+                        let feedBackIds = playerObjIds;
+                        let feedbackData;
+
+                        prom = dbconfig.collection_playerFeedback.findOne({
+                            _id: feedBackIds[p]
+                        })
+                        .populate({path: 'adminId', select: '_id adminName', model: dbconfig.collection_admin})
+                        .then(
+                            data => {
+                                feedbackData = JSON.parse(JSON.stringify(data));
+                                let qStartTime = new Date(feedbackData.createTime);
+                                let qEndTime = moment(qStartTime).add(query.days, 'day');
+                                return getPlayerRecord(feedbackData.playerId, qStartTime, qEndTime);
+                            }
+                        ).then(
+                            data => {
+                                let playerRecord = JSON.parse(JSON.stringify(data));
+                                if(typeof playerRecord==="object") {
+                                    playerRecord.feedback = feedbackData;
+                                }
+                                return playerRecord;
+                            }
+                        );
+                        proms.push(prom);
+                    }
+                    else {
                         proms.push(getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime)));
                     }
 
@@ -10796,6 +10825,12 @@ let dbPlayerInfo = {
             }
             if (query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
                 playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
+            }
+            if (query.hasOwnProperty('isRealPlayer')) {
+                playerQuery.isRealPlayer = query.isRealPlayer;
+            }
+            if (query.hasOwnProperty('partner')) {
+                playerQuery.partner = query.partner;
             }
 
             // Player Score Query Operator
