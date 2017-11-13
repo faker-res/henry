@@ -13117,12 +13117,12 @@ define(['js/app'], function (myApp) {
                             vm.rewardMainCondition[cond.index].options = result;
 
                             // Get player level different reward flag
-                            if (el == "isPlayerLevelDiff" && vm.showReward.condition[el] === true) {
+                            if (el == "isPlayerLevelDiff" && vm.showReward && vm.showReward.condition && vm.showReward.condition[el] === true) {
                                 isPlayerLevelDiff = true;
                             }
 
                             // Get reward dynamic amount flag
-                            if (el == "isDynamicRewardAmount" && vm.showReward.condition[el] === true) {
+                            if (el == "isDynamicRewardAmount" && vm.showReward && vm.showReward.condition && vm.showReward.condition[el] === true) {
                                 isDynamicRewardAmt = true;
                             }
 
@@ -13452,7 +13452,7 @@ define(['js/app'], function (myApp) {
             vm.rewardMainParamTable = paramType.rewardParam;
 
             console.log('vm.rewardMainParam', vm.rewardMainParam);
-        }
+        };
 
             /**
              * Re-order the properties in obj to match the order of the properties in preferredOrderObj.
