@@ -13191,7 +13191,8 @@ define(['js/app'], function (myApp) {
                                 })
                             }
                         } else {
-                            vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value;
+                            if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
+                                vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value;
                         }
                     });
                 }
