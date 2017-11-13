@@ -11117,11 +11117,11 @@ let dbPlayerInfo = {
     },
 
 
-    setBonusShowInfo: (playerId, platformId, showInfoState) => {
+    setBonusShowInfo: (playerId, showInfo) => {
         return dbUtility.findOneAndUpdateForShard(
             dbconfig.collection_players,
             {playerId: playerId},
-            {"viewInfo.showInfoState": showInfoState},
+            {"viewInfo.showInfoState": parseInt(showInfo)},
             constShardKeys.collection_players
         )
 
