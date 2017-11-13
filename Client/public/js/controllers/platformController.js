@@ -13070,6 +13070,7 @@ define(['js/app'], function (myApp) {
                 vm.showRewardTypeId = v.type._id;
                 vm.rewardParams = Lodash.cloneDeep(v.param);
                 vm.rewardCondition = Lodash.cloneDeep(v.condition);
+                vm.rewardDisabledParam = [];
                 vm.platformRewardTypeChanged();
 
                 console.log('vm.rewardParams', vm.rewardParams);
@@ -13112,6 +13113,14 @@ define(['js/app'], function (myApp) {
 
                             // Get options
                             switch (cond.options) {
+                                case "gameProviders":
+                                    let gameProviders = {};
+                                    for (let i = 0; i < vm.allGameProviders.length; i++) {
+                                        let provider = vm.allGameProviders[i];
+                                        gameProviders[provider._id] = provider.name;
+                                    }
+                                    result = gameProviders;
+                                    break;
                                 default:
                                     result = $scope[cond.options];
                                     break;
@@ -13120,13 +13129,22 @@ define(['js/app'], function (myApp) {
                             vm.rewardMainCondition[cond.index].options = result;
 
                             // Get player level different reward flag
-                            if (el == "isPlayerLevelDiff" && vm.showReward.condition[el] === true) {
+                            if (el == "isPlayerLevelDiff" && vm.showReward && vm.showReward.condition && vm.showReward.condition[el] === true) {
                                 vm.isPlayerLevelDiff = true;
                             }
 
                             // Get reward dynamic amount flag
-                            if (el == "isDynamicRewardAmount" && vm.showReward.condition[el] === true) {
+                            if (el == "isDynamicRewardAmount" && vm.showReward && vm.showReward.condition && vm.showReward.condition[el] === true) {
                                 vm.isDynamicRewardAmt = true;
+                            }
+
+                            if (el == "topupType") {
+                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("1") > -1)) {
+                                    vm.rewardDisabledParam.push("onlineTopUpType")
+                                }
+                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("2") > -1)) {
+                                    vm.rewardDisabledParam.push("bankCardType")
+                                }
                             }
 
                             // Get value
@@ -13490,6 +13508,24 @@ define(['js/app'], function (myApp) {
 
 
             delete vm.rewardMainParam.rewardParam;
+        };
+
+        vm.rewardSelectOnChange = (model) => {
+            if (model && model.name === "topupType") {
+                if (model.value.indexOf("1") === -1) {
+                    vm.rewardDisabledParam.indexOf("onlineTopUpType") === -1 ? vm.rewardDisabledParam.push("onlineTopUpType") : null;
+                } else {
+                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "onlineTopUpType");
+                }
+
+                if (model.value.indexOf("2") === -1) {
+                    vm.rewardDisabledParam.indexOf("bankCardType") === -1 ? vm.rewardDisabledParam.push("bankCardType") : null;
+                } else {
+                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "bankCardType");
+                }
+            }
+
+            $scope.safeApply();
         };
 
             /**
