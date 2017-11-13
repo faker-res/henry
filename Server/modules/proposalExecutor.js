@@ -879,7 +879,9 @@ var proposalExecutor = {
                             );
                         }
                         dbPlayerReward.applyPlayerTopUpPromo(proposalData);
-                        dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                        if(proposal.data.bonusCode){
+                            dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                        }
 
                         deferred.resolve(proposalData);
                     },
@@ -909,8 +911,13 @@ var proposalExecutor = {
                         //     );
                         // }
 
-                        return dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
-                        dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                        dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
+                        if(proposalData.data.bonusCode){
+                            dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                        }
+
+                        deferred.resolve(proposalData);
+
                     },
                     function (error) {
                         deferred.reject(error);
@@ -1004,9 +1011,13 @@ var proposalExecutor = {
 
                             // DEBUG: Reward sometime not applied issue
                             console.log('applyForPlatformTransactionReward - Start', proposalData.proposalId);
+                            if(proposalData.data.bonusCode){
+                                dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                            }
+                            dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
+                            deferred.resolve(proposalData);
 
-                            return dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
-                        },
+                            },
                         function (error) {
                             deferred.reject(error);
                         }
