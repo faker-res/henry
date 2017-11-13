@@ -38,13 +38,13 @@ describe("Test Platform Manual Unlock Player Reward", function () {
         );
     });
 
-    it('check player locked credit after', function () {
-        return dbConfig.collection_players.findOne({_id: generatedData.testPlayerId}).select('lockedCredit').then(
-            (player) => {
-                player.lockedCredit.should.equal(rewardAmount);
-            }
-        );
-    });
+    // it('check player locked credit after', function () {
+    //     return dbConfig.collection_players.findOne({_id: generatedData.testPlayerId}).select('lockedCredit').then(
+    //         (player) => {
+    //             player.lockedCredit.should.equal(rewardAmount);
+    //         }
+    //     );
+    // });
 
     it('find reward task for selected player', function () {
         return dbRewardTask.getPlayerCurRewardTask(generatedData.testPlayerId).then(
@@ -60,14 +60,14 @@ describe("Test Platform Manual Unlock Player Reward", function () {
         })
     });
 
-    it('check player credit is as expected', function () {
-        return dbConfig.collection_players.findOne({_id: generatedData.testPlayerId}).select('lockedCredit validCredit').then(
-            (player) => {
-                player.lockedCredit.should.equal(0);
-                player.validCredit.should.equal(rewardAmount);
-            }
-        );
-    });
+    // it('check player credit is as expected', function () {
+    //     return dbConfig.collection_players.findOne({_id: generatedData.testPlayerId}).select('lockedCredit validCredit').then(
+    //         (player) => {
+    //             player.lockedCredit.should.equal(0);
+    //             player.validCredit.should.equal(rewardAmount);
+    //         }
+    //     );
+    // });
 
     it('Clear Consumption Data', function () {
         dataGenerator.clearConsumptionData(generatedData);

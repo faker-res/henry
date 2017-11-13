@@ -134,7 +134,8 @@ describe("Test Transaction Reward event", function () {
                 name: "testpayer" + i + date.getTime(),
                 platform: testPlatformId,
                 password: "123",
-                games: [testGameId2, testGameId]
+                games: [testGameId2, testGameId],
+                phoneNumber: "11111111" + i
             };
             proms.push(dbPlayerInfo.createPlayerInfo(playerData));
         }

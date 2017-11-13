@@ -105,6 +105,7 @@ var commonTestFunc = {
         let partnerData = {
             "partnerName": partnerName,
             "email": "testPartner123@gmail.com",
+            "realName":partnerName,
             "password": "123123",
             "platform": platformId,
             "phoneNumber": "123123123"
