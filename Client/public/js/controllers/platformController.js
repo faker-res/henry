@@ -13097,6 +13097,7 @@ define(['js/app'], function (myApp) {
 
                     let params = vm.showRewardTypeData.params;
 
+                    // Set condition value
                     Object.keys(params.condition).forEach(el => {
                         let mainCond = params.condition[el];
                         let result;
@@ -13168,12 +13169,46 @@ define(['js/app'], function (myApp) {
                         })
                     });
 
+                    let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+
+                    // Set param value
+                    Object.keys(paramType).forEach(el => {
+                        // Get value
+                        if (vm.showReward && vm.showReward.param && vm.showReward.param.hasOwnProperty(el) && el != "rewardParam") {
+                            vm.rewardMainParam[el] = paramType[el];
+                            vm.rewardMainParam[el].value = vm.showReward.param[el];
+                        }
+                    });
+
                     vm.changeRewardParamLayout();
+
+                    // Set param table value
+                    Object.keys(paramType.rewardParam).forEach(el => {
+                        console.log('paramType.rewardParam el', el);
+                        console.log('paramType.rewardParam[el]', paramType.rewardParam[el]);
+
+                        if (vm.isPlayerLevelDiff) {
+                            if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
+                                vm.showReward.param.rewardParam.forEach((el, idx) => {
+                                    vm.rewardMainParamTable[idx].value = el.value;
+                                })
+                            }
+                        }
+
+                        // // Get value
+                        // if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam.hasOwnProperty(el)) {
+                        //     vm.rewardMainParam[el] = paramType[el];
+                        //     vm.rewardMainParam[el].value = vm.showReward.param[el];
+                        // }
+                    });
+
+
 
                     console.log('params', params);
                     console.log('vm.rewardMainTask', vm.rewardMainTask);
                     console.log('vm.rewardMainCondition', vm.rewardMainCondition);
                     console.log('vm.rewardMainParam', vm.rewardMainParam);
+                    console.log('vm.rewardMainParamTable', vm.rewardMainParamTable);
                 }
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
@@ -13456,8 +13491,7 @@ define(['js/app'], function (myApp) {
             };
 
         vm.changeRewardParamLayout = (model) => {
-            console.log('vm.showRewardTypeData.params', vm.showRewardTypeData.params);
-            console.log('model', model);
+            vm.rewardMainParamTable = [];
 
             // Check whether reward is dyanmic amount
             if (model && model.name == "isDynamicRewardAmount") {
@@ -13472,11 +13506,6 @@ define(['js/app'], function (myApp) {
             let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
 
             vm.rewardMainParam = Object.assign({}, paramType);
-
-
-            vm.rewardMainParamTable = [];
-
-            console.log('vm.isPlayerLevelDiff', vm.isPlayerLevelDiff);
 
             if (vm.isPlayerLevelDiff) {
                 vm.allPlayerLvl.forEach((e, idx) => {
@@ -13494,9 +13523,6 @@ define(['js/app'], function (myApp) {
 
 
             delete vm.rewardMainParam.rewardParam;
-
-            console.log('vm.rewardMainParam', vm.rewardMainParam);
-            console.log('vm.rewardMainParamTable', vm.rewardMainParamTable);
         };
 
         vm.rewardSelectOnChange = (model) => {
@@ -13877,11 +13903,26 @@ define(['js/app'], function (myApp) {
                     });
 
                     // Set param
-                    Object.keys(vm.rewardMainParamTable).forEach(e => {
+                    Object.keys(vm.rewardMainParam).forEach(e => {
+                        curReward.param[e] = vm.rewardMainParam[e].value;
+                    });
+
+                    curReward.param.rewardParam = [];
+
+                    // Set param table
+                    Object.keys(vm.rewardMainParamTable).forEach((e, idx) => {
                         console.log('e', e);
                         console.log('vm.rewardMainParamTable[e]', vm.rewardMainParamTable[e]);
-                    })
 
+                        let levelParam = {
+                            levelId: vm.allPlayerLvl[idx]._id,
+                            value: vm.rewardMainParamTable[e].value
+                        };
+
+                        curReward.param.rewardParam.push(levelParam);
+                    });
+
+                    console.log('vm.rewardMainParam', vm.rewardMainParam);
                     console.log('vm.rewardMainParamTable', vm.rewardMainParamTable);
                 } else {
 
