@@ -13111,6 +13111,14 @@ define(['js/app'], function (myApp) {
 
                             // Get options
                             switch (cond.options) {
+                                case "gameProviders":
+                                    let gameProviders = {};
+                                    for (let i = 0; i < vm.allGameProviders.length; i++) {
+                                        let provider = vm.allGameProviders[i];
+                                        gameProviders[provider._id] = provider.name;
+                                    }
+                                    result = gameProviders;
+                                    break;
                                 default:
                                     result = $scope[cond.options];
                                     break;

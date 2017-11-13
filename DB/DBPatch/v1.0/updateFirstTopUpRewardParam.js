@@ -424,7 +424,7 @@ var consumptionCond = {
 };
 
 var consumptionProviderCond = {
-    consumptionProvider: {index: 27, type: "multiSelect", des: "Use consumptions only from these provider"}
+    consumptionProvider: {index: 27, type: "multiSelect", des: "Use consumptions only from these provider", options: "gameProviders"}
 };
 
 var dynamicCond = {
