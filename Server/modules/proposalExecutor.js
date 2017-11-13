@@ -879,7 +879,7 @@ var proposalExecutor = {
                             );
                         }
                         dbPlayerReward.applyPlayerTopUpPromo(proposalData);
-                        if(proposal.data.bonusCode){
+                        if(proposalData.data.bonusCode){
                             dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
                         }
 
