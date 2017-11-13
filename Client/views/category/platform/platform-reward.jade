@@ -138,7 +138,7 @@
                         table.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTable track by $index")
                             thead
                                 th(ng-if="!vm.isPlayerLevelDiff")
-                                th(ng-if="vm.isPlayerLevelDiff") {{vm.allPlayerLvl[$index].name}}
+                                th(style="width:70px" ng-if="vm.isPlayerLevelDiff") {{vm.allPlayerLvl[$index].name}}
                                 th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                             tbody(ng-repeat="entry in cond.value track by $index")
                                 td
