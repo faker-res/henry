@@ -65,9 +65,9 @@ describe("Test Report", function () {
     it('Should find player', function (done) {
         socketConnection.createConnection().then(function (socket) {
             socket.connected.should.equal(true);
-
             var queryPlayer = {
-                "name": testPlatformPrefix + PLATFORM_PREFIX_SEPARATOR + testPlayerName
+                "name": testPlatformPrefix + PLATFORM_PREFIX_SEPARATOR + testPlayerName,
+                "platform": testPlatformObjId
             };
             socket.emit('getPlayerInfo', queryPlayer);
             socket.once('_getPlayerInfo', function (data) {
