@@ -155,8 +155,8 @@
                 button.common-button.btn.btn-danger(ng-if='vm.platformRewardShowEdit("DELETE") && checkViewPermission("Platform", "Reward", "Delete")', data-toggle="modal", data-target='#modalDeleteReward') {{'DELETE' | translate}}
                 button.common-button.btn.btn-warning(ng-if='vm.platformRewardShowEdit("CANCEL")', ng-click="vm.platformRewardPageName='showReward';vm.clearRewardFormData()") {{'CANCEL' | translate}}
                 button.common-button.btn.btn-info(ng-if='vm.platformRewardShowEdit("EDIT") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.platformRewardPageName='updateReward'") {{'EDIT' | translate}}
-                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("UPDATE") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.editReward()", ng-disabled="form_showReward.$invalid || !vm.showRewardFormValid") {{'UPDATE' | translate}}
-                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("CREATE") && checkViewPermission("Platform", "Reward", "Add")', ng-click="vm.submitReward()", ng-disabled="form_showReward.$invalid || !vm.showRewardFormValid") {{'CREATE' | translate}}
+                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("UPDATE") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.editReward()") {{'UPDATE' | translate}}
+                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("CREATE") && checkViewPermission("Platform", "Reward", "Add")', ng-click="vm.submitReward()") {{'CREATE' | translate}}
             .clearfix
 
 #modalDeleteReward.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
