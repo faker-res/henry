@@ -126,14 +126,29 @@
                                     select.form-control(style="width:34%;display: inline-block" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options")
                                     input.form-control(style="width:33%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value1")
                                     input.form-control(style="width:33%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value2")
-                    div
-                        .col-md-12.well.scrollRecord
-                            div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
-                                label {{v.des | translate}}
-                                input.form-control(ng-if="v.type == 'string' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="vm.rewardMainParam[i].value")
-                            table.simple-table.table-vertical-middle.limitOffersTB
-                                thead
-                                    th(ng-repeat="(i,v) in vm.rewardMainParamTable") {{i}}
+
+                            div(ng-if="v.type == 'chain'")
+                                div(ng-disabled = "vm.func(v.chain)")
+                                    select.form-control(style="width:50%;display: inline-block" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options")
+                                    input.form-control(style="width:50%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value1")
+                    .col-md-12.well.scrollRecord
+                        div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
+                            label {{v.des | translate}}
+                            input.form-control(ng-if="v.type == 'string' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="vm.rewardMainParam[i].value")
+                        table.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTable track by $index")
+                            thead
+                                th(ng-if="!vm.isPlayerLevelDiff")
+                                th(ng-if="vm.isPlayerLevelDiff") {{vm.allPlayerLvl[$index].name}}
+                                th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
+                            tbody(ng-repeat="entry in cond.value track by $index")
+                                td
+                                    i.fa.fa-plus(ng-click='cond.value.push({})')
+                                td(ng-repeat="(i,v) in cond.header track by $index")
+                                    input(ng-if="v.type == 'string' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]")
+                                    span.percentage(ng-if="v.type == 'percentage'")
+                                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+
+
             .pull-right
                 //- Intuitive UI: The Delete Event button should probably be on the left, next to Add Event.  (Or it could be an X button next to the name of the currently selected event.)
                 //-               The Edit Event button could be a "pencil" icon in the top-right corner of the form.

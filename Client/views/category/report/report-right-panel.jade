@@ -380,11 +380,11 @@
                         option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
                 div
                     label {{"REGISTRATION_DEPARTMENT"|translate}}
-                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.departments', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryRole()")
+                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.departments', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryRole(vm.dxNewPlayerQuery)")
                         option(ng-repeat='(i,v) in vm.queryDepartments', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.departmentName}}
                 div
                     label {{"REGISTRATION_ROLE"|translate}}
-                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.roles', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryAdmins()")
+                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.roles', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryAdmins(vm.dxNewPlayerQuery)")
                         option(ng-repeat='(i,v) in vm.queryRoles', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.roleName}}
                 div
                     label {{"REGISTRATION_ADMIN"|translate}}
@@ -658,31 +658,39 @@
                     input.form-control.span.input-sm(type="Number" ng-model="vm.feedbackQuery.days")
                 div
                     label {{"FEEDBACK_RESULT"|translate}}
-                    select.spicker.form-control(ng-model='vm.feedbackQuery.csPromoteWay', multiple, data-actions-box='true')
-                        option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.result', multiple, data-actions-box='true')
+                        option(ng-repeat='(i,v) in vm.allFeedbackResults', value='{{v.key}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.value}}
                 div
                     label {{"FEEDBACK_TOPIC"|translate}}
-                    select.spicker.form-control(ng-model='vm.feedbackQuery.departments', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryRole()")
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.topic', multiple, data-actions-box='true')
+                        option(ng-repeat='(i,v) in vm.allFeedbackTopics', value='{{v.key}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.value}}
+                div
+                    label {{"FEEDBACK_DEPARTMENT"|translate}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.departments', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryRole(vm.feedbackQuery)")
                         option(ng-repeat='(i,v) in vm.queryDepartments', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.departmentName}}
                 div
-                    label {{"REGISTRATION_ROLE"|translate}}
-                    select.spicker.form-control(ng-model='vm.feedbackQuery.roles', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryAdmins()")
+                    label {{"FEEDBACK_ROLE"|translate}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.roles', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryAdmins(vm.feedbackQuery)")
                         option(ng-repeat='(i,v) in vm.queryRoles', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.roleName}}
                 div
-                    label {{"REGISTRATION_ADMIN"|translate}}
+                    label {{"FEEDBACK_ADMIN"|translate}}
                     select.spicker.form-control(ng-model='vm.feedbackQuery.admins', multiple, data-actions-box='true' data-width="200px")
-                        option(ng-repeat='(i,v) in vm.queryAdmins', value='{{v.adminName}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
+                        option(ng-repeat='(i,v) in vm.queryAdmins', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
                 div
-                    label {{"PlayerValue"|translate}}
-                    select.form-control(ng-model="vm.feedbackQuery.valueScoreOperator" style="width:75px;display:inline-block")
+                    label {{"CREDIBILITY"|translate}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.credibility', multiple, data-actions-box='true')
+                        option(ng-repeat='(i,v) in vm.credibilityRemarks;', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
+                div
+                    label {{"PLAYER_VALUE"|translate}}
+                    select.form-control(ng-model="vm.feedbackQuery.valueOperator" style="width:75px;display:inline-block")
                         option(value='>=') {{'>='}}
                         option(value='=') {{'='}}
                         option(value='<=') {{'<='}}
                         option(value='range') {{'range'|translate}}
                     div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.playerScoreValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackQuery.valueScoreOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.playerScoreValueTwo" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.valueScoreOperator === 'range'")
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.valueFormal" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackQuery.valueOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.valueLatter" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.valueOperator === 'range'")
                 div
                     label {{"TOP_UP_TIMES"|translate}}
                     select.form-control(ng-model="vm.feedbackQuery.topUpTimesOperator" style="width:75px;display:inline-block")
@@ -691,9 +699,9 @@
                         option(value='<=') {{'<='}}
                         option(value='range') {{'range'|translate}}
                     div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpTimesValue" style="width:80px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpTimesFormal" style="width:80px;display:inline-block")
                     div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackQuery.topUpTimesOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.topUpTimesOperator === 'range'")
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpTimesLatter" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.topUpTimesOperator === 'range'")
                 div
                     label {{"BonusTime"|translate}}
                     select.form-control(ng-model="vm.feedbackQuery.bonusTimesOperator" style="width:75px;display:inline-block")
@@ -702,9 +710,9 @@
                         option(value='<=') {{'<='}}
                         option(value='range') {{'range'|translate}}
                     div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.bonusTimesValue" style="width:80px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.bonusTimesFormal" style="width:80px;display:inline-block")
                     div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackQuery.bonusTimesOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.bonusTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.bonusTimesOperator === 'range'")
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.bonusTimesLatter" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.bonusTimesOperator === 'range'")
                 div
                     label {{"TOTAL_TOP_UP"|translate}}
                     select.form-control(ng-model="vm.feedbackQuery.topUpAmountOperator" style="width:75px;display:inline-block")
@@ -713,9 +721,9 @@
                         option(value='<=') {{'<='}}
                         option(value='range') {{'range'|translate}}
                     div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountValue" style="width:80px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountFormal" style="width:80px;display:inline-block")
                     div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackQuery.topUpAmountOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountValueTwo" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.topUpAmountOperator === 'range'")
+                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountLatter" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.topUpAmountOperator === 'range'")
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchFeedbackReport(true)') {{'SEARCH' | translate}}
