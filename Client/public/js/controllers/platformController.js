@@ -13094,6 +13094,7 @@ define(['js/app'], function (myApp) {
                     vm.isPlayerLevelDiff = false;
                     vm.isDynamicRewardAmt = false;
                     vm.rewardMainParamEntry = [{}];
+                    vm.rewardDisabledParam = [];
 
                     let params = vm.showRewardTypeData.params;
 
@@ -13191,7 +13192,7 @@ define(['js/app'], function (myApp) {
                                 })
                             }
                         } else {
-                            vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
+                            vm.rewardMainParamTable[0].value = vm.showReward.param && vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
                         }
                     });
                 }

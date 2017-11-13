@@ -552,51 +552,22 @@ db.rewardType.update({ "name": type101 }, { $set: { params: param101._id, des: t
 
 // 投注额奖励
 var type103 = "consumptionReward";
-var type103Condition = {};
-type103Condition.generalCond = {
-    // Reward Name
-    name: {index: 0, type: "string", des: "Reward name"},
-    // Reward system code
-    code: {index: 1, type: "string", des: "Reward code"},
-    // Reward apply type
-    applyType: {index: 2, type: "select", des: "Reward apply type", options: "rewardApplyType"},
-    // Is player manually applicable
-    isPlayerApplicable: {index: 3, type: "checkbox", des: "Is player manually applicable"},
-    // Is ignore audit
-    isIgnoreAudit: {index: 4, type: "checkbox", des: "Is ignore audit"},
-    // Reward start time
-    startTime: {index: 5, type: "date", des: "Reward start time"},
-    // Reward end time
-    endTime: {index: 6, type: "date", des: "Reward end time"},
-    // Is differentiate reward by player level
-    isPlayerLevelDiff: {index: 7, type: "checkbox", des: "Reward differentiate by player level", default: false}
-};
-type103Condition.periodCond = {
-    // Reward apply interval
-    interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval"},
-    // Top up count between interval check type
-    topUpCountType: {index: 21, type: "interval", des: "Top up count between interval type", options: "intervalType"},
-    // Check consumption source by provider
-    consumptionProviderSource: {index: 22, type: "multiSelect", des: "Check consumption source by provider", options:}
-};
-type103Condition.consumptionCond = {
-    // Is consumption shared with XIMA
-    isSharedWithXIMA: {index: 40, type: "checkbox", des: "Consumption can be shared with XIMA"},
-    // Provider group binded with this reward
-    providerGroup: {index: 41, type: "multiSelect", des: "Provider group"},
-};
-
 db.rewardParam.update({
     "name": type103
 }, {
     $set: {
         condition: {
-            generalCond: type103Condition.generalCond,
-            // topUpCond: type103Condition.topUpCond,
-            periodCond: type103Condition.periodCond,
-            // latestTopUpCond: type103Condition.latestTopUpCond,
-            consumptionCond: type103Condition.consumptionCond
-            // dynamicCond: type103Condition.dynamicCond
+            generalCond: generalCond,
+            periodCond: periodCond,
+            consumptionCond: consumptionCond,
+            customCond: {
+                consumptionProviderSource: {
+                    index: 22,
+                    type: "multiSelect",
+                    des: "Check consumption source by provider",
+                    options: "gameProviders"
+                }
+            }
         },
         param: {
             tblOptFixed: {
