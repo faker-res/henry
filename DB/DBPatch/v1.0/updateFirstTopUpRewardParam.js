@@ -524,16 +524,18 @@ db.rewardParam.update({
         },
         param: {
             tblOptFixed: {
-                playerLvl: "",
-                requiredTopUpAmount: "",
-                operatorOption: "",
-                requiredConsumptionAmount: "",
                 rewardParam: {
-                    rewardAmount: "",
-                    spendingTimes: "",
-                    forbidWithdrawAfterApply: "",
-                    forbidWithdrawIfBalanceAfterUnlock: "",
-                    remark: ""
+                    requiredTopUpAmount: {type: "number", des: "Required top up amounnt"},
+                    operatorOption: {type: "checkbox", des: "Required both"},
+                    requiredConsumptionAmount: {type: "number", des: "Required consumption amount"},
+                    rewardAmount: {type: "number", des: "Reward amount"},
+                    spendingTimes: {type: "number", des: "Spending times"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "checkbox",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "string", des: "Remark"},
                 }
             },
             tblOptDynamic: {} // will never reach here
