@@ -13070,6 +13070,7 @@ define(['js/app'], function (myApp) {
                 vm.showRewardTypeId = v.type._id;
                 vm.rewardParams = Lodash.cloneDeep(v.param);
                 vm.rewardCondition = Lodash.cloneDeep(v.condition);
+                vm.rewardDisabledParam = [];
                 vm.platformRewardTypeChanged();
 
                 console.log('vm.rewardParams', vm.rewardParams);
@@ -13090,11 +13091,13 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainTask = [];
                     vm.rewardMainCondition = {};
                     vm.rewardMainParam = {};
+                    vm.isPlayerLevelDiff = false;
+                    vm.isDynamicRewardAmt = false;
+                    vm.rewardMainParamEntry = [{}];
 
-                    let isPlayerLevelDiff = false;
-                    let isDynamicRewardAmt = false;
                     let params = vm.showRewardTypeData.params;
 
+                    // Set condition value
                     Object.keys(params.condition).forEach(el => {
                         let mainCond = params.condition[el];
                         let result;
@@ -13110,6 +13113,14 @@ define(['js/app'], function (myApp) {
 
                             // Get options
                             switch (cond.options) {
+                                case "gameProviders":
+                                    let gameProviders = {};
+                                    for (let i = 0; i < vm.allGameProviders.length; i++) {
+                                        let provider = vm.allGameProviders[i];
+                                        gameProviders[provider._id] = provider.name;
+                                    }
+                                    result = gameProviders;
+                                    break;
                                 default:
                                     result = $scope[cond.options];
                                     break;
@@ -13118,13 +13129,22 @@ define(['js/app'], function (myApp) {
                             vm.rewardMainCondition[cond.index].options = result;
 
                             // Get player level different reward flag
-                            if (el == "isPlayerLevelDiff" && vm.showReward.condition[el] === true) {
-                                isPlayerLevelDiff = true;
+                            if (el == "isPlayerLevelDiff" && vm.showReward && vm.showReward.condition && vm.showReward.condition[el] === true) {
+                                vm.isPlayerLevelDiff = true;
                             }
 
                             // Get reward dynamic amount flag
-                            if (el == "isDynamicRewardAmount" && vm.showReward.condition[el] === true) {
-                                isDynamicRewardAmt = true;
+                            if (el == "isDynamicRewardAmount" && vm.showReward && vm.showReward.condition && vm.showReward.condition[el] === true) {
+                                vm.isDynamicRewardAmt = true;
+                            }
+
+                            if (el == "topupType") {
+                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("1") > -1)) {
+                                    vm.rewardDisabledParam.push("onlineTopUpType")
+                                }
+                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("2") > -1)) {
+                                    vm.rewardDisabledParam.push("bankCardType")
+                                }
                             }
 
                             // Get value
@@ -13149,12 +13169,31 @@ define(['js/app'], function (myApp) {
                         })
                     });
 
-                    vm.changeRewardParamLayout(null, isDynamicRewardAmt);
+                    let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
 
-                    console.log('params', params);
-                    console.log('vm.rewardMainTask', vm.rewardMainTask);
-                    console.log('vm.rewardMainCondition', vm.rewardMainCondition);
-                    console.log('vm.rewardMainParam', vm.rewardMainParam);
+                    // Set param value
+                    Object.keys(paramType).forEach(el => {
+                        // Get value
+                        if (vm.showReward && vm.showReward.param && vm.showReward.param.hasOwnProperty(el) && el != "rewardParam") {
+                            vm.rewardMainParam[el] = paramType[el];
+                            vm.rewardMainParam[el].value = vm.showReward.param[el];
+                        }
+                    });
+
+                    vm.changeRewardParamLayout();
+
+                    // Set param table value
+                    Object.keys(paramType.rewardParam).forEach(el => {
+                        if (vm.isPlayerLevelDiff) {
+                            if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
+                                vm.showReward.param.rewardParam.forEach((el, idx) => {
+                                    vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
+                                })
+                            }
+                        } else {
+                            vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
+                        }
+                    });
                 }
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
@@ -13436,24 +13475,58 @@ define(['js/app'], function (myApp) {
                 vm.showRewardFormValid = true;
             };
 
-        vm.changeRewardParamLayout = (model, isDynamicRewardAmt) => {
-            console.log('changeRewardParamLayout', isDynamicRewardAmt);
-            console.log('vm.showRewardTypeData.params', vm.showRewardTypeData.params);
-            console.log('model', model);
+        vm.changeRewardParamLayout = (model) => {
+            vm.rewardMainParamTable = [];
 
-            if (model && model.name == "isDynamicRewardAmount" && model.value === true) {
-                isDynamicRewardAmt = true;
+            // Check whether reward is dyanmic amount
+            if (model && model.name == "isDynamicRewardAmount") {
+                vm.isDynamicRewardAmt = model.value;
             }
 
-            let paramType = isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+            // Check whether reward is differ by player level
+            if (model && model.name == "isPlayerLevelDiff") {
+                vm.isPlayerLevelDiff = model.value;
+            }
+
+            let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
 
             vm.rewardMainParam = Object.assign({}, paramType);
+
+            if (vm.isPlayerLevelDiff) {
+                vm.allPlayerLvl.forEach((e, idx) => {
+                    vm.rewardMainParamTable.push({
+                        header: vm.rewardMainParam.rewardParam,
+                        value: [{}]
+                    });
+                });
+            } else {
+                vm.rewardMainParamTable.push({
+                    header: vm.rewardMainParam.rewardParam,
+                    value: [{}]
+                });
+            }
+
+
             delete vm.rewardMainParam.rewardParam;
+        };
 
-            vm.rewardMainParamTable = paramType.rewardParam;
+        vm.rewardSelectOnChange = (model) => {
+            if (model && model.name === "topupType") {
+                if (model.value.indexOf("1") === -1) {
+                    vm.rewardDisabledParam.indexOf("onlineTopUpType") === -1 ? vm.rewardDisabledParam.push("onlineTopUpType") : null;
+                } else {
+                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "onlineTopUpType");
+                }
 
-            console.log('vm.rewardMainParam', vm.rewardMainParam);
-        }
+                if (model.value.indexOf("2") === -1) {
+                    vm.rewardDisabledParam.indexOf("bankCardType") === -1 ? vm.rewardDisabledParam.push("bankCardType") : null;
+                } else {
+                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "bankCardType");
+                }
+            }
+
+            $scope.safeApply();
+        };
 
             /**
              * Re-order the properties in obj to match the order of the properties in preferredOrderObj.
@@ -13789,21 +13862,17 @@ define(['js/app'], function (myApp) {
                 };
 
                 if (vm.showRewardTypeData.isGrouped === true) {
-                    let condData = {};
-
                     // Set condition
                     Object.keys(vm.rewardMainCondition).forEach(e => {
                         if (vm.rewardMainCondition[e].value !== undefined) {
-                            console.log('e', vm.rewardMainCondition[e]);
                             let condName = vm.rewardMainCondition[e].name;
                             let condType = vm.rewardMainCondition[e].type;
                             let condValue = vm.rewardMainCondition[e].value;
 
-                            // // Save name and code to outer level
-                            // if (condName == "name" || condName == "code") {
-                            //     sendData[condName] = condValue;
-                            // }
-                            //
+                            // Save name and code to outer level
+                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient") {
+                                curReward[condName] = condValue;
+                            }
                             // Get time string in object type
                             if (condType == "date") {
                                 condValue = condValue.data('datetimepicker').getLocalDate();
@@ -13812,11 +13881,33 @@ define(['js/app'], function (myApp) {
                             // // Save reward condition
                             curReward.condition[condName] = condValue;
                         }
-                    })
+                    });
+
+                    // Set param
+                    Object.keys(vm.rewardMainParam).forEach(e => {
+                        curReward.param[e] = vm.rewardMainParam[e].value;
+                    });
+
+                    curReward.param.rewardParam = [];
+
+                    // Set param table
+                    Object.keys(vm.rewardMainParamTable).forEach((e, idx) => {
+                        console.log('e', e);
+                        console.log('vm.rewardMainParamTable[e]', vm.rewardMainParamTable[e]);
+
+                        let levelParam = {
+                            levelId: vm.allPlayerLvl[idx]._id,
+                            value: vm.rewardMainParamTable[e].value
+                        };
+
+                        curReward.param.rewardParam.push(levelParam);
+                    });
+
+                    console.log('vm.rewardMainParam', vm.rewardMainParam);
+                    console.log('vm.rewardMainParamTable', vm.rewardMainParamTable);
                 } else {
 
                 }
-
 
 
                 var sendData = {
@@ -13864,7 +13955,7 @@ define(['js/app'], function (myApp) {
                             let condValue = vm.rewardMainCondition[e].value;
 
                             // Save name and code to outer level
-                            if (condName == "name" || condName == "code") {
+                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient") {
                                 sendData[condName] = condValue;
                             }
 

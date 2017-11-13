@@ -159,19 +159,19 @@ describe("Test Client API - Player service", function () {
         });
     });
 
-    it('Should update a player payment info', function (done) {
-        var updatePaymentInfo = {
-            playerId: testPlayerId,
-            bankType: "testBank",
-            bankAccount: "1234567890123456",
-            // bankAccountName: "testPlayer",
-            bankAccountType: "saving"
-        };
-        clientPlayerAPITest.updatePaymentInfo(function (data) {
-            data.status.should.equal(200);
-            done();
-        }, updatePaymentInfo);
-    });
+    // it('Should update a player payment info', function (done) {
+    //     var updatePaymentInfo = {
+    //         playerId: testPlayerId,
+    //         bankType: "testBank",
+    //         bankAccount: "1234567890123456",
+    //         // bankAccountName: "testPlayer",
+    //         bankAccountType: "saving"
+    //     };
+    //     clientPlayerAPITest.updatePaymentInfo(function (data) {
+    //         data.status.should.equal(200);
+    //         done();
+    //     }, updatePaymentInfo);
+    // });
 
     it('Should check a player name valid to register and should return false', function (done) {
         clientPlayerAPITest.isValidUsername(function (data) {

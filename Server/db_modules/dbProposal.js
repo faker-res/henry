@@ -52,7 +52,6 @@ var proposal = {
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
         let deferred = Q.defer();
         let plyProm = null;
-
         // create proposal for partner
         if (proposalData.isPartner) {
             let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
@@ -148,7 +147,6 @@ var proposal = {
                     }
                 )
         }
-
         return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
             data => {
                 if (smsLogInfo && data && data.proposalId)
