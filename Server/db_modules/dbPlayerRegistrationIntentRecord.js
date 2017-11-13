@@ -77,7 +77,7 @@ var dbPlayerRegistrationIntentRecord = {
             status: status,
             data: data
         };
-        dbUtil.getGeoIp(data.lastLoginIp).then(
+        return dbUtil.getGeoIp(data.lastLoginIp).then(
             ipData=>{
                 if(data){
                     data.ipArea = ipData;
