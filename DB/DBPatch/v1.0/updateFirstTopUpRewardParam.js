@@ -423,10 +423,6 @@ var consumptionCond = {
     providerGroup: {index: 41, type: "multiSelect", des: "Provider group"},
 };
 
-var ignoreTopUpBDirtyCond = {
-    ignoreTopUpBDirty: {index:25, type: "checkbox", des: "If checked, reward will allow used topup to be take into calculation"}
-};
-
 var consumptionProviderCond = {
     consumptionProvider: {index: 27, type: "multiSelect", des: "Use consumptions only from these provider"}
 };
@@ -506,27 +502,39 @@ db.rewardParam.update({
             generalCond: generalCond,
             topUpCond: topUpCond,
             periodCond: {
-                interval: { index: 20, type: "select", des: "Reward interval", options: "rewardInterval" },
+                interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval"},
             },
             consumptionCond: consumptionCond,
-            ignoreTopUpBDirtyCond: ignoreTopUpBDirtyCond,
             consumptionProviderCond: consumptionProviderCond,
             customCond: {
-                requireNonBreakingCombo: {index: 21, type: "checkbox", des: "If not checked, player can miss some days between event"},
-                allowReclaimMissedRewardDay: {index: 21.1, type: "checkbox", des: "If not checked, player have to claim reward on that particular day"},
+                requireNonBreakingCombo: {
+                    index: 21,
+                    type: "checkbox",
+                    des: "Player does not need to earn reward consecutively in order for it to accumulate"
+                },
+                allowReclaimMissedRewardDay: {
+                    index: 21.1,
+                    type: "checkbox",
+                    des: "Player can delay apply for reward within period"
+                },
                 // allowReclaimMissedRewardDay: {index: 21.1, type: "checkbox", des: "If not checked, player have to claim reward on that particular day"},
-            }
-            
-            // todo :: add more relevant later
-        },
-        reward: {
-            type: "Table",
-            data: {
-                dayIndex: {type: "Number", des: "Day Index"},
-                rewardAmount: {type: "Number", des: "Reward amount"},
-                consumptionTimes: {type: "Number", des: "Consumption Times"}
             },
-            des: "Reward parameter for each day"
+        },
+        param: {
+            tblOptFixed: {
+                playerLvl: "",
+                requiredTopUpAmount: "",
+                operatorOption: "",
+                requiredConsumptionAmount: "",
+                rewardParam: {
+                    rewardAmount: "",
+                    spendingTimes: "",
+                    forbidWithdrawAfterApply: "",
+                    forbidWithdrawIfBalanceAfterUnlock: "",
+                    remark: ""
+                }
+            },
+            tblOptDynamic: {} // will never reach here
         }
     }
 }, {
