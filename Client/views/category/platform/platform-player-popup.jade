@@ -483,11 +483,14 @@
                                     table.paddingTbl(style='min-width:100%')
                                         thead
                                             tr
+                                                th {{"OPERATOR_NAME" | translate}}
                                                 th {{"TIME" | translate}}
                                                 th {{"CREDIBILITY" | translate}}
                                                 th {{"remark" | translate}}
                                         tbody
                                             tr(ng-repeat='(i, data) in vm.playerCredibilityComment')
+                                                td(style="text-align:center;border: 1px solid #0099CC")
+                                                    text {{data.admin}}
                                                 td(style= "border: 1px solid #0099CC")
                                                     text {{data.createTime}}
                                                 td(style="text-align:center;border: 1px solid #0099CC")
@@ -801,12 +804,12 @@
                             input.form-control(ng-model='vm.playerFeedback.adminId')
                         .form-group
                             label.control-label {{'FEEDBACK_RESULTS' | translate}}
-                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
+                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Platform', 'Player','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
                             select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.result', required)
                                 option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
                         .form-group
                             label.control-label {{'FEEDBACK_TOPIC' | translate}}
-                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
+                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Platform', 'Player','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
                             select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.topic', required)
                                 option(ng-repeat='(i,v) in vm.allPlayerFeedbackTopics', value='{{v.key}}') {{v.value}}
                         .form-group

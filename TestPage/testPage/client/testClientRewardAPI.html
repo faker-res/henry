@@ -351,19 +351,10 @@
 </div>
 <h3>SET showInfo State()</h3>
 <div class="test-container">
+    <div>1 显示 0 不显示 </div>
     <div>
-        <label>Player ID
-            <input name="playerId">
-        </label>
-    </div>
-    <div>
-        <label>Platform ID
-            <input name="platformId">
-        </label>
-    </div>
-    <div>
-        <label>showInfo State
-            <input name="showInfoState">
+        <label>Set showInfo State
+            <input name="setShowInfo">
         </label>
     </div>
     <p></p>
@@ -372,52 +363,52 @@
         <textarea></textarea>
     </div>
 
-<script>
-    require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
-        function (ClientServices, WebSocketClient, TestHelper, ClientRewardAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {
-            var Client = function (url) {
+    <script>
+        require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
+            function (ClientServices, WebSocketClient, TestHelper, ClientRewardAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {
+                var Client = function (url) {
 
-                WebSocketClient.call(this, url);
+                    WebSocketClient.call(this, url);
 
-                var RewardService = new ClientServices.RewardService();
-                this.addService(RewardService);
+                    var RewardService = new ClientServices.RewardService();
+                    this.addService(RewardService);
 
-                var playerService = new ClientServices.PlayerService();
-                this.addService(playerService);
+                    var playerService = new ClientServices.PlayerService();
+                    this.addService(playerService);
 
-                var conService = new ClientServices.ConnectionService();
-                this.addService(conService);
-            };
+                    var conService = new ClientServices.ConnectionService();
+                    this.addService(conService);
+                };
 
-            var proto = Client.prototype = Object.create(WebSocketClient.prototype);
-            proto.constructor = Client;
+                var proto = Client.prototype = Object.create(WebSocketClient.prototype);
+                proto.constructor = Client;
 
-            var client = new Client(TestHelper.websocketURL);
-            client.connect();
+                var client = new Client(TestHelper.websocketURL);
+                client.connect();
 
-            client.addEventListener("open", function () {
-                var RewardService = client.getService("reward");
-                var clientRewardAPITest = new ClientRewardAPITest(RewardService);
+                client.addEventListener("open", function () {
+                    var RewardService = client.getService("reward");
+                    var clientRewardAPITest = new ClientRewardAPITest(RewardService);
 
-                var connectionService = client.getService("connection");
-                var connAPITest = new ClientConnectionAPITest(connectionService);
+                    var connectionService = client.getService("connection");
+                    var connAPITest = new ClientConnectionAPITest(connectionService);
 
-                connAPITest.setLang(function (data) {
-                    console.log('setlang data.....', data);
+                    connAPITest.setLang(function (data) {
+                        console.log('setlang data.....', data);
+                    });
+
+                    TestHelper.loginCookiePlayer(client, ClientPlayerAPITest);
+
+                    TestHelper.setAPIName('ClientServices.reward');
+                    TestHelper.attachListeners(clientRewardAPITest);
                 });
 
-                TestHelper.loginCookiePlayer(client, ClientPlayerAPITest);
-
-                TestHelper.setAPIName('ClientServices.reward');
-                TestHelper.attachListeners(clientRewardAPITest);
-            });
-
-            TestHelper.addReconnectOnCloseListener(client);
-        }
-    );
+                TestHelper.addReconnectOnCloseListener(client);
+            }
+        );
 
 
-</script>
+    </script>
 </body>
 </html>
 </body>

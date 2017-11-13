@@ -199,10 +199,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.newPlayerListStatus = {
-                Success: $translate("Success"),
-                Fail: $translate("Attempt"),
-                Pending: $translate("Pending"),
-                Manual: $translate("Manual")
+                SUCCESS: "SUCCESS",
+                ATTEMPT: "ATTEMPT",
+                MANUAL: "MANUAL"
             };
 
             vm.soundChoice = {
@@ -244,7 +243,15 @@ define(['js/app'], function (myApp) {
                 EXPIRED: "Expired",
                 UNDETERMINED: "Undetermined",
                 RECOVER: "Recover",
-                MANUAL:"Manual"
+                MANUAL: "Manual"
+            };
+
+            vm.constRegistrationIntentRecordStatus = {
+                INTENT: 1,
+                VERIFICATION_CODE: 2,
+                SUCCESS: 3,
+                FAIL: 4,
+                MANUAL: 5,
             };
 
             // Basic library functions
@@ -572,7 +579,7 @@ define(['js/app'], function (myApp) {
                     });
                 })
 
-                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id),vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
+                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
                     function (data) {
                         // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
                         switch (vm.platformPageName) {
@@ -1035,7 +1042,7 @@ define(['js/app'], function (myApp) {
 
                 let socketActionLvlUp = '';
                 let socketActionLvlDown = '';
-                switch (vm.selectedPlatform.data.playerLevelUpPeriod){
+                switch (vm.selectedPlatform.data.playerLevelUpPeriod) {
                     case vm.allPlayerLevelUpPeriod.DAY:
                         socketActionLvlUp = 'getYesterdaySGTime';
                         break;
@@ -1047,7 +1054,7 @@ define(['js/app'], function (myApp) {
                         break;
                 }
 
-                switch (vm.selectedPlatform.data.playerLevelDownPeriod){
+                switch (vm.selectedPlatform.data.playerLevelDownPeriod) {
                     case vm.allPlayerLevelUpPeriod.DAY:
                         socketActionLvlDown = 'getYesterdaySGTime';
                         break;
@@ -1070,10 +1077,10 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, socketActionLvlDown,
                     {},
                     ret => {
-                        let dateStart = new Date (ret.data.startTime);
-                        let dateEnd = new Date (ret.data.endTime);
-                        dateStart.setHours (dateStart.getHours() + 12);
-                        dateEnd.setHours (dateEnd.getHours() + 12);
+                        let dateStart = new Date(ret.data.startTime);
+                        let dateEnd = new Date(ret.data.endTime);
+                        dateStart.setHours(dateStart.getHours() + 12);
+                        dateEnd.setHours(dateEnd.getHours() + 12);
                         vm.playerLevelSettlement.lvlDownStartTime = vm.dateReformat(dateStart);
                         vm.playerLevelSettlement.lvlDownEndTime = vm.dateReformat(dateEnd);
                         $scope.safeApply();
@@ -1368,7 +1375,7 @@ define(['js/app'], function (myApp) {
                         item.createTime = vm.dateReformat(item.createTime);
                         item.status = $translate(item.status);
                         item.purpose = $translate(item.purpose);
-                        switch(item.validationStatus$){
+                        switch (item.validationStatus$) {
                             case 0:
                             case 1:
                                 item.validationStatus$$ = "try";
@@ -1398,15 +1405,17 @@ define(['js/app'], function (myApp) {
                     ],
                     columns: [
                         {'title': $translate('ACCOUNT'), data: 'recipientName'},
-                        {'title': $translate('STATUS'),
-                            render: function (data, type, row){
+                        {
+                            'title': $translate('STATUS'),
+                            render: function (data, type, row) {
                                 return $translate(row.validationStatus$$) + "(" + row.currentCount$ + "/" + row.totalCount$ + ")";
-                             }
+                            }
                         },
                         {'title': $translate('SENT TIME'), data: 'createTime', bSortable: true},
                         {'title': $translate('VERIFICATION_CODE'), data: 'message'},
                         {'title': $translate('Type'), data: 'purpose'},
-                        {'title': $translate('DEVICE'),
+                        {
+                            'title': $translate('DEVICE'),
                             data: 'inputDevice',
                             render: function (data, type, row) {
                                 for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
@@ -1418,7 +1427,7 @@ define(['js/app'], function (myApp) {
                         },
                         {'title': $translate('PHONE'), sClass: "wordWrap realNameCell", data: 'tel'},
                         {'title': $translate('Proposal No'), data: 'proposalId'},
-                        {'title': $translate('SEND')+$translate('STATUS'), data: 'status'},
+                        {'title': $translate('SEND') + $translate('STATUS'), data: 'status'},
                     ],
                     bSortClasses: false,
                     paging: false,
@@ -1444,12 +1453,12 @@ define(['js/app'], function (myApp) {
         vm.platformSmsRecordTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
             switch (aData.validationStatus$) {
                 case 0: {
-                    $(nRow).css('background-color', 'rgba(255, 209, 202, 100)','important');
+                    $(nRow).css('background-color', 'rgba(255, 209, 202, 100)', 'important');
                     // $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
                     break;
                 }
                 case 1: {
-                    $(nRow).css('background-color', 'rgba(200, 200, 200, 20)','important');
+                    $(nRow).css('background-color', 'rgba(200, 200, 200, 20)', 'important');
                     // $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
                     break;
                 }
@@ -2653,7 +2662,6 @@ define(['js/app'], function (myApp) {
                         });
 
 
-
                         socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId}, function (data) {
                             data.data.forEach(function (playerTransLog) {
                                 if (playerTransLog._id == record._id) {
@@ -2694,9 +2702,11 @@ define(['js/app'], function (myApp) {
 
                 });
             }
-            vm.loadPhoneNumberRecord = function(newSearch){
+        vm.loadPhoneNumberRecord = function (newSearch) {
                 vm.getCredibilityRemarks();
-                var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
+                //var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
+                var selectedStatus = [vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE,
+                    vm.constRegistrationIntentRecordStatus.SUCCESS, vm.constRegistrationIntentRecordStatus.FAIL, vm.constRegistrationIntentRecordStatus.MANUAL];
                 var sendData = {
                     adminId: authService.adminId,
                     platformId: vm.selectedPlatform.id,
@@ -2708,7 +2718,7 @@ define(['js/app'], function (myApp) {
                     displayPhoneNum: true
                 }
                 sendData.status = selectedStatus;
-                $("#sameNumPlayerListTable").css('z-Index',1051).modal();
+            $("#sameNumPlayerListTable").css('z-Index', 1051).modal();
                 vm.preparePhoneDuplicateRecords(sendData, newSearch);
                 $("#samePhoneNumTable").off('order.dt');
                 $("#samePhoneNumTable").on('order.dt', function (event, a, b) {
@@ -2734,11 +2744,14 @@ define(['js/app'], function (myApp) {
                             record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
                             //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                             if(record.status){
-                                if(record.status == "Fail"){
-                                    record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                if(record.status == vm.constRegistrationIntentRecordStatus.SUCCESS){
+                                    record.statusName = record.status ? $translate("Success") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                 }
-                                else{
-                                    record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                else if(record.status == vm.constRegistrationIntentRecordStatus.MANUAL){
+                                    //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                    record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }else{
+                                    record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                 }
                             }
                             record.playerId = record.data.playerId ? record.data.playerId : "";
@@ -2757,20 +2770,22 @@ define(['js/app'], function (myApp) {
                             record.playerLevelName = record.data.playerLevel ? record.data.playerLevel.name : "";
                             record.credibilityRemarks = record.data.credibilityRemarks ? vm.credibilityRemarks.filter(item => {
                                 return record.data.credibilityRemarks.includes(item._id);
-                            }):[];
-                            record.credibilityRemarksName = record.credibilityRemarks.map(function(value, index){
+                            }) : [];
+                            record.credibilityRemarksName = record.credibilityRemarks.map(function (value, index) {
                                 let colon = '';
                                 credibilityRemarksTXT += value.name + colon;
                                 return credibilityRemarksTXT;
-                            })||'';
-                            record.valueScore = record.data.valueScore ?record.data.valueScore:"";
-                            record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea):'';
-                            record.lastAccessTime = record.data.lastAccessTime ? vm.dateReformat(record.data.lastAccessTime):"";
-                                Object.keys(vm.allPlayersStatusString).filter(item=>{
+                            }) || '';
+                            record.valueScore = record.data.valueScore ? record.data.valueScore : "";
+                            record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea) : '';
+                            record.lastAccessTime = record.data.lastAccessTime ? vm.dateReformat(record.data.lastAccessTime) : "";
+                            Object.keys(vm.allPlayersStatusString).filter(item => {
                                 return record.data.playerStatus == vm.allPlayersStatusString[item];
                             })[0];
                             record.playerStatusName = $translate("Enable");
-                            if(record.data.playerStatus == 3){ record.playerStatusName = $translate("Disable") }
+                            if (record.data.playerStatus == 3) {
+                                record.playerStatusName = $translate("Disable")
+                            }
 
                             return record
                         }
@@ -2799,10 +2814,10 @@ define(['js/app'], function (myApp) {
                                 title: $translate('STATUS'), data: "playerStatusName",
                                 render: function (data, type, row) {
                                     let color = "black";
-                                    if(row.data.playerStatus=='3'||row.data.playerStatus==3){
+                                    if (row.data.playerStatus == '3' || row.data.playerStatus == 3) {
                                         color = "red";
                                     }
-                                    return '<div style="color:'+color+'">'+data+'</div>';
+                                    return '<div style="color:' + color + '">' + data + '</div>';
                                 }
                             },
                             {title: $translate('PlayerLevel'), data: "playerLevelName"},
@@ -2832,17 +2847,33 @@ define(['js/app'], function (myApp) {
 
                 });
             };
-            vm.getIpAreaName = function(ipArea){
+        vm.getIpAreaName = function (ipArea) {
                 let result = '';
-                let province = ipArea.province? ipArea.province:'';
-                let city = ipArea.city ? ipArea.city:'';
-                if(province && city){
-                    result = province + ', ' +  city;
+            let province = ipArea.province ? ipArea.province : '';
+            let city = ipArea.city ? ipArea.city : '';
+            if (province && city) {
+                result = province + ', ' + city;
                 }
                 return result
             }
             vm.getNewPlayerListByFilter = function (newSearch) {
-                var selectedStatus = vm.queryPara.newPlayerList ? [vm.queryPara.newPlayerList.status] : ["Success", "Fail", "Pending", "Manual"];
+                // var selectedStatus = vm.queryPara.newPlayerList ? [vm.constRegistrationIntentRecordStatus[vm.queryPara.newPlayerList.status]] : [vm.constRegistrationIntentRecordStatus.INTENT,
+                //     vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE, vm.constRegistrationIntentRecordStatus.SUCCESS,
+                //     vm.constRegistrationIntentRecordStatus.FAIL, vm.constRegistrationIntentRecordStatus.MANUAL];
+                var selectedStatus;
+
+                if(vm.queryPara.newPlayerList){
+                    if(vm.queryPara.newPlayerList.status == "ATTEMPT"){
+                        selectedStatus = [vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE, vm.constRegistrationIntentRecordStatus.FAIL];
+                    }else{
+                        selectedStatus = [vm.constRegistrationIntentRecordStatus[vm.queryPara.newPlayerList.status]];
+                    }
+                }
+                else{
+                    selectedStatus = [vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE, vm.constRegistrationIntentRecordStatus.SUCCESS,
+                                    vm.constRegistrationIntentRecordStatus.FAIL, vm.constRegistrationIntentRecordStatus.MANUAL];
+                }
+
                 var sendData = {
                     adminId: authService.adminId,
                     platformId: vm.selectedPlatform.id,
@@ -2861,7 +2892,8 @@ define(['js/app'], function (myApp) {
                 if (selectedStatus && selectedStatus != "") {
                     sendData.status = selectedStatus
                 } else {
-                    sendData.status = ["Success", "Fail", "Pending", "Manual"];
+                    sendData.status = [vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE,
+                        vm.constRegistrationIntentRecordStatus.SUCCESS, vm.constRegistrationIntentRecordStatus.FAIL, vm.constRegistrationIntentRecordStatus.MANUAL];
                 }
 
                 vm.newPlayerRecords.loading = true;
@@ -2886,26 +2918,29 @@ define(['js/app'], function (myApp) {
                             record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
                             //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                             if(record.status){
-                                if(record.status == "Fail"){
+                                if(record.status == vm.constRegistrationIntentRecordStatus.SUCCESS){
+                                    record.statusName = record.status ? $translate("Success") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                                else if(record.status == vm.constRegistrationIntentRecordStatus.MANUAL){
+                                    //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                    record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }else{
                                     record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                 }
-                                else{
-                                    record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                                }
                             }
-                            record.playerId = record.data.playerId ? record.data.playerId : "";
-                            record.name = record.data.name ? record.data.name : "";
-                            record.realName = record.data.realName ? record.data.realName : "";
-                            record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
-                            record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
-                            record.smsCode = record.data.smsCode ? record.data.smsCode : "";
-                            record.remarks = record.data.remarks ? record.data.remarks : "";
-                            record.device = record.data.device ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
-                            record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
-                            record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
-                            record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
-                            record.proposalId = record.data.proposalId ? record.data.proposalId : "";
-                            record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea):'';
+                            record.playerId = (record.data && record.data.playerId) ? record.data.playerId : "";
+                            record.name = (record.data && record.name) ? record.name : "";
+                            record.realName = (record.data && record.data.realName) ? record.data.realName : "";
+                            record.combinedArea = (record.data && (record.data.phoneProvince && record.data.phoneCity)) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+                            record.topUpTimes = (record.data && record.data.topUpTimes) ? record.data.topUpTimes : 0;
+                            record.smsCode = (record.data && record.data.smsCode) ? record.data.smsCode : "";
+                            record.remarks = (record.data && record.data.remarks) ? record.data.remarks : "";
+                            record.device = (record.data && record.data.device) ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
+                            record.promoteWay = (record.data && record.data.promoteWay) ? record.data.promoteWay : "";
+                            record.csOfficer = (record.data && record.data.csOfficer) ? record.data.csOfficer : "";
+                            record.registrationTime = (record.data && record.data.registrationTime) ? vm.dateReformat(record.data.registrationTime) : "";
+                            record.proposalId = (record.data && record.data.proposalId) ? record.data.proposalId : "";
+                            record.ipAreaName = (record.data && record.data.ipArea) ? vm.getIpAreaName(record.data.ipArea):'';
                             return record
                         }
                     );
@@ -2935,7 +2970,7 @@ define(['js/app'], function (myApp) {
                                 render: function (data, type, row) {
 
                                     var link = $('<a>', {
-                                        'ng-click': 'vm.editNewplayerRemark=false;vm.showNewPlayerModal('+JSON.stringify(row)+',2)'
+                                        'ng-click': 'vm.editNewplayerRemark=false;vm.showNewPlayerModal(' + JSON.stringify(row) + ',2)'
                                     }).text(data);
                                     return link.prop('outerHTML');
                                 }
@@ -2957,7 +2992,7 @@ define(['js/app'], function (myApp) {
                                 "sClass": "",
                                 render: function (data, type, row) {
                                     data = data || '';
-                                    var playerObjId = row.data._id ? row.data._id : "";
+                                    //var playerObjId = row.data._id ? row.data._id : "";
                                     let displayTXT = '';
                                     let action = '';
                                     var link = $('<div>', {});
@@ -2976,10 +3011,9 @@ define(['js/app'], function (myApp) {
                                         }));
                                     }
 
-
-                                    if(row.status!='Success'&&row.status!='Manual'){
+                                    if(row.status!=vm.constRegistrationIntentRecordStatus.SUCCESS &&row.status!= vm.constRegistrationIntentRecordStatus.MANUAL){
                                         displayTXT = $translate('SMS/PHONE/CREATE_ACC');
-                                        action = 'vm.createPlayerHelper('+JSON.stringify(row)+')';
+                                        action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                         link.append($('<div>', {
                                             'class': 'fa fa-user-plus',
                                             'style': 'padding-left:15px',
@@ -2987,10 +3021,10 @@ define(['js/app'], function (myApp) {
                                             'title': $translate(displayTXT)
                                         }));
 
-                                    }else{
+                                    } else {
                                         displayTXT = $translate('SMS/PHONE/FEEDBACK');
-                                        action = 'vm.initNewPlayerFeedbackModal('+JSON.stringify(row)+')';
-                                        $('#modalAddPlayerFeedback').css('z-Index',1051);
+                                        action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
+                                        $('#modalAddPlayerFeedback').css('z-Index', 1051);
                                         link.append($('<div>', {
                                             'class': 'fa fa-envelope-o',
                                             'style': 'padding-left:15px',
@@ -3005,26 +3039,7 @@ define(['js/app'], function (myApp) {
                                     return link.prop('outerHTML')
                                 }
                             },
-                            // {
-                            //     title: $translate('function'),
-                            //     data: "status",
-                            //     render: function (data, type, row) {
-                            //         let displayTXT = '';
-                            //         let action = '';
-                            //         if(data!='Success'&&data!='Manual'){
-                            //             displayTXT = $translate('SMS/PHONE/CREATE_ACC');
-                            //             action = 'vm.createPlayerHelper('+JSON.stringify(row)+')';
-                            //         }else{
-                            //             displayTXT = $translate('SMS/PHONE/FEEDBACK');
-                            //             action = 'vm.submitPlayerFeedbackQuery();vm.platformPageName="Feedback";vm.updatePageTile()';
-                            //         }
-                            //
-                            //         var link = $('<a>', {
-                            //             'ng-click':action
-                            //         }).text(displayTXT);
-                            //         return link.prop('outerHTML');
-                            //     }
-                            // },
+
                             {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
                             {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
                         ],
@@ -3050,11 +3065,11 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.createPlayerHelper = function(row){
+        vm.createPlayerHelper = function (row) {
                 console.log(row);
                 vm.prepareCreatePlayer();
                 $('#modalCreatePlayer')
-                    .css('z-Index',1051)
+                    .css('z-Index', 1051)
                     .modal();
                 utilService.actionAfterLoaded("#modalCreatePlayer", function () {
                     vm.newPlayer.realName = row.data.realName;
@@ -3072,13 +3087,14 @@ define(['js/app'], function (myApp) {
 
             vm.operatePlayerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 switch (true) {
-
-                    case (aData.status == vm.constProposalStatus.FAIL && (aData.$playerAllCount - aData.$playerCurrentCount == 0)): {
+                    case ((aData.status == vm.constRegistrationIntentRecordStatus.INTENT || aData.status == vm.constRegistrationIntentRecordStatus.FAIL ||
+                    aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount == 0)): {
                         $(nRow).css('background-color', 'rgba(255, 153, 153, 100)','important');
                         //$(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
                         break;
                     }
-                    case (aData.status == vm.constProposalStatus.FAIL && (aData.$playerAllCount - aData.$playerCurrentCount > 0)): {
+                    case ((aData.status == vm.constRegistrationIntentRecordStatus.INTENT || aData.status == vm.constRegistrationIntentRecordStatus.FAIL ||
+                        aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount > 0)): {
                         $(nRow).css('background-color', 'rgba(153, 153, 153, 100)','important');
                         break;
                     }
@@ -3103,7 +3119,7 @@ define(['js/app'], function (myApp) {
 
             //vm.getPlayerRegistrationSucccessRateListByFilter = function (newSearch) {
         vm.getPlayerRegistrationSucccessRateListByFilter = function () {
-                var selectedStatus = vm.queryPara.attemptNumberList ? [vm.queryPara.attemptNumberList.status] : ["Success", "Fail", "Pending", "Manual"];
+                //var selectedStatus = vm.queryPara.attemptNumberList ? [vm.queryPara.attemptNumberList.status] : ["Success", "Fail", "Pending", "Manual"];
                 var sendData = {
                     adminId: authService.adminId,
                     platformId: vm.selectedPlatform.id,
@@ -3122,7 +3138,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareSelfRegistrationSuccessRateRecords = function (queryData) {
-                queryData.status = ["Success", "Fail"];
+                queryData.status = [vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE, vm.constRegistrationIntentRecordStatus.SUCCESS,
+                                    vm.constRegistrationIntentRecordStatus.FAIL];
                 vm.selfRegistrationSuccessRateRecords = [];
                 socketService.$socket($scope.AppSocket, 'getPlayerSelfRegistrationRecordList', queryData, function (data) {
                     vm.selfRegistrationSuccessRateRecords = data.data;
@@ -3138,10 +3155,14 @@ define(['js/app'], function (myApp) {
                         }
                     );
                     var tableData = vm.selfRegistrationSuccessRateRecords;
+                    var failStatusArr =[vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE, vm.constRegistrationIntentRecordStatus.FAIL];
                     var option = $.extend({}, vm.generalDataTableOptions, {
                         data: tableData,
                         columns: [
-                            {title: $translate('SELF_REGISTER_SUCCESS_RATE'), data: $translate('selfRegistrationTotalSuccess')},
+                            {
+                                title: $translate('SELF_REGISTER_SUCCESS_RATE'),
+                                data: $translate('selfRegistrationTotalSuccess')
+                            },
                             {
                                 title: $translate('TOTAL_ATTEMPT'),
                                 data: "totalAttempt",
@@ -3151,12 +3172,13 @@ define(['js/app'], function (myApp) {
                                     data = data || '';
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
-                                        let statusArr = ["Success","Fail"];
+                                        let statusArr = [vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE, vm.constRegistrationIntentRecordStatus.SUCCESS,
+                                            vm.constRegistrationIntentRecordStatus.FAIL];
                                         link.append($('<a>', {
                                             'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"-1",' + JSON.stringify(statusArr) + ');',
                                         }).text(data));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3172,10 +3194,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Fail");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1",' + JSON.stringify(failStatusArr) + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3191,10 +3213,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2","Fail");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2",' + JSON.stringify(failStatusArr) + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3210,10 +3232,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3","Fail");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3",' + JSON.stringify(failStatusArr) + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3229,10 +3251,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4","Fail");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4",' + JSON.stringify(failStatusArr) + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3248,10 +3270,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5","Fail");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5",' + JSON.stringify(failStatusArr) + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3267,10 +3289,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0","Fail");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0",' + JSON.stringify(failStatusArr) + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3286,10 +3308,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3305,10 +3327,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3324,10 +3346,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3343,10 +3365,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3362,10 +3384,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3381,10 +3403,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3412,7 +3434,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareRegistrationDistributionRecords = function (queryData) {
-                queryData.status = ["Success", "Manual"];
+                queryData.status = [vm.constRegistrationIntentRecordStatus.SUCCESS, vm.constRegistrationIntentRecordStatus.MANUAL];
                 vm.registrationDistributionRecords = [];
                 socketService.$socket($scope.AppSocket, 'getPlayerManualRegistrationRecordList', queryData, function (data) {
                     vm.registrationDistributionRecords = data.data;
@@ -3431,7 +3453,7 @@ define(['js/app'], function (myApp) {
                     var option = $.extend({}, vm.generalDataTableOptions, {
                         data: tableData,
                         columns: [
-                             {title: $translate('MANUAL/SELF_REGISTER_RATE'), data: "manualRegistrationTotalSuccess"},
+                            {title: $translate('MANUAL/SELF_REGISTER_RATE'), data: "manualRegistrationTotalSuccess"},
                             {
                                 title: $translate('TOTAL_REGISTRATION'),
                                 data: "totalSuccess",
@@ -3441,12 +3463,12 @@ define(['js/app'], function (myApp) {
                                     data = data || '';
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
-                                        let statusArr = ["Success","Manual"]
+                                        let statusArr = [vm.constRegistrationIntentRecordStatus.SUCCESS,vm.constRegistrationIntentRecordStatus.MANUAL]
                                         link.append($('<a>', {
                                             'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"-1",' + JSON.stringify(statusArr) + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3462,10 +3484,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Manual");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1",' + vm.constRegistrationIntentRecordStatus.MANUAL + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3481,10 +3503,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3500,10 +3522,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"2",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3519,10 +3541,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"3",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3538,10 +3560,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"4",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3557,10 +3579,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"5",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3576,10 +3598,10 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0","Success");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"0",' + vm.constRegistrationIntentRecordStatus.SUCCESS + ');',
                                         }).text(data ? data : 0));
                                     }
-                                    else{
+                                    else {
                                         link.append($('<div>', {}).text(data ? data : 0));
                                     }
                                     return link.prop('outerHTML')
@@ -3608,7 +3630,7 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.setPreparePlayerRegistrationIntentRecordsByStatusParam = function(queryData,attemptNo,status){
+        vm.setPreparePlayerRegistrationIntentRecordsByStatusParam = function (queryData, attemptNo, status) {
                 vm.queryData = queryData;
                 vm.attemptNo = attemptNo;
                 vm.status = status;
@@ -3616,9 +3638,9 @@ define(['js/app'], function (myApp) {
                 vm.preparePlayerRegistrationIntentRecordsByStatus(true);
             }
 
-            vm.preparePlayerRegistrationIntentRecordsByStatus = function(newSearch){
+        vm.preparePlayerRegistrationIntentRecordsByStatus = function (newSearch) {
                 vm.queryData.attemptNo = vm.attemptNo ? vm.attemptNo : 0;
-                vm.queryData.status = Array.isArray(vm.status) ? vm.status :[vm.status];
+            vm.queryData.status = Array.isArray(vm.status) ? vm.status : [vm.status];
                 vm.playerRegistrationRecords.loading = true;
 
                 vm.queryData.size = newSearch ? 10 : (vm.playerRegistrationRecords.limit || 10);
@@ -3637,11 +3659,13 @@ define(['js/app'], function (myApp) {
                             records.data.map(record => {
                                 record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
                                 if(record.status){
-                                    if(record.status == "Fail"){
-                                        record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                    if(record.status == vm.constRegistrationIntentRecordStatus.SUCCESS){
+                                        record.statusName = record.status ? $translate("SUCCESS") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                     }
-                                    else{
-                                        record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                    else if(record.status == vm.constRegistrationIntentRecordStatus.MANUAL){
+                                        record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                    }else{
+                                        record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                     }
                                 }
                                 record.playerId = record.data.playerId ? record.data.playerId : "";
@@ -3656,7 +3680,7 @@ define(['js/app'], function (myApp) {
                                 record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
                                 record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
                                 record.proposalId = record.data.proposalId ? record.data.proposalId : "";
-                                record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea):'';
+                                record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea) : '';
                                 arr.push(record);
                             })
                             return arr;
@@ -3664,30 +3688,30 @@ define(['js/app'], function (myApp) {
                     );
 
                     vm.playerRegistrationRecords.totalCount = tableData[0].length;
-                    var limit = tableData[0].length < vm.queryData.index + vm.queryData.size ? tableData[0].length :  vm.queryData.index + vm.queryData.size
+                    var limit = tableData[0].length < vm.queryData.index + vm.queryData.size ? tableData[0].length : vm.queryData.index + vm.queryData.size
 
-                    vm.sortProposalRegistrationIntentRecord = function(data,sortCol){
+                    vm.sortProposalRegistrationIntentRecord = function (data, sortCol) {
                         var keyName = Object.keys(sortCol)[0];
                         var sorting = sortCol[keyName];
-                        var result = data.sort(function(a,b) {
-                            if ( a[keyName] < b[keyName] )
-                                return -1*sorting;
-                            if ( a[keyName] > b[keyName] )
-                                return 1*sorting;
+                        var result = data.sort(function (a, b) {
+                            if (a[keyName] < b[keyName])
+                                return -1 * sorting;
+                            if (a[keyName] > b[keyName])
+                                return 1 * sorting;
                             return 0;
                         });
 
                         return result;
                     }
 
-                    if(vm.queryData.sortCol){
+                    if (vm.queryData.sortCol) {
                         //tableData = tableData[0].sort(vm.queryData.sortCol).slice(vm.queryData.index,limit);
                         //tableData[0] = JSON.parse(JSON.stringify(tableData[0]));
-                        tableData = vm.sortProposalRegistrationIntentRecord(tableData[0],vm.queryData.sortCol).slice(vm.queryData.index,limit);
-                    }else {
+                        tableData = vm.sortProposalRegistrationIntentRecord(tableData[0], vm.queryData.sortCol).slice(vm.queryData.index, limit);
+                    } else {
                         // tableData = tableData[0].sort(function(a,b) {if ( a.createTime < b.createTime )return 1;if ( a.createTime > b.createTime )return -1;return 0;})
                         //     .slice(vm.queryData.index,limit);
-                        tableData = vm.sortProposalRegistrationIntentRecord(tableData[0],{createTime: -1}).slice(vm.queryData.index,limit);
+                        tableData = vm.sortProposalRegistrationIntentRecord(tableData[0], {createTime: -1}).slice(vm.queryData.index, limit);
                     }
 
                     var option = $.extend({}, vm.generalDataTableOptions, {
@@ -3708,7 +3732,18 @@ define(['js/app'], function (myApp) {
                             {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
                         ],
                         columns: [
-                            {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                            //{title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                            {
+                                title: $translate('proposalId'),
+                                data: "proposalId",
+                                render: function (data, type, row) {
+
+                                    var link = $('<a>', {
+                                        'ng-click': 'vm.editNewplayerRemark=false;vm.showNewPlayerModal('+JSON.stringify(row)+',2)'
+                                    }).text(data);
+                                    return link.prop('outerHTML');
+                                }
+                            },
                             {title: $translate('PLAYERNAME'), data: "name"},
                             {title: $translate('STATUS'), data: "statusName"},
                             //{title: $translate('PLAYERID'), data: "playerId"},
@@ -3746,10 +3781,9 @@ define(['js/app'], function (myApp) {
                                         }));
                                     }
 
-
-                                    if(row.status!='Success'&&row.status!='Manual'){
+                                    if(row.status!=vm.constRegistrationIntentRecordStatus.SUCCESS && row.status!=vm.constRegistrationIntentRecordStatus.MANUAL){
                                         displayTXT = $translate('SMS/PHONE/CREATE_ACC');
-                                        action = 'vm.createPlayerHelper('+JSON.stringify(row)+')';
+                                        action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                         link.append($('<div>', {
                                             'class': 'fa fa-user-plus',
                                             'style': 'padding-left:15px',
@@ -3757,10 +3791,10 @@ define(['js/app'], function (myApp) {
                                             'title': $translate(displayTXT)
                                         }));
 
-                                    }else{
+                                    } else {
                                         displayTXT = $translate('SMS/PHONE/FEEDBACK');
-                                        action = 'vm.initNewPlayerFeedbackModal('+JSON.stringify(row)+')';
-                                        $('#modalAddPlayerFeedback').css('z-Index',1051);
+                                        action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
+                                        $('#modalAddPlayerFeedback').css('z-Index', 1051);
                                         link.append($('<div>', {
                                             'class': 'fa fa-envelope-o',
                                             'style': 'padding-left:15px',
@@ -4003,10 +4037,10 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.updateNewPlayerRemark = function(pId, remarks){
+        vm.updateNewPlayerRemark = function (pId, remarks) {
                 let updateData = {
                     'pId': pId,
-                    'adminId':authService.adminId,
+                    'adminId': authService.adminId,
                     'remarks': remarks
                 }
                 socketService.$socket($scope.AppSocket, 'updatePlayerIntentionRemarks', updateData, function (playerCount) {
@@ -4015,7 +4049,6 @@ define(['js/app'], function (myApp) {
                     vm.getNewPlayerListByFilter(true);
                     $scope.safeApply();
                 });
-
 
 
             }
@@ -6767,7 +6800,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.createPlayerRegistrationIntentRecord = function(data){
+        vm.createPlayerRegistrationIntentRecord = function (data) {
 
                 var intentData = {
                     name: data.data.name,
@@ -6778,7 +6811,7 @@ define(['js/app'], function (myApp) {
                     phoneNumber: data.data.phoneNumber,
                     email: data.data.email,
                     smsCode: "",
-                    lastLoginIp:data.data.lastLoginIp,
+                    lastLoginIp: data.data.lastLoginIp,
                     loginIps: data.data.loginIps,
                     userAgent: data.data.userAgent,
                     phoneProvince: data.data.phoneProvince,
@@ -6793,9 +6826,9 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'createPlayerRegistrationIntentRecord', intentData, function (data) {
-                    console.log('player registration intent record created',data);
+                    console.log('player registration intent record created', data);
                 }, function (err) {
-                    console.log('player registration intent record creation failed',err);
+                    console.log('player registration intent record creation failed', err);
                 });
             }
 
@@ -7303,7 +7336,7 @@ define(['js/app'], function (myApp) {
             }
 
 
-            vm.initPlayerModal = function() {
+        vm.initPlayerModal = function () {
 
                 $('#newPlayerListTab').addClass('active');
                 $('#attemptNumberListTab').removeClass('active');
@@ -7312,14 +7345,14 @@ define(['js/app'], function (myApp) {
                 vm.newPlayerList();
             }
 
-            vm.initFeedbackModal = function(selectedPlayer) {
+        vm.initFeedbackModal = function (selectedPlayer) {
                 vm.selectedSinglePlayer = selectedPlayer;
                 $('#addFeedbackTab').addClass('active');
                 $('#feedbackHistoryTab').removeClass('active');
                 $scope.safeApply();
                 vm.feedbackModalTab = "addFeedbackPanel";
             }
-            vm.initNewPlayerFeedbackModal = function(selectedPlayer) {
+        vm.initNewPlayerFeedbackModal = function (selectedPlayer) {
                 vm.selectedSinglePlayer = selectedPlayer;
 
 
@@ -8501,7 +8534,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showProposalModal("'+data+'",1)'
+                                    'ng-click': 'vm.showProposalModal("' + data + '",1)'
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -9127,7 +9160,7 @@ define(['js/app'], function (myApp) {
                     rowData.feedbackTimes++;
                     vm.playerTableClickedRow.data(rowData).draw();
 
-                    if(vm.platformPageName=='Feedback') {
+                    if (vm.platformPageName == 'Feedback') {
                         vm.submitPlayerFeedbackQuery();
                     }
                     $scope.safeApply();
@@ -9570,7 +9603,12 @@ define(['js/app'], function (myApp) {
                 $scope.$socketPromise('searchSMSLog', requestData).then(result => {
                     vm.smsLog.searchResults = result.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
-                        item.status$ = $translate(item.status);
+                        if (item.status == "failure" && item.error && item.error.status == 430){
+                            item.error = $translate('RESPONSE_TIMEOUT');
+                            item.status$ = $translate('unknown');
+                        } else {
+                            item.status$ = $translate(item.status);
+                        }
                         return item;
                     });
                     vm.smsLog.totalCount = result.data.size;
@@ -10804,24 +10842,24 @@ define(['js/app'], function (myApp) {
             //     });
             // }
         vm.submitPlayerFeedbackQuery = function (isNewSearch) {
-            if(!vm.selectedPlatform) return;
+            if (!vm.selectedPlatform) return;
             console.log('vm.feedback', vm.playerFeedbackQuery);
             let sendQuery = {platform: vm.selectedPlatform.id};
             let sendQueryOr = [];
 
-            if(vm.playerFeedbackQuery.playerType && vm.playerFeedbackQuery.playerType!=null) {
+            if (vm.playerFeedbackQuery.playerType && vm.playerFeedbackQuery.playerType != null) {
                 sendQuery.playerType = vm.playerFeedbackQuery.playerType;
             }
 
-            if(vm.playerFeedbackQuery.playerLevel !== "all") {
+            if (vm.playerFeedbackQuery.playerLevel !== "all") {
                 sendQuery.playerLevel = vm.playerFeedbackQuery.playerLevel;
             }
 
-            if(vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
+            if(vm.playerFeedbackQuery.credibilityRemarks && vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
                 sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
             }
 
-            if(vm.playerFeedbackQuery.lastAccess === "range") {
+            if (vm.playerFeedbackQuery.lastAccess === "range") {
                 sendQuery.lastAccessTime = {
                     $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessFormal)),
                     $gte: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessLatter)),
@@ -10831,12 +10869,12 @@ define(['js/app'], function (myApp) {
                 sendQuery.lastAccessTime = {
                     $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), parseInt(range[0])))
                 };
-                if(range[1]) {
+                if (range[1]) {
                     sendQuery.lastAccessTime["$gte"] = utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), parseInt(range[1])));
                 }
             }
 
-            if(vm.playerFeedbackQuery.filterFeedback) {
+            if (vm.playerFeedbackQuery.filterFeedback) {
                 let lastFeedbackTimeExist = {
                     lastFeedbackTime: null
                 };
@@ -10850,8 +10888,8 @@ define(['js/app'], function (myApp) {
                 sendQuery["$or"] = sendQueryOr;
             }
 
-            if(vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal!=null) {
-                switch(vm.playerFeedbackQuery.depositCountOperator) {
+            if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {
+                switch (vm.playerFeedbackQuery.depositCountOperator) {
                     case ">=":
                         sendQuery.topUpTimes = {
                             $gte: vm.playerFeedbackQuery.depositCountFormal
@@ -10866,7 +10904,7 @@ define(['js/app'], function (myApp) {
                         };
                         break;
                     case "range":
-                        if(vm.playerFeedbackQuery.depositCountLatter!=null) {
+                        if (vm.playerFeedbackQuery.depositCountLatter != null) {
                             sendQuery.topUpTimes = {
                                 $lte: vm.playerFeedbackQuery.depositCountLatter,
                                 $gte: vm.playerFeedbackQuery.depositCountFormal
@@ -10877,8 +10915,8 @@ define(['js/app'], function (myApp) {
             }
 
 
-            if(vm.playerFeedbackQuery.playerValueOperator && vm.playerFeedbackQuery.playerValueFormal!=null) {
-                switch(vm.playerFeedbackQuery.playerValueOperator) {
+            if (vm.playerFeedbackQuery.playerValueOperator && vm.playerFeedbackQuery.playerValueFormal != null) {
+                switch (vm.playerFeedbackQuery.playerValueOperator) {
                     case ">=":
                         sendQuery.valueScore = {
                             $gte: vm.playerFeedbackQuery.playerValueFormal
@@ -10893,7 +10931,7 @@ define(['js/app'], function (myApp) {
                         };
                         break;
                     case "range":
-                        if(vm.playerFeedbackQuery.playerValueLatter!=null) {
+                        if (vm.playerFeedbackQuery.playerValueLatter != null) {
                             sendQuery.valueScore = {
                                 $lte: vm.playerFeedbackQuery.playerValueLatter,
                                 $gte: vm.playerFeedbackQuery.playerValueFormal
@@ -10903,12 +10941,12 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            if(vm.playerFeedbackQuery.gameProviderId.length > 0) {
+            if(vm.playerFeedbackQuery.gameProviderId && vm.playerFeedbackQuery.gameProviderId.length > 0) {
                 sendQuery.gameProviderPlayed = {$in: vm.playerFeedbackQuery.gameProviderId};
             }
 
-            if(vm.playerFeedbackQuery.isNewSystem === "old") {
-                sendQuery.isNewSystem = {$ne : true};
+            if (vm.playerFeedbackQuery.isNewSystem === "old") {
+                sendQuery.isNewSystem = {$ne: true};
             } else if (vm.playerFeedbackQuery.isNewSystem === "new") {
                 sendQuery.isNewSystem = true;
             }
@@ -10916,7 +10954,7 @@ define(['js/app'], function (myApp) {
             $('#platformFeedbackSpin').show();
             console.log('sendQuery', sendQuery);
             console.log('vm.playerFeedbackSearchType', vm.playerFeedbackSearchType);
-            if(vm.playerFeedbackSearchType == "one") {
+            if (vm.playerFeedbackSearchType == "one") {
                 socketService.$socket($scope.AppSocket, 'getSinglePlayerFeedbackQuery', {
                     query: sendQuery,
                     index: vm.feedbackPlayersPara.index - 1
@@ -11053,7 +11091,8 @@ define(['js/app'], function (myApp) {
 
         vm.initPlayerFeedback = function () {
             console.log("initPlayerFeedback");
-            vm.playerFeedbackQuery.index = 1;
+            vm.playerFeedbackQuery.index = 0;
+            vm.playerFeedbackQuery.limit= 10;
             vm.playerFeedbackSearchType = "many";
             vm.playerFeedbackQuery = {};
             vm.playerFeedbackQuery.playerType = "Real Player (all)";
@@ -11065,7 +11104,7 @@ define(['js/app'], function (myApp) {
                     vm.setupGameProviderMultiInputFeedback();
                 });
             utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
-                vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
+                vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit}, $translate, function (curP, pageSize) {
 
                     var isChange = false;
                     if (pageSize != vm.playerFeedbackQuery.limit) {
@@ -11355,8 +11394,8 @@ define(['js/app'], function (myApp) {
                 $.each(vm.feedbackAdmins, function (i, j) {
                     j.createTime$ = utilService.getFormatTime(j.createTime);
                     j.result$ = $translate(j.result);
-                    j.topupTimes$ = (j.result == 'Normal') ? j.topupTimes : 0;
-                    j.amount$ = (j.result == 'Normal') ? (j.amount).toFixed(2) : new Number(0).toFixed(2);
+                    j.topupTimes$ = j.topupTimes || 0;
+                    j.amount$ = j.amount ? (j.amount).toFixed(2) : new Number(0).toFixed(2);
                     showData.push(j);
                 });
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
@@ -12952,7 +12991,8 @@ define(['js/app'], function (myApp) {
                 } else {
                     return '' + num + '';
                 }
-            }
+            };
+
             vm.rewardTabClicked = function (callback) {
                 vm.forbidRewardRemark = '';
                 vm.dayHrs = {};
@@ -13032,7 +13072,6 @@ define(['js/app'], function (myApp) {
                 vm.rewardCondition = Lodash.cloneDeep(v.condition);
                 vm.platformRewardTypeChanged();
 
-
                 console.log('vm.rewardParams', vm.rewardParams);
                 $scope.safeApply();
             };
@@ -13045,6 +13084,99 @@ define(['js/app'], function (myApp) {
                         return true;
                     }
                 });
+
+                // Handling for reward group
+                if (vm.showRewardTypeData.isGrouped) {
+                    vm.rewardMainTask = [];
+                    vm.rewardMainCondition = {};
+                    vm.rewardMainParam = {};
+                    vm.isPlayerLevelDiff = false;
+                    vm.isDynamicRewardAmt = false;
+                    vm.rewardMainParamEntry = [{}];
+
+                    let params = vm.showRewardTypeData.params;
+
+                    // Set condition value
+                    Object.keys(params.condition).forEach(el => {
+                        let mainCond = params.condition[el];
+                        let result;
+
+                        Object.keys(mainCond).forEach(el => {
+                            let cond = mainCond[el];
+                            vm.rewardMainCondition[cond.index] = {
+                                index: cond.index,
+                                name: el,
+                                des: cond.des,
+                                type: cond.type
+                            };
+
+                            // Get options
+                            switch (cond.options) {
+                                default:
+                                    result = $scope[cond.options];
+                                    break;
+                            }
+
+                            vm.rewardMainCondition[cond.index].options = result;
+
+                            // Get player level different reward flag
+                            if (el == "isPlayerLevelDiff" && vm.showReward.condition[el] === true) {
+                                vm.isPlayerLevelDiff = true;
+                            }
+
+                            // Get reward dynamic amount flag
+                            if (el == "isDynamicRewardAmount" && vm.showReward.condition[el] === true) {
+                                vm.isDynamicRewardAmt = true;
+                            }
+
+                            // Get value
+                            if (vm.showReward && vm.showReward.condition && vm.showReward.condition.hasOwnProperty(el)) {
+                                vm.rewardMainCondition[cond.index].value = vm.showReward.condition[el];
+                            }
+
+                            // Render dateTimePicker
+                            let id = "#rewardMainTaskDate-" + cond.index;
+                            utilService.actionAfterLoaded(id, function () {
+                                let dateValue = vm.rewardMainCondition[cond.index].value;
+
+                                vm.rewardMainCondition[cond.index].value = utilService.createDatePicker(id, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss'
+                                });
+
+                                if (dateValue) {
+                                    vm.rewardMainCondition[cond.index].value.data('datetimepicker').setDate(utilService.getLocalTime(new Date(dateValue)));
+                                }
+                            });
+                        })
+                    });
+
+                    let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+
+                    // Set param value
+                    Object.keys(paramType).forEach(el => {
+                        // Get value
+                        if (vm.showReward && vm.showReward.param && vm.showReward.param.hasOwnProperty(el) && el != "rewardParam") {
+                            vm.rewardMainParam[el] = paramType[el];
+                            vm.rewardMainParam[el].value = vm.showReward.param[el];
+                        }
+                    });
+
+                    vm.changeRewardParamLayout();
+
+                    // Set param table value
+                    Object.keys(paramType.rewardParam).forEach(el => {
+                        if (vm.isPlayerLevelDiff) {
+                            if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
+                                vm.showReward.param.rewardParam.forEach((el, idx) => {
+                                    vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
+                                })
+                            }
+                        } else {
+                            vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value;
+                        }
+                    });
+                }
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
 
@@ -13323,7 +13455,42 @@ define(['js/app'], function (myApp) {
                 console.log("vm.rewardCondition:", vm.rewardCondition);
                 console.log("vm.rewardParams:", vm.rewardParams);
                 vm.showRewardFormValid = true;
+            };
+
+        vm.changeRewardParamLayout = (model) => {
+            vm.rewardMainParamTable = [];
+
+            // Check whether reward is dyanmic amount
+            if (model && model.name == "isDynamicRewardAmount") {
+                vm.isDynamicRewardAmt = model.value;
             }
+
+            // Check whether reward is differ by player level
+            if (model && model.name == "isPlayerLevelDiff") {
+                vm.isPlayerLevelDiff = model.value;
+            }
+
+            let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+
+            vm.rewardMainParam = Object.assign({}, paramType);
+
+            if (vm.isPlayerLevelDiff) {
+                vm.allPlayerLvl.forEach((e, idx) => {
+                    vm.rewardMainParamTable.push({
+                        header: vm.rewardMainParam.rewardParam,
+                        value: [{}]
+                    });
+                });
+            } else {
+                vm.rewardMainParamTable.push({
+                    header: vm.rewardMainParam.rewardParam,
+                    value: [{}]
+                });
+            }
+
+
+            delete vm.rewardMainParam.rewardParam;
+        };
 
             /**
              * Re-order the properties in obj to match the order of the properties in preferredOrderObj.
@@ -13658,10 +13825,66 @@ define(['js/app'], function (myApp) {
                     validEndTime: vm.showReward.validEndTime || null,
                 };
 
+                if (vm.showRewardTypeData.isGrouped === true) {
+                    let condData = {};
+
+                    // Set condition
+                    Object.keys(vm.rewardMainCondition).forEach(e => {
+                        if (vm.rewardMainCondition[e].value !== undefined) {
+                            console.log('e', vm.rewardMainCondition[e]);
+                            let condName = vm.rewardMainCondition[e].name;
+                            let condType = vm.rewardMainCondition[e].type;
+                            let condValue = vm.rewardMainCondition[e].value;
+
+                            // // Save name and code to outer level
+                            // if (condName == "name" || condName == "code") {
+                            //     sendData[condName] = condValue;
+                            // }
+                            //
+                            // Get time string in object type
+                            if (condType == "date") {
+                                condValue = condValue.data('datetimepicker').getLocalDate();
+                            }
+                            //
+                            // // Save reward condition
+                            curReward.condition[condName] = condValue;
+                        }
+                    });
+
+                    // Set param
+                    Object.keys(vm.rewardMainParam).forEach(e => {
+                        curReward.param[e] = vm.rewardMainParam[e].value;
+                    });
+
+                    curReward.param.rewardParam = [];
+
+                    // Set param table
+                    Object.keys(vm.rewardMainParamTable).forEach((e, idx) => {
+                        console.log('e', e);
+                        console.log('vm.rewardMainParamTable[e]', vm.rewardMainParamTable[e]);
+
+                        let levelParam = {
+                            levelId: vm.allPlayerLvl[idx]._id,
+                            value: vm.rewardMainParamTable[e].value
+                        };
+
+                        curReward.param.rewardParam.push(levelParam);
+                    });
+
+                    console.log('vm.rewardMainParam', vm.rewardMainParam);
+                    console.log('vm.rewardMainParamTable', vm.rewardMainParamTable);
+                } else {
+
+                }
+
+
                 var sendData = {
                     query: {_id: vm.showReward._id},
                     updateData: curReward
                 };
+
+                console.log('editReward sendData', sendData);
+
                 socketService.$socket($scope.AppSocket, 'updateRewardEvent', sendData, function (data) {
                     vm.rewardTabClicked();
                     vm.platformRewardPageName = 'showReward';
@@ -13685,18 +13908,47 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.submitReward = function () {
-                var sendData = vm.showReward;
-                sendData.name = vm.showReward.name;
-                sendData.description = vm.showReward.description;
-                sendData.platform = vm.selectedPlatform.id;
-                sendData.param = vm.rewardParams;
-                sendData.condition = vm.rewardCondition;
-                sendData.type = vm.showRewardTypeData._id;
-                sendData.canApplyFromClient = vm.showReward.canApplyFromClient;
-                sendData.validStartTime = vm.showReward.validStartTime || null;
-                sendData.validEndTime = vm.showReward.validEndTime || null;
-                console.log('vm.showRewardTypeStringData', vm.showRewardTypeStringData);
-                console.log(vm.showReward);
+                let sendData = {
+                    platform: vm.selectedPlatform.id,
+                    type: vm.showRewardTypeData._id,
+                    condition: {}
+                };
+
+                if (vm.showRewardTypeData.isGrouped === true) {
+                    // Set condition
+                    Object.keys(vm.rewardMainCondition).forEach(e => {
+                        if (vm.rewardMainCondition[e].value !== undefined) {
+                            let condName = vm.rewardMainCondition[e].name;
+                            let condType = vm.rewardMainCondition[e].type;
+                            let condValue = vm.rewardMainCondition[e].value;
+
+                            // Save name and code to outer level
+                            if (condName == "name" || condName == "code") {
+                                sendData[condName] = condValue;
+                            }
+
+                            // Get time string in object type
+                            if (condType == "date") {
+                                condValue = condValue.data('datetimepicker').getLocalDate();
+                            }
+
+                            // Save reward condition
+                            sendData.condition[condName] = condValue;
+                        }
+                    })
+                } else {
+                    sendData = vm.showReward;
+                    sendData.name = vm.showReward.name;
+                    sendData.description = vm.showReward.description;
+                    sendData.param = vm.rewardParams;
+                    sendData.condition = vm.rewardCondition;
+                    sendData.type = vm.showRewardTypeData._id;
+                    sendData.canApplyFromClient = vm.showReward.canApplyFromClient;
+                    sendData.validStartTime = vm.showReward.validStartTime || null;
+                    sendData.validEndTime = vm.showReward.validEndTime || null;
+                }
+                console.log('vm.showRewardTypeData', vm.showRewardTypeData);
+                console.log('vm.rewardMainCondition', vm.rewardMainCondition);
                 console.log("newReward", sendData);
                 socketService.$socket($scope.AppSocket, 'createRewardEvent', sendData, function (data) {
                     //vm.allGameProvider = data.data;
@@ -13707,7 +13959,7 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     console.log("created not", data);
                 });
-            }
+            };
 
             // platform-reward end =============================================================================
 
@@ -14162,24 +14414,23 @@ define(['js/app'], function (myApp) {
             };
 
 
-
-            vm.showProposalModal = function(proposalId, templateNo){
+        vm.showProposalModal = function (proposalId, templateNo) {
               socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
                   platformId: vm.selectedPlatform.id,
                   proposalId: proposalId
               }, function (data) {
                 vm.selectedProposal = data.data;
 
-                let tmpt = vm.proposalTemplate[templateNo];
-                $(tmpt).modal('show');
-                $(tmpt).on('shown.bs.modal', function (e) {
+                  let tmpt = vm.proposalTemplate[templateNo];
+                  $(tmpt).modal('show');
+                  $(tmpt).on('shown.bs.modal', function (e) {
                   $scope.safeApply();
                 })
 
 
-                })
+              })
             }
-            vm.showNewPlayerModal = function(data, templateNo){
+        vm.showNewPlayerModal = function (data, templateNo) {
                 vm.newPlayerProposal = data;
 
                 let tmpt = vm.proposalTemplate[templateNo];
@@ -14268,7 +14519,7 @@ define(['js/app'], function (myApp) {
                 } else if (fieldName === 'playerStatus') {
                     result = $translate($scope.constPlayerStatus[val]);
 
-                    } else if (fieldName == 'allowedProviders'){
+                } else if (fieldName == 'allowedProviders') {
 
                     let providerName = '';
                     for (var v in val) {
@@ -14353,7 +14604,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showProposalModal("'+data+'",1)'
+                                    'ng-click': 'vm.showProposalModal("' + data + '",1)'
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -14553,7 +14804,7 @@ define(['js/app'], function (myApp) {
                 console.log('sendObj', sendObj);
 
                 socketService.$socket($scope.AppSocket, 'updatePromoCodesActive', sendObj, function (data) {
-                    vm.promoCodeActivate.message = data.data.nModified +' '+$translate('PROMO_CODE_MODIFIED');
+                    vm.promoCodeActivate.message = data.data.nModified + ' ' + $translate('PROMO_CODE_MODIFIED');
                     console.log('UpdatePromoCodesActive', data);
                     $scope.safeApply();
                 }, function (err) {
@@ -14873,8 +15124,8 @@ define(['js/app'], function (myApp) {
                         vm.allPlayerLvl = data.data;
                         vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
                         vm.manualPlayerLevelUp = vm.selectedPlatform.data.manualPlayerLevelUp;
-                        vm.playerLevelPeriod.playerLevelUpPeriod = vm.selectedPlatform.data.playerLevelUpPeriod?vm.selectedPlatform.data.playerLevelUpPeriod: vm.allPlayerLevelUpPeriod.MONTH;
-                        vm.playerLevelPeriod.playerLevelDownPeriod = vm.selectedPlatform.data.playerLevelDownPeriod?vm.selectedPlatform.data.playerLevelDownPeriod: vm.allPlayerLevelUpPeriod.MONTH;
+                        vm.playerLevelPeriod.playerLevelUpPeriod = vm.selectedPlatform.data.playerLevelUpPeriod ? vm.selectedPlatform.data.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
+                        vm.playerLevelPeriod.playerLevelDownPeriod = vm.selectedPlatform.data.playerLevelDownPeriod ? vm.selectedPlatform.data.playerLevelDownPeriod : vm.allPlayerLevelUpPeriod.MONTH;
                         vm.allPlayerLvlReordered = false;
                         vm.sortPlayerLevels();
                         console.log("vm.allPlayerLvl", data.data);
@@ -14892,10 +15143,10 @@ define(['js/app'], function (myApp) {
                     });
             };
 
-            vm.getPlayerLevelUpPeriodName = function(value){
-                let name='';
-                for (let i = 0; i < Object.keys(vm.allPlayerLevelUpPeriod).length; i++){
-                    if(vm.allPlayerLevelUpPeriod[Object.keys(vm.allPlayerLevelUpPeriod)[i]] == value){
+        vm.getPlayerLevelUpPeriodName = function (value) {
+            let name = '';
+            for (let i = 0; i < Object.keys(vm.allPlayerLevelUpPeriod).length; i++) {
+                if (vm.allPlayerLevelUpPeriod[Object.keys(vm.allPlayerLevelUpPeriod)[i]] == value) {
                         name = Object.keys(vm.allPlayerLevelUpPeriod)[i];
                         break;
                     }
@@ -14904,13 +15155,13 @@ define(['js/app'], function (myApp) {
             }
 
             //force change all field (follow period setting)
-            vm.changeLevelPeriodAllField = function (){
-                for (let i = 0; i < vm.allPlayerLvl.length; i++){
-                    for (let j = 0; j < vm.allPlayerLvl[i].levelDownConfig.length; j++){
+        vm.changeLevelPeriodAllField = function () {
+            for (let i = 0; i < vm.allPlayerLvl.length; i++) {
+                for (let j = 0; j < vm.allPlayerLvl[i].levelDownConfig.length; j++) {
                         vm.allPlayerLvl[i].levelDownConfig[j].consumptionPeriod = vm.playerLevelPeriod.levelDownPeriodName;
                         vm.allPlayerLvl[i].levelDownConfig[j].topupPeriod = vm.playerLevelPeriod.levelDownPeriodName;
                     }
-                    for (let k = 0; k < vm.allPlayerLvl[i].levelUpConfig.length; k++){
+                for (let k = 0; k < vm.allPlayerLvl[i].levelUpConfig.length; k++) {
                         vm.allPlayerLvl[i].levelUpConfig[k].consumptionPeriod = vm.playerLevelPeriod.levelUpPeriodName;
                         vm.allPlayerLvl[i].levelUpConfig[k].topupPeriod = vm.playerLevelPeriod.levelUpPeriodName;
                     }
@@ -15165,7 +15416,7 @@ define(['js/app'], function (myApp) {
             /****************** List - start ******************/
             // compare a new list pf phone numbers with existing player info database
             // generate a new list of phone numbers without existing player phone number
-            vm.comparePhoneNum = function() {
+            vm.comparePhoneNum = function () {
                 vm.arrayInputPhone = vm.inputNewPhoneNum.split(/,|, /).map((item) => item.trim());
 
                 let sendData = {
@@ -15220,7 +15471,7 @@ define(['js/app'], function (myApp) {
                 var rowArray = [];
                 var rowArrayMerge;
 
-                for(let z = 0; z < rows.length; z++) {
+                for (let z = 0; z < rows.length; z++) {
                     let rowObject = rows[z][0];
                     let rowObjectValue = Object.values(rowObject);
                     rowArray.push(rowObjectValue);
@@ -15241,12 +15492,12 @@ define(['js/app'], function (myApp) {
                     vm.xlsTotal = rows.length;
                     var rowsFilter = rows;
 
-                    for(let x = 0; x < rowsFilter.length; x++) {
+                    for (let x = 0; x < rowsFilter.length; x++) {
                         let rowObject = rowsFilter[x][0];
                         let rowObjectValue = Object.values(rowObject);
-                        for(let y = 0; y < vm.samePhoneXLS.length; y++) {
-                            if(rowObjectValue == vm.samePhoneXLS[y]) {
-                                rowsFilter.splice(x,1);
+                        for (let y = 0; y < vm.samePhoneXLS.length; y++) {
+                            if (rowObjectValue == vm.samePhoneXLS[y]) {
+                                rowsFilter.splice(x, 1);
                                 --x;
                                 break;
                             }
@@ -15264,7 +15515,7 @@ define(['js/app'], function (myApp) {
 
                     var endLoc;
                     rowsFilter.forEach(function (row, ri) {
-                        ri +=1;
+                        ri += 1;
                         vm.gridApi.grid.columns.forEach(function (col, ci) {
                             var loc = XLSX.utils.encode_cell({r: ri, c: ci});
                             sheet[loc] = {
@@ -15275,7 +15526,7 @@ define(['js/app'], function (myApp) {
                         });
                     });
 
-                    sheet['!ref'] = XLSX.utils.encode_range({ s: 'A1', e: endLoc });
+                    sheet['!ref'] = XLSX.utils.encode_range({s: 'A1', e: endLoc});
                     var workbook = {
                         SheetNames: ['Sheet1'],
                         Sheets: {
@@ -15283,7 +15534,7 @@ define(['js/app'], function (myApp) {
                         }
                     };
 
-                    var wopts = { bookType: 'xlsx', bookSST: false, type: 'binary' };
+                    var wopts = {bookType: 'xlsx', bookSST: false, type: 'binary'};
                     // write workbook (use type 'binary')
                     var wbout = XLSX.write(workbook, wopts);
                     saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
@@ -15296,7 +15547,7 @@ define(['js/app'], function (myApp) {
             vm.s2ab = function (s) {
                 var buf = new ArrayBuffer(s.length);
                 var view = new Uint8Array(buf);
-                for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+                for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
                 return buf;
             };
 
@@ -15304,28 +15555,29 @@ define(['js/app'], function (myApp) {
             vm.sheet_from_array_of_arrays = function (data, opts) {
                 var ws = {};
                 // var range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
-                var range = {e: {c:10000000, r:10000000}, s: {c:0, r:0 }};
-                for(var R = 0; R != data.length; ++R) {
-                    for(var C = 0; C != data[R].length; ++C) {
-                        if(range.s.r > R) range.s.r = R;
-                        if(range.s.c > C) range.s.c = C;
-                        if(range.e.r < R) range.e.r = R;
-                        if(range.e.c < C) range.e.c = C;
-                        var cell = {v: data[R][C] };
-                        if(cell.v == null) continue;
-                        var cell_ref = XLSX.utils.encode_cell({c:C,r:R});
+                var range = {e: {c: 10000000, r: 10000000}, s: {c: 0, r: 0}};
+                for (var R = 0; R != data.length; ++R) {
+                    for (var C = 0; C != data[R].length; ++C) {
+                        if (range.s.r > R) range.s.r = R;
+                        if (range.s.c > C) range.s.c = C;
+                        if (range.e.r < R) range.e.r = R;
+                        if (range.e.c < C) range.e.c = C;
+                        var cell = {v: data[R][C]};
+                        if (cell.v == null) continue;
+                        var cell_ref = XLSX.utils.encode_cell({c: C, r: R});
 
-                        if(typeof cell.v === 'number') cell.t = 'n';
-                        else if(typeof cell.v === 'boolean') cell.t = 'b';
-                        else if(cell.v instanceof Date) {
-                            cell.t = 'n'; cell.z = XLSX.SSF._table[14];
+                        if (typeof cell.v === 'number') cell.t = 'n';
+                        else if (typeof cell.v === 'boolean') cell.t = 'b';
+                        else if (cell.v instanceof Date) {
+                            cell.t = 'n';
+                            cell.z = XLSX.SSF._table[14];
                             cell.v = datenum(cell.v);
                         }
                         else cell.t = 's';
                         ws[cell_ref] = cell;
                     }
                 }
-                if(range.s.c < 10000000) ws['!ref'] = XLSX.utils.encode_range(range);
+                if (range.s.c < 10000000) ws['!ref'] = XLSX.utils.encode_range(range);
                 return ws;
             };
 
@@ -15438,9 +15690,20 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
                 vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
                 vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup;
-                vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime;
+                vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime
+                vm.platformBasic.whiteListingPhoneNumbers$ = "";
+
+                if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
+                    let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
+                    for (let i=0, len = phones.length; i < len; i++) {
+                        let phone = phones[i];
+                        vm.platformBasic.whiteListingPhoneNumbers$ += phone;
+                        i !== (len-1) ? vm.platformBasic.whiteListingPhoneNumbers$ += "\n" : "";
+                    }
+                }
+
                 $scope.safeApply();
-            }
+            };
 
             vm.getBonusBasic = () => {
 
@@ -15859,13 +16122,23 @@ define(['js/app'], function (myApp) {
             }
 
             function updatePlatformBasic(srcData) {
+                let whiteListingPhoneNumbers = [];
+
+                if (srcData.whiteListingPhoneNumbers$) {
+                    let phones = srcData.whiteListingPhoneNumbers$.split(/\r?\n/);
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i].trim();
+                        if (phone) whiteListingPhoneNumbers.push(phone);
+                    }
+                }
+
                 let sendData = {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
                         minTopUpAmount: srcData.showMinTopupAmount,
                         allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
                         allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
-                        samePhoneNumberRegisterCount : srcData.samePhoneNumberRegisterCount,
+                        samePhoneNumberRegisterCount: srcData.samePhoneNumberRegisterCount,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                         manualPlayerLevelUp: srcData.manualPlayerLevelUp,
@@ -15882,7 +16155,8 @@ define(['js/app'], function (myApp) {
                         requireSMSVerificationForPasswordUpdate: srcData.requireSMSVerificationForPasswordUpdate,
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
                         smsVerificationExpireTime: srcData.smsVerificationExpireTime,
-                        useProviderGroup: srcData.useProviderGroup
+                        useProviderGroup: srcData.useProviderGroup,
+                        whiteListingPhoneNumbers: whiteListingPhoneNumbers
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
@@ -17210,7 +17484,7 @@ define(['js/app'], function (myApp) {
                         });
 
 
-                        Q.all([vm.getAllPlayerFeedbackResults(),vm.getAllPlayerFeedbackTopics()]).then(
+                        Q.all([vm.getAllPlayerFeedbackResults(), vm.getAllPlayerFeedbackTopics()]).then(
                             function (data) {
                                 // This init data will be a list of undefineds.
                                 // The above promises don't actually produce data, they just promise to set their vm variables!
@@ -17659,12 +17933,12 @@ define(['js/app'], function (myApp) {
                         }
                         log.createTime = new Date(log.createTime).toLocaleString();
                     }
-                        console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        console.log(err);
-                    });
+                    console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log(err);
+                });
             };
 
             vm.setupRemarksMultiInput = function () {
@@ -17727,7 +18001,6 @@ define(['js/app'], function (myApp) {
             gameProviderSelect.multipleSelect("uncheckAll");
             $scope.safeApply();
         };
-
 
 
         vm.getPlayersByAdvanceQuery = function (playerQuery) {
@@ -17800,21 +18073,6 @@ define(['js/app'], function (myApp) {
                                 result = result.concat(data2.data.data);
                                 vm.playerTable.context[0].aaSorting = [];
 
-                                    setPlayerTableData(result);
-                                    utilService.hideAllPopoversExcept();
-                                    vm.searchPlayerCount = size;
-                                    vm.playerTableQuery.pageObj.init({maxCount: size}, true);
-                                    vm.playerTable.rows(function (idx, rowData, node) {
-                                        if (rowData._id == result[0]._id) {
-                                            vm.playerTableRowClicked(rowData);
-                                            vm.selectedPlayersCount = 1;
-                                            $(node).addClass('selected');
-                                            found = true;
-                                        }
-                                    })
-                                });
-                            }
-                            else {
                                 setPlayerTableData(result);
                                 utilService.hideAllPopoversExcept();
                                 vm.searchPlayerCount = size;
@@ -17827,23 +18085,38 @@ define(['js/app'], function (myApp) {
                                         found = true;
                                     }
                                 })
-                            }
+                            });
                         }
                         else {
                             setPlayerTableData(result);
                             utilService.hideAllPopoversExcept();
                             vm.searchPlayerCount = size;
                             vm.playerTableQuery.pageObj.init({maxCount: size}, true);
+                            vm.playerTable.rows(function (idx, rowData, node) {
+                                if (rowData._id == result[0]._id) {
+                                    vm.playerTableRowClicked(rowData);
+                                    vm.selectedPlayersCount = 1;
+                                    $(node).addClass('selected');
+                                    found = true;
+                                }
+                            })
                         }
-                        if (!found) {
-                            vm.selectedSinglePlayer = null;
-                            vm.selectedPlayersCount = 0;
-                        }
-                        $scope.safeApply();
-                    });
-                } else {
-                    vm.advancedPlayerQuery(true);
-                }
+                    }
+                    else {
+                        setPlayerTableData(result);
+                        utilService.hideAllPopoversExcept();
+                        vm.searchPlayerCount = size;
+                        vm.playerTableQuery.pageObj.init({maxCount: size}, true);
+                    }
+                    if (!found) {
+                        vm.selectedSinglePlayer = null;
+                        vm.selectedPlayersCount = 0;
+                    }
+                    $scope.safeApply();
+                });
+            } else {
+                vm.advancedPlayerQuery(true);
+            }
             };
 
             vm.isForbidChanged = function (newForbid, oldForbid) {

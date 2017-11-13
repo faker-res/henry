@@ -23,8 +23,8 @@ form(name="form_new_player", novalidate)
 			span.help-block(ng-show="form_new_player.password2.$dirty && form_new_player.password2.$error.match && !form_new_player.password2.$error.required") {{"PASSWORD_NOT_MATCH" | translate}}
 	.row.margin-left-5.margin-right-5
 		.form-group.col-md-6
-			label.control-label *{{"REAL_NAME" | translate}}
-			input.form-control(type="text", placeholder='{{"REAL_NAME" | translate}}', ng-model="vm.newPlayer.realName", required)
+			label.control-label {{"REAL_NAME" | translate}}
+			input.form-control(type="text", placeholder='{{"REAL_NAME" | translate}}', ng-model="vm.newPlayer.realName")
 		.form-group.col-md-6
 			label.control-label {{"NICK_NAME" | translate}}
 			input.form-control(type="text", placeholder='{{"NICK_NAME" | translate}}', ng-model="vm.newPlayer.nickName")
