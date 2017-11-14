@@ -585,20 +585,7 @@ db.rewardParam.update({
                     remark: {type: "string", des: "Remark"},
                 }
             },
-            // tblOptDynamic: {
-            //     rewardParam: {
-            //         minTopUpAmount: {type: "number", des: "Minimum top up amount"},
-            //         rewardPercentage: {type: "percentage", des: "Reward percentage"},
-            //         maxRewardInSingleTopUp: {type: "number", des: "Max reward in single top up"},
-            //         spendingTimes: {type: "number", des: "Spending times"},
-            //         forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
-            //         forbidWithdrawIfBalanceAfterUnlock: {
-            //             type: "checkbox",
-            //             des: "Forbid withdraw if there is balance after unlock"
-            //         },
-            //         remark: {type: "string", des: "Remark"},
-            //     }
-            // }
+            tblOptDynamic: {}
         }
     }
 }, {
