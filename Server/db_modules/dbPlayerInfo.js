@@ -9306,6 +9306,7 @@ let dbPlayerInfo = {
                                     return dbPlayerReward.applyPacketRainReward(playerId, code, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
+                                case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
                                     return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo);
                                     break;
                                 default:
