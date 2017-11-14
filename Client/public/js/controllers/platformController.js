@@ -13094,6 +13094,7 @@ define(['js/app'], function (myApp) {
                     vm.isPlayerLevelDiff = false;
                     vm.isDynamicRewardAmt = false;
                     vm.rewardMainParamEntry = [{}];
+                    vm.rewardDisabledParam = [];
 
                     let params = vm.showRewardTypeData.params;
 

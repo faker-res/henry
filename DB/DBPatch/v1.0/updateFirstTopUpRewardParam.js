@@ -549,3 +549,68 @@ var param101Cursor = db.rewardParam.find({ "name": type101 });
 var param101 = param101Cursor.next();
 
 db.rewardType.update({ "name": type101 }, { $set: { params: param101._id, des: type101, isGrouped: true } }, { upsert: true });
+
+
+
+// 投注额奖励
+var type103 = "consumptionReward";
+db.rewardParam.update({
+    "name": type103
+}, {
+    $set: {
+        condition: {
+            generalCond: generalCond,
+            periodCond: periodCond,
+            consumptionCond: consumptionCond,
+            customCond: {
+                consumptionProviderSource: {
+                    index: 22,
+                    type: "multiSelect",
+                    des: "Check consumption source by provider",
+                    options: "gameProviders"
+                }
+            }
+        },
+        param: {
+            tblOptFixed: {
+                playerLvl: "",
+                isMultiStepReward: "",
+                isSteppingReward: {type: "checkbox", des: "Reward step needed"},
+                countInRewardInterval: {type: "number", des: "Reward limit in interval"},
+                rewardParam: {
+                    rewardLvl: "",
+                    minTopUpAmount: "",
+                    rewardAmount: "",
+                    spendingTimes: "",
+                    forbidWithdrawAfterApply: "",
+                    forbidWithdrawIfBalanceAfterUnlock: "",
+                    remark: ""
+                }
+            },
+            tblOptDynamic: {
+                playerLvl: "",
+                isMultiStepReward: "",
+                isSteppingReward: "",
+                countInRewardInterval: "",
+                dailyMaxRewardAmount: {type: "number", des: "Daily Reward Limit"},
+                rewardParam: {
+                    rewardLvl: "",
+                    minTopUpAmount: "",
+                    rewardPercentage: "",
+                    maxRewardInSingleTopUp: "",
+                    spendingTimes: "",
+                    forbidWithdrawAfterApply: "",
+                    forbidWithdrawIfBalanceAfterUnlock: "",
+                    remark: ""
+                }
+            }
+        }
+    }
+}, {
+    upsert: true
+});
+
+var param103Cursor = db.rewardParam.find({"name": type103});
+var param103 = param103Cursor.next();
+
+db.rewardType.update({"name": type103}, {$set: {params: param103._id, des: type103, isGrouped: true}}, {upsert: true});
