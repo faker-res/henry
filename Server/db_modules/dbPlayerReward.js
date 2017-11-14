@@ -1957,7 +1957,102 @@ let dbPlayerReward = {
         }, {
             multi: true
         }).exec();
-    }
+    },
+
+    /**
+     *
+     * @param playerData
+     * @param code
+     * @param adminInfo
+     * @returns {Promise.<TResult>}
+     */
+    applyGroupReward: (playerData, eventData, adminInfo) => {
+
+        console.log('applyGroupReward eventData', eventData);
+
+        let todayTime = dbUtility.getTodaySGTime();
+        let rewardAmount = 0;
+
+        let promTopUp = dbConfig.collection_playerTopUpRecord.aggregate(
+            {
+                $match: {
+                    playerId: playerData._id,
+                    platformId: playerData.platform._id,
+                    createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+                }
+            },
+            {
+                $group: {
+                    _id: {playerId: "$playerId"},
+                    amount: {$sum: "$amount"}
+                }
+            }
+        ).then(
+            summary => {
+                if (summary && summary[0]) {
+                    return summary[0].amount;
+                }
+                else {
+                    // No topup record will return 0
+                    return 0;
+                }
+            }
+        );
+
+        let todayPropsProm = dbConfig.collection_proposalType.findOne({
+            name: eventData.type.name,
+            platformId: playerData.platform._id
+        }).lean().then(
+            typeData => {
+                if (typeData) {
+                    return dbConfig.collection_proposal.find({
+                        type: typeData._id,
+                        "data.playerObjId": playerData._id,
+                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING]},
+                        settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+                    }).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find reward"});
+                }
+            }
+        );
+
+        return Promise.all([promTopUp, todayPropsProm]).then(
+            data => {
+                let topUpSum = data[0];
+                let todayPacketCount = data[1].length ? data[1].length : 0;
+
+                // create reward proposal
+                let proposalData = {
+                    type: eventData.executeProposal,
+                    creator: adminInfo ? adminInfo :
+                        {
+                            type: 'player',
+                            name: playerData.name,
+                            id: playerData._id
+                        },
+                    data: {
+                        playerObjId: playerData._id,
+                        playerId: playerData.playerId,
+                        playerName: playerData.name,
+                        realName: playerData.realName,
+                        platformObjId: playerData.platform._id,
+                        rewardAmount: rewardAmount,
+                        eventId: eventData._id,
+                        eventName: eventData.name,
+                        eventCode: eventData.code,
+                        eventDescription: eventData.description,
+                        isIgnoreAudit: Boolean(eventData.condition && eventData.condition.isIgnoreAudit === true)
+                    },
+                    entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                    userType: constProposalUserType.PLAYERS
+                };
+                return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
+
+            }
+        );
+    },
 };
 
 function processConsecutiveLoginRewardRequest(playerData, inputDate, event, adminInfo, isPrevious) {
