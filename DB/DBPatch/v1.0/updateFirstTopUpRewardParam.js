@@ -374,9 +374,9 @@ var generalCond = {
     // Is ignore audit
     isIgnoreAudit: {index: 4, type: "checkbox", des: "Is ignore audit"},
     // Reward start time
-    startTime: {index: 5, type: "date", des: "Reward start time"},
+    validStartTime: {index: 5, type: "date", des: "Reward start time"},
     // Reward end time
-    endTime: {index: 6, type: "date", des: "Reward end time"},
+    validEndTime: {index: 6, type: "date", des: "Reward end time"},
     // Is differentiate reward by player level
     isPlayerLevelDiff: {index: 7, type: "checkbox", des: "Reward differentiate by player level", default: false}
 };
@@ -398,6 +398,15 @@ var periodCond = {
     // Top up count between interval check type
     topUpCountType: {index: 21, type: "interval", des: "Top up count between interval type", options: "intervalType"}
 };
+
+var loseValueCond = {
+    // Chain condition head
+    //defineLoseValue: {index: 102, type: "chain", chainType:"select", des: "Define Lose Value", options: "loseValueType"},
+    defineLoseValue: {index: 42, type: "select", des: "Define Lose Value", options: "loseValueType"},
+    // Chain condition child
+    //consumptionRecordProvider: {index: 102.1, type: "chain", chainKey: "102", chainType:"multiSelect", chainOptions: [2,3], des: "Consumption Record Provider", options: "consumptionRecordProviderName"},
+    consumptionRecordProvider: {index: 42.1, type: "multiSelect", des: "Consumption Record Provider", options: "consumptionRecordProviderName"},
+}
 
 var latestTopUpCond = {
     // Allow to apply after latest top up has consumption after it
@@ -526,7 +535,7 @@ db.rewardParam.update({
         param: {
             tblOptFixed: {
                 rewardParam: {
-                    requiredTopUpAmount: {type: "number", des: "Required top up amounnt"},
+                    requiredTopUpAmount: {type: "number", des: "Required top up amount"},
                     operatorOption: {type: "checkbox", des: "Required both"},
                     requiredConsumptionAmount: {type: "number", des: "Required consumption amount"},
                     rewardAmount: {type: "number", des: "Reward amount"},
@@ -551,7 +560,64 @@ var param101 = param101Cursor.next();
 
 db.rewardType.update({ "name": type101 }, { $set: { params: param101._id, des: type101, isGrouped: true } }, { upsert: true });
 
+// region输值反利
+var type102 = "PlayerLoseReturnReward";
 
+db.rewardParam.update({
+    "name": type102
+}, {
+    $set: {
+        condition: {
+            generalCond: generalCond,
+            topUpCond: topUpCond,
+            periodCond: periodCond,
+            consumptionCond: consumptionCond,
+            loseValueCond: loseValueCond,
+            dynamicCond: {
+                isDynamicRewardAmount: {index: 50, type: "checkbox", des: "Reward amount is dynamically changed by losses"}
+            }
+        },
+        param: {
+            tblOptFixed: {
+                rewardParam: {
+                    minDeposit: {type: "number", des: "Minimum Deposit Period"},
+                    minLoseAmount: {type: "number", des: "Minimum Lose Period"},
+                    rewardAmount: {type: "number", des: "Reward amount"},
+                    spendingTimes: {type: "number", des: "Spending times"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "checkbox",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "string", des: "Remark"},
+                }
+            },
+            tblOptDynamic: {
+                rewardParam: {
+                    minDeposit: {type: "number", des: "Minimum Deposit Period"},
+                    minLoseAmount: {type: "number", des: "Minimum Lose Period"},
+                    rewardPercent: {type: "number", des: "PROMO_REWARD_%"},
+                    maxReward: {type: "number", des: "Maximum Reward"},
+                    spendingTimes: {type: "number", des: "Spending times"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "checkbox",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "string", des: "Remark"},
+                }
+            }
+        }
+    }
+}, {
+    upsert: true
+});
+
+var param102Cursor = db.rewardParam.find({"name": type102});
+var param102 = param102Cursor.next();
+
+db.rewardType.update({"name": type102}, {$set: {params: param102._id, des: type102, isGrouped: true}}, {upsert: true});
+//endregion
 
 // 投注额奖励
 var type103 = "consumptionReward";
@@ -574,37 +640,32 @@ db.rewardParam.update({
         },
         param: {
             tblOptFixed: {
-                playerLvl: "",
-                isMultiStepReward: "",
-                isSteppingReward: {type: "checkbox", des: "Reward step needed"},
-                countInRewardInterval: {type: "number", des: "Reward limit in interval"},
                 rewardParam: {
-                    rewardLvl: "",
-                    minTopUpAmount: "",
-                    rewardAmount: "",
-                    spendingTimes: "",
-                    forbidWithdrawAfterApply: "",
-                    forbidWithdrawIfBalanceAfterUnlock: "",
-                    remark: ""
+                    minConsumptionAmount: {type: "number", des: "Minimum consumption amount"},
+                    rewardAmount: {type: "number", des: "Reward amount"},
+                    spendingTimes: {type: "number", des: "Spending times"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "checkbox",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "string", des: "Remark"},
                 }
             },
-            tblOptDynamic: {
-                playerLvl: "",
-                isMultiStepReward: "",
-                isSteppingReward: "",
-                countInRewardInterval: "",
-                dailyMaxRewardAmount: {type: "number", des: "Daily Reward Limit"},
-                rewardParam: {
-                    rewardLvl: "",
-                    minTopUpAmount: "",
-                    rewardPercentage: "",
-                    maxRewardInSingleTopUp: "",
-                    spendingTimes: "",
-                    forbidWithdrawAfterApply: "",
-                    forbidWithdrawIfBalanceAfterUnlock: "",
-                    remark: ""
-                }
-            }
+            // tblOptDynamic: {
+            //     rewardParam: {
+            //         minTopUpAmount: {type: "number", des: "Minimum top up amount"},
+            //         rewardPercentage: {type: "percentage", des: "Reward percentage"},
+            //         maxRewardInSingleTopUp: {type: "number", des: "Max reward in single top up"},
+            //         spendingTimes: {type: "number", des: "Spending times"},
+            //         forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+            //         forbidWithdrawIfBalanceAfterUnlock: {
+            //             type: "checkbox",
+            //             des: "Forbid withdraw if there is balance after unlock"
+            //         },
+            //         remark: {type: "string", des: "Remark"},
+            //     }
+            // }
         }
     }
 }, {
@@ -615,3 +676,4 @@ var param103Cursor = db.rewardParam.find({"name": type103});
 var param103 = param103Cursor.next();
 
 db.rewardType.update({"name": type103}, {$set: {params: param103._id, des: type103, isGrouped: true}}, {upsert: true});
+

@@ -8195,6 +8195,7 @@ define(['js/app'], function (myApp) {
                 let rewardObj = angular.fromJson(obj);
                 if (!rewardObj) return;
                 vm.playerApplyRewardPara.code = rewardObj.code;
+                vm.playerApplyRewardShow.TopupRecordSelect = false;
                 let type = rewardObj.type ? rewardObj.type.name : null;
 
                 if (type == 'FirstTopUp') {
@@ -8205,12 +8206,10 @@ define(['js/app'], function (myApp) {
                     vm.playerApplyRewardShow.topUpRecordIds = {};
                 }
 
-                if (type == "FirstTopUp" || type == "PlayerTopUpReturn" || type == "PartnerTopUpReturn" || type == "PlayerDoubleTopUpReward") {
+                if (type == "FirstTopUp" || type == "PlayerTopUpReturn" || type == "PartnerTopUpReturn" || type == "PlayerDoubleTopUpReward" || type == "PlayerTopUpReturnGroup") {
                     vm.playerApplyRewardShow.TopupRecordSelect = true;
                     vm.playerAllTopupRecords = null;
                     vm.getPlayerTopupRecord(null, rewardObj);
-                } else {
-                    vm.playerApplyRewardShow.TopupRecordSelect = false;
                 }
 
                 vm.playerApplyRewardShow.AmountInput = type == "GameProviderReward";
@@ -13112,6 +13111,11 @@ define(['js/app'], function (myApp) {
                                 type: cond.type
                             };
 
+                            if (cond.chainType && cond.chainOptions){
+                                vm.rewardMainCondition[cond.index].chainType = cond.chainType;
+                                vm.rewardMainCondition[cond.index].chainOptions = cond.chainOptions;
+                            }
+
                             // Get options
                             switch (cond.options) {
                                 case "allRewardEvent":
@@ -13154,6 +13158,14 @@ define(['js/app'], function (myApp) {
                                 if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("2") > -1)) {
                                     vm.rewardDisabledParam.push("bankCardType")
                                 }
+                            }
+
+                            if  (el == "defineLoseValue"){
+                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] &&
+                                        (vm.showReward.condition[el].indexOf("2") > -1 || vm.showReward.condition[el].indexOf("3") > -1))) {
+                                    vm.rewardDisabledParam.push("consumptionRecordProvider");
+                                }
+
                             }
 
                             // Get value
@@ -13488,7 +13500,7 @@ define(['js/app'], function (myApp) {
         vm.changeRewardParamLayout = (model) => {
             vm.rewardMainParamTable = [];
 
-            // Check whether reward is dyanmic amount
+            // Check whether reward is dynamic amount
             if (model && model.name == "isDynamicRewardAmount") {
                 vm.isDynamicRewardAmt = model.value;
             }
@@ -13532,6 +13544,13 @@ define(['js/app'], function (myApp) {
                     vm.rewardDisabledParam.indexOf("bankCardType") === -1 ? vm.rewardDisabledParam.push("bankCardType") : null;
                 } else {
                     vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "bankCardType");
+                }
+            }
+            if(model && model.name == "defineLoseValue"){
+                if (model.value.indexOf("2") == -1 && model.value.indexOf("3") == -1) {
+                    vm.rewardDisabledParam.indexOf("consumptionRecordProvider") === -1 ? vm.rewardDisabledParam.push("consumptionRecordProvider") : null;
+                } else {
+                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "consumptionRecordProvider");
                 }
             }
 
@@ -13879,13 +13898,14 @@ define(['js/app'], function (myApp) {
                             let condType = vm.rewardMainCondition[e].type;
                             let condValue = vm.rewardMainCondition[e].value;
 
-                            // Save name and code to outer level
-                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient") {
-                                curReward[condName] = condValue;
-                            }
                             // Get time string in object type
                             if (condType == "date") {
                                 condValue = condValue.data('datetimepicker').getLocalDate();
+                            }
+
+                            // Save name and code to outer level
+                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "validStartTime" || condName == "validEndTime") {
+                                curReward[condName] = condValue;
                             }
 
                             // Save reward condition
@@ -13964,14 +13984,14 @@ define(['js/app'], function (myApp) {
                             let condType = vm.rewardMainCondition[e].type;
                             let condValue = vm.rewardMainCondition[e].value;
 
-                            // Save name and code to outer level
-                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient") {
-                                sendData[condName] = condValue;
-                            }
-
                             // Get time string in object type
                             if (condType == "date") {
                                 condValue = condValue.data('datetimepicker').getLocalDate();
+                            }
+
+                            // Save name and code to outer level
+                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "validStartTime" || condName == "validEndTime") {
+                                sendData[condName] = condValue;
                             }
 
                             // Save reward condition
