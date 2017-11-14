@@ -9305,6 +9305,9 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_PACKET_RAIN_REWARD:
                                     return dbPlayerReward.applyPacketRainReward(playerId, code, adminInfo);
                                     break;
+                                case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
+                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo);
+                                    break;
                                 default:
                                     return Q.reject({
                                         status: constServerCode.INVALID_DATA,

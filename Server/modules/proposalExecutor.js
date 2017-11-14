@@ -151,6 +151,7 @@ var proposalExecutor = {
             this.executions.executePlayerPacketRainReward.des = "Player Packet Rain Reward";
             this.executions.executePlayerPromoCodeReward.des = "Player Promo Code Reward";
             this.executions.executePlayerLimitedOfferReward.des = "Player Limited Offer Reward";
+            this.executions.executePlayerTopUpReturnGroup.des = "Player Top Up Return Group Reward";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -201,6 +202,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerPacketRainReward.des = "Reject Player Packet Rain Reward";
             this.rejections.rejectPlayerPromoCodeReward.des = "Reject Player Promo Code Reward";
             this.rejections.rejectPlayerLimitedOfferReward.des = "Reject Player Limited Offer Reward";
+            this.rejections.rejectPlayerTopUpReturnGroup.des = "Reject Player Top Up Return Group Reward";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1941,6 +1943,10 @@ var proposalExecutor = {
                 }
             },
 
+            executePlayerTopUpReturnGroup: function (proposalData, deferred) {
+                console.log('executePlayerTopUpReturnGroup');
+                deferred.resolve(true);
+            },
         },
 
         /**
@@ -2498,6 +2504,10 @@ var proposalExecutor = {
             },
 
             rejectPlayerLimitedOfferReward: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerTopUpReturnGroup: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
         }
