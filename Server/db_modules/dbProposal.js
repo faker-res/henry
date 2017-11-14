@@ -211,15 +211,16 @@ var proposal = {
                     proposalData.data.platformId = data[0].platformId;
                     proposalData.mainType = constProposalMainType[data[0].name];
 
-                    if (data[1]._id) {
-                        proposalData.process = data[1]._id;
-                        proposalData.status = constProposalStatus.PENDING;
-                    }
-                    else if (data[1] === constSystemParam.PROPOSAL_NO_STEP) {
+                    // Proposal process step check
+                    if (data[1] === constSystemParam.PROPOSAL_NO_STEP || proposalData.data.isIgnoreAudit) {
                         bExecute = true;
                         proposalData.noSteps = true;
                         proposalData.status = proposalData.status || constProposalStatus.APPROVED;
+                    } else if (data[1]._id) {
+                        proposalData.process = data[1]._id;
+                        proposalData.status = constProposalStatus.PENDING;
                     }
+
                     if (data[0].name == constProposalType.PLAYER_TOP_UP || data[0].name == constProposalType.PLAYER_MANUAL_TOP_UP ||
                         data[0].name == constProposalType.PLAYER_ALIPAY_TOP_UP || data[0].name == constProposalType.PLAYER_WECHAT_TOP_UP
                         || data[0].name == constProposalType.PLAYER_QUICKPAY_TOP_UP
@@ -278,7 +279,7 @@ var proposal = {
                         }
                     }
 
-                    // SCHEDULED AUTO APPROVAL - DISABLED FOR CSTEST
+                    // SCHEDULED AUTO APPROVAL
                     if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.isAutoApproval) {
                         proposalData.status = constProposalStatus.AUTOAUDIT;
                     }
