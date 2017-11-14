@@ -40,6 +40,11 @@ function socketActionPlayerFeedback(socketIO, socket) {
             var isValidData = Boolean(data && data.query);
             socketUtil.emitter(self.socket, dbPlayerFeedback.getPlayerFeedbackReport, [data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
+        getPlayerFeedbackReportAdvance: function getPlayerFeedbackReportAdvance(platformId, query, index, limit, sortCol) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(query);
+            socketUtil.emitter(self.socket, dbPlayerFeedback.getPlayerFeedbackReportAdvance, [platformId, query, index, limit, sortCol], actionName, isValidData);
+        },
         /**
          * Get player feedback info by playerId or _id
          */
@@ -47,10 +52,15 @@ function socketActionPlayerFeedback(socketIO, socket) {
             var actionName = arguments.callee.name;
             self.socket.emit("_" + actionName, {success: true, data: constPlayerFeedbackResult});
         },
+        getSinglePlayerFeedbackQuery: function getSinglePlayerFeedbackQuery(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query);
+            socketUtil.emitter(self.socket, dbPlayerFeedback.getSinglePlayerFeedbackQuery, [data.query, data.index], actionName, isValidData);
+        },
         getPlayerFeedbackQuery: function getPlayerFeedbackQuery(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query);
-            socketUtil.emitter(self.socket, dbPlayerFeedback.getPlayerFeedbackQuery, [data.query, data.index], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerFeedback.getPlayerFeedbackQuery, [data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
         /**

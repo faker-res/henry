@@ -1,12 +1,76 @@
 //div(ng-if='vm.pageName === "Payment Monitor"')
 div
     #paymentMonitorQuery.block-query.col-md-12.well
+        div(style='max-width:125px')
+            label {{'PLAYER_NAME' | translate}}
+            input.form-control(type='text', ng-model='vm.paymentMonitorQuery.playerName')
+        div(style='max-width:125px')
+            label {{'Proposal No' | translate}}
+            input.form-control(type='text', ng-model='vm.paymentMonitorQuery.proposalID')
         div
+            label {{'topupType' | translate}}
+            select.form-control(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.mainTopupType', required)
+                option(value='') {{'any' | translate}}
+                option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{ i | translate}}
+        div(style='max-width:125px')
+            label {{'DEVICE' | translate}}
+            select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.userAgent', required, multiple, static-bsp, data-actions-box='true')
+                option(value='1') WEB
+                option(value='2') APP
+                option(value='3') H5
+
+        div(style='max-width:180px')
+            label {{'Online Topup Type' | translate}}
+            select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.topupType', multiple, static-bsp, data-actions-box='true')
+                option(value='1') 网银支付(NetPay)
+                option(value='2') 微信扫码(WechatQR)
+                option(value='3') 支付宝扫码(AlipayQR)
+                option(value='4') 微信App支付(WechatApp)
+                option(value='5') 支付宝App支付(AlipayApp)
+                option(value='6') 快捷支付(FASTPAY)
+                option(value='7') QQ扫码(QQPAYQR)
+                option(value='8') 银联扫码支付(UnPayQR)
+                option(value='9') 京东钱包扫码支付(JdPayQR)
+        div(style='max-width:125px')
+            label {{'3rd Party Platform' | translate}}
+            select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroupCloneList', multiple, bsp, data-actions-box='true')
+        div(style='max-width:125px')
+            label {{'DEPOSIT_METHOD' | translate}}
+            select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.depositMethod', multiple, static-bsp, data-actions-box='true')
+                option(value='1') 网银转账(OnlineTransfer)
+                option(value='2') 自动取款机(ATM)
+                option(value='3') 银行柜台(Counter)
+                option(value='4') 网银跨行(Online Banking - InterBank Transfer)
+                option(value='5') 支付宝(AliPay)
+
+        div(style='max-width:125px')
+            label 收款银行类别
+            select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList', multiple, bsp, data-actions-box='true')
+        div(style='max-width:125px')
+            label {{'Business Acc/ Bank Acc' | translate}}
+            //select.form-control.merchantNoList( ng-model='vm.paymentMonitorQuery.merchantNo')
+            select.form-control.merchantNoList(style='max-width:155px', ng-model='vm.paymentMonitorQuery.merchantNo', ng-options='a.merchantNo as a.name group by a.merchantTypeName for a in vm.merchantCloneList' , multiple, bsp, data-actions-box='true')
+                //option(value='') {{'any' | translate}}
+                //option(ng-repeat='(i,v) in vm.merchants' ,ng-init='$last && vm.initMultiSelect()', value='{{v.merchantNo}}') {{v.name}}
+        div(style='max-width:125px')
+            label {{'STATUS' | translate}}
+            select.form-control.merchantNoList(ng-model='vm.paymentMonitorQuery.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList', multiple, static-bsp, data-actions-box='true')
+        div
+            label.control-label {{'Start date' | translate}}
+            .startTime
+        div
+            label.control-label {{'End date' | translate}}
+            .endTime
+
+
+
+
+        //div
             label {{'topupType' | translate}}
             select.form-control(ng-model='vm.paymentMonitorQuery.mainTopupType', required)
                 option(value='') {{"any" | translate}}
                 option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{"TOPUP"+i | translate}}
-        div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
+        //div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
             label {{'Online Topup Type' | translate}}
             select.form-control(ng-model='vm.paymentMonitorQuery.topupType')
                 option(value='') {{'any' | translate}}
@@ -17,28 +81,21 @@ div
                 option(value='5') 支付宝App支付(AlipayApp)
                 option(value='6') 快捷支付(FASTPAY)
                 option(value='7') QQ扫码(QQPAYQR)
-        div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
+        //div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
             label {{'Merchant Group' | translate}}
             select.form-control(ng-model='vm.paymentMonitorQuery.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroups')
                 option(value='') {{'any' | translate}}
-        div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
+        //div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
             label {{'Merchant No' | translate}}
             select.form-control(ng-model='vm.paymentMonitorQuery.merchantNo',ng-options='index as name for (index, name) in vm.merchantNumbers')
                 option(value='') {{'any' | translate}}
-        //div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="1"',style='max-width:125px')
-        //    label {{'depositMethod' | translate}}
-        //    select.form-control(ng-model='vm.paymentMonitorQuery.depositMethod')
-        //        option(value='') {{'any' | translate}}
-        //        option(value='1') 网银转账(OnlineTransfer)
-        //        option(value='2') 自动取款机(ATM)
-        //        option(value='3') 柜台存款(Counter)
-        div(style='max-width:125px')
+        //div(style='max-width:125px')
             label {{'PLAYER_NAME' | translate}}
             input.form-control(type='text', ng-model='vm.paymentMonitorQuery.playerName')
-        div
+        //div
             label.control-label {{'Start date' | translate}}
             .startTime
-        div
+        //div
             label.control-label {{'End date' | translate}}
             .endTime
         div

@@ -9,6 +9,7 @@ const pmsAPI = require("../../externalAPI/pmsAPI.js");
 const constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
 const SMSSender = require('../../modules/SMSSender');
 const dbPlayerPayment = require('../../db_modules/dbPlayerPayment');
+const uaParser = require('ua-parser-js');
 
 var PaymentServiceImplement = function () {
     PaymentService.call(this);
@@ -19,11 +20,14 @@ var PaymentServiceImplement = function () {
     this.createOnlineTopupProposal.onRequest = function (wsFunc, conn, data) {
         if (data) {
             data.amount = Number(data.amount);
+            let userAgentConn = conn['upgradeReq']['headers']['user-agent'];
+            let userAgent = uaParser(userAgentConn);
+            data.userAgent = userAgent;
         }
-        var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount && Number.isInteger(data.amount));
+        var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
         var merchantUseType = data.merchantUseType || 1;
         var clientType = data.clientType || 1;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addOnlineTopupRequest, [conn.playerId, data, merchantUseType, clientType], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addOnlineTopupRequest, [data.userAgent, conn.playerId, data, merchantUseType, clientType], isValidData);
     };
 
     this.getTopupList.expectsData = '[startIndex]: Number, [requestCount]: Number';
@@ -64,8 +68,10 @@ var PaymentServiceImplement = function () {
 
     this.applyBonus.expectsData = 'bonusId: Number|String, amount: Number|String, honoreeDetails: String';
     this.applyBonus.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        data.userAgent = userAgent;
         var isValidData = Boolean(conn.playerId && data && data.bonusId && typeof data.amount === 'number' && data.amount > 0);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyBonus, [conn.playerId, data.bonusId, data.amount, data.honoreeDetail], isValidData, true, false, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyBonus, [data.userAgent, conn.playerId, data.bonusId, data.amount, data.honoreeDetail], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
@@ -103,9 +109,12 @@ var PaymentServiceImplement = function () {
     this.requestManualTopup.onRequest = function (wsFunc, conn, data) {
         if (data) {
             data.amount = Number(data.amount);
+            let userAgentConn = conn['upgradeReq']['headers']['user-agent'];
+            let userAgent = uaParser(userAgentConn);
+            data.userAgent = userAgent;
         }
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && Number.isInteger(data.amount));
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [conn.playerId, data, "CLIENT"], isValidData, true, false, false).then(
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && Number.isInteger(data.amount) && data.amount < 10000000);
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [data.userAgent, conn.playerId, data, "CLIENT"], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
@@ -132,21 +141,27 @@ var PaymentServiceImplement = function () {
     this.requestAlipayTopup.onRequest = function (wsFunc, conn, data) {
         if (data) {
             data.amount = Number(data.amount);
+            let userAgentConn = conn['upgradeReq']['headers']['user-agent'];
+            let userAgent = uaParser(userAgentConn);
+            data.userAgent = userAgent;
         }
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName && Number.isInteger(data.amount));
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [conn.playerId, data.amount, data.alipayName, data.alipayAccount, "CLIENT"], isValidData);
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName && Number.isInteger(data.amount) && data.amount < 10000000);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [data.userAgent, conn.playerId, data.amount, data.alipayName, data.alipayAccount, "CLIENT"], isValidData);
     };
 
     this.requestWechatTopup.expectsData = 'amount: Number|String';
     this.requestWechatTopup.onRequest = function (wsFunc, conn, data) {
         if (data) {
             data.amount = Number(data.amount);
+            let userAgentConn = conn['upgradeReq']['headers']['user-agent'];
+            let userAgent = uaParser(userAgentConn);
+            data.userAgent = userAgent;
         }
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && Number.isInteger(data.amount));
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && Number.isInteger(data.amount) && data.amount < 10000000);
         // if ([10, 20, 50, 100].indexOf(data.amount) < 0) {
         //     isValidData = false;
         // }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestWechatTopup, [conn.playerId, data.amount, data.wechatName, data.wechatAccount, "CLIENT"], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestWechatTopup, [data.userAgent, conn.playerId, data.amount, data.wechatName, data.wechatAccount, "CLIENT"], isValidData);
     };
 
     this.cancelManualTopupRequest.expectsData = 'proposalId: String';

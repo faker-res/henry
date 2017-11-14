@@ -50,7 +50,8 @@
                 "sendPlayerMailFromAdminToPlayer",
                 "performPlatformPlayerLevelSettlement",
                 "getConsumptionDetailOfPlayers",
-                "calculatePlatformConsecutiveConsumptionForPlayers"
+                "calculatePlatformConsecutiveConsumptionForPlayers",
+                "getDXNewPlayerDetail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

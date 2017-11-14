@@ -8,11 +8,13 @@ const constProposalType = {
     UPDATE_PLAYER_EMAIL: "UpdatePlayerEmail",
     UPDATE_PLAYER_PHONE: "UpdatePlayerPhone",
     UPDATE_PLAYER_QQ: "UpdatePlayerQQ",
+    UPDATE_PLAYER_WECHAT: "UpdatePlayerWeChat",
     UPDATE_PLAYER_BANK_INFO: "UpdatePlayerBankInfo",
     ADD_PLAYER_REWARD_TASK: "AddPlayerRewardTask",
     UPDATE_PARTNER_BANK_INFO: "UpdatePartnerBankInfo",
     UPDATE_PARTNER_PHONE: "UpdatePartnerPhone",
     UPDATE_PARTNER_EMAIL: "UpdatePartnerEmail",
+    UPDATE_PARTNER_QQ: "UpdatePartnerQQ",
     UPDATE_PARTNER_INFO: "UpdatePartnerInfo",
     FULL_ATTENDANCE: "FullAttendance",
     PLAYER_CONSUMPTION_RETURN: "PlayerConsumptionReturn",
@@ -50,7 +52,8 @@ const constProposalType = {
     PLAYER_PACKET_RAIN_REWARD: "PlayerPacketRainReward",
     PLAYER_PROMO_CODE_REWARD: "PlayerPromoCodeReward",
     PLAYER_LIMITED_OFFER_INTENTION: "PlayerLimitedOfferIntention",
-    PLAYER_LIMITED_OFFER_REWARD: "PlayerLimitedOfferReward"
+    PLAYER_LIMITED_OFFER_REWARD: "PlayerLimitedOfferReward",
+    PLAYER_TOP_UP_RETURN_GROUP: "PlayerTopUpReturnGroup",
 };
 
 module.exports = constProposalType;

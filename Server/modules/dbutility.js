@@ -2,6 +2,8 @@ var dbUtilityFunc = function () {
 };
 module.exports = new dbUtilityFunc();
 
+var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
+const uaParser = require('ua-parser-js');
 var Q = require("q");
 var dbconfig = require("./dbproperties.js");
 var moment = require('moment-timezone');
@@ -565,6 +567,7 @@ var dbUtility = {
                 if (!res.city && res.province) {
                     res.city = res.province
                 }
+                console.log(res);
                 deferred.resolve(res);
             }
         });
@@ -653,6 +656,15 @@ var dbUtility = {
         return str.substring(0, 3) + "******" + str.slice(-4);
     },
 
+    encodeRealName: function (str) {
+        str = str || '';
+        let encodedStr = str[0] || '';
+        for (let i = 1; i < str.length; i++) {
+            if (str !== " ") encodedStr += "*";
+        }
+        return encodedStr;
+    },
+
     getParameterByName: function (name, url) {
         if( !url ){
             return url;
@@ -663,6 +675,48 @@ var dbUtility = {
         if (!results) return null;
         if (!results[2]) return '';
         return decodeURIComponent(results[2].replace(/\+/g, " "));
+    },
+
+    getInputDevice: function (inputUserAgent, isPartnerProposal) {
+        let ua = uaParser(inputUserAgent);
+        let userAgentInput = [{
+            browser: ua.browser.name || '',
+            device: ua.device.name || '',
+            os: ua.os.name || ''
+        }];
+        let inputDevice="";
+
+        if (userAgentInput && userAgentInput[0] && inputUserAgent) {
+            let userAgent = userAgentInput[0];
+            if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
+                if (isPartnerProposal) {
+                    inputDevice = constPlayerRegistrationInterface.APP_AGENT;
+                }
+                else {
+                    inputDevice = constPlayerRegistrationInterface.APP_PLAYER;
+                }
+            }
+            else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
+                if (isPartnerProposal) {
+                    inputDevice = constPlayerRegistrationInterface.H5_AGENT;
+                }
+                else {
+                    inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+                }
+            }
+            else {
+                if (isPartnerProposal) {
+                    inputDevice = constPlayerRegistrationInterface.WEB_AGENT;
+                }
+                else {
+                    inputDevice = constPlayerRegistrationInterface.WEB_PLAYER;
+                }
+            }
+        } else {
+            inputDevice = constPlayerRegistrationInterface.BACKSTAGE;
+        }
+        console.log("input device", inputDevice);
+        return inputDevice;
     }
 
 };

@@ -291,6 +291,7 @@ describe("Test Game-Provider Reward event", function () {
                 password: "123",
                 //games: [testGameId2, testGameId],
                 validCredit: 1000,
+                phoneNumber: "11111111" + i
                 //email: emailRecipient
             };
             proms.push(dbPlayerInfo.createPlayerInfo(playerData));
@@ -337,7 +338,7 @@ describe("Test Game-Provider Reward event", function () {
         if (testEmail) {
             this.timeout(15000);
         }
-        dbPlayerInfo.applyForGameProviderRewardAPI(testPlayersPlayerId[0], testRewardEventId, 500).then(
+        dbPlayerInfo.applyForGameProviderRewardAPI("", testPlayersPlayerId[0], testRewardEventId, 500).then(
             function (data) {
                 proposalId = data._id;
                 done();

@@ -335,6 +335,9 @@ p
                                             label {{"EMAIL" | translate}}
                                             text {{vm.selectedSinglePartner.email || 'Unknown' | translate}}
                                         .inlineBlk
+                                            label {{"EMAIL" | translate}}
+                                            text {{vm.selectedSinglePartner.qq || 'Unknown' | translate}}
+                                        .inlineBlk
                                             label {{'REMARK' | translate}}
                                             text(style='height:inherit') {{vm.selectedSinglePartner.remark || 'NONE' | translate}}
                                 //tr

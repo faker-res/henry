@@ -100,6 +100,11 @@ function socketActionBankCardGroup(socketIO, socket) {
             socketUtil.emitter(self.socket, pmsAPI.bankcard_getBankTypeList, [{}], actionName, true);
         },
 
+        getBankCardList: function getBankCardList(data) {
+            var actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, pmsAPI.bankcard_getBankcardList, [{platformId: data.platformId}], actionName, true);
+        },
+
         getZoneList: function getZoneList(data) {
             var actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getZoneList, [data.provinceId, data.cityId], actionName, true);

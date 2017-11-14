@@ -119,6 +119,20 @@ function socketActionProposal(socketIO, socket) {
         },
 
         /**
+         * Create new Proposal to update player WeChat
+         * @param {json} data - proposal data
+         */
+        createUpdatePlayerWeChatProposal: function createUpdatePlayerWeChatProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(
+                data && data.platformId && data.data &&
+                data.data.playerObjId && data.data.playerName && data.data.curData &&
+                data.data.updateData && data.data.updateData.wechat
+            );
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PLAYER_WECHAT, data], actionName, isValidData);
+        },
+
+        /**
          * Create new Proposal to update player bank info
          * @param {json} data - proposal type name
          */
@@ -176,6 +190,19 @@ function socketActionProposal(socketIO, socket) {
         },
 
         /**
+         * Create new Proposal to update partner qq
+         * @param {json} data - proposal type name
+         */
+        createUpdatePartnerQQProposal: function createUpdatePartnerQQProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(
+                data && data.platformId && data.data &&
+                data.data.partnerName && data.data.curData && data.data.updateData && data.data.updateData.qq
+            );
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_QQ, data], actionName, isValidData);
+        },
+
+        /**
          * Create new Proposal to update partner credit
          * @param {json} data - proposal data
          */
@@ -222,6 +249,12 @@ function socketActionProposal(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.proposalId && data.adminId && data.memo);
             socketUtil.emitter(self.socket, dbProposal.updateProposalProcessStep, [data.proposalId, data.adminId, data.memo, data.bApprove, data.remark], actionName, isValidData);
+        },
+        updatePlayerIntentionRemarks: function updatePlayerIntentionRemarks(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.pId && data.adminId);
+            socketUtil.emitter(self.socket, dbProposal.updatePlayerIntentionRemarks, [data.pId, data.remarks], actionName, isValidData);
+
         },
         cancelProposal: function cancelProposal(data) {
             var actionName = arguments.callee.name;
@@ -274,8 +307,50 @@ function socketActionProposal(socketIO, socket) {
             var index = data.index || 0;
             var size = data.size || 10;
             var sortCol = data.sortCol || {"createTime": -1};
-            socketUtil.emitter(self.socket, dbProposal.getQueryProposalsForPlatformId, [data.platformId, data.type, data.status, data.credit, data.name, data.relateUser, data.relatePlayerId, data.entryType, startTime, endTime, index, size, sortCol, data.displayPhoneNum], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getQueryProposalsForPlatformId, [data.platformId, data.type, data.status, data.credit, data.name, data.relateUser, data.relatePlayerId, data.entryType, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.playerId, data.eventName, data.promoTypeName, data.inputDevice], actionName, isValidData);
         },
+
+        getPlayerProposalsForAdminId: function getPlayerProposalsForAdminId(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.adminId && data.platformId && data.status);
+            var startTime = data.startDate ? data.startDate : null;
+            var endTime = data.endDate ? data.endDate : null;
+            var index = data.index || 0;
+            var size = data.size || 10;
+            var sortCol = data.sortCol || {"createTime": -1};
+            socketUtil.emitter(self.socket, dbProposal.getPlayerProposalsForPlatformId, [data.platformId, data.type, data.status, data.name, data.phoneNumber, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.proposalId], actionName, isValidData);
+        },
+
+        /**
+         * get all the player registration intent and calculate the fail and success rate
+         */
+        getPlayerSelfRegistrationRecordList: function getPlayerSelfRegistrationRecordList(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.status);
+            var startTime = data.startDate ? data.startDate : new Date(0);
+            var endTime = data.endDate ? data.endDate : new Date();
+            socketUtil.emitter(self.socket, dbProposal.getPlayerSelfRegistrationRecordList, [startTime, endTime, data.status], actionName, isValidData);
+        },
+
+        getPlayerManualRegistrationRecordList: function getPlayerManualRegistrationRecordList(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.status);
+            var startTime = data.startDate ? data.startDate : new Date(0);
+            var endTime = data.endDate ? data.endDate : new Date();
+            socketUtil.emitter(self.socket, dbProposal.getPlayerManualRegistrationRecordList, [startTime, endTime, data.status], actionName, isValidData);
+        },
+
+        getPlayerRegistrationIntentRecordByStatus: function getPlayerRegistrationIntentRecordByStatus(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.adminId && data.platformId);
+            var startTime = data.startDate ? data.startDate : new Date(0);
+            var endTime = data.endDate ? data.endDate : new Date();
+            var index = -1;
+            var size = -1;
+            var sortCol = data.sortCol || {"createTime": -1};
+            socketUtil.emitter(self.socket, dbProposal.getPlayerRegistrationIntentRecordByStatus, [data.platformId, data.type, data.status, data.name, data.phoneNumber, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.attemptNo], actionName, isValidData);
+        },
+
 
         /**
          * Create new Proposal Process
@@ -382,7 +457,13 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(data && data.proposalId && data.orderStatus);
             socketUtil.emitter(self.socket, dbProposal.setBonusProposalStatus, [data.proposalId, data.orderStatus, data.remark], actionName, isValidData);
         },
-
+        getProposalAmountSum: function getProposalAmountSum(data){
+          var actionName = arguments.callee.name;
+          var isValidData = Boolean(data);
+          data.startDate = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+          data.endDate = data.startDate ? dbUtil.getDayEndTime(data.startDate) : new Date();
+          socketUtil.emitter(self.socket, dbProposal.getProposalAmountSum, [data, data.index, data.limit], actionName, isValidData);
+        },
         getPaymentMonitorResult: function getPaymentMonitorResult(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId);

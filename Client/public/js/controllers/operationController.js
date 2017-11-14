@@ -52,7 +52,16 @@ define(['js/app'], function (myApp) {
             1: 'Online',
             2: 'ATM',
             3: 'Counter'
-        }
+        };
+        vm.inputDevice = {
+            BACKSTAGE: 0,
+            WEB_PLAYER: 1,
+            WEB_AGENT: 2,
+            H5_PLAYER: 3,
+            H5_AGENT: 4,
+            APP_PLAYER: 5,
+            APP_AGENT: 6
+        };
 
         vm.newProposalNum = 0;
         var allProposalStatusClr = {
@@ -77,6 +86,8 @@ define(['js/app'], function (myApp) {
         };
 
         ///////////////////////////////////Proposal related functions///////////////////////////////////
+        vm.autoRefresh = true;
+
         //get all operation data from server
         vm.selectPlatform = function (id) {
             vm.newProposalNum = 0;
@@ -102,42 +113,83 @@ define(['js/app'], function (myApp) {
             vm.getLoggedInPlayer();
             // vm.loadProposalData();
             // vm.getTopupIntentionData();
+            vm.getRewardList(vm.setUpRewardMultiSelect);
+            vm.getPromotionTypeList(vm.setUpPromoCodeMultiSelect);
             vm.allTopUpIntentionString = null;
             vm.allNewAccountString = null;
             vm.allProposalString = null;
             // vm.getPlayerTopUpIntentRecordStatusList();
             // vm.getNewAccountProposal().done();
-            vm.getProposalTypeByPlatformId(vm.allPlatformId).then(
-                function (data) {
-                    $('select#selectProposalType').multipleSelect({
-                        allSelected: $translate("All Selected"),
-                        selectAllText: $translate("Select All"),
-                        displayValues: true,
-                        countSelected: $translate('# of % selected'),
-                        onClick: function () {
-                            vm.proposalTypeUpdated();
-                        },
-                        onCheckAll: function () {
-                            vm.proposalTypeUpdated();
-                        },
-                        onUncheckAll: function () {
-                            vm.proposalTypeUpdated();
-                        }
-                    });
-                    var $multi = ($('select#selectProposalType').next().find('.ms-choice'))[0];
-                    $('select#selectProposalType').next().on('click', 'li input[type=checkbox]', function () {
-                        var upText = $($multi).text().split(',').map(item => {
-                            return $translate(item);
-                        }).join(',');
-                        $($multi).find('span').text(upText)
-                    });
-                    $("select#selectProposalType").multipleSelect("checkAll");
-                    vm.proposalTypeClicked("total");
-                    // vm.allProposalClicked();
-                }
-            );
+            vm.getProposalTypeByPlatformId(vm.allPlatformId).then(() => {
+                vm.renderMultipleSelectDropDownList('select#selectProposalType');
+                vm.renderMultipleSelectDropDownList('select#selectProposalAuditType');
+            });
+            vm.getPlatformProviderGroup();
             $scope.safeApply();
+        };
 
+        vm.renderMultipleSelectDropDownList = function(elem) {
+            let dropDownElement = $(elem);
+            dropDownElement.multipleSelect({
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: true,
+                countSelected: $translate('# of % selected'),
+                onClick: function () {
+                    vm.proposalTypeUpdated();
+                },
+                onCheckAll: function () {
+                    vm.proposalTypeUpdated();
+                },
+                onUncheckAll: function () {
+                    vm.proposalTypeUpdated();
+                }
+            });
+            var $multi = (dropDownElement.next().find('.ms-choice'))[0];
+            dropDownElement.next().on('click', 'li input[type=checkbox]', function () {
+                var upText = $($multi).text().split(',').map(item => {
+                    return $translate(item);
+                }).join(',');
+                $($multi).find('span').text(upText)
+            });
+            dropDownElement.multipleSelect("checkAll");
+            vm.proposalTypeClicked("total");
+        };
+
+        vm.setUpRewardMultiSelect = () => {
+            let selectRewardType = $('select#selectRewardType');
+            selectRewardType.multipleSelect({
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: true,
+                countSelected: $translate('# of % selected'),
+            });
+            var $multi = (selectRewardType.next().find('.ms-choice'))[0];
+            selectRewardType.next().on('click', 'li input[type=checkbox]', function () {
+                var upText = $($multi).text().split(',').map(item => {
+                    return $translate(item);
+                }).join(',');
+                $($multi).find('span').text(upText)
+            });
+            selectRewardType.multipleSelect("checkAll");
+        };
+
+        vm.setUpPromoCodeMultiSelect = () => {
+            let selectPromoType = $('select#selectPromoType');
+            selectPromoType.multipleSelect({
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: true,
+                countSelected: $translate('# of % selected'),
+            });
+            var $multi = (selectPromoType.next().find('.ms-choice'))[0];
+            selectPromoType.next().on('click', 'li input[type=checkbox]', function () {
+                var upText = $($multi).text().split(',').map(item => {
+                    return $translate(item);
+                }).join(',');
+                $($multi).find('span').text(upText)
+            });
+            selectPromoType.multipleSelect("checkAll");
         };
 
         vm.resetFilter = function () {
@@ -174,12 +226,14 @@ define(['js/app'], function (myApp) {
             vm.blinkAllProposal = false;
             if (i == 'total') {
                 vm.rightPanelTitle = 'ALL_PROPOSAL';
+                vm.loadProposalQueryData(true);
             } else if (i == 'approval') {
                 vm.rightPanelTitle = 'APPROVAL_PROPOSAL';
                 vm.showProposalIndicator = {};
                 vm.multiProposalSelected = [];
+                vm.loadProposalAuditQueryData(true);
             }
-            vm.loadProposalQueryData(true);
+
             $scope.safeApply();
         }
         // vm.loadProposalByType = function () {
@@ -227,7 +281,7 @@ define(['js/app'], function (myApp) {
         };
         vm.queryProposalIdUpdate = function () {
             if (vm.queryProposalId) {
-                var te = $("#proposalDataTableDiv #search .inlineBlk").not(":nth-child(1)").find(".form-control");
+                var te = $("#proposalDataTableDiv #search .inlineBlk").not(":nth-child(9)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee")
                 te.find(".ms-choice").prop("disabled", true).css("background-color", "#eee")
@@ -236,7 +290,22 @@ define(['js/app'], function (myApp) {
                 $("#proposalDataTableDiv #search .inlineBlk").find(".form-control input").prop("disabled", false).css("background-color", "#fff");
                 $("#proposalDataTableDiv #search .inlineBlk").find(".form-control .ms-choice").prop("disabled", false).css("background-color", "transparent")
             }
-        }
+        };
+
+        vm.queryProposalAuditIdUpdate = function () {
+            let searchFilterColumns = $("#proposalAuditDataTableDiv #searchAudit .inlineBlk");
+            if (vm.queryProposalAuditId) {
+                var te = searchFilterColumns.not(":nth-child(1)").find(".form-control");
+                te.prop("disabled", true).css("background-color", "#eee");
+                te.find("input").prop("disabled", true).css("background-color", "#eee")
+                te.find(".ms-choice").prop("disabled", true).css("background-color", "#eee")
+            } else {
+                searchFilterColumns.find(".form-control").prop("disabled", false).css("background-color", "#fff");
+                searchFilterColumns.find(".form-control input").prop("disabled", false).css("background-color", "#fff");
+                searchFilterColumns.find(".form-control .ms-choice").prop("disabled", false).css("background-color", "transparent")
+            }
+        };
+
         vm.getOneProposal = function (callback) {
             $('#autoRefreshProposalFlag').attr('checked', false);
             socketService.$socket($scope.AppSocket, "getPlatformProposal", {
@@ -250,13 +319,44 @@ define(['js/app'], function (myApp) {
                 console.log("vm.proposals", vm.proposals);
                 $(vm.spinning).removeClass('fa-spin');
                 $scope.safeApply();
+
                 vm.drawProposalTable(vm.proposals, vm.proposals.length, {}, true);
                 if (callback) {
                     callback();
                 }
             });
-        }
-        vm.setDateRange = function (option) {
+        };
+
+        vm.getOneProposalAudit = function (callback) {
+            $('#autoRefreshProposalAuditFlag').attr('checked', false);
+            socketService.$socket($scope.AppSocket, "getPlatformProposal", {
+                platformId: vm.allPlatformId,
+                proposalId: vm.queryProposalAuditId
+            }, function (data) {
+                if (data && !data.data) {
+                    console.log('tbd');
+                }
+                vm.proposals = [data.data];
+                console.log("vm.proposals", vm.proposals);
+                $(vm.spinning).removeClass('fa-spin');
+                $scope.safeApply();
+
+                vm.drawProposalAuditTable(vm.proposals, vm.proposals.length, {}, true);
+                if (callback) {
+                    callback();
+                }
+            });
+        };
+
+        vm.proposalSetDateRange = (option) => {
+            vm.setDateRange(option, "#datetimepicker", "#datetimepicker2");
+        };
+
+        vm.proposalAuditSetDateRange = (option) => {
+            vm.setDateRange(option, "#datetimepickerAudit", "#datetimepickerAudit2");
+        };
+
+        vm.setDateRange = function (option, dateTimePickerStartSelector, dateTimePickerEndSelector) {
             var startDate;
             switch (option) {
                 case 'day':
@@ -272,16 +372,20 @@ define(['js/app'], function (myApp) {
                     startDate = "";
             }
             if (startDate) {
-                $("#datetimepicker").data('datetimepicker').setLocalDate(startDate);
-                $("#datetimepicker2").data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
-                vm.loadProposalQueryData(true);
+                $(dateTimePickerStartSelector).data('datetimepicker').setLocalDate(startDate);
+                $(dateTimePickerEndSelector).data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
+                // vm.loadProposalQueryData(true);
             }
-        }
+        };
+
         vm.searchProposalByQuery = function (newSearch) {
-            $('#autoRefreshProposalFlag').attr('checked', false);
-            vm.loadProposalQueryData(newSearch);
-        }
-        vm.loadProposalQueryData = function (newSearch, callback) {
+            newSearch ? vm.autoRefresh = false : null;
+            if (vm.rightPanelTitle === 'ALL_PROPOSAL') vm.loadProposalQueryData(newSearch);
+            if (vm.rightPanelTitle === 'APPROVAL_PROPOSAL') vm.loadProposalAuditQueryData(newSearch);
+
+        };
+
+        vm.loadProposalQueryData = function (newSearch) {
             var selectedStatus = [];
             vm.proposalTypeUpdated();
             if (vm.proposalStatusSelected) {
@@ -297,16 +401,21 @@ define(['js/app'], function (myApp) {
                     }
                 );
             }
-            var startTime = $('#datetimepicker').data('datetimepicker');
-            var endTime = $('#datetimepicker2').data('datetimepicker');
-            var newEndTime = endTime.getLocalDate();
+            let rewardNames = $('select#selectRewardType').multipleSelect("getSelects");
+            let promoType = $('select#selectPromoType').multipleSelect("getSelects");
+
+            let startTime = $('#datetimepicker').data('datetimepicker').getLocalDate();
+            let endTime = $('#datetimepicker2').data('datetimepicker').getLocalDate();
 
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
+                inputDevice: vm.proposalInputDevice,
+                eventName: rewardNames,
+                promoTypeName: promoType,
                 type: vm.proposalTypeSelected,
-                startDate: startTime.getLocalDate(),
-                endDate: newEndTime,
+                startDate: startTime,
+                endDate: endTime,
                 entryType: vm.queryProposalEntryType,
                 size: vm.queryProposal.limit || 10,
                 index: newSearch ? 0 : (vm.queryProposal.index || 0),
@@ -328,8 +437,72 @@ define(['js/app'], function (myApp) {
             }
             $('.proposalMessage > a > .fa').addClass('fa-spin');
             $('.proposalMessage').next().hide();
+
             console.log('send proposal query', sendData);
-            var queryString = vm.rightPanelTitle == "APPROVAL_PROPOSAL" ? 'getQueryApprovalProposalsForAdminId' : 'getQueryProposalsForAdminId';
+
+            socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
+                console.log('proposal allData', data);
+                vm.proposals = data.data.data;
+
+                $('.proposalMessage > a > .fa').removeClass('fa-spin');
+                $('.proposalMessage').next().show();
+
+                vm.queryProposal.totalCount = data.data.size;
+                vm.drawProposalTable(vm.proposals, data.data.size, data.data.summary, newSearch);
+
+                $scope.safeApply();
+            });
+        }
+
+        vm.loadProposalAuditQueryData = function (newSearch, callback) {
+            var selectedStatus = [];
+            vm.proposalTypeUpdated();
+            // if (vm.proposalStatusSelected) {
+            //     vm.proposalStatusSelected.forEach(
+            //         status => {
+            //             selectedStatus.push(status);
+            //             if (status == "Success") {
+            //                 selectedStatus.push("Approved");
+            //             }
+            //             if (status == "Fail") {
+            //                 selectedStatus.push("Rejected");
+            //             }
+            //         }
+            //     );
+            // }
+            var startTime = $('#datetimepickerAudit').data('datetimepicker');
+            var endTime = $('#datetimepickerAudit2').data('datetimepicker');
+            var newEndTime = endTime.getLocalDate();
+
+            let sendData = {
+                adminId: authService.adminId,
+                platformId: vm.allPlatformId,
+                type: vm.proposalAuditTypeSelected,
+                startDate: startTime.getLocalDate(),
+                endDate: newEndTime,
+                entryType: vm.queryProposalEntryType,
+                size: vm.queryAuditProposal.limit || 10,
+                index: newSearch ? 0 : (vm.queryAuditProposal.index || 0),
+                sortCol: vm.queryAuditProposal.sortCol
+            };
+
+            if (vm.queryProposalRelatedUser) {
+                sendData.relateUser = vm.queryProposalRelatedUser.toLowerCase();
+            }
+
+            if (selectedStatus) {
+                sendData.status = selectedStatus
+            }
+            if (vm.queryProposalMinCredit || vm.queryProposalMaxCredit) {
+                sendData.credit = {
+                    $gte: vm.queryProposalMinCredit || 0,
+                    $lt: vm.queryProposalMaxCredit || 1000000000
+                }
+            }
+            $('.proposalMessage > a > .fa').addClass('fa-spin');
+            $('.proposalMessage').next().hide();
+            console.log('send proposal query', sendData);
+            var queryString =  'getQueryApprovalProposalsForAdminId' ;
             socketService.$socket($scope.AppSocket, queryString, sendData, function (data) {
                 console.log('proposal allData', data);
                 vm.proposals = data.data.data;
@@ -337,7 +510,7 @@ define(['js/app'], function (myApp) {
                 $('.proposalMessage').next().show();
                 // vm.proposalTable.destroy();
                 vm.queryProposal.totalCount = data.data.size;
-                vm.drawProposalTable(vm.proposals, data.data.size, data.data.summary, newSearch);
+                vm.drawProposalAuditTable(vm.proposals, data.data.size, data.data.summary, newSearch); //, "#proposalAuditDataTable"
                 $scope.safeApply();
                 // vm.proposalTable.draw();
                 // if (callback) {
@@ -345,39 +518,52 @@ define(['js/app'], function (myApp) {
                 // }
             });
         }
+
         vm.initQueryPara = function () {
             utilService.actionAfterLoaded($('#datetimepicker2'), function () {
-                $('select#selectProposalStatus').multipleSelect({
-                    allSelected: $translate("All Selected"),
-                    selectAllText: $translate("Select All"),
-                    countSelected: $translate('# of % selected'),
-                    onClick: function () {
-                        vm.proposalStatusUpdated();
-                    },
-                    onCheckAll: function () {
-                        vm.proposalStatusUpdated();
-                    },
-                    onUncheckAll: function () {
-                        vm.proposalStatusUpdated();
-                    }
-                });
-                $("select#selectProposalStatus").multipleSelect("checkAll");
+                vm.initMultiProposalStatusDropdown('select#selectProposalStatus');
 
-                $('#datetimepicker').datetimepicker({
-                    language: 'en',
-                    format: 'yyyy/MM/dd hh:mm:ss',
-                });
-                var lastMonth = utilService.setNDaysAgo(new Date(), 1);
-                var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
-                vm.queryProposalstartTime = $("#datetimepicker").data('datetimepicker').setLocalDate(lastMonthDateStartTime);
+                let defaultStartTime = new Date();
+                // let default start time to be 3 hours ago
+                defaultStartTime.setHours(defaultStartTime.getHours() - 3);
 
-                $('#datetimepicker2').datetimepicker({
-                    language: 'en',
-                    format: 'yyyy/MM/dd hh:mm:ss',
-                });
-                vm.queryProposalendTime = $('#datetimepicker2').data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
+                vm.queryProposalstartTime = vm.setDateTimePicker("#datetimepicker", defaultStartTime);
+                vm.queryProposalendTime = vm.setDateTimePicker("#datetimepicker2", utilService.getTodayEndTime());
+                vm.queryProposalAuditstartTime = vm.setDateTimePicker("#datetimepickerAudit", defaultStartTime);
+                vm.queryProposalAuditendTime = vm.setDateTimePicker("#datetimepickerAudit2", utilService.getTodayEndTime());
             })
-        }
+        };
+
+        vm.initMultiProposalStatusDropdown = function (elem) {
+            let dropDownElem = $(elem);
+            dropDownElem.multipleSelect({
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                countSelected: $translate('# of % selected'),
+                onClick: function () {
+                    vm.proposalStatusUpdated();
+                },
+                onCheckAll: function () {
+                    vm.proposalStatusUpdated();
+                },
+                onUncheckAll: function () {
+                    vm.proposalStatusUpdated();
+                }
+            });
+            dropDownElem.multipleSelect("checkAll");
+        };
+
+
+        vm.setDateTimePicker = function (elem, dateTime) {
+            let dateTimePickerElem = $(elem);
+
+            dateTimePickerElem.datetimepicker({
+                language: 'en',
+                format: 'yyyy/MM/dd hh:mm:ss',
+            });
+
+            return dateTimePickerElem.data('datetimepicker').setLocalDate(dateTime);
+        };
         // vm.allProposalClicked = function (callback) {
         //     vm.blinkAllProposal = false;
         //     vm.rightPanelTitle = 'ALL_PROPOSAL';
@@ -392,19 +578,19 @@ define(['js/app'], function (myApp) {
         // }
 
         vm.proposalTypeUpdated = function () {
-            vm.proposalTypeSelected = $('select#selectProposalType').multipleSelect("getSelects")
-            // .map(a => {
-            //     return a.substring(7);
-            // });
-            // if (vm.allProposalType) {
-            //     vm.allProposalTypeTranslate = vm.allProposalType.map((a, b) => {
-            //         return $translate(a.name);
-            //     });
-            // }
-            // if (vm.proposalTable) {
-            //     vm.proposalTable.draw();
-            // }
-        }
+            if (vm.rightPanelTitle == 'ALL_PROPOSAL') {
+                vm.proposalTypeSelected = $('select#selectProposalType').multipleSelect("getSelects");
+            }
+            else if (vm.rightPanelTitle == 'APPROVAL_PROPOSAL') {
+                vm.proposalAuditTypeSelected = $('select#selectProposalAuditType').multipleSelect("getSelects");
+            }
+
+        };
+
+        vm.proposalAuditTypeUpdated = function () {
+            vm.proposalAuditTypeSelected = $('select#selectProposalAuditType').multipleSelect("getSelects");
+        };
+
         vm.proposalStatusUpdated = function () {
             vm.proposalStatusSelected = $('select#selectProposalStatus').multipleSelect("getSelects");
             vm.proposalStatusSelectedTrans = vm.proposalStatusSelected.map(a => {
@@ -413,7 +599,7 @@ define(['js/app'], function (myApp) {
             if (vm.proposalTable) {
                 vm.proposalTable.draw();
             }
-        }
+        };
 
         // vm.topupClicked = function () {
         //     vm.blinkTopUp = false;
@@ -542,6 +728,8 @@ define(['js/app'], function (myApp) {
                 result = JSON.stringify(val);
             } else if (fieldName === "upOrDown") {
                 result = $translate(val);
+            } else if (fieldName === 'userAgent') {
+                result = $translate($scope.userAgentType[val]) || '';
             }
             return $sce.trustAsHtml(result);
         };
@@ -621,7 +809,52 @@ define(['js/app'], function (myApp) {
                     callback(data.data);
                 }
             });
-        }
+        };
+
+        vm.getRewardList = function (callback) {
+            vm.rewardList = [];
+            socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: {$in: vm.allPlatformId}}, function (data) {
+                vm.rewardList = data.data;
+                console.log('vm.rewardList', vm.rewardList);
+                $scope.safeApply();
+                if (callback) {
+                    callback();
+                }
+            });
+        };
+
+        vm.getPromotionTypeList = function (callback) {
+            socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: {$in: vm.allPlatformId}}, function (data) {
+                console.log('getPromoCodeTypes', data);
+                vm.promoTypeList = data.data;
+                $scope.safeApply();
+                if (callback) {
+                    callback();
+                }
+            });
+        };
+
+        vm.getPlatformProviderGroup = () => {
+            let query = (vm.selectedPlatform && vm.selectedPlatform._id)
+                ? {platformObjId: vm.selectedPlatform._id}
+                : {platformObjId: {$in: vm.allPlatformId}};
+
+            $scope.$socketPromise('getPlatformProviderGroup', query).then(function (data) {
+                vm.gameProviderGroup = data.data;
+                $scope.safeApply();
+            });
+        };
+
+        vm.getProviderGroupNameById = (grpId) => {
+            let result = '';
+            $.each(vm.gameProviderGroup, function (i, v) {
+                if (grpId == v._id) {
+                    result = v.name;
+                    return true;
+                }
+            });
+            return result;
+        };
 
         // vm.startSpin = function (event, callback) {
         //     var item = $(event.target).addClass('fa-spin');
@@ -683,6 +916,402 @@ define(['js/app'], function (myApp) {
                         : v.data.alipayAccount != null
                         ? v.data.alipayAccount
                         : null;
+                    tableData.push(v);
+                }
+            });
+
+            // Plug-in to sort signed numbers
+            jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+                "signed-num-asc": function (a, b) {
+                    a = a == 0 ? Infinity : a;
+                    b = b == 0 ? Infinity : b;
+
+                    return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+                },
+
+                "signed-num-desc": function (a, b) {
+                    a = a == 0 ? -Infinity : a;
+                    b = b == 0 ? -Infinity : b;
+
+                    return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+                }
+            });
+
+            let tableOptions = {
+                data: tableData,
+                deferRender: true,
+                "bProcessing": true,
+                bDeferRender: true,
+                // filterProposalType: true,
+                "aaSorting": vm.queryProposal.aaSorting || [],
+                aoColumnDefs: [
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                    {'sortCol': 'relatedAmount', bSortable: true, 'aTargets': [7]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {
+                        "title": $translate('PROPOSAL_NO'),
+                        "data": "proposalId",
+                        render: function (data, type, row) {
+                            var $link = $('<a>').text(data);
+                            return $link.prop('outerHTML');
+                        },
+                        bSortable: true
+                    },
+                    {
+                        "title": $translate('CREATOR'),
+                        "data": null,
+                        render: function (data, type, row) {
+                            if (data.hasOwnProperty('creator')) {
+                                return data.creator.name;
+                            } else {
+                                var creator = $translate('System');
+                                if (data && data.data && data.data.playerName) {
+                                    creator += "(" + data.data.playerName + ")";
+                                }
+                                return creator;
+                            }
+                        }
+                    },
+                    {
+                        title: $translate('INPUT_DEVICE'),
+                        data: "inputDevice",
+                        render: function (data, type, row) {
+                            for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data ){
+                                    return $translate(Object.keys(vm.inputDevice)[i]);
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "title": $translate('MAIN_TYPE'),
+                        "data": "mainType$"
+                    },
+                    {
+                        title: $translate('PROPOSAL_SUB_TYPE'), data: null,
+                        orderable: false,
+                        render: function (data, type, row) {
+                            if (data && data.data && data.data.PROMO_CODE_TYPE) {
+                                return data.data.PROMO_CODE_TYPE;
+                            }else if(data && data.data && data.data.eventName){
+                                return data.data.eventName;
+                            }else {
+                                return $translate(row.type ? row.type.name : "");
+                            }
+                        }
+                    },
+                    {
+                        "title": $translate('STATUS'),
+                        "data": 'process',
+                        render: function (data, type, row) {
+                            let text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
+                            text = text === "approved" ? "Approved" : text;
+
+                            let textClass = '';
+                            let fontStyle = {};
+                            if (row.status === 'Pending') {
+                                textClass = "text-danger";
+                                fontStyle = {'font-weight': 'bold'};
+                            }
+
+                            let $link = $('<a>').text(text).addClass(textClass).css(fontStyle);
+                            return $link.prop('outerHTML');
+                        },
+                    },
+                    {
+                        "title": $translate('RELATED_USER'),
+                        "data": null,
+                        "sClass": "sumText",
+                        render: function (data, type, row) {
+                            if (data.hasOwnProperty('creator') && data.creator.type == 'player') {
+                                return data.creator.name;
+                            }
+                            if (data && data.data && data.data.playerName) {
+                                return data.data.playerName;
+                            }
+                            else if (data && data.data && data.data.partnerName) {
+                                return data.data.partnerName;
+                            }
+                            else {
+                                return "";
+                            }
+                        }
+                    },
+                    {
+                        "title": $translate('Credit Amount'),
+                        "data": "creditAmount$",
+                        "sClass": "alignRight creditAmount sumFloat"
+                    },
+                    {
+                        "title": $translate('CREATION_TIME'),
+                        "data": 'createTime$',
+                        bSortable: true
+                    },
+                    {
+                        "title": $translate('PlayerLevel'),
+                        bSortable: false,
+                        data: "playerLevel$",
+                        // visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    },
+                    {
+                        "title": $translate('REMARK'),
+                        data: "remark$",
+                        sClass: "maxWidth100 wordWrap",
+                        // visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    },
+
+
+                    // {
+                    //     "title": $translate('TYPE'),
+                    //     "data": "type",
+                    //     render: function (data, type, row) {
+                    //         var text = $translate(row.type ? row.type.name : "");
+                    //         return "<div>" + text + "</div>";
+                    //     }
+                    // },
+
+
+                    // {
+                    //     "title": $translate('request Id'),
+                    //     "data": "data.requestId"
+                    // },
+                    // {
+                    //     "title": $translate('Merchant No'),
+                    //     "data": "merchantNo$"
+                    // },
+                    //
+                    // {
+                    //     "title": $translate('topupType'),
+                    //     "data": "data.topupType",
+                    //     render: function (data, type, row) {
+                    //         let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : ""
+                    //         return "<div>" + text + "</div>";
+                    //     },
+                    //     bSortable: true
+                    // },
+                    // {
+                    //     "title": $translate('PRIORITY'),
+                    //     "data": "priority$"
+                    // },
+                    // {
+                    //     "title": $translate('playerStatus'),
+                    //     "data": "playerStatus$",
+                    //     render: function (data, type, row) {
+                    //         let showText = $translate($scope.constPlayerStatus[data] ?
+                    //             $scope.constPlayerStatus[data] : "Normal");
+                    //         let textClass = '';
+                    //         let fontStyle = {};
+                    //         if (data === 4) {
+                    //             textClass = "bold";
+                    //             fontStyle = {'font-weight': 'bold'};
+                    //         } else if (data === 5) {
+                    //             textClass = "text-danger";
+                    //             fontStyle = {'font-weight': 'bold'};
+                    //         }
+                    //
+                    //         return $('<div>')
+                    //             .text(showText)
+                    //             .addClass(textClass)
+                    //             .css(fontStyle)
+                    //             .prop('outerHTML');
+                    //     }
+                    // },
+                    // {
+                    //     "title": $translate('ENTRY_TYPE'),
+                    //     "data": "entryType$"
+                    // },
+                    // {
+                    //     "title": $translate('USER_TYPE'),
+                    //     "data": "userType$",
+                    //     "sClass": "sumText"
+                    // },
+                    // {
+                    //     "title": $translate('bankTypeId'),
+                    //     "data": "bankType$",
+                    //     visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    // },
+                    // {
+                    //     "title": $translate('LOCK_USER'),
+                    //     "data": "lockUser$",
+                    //     render: function (data, type, row) {
+                    //         var text = row.isLocked ? row.isLocked.adminName : "";
+                    //         return "<div>" + text + "</div>";
+                    //     },
+                    //     visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    // },
+                    //
+                    //
+                    // {
+                    //     "title": $translate('EXPIRY_DATE'),
+                    //     "data": 'expirationTime$',
+                    //     type: 'signed-num',
+                    //     render: function (data, type, row) {
+                    //         if (type === 'sort' || type === 'type') {
+                    //             return data;
+                    //         }
+                    //         else {
+                    //             if (data > 0) {
+                    //                 // Not expired
+                    //                 let expireTime = Math.floor((data / 1000) / 60);
+                    //                 return "<div>" + $translate("Left") + " " + expireTime + " " + $translate("mins") + "</div>";
+                    //             }
+                    //             else if (data < 0) {
+                    //                 // Expired
+                    //                 let expireTime = Math.ceil((data / 1000) / 60);
+                    //                 return "<div>" + $translate("Expired") + " " + -expireTime + " " + $translate("mins") + "</div>";
+                    //             }
+                    //             else {
+                    //                 return "<div>" + $translate("N/A") + "</div>";
+                    //             }
+                    //         }
+                    //     },
+                    //     bSortable: true,
+                    //     visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    // },
+                ],
+                "bSortClasses": false,
+                "scrollX": true,
+                "destroy": true,
+                "paging": false,
+                "language": {
+                    "info": "Total _MAX_ proposals",
+                    "emptyTable": $translate("No data available in table"),
+                },
+                dom: 'Zrt<"footer">lp',
+                fnRowCallback: vm.proposalTableRow
+            };
+            $.fn.dataTable.ext.search.push(
+                function (settings, rdata, dataIndex) {
+                    if (settings.oInit.filterProposalType) {
+                        var selectedStatus = [];
+                        vm.proposalStatusSelected.forEach(
+                            status => {
+                                selectedStatus.push(status);
+                                if (status == "Success") {
+                                    selectedStatus.push("Approved");
+                                }
+                                if (status == "Fail") {
+                                    selectedStatus.push("Rejected");
+                                }
+                            }
+                        );
+                        var typeName = settings.aoData[dataIndex]._aData.type.name;
+                        var statusName = settings.aoData[dataIndex]._aData.status || settings.aoData[dataIndex]._aData.process.status;
+                        if (
+                            (vm.proposalTypeSelected && vm.proposalTypeSelected.indexOf(typeName) != -1)
+                            && (selectedStatus && selectedStatus.indexOf(statusName) != -1)) {
+                            return true;
+                        } else return false;
+                    } else return true;
+                }
+            );
+            vm.queryProposal.pageObj.init({maxCount: size}, newSearch);
+            $('#proposalDataTable').empty();
+            //no idea why is 7, and 7 is not working, so I change it to 8
+            //lizhu: the number here indicates the data should be listed in N-th column
+            vm.proposalTable = utilService.createDatatableWithFooter('#proposalDataTable', tableOptions, {7: summary.amount});
+            // utilService.setDataTablePageInput('proposalDataTable', vm.proposalTable, $translate);
+
+            //update select all in table
+            var $checkAll = $(".dataTables_scrollHead thead .approvalProposalSelected");
+            if ($checkAll.length == 1) {
+                var $showBtn = $('<input>', {
+                    type: 'checkbox',
+                    class: "approvalProposalSelected transform150 checkAllProposal"
+                });
+                $checkAll.html($showBtn);
+                $('.approvalProposalSelected.checkAllProposal').on('click', function () {
+                    var $checkAll = $(this) && $(this).length == 1 ? $(this)[0] : null;
+                    setCheckAllProposal($checkAll.checked);
+                })
+            }
+            function setCheckAllProposal(flag) {
+                var s = $("#proposalDataTable tbody td.approvalProposalSelected input").each(function () {
+                    $(this).prop("checked", flag);
+                });
+                vm.updateMultiselectProposal();
+            }
+
+            vm.timeAllProposal = utilService.$getTimeFromStdTimeFormat();
+            $("#proposalDataTableDiv .newProposalAlert").text('');
+            setTimeout(function () {
+                $('#proposalDataTable').resize();
+            }, 100)
+
+            function tableRowClicked(event) {
+                if (event.target.tagName == "INPUT" && event.target.type == 'checkbox') {
+                    var flagAllChecked = $("#proposalDataTable tbody td.approvalProposalSelected input[type='checkbox']:not(:checked)");
+                    $('.approvalProposalSelected.checkAllProposal').prop('checked', flagAllChecked.length == 0);
+                    vm.updateMultiselectProposal();
+                }
+                if (event.target.tagName == 'A') {
+                    var data = vm.proposalTable.row(this).data();
+                    vm.proposalRowClicked(data);
+                }
+            }
+
+            $('#proposalDataTable tbody').off('click', "**");
+            $('#proposalDataTable tbody').on('click', 'tr', tableRowClicked);
+            $('#proposalDataTable').off('order.dt');
+            $('#proposalDataTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'queryProposal', vm.loadProposalQueryData);
+            });
+            $scope.safeApply();
+        };
+
+        vm.drawProposalAuditTable = function (data, size, summary, newSearch) {
+            console.log("whole data", data);
+            vm.newProposalNum = 0;
+            vm.blinkAllProposal = false;
+            var tableData = [];
+            $.each(data, function (i, v) {
+                if (v) {
+                    if (v.mainType == 'Reward') {
+                        v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
+                    }
+                    v.mainType$ = $translate(v.mainType);
+                    v.priority$ = $translate(v.data.proposalPlayerLevel ? v.data.proposalPlayerLevel : "Normal");
+                    v.playerStatus$ = v.data.playerStatus;
+                    v.entryType$ = $translate(vm.proposalEntryTypeList[v.entryType]);
+                    v.userType$ = $translate(v.userType ? vm.proposalUserTypeList[v.userType] : "");
+                    v.createTime$ = utilService.getFormatTime(v.createTime).substring(5);
+                    v.expirationTime$ = v.createTime == v.expirationTime ? 0 : new Date(v.expirationTime) - Date.now();
+                    v.lockUser$ = $translate(v.isLocked);
+                    v.creditAmount$ = (v.data.amount != null)
+                        ? parseFloat(v.data.amount).toFixed(2)
+                        : (v.data.rewardAmount != null
+                            ? parseFloat(v.data.rewardAmount).toFixed(2)
+                            : v.data.commissionAmount != null
+                                ? parseFloat(v.data.commissionAmount).toFixed(2)
+                                : v.data.negativeProfitAmount != null
+                                    ? parseFloat(v.data.negativeProfitAmount).toFixed(2)
+                                    : $translate("N/A"));
+                    if (v.data.updateAmount != null) {
+                        v.creditAmount$ = parseFloat(v.data.updateAmount).toFixed(2);
+                    }
+                    if (v.mainType == "PlayerBonus" && v.data.bankTypeId) {
+                        v.bankType$ = vm.allBankTypeList[v.data.bankTypeId]
+                    }
+                    if (v.mainType == "PlayerBonus" && v.status == "Approved") {
+                        v.status = "approved";
+                    }
+                    if (v.data.commissionAmount && v.data.commissionAmountFromChildren) {
+                        v.creditAmount$ = parseFloat(v.data.commissionAmount + v.data.commissionAmountFromChildren).toFixed(2);
+                    }
+                    // v.remark$ = v.remark.map(item => {
+                    //     return item ? item.content : '';
+                    // });
+                    v.playerLevel$ = v.data.playerLevelName ? $translate(v.data.playerLevelName) : '';
+                    v.merchantNo$ = v.data.merchantNo != null
+                        ? v.data.merchantNo
+                        : v.data.weChatAccount != null
+                            ? v.data.weChatAccount
+                            : v.data.alipayAccount != null
+                                ? v.data.alipayAccount
+                                : null;
                     tableData.push(v);
                 }
             });
@@ -952,18 +1581,19 @@ define(['js/app'], function (myApp) {
                         var typeName = settings.aoData[dataIndex]._aData.type.name;
                         var statusName = settings.aoData[dataIndex]._aData.status || settings.aoData[dataIndex]._aData.process.status;
                         if (
-                            (vm.proposalTypeSelected && vm.proposalTypeSelected.indexOf(typeName) != -1)
+                            (vm.proposalAuditTypeSelected && vm.proposalAuditTypeSelected.indexOf(typeName) != -1)
                             && (selectedStatus && selectedStatus.indexOf(statusName) != -1)) {
                             return true;
                         } else return false;
                     } else return true;
                 }
             );
-            vm.queryProposal.pageObj.init({maxCount: size}, newSearch);
-            $('#proposalDataTable').empty();
+            vm.queryAuditProposal.pageObj.init({maxCount: size}, newSearch);
+
+            $('#proposalAuditDataTable').empty();
             //no idea why is 7, and 7 is not working, so I change it to 8
             //lizhu: the number here indicates the data should be listed in N-th column
-            vm.proposalTable = utilService.createDatatableWithFooter('#proposalDataTable', tableOptions, {11: summary.amount});
+            vm.proposalTable = utilService.createDatatableWithFooter('#proposalAuditDataTable', tableOptions, {11: summary.amount});
             // utilService.setDataTablePageInput('proposalDataTable', vm.proposalTable, $translate);
 
             //update select all in table
@@ -980,21 +1610,21 @@ define(['js/app'], function (myApp) {
                 })
             }
             function setCheckAllProposal(flag) {
-                var s = $("#proposalDataTable tbody td.approvalProposalSelected input").each(function () {
+                var s = $("#proposalAuditDataTable tbody td.approvalProposalSelected input").each(function () {
                     $(this).prop("checked", flag);
                 });
                 vm.updateMultiselectProposal();
             }
 
             vm.timeAllProposal = utilService.$getTimeFromStdTimeFormat();
-            $("#proposalDataTableDiv .newProposalAlert").text('');
+            $("#proposalAuditDataTableDiv .newProposalAlert").text('');
             setTimeout(function () {
-                $('#proposalDataTable').resize();
+                $('#proposalAuditDataTable').resize();
             }, 100)
 
             function tableRowClicked(event) {
                 if (event.target.tagName == "INPUT" && event.target.type == 'checkbox') {
-                    var flagAllChecked = $("#proposalDataTable tbody td.approvalProposalSelected input[type='checkbox']:not(:checked)");
+                    var flagAllChecked = $("#proposalAuditDataTable tbody td.approvalProposalSelected input[type='checkbox']:not(:checked)");
                     $('.approvalProposalSelected.checkAllProposal').prop('checked', flagAllChecked.length == 0);
                     vm.updateMultiselectProposal();
                 }
@@ -1004,17 +1634,17 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            $('#proposalDataTable tbody').off('click', "**");
-            $('#proposalDataTable tbody').on('click', 'tr', tableRowClicked);
-            $('#proposalDataTable').off('order.dt');
-            $('#proposalDataTable').on('order.dt', function (event, a, b) {
+            $('#proposalAuditDataTable tbody').off('click', "**");
+            $('#proposalAuditDataTable tbody').on('click', 'tr', tableRowClicked);
+            $('#proposalAuditDataTable').off('order.dt');
+            $('#proposalAuditDataTable').on('order.dt', function (event, a, b) {
                 vm.commonSortChangeHandler(a, 'queryProposal', vm.loadProposalQueryData);
             });
             $scope.safeApply();
         };
 
         vm.updateMultiselectProposal = function () {
-            var allClicked = $("#proposalDataTable tr input:checked[type='checkbox']");
+            var allClicked = $("#proposalAuditDataTable tr input:checked[type='checkbox']");
             vm.multiProposalSelected = [];
             if (allClicked.length > 0) {
                 allClicked.each(function () {
@@ -1127,7 +1757,12 @@ define(['js/app'], function (myApp) {
 
             var proposalDetail = $.extend({}, vm.selectedProposal.data);
             var checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
-            for (var i in proposalDetail) {
+            for (let i in proposalDetail) {
+                // Add provider group name
+                if (i == "providerGroup") {
+                    proposalDetail.providerGroup = vm.getProviderGroupNameById(proposalDetail[i]);
+                }
+
                 //remove objectIDs
                 if (checkForHexRegExp.test(proposalDetail[i])) {
                     delete proposalDetail[i];
@@ -1141,7 +1776,6 @@ define(['js/app'], function (myApp) {
                         proposalDetail.providers = temp;
                     }
                 }
-
             }
             vm.selectedProposalDetailForDisplay = $.extend({}, proposalDetail);
             if (vm.selectedProposalDetailForDisplay['provinceId']) {
@@ -1585,31 +2219,144 @@ define(['js/app'], function (myApp) {
             }, function (error) {
                 deferred.reject(error);
             });
-
             return deferred.promise;
         };
 
-        vm.getProposalTypeByPlatformId = function (allPlatformId) {
+        vm.getProposalTypeByPlatformId = function (id) {
             var deferred = Q.defer();
-
-            socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: allPlatformId}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: id}, function (data) {
                 vm.allProposalType = data.data;
+                // add index to data
+                for (let x = 0; x < vm.allProposalType.length; x++) {
+                    let groupName = utilService.getProposalGroupValue(vm.allProposalType[x],false);
+                    switch (vm.allProposalType[x].name) {
+                        case "AddPlayerRewardTask":
+                            vm.allProposalType[x].seq = 3.01;
+                            break;
+                        case "PlayerLevelUp":
+                            vm.allProposalType[x].seq = 3.02;
+                            break;
+                        case "PlayerPromoCodeReward":
+                            vm.allProposalType[x].seq = 3.03;
+                            break;
+                        case "UpdatePlayerInfo":
+                            vm.allProposalType[x].seq = 4.01;
+                            break;
+                        case "UpdatePlayerBankInfo":
+                            vm.allProposalType[x].seq = 4.02;
+                            break;
+                        case "UpdatePlayerEmail":
+                            vm.allProposalType[x].seq = 4.03;
+                            break;
+                        case "UpdatePlayerPhone":
+                            vm.allProposalType[x].seq = 4.04;
+                            break;
+                        case "UpdatePlayerQQ":
+                            vm.allProposalType[x].seq = 4.05;
+                            break;
+                        case "UpdatePlayerWeChat":
+                            vm.allProposalType[x].seq = 4.06;
+                            break;
+                        case "UpdatePartnerInfo":
+                            vm.allProposalType[x].seq = 5.01;
+                            break;
+                        case "UpdatePartnerBankInfo":
+                            vm.allProposalType[x].seq = 5.02;
+                            break;
+                        case "UpdatePartnerEmail":
+                            vm.allProposalType[x].seq = 5.03;
+                            break;
+                        case "UpdatePartnerPhone":
+                            vm.allProposalType[x].seq = 5.04;
+                            break;
+                        case "UpdatePartnerQQ":
+                            vm.allProposalType[x].seq = 5.05;
+                            break;
+                        case "UpdatePlayerCredit":
+                            vm.allProposalType[x].seq = 6.01;
+                            break;
+                        case "FixPlayerCreditTransfer":
+                            vm.allProposalType[x].seq = 6.02;
+                            break;
+                        case "UpdatePartnerCredit":
+                            vm.allProposalType[x].seq = 6.03;
+                            break;
+                        case "ManualUnlockPlayerReward":
+                            vm.allProposalType[x].seq = 6.04;
+                            break;
+                        case "PlayerLevelMigration":
+                            vm.allProposalType[x].seq = 6.05;
+                            break;
+                        case "PlayerRegistrationIntention":
+                            vm.allProposalType[x].seq = 6.06;
+                            break;
+                        case "PlayerLimitedOfferIntention":
+                            vm.allProposalType[x].seq = 6.07;
+                            break;
+                    }
+                    if(!vm.allProposalType[x].seq) {
+                        switch (groupName) {
+                            case "Topup Proposal":
+                                vm.allProposalType[x].seq = 1;
+                                break;
+                            case "Bonus Proposal":
+                                vm.allProposalType[x].seq = 2;
+                                break;
+                            case "Reward Proposal":
+                                vm.allProposalType[x].seq = 3.90;
+                                break;
+                            case "PLAYER_INFORMATION":
+                                vm.allProposalType[x].seq = 4.90;
+                                break;
+                            case "PARTNER_INFORMATION":
+                                vm.allProposalType[x].seq = 5.90;
+                                break;
+                            case "Others":
+                                vm.allProposalType[x].seq = 6.90;
+                                break;
+                        }
+                    }
+                    if(groupName.toLowerCase() == "omit") {
+                        vm.allProposalType.splice(x,1);
+                        x--;
+                    }
+                }
                 vm.allProposalType.sort(
                     function (a, b) {
-                        if (vm.getProposalTypeOptionValue(a) > vm.getProposalTypeOptionValue(b)) return 1;
-                        if (vm.getProposalTypeOptionValue(a) < vm.getProposalTypeOptionValue(b)) return -1;
+                        if (a.seq > b.seq) return 1;
+                        if (a.seq < b.seq) return -1;
                         return 0;
                     }
                 );
-                console.log("vm.allProposalType:", vm.allProposalType);
                 $scope.safeApply();
                 deferred.resolve(true);
             }, function (error) {
                 deferred.reject(error);
             });
-
             return deferred.promise;
         };
+
+        // vm.getProposalTypeByPlatformId = function (allPlatformId) {
+        //     var deferred = Q.defer();
+        //
+        //     socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: allPlatformId}, function (data) {
+        //         vm.allProposalType = data.data;
+        //         vm.allProposalType.sort(
+        //             function (a, b) {
+        //                 if (vm.getProposalTypeOptionValue(a) > vm.getProposalTypeOptionValue(b)) return 1;
+        //                 if (vm.getProposalTypeOptionValue(a) < vm.getProposalTypeOptionValue(b)) return -1;
+        //                 return 0;
+        //             }
+        //         );
+        //         console.log("vm.allProposalType:", vm.allProposalType);
+        //         $scope.safeApply();
+        //         deferred.resolve(true);
+        //     }, function (error) {
+        //         deferred.reject(error);
+        //     });
+        //
+        //     return deferred.promise;
+        // };
 
         vm.getProposalTypeOptionValue = function (proposalType) {
             var result = utilService.getProposalGroupValue(proposalType);
@@ -1808,6 +2555,7 @@ define(['js/app'], function (myApp) {
                     vm.needRefreshTable = false;
                     vm.allBankTypeList = {};
                     vm.queryProposal = {};
+                    vm.queryAuditProposal = {};
                     //todo::check why need to use timeOut here
                     vm.proposalTypeIdtoText = {};
                     $.fn.dataTable.ext.search = [];
@@ -1831,11 +2579,23 @@ define(['js/app'], function (myApp) {
                         });
                     });
 
-                    utilService.actionAfterLoaded("#proposalDataTablePage", function () {
-                        vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
-                            vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
+                    setTimeout(function () {
+                        utilService.actionAfterLoaded("#proposalDataTablePage", function () {
+                            vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
+                            });
                         });
-                    });
+                    }, 0);
+
+                    // for some reason, the pagination wont translate when it does not put inside setTimeout
+                    setTimeout(function() {
+                        utilService.actionAfterLoaded("#proposalAuditDataTablePage", function () {
+                            vm.queryAuditProposal.pageObj = utilService.createPageForPagingTable("#proposalAuditDataTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "queryAuditProposal", vm.loadProposalAuditQueryData)
+                            });
+                        });
+                    }, 0);
+
 
                     // Q.all([vm.getAllPlatforms(), vm.getProposalEntryTypeList(), vm.getProposalPriorityList(),
                     //     vm.getProposalUserTypeList(), vm.getAllProposalStatus()])
@@ -1888,8 +2648,11 @@ define(['js/app'], function (myApp) {
                                 vm.updateProposalData();
                             });
                             var showLeft = $cookies.get("operationShowLeft");
-                            if (showLeft === 'false') {
-                                vm.toggleShowOperationList(false)
+                            if (showLeft === 'true') {
+                                vm.toggleShowOperationList(true);
+                            }
+                            else {
+                                vm.toggleShowOperationList(false);
                             }
                             vm.initQueryPara();
                         }
@@ -1906,18 +2669,22 @@ define(['js/app'], function (myApp) {
                     vm.refreshInterval = setInterval(function () {
                         var item = $('#autoRefreshProposalFlag');
                         var isRefresh = item && item.length > 0 && item[0].checked;
-                        var mark = $('#timeLeftRefreshOperation')[0];
+                        var mark = $('.timeLeftRefreshOperation');
                         $(mark).parent().toggleClass('hidden', countDown < 0);
                         if (isRefresh) {
                             if (countDown < 0) {
                                 countDown = 11
                             }
                             if (countDown == 0) {
-                                vm.loadProposalQueryData();
+                                if (vm.rightPanelTitle === 'ALL_PROPOSAL') vm.loadProposalQueryData();
+                                if (vm.rightPanelTitle === 'APPROVAL_PROPOSAL') vm.loadProposalAuditQueryData();
                                 countDown = 11;
                             }
+                            if (window.location.pathname != '/operation') {
+                                clearInterval(vm.refreshInterval);
+                            }
                             countDown--;
-                            $(mark).text(countDown);
+                            mark.text(countDown);
                         } else {
                             countDown = -1;
                         }

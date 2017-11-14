@@ -1,7 +1,7 @@
 .text-center
     p(ng-if="!vm.curPlatformText")
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
-.col-sm-3(ng-if="vm.curPlatformText", style='padding-left:0')
+.col-sm-2(ng-if="vm.curPlatformText", style='padding-left:0')
     .panel.panel-primary(style="min-height:610px")
         .panel-heading.panel-heading-sm
             label {{"All Rewards" | translate}}
@@ -11,7 +11,7 @@
             button.btn.btn-primary.common-button(style='text-align:center', ng-click='vm.initReward()')
                 text {{"Add Event"|translate}}
                 img.img-create
-.col-sm-9(ng-if="vm.curPlatformText", style='padding-left:0;padding-right:0;')
+.col-sm-10(ng-if="vm.curPlatformText", style='padding-left:0;padding-right:0;')
     .panel.panel-primary(ng-if='vm.showReward || vm.platformRewardShowEdit()')
         .panel-heading.panel-heading-sm
             label {{"REWARD"|translate}}
@@ -21,99 +21,139 @@
                     label {{"REWARD_TYPE" | translate}}
                     select.form-control(ng-model='vm.showRewardTypeId', ng-change='vm.platformRewardTypeChanged()', ng-disabled='vm.platformRewardShowEdit("rewardType")', required)
                         option(ng-repeat='(i,v) in vm.allRewardTypes', value='{{v._id}}') {{v.des|translate}}
-                .full-width-input-block
-                    label {{"REWARD_NAME" | translate}}
-                    input.form-control(type='text', ng-model='vm.showReward.name', ng-disabled='vm.platformRewardShowEdit()', required)
-                .full-width-input-block
-                    label {{"REWARD_CODE" | translate}}
-                    input.form-control(type='text', ng-model='vm.showReward.code', ng-disabled='vm.platformRewardShowEdit()', required)
-                .full-width-input-block(ng-if='vm.rewardAttrConst.canApply.indexOf(vm.showRewardTypeData.name)>-1')
-                    label {{"REWARD_NEED_APPLY" | translate}}
-                    input.form-control(type='checkbox', ng-model='vm.showReward.needApply', ng-change='vm.clearCanApplyFromClient()' ng-disabled='vm.platformRewardShowEdit()')
-                .full-width-input-block
-                    label {{"REWARD_CLIENT_APPLY" | translate}}
-                    input.form-control(type='checkbox', ng-model='vm.showReward.canApplyFromClient', ng-disabled='vm.platformRewardShowEdit() || !vm.showReward.needApply')
-                .full-width-input-block(ng-if='vm.rewardAttrConst.canSettle.indexOf(vm.showRewardTypeData.name)>-1')
-                    label {{"REWARD_NEED_SETTLEMENT" | translate}}
-                    input.form-control(type='checkbox', ng-model='vm.showReward.needSettlement', ng-disabled='vm.platformRewardShowEdit()')
-                .full-width-input-block(ng-if='vm.rewardAttrConst.canChangePeriod.indexOf(vm.showRewardTypeData.name)>-1')
-                    label {{"Settlement Period" | translate}}
-                    select.form-control(ng-model='vm.showReward.settlementPeriod', ng-disabled='vm.platformRewardShowEdit()', required)
-                        option(ng-repeat='(i,v) in vm.allSettlePeriod', value='{{v}}') {{i | translate}}
-                .full-width-input-block
-                    label {{"rewardValidStartTime" | translate}}
-                    #rewardValidStartTime.inlineBlk(ng-show='!vm.platformRewardShowEdit()', style='margin-right:0')
-                    label.form-control(ng-show='vm.platformRewardShowEdit()', disabled) {{vm.dateReformat(vm.showReward.validStartTime)}}
-                .full-width-input-block
-                    label {{"rewardValidEndTime" | translate}}
-                    #rewardValidEndTime.inlineBlk(ng-show='!vm.platformRewardShowEdit()', style='margin-right:0')
-                    label.form-control(ng-show='vm.platformRewardShowEdit()', disabled) {{vm.dateReformat(vm.showReward.validEndTime)}}
-                    span#rewardEndTimeValid.help-block(style='color: #b94a48')
+                div(ng-if='vm.showRewardTypeData.isGrouped !== true')
+                    .full-width-input-block
+                        label {{"REWARD_NAME" | translate}}
+                        input.form-control(type='text', ng-model='vm.showReward.name', ng-disabled='vm.platformRewardShowEdit()', required)
+                    .full-width-input-block
+                        label {{"REWARD_CODE" | translate}}
+                        input.form-control(type='text', ng-model='vm.showReward.code', ng-disabled='vm.platformRewardShowEdit()', required)
+                    .full-width-input-block(ng-if='vm.rewardAttrConst.canApply.indexOf(vm.showRewardTypeData.name)>-1')
+                        label {{"REWARD_NEED_APPLY" | translate}}
+                        input.form-control(type='checkbox', ng-model='vm.showReward.needApply', ng-change='vm.clearCanApplyFromClient()' ng-disabled='vm.platformRewardShowEdit()')
+                    .full-width-input-block
+                        label {{"REWARD_CLIENT_APPLY" | translate}}
+                        input.form-control(type='checkbox', ng-model='vm.showReward.canApplyFromClient', ng-disabled='vm.platformRewardShowEdit() || !vm.showReward.needApply')
+                    .full-width-input-block(ng-if='vm.rewardAttrConst.canSettle.indexOf(vm.showRewardTypeData.name)>-1')
+                        label {{"REWARD_NEED_SETTLEMENT" | translate}}
+                        input.form-control(type='checkbox', ng-model='vm.showReward.needSettlement', ng-disabled='vm.platformRewardShowEdit()')
+                    .full-width-input-block(ng-if='vm.rewardAttrConst.canChangePeriod.indexOf(vm.showRewardTypeData.name)>-1')
+                        label {{"Settlement Period" | translate}}
+                        select.form-control(ng-model='vm.showReward.settlementPeriod', ng-disabled='vm.platformRewardShowEdit()', required)
+                            option(ng-repeat='(i,v) in vm.allSettlePeriod', value='{{v}}') {{i | translate}}
+                    .full-width-input-block
+                        label {{"rewardValidStartTime" | translate}}
+                        #rewardValidStartTime.inlineBlk(ng-show='!vm.platformRewardShowEdit()', style='margin-right:0')
+                        label.form-control(ng-show='vm.platformRewardShowEdit()', disabled) {{vm.dateReformat(vm.showReward.validStartTime)}}
+                    .full-width-input-block
+                        label {{"rewardValidEndTime" | translate}}
+                        #rewardValidEndTime.inlineBlk(ng-show='!vm.platformRewardShowEdit()', style='margin-right:0')
+                        label.form-control(ng-show='vm.platformRewardShowEdit()', disabled) {{vm.dateReformat(vm.showReward.validEndTime)}}
+                        span#rewardEndTimeValid.help-block(style='color: #b94a48')
 
-                //.full-width-input-block(ng-if="vm.platformRewardPageName!=='showReward'")
-                //    label(style='vertical-align: top;') {{"REWARD_PROVIDER" | translate}}
-                //    select.form-control(multiple size= '3' ng-model='vm.showReward.providers', ng-disabled='vm.platformRewardShowEdit()', required)
-                //        option(ng-repeat='(i,v) in vm.allGameProvider', value='{{v._id}}') {{v.name}}
-                //.full-width-input-block(ng-if="vm.platformRewardPageName=='showReward'")
-                //    label(style='vertical-align: top;') {{"REWARD_PROVIDER" | translate}}
-                //    select.form-control(multiple)
-                //        option(ng-repeat='(i,v) in vm.showReward.providers') {{vm.getProviderText(v)}}
-                .full-width-input-block
-                    label {{"DESCRIPTION" | translate}}
-                .textareaDetail
-                    textarea.form-control(type = "textarea", rows = '5', placeholder="{{'DESCRIPTION' | translate}}", ng-model="vm.showReward.description")
-                br
+                    //.full-width-input-block(ng-if="vm.platformRewardPageName!=='showReward'")
+                    //    label(style='vertical-align: top;') {{"REWARD_PROVIDER" | translate}}
+                    //    select.form-control(multiple size= '3' ng-model='vm.showReward.providers', ng-disabled='vm.platformRewardShowEdit()', required)
+                    //        option(ng-repeat='(i,v) in vm.allGameProvider', value='{{v._id}}') {{v.name}}
+                    //.full-width-input-block(ng-if="vm.platformRewardPageName=='showReward'")
+                    //    label(style='vertical-align: top;') {{"REWARD_PROVIDER" | translate}}
+                    //    select.form-control(multiple)
+                    //        option(ng-repeat='(i,v) in vm.showReward.providers') {{vm.getProviderText(v)}}
+                    .full-width-input-block
+                        label {{"DESCRIPTION" | translate}}
+                    .textareaDetail
+                        textarea.form-control(type = "textarea", rows = '5', placeholder="{{'DESCRIPTION' | translate}}", ng-model="vm.showReward.description")
+                    br
 
-                div(ng-if='vm.showRewardTypeData.name=="FullAttendance"')
-                    include reward-event-type/FullAttendance
-                div(ng-if='vm.showRewardTypeData.name=="PlayerConsumptionReturn"')
-                    include ./reward-event-type/PlayerConsumptionReturn
-                div(ng-if='vm.showRewardTypeData.name=="PlayerConsumptionIncentive"')
-                    include ./reward-event-type/PlayerConsumptionIncentive
-                div(ng-if='vm.showRewardTypeData.name=="PlayerDoubleTopUpReward"')
-                    include ./reward-event-type/PlayerDoubleTopUpReward
-                div(ng-if='vm.showRewardTypeData.name=="PlayerTopUpReturn"')
-                    include ./reward-event-type/PlayerTopUpReturn
-                div(ng-if='vm.showRewardTypeData.name=="GameProviderReward"')
-                    include ./reward-event-type/GameProviderReward
-                div(ng-if='vm.showRewardTypeData.name=="FirstTopUp"')
-                    include ./reward-event-type/FirstTopUp
-                div(ng-if='vm.showRewardTypeData.name=="PlatformTransactionReward"')
-                    include ./reward-event-type/PlatformTransactionReward
-                div(ng-if='vm.showRewardTypeData.name=="PartnerConsumptionReturn"')
-                    include ./reward-event-type/PartnerConsumptionReturn
-                div(ng-if='vm.showRewardTypeData.name=="PartnerReferralReward"')
-                    include ./reward-event-type/PartnerReferralReward
-                div(ng-if='vm.showRewardTypeData.name=="PartnerIncentiveReward"')
-                    include ./reward-event-type/PartnerIncentiveReward
-                div(ng-if='vm.showRewardTypeData.name=="PartnerTopUpReturn"')
-                    include ./reward-event-type/PartnerTopUpReturn
-                div(ng-if='vm.showRewardTypeData.name=="PlayerTopUpReward"')
-                    include ./reward-event-type/PlayerTopUpReward
-                div(ng-if='vm.showRewardTypeData.name=="PlayerReferralReward"')
-                    include ./reward-event-type/PlayerReferralReward
-                div(ng-if='vm.showRewardTypeData.name=="PlayerRegistrationReward"')
-                    include ./reward-event-type/PlayerRegistrationReward
-                div(ng-if='vm.showRewardTypeData.name=="PlayerConsecutiveLoginReward"')
-                    include ./reward-event-type/PlayerConsecutiveLoginReward
-                div(ng-if='vm.showRewardTypeData.name=="PlayerEasterEggReward"')
-                    include ./reward-event-type/PlayerEasterEggReward
-                div(ng-if='vm.showRewardTypeData.name=="PlayerTopUpPromo"')
-                    include ./reward-event-type/PlayerTopUpPromo
-                div(ng-if='vm.showRewardTypeData.name=="PlayerConsecutiveConsumptionReward"')
-                    include ./reward-event-type/PlayerConsecutiveConsumptionReward
-                div(ng-if='vm.showRewardTypeData.name=="PlayerPacketRainReward"')
-                    include ./reward-event-type/PlayerPacketRainReward
-                div(ng-if='vm.showRewardTypeData.name=="PlayerLimitedOffersReward"')
-                    include ./reward-event-type/PlayerLimitedOffersReward
+                    div(ng-if='vm.showRewardTypeData.name=="FullAttendance"')
+                        include reward-event-type/FullAttendance
+                    div(ng-if='vm.showRewardTypeData.name=="PlayerConsumptionReturn"')
+                        include ./reward-event-type/PlayerConsumptionReturn
+                    div(ng-if='vm.showRewardTypeData.name=="PlayerConsumptionIncentive"')
+                        include ./reward-event-type/PlayerConsumptionIncentive
+                    div(ng-if='vm.showRewardTypeData.name=="PlayerDoubleTopUpReward"')
+                        include ./reward-event-type/PlayerDoubleTopUpReward
+                    div(ng-if='vm.showRewardTypeData.name=="PlayerTopUpReturn"')
+                        include ./reward-event-type/PlayerTopUpReturn
+                    div(ng-if='vm.showRewardTypeData.name=="GameProviderReward"')
+                        include ./reward-event-type/GameProviderReward
+                    div(ng-if='vm.showRewardTypeData.name=="FirstTopUp"')
+                        include ./reward-event-type/FirstTopUp
+                    div(ng-if='vm.showRewardTypeData.name=="PlatformTransactionReward"')
+                        include ./reward-event-type/PlatformTransactionReward
+                    div(ng-if='vm.showRewardTypeData.name=="PartnerConsumptionReturn"')
+                        include ./reward-event-type/PartnerConsumptionReturn
+                    div(ng-if='vm.showRewardTypeData.name=="PartnerReferralReward"')
+                        include ./reward-event-type/PartnerReferralReward
+                    div(ng-if='vm.showRewardTypeData.name=="PartnerIncentiveReward"')
+                        include ./reward-event-type/PartnerIncentiveReward
+                    div(ng-if='vm.showRewardTypeData.name=="PartnerTopUpReturn"')
+                        include ./reward-event-type/PartnerTopUpReturn
+                    div(ng-if='vm.showRewardTypeData.name=="PlayerTopUpReward"')
+                        include ./reward-event-type/PlayerTopUpReward
+                    div(ng-if='vm.showRewardTypeData.name=="PlayerReferralReward"')
+                        include ./reward-event-type/PlayerReferralReward
+                    div(ng-if='vm.showRewardTypeData.name=="PlayerRegistrationReward"')
+                        include ./reward-event-type/PlayerRegistrationReward
+                    div(ng-if='vm.showRewardTypeData.name=="PlayerConsecutiveLoginReward"')
+                        include ./reward-event-type/PlayerConsecutiveLoginReward
+                    div(ng-if='vm.showRewardTypeData.name=="PlayerEasterEggReward"')
+                        include ./reward-event-type/PlayerEasterEggReward
+                    div(ng-if='vm.showRewardTypeData.name=="PlayerTopUpPromo"')
+                        include ./reward-event-type/PlayerTopUpPromo
+                    div(ng-if='vm.showRewardTypeData.name=="PlayerConsecutiveConsumptionReward"')
+                        include ./reward-event-type/PlayerConsecutiveConsumptionReward
+                    div(ng-if='vm.showRewardTypeData.name=="PlayerPacketRainReward"')
+                        include ./reward-event-type/PlayerPacketRainReward
+                    div(ng-if='vm.showRewardTypeData.name=="PlayerLimitedOfferReward"')
+                        include ./reward-event-type/PlayerLimitedOffersReward
+
+                div#rewardMainTasks(ng-if='vm.showRewardTypeData.isGrouped === true')
+                    div(ng-repeat="(i,v) in vm.rewardMainCondition")
+                        .full-width-input-block(ng-hide="vm.rewardDisabledParam.indexOf(vm.rewardMainCondition[i].name) > -1")
+                            label.control-label {{v.des | translate}}
+                            input.form-control(ng-if="v.type == 'string' || v.type == 'checkbox'" type="{{v.type}}" ng-change="vm.changeRewardParamLayout(vm.rewardMainCondition[i]);" ng-model="vm.rewardMainCondition[i].value")
+                            select.form-control(ng-if="v.type == 'select'" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options" ng-change="vm.rewardSelectOnChange(vm.rewardMainCondition[i])")
+                            div.dateTimePicker(id="rewardMainTaskDate-{{i}}" style="display: inline-block" ng-if="v.type == 'date'")
+                            select.spicker.form-control(ng-if="v.type == 'multiSelect'"  ng-model="vm.rewardMainCondition[i].value" multiple, data-width='50%' data-actions-box='true' ng-change="vm.rewardSelectOnChange(vm.rewardMainCondition[i])")
+                                option(style="display: inline-block" ng-repeat='(i,v) in v.options', value='{{i}}' ng-init='$last && vm.endLoadWeekDay()') {{v}}
+
+                            div(style="width:50%;display: inline-block" ng-if="v.type == 'interval'")
+                                div(ng-if="vm.rewardMainCondition[i].value != 4")
+                                    select.form-control(style="width:50%;display: inline-block" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options")
+                                    input.form-control(style="width:50%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value1")
+                                div(ng-if="vm.rewardMainCondition[i].value == 4")
+                                    select.form-control(style="width:34%;display: inline-block" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options")
+                                    input.form-control(style="width:33%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value1")
+                                    input.form-control(style="width:33%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value2")
+
+
+                    .col-md-12.well.scrollRecord
+                        div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
+                            label {{v.des | translate}}
+                            input.form-control(ng-if="v.type == 'string' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="vm.rewardMainParam[i].value")
+                        table.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTable track by $index")
+                            thead
+                                th(ng-if="!vm.isPlayerLevelDiff")
+                                th(style="width:70px" ng-if="vm.isPlayerLevelDiff") {{vm.allPlayerLvl[$index].name}}
+                                th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
+                            tbody(ng-repeat="entry in cond.value track by $index")
+                                td
+                                    i.fa.fa-plus(ng-click='cond.value.push({})')
+                                td(ng-repeat="(i,v) in cond.header track by $index")
+                                    input(ng-if="v.type == 'string' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]")
+                                    span.percentage(ng-if="v.type == 'percentage'")
+                                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+
+
             .pull-right
                 //- Intuitive UI: The Delete Event button should probably be on the left, next to Add Event.  (Or it could be an X button next to the name of the currently selected event.)
                 //-               The Edit Event button could be a "pencil" icon in the top-right corner of the form.
                 button.common-button.btn.btn-danger(ng-if='vm.platformRewardShowEdit("DELETE") && checkViewPermission("Platform", "Reward", "Delete")', data-toggle="modal", data-target='#modalDeleteReward') {{'DELETE' | translate}}
                 button.common-button.btn.btn-warning(ng-if='vm.platformRewardShowEdit("CANCEL")', ng-click="vm.platformRewardPageName='showReward';vm.clearRewardFormData()") {{'CANCEL' | translate}}
                 button.common-button.btn.btn-info(ng-if='vm.platformRewardShowEdit("EDIT") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.platformRewardPageName='updateReward'") {{'EDIT' | translate}}
-                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("UPDATE") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.editReward()", ng-disabled="form_showReward.$invalid || !vm.showRewardFormValid") {{'UPDATE' | translate}}
-                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("CREATE") && checkViewPermission("Platform", "Reward", "Add")', ng-click="vm.submitReward()", ng-disabled="form_showReward.$invalid || !vm.showRewardFormValid") {{'CREATE' | translate}}
+                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("UPDATE") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.editReward()") {{'UPDATE' | translate}}
+                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("CREATE") && checkViewPermission("Platform", "Reward", "Add")', ng-click="vm.submitReward()") {{'CREATE' | translate}}
             .clearfix
 
 #modalDeleteReward.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')

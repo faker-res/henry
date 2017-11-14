@@ -12,6 +12,7 @@ var platformSchema = new Schema({
     code: {type: String, unique: true, required: true, dropDups: true, index: true},
     //platform prefix
     prefix: {type: String, default: ""},
+    icon: {type: String},
     //platform partner prefix
     partnerPrefix: {type: String, default: ""},
     //platform description
@@ -38,25 +39,28 @@ var platformSchema = new Schema({
     lastDailySettlementTime: {type: Date},
     //last weekly settlement time
     lastWeeklySettlementTime: {type: Date},
+    //CUSTOMER SERVICE INFO
     //email address used when sending emails to players
     csEmail: {type: String},
-    //Customer Service phone
+    csEmailImageUrl: {type: String},
     csPhone: {type: String},
-    //cs url
     csUrl: {type: String},
-    csWeixin: {type: String},
     csQQ: {type: String},
-    icon: {type: String},
+    csWeixin: {type: String},
+    weixinPhotoUrl: {type: String},
+    csSkype: {type: String},
+    csDisplayUrl: {type: String},
     //OFFICIAL_ACCOUNT_WEIXIN
     oaWeixin: {type: String},
-    //wechat photo
-    weixinPhotoUrl: {type: String},
-    //cs skype
-    csSkype: {type: String},
-    //partner cs contact
-    csPartnerQQ: {type: String},
+    //CUSTOMER SERVICE PARTNER INFO
     csPartnerEmail: {type: String},
+    csPartnerPhone: {type: String},
+    csPartnerUrl: {type: String},
+    csPartnerQQ: {type: String},
+    csPartnerWeixin: {type: String},
+    partnerWeixinPhotoUrl: {type: String},
     csPartnerSkype: {type: String},
+    csPartnerDisplayUrl: {type: String},
     //auto settlement
     canAutoSettlement: {type: Boolean, default: false},
     //invitation url for player from partner
@@ -77,8 +81,14 @@ var platformSchema = new Schema({
     requireSMSVerificationForPasswordUpdate: {type: Boolean, default: false},
     // SMS Verification Setting For Payment Update
     requireSMSVerificationForPaymentUpdate: {type: Boolean, default: false},
-    //allow same phone number to register
+    // SMS Verification Expired Time (in Minute)
+    smsVerificationExpireTime: {type: Number, default: 1440},
+    // allow same phone number to register
     allowSamePhoneNumberToRegister: {type: Boolean, default: true},
+    // same phone number to register count
+    samePhoneNumberRegisterCount: {type: Number, default: 1},
+    // white listing phone number
+    whiteListingPhoneNumbers: [{type:String}],
     // Auto approve bonus proposal platform switch
     enableAutoApplyBonus: {type: Boolean, default: false},
     // Auto approve single withdrawal limit
@@ -103,6 +113,12 @@ var platformSchema = new Schema({
     canMultiReward: {type: Boolean, default: false},
     // Auto check player level up
     autoCheckPlayerLevelUp: {type: Boolean, default: false},
+    // manual check player level up (perform by player)
+    manualPlayerLevelUp: {type: Boolean, default: false},
+    // player level up period (default 3 = monthly)
+    playerLevelUpPeriod: {type: Number, default: 3},
+    // player level down period (default 3 = monthly)
+    playerLevelDownPeriod: {type: Number, default: 3},
     // user login require captcha verfication
     requireLogInCaptcha: {type: Boolean, default: false},
     // user get SMS code with captcha
@@ -111,6 +127,8 @@ var platformSchema = new Schema({
     onlyNewCanLogin: {type: Boolean, default: false},
     //if use locked credit
     useLockedCredit: {type: Boolean, default: false},
+    // Use new type of provider group lock
+    useProviderGroup: {type: Boolean, default: false},
     // maximum length for player name included platform prefix
     playerNameMaxLength: {type: Number, default: 0},
     // minimum length for player name included platform prefix
@@ -152,6 +170,10 @@ var platformSchema = new Schema({
         // default score for credibility remark criteria
         credibilityScoreDefault: {type: Number, default: 5}
     },
+    consumptionTimeConfig: [{
+        duration: {type: Number},
+        color: {type: String},
+    }],
     jiguangAppKey: {type: String},
     jiguangMasterKey: {type: String},
     bonusSetting: {type: JSON,default:{}}

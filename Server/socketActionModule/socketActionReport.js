@@ -3,6 +3,7 @@ var dbProposal = require('./../db_modules/dbProposal');
 var utility = require('./../modules/encrypt');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+var dbPlayerFeedback = require('./../db_modules/dbPlayerFeedback');
 var dbRewardTask = require('./../db_modules/dbRewardTask');
 var dbLogger = require("./../modules/dbLogger");
 var dbGameProviderDaySummary = require('./../db_modules/dbGameProviderDaySummary');
@@ -17,6 +18,8 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbUtil = require('./../modules/dbutility');
 var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
+
+const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 
 function socketActionReport(socketIO, socket) {
 
@@ -240,6 +243,22 @@ function socketActionReport(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
+        getDXNewPlayerReport: function getDXNewPlayerReport(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.platformId && data.query.days);
+            let platformId = ObjectId(data.platformId);
+
+            socketUtil.emitter(self.socket, dbPlayerInfo.getDXNewPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        getFeedbackReport: function getFeedbackReport(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.platformId && data.query.days);
+            let platformId = ObjectId(data.platformId);
+
+            socketUtil.emitter(self.socket, dbPlayerFeedback.getPlayerFeedbackReportAdvance, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
         // getFullAttendanceProposalReport: function getFullAttendanceProposalReport(data) {
         //     var actionName = arguments.callee.name;
         //     var time = dbUtil.getYesterdaySGTime();
@@ -428,6 +447,23 @@ function socketActionReport(socketIO, socket) {
                 socketUtil.emitter(self.socket, dbPaymentReconciliation.getOnlinePaymentProposalMismatchReport, [ObjectId(data.platform), data.platformId, data.type, startTime, endTime], actionName, isValidData);
             }
 
+        },
+
+        getLimitedOfferReport: function getLimitedOfferReport(data) {
+            let actionName = arguments.callee.name;
+            let startTime = new Date(data.startTime);
+            let endTime = new Date(data.endTime);
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime && (endTime > startTime));
+
+            socketUtil.emitter(self.socket, dbPlayerReward.getLimitedOfferReport, [ObjectId(data.platformObjId), startTime, endTime, data.playerName, data.promoName], actionName, isValidData);
+        },
+
+        testPMSCashoutAPI: function testPMSCashoutAPI(data) {
+            let actionName = arguments.callee.name;
+            let startTime = new Date(data.startTime);
+            let endTime = new Date(data.endTime);
+            let isValidData = Boolean(data && data.platformId &&data.startTime && data.endTime && (endTime > startTime));
+            socketUtil.emitter(self.socket, dbPaymentReconciliation.testCashoutAPI, [data.platformId, startTime, endTime], actionName, isValidData);
         }
     };
     socketActionReport.actions = this.actions;

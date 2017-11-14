@@ -1,3 +1,9 @@
+'use strict';
+
+var dbPlayerRewardFunc = function () {
+};
+module.exports = new dbPlayerRewardFunc();
+
 const Q = require("q");
 const moment = require('moment-timezone');
 const mongoose = require('mongoose');
@@ -13,6 +19,7 @@ const constServerCode = require('../const/constServerCode');
 
 const dbPlayerUtil = require('../db_common/dbPlayerUtility');
 
+const dbGameProvider = require('../db_modules/dbGameProvider');
 const dbProposal = require('./../db_modules/dbProposal');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
 const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
@@ -110,7 +117,7 @@ let dbPlayerReward = {
      * @param {String} playerId
      * @param {String} code
      */
-    applyConsecutiveLoginReward: function (playerId, code, adminId, adminName, isPrevious) {
+    applyConsecutiveLoginReward: function (userAgent, playerId, code, adminId, adminName, isPrevious) {
         let platformId = null;
         let player = {};
         let todayTime = dbUtility.getTodaySGTime();
@@ -161,6 +168,7 @@ let dbPlayerReward = {
                                 });
                             }
                             let bProposal = false;
+                            player.inputDevice = dbUtility.getInputDevice(userAgent, false);
                             let proc = () => {
                                 queryTime = dateArr.pop();
                                 return processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo, isPrevious).then(
@@ -217,24 +225,25 @@ let dbPlayerReward = {
      */
     applyPlayerTopUpPromo: (topUpProposalData, type) => {
         type = type || 'online';
-        return new Promise(function (resolve) {
-            let rewardEventQuery = {
-                platform: topUpProposalData.data.platformId
-            };
+        let player;
 
+        return new Promise(function (resolve) {
             dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_TOP_UP_PROMO}).lean().then(
                 rewardTypeData => {
                     let rewardEventQuery = {
                         platform: topUpProposalData.data.platformId,
-                        type: rewardTypeData._id,
-                        validStartTime: {$lte: topUpProposalData.createTime},
-                        validEndTime: {$gte: topUpProposalData.createTime}
+                        type: rewardTypeData._id
                     };
 
-                    return dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
+                    let playerProm = dbConfig.collection_players.findOne({_id: topUpProposalData.data.playerObjId}).lean();
+                    let rewardEventProm = dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
+
+                    return Promise.all([rewardEventProm, playerProm]);
                 }
             ).then(
-                promoEvents => {
+                data => {
+                    let promoEvents = data[0];
+                    player = data[1];
                     if (!promoEvents || promoEvents.length <= 0) {
                         // there is no promotion event going on
                         return;
@@ -243,13 +252,19 @@ let dbPlayerReward = {
                     let promoEventDetail, promotionDetail;
                     for (let i = 0; i < promoEvents.length; i++) {
                         let promoEvent = promoEvents[i];
+
+                        if (dbPlayerReward.isRewardEventForbidden(player, promoEvent._id)) {
+                            // the player is not valid for this promotion
+                            continue;
+                        }
+
                         for (let j = 0; j < promoEvent.param.reward.length; j++) {
                             let promotion = promoEvent.param.reward[j];
 
                             switch (true) {
-                                case (type === 'online' && Number(promotion.topUpType) === Number(topUpProposalData.data.topupType)):
-                                case (type === 'weChat' && Number(promotion.topUpType) === 98):
-                                case (type === 'aliPay' && Number(promotion.topUpType) === 99):
+                                case (type === 'online' && Number(promotion.topUpType) == Number(topUpProposalData.data.topupType)):
+                                case (type === 'weChat' && Number(promotion.topUpType) == 98):
+                                case (type === 'aliPay' && Number(promotion.topUpType) == 99):
                                     promotionDetail = promotion;
                                     promoEventDetail = promoEvent;
                                     break;
@@ -268,34 +283,77 @@ let dbPlayerReward = {
 
                     if (!promotionDetail) {
                         // there is no relevant promotion
+                        console.error("applyPlayerTopUpPromo:there is no relevant promotion");
                         return;
                     }
 
-                    let rewardAmount = (Number(topUpProposalData.data.amount) * promotionDetail.rewardPercentage / 100);
+                    promotionDetail.rewardPercentage = promotionDetail.rewardPercentage || 0;
 
-                    let proposalData = {
-                        type: promoEventDetail.executeProposal,
+                    let rewardAmount = (Number(topUpProposalData.data.amount) * Number(promotionDetail.rewardPercentage) / 100);
+                    if (rewardAmount > 500) {
+                        rewardAmount = 500;
+                    }
 
-                        data: {
-                            playerObjId: topUpProposalData.data.playerObjId,
-                            playerId: topUpProposalData.data.playerId,
-                            playerName: topUpProposalData.data.playerName,
-                            platformId: topUpProposalData.data.platformId,
-                            platform: topUpProposalData.data.platform,
-                            rewardAmount: rewardAmount,
-                            spendingAmount: 0,
-                            applyAmount: 0,
-                            amount: rewardAmount,
-                            eventId: promoEventDetail._id,
-                            eventName: promoEventDetail.name,
-                            eventCode: promoEventDetail.code,
-                            eventDescription: promoEventDetail.description
+                    let todaySGTime = dbUtility.getTodaySGTime();
+                    return dbConfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                type: promoEventDetail.executeProposal,
+                                "data.eventCode": promoEventDetail.code,
+                                "data.playerObjId": topUpProposalData.data.playerObjId,
+                                createTime: {
+                                    $gte: todaySGTime.startTime,
+                                    $lt: todaySGTime.endTime
+                                }
+                            }
                         },
-                        entryType: constProposalEntryType.SYSTEM,
-                        userType: constProposalUserType.PLAYERS
-                    };
+                        {
+                            $group: {
+                                _id: {type: "$type"},
+                                amount: {$sum: "$data.rewardAmount"}
+                            }
+                        }
+                    ).then(
+                        summaryData => {
+                            if (summaryData && summaryData[0] && summaryData[0].amount >= 500) {
+                                Q.reject({
+                                    status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                                    name: "DataError",
+                                    message: "Cant apply this reward, contact cs"
+                                });
+                            }
+                            else {
+                                if (summaryData && summaryData[0] && (rewardAmount + summaryData[0].amount) > 500) {
+                                    rewardAmount = Math.max(0, 500 - summaryData[0].amount);
+                                }
 
-                    return dbProposal.createProposalWithTypeId(promoEventDetail.executeProposal, proposalData);
+                                let proposalData = {
+                                    type: promoEventDetail.executeProposal,
+
+                                    data: {
+                                        playerObjId: topUpProposalData.data.playerObjId,
+                                        playerId: topUpProposalData.data.playerId,
+                                        playerName: topUpProposalData.data.playerName,
+                                        platformId: topUpProposalData.data.platformId,
+                                        platform: topUpProposalData.data.platform,
+                                        rewardAmount: rewardAmount,
+                                        spendingAmount: rewardAmount * 20, //10 times spending amount
+                                        applyAmount: 0,
+                                        // amount: rewardAmount,
+                                        eventId: promoEventDetail._id,
+                                        eventName: promoEventDetail.name,
+                                        eventCode: promoEventDetail.code,
+                                        eventDescription: promoEventDetail.description
+                                    },
+                                    entryType: constProposalEntryType.SYSTEM,
+                                    userType: constProposalUserType.PLAYERS
+                                };
+
+                                return dbProposal.createProposalWithTypeId(promoEventDetail.executeProposal, proposalData);
+                            }
+                        }
+                    );
+
                 }
             ).then(
                 proposalData => {
@@ -303,6 +361,8 @@ let dbPlayerReward = {
                 }
             ).catch(
                 error => {
+                    //add debug log
+                    console.error("applyPlayerTopUpPromo:", error);
                     resolve(error);
                 }
             );
@@ -497,72 +557,76 @@ let dbPlayerReward = {
         );
     },
 
-    applyConsecutiveConsumptionReward:
-        (playerObjId, consumptionAmount, eventData, adminInfo) => {
-            let playerObj = {};
-            let rewardParam = null;
-            let rewardAmount = 0;
-            let yerTime = dbUtility.getYesterdayConsumptionReturnSGTime();
+    applyConsecutiveConsumptionReward: (playerObjId, consumptionAmount, eventData, adminInfo) => {
+        let playerObj = {};
+        let rewardParam = null;
+        let rewardAmount = 0;
+        let yerTime = dbUtility.getYesterdayConsumptionReturnSGTime();
 
-            return dbConfig.collection_players.findOne({
-                _id: playerObjId,
-                isNewSystem: true
-            }).populate(
-                {path: "platform", model: dbConfig.collection_platform}
-            ).then(
-                playerData => {
-                    if (playerData && playerData.platform && playerData.permission.playerConsecutiveConsumptionReward) {
-                        playerObj = playerData;
-                        eventData.param.reward.forEach(
-                            reward => {
-                                if (consumptionAmount >= reward.minConsumptionAmount) {
-                                    rewardParam = reward;
-                                    rewardAmount = reward.rewardAmount;
-                                }
+        return dbConfig.collection_players.findOne({
+            _id: playerObjId
+            // isNewSystem: true
+        }).populate(
+            {path: "platform", model: dbConfig.collection_platform}
+        ).then(
+            playerData => {
+                if (playerData && playerData.platform && playerData.permission.playerConsecutiveConsumptionReward) {
+                    playerObj = playerData;
+
+                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerObj, eventData._id);
+
+                    if (playerIsForbiddenForThisReward) return;
+
+                    eventData.param.reward.forEach(
+                        reward => {
+                            if (consumptionAmount >= reward.minConsumptionAmount) {
+                                rewardParam = reward;
+                                rewardAmount = reward.rewardAmount;
                             }
-                        );
-
-                        if (rewardParam && rewardAmount) {
-                            // create reward proposal
-                            let proposalData = {
-                                type: eventData.executeProposal,
-                                creator: adminInfo ? adminInfo :
-                                    {
-                                        type: 'player',
-                                        name: playerObj.name,
-                                        id: playerObj.playerId
-                                    },
-                                data: {
-                                    playerObjId: playerObj._id,
-                                    playerId: playerObj.playerId,
-                                    playerName: playerObj.name,
-                                    realName: playerObj.realName,
-                                    platformObjId: playerObj.platform._id,
-                                    rewardAmount: rewardAmount,
-                                    spendingAmount: rewardAmount * Number(rewardParam.spendingTimes),
-                                    applyAmount: 0,
-                                    consumptionAmount: consumptionAmount,
-                                    amount: rewardAmount,
-                                    settlementStartTime: yerTime.startTime,
-                                    settlementEndTime: yerTime.endTime,
-                                    eventId: eventData._id,
-                                    eventName: eventData.name,
-                                    eventCode: eventData.code,
-                                    eventDescription: eventData.description,
-                                    providers: eventData.param.providers,
-                                    useConsumption: eventData.param.useConsumption,
-                                    useLockedCredit: Boolean(playerObj.platform.useLockedCredit)
-                                },
-                                entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-                                userType: constProposalUserType.PLAYERS
-                            };
-
-                            return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
                         }
+                    );
+
+                    if (rewardParam && rewardAmount) {
+                        // create reward proposal
+                        let proposalData = {
+                            type: eventData.executeProposal,
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerObj.playerId
+                                },
+                            data: {
+                                playerObjId: playerObj._id,
+                                playerId: playerObj.playerId,
+                                playerName: playerObj.name,
+                                realName: playerObj.realName,
+                                platformObjId: playerObj.platform._id,
+                                rewardAmount: rewardAmount,
+                                spendingAmount: rewardAmount * Number(rewardParam.spendingTimes),
+                                applyAmount: 0,
+                                consumptionAmount: consumptionAmount,
+                                // amount: rewardAmount,
+                                settlementStartTime: yerTime.startTime,
+                                settlementEndTime: yerTime.endTime,
+                                eventId: eventData._id,
+                                eventName: eventData.name,
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description,
+                                providers: eventData.param.providers,
+                                useConsumption: eventData.param.useConsumption,
+                                useLockedCredit: Boolean(playerObj.platform.useLockedCredit)
+                            },
+                            entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                            userType: constProposalUserType.PLAYERS
+                        };
+
+                        return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
                     }
                 }
-            );
-        },
+            }
+        );
+    },
 
     applyPacketRainReward: (playerId, code, adminInfo) => {
         let playerObj = {};
@@ -671,6 +735,12 @@ let dbPlayerReward = {
                 // Check if player has take more than allowed packet today
                 if (eventData && eventData.param && eventData.param.reward
                     && eventData.param.dailyApplyLimit && todayPacketCount < eventData.param.dailyApplyLimit) {
+
+                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerObj, eventData._id);
+
+                    if (playerIsForbiddenForThisReward)
+                        deferred.reject({name: "DataError", message: "Player is forbidden for this reward."});
+
                     //calculate player reward amount
                     let rewardAmount = 0;
                     let totalProbability = 0;
@@ -779,7 +849,10 @@ let dbPlayerReward = {
                     let playerData = data[3];
                     let rewardTypeData = data[4];
 
-                    return dbConfig.collection_rewardEvent.find({type: rewardTypeData._id, platform: playerData.platform}).sort({_id: -1}).limit(1).lean();
+                    return dbConfig.collection_rewardEvent.find({
+                        type: rewardTypeData._id,
+                        platform: playerData.platform
+                    }).sort({_id: -1}).limit(1).lean();
                 }
             ).then(
                 rewardEventData => {
@@ -823,39 +896,152 @@ let dbPlayerReward = {
         });
     },
     getPromoCode: (playerId, platformId, status) => {
-      let platformData = null;
-      return dbConfig.collection_platform.findOne({platformId: platformId}).exec()
-      .then(
-          platformRecord=>{
-            if(platformRecord){
-              platformData = platformRecord;
-              return dbConfig.collection_players.findOne({
-                  playerId: playerId,
-                  platform: ObjectId(platformRecord._id)
-              })
-            }else{
-              return Q.reject({name: "DataError", message: "Player Not Found"});
-            }
-       })
-       .then(
-         playerRecord=>{
-           if(playerRecord && playerRecord._id){
-               var query = {
-                   playerObjId:playerRecord._id,
-                   platformObjId:platformData._id
-               }
-               if(status){
-                   query.status = status;
-               }
-               return dbConfig.collection_promoCode.find(query)
-                 .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
-                 .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean();
-           }else{
-             return Q.reject({name: "DataError", message: "Platform Not Found"});
-           }
-         }
-       )
+        let platformData = null;
+        var playerData = null;
+        var promoListData = null;
+        return dbConfig.collection_platform.findOne({platformId: platformId}).exec()
+            .then(
+                platformRecord => {
+                    if (platformRecord) {
+                        platformData = platformRecord;
+                        return dbConfig.collection_players.findOne({
+                            playerId: playerId,
+                            platform: ObjectId(platformRecord._id)
+                        })
+                    } else {
+                        return Q.reject({name: "DataError", message: "Player Not Found"});
+                    }
+                })
+            .then(
+                playerRecord => {
+                    // get the  ExtraBonusInfor state of the player: enable or disable the msg showing
+                    if (playerRecord && playerRecord._id) {
+                        let showInfoState;
+                        if (playerRecord.viewInfo) {
+                            showInfoState = (playerRecord.viewInfo.showInfoState) ? 1 : 0;
+                        } else {
+                            showInfoState = 1;
+                        }
 
+                        var query = {
+                            "playerObjId": playerRecord._id,
+                            "platformObjId": platformData._id
+                        }
+                        if (status) {
+                            query.status = status;
+                        }
+                        playerData = playerRecord;
+
+                        return dbConfig.collection_promoCode.find(query)
+                            .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
+                            .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean()
+                            .then(
+                                promocodes => {
+                                    let usedListArr = [];
+                                    let noUseListArr = [];
+                                    let expiredListArr = [];
+                                    let bonusListArr = [];
+
+                                    promocodes.forEach(promocode => {
+                                        let providers = [];
+                                        let status = promocode.status;
+                                        let condition = promoCondition(promocode);
+                                        let title = getPromoTitle(promocode);
+
+                                        promocode.allowedProviders.forEach(provider => {
+                                            providers.push(provider.name);
+                                        })
+
+                                        let promo = {
+                                            "title": title,
+                                            "validBet": promocode.requiredConsumption,
+                                            "games": providers,
+                                            "condition": condition,
+                                            "expireTime": promocode.expirationTime,
+                                            "bonusCode": promocode.code,
+                                            "tag": promocode.bannerText,
+                                        }
+                                        if (promocode.maxTopUpAmount) {
+                                            promo.bonusLimit = promocode.maxTopUpAmount;
+                                        }
+                                        if (status == "1") {
+                                            noUseListArr.push(promo);
+                                        } else if (status == "2") {
+                                            promo.bonusUrl = playerData.name;
+                                            usedListArr.push(promo);
+                                        } else if (status == "3") {
+                                            expiredListArr.push(promo);
+                                        } else if (status == "4") {
+                                            bonusListArr.push(promo);
+                                        }
+                                    });
+                                    let result = {
+                                        "showInfo": showInfoState,
+                                        "usedList": usedListArr,
+                                        "noUseList": noUseListArr,
+                                        "expiredList": expiredListArr,
+                                        "bonusList": bonusListArr
+                                    }
+                                    return result;
+                                });
+                    } else {
+                        return Q.reject({name: "DataError", message: "Platform Not Found"});
+                    }
+                }
+            )
+            .then(
+                promoList => {
+                    promoListData = promoList
+                    if (promoList) {
+                        return dbConfig.collection_proposalType.findOne({
+                            platformId: ObjectId(platformData._id),
+                            name: constProposalType.PLAYER_PROMO_CODE_REWARD
+                        }).lean()
+                            .then(
+                                proposalType => {
+                                    var queryObj = {
+                                        "data.platformId": ObjectId(platformData._id),
+                                        "type": Object(proposalType._id),
+                                        "status": {$in: ["Success", "Approved"]},
+                                        "settleTime": {
+                                            '$gte': moment().subtract(4, 'hours'),
+                                            '$lte': new Date()
+                                        }
+                                    };
+                                    return dbConfig.collection_proposal.find(queryObj).populate(
+                                        {
+                                            path: "type",
+                                            model: dbConfig.collection_proposalType
+                                        }).sort({"createTime": -1}).limit(10).lean()
+
+                                }
+                            )
+                    } else {
+                        return Q.reject({name: "DataError", message: "Platform Not Found"});
+                    }
+                }
+            )
+            .then(
+                proposalData => {
+                    let approvedProposal = [];
+                    let result = promoListData;
+                    proposalData.forEach(
+                        proposal => {
+                            let bonus = proposal.data.rewardAmount - proposal.data.applyAmount;
+                            let accountNo = dbUtility.encodeBankAcc(proposal.data.playerName);
+                            let record = {
+                                "accountNo": accountNo,
+                                "bonus": bonus,
+                                "time": proposal.settleTime
+                            }
+                            approvedProposal.push(record);
+                        }
+                    )
+
+                    result.bonusList = approvedProposal;
+                    return result;
+                }
+            )
     },
 
     getPromoCodesHistory: (searchQuery) => {
@@ -963,10 +1149,17 @@ let dbPlayerReward = {
             if (data && data.length > 0) {
                 data.map(grp => {
                     grp.platformObjId = platformObjId;
+
+                    let saveObj = {
+                        platformObjId: grp.platformObjId,
+                        name: grp.name,
+                        color: grp.color,
+                        playerNames: grp.playerNames || []
+                    };
+
                     saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
-                        platformObjId: platformObjId,
                         name: grp.name
-                    }, grp, {upsert: true}));
+                    }, saveObj, {upsert: true}));
                 });
             }
         }
@@ -974,22 +1167,33 @@ let dbPlayerReward = {
         return Promise.all(saveArr);
     },
 
-    getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
+    saveDelayDurationGroup: (platformObjId, data) => {
+        let saveObj = {consumptionTimeConfig: data};
 
-    applyPromoCode: (platformObjId, playerName, promoCode, adminInfo) => {
+        return dbConfig.collection_platform.findOneAndUpdate({
+            _id: platformObjId
+        }, saveObj);
+
+    },
+
+    getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
+    getDelayDurationGroup: (platformObjId, duration) => dbConfig.collection_platform.find({_id: platformObjId}).lean(),
+
+    applyPromoCode: (playerId, promoCode, adminInfo) => {
         let promoCodeObj, playerObj, topUpProp;
         let isType2Promo = false;
+        let platformObjId = '';
 
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
-                platform: platformObjId,
-                name: playerName
+                playerId: playerId
             })
         }).then(
             playerData => {
                 playerObj = playerData;
+                platformObjId = playerObj.platform
                 return dbConfig.collection_promoCode.find({
-                    platformObjId: platformObjId,
+                    platformObjId: playerData.platform,
                     playerObjId: playerObj._id,
                     status: constPromoCodeStatus.AVAILABLE
                 }).populate({
@@ -1079,7 +1283,7 @@ let dbPlayerReward = {
                         });
                 } else {
                     return Q.reject({
-                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        status: constServerCode.PLAYER_NOT_MINTOPUP,
                         name: "ConditionError",
                         message: "您需要有新的存款 '" + promoCodeObj.minTopUpAmount + "元' 才可以领取此优惠，千万别错过了！"
                     })
@@ -1335,48 +1539,207 @@ let dbPlayerReward = {
         })
     },
 
-    getLimitedOffers: (platformId) => {
+    getLimitedOffers: (platformId, playerId, status) => {
         let platformObj;
+        let intPropTypeObj;
+        let timeSet;
+        let rewards;
+        let playerObj;
 
         return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
-                platformObj = platformData;
-                return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFERS_REWARD}).lean();
+                if (platformData) {
+                    platformObj = platformData;
+
+                    let rewardTypeProm = dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFERS_REWARD}).lean();
+                    let intentionTypeProm = dbConfig.collection_proposalType.findOne({
+                        platformId: platformObj._id,
+                        name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+                    }).lean();
+                    let playerProm = dbConfig.collection_players.findOne({
+                        playerId: playerId
+                    }).lean();
+
+                    return Promise.all([rewardTypeProm, intentionTypeProm, playerProm]);
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Platform Not Found"});
+                }
             }
         ).then(
-            rewardTypeData => {
-                let rewardEventQuery = {
-                    platform: platformObj._id,
-                    type: rewardTypeData._id
-                };
+            res => {
+                let rewardTypeData = res[0];
+                intPropTypeObj = res[1];
+                playerObj = res[2];
 
-                return dbConfig.collection_rewardEvent.findOne(rewardEventQuery).lean();
+                if (rewardTypeData) {
+                    let rewardEventQuery = {
+                        platform: platformObj._id,
+                        type: rewardTypeData._id
+                    };
+
+                    return dbConfig.collection_rewardEvent.findOne(rewardEventQuery).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Reward Type Not Found"});
+                }
             }
-        ).then(eventData => eventData.param.reward);
+        ).then(
+            eventData => {
+                if (eventData) {
+                    rewards = eventData.param.reward;
+                    timeSet = new Set();
+                    let promArr = [];
+
+                    rewards.map(e => {
+                        let status = 0;
+                        timeSet.add(String(e.hrs + ":" + e.min));
+
+                        e.startTime = moment().set({hour: e.hrs, minute: e.min, second: 0});
+                        e.upTime = moment(e.startTime).subtract(e.inStockDisplayTime, 'minute');
+                        e.downTime = moment(e.startTime).add(e.outStockDisplayTime, 'minute');
+
+                        if (new Date().getTime() >= dbUtility.getLocalTime(e.startTime).getTime()
+                            && new Date().getTime() < dbUtility.getLocalTime(e.downTime).getTime()) {
+                            status = 1;
+                        }
+
+                        promArr.push(
+                            dbConfig.collection_proposal.aggregate({
+                                $match: {
+                                    'data.platformObjId': platformObj._id,
+                                    'data.limitedOfferObjId': e._id,
+                                    type: intPropTypeObj._id
+                                }
+                            }, {
+                                $project: {
+                                    "data.playerId": 1,
+                                    paidCount: {$cond: [{$not: ['$data.topUpProposalId']}, 0, 1]}
+                                }
+                            }, {
+                                $group: {
+                                    _id: "$data.playerId",
+                                    count: {$sum: 1},
+                                    paidCount: {$sum: "$paidCount"}
+                                }
+                            }).then(
+                                summ => {
+                                    if (playerId) {
+                                        let totalPromoCount = 0;
+
+                                        summ.map(f => {
+                                            if (String(f._id) == String(playerId)) {
+                                                status = 2;
+
+                                                if (f.paidCount > 0) {
+                                                    status = 3;
+                                                }
+                                            }
+
+                                            totalPromoCount += f.count;
+                                        });
+
+                                        if (totalPromoCount >= e.limitTime) {
+                                            status = 4;
+                                        }
+
+                                        if (status == 2 && new Date().getTime() > dbUtility.getLocalTime(e.downTime).getTime()) {
+                                            status = 5;
+                                        }
+                                    }
+
+                                    e.status = status;
+
+                                    if (status == 2) {
+                                        return dbConfig.collection_proposal.findOne({
+                                            'data.platformObjId': platformObj._id,
+                                            'data.limitedOfferObjId': e._id,
+                                            type: intPropTypeObj._id,
+                                            'data.playerId': playerId
+                                        }).lean();
+                                    }
+                                }
+                            ).then(
+                                intProp => {
+                                    if (intProp) {
+                                        e.expirationTime = new Date(dbUtility.getLocalTime(intProp.data.expirationTime));
+                                    }
+                                }
+                            )
+                        );
+
+                        if (e.providers && e.providers.length > 0) {
+                            let providerIds = e.providers;
+
+                            promArr.push(
+                                dbGameProvider.getGameProviders({_id: {$in: providerIds}}).then(providerObjs => {
+                                    e.providers = providerObjs.map(g => g.name);
+                                })
+                            )
+                        }
+                    });
+
+                    return Promise.all(promArr);
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Event Data Not Found"});
+                }
+            }
+        ).then(
+            offerSumm => {
+                // Filter by status if any
+                rewards = rewards.filter(e => (!status || status == e.status)
+                    && new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()
+                    && new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime());
+
+
+                rewards.map(e => {
+                    // Get time left when count down to start time
+                    if (e.status == 0) {
+                        e.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(e.startTime).getTime()) / 1000));
+                    }
+
+                    // Get time left till expire
+                    // set expiry status if no payment is made
+                    if (e.status == 2) {
+                        if (new Date(e.expirationTime).getTime() >= (new Date().getTime())) {
+                            e.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(e.expirationTime).getTime()) / 1000));
+                        }
+                        else {
+                            e.status = 5;
+                        }
+                    }
+
+                    // Interpret providers
+                    e.providers = e.providers && e.providers.length > 0 ? [...e.providers].join(",") : "所有平台"
+                });
+
+                return {
+                    time: [...timeSet].join("/"),
+                    showInfo: playerObj && playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
+                    secretList: rewards.filter(e => Boolean(e.displayOriPrice) === false),
+                    normalList: rewards.filter(e => Boolean(e.displayOriPrice) === true)
+                }
+            }
+        );
     },
 
-    applyLimitedOffers: (platformId, playerName, limitedOfferObjId, adminInfo) => {
+    applyLimitedOffers: (playerId, limitedOfferObjId, adminInfo) => {
         let playerObj;
         let limitedOfferObj;
         let platformObj;
         let eventObj;
         let proposalTypeObj;
 
-        return dbConfig.collection_platform.findOne({
-            platformId: platformId
+        return dbConfig.collection_players.findOne({
+            playerId: playerId
+        }).populate({
+            path: "platform", model: dbConfig.collection_platform
         }).lean().then(
-            platformData => {
-                platformObj = platformData;
-
-                return dbConfig.collection_players.findOne({
-                    platform: platformObj._id,
-                    name: playerName
-                }).lean();
-            }
-        ).then(
             playerData => {
                 if (playerData) {
                     playerObj = playerData;
+                    platformObj = playerData.platform;
 
                     //check if player is valid for reward
                     if (playerObj.permission.PlayerLimitedOfferReward === false) {
@@ -1408,6 +1771,10 @@ let dbPlayerReward = {
                         if (String(f._id) == String(limitedOfferObjId)) {
                             eventObj = e;
                             limitedOfferObj = f;
+
+                            if (dbPlayerReward.isRewardEventForbidden(playerObj, eventObj._id)) {
+                                return Q.reject({name: "DataError", message: "Player is forbidden for this reward."});
+                            }
                         }
                     })
                 });
@@ -1494,6 +1861,102 @@ let dbPlayerReward = {
                 return dbProposal.createProposalWithTypeId(proposalTypeObj._id, proposalData);
             }
         )
+    },
+
+    getLimitedOfferReport: (platformObjId, startTime, endTime, playerName, promoName) => {
+        return dbConfig.collection_proposalType.findOne({
+            platformId: platformObjId,
+            name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+        }).lean().then(
+            propType => {
+                let matchQ = {
+                    "data.platformObjId": platformObjId,
+                    type: propType._id,
+                    createTime: {$gte: startTime, $lt: endTime}
+                };
+
+                if (playerName) {
+                    matchQ['data.playerName'] = playerName;
+                }
+
+                if (promoName) {
+                    matchQ['data.limitedOfferName'] = promoName;
+                }
+
+                return dbConfig.collection_proposal.find(matchQ).lean();
+            }
+        ).then(
+            intProps => intProps
+        )
+    },
+
+    isRewardEventForbidden: function (playerData, eventId) {
+        eventId = eventId ? eventId.toString() : "";
+        // return playerData.forbidRewardEvents.indexOf()
+        let forbiddenEvents = playerData.forbidRewardEvents || [];
+        for (let i = 0, len = forbiddenEvents.length; i < len; i++) {
+            let forbiddenEventId = forbiddenEvents[i].toString();
+            if (forbiddenEventId === eventId) return true;
+        }
+        return false;
+    },
+
+    getLimitedOfferBonus: (platformId) => {
+        let platformObj;
+        let intPropTypeObj;
+
+        return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+
+                    return dbConfig.collection_proposalType.findOne({
+                        platformId: platformObj._id,
+                        name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+                    }).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Platform Not Found"});
+                }
+            }
+        ).then(
+            res => {
+                intPropTypeObj = res;
+
+                let startTime = moment().subtract(4, "hours");
+
+                return dbConfig.collection_proposal.find({
+                    'data.platformObjId': platformObj._id,
+                    type: intPropTypeObj._id,
+                    createTime: {$gte: startTime},
+                    'data.topUpProposalId': {$exists: true}
+                }).lean();
+            }
+        ).then(
+            res => {
+                return res.map(e => {
+                    return {
+                        accountNo: e.data.playerName,
+                        bonus: e.data.applyAmount + e.data.rewardAmount,
+                        time: e.createTime
+                    }
+                })
+            }
+        )
+
+
+    },
+    updatePromoCodesActive: (platformObjId, data) => {
+        return dbConfig.collection_promoCode.update({
+            platformObjId: platformObjId,
+            createTime: {$gte: new Date(data.startCreateTime), $lt: new Date(data.endCreateTime)}
+        }, {
+            $set: {
+                isActive: data.flag
+            }
+        }, {
+            multi: true
+        }).exec();
     }
 };
 
@@ -1643,6 +2106,7 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
+                        inputDevice: playerData.inputDevice
                     };
 
                     if (isPrevious) {
@@ -1682,6 +2146,7 @@ function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo) {
     );
 }
 
+
 /**
  * Expire promo code in all platforms pass expirationTime
  */
@@ -1696,5 +2161,35 @@ function expirePromoCode() {
     });
 }
 
+function promoCondition(promo) {
+    let proMsg = ''
+    if (promo.minTopUpAmount) {
+        proMsg += "有新存款<span class=\"c_color\">(" + promo.minTopUpAmount + "以上)" + "</span>";
+    }
+    if (promo.maxTopUpAmount) {
+        proMsg += ", 存款上限<span class=\"c_color\">(" + promo.maxTopUpAmount + ")" + "</span>";
+    }
+    if (promo.disableWithdraw) {
+        proMsg += ' 且尚未投注';
+    }
+    if (!promo.minTopUpAmount && !promo.disableWithdraw) {
+        proMsg += '无';
+    }
+    return proMsg;
+}
 
+function getPromoTitle(promo) {
+    let promoTitle = '';
+    if (promo.promoCodeTypeObjId.type == 3) {
+        promoTitle = promo.amount + '%';
+    } else {
+        promoTitle = promo.amount + '元';
+    }
+    return promoTitle;
+}
+
+var proto = dbPlayerRewardFunc.prototype;
+proto = Object.assign(proto, dbPlayerReward);
+
+// This make WebStorm navigation work
 module.exports = dbPlayerReward;
