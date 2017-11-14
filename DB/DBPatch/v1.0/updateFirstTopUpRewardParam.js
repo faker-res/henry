@@ -430,7 +430,7 @@ var consumptionCond = {
     // Is consumption shared with XIMA
     isSharedWithXIMA: {index: 40, type: "checkbox", des: "Consumption can be shared with XIMA"},
     // Provider group binded with this reward
-    providerGroup: {index: 41, type: "multiSelect", des: "Provider group", options: "gameProviders"},
+    providerGroup: {index: 41, type: "multiSelect", des: "Provider group"},
 };
 
 var consumptionProviderCond = {
