@@ -525,7 +525,7 @@ db.rewardParam.update({
         param: {
             tblOptFixed: {
                 rewardParam: {
-                    requiredTopUpAmount: {type: "number", des: "Required top up amounnt"},
+                    requiredTopUpAmount: {type: "number", des: "Required top up amount"},
                     operatorOption: {type: "checkbox", des: "Required both"},
                     requiredConsumptionAmount: {type: "number", des: "Required consumption amount"},
                     rewardAmount: {type: "number", des: "Reward amount"},
@@ -573,37 +573,32 @@ db.rewardParam.update({
         },
         param: {
             tblOptFixed: {
-                playerLvl: "",
-                isMultiStepReward: "",
-                isSteppingReward: {type: "checkbox", des: "Reward step needed"},
-                countInRewardInterval: {type: "number", des: "Reward limit in interval"},
                 rewardParam: {
-                    rewardLvl: "",
-                    minTopUpAmount: "",
-                    rewardAmount: "",
-                    spendingTimes: "",
-                    forbidWithdrawAfterApply: "",
-                    forbidWithdrawIfBalanceAfterUnlock: "",
-                    remark: ""
+                    minTopUpAmount: {type: "number", des: "Minimum top up amount"},
+                    rewardAmount: {type: "number", des: "Reward amount"},
+                    spendingTimes: {type: "number", des: "Spending times"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "checkbox",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "string", des: "Remark"},
                 }
             },
-            tblOptDynamic: {
-                playerLvl: "",
-                isMultiStepReward: "",
-                isSteppingReward: "",
-                countInRewardInterval: "",
-                dailyMaxRewardAmount: {type: "number", des: "Daily Reward Limit"},
-                rewardParam: {
-                    rewardLvl: "",
-                    minTopUpAmount: "",
-                    rewardPercentage: "",
-                    maxRewardInSingleTopUp: "",
-                    spendingTimes: "",
-                    forbidWithdrawAfterApply: "",
-                    forbidWithdrawIfBalanceAfterUnlock: "",
-                    remark: ""
-                }
-            }
+            // tblOptDynamic: {
+            //     rewardParam: {
+            //         minTopUpAmount: {type: "number", des: "Minimum top up amount"},
+            //         rewardPercentage: {type: "percentage", des: "Reward percentage"},
+            //         maxRewardInSingleTopUp: {type: "number", des: "Max reward in single top up"},
+            //         spendingTimes: {type: "number", des: "Spending times"},
+            //         forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+            //         forbidWithdrawIfBalanceAfterUnlock: {
+            //             type: "checkbox",
+            //             des: "Forbid withdraw if there is balance after unlock"
+            //         },
+            //         remark: {type: "string", des: "Remark"},
+            //     }
+            // }
         }
     }
 }, {
