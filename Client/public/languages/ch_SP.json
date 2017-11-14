@@ -2386,7 +2386,7 @@
   "Invalid proposal": "无效提案",
   "Realname already exists": "开户姓名已经存在，请联系客服，谢谢。",
   "Game is not available on platform": "游戏在维护中",
-  "This reward event is not valid anymore": "该奖励活动已过期",
+  "This reward event is not valid anymore": "活动未开始，敬请期待",
   "Password is too short": "密码长度不够",
   "Player has pending proposal to update credit": "正在修改玩家额度",
   "Player or partner already has a pending proposal for this type": "有类似请求正在处理中",
