@@ -5472,8 +5472,7 @@ let dbPlayerInfo = {
             }
         );
     },
-
-
+    
     // TODO:
     // Now that we have level down processing, we will need to check player level as part of schedule, but checking every player would be very inefficient!
     // In fact we only need to:
@@ -5572,9 +5571,6 @@ let dbPlayerInfo = {
         if (!playerId){
             return Q.reject ({name: "DataError", message: "Can not find the player"})
         }
-
-
-
         return dbconfig.collection_players.findOne({playerId: playerId}).lean()
           .then( playerObj => {
               let platformId= playerObj.platform;
@@ -5600,12 +5596,7 @@ let dbPlayerInfo = {
                       return Q.reject({name: "DataError", message: "Data not found"});
                   }
               );
-
-
           });
-
-
-
     },
 
     /**
