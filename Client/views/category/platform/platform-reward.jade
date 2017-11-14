@@ -126,6 +126,14 @@
                                     select.form-control(style="width:34%;display: inline-block" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options")
                                     input.form-control(style="width:33%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value1")
                                     input.form-control(style="width:33%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value2")
+
+                            div(style="width:50%;display: inline-block" ng-if="v.type == 'chain'")
+                                div(ng-if="!v.chainOptions")
+                                    select.form-control( ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options")
+                                div(ng-if="v.chainOptions")
+                                    select.spicker.form-control(ng-if="v.chainType == 'multiSelect' && v.chainOptions.indexOf(vm.rewardMainCondition[v.chainKey].value) > -1"
+                                    ng-model="vm.rewardMainCondition[i].value" multiple, data-width='50%' data-actions-box='true')
+                                        option(style="display: inline-block" ng-repeat='(i,v) in v.options', value='{{i}}' ng-init='$last && vm.endLoadWeekDay()') {{v}}
             .pull-right
                 //- Intuitive UI: The Delete Event button should probably be on the left, next to Add Event.  (Or it could be an X button next to the name of the currently selected event.)
                 //-               The Edit Event button could be a "pencil" icon in the top-right corner of the form.

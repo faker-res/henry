@@ -398,6 +398,15 @@ var periodCond = {
     // Top up count between interval check type
     topUpCountType: {index: 21, type: "interval", des: "Top up count between interval type", options: "intervalType"}
 };
+/*
+chainOptions: a value to enable next element
+ */
+var loseValueCond = {
+    // Chain condition head
+    defineLoseValue: {index: 102, type: "chain", chainType:"select", des: "Define Lose Value", options: "loseValueType"},
+    // Chain condition child
+    consumptionRecordProvider: {index: 102.1, type: "chain", chainKey:"defineLoseValue", chainType:"multiselect", chainOptions: [2,3], des: "Consumption Record Provider", options: "consumptionRecordProviderName"},
+}
 
 var latestTopUpCond = {
     // Allow to apply after latest top up has consumption after it
@@ -517,6 +526,7 @@ db.rewardParam.update({
             periodCond: periodCond,
             consumptionCond: consumptionCond,
             ignoreTopUpBDirtyCond: ignoreTopUpBDirtyCond,
+            loseValueCond: loseValueCond,
         }
     }
 }, {

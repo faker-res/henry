@@ -2666,6 +2666,10 @@
   "Merchant Name":"名称",
   "RESPONSE_TIMEOUT": "回应超时",
   "Whitelisting Phone Number": "电话号码白名单（一行一个）",
-  "PlayerLoseReturnReward": "输值反利"
-
+  "PlayerLoseReturnReward": "输值反利",
+  "Define Lose Value": "定义输值",
+  "Consumption Record Provider": "投注记录来源游戏厅",
+  "deposit - withdrawal": "存-提-0点馀额",
+  "consumption - reward": "投注记录总和X-1）-所有优惠",
+  "consumtion sum": "投注记录总和X-1"
 }
