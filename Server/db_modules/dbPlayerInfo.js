@@ -9211,11 +9211,16 @@ let dbPlayerInfo = {
                         timeCheckData => {
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
                                 && rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN) {
-                                return Q.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "There is consumption after top up"
-                                });
+                                // There is consumption after top up
+                                if (rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) {
+                                    // Bypass this checking
+                                } else {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "There is consumption after top up"
+                                    });
+                                }
                             }
 
                             // if that's one reward pending , then you cannot apply other reward
