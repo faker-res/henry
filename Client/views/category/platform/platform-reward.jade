@@ -110,12 +110,12 @@
 
                 div#rewardMainTasks(ng-if='vm.showRewardTypeData.isGrouped === true')
                     div(ng-repeat="(i,v) in vm.rewardMainCondition")
-                        .full-width-input-block
-                            label {{v.des | translate}}
-                            input.form-control(ng-if="v.type == 'string' || v.type == 'checkbox'" type="{{v.type}}" ng-model="vm.rewardMainCondition[i].value")
+                        .full-width-input-block(ng-hide="vm.rewardDisabledParam.indexOf(vm.rewardMainCondition[i].name) > -1")
+                            label.control-label {{v.des | translate}}
+                            input.form-control(ng-if="v.type == 'string' || v.type == 'checkbox'" type="{{v.type}}" ng-change="vm.changeRewardParamLayout(vm.rewardMainCondition[i]);" ng-model="vm.rewardMainCondition[i].value")
                             select.form-control(ng-if="v.type == 'select'" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options")
                             div.dateTimePicker(id="rewardMainTaskDate-{{i}}" style="display: inline-block" ng-if="v.type == 'date'")
-                            select.spicker.form-control(ng-if="v.type == 'multiSelect'" ng-model="vm.rewardMainCondition[i].value" multiple, data-width='50%' data-actions-box='true')
+                            select.spicker.form-control(ng-if="v.type == 'multiSelect'"  ng-model="vm.rewardMainCondition[i].value" multiple, data-width='50%' data-actions-box='true' ng-change="vm.rewardSelectOnChange(vm.rewardMainCondition[i])")
                                 option(style="display: inline-block" ng-repeat='(i,v) in v.options', value='{{i}}' ng-init='$last && vm.endLoadWeekDay()') {{v}}
 
                             div(style="width:50%;display: inline-block" ng-if="v.type == 'interval'")
@@ -127,6 +127,7 @@
                                     input.form-control(style="width:33%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value1")
                                     input.form-control(style="width:33%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value2")
 
+
                             div(style="width:50%;display: inline-block" ng-if="v.type == 'chain'")
                                 div(ng-if="!v.chainOptions")
                                     select.form-control( ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options")
@@ -134,14 +135,37 @@
                                     select.spicker.form-control(ng-if="v.chainType == 'multiSelect' && v.chainOptions.indexOf(vm.rewardMainCondition[v.chainKey].value) > -1"
                                     ng-model="vm.rewardMainCondition[i].value" multiple, data-width='50%' data-actions-box='true')
                                         option(style="display: inline-block" ng-repeat='(i,v) in v.options', value='{{i}}' ng-init='$last && vm.endLoadWeekDay()') {{v}}
+
+                            div(ng-if="v.type == 'chain'")
+                                div(ng-disabled = "vm.func(v.chain)")
+                                    select.form-control(style="width:50%;display: inline-block" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options")
+                                    input.form-control(style="width:50%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value1")
+                    .col-md-12.well.scrollRecord
+                        div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
+                            label {{v.des | translate}}
+                            input.form-control(ng-if="v.type == 'string' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="vm.rewardMainParam[i].value")
+                        table.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTable track by $index")
+                            thead
+                                th(ng-if="!vm.isPlayerLevelDiff")
+                                th(style="width:70px" ng-if="vm.isPlayerLevelDiff") {{vm.allPlayerLvl[$index].name}}
+                                th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
+                            tbody(ng-repeat="entry in cond.value track by $index")
+                                td
+                                    i.fa.fa-plus(ng-click='cond.value.push({})')
+                                td(ng-repeat="(i,v) in cond.header track by $index")
+                                    input(ng-if="v.type == 'string' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]")
+                                    span.percentage(ng-if="v.type == 'percentage'")
+                                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+
+
             .pull-right
                 //- Intuitive UI: The Delete Event button should probably be on the left, next to Add Event.  (Or it could be an X button next to the name of the currently selected event.)
                 //-               The Edit Event button could be a "pencil" icon in the top-right corner of the form.
                 button.common-button.btn.btn-danger(ng-if='vm.platformRewardShowEdit("DELETE") && checkViewPermission("Platform", "Reward", "Delete")', data-toggle="modal", data-target='#modalDeleteReward') {{'DELETE' | translate}}
                 button.common-button.btn.btn-warning(ng-if='vm.platformRewardShowEdit("CANCEL")', ng-click="vm.platformRewardPageName='showReward';vm.clearRewardFormData()") {{'CANCEL' | translate}}
                 button.common-button.btn.btn-info(ng-if='vm.platformRewardShowEdit("EDIT") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.platformRewardPageName='updateReward'") {{'EDIT' | translate}}
-                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("UPDATE") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.editReward()", ng-disabled="form_showReward.$invalid || !vm.showRewardFormValid") {{'UPDATE' | translate}}
-                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("CREATE") && checkViewPermission("Platform", "Reward", "Add")', ng-click="vm.submitReward()", ng-disabled="form_showReward.$invalid || !vm.showRewardFormValid") {{'CREATE' | translate}}
+                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("UPDATE") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.editReward()") {{'UPDATE' | translate}}
+                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("CREATE") && checkViewPermission("Platform", "Reward", "Add")', ng-click="vm.submitReward()") {{'CREATE' | translate}}
             .clearfix
 
 #modalDeleteReward.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
