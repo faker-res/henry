@@ -676,3 +676,57 @@ var param103 = param103Cursor.next();
 
 db.rewardType.update({"name": type103}, {$set: {params: param103._id, des: type103, isGrouped: true}}, {upsert: true});
 
+
+
+// 免费体验金
+var type104 = "PlayerFreeTrialRewardGroup";
+db.rewardParam.update({
+    "name": type104
+}, {
+    $set: {
+        condition: {
+            generalCond: generalCond,
+            periodCond: periodCond,
+            consumptionCond: consumptionCond,
+            customCond: {
+                checkIPFreeTrialReward: {
+                    index: 23,
+                    type: "checkbox",
+                    des: "Check if this IP address has received free trial"
+                },
+                checkPhoneFreeTrialReward: {
+                    index: 24,
+                    type: "checkbox",
+                    des: "Check if this phone number has received free trial"
+                },
+                needSMSVerification: {
+                    index: 25,
+                    type: "checkbox",
+                    des: "Need SMS verification"
+                }
+            }
+        },
+        param: {
+            tblOptFixed: {
+                rewardParam: {
+                    rewardAmount: {type: "number", des: "Reward amount"},
+                    spendingTimes: {type: "number", des: "Spending times"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "checkbox",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "string", des: "Remark"},
+                }
+            },
+            tblOptDynamic: {} // will never reach here
+        }
+    }
+}, {
+    upsert: true
+});
+
+var param104Cursor = db.rewardParam.find({"name": type104});
+var param104 = param104Cursor.next();
+
+db.rewardType.update({"name": type104}, {$set: {params: param104._id, des: type104, isGrouped: true}}, {upsert: true});
