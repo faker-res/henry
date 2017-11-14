@@ -146,7 +146,8 @@ describe("Create test API client data", function () {
                     {
                         name: playerName,
                         platform: testPlatformId,
-                        password: "123456"
+                        password: "123456",
+                        phoneNumber: "11111111",
                     }
                 );
             }
