@@ -1718,7 +1718,6 @@ var dbPlayerTopUpRecord = {
                     queryObj["createTime"]["$gte"] = start;
                     queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
-                    console.log(queryObj);
                     return dbconfig.collection_proposal.aggregate(
                         {$match: queryObj},
                         {
@@ -1894,7 +1893,6 @@ var dbPlayerTopUpRecord = {
                         if(bonusCode){
                             proposalData.bonusCode = bonusCode;
                         }
-                        console.log(proposalData);
                         proposalData.creator = entryType === "ADMIN" ? {
                             type: 'admin',
                             name: adminName,
