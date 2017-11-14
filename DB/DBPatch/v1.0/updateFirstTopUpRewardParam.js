@@ -374,9 +374,9 @@ var generalCond = {
     // Is ignore audit
     isIgnoreAudit: {index: 4, type: "checkbox", des: "Is ignore audit"},
     // Reward start time
-    startTime: {index: 5, type: "date", des: "Reward start time"},
+    validStartTime: {index: 5, type: "date", des: "Reward start time"},
     // Reward end time
-    endTime: {index: 6, type: "date", des: "Reward end time"},
+    validEndTime: {index: 6, type: "date", des: "Reward end time"},
     // Is differentiate reward by player level
     isPlayerLevelDiff: {index: 7, type: "checkbox", des: "Reward differentiate by player level", default: false}
 };

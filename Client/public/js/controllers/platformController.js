@@ -8195,6 +8195,7 @@ define(['js/app'], function (myApp) {
                 let rewardObj = angular.fromJson(obj);
                 if (!rewardObj) return;
                 vm.playerApplyRewardPara.code = rewardObj.code;
+                vm.playerApplyRewardShow.TopupRecordSelect = false;
                 let type = rewardObj.type ? rewardObj.type.name : null;
 
                 if (type == 'FirstTopUp') {
@@ -8205,12 +8206,10 @@ define(['js/app'], function (myApp) {
                     vm.playerApplyRewardShow.topUpRecordIds = {};
                 }
 
-                if (type == "FirstTopUp" || type == "PlayerTopUpReturn" || type == "PartnerTopUpReturn" || type == "PlayerDoubleTopUpReward") {
+                if (type == "FirstTopUp" || type == "PlayerTopUpReturn" || type == "PartnerTopUpReturn" || type == "PlayerDoubleTopUpReward" || type == "PlayerTopUpReturnGroup") {
                     vm.playerApplyRewardShow.TopupRecordSelect = true;
                     vm.playerAllTopupRecords = null;
                     vm.getPlayerTopupRecord(null, rewardObj);
-                } else {
-                    vm.playerApplyRewardShow.TopupRecordSelect = false;
                 }
 
                 vm.playerApplyRewardShow.AmountInput = type == "GameProviderReward";
@@ -13871,13 +13870,14 @@ define(['js/app'], function (myApp) {
                             let condType = vm.rewardMainCondition[e].type;
                             let condValue = vm.rewardMainCondition[e].value;
 
-                            // Save name and code to outer level
-                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient") {
-                                curReward[condName] = condValue;
-                            }
                             // Get time string in object type
                             if (condType == "date") {
                                 condValue = condValue.data('datetimepicker').getLocalDate();
+                            }
+
+                            // Save name and code to outer level
+                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "validStartTime" || condName == "validEndTime") {
+                                curReward[condName] = condValue;
                             }
 
                             // Save reward condition
@@ -13956,14 +13956,14 @@ define(['js/app'], function (myApp) {
                             let condType = vm.rewardMainCondition[e].type;
                             let condValue = vm.rewardMainCondition[e].value;
 
-                            // Save name and code to outer level
-                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient") {
-                                sendData[condName] = condValue;
-                            }
-
                             // Get time string in object type
                             if (condType == "date") {
                                 condValue = condValue.data('datetimepicker').getLocalDate();
+                            }
+
+                            // Save name and code to outer level
+                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "validStartTime" || condName == "validEndTime") {
+                                sendData[condName] = condValue;
                             }
 
                             // Save reward condition
