@@ -13095,7 +13095,7 @@ define(['js/app'], function (myApp) {
                     vm.isDynamicRewardAmt = false;
                     vm.rewardMainParamEntry = [{}];
                     vm.rewardDisabledParam = [];
-
+                    vm.rewardPeriod=[{startDate:"", startTime:"", endDate:"", endTime:""}];
                     let params = vm.showRewardTypeData.params;
 
                     // Set condition value
@@ -13109,7 +13109,9 @@ define(['js/app'], function (myApp) {
                                 index: cond.index,
                                 name: el,
                                 des: cond.des,
-                                type: cond.type
+                                type: cond.type,
+                                disabled:cond.disabled,
+                                value:cond.value
                             };
 
                             // Get options
@@ -13148,6 +13150,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
 
+
                             // Get value
                             if (vm.showReward && vm.showReward.condition && vm.showReward.condition.hasOwnProperty(el)) {
                                 vm.rewardMainCondition[cond.index].value = vm.showReward.condition[el];
@@ -13167,6 +13170,7 @@ define(['js/app'], function (myApp) {
                                     vm.rewardMainCondition[cond.index].value.data('datetimepicker').setDate(utilService.getLocalTime(new Date(dateValue)));
                                 }
                             });
+
                         })
                     });
 
@@ -13510,6 +13514,13 @@ define(['js/app'], function (myApp) {
 
 
             delete vm.rewardMainParam.rewardParam;
+        };
+
+        vm.rewardPeriodNewRow=()=>{
+
+
+            vm.rewardPeriod.push({startDate:"", startTime:"", endDate:"", endTime:""});
+console.log(vm.rewardPeriod);
         };
 
         vm.rewardSelectOnChange = (model) => {

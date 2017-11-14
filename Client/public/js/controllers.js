@@ -430,6 +430,45 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         3: "Equal to (=)",
         4: "Interval (>=, <)"
     };
+
+    $scope.weekDay = {
+        "": "",
+        1: "Monday",
+        2: "Tuesday",
+        3: "Wednesday",
+        4: "Thursday",
+        5: "Friday",
+        6: "Saturday",
+        7: "Sunday"
+    };
+
+    $scope.dayTime = {
+        "": "",
+        0: "0000",
+        1: "0100",
+        2: "0200",
+        3: "0300",
+        4: "0400",
+        5: "0500",
+        6: "0600",
+        7: "0700",
+        8: "0800",
+        9: "0900",
+        10: "1000",
+        11: "1100",
+        12: "1200",
+        13: "1300",
+        14: "1400",
+        15: "1500",
+        16: "1600",
+        17: "1700",
+        18: "1800",
+        19: "1900",
+        20: "2000",
+        21: "2100",
+        22: "2200",
+        23: "2300"
+    };
     //////// DOM initialisation operations ////////
 
     $('[data-toggle="tooltip"]').tooltip();

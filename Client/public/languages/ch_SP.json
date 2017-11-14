@@ -2687,6 +2687,15 @@
   "TOTAL_REGISTRATION": "总开户",
   "Merchant Name":"名称",
   "RESPONSE_TIMEOUT": "回应超时",
-  "Whitelisting Phone Number": "电话号码白名单（一行一个）"
+  "Whitelisting Phone Number": "电话号码白名单（一行一个）",
+  "randomReward": "随机抽奖",
+  "Period show reward": "周期内出现场次（前端允许申请时段）",
+  "Monday": "星期一",
+  "Tuesday": "星期二",
+  "Wednesday": "星期三",
+  "Thursday": "星期四",
+  "Friday": "星期五",
+  "Saturday": "星期六",
+  "Sunday": "星期日"
 
 }

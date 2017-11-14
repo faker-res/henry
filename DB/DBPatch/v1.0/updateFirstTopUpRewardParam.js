@@ -614,3 +614,51 @@ var param103Cursor = db.rewardParam.find({"name": type103});
 var param103 = param103Cursor.next();
 
 db.rewardType.update({"name": type103}, {$set: {params: param103._id, des: type103, isGrouped: true}}, {upsert: true});
+
+
+// 随机抽奖
+var type105 = "randomReward";
+db.rewardParam.update({
+    "name": type105
+}, {
+    $set: {
+        condition: {
+            generalCond: Object.assign({},generalCond, {
+                applyType: {index: 2, type: "select", des: "Reward apply type", options: "rewardApplyType",disabled:true,value:"1"},
+                canApplyFromClient: {index: 3, type: "checkbox", des: "Is player manually applicable",disabled:true,value:true}
+            }),
+            periodCond: {
+                interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval"},
+            },
+            consumptionCond: consumptionCond,
+            consumptionProviderCond: consumptionProviderCond,
+            topUpCond: topUpCond,
+            latestTopUpCond: {
+                ignoreTopUpDirtyCheckForReward: {
+                    index: 32,
+                    type: "multiSelect",
+                    des: "Ignore the following rewards that applied with top up"
+                }
+            },
+            customCond: {
+                rewardAppearPeriod: {
+                    index: 22,
+                    type: "datetimePeriod",
+                    des: "Period show reward",
+                    value:{}
+                }
+
+            }
+        },
+        param: {
+
+        }
+    }
+}, {
+    upsert: true
+});
+
+var param105Cursor = db.rewardParam.find({"name": type105});
+var param105 = param105Cursor.next();
+
+db.rewardType.update({"name": type105}, {$set: {params: param105._id, des: type105, isGrouped: true}}, {upsert: true});
