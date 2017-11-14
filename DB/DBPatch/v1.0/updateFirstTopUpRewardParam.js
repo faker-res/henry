@@ -412,7 +412,8 @@ var latestTopUpCond = {
     ignoreTopUpDirtyCheckForReward: {
         index: 32,
         type: "multiSelect",
-        des: "Ignore the following rewards that applied with top up"
+        des: "Ignore the following rewards that applied with top up",
+        options: "allRewardEvent"
     }
 };
 
@@ -420,7 +421,7 @@ var consumptionCond = {
     // Is consumption shared with XIMA
     isSharedWithXIMA: {index: 40, type: "checkbox", des: "Consumption can be shared with XIMA"},
     // Provider group binded with this reward
-    providerGroup: {index: 41, type: "multiSelect", des: "Provider group"},
+    providerGroup: {index: 41, type: "multiSelect", des: "Provider group", options: "gameProviders"},
 };
 
 var consumptionProviderCond = {
