@@ -2607,7 +2607,7 @@ let dbPlayerInfo = {
                 var proms = records.map(rec =>
                     dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                         {_id: rec._id, createTime: rec.createTime, bDirty: {$ne: true}},
-                        {bDirty: true},
+                        {bDirty: true, usedType: constRewardType.FIRST_TOP_UP, $push: {usedEvent: eventData._id}},
                         {new: true}
                     )
                 );
@@ -8521,7 +8521,7 @@ let dbPlayerInfo = {
                             proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                             return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                                 {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                                {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_RETURN},
+                                {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_RETURN, $push: {usedEvent: eventData._id}},
                                 {new: true}
                             ).then(
                                 data => {
@@ -9073,7 +9073,7 @@ let dbPlayerInfo = {
                         proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                            {bDirty: true},
+                            {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_REWARD, $push: {usedEvent: eventData._id}},
                             {new: true}
                         ).then(
                             data => {
@@ -10000,7 +10000,7 @@ let dbPlayerInfo = {
                         proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                            {bDirty: true},
+                            {bDirty: true, usedType: constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD, $push: {usedEvent: eventData._id}},
                             {new: true}
                         ).then(
                             data => {
