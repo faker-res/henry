@@ -195,24 +195,22 @@ define(['js/app'], function (myApp) {
               $scope.safeApply();
           });
         }
-        vm.getMerchantTypeName = function(){
-          vm.merchants.map(item=>{
-            let merchantTypeId = item.merchantTypeId;
-            if(merchantTypeId){
-              if(merchantTypeId=="9999"){
-                item.merchantTypeName = $translate('BankCardNo');
-              }else{
-                    let merchantInfo = vm.merchantTypes.filter(mitem=>{
-                        return mitem.merchantTypeId == merchantTypeId;
-                    })
-                    item.merchantTypeName  = merchantInfo[0] ? merchantInfo[0].name:"";
-
-                // item.merchantTypeName = vm.merchantTypes[merchantTypeId] ? vm.merchantTypes[merchantTypeId].name : "";
-              }
-            }else{
-              item.merchantTypeName = '';
-            }
-          })
+        vm.getMerchantTypeName = function () {
+            vm.merchants.map(item => {
+                let merchantTypeId = item.merchantTypeId;
+                if (merchantTypeId) {
+                    if (merchantTypeId == "9999") {
+                        item.merchantTypeName = $translate('BankCardNo');
+                    } else {
+                        let merchantInfo = vm.merchantTypes.filter(mitem => {
+                            return mitem.merchantTypeId == merchantTypeId;
+                        });
+                        item.merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
+                    }
+                } else {
+                    item.merchantTypeName = '';
+                }
+            })
         }
         vm.getAllPaymentAcc = function(){
             socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedPlatform.platformId},
