@@ -284,12 +284,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.setClickedHeaderIcon = function () {
         var location = $location.path().slice(1);
 
-        if(location == "platform")
+        if (location == "platform")
             $('#cssmenu .navbar-brand  a[name*="platform"]').parent().addClass('clickedWebsiteBusiness');
         else
             $('#cssmenu .navbar-brand  a[name*="platform"]').parent().removeClass('clickedWebsiteBusiness');
 
-        if(location == "mainPage")
+        if (location == "mainPage")
             $('#cssmenu .navbar-brand  a[name*="mainPage"]').parent().addClass('clickedBackstagePrivilege');
         else
             $('#cssmenu .navbar-brand  a[name*="mainPage"]').parent().removeClass('clickedBackstagePrivilege');
@@ -534,6 +534,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.getChannelList = function (callback) {
         socketService.$socket($scope.AppSocket, 'getSMSChannelList', {}, onSuccess, onFail, true);
+
         function onSuccess(data) {
             $scope.channelList = data.data.channels.filter(item => {
                 return (item != 1) && (item != '1');
@@ -553,6 +554,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     }
     $scope.sendSMSToPlayer = function (src, callback) {
         socketService.$socket($scope.AppSocket, 'sendSMSToPlayer', src, onSuccess, onFail, true);
+
         function onSuccess(data) {
             if (callback) {
                 callback.call(this, data);
@@ -567,6 +569,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     }
     $scope.sendSMSToNewPlayer = function (src, callback) {
         socketService.$socket($scope.AppSocket, 'sentSMSToNewPlayer', src, onSuccess, onFail, true);
+
         function onSuccess(data) {
             if (callback) {
                 callback.call(this, data);
@@ -584,6 +587,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         $scope.phoneCall.random = Math.random();
         $scope.phoneCall.capthaSrc = "http://www.phoneapichat.com/servlet/GetMaCode?random=" + $scope.phoneCall.random;
         $('#phoneCaptha').prev().show();
+
         function checkCaptha() {
             var img = $('#phoneCaptha');
             if (img && img[0]) {
@@ -610,6 +614,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         socketService.$socket($scope.AppSocket, 'getAdminInfo', {
             adminName: $scope.getUserName()
         }, onSuccess, onFail, true);
+
         function onSuccess(data) {
             console.log('admin data', data);
             var adminData = data.data;
@@ -954,9 +959,9 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         var location = $location.path().slice(1);
         $('#cssmenu .navbar-brand  a[name*="' + location + '"]').parent().addClass('active');
 
-        if(location == "platform")
+        if (location == "platform")
             $('#cssmenu .navbar-brand  a[name*="' + location + '"]').parent().addClass('clickedWebsiteBusiness');
-        else if(location == "mainPage")
+        else if (location == "mainPage")
             $('#cssmenu .navbar-brand  a[name*="' + location + '"]').parent().addClass('clickedBackstagePrivilege');
 
         $translate(location).then(
@@ -1152,7 +1157,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         $cookies.put('curFPMSServer', server);
         $scope.connectSocket();
     };
-    $scope.changeLogoImg = (url) =>{
+    $scope.changeLogoImg = (url) => {
         $scope.companyLogo = url;
     };
 
