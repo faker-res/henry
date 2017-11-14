@@ -224,7 +224,8 @@
             var functionNames = [
                 "getLevel",
                 "getLevelReward",
-                "getAllLevel"
+                "getAllLevel",
+                "upgrade"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
