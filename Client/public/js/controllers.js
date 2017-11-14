@@ -430,6 +430,18 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         3: "Equal to (=)",
         4: "Interval (>=, <)"
     };
+
+    $scope.loseValueType = {
+        1: "deposit - withdrawal",
+        2: "consumption - reward",
+        3: "consumtion sum"
+    }
+
+    $scope.consumptionRecordProviderName = {
+        1: "AGOTHS",
+        2: "PT",
+        3: "MG"
+    }
     //////// DOM initialisation operations ////////
 
     $('[data-toggle="tooltip"]').tooltip();
