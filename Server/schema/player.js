@@ -257,7 +257,9 @@ var playerSchema = new Schema({
     reporoId: {type: String},
     // UI Help Info View
     viewInfo: {
-        limitedOfferInfo: {type: Number, default: 1}
+        limitedOfferInfo: {type: Number, default: 1},
+        // add in a state to control the showing of the limitedOfferInfo
+        showInfoState: {type: Boolean, default: 1}
     },
     // admin name who opened this account from backstage
     accAdmin: {type: String},

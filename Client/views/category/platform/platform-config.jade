@@ -259,7 +259,7 @@
                                             //select.form-control(ng-model='vm.newPlayerLvl.levelDownConfig[0].consumptionPeriod', required)
                                             //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='vm.newPlayerLvl.levelDownConfig[0].consumptionMinimum && i!=="NONE"',value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
-                                             input(type='checkbox', ng-model='vm.newPlayerLvl.levelDownConfig[0].andConditions')
+                                            input(type='checkbox', ng-model='vm.newPlayerLvl.levelDownConfig[0].andConditions')
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI();')
                             text {{'ADD_LEVEL' | translate}}
@@ -557,6 +557,15 @@
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.showAllowSamePhoneNumberToRegister', ng-disabled='!vm.configTableEdit')
                             tr
+                                td {{'samePhoneNumberRegisterCount' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.samePhoneNumberRegisterCount}}
+                                    input(type='number', ng-show='vm.configTableEdit && vm.platformBasic.showAllowSamePhoneNumberToRegister', min=1, ng-model='vm.platformBasic.samePhoneNumberRegisterCount')
+                            tr
+                                td {{'Whitelisting Phone Number' | translate}}
+                                td
+                                    textarea(ng-model='vm.platformBasic.whiteListingPhoneNumbers$', ng-disabled='!vm.configTableEdit')
+                            tr
                                 td {{'PLAYER_MULTIPLE_REWARD' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
@@ -572,6 +581,11 @@
                                 td {{'SMS_VERIFICATION_FOR_PAYMENT_UPDATE' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerificationForPaymentUpdate', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'SMS_EXPIRED_TIME' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showMinTopupAmount}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showMinTopupAmount')
                             tr
                                 td {{'CAPTCHA_VERIFICATION_FOR_LOGIN' | translate}}
                                 td

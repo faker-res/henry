@@ -12,12 +12,14 @@ var constProposalType = require('./../const/constProposalType');
 var constProposalStepStatus = require('./../const/constProposalStepStatus');
 var constProposalStatus = require('./../const/constProposalStatus');
 var constProposalMainType = require('./../const/constProposalMainType');
+var constRegistrationIntentRecordStatus = require("../const/constRegistrationIntentRecordStatus.js");
 var dbProposalProcess = require('./../db_modules/dbProposalProcess');
 var dbProposalType = require('./../db_modules/dbProposalType');
 var dbPlatform = require('./../db_modules/dbPlatform');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var dbPartner = require('./../db_modules/dbPartner');
+var dbLogger = require('./../modules/dbLogger');
 var proposalExecutor = require('./../modules/proposalExecutor');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
@@ -50,7 +52,6 @@ var proposal = {
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
         let deferred = Q.defer();
         let plyProm = null;
-
         // create proposal for partner
         if (proposalData.isPartner) {
             let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
@@ -127,7 +128,7 @@ var proposal = {
             })
     },
 
-    createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData) {
+    createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
         function getStepInfo(result) {
             return dbconfig.collection_proposalProcess.findOne({_id: result.process})
                 .then(processData => {
@@ -146,9 +147,11 @@ var proposal = {
                     }
                 )
         }
-
         return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
             data => {
+                if (smsLogInfo && data && data.proposalId)
+                    dbLogger.updateSmsLogProposalId(smsLogInfo.tel, smsLogInfo.message, data.proposalId);
+
                 if (data && data.process) {
                     return getStepInfo(Object.assign({}, data));
                 } else {
@@ -415,7 +418,7 @@ var proposal = {
     updatePlayerIntentionRemarks: function (id, remarks) {
         let updateData = {};
         updateData['data.remarks'] = remarks;
-        return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate({_id:ObjectId(id)}, updateData, {new: true}).exec();
+        return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate({_id: ObjectId(id)}, updateData, {new: true}).exec();
     },
     updateTopupProposal: function (proposalId, status, requestId, orderStatus) {
         var proposalObj = null;
@@ -1379,8 +1382,8 @@ var proposal = {
                                              if(item.data && item.data.phoneNumber && !displayPhoneNum){
                                                  item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                              }
-                                             if (item.data && item.data.updateData){
-                                                 switch(Object.keys(item.data.updateData)[0]){
+                                             if (item.data && item.data.updateData) {
+                                                 switch (Object.keys(item.data.updateData)[0]) {
                                                      case "phoneNumber":
                                                          item.data.updateData.phoneNumber = dbutility.encodePhoneNum(item.data.updateData.phoneNumber);
                                                          break;
@@ -1489,10 +1492,10 @@ var proposal = {
     },
 
     getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId) {//need
-        platformId = Array.isArray(platformId) ?platformId :[platformId];
+        platformId = Array.isArray(platformId) ? platformId : [platformId];
 
         //check proposal without process
-        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in:platformId}}).lean();
+        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
 
         let playerProm = [];
         return Q.all([prom1]).then(//removed , prom2
@@ -1509,50 +1512,51 @@ var proposal = {
                         }
 
                         var queryObj = {
-                            status: {$in: statusArr}
+                            status: {$in: statusArr},
+                            data:  { $exists: true, $ne: null } 
                         };
-                        if(startTime && endTime){
+                        if (startTime && endTime) {
                             queryObj['createTime'] = {
                                 $gte: new Date(startTime),
                                 $lt: new Date(endTime)
                             }
                         }
-                        if(userName) {
+                        if (userName) {
                             queryObj['data.name'] = userName;
                         }
-                        if(phoneNumber) {
+                        if (phoneNumber) {
                             queryObj['data.phoneNumber'] = phoneNumber;
                         }
 
-                        if(size >= 0){
+                        if (size >= 0) {
                             var a = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj)
-                                    .populate({path:'playerId', model:dbconfig.collection_players})
-                            .sort(sortCol).skip(index).limit(size).lean()
-                            .then(
-                                pdata => {
-                                    pdata.map(item => {
-                                        // only displayPhoneNum equal true, encode the phone num
-                                        if (item.data && item.data.phone && !displayPhoneNum) {
-                                            item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                                        }
-                                        if (item.data && item.data.phoneNumber && !displayPhoneNum) {
-                                            item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                        }
-                                        if (item.data && (item.data.playerId || item.data.name)) {
-                                            playerProm.push(proposal.getPlayerDetails(item.data.playerId, item.data.name,proposalTypesId));
-                                        }
+                                .populate({path: 'playerId', model: dbconfig.collection_players})
+                                .sort(sortCol).skip(index).limit(size).lean()
+                                .then(
+                                    pdata => {
+                                        pdata.map(item => {
+                                            // only displayPhoneNum equal true, encode the phone num
+                                            if (item.data && item.data.phone && !displayPhoneNum) {
+                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                            }
+                                            if (item.data && item.data.phoneNumber && !displayPhoneNum) {
+                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                            }
+                                            if (item.data && (item.data.playerId || item.data.name)) {
+                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId, item.data.name, proposalTypesId));
+                                            }
 
-                                        return item
+                                            return item
+                                        })
+
+                                        return pdata;
                                     })
+                                .then(proposals => {
+                                    proposals = insertPlayerRepeatCount(proposals, platformId[0]);
 
-                                    return pdata;
+                                    return proposals
                                 })
-                            .then(proposals => {
-                                proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-
-                                return proposals
-                            })
-                        }else{
+                        } else {
                             a = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj)
                                 .then(
                                     pdata => {
@@ -1565,7 +1569,7 @@ var proposal = {
                                                 item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                             }
                                             if (item.data && (item.data.playerId || item.data.name)) {
-                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId, item.data.name,proposalTypesId));
+                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId, item.data.name, proposalTypesId));
                                             }
 
                                             return item
@@ -1595,45 +1599,45 @@ var proposal = {
             return Q.all(playerProm).then(data => {
 
                 data.map(d => {
-                    if(d && ((d[0] && d[0].playerId) || (d[1] && d[1].data.name))){
-                        for(var i = 0; i < returnData[0].length; i ++){
-                            if(d[0] && d[0].playerId && d[0].playerId == returnData[0][i].data.playerId){
-                                if(d[0].csOfficer){
+                    if (d && ((d[0] && d[0].playerId) || (d[1] && d[1].data.name))) {
+                        for (var i = 0; i < returnData[0].length; i++) {
+                            if (d[0] && d[0].playerId && d[0].playerId == returnData[0][i].data.playerId) {
+                                if (d[0].csOfficer) {
                                     returnData[0][i].data.csOfficer = d[0].csOfficer.adminName;
                                 }
-                                if(d[0].promoteWay){
+                                if (d[0].promoteWay) {
                                     returnData[0][i].data.promoteWay = d[0].promoteWay;
                                 }
-                                if(d[0].registrationTime){
+                                if (d[0].registrationTime) {
                                     returnData[0][i].data.registrationTime = d[0].registrationTime;
                                 }
-                                if(d[0].topUpTimes){
+                                if (d[0].topUpTimes) {
                                     returnData[0][i].data.topUpTimes = d[0].topUpTimes;
                                 }
-                                if(d[0].userAgent){
-                                    for(var j = 0; j < d[0].userAgent.length; j ++){
-                                        returnData[0][i].data.device = dbutility.getInputDevice(d[0].userAgent,false);
+                                if (d[0].userAgent) {
+                                    for (var j = 0; j < d[0].userAgent.length; j++) {
+                                        returnData[0][i].data.device = dbutility.getInputDevice(d[0].userAgent, false);
                                     }
                                 }
-                                if(d[0].playerLevel){
+                                if (d[0].playerLevel) {
                                     returnData[0][i].data.playerLevel = d[0].playerLevel;
                                 }
-                                if(d[0].credibilityRemarks){
+                                if (d[0].credibilityRemarks) {
                                     returnData[0][i].data.credibilityRemarks = d[0].credibilityRemarks;
                                 }
-                                if(d[0].valueScore){
+                                if (d[0].valueScore) {
                                     returnData[0][i].data.valueScore = d[0].valueScore;
                                 }
-                                if(d[0].lastAccessTime){
+                                if (d[0].lastAccessTime) {
                                     returnData[0][i].data.lastAccessTime = d[0].lastAccessTime;
                                 }
-                                if(d[0].status){
+                                if (d[0].status) {
                                     returnData[0][i].data.playerStatus = d[0].status;
                                 }
                             }
 
-                            if(d[1] && d[1].data && d[1].data.name && d[1].data.name == returnData[0][i].data.name){
-                                if(d[1].proposalId){
+                            if (d[1] && d[1].data && d[1].data.name && d[1].data.name == returnData[0][i].data.name) {
+                                if (d[1].proposalId) {
                                     returnData[0][i].data.proposalId = d[1].proposalId;
                                 }
                             }
@@ -1647,7 +1651,7 @@ var proposal = {
         });
     },
 
-    getPlayerDetails : function(playerID,playerName,proposalTypesId){
+    getPlayerDetails: function (playerID, playerName, proposalTypesId) {
         let playerProm = dbconfig.collection_players.findOne({playerId: playerID})
             .populate({path: 'csOfficer', model: dbconfig.collection_admin, select: "adminName"})
             .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
@@ -1657,16 +1661,19 @@ var proposal = {
                 }
             );
         let proposalProm = []
-            proposalProm = dbconfig.collection_proposal.findOne({'data.name': playerName,type: {$in: proposalTypesId}}).select({'proposalId': 1,'data.name':1}).lean().then(data => {
+        proposalProm = dbconfig.collection_proposal.findOne({
+            'data.name': playerName,
+            type: {$in: proposalTypesId}
+        }).select({'proposalId': 1, 'data.name': 1}).lean().then(data => {
             return data ? data : "";
         });
 
-        return Q.all([playerProm,proposalProm]).then(data =>{
+        return Q.all([playerProm, proposalProm]).then(data => {
             return data;
         })
     },
 
-    getPlayerSelfRegistrationRecordList: function(startTime, endTime, statusArr){
+    getPlayerSelfRegistrationRecordList: function (startTime, endTime, statusArr) {
         var queryObj = {
             createTime: {
                 $gte: new Date(startTime),
@@ -1677,24 +1684,24 @@ var proposal = {
 
         var returnArr = [];
         var recordArr = [];
-        var prom =[];
+        var prom = [];
 
         var totalHeadCount = 0;
 
-        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name",queryObj).lean().then(dataList =>{
-            dataList.map(playerName =>{
+        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name", queryObj).lean().then(dataList => {
+            dataList.map(playerName => {
                 prom.push(dbconfig.collection_playerRegistrationIntentRecord.find({'data.name': playerName}).sort({createTime: -1}));
                 totalHeadCount += 1;
             })
             return Q.all(prom);
-        }).then(details =>{
-            details.map(data =>{
-                data.map(d =>{
-                    if(!recordArr.find(r => r.name == d.data.name)){
-                        recordArr.push({name: d.data.name,status: d.status, attemptNo: 1});
-                    }else{
+        }).then(details => {
+            details.map(data => {
+                data.map(d => {
+                    if (!recordArr.find(r => r.name == d.data.name)) {
+                        recordArr.push({name: d.data.name, status: d.status, attemptNo: 1});
+                    } else {
                         var indexNo = recordArr.findIndex(r => r.name == d.data.name);
-                        recordArr[indexNo].status = recordArr[indexNo].status != "Success" ? d.status : recordArr[indexNo].status;
+                        recordArr[indexNo].status = recordArr[indexNo].status != constRegistrationIntentRecordStatus.SUCCESS ? d.status : recordArr[indexNo].status;
                         recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
                     }
                 })
@@ -1702,19 +1709,25 @@ var proposal = {
 
             return recordArr;
         }).then(playerAttemptNumber =>{
-            var firstFail = playerAttemptNumber.filter(function(event){return event.status == 'Fail' && event.attemptNo == 1}).length;
-            var secondFail = playerAttemptNumber.filter(function(event){return event.status == 'Fail' && event.attemptNo == 2}).length;
-            var thirdFail = playerAttemptNumber.filter(function(event){return event.status == 'Fail' && event.attemptNo == 3}).length;
-            var fouthFail = playerAttemptNumber.filter(function(event){return event.status == 'Fail' && event.attemptNo == 4}).length;
-            var fifthFail = playerAttemptNumber.filter(function(event){return event.status == 'Fail' && event.attemptNo == 5}).length;
-            var fifthUpFail = playerAttemptNumber.filter(function(event){return event.status == 'Fail' && event.attemptNo > 5}).length;
+            var firstFail = playerAttemptNumber.filter(function(event){return (event.status == constRegistrationIntentRecordStatus.FAIL || event.status == constRegistrationIntentRecordStatus.INTENT ||
+                event.status == constRegistrationIntentRecordStatus.VERIFICATION_CODE) && event.attemptNo == 1}).length;
+            var secondFail = playerAttemptNumber.filter(function(event){return (event.status == constRegistrationIntentRecordStatus.FAIL || event.status == constRegistrationIntentRecordStatus.INTENT ||
+                event.status == constRegistrationIntentRecordStatus.VERIFICATION_CODE) && event.attemptNo == 2}).length;
+            var thirdFail = playerAttemptNumber.filter(function(event){return (event.status == constRegistrationIntentRecordStatus.FAIL || event.status == constRegistrationIntentRecordStatus.INTENT ||
+                event.status == constRegistrationIntentRecordStatus.VERIFICATION_CODE) && event.attemptNo == 3}).length;
+            var fouthFail = playerAttemptNumber.filter(function(event){return (event.status == constRegistrationIntentRecordStatus.FAIL || event.status == constRegistrationIntentRecordStatus.INTENT ||
+                event.status == constRegistrationIntentRecordStatus.VERIFICATION_CODE) && event.attemptNo == 4}).length;
+            var fifthFail = playerAttemptNumber.filter(function(event){return (event.status == constRegistrationIntentRecordStatus.FAIL || event.status == constRegistrationIntentRecordStatus.INTENT ||
+                event.status == constRegistrationIntentRecordStatus.VERIFICATION_CODE) && event.attemptNo == 5}).length;
+            var fifthUpFail = playerAttemptNumber.filter(function(event){return (event.status == constRegistrationIntentRecordStatus.FAIL || event.status == constRegistrationIntentRecordStatus.INTENT ||
+                event.status == constRegistrationIntentRecordStatus.VERIFICATION_CODE) && event.attemptNo > 5}).length;
 
-            var firstSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 1}).length;
-            var secondSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 2}).length;
-            var thirdSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 3}).length;
-            var fouthSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 4}).length;
-            var fifthSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 5}).length;
-            var fifthUpSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo > 5}).length;
+            var firstSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 1}).length;
+            var secondSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 2}).length;
+            var thirdSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 3}).length;
+            var fouthSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 4}).length;
+            var fifthSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 5}).length;
+            var fifthUpSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo > 5}).length;
 
             var firstFailPercent = totalHeadCount ? (firstFail/ totalHeadCount * 100).toFixed(2) : 0;
             var secondFailPercent = totalHeadCount ? (secondFail/ totalHeadCount * 100).toFixed(2) : 0;
@@ -1732,21 +1745,46 @@ var proposal = {
 
             var arr = [];
 
-            arr.push({selfRegistrationTotalSuccess: "HEAD_COUNT", totalAttempt: totalHeadCount, firstFail: firstFail, secondFail: secondFail, thirdFail: thirdFail,
-                fouthFail: fouthFail, fifthFail: fifthFail, fifthUpFail: fifthUpFail, firstSuccess: firstSuccess, secondSuccess: secondSuccess,
-                thirdSuccess: thirdSuccess, fouthSuccess: fouthSuccess, fifthSuccess: fifthSuccess, fifthUpSuccess: fifthUpSuccess})
+            arr.push({
+                selfRegistrationTotalSuccess: "HEAD_COUNT",
+                totalAttempt: totalHeadCount,
+                firstFail: firstFail,
+                secondFail: secondFail,
+                thirdFail: thirdFail,
+                fouthFail: fouthFail,
+                fifthFail: fifthFail,
+                fifthUpFail: fifthUpFail,
+                firstSuccess: firstSuccess,
+                secondSuccess: secondSuccess,
+                thirdSuccess: thirdSuccess,
+                fouthSuccess: fouthSuccess,
+                fifthSuccess: fifthSuccess,
+                fifthUpSuccess: fifthUpSuccess
+            })
 
-            arr.push({selfRegistrationTotalSuccess: "PERCENTAGE", totalAttempt: 100.00, firstFail: firstFailPercent, secondFail: secondFailPercent,
-                thirdFail: thirdFailPercent, fouthFail: fouthFailPercent, fifthFail: fifthFailPercent, fifthUpFail: fifthUpFailPercent,
-                firstSuccess: firstSuccessPercent, secondSuccess: secondSuccessPercent, thirdSuccess: thirdSuccessPercent, fouthSuccess: fouthSuccessPercent,
-                fifthSuccess: fifthSuccessPercent, fifthUpSuccess: fifthUpSuccessPercent})
+            arr.push({
+                selfRegistrationTotalSuccess: "PERCENTAGE",
+                totalAttempt: 100.00,
+                firstFail: firstFailPercent,
+                secondFail: secondFailPercent,
+                thirdFail: thirdFailPercent,
+                fouthFail: fouthFailPercent,
+                fifthFail: fifthFailPercent,
+                fifthUpFail: fifthUpFailPercent,
+                firstSuccess: firstSuccessPercent,
+                secondSuccess: secondSuccessPercent,
+                thirdSuccess: thirdSuccessPercent,
+                fouthSuccess: fouthSuccessPercent,
+                fifthSuccess: fifthSuccessPercent,
+                fifthUpSuccess: fifthUpSuccessPercent
+            })
 
             return arr;
 
         });
     },
 
-    getPlayerManualRegistrationRecordList: function(startTime, endTime, statusArr){
+    getPlayerManualRegistrationRecordList: function (startTime, endTime, statusArr) {
         var queryObj = {
             createTime: {
                 $gte: new Date(startTime),
@@ -1757,37 +1795,37 @@ var proposal = {
 
 
         var recordArr = [];
-        var prom =[];
+        var prom = [];
 
         var totalHeadCount = 0;
 
-        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name",queryObj).lean().then(dataList =>{
-            dataList.map(playerName =>{
+        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name", queryObj).lean().then(dataList => {
+            dataList.map(playerName => {
                 prom.push(dbconfig.collection_playerRegistrationIntentRecord.find({'data.name': playerName}).sort({createTime: -1}));
                 totalHeadCount += 1;
             })
             return Q.all(prom);
-        }).then(details =>{
-            details.map(data =>{
-                data.map(d =>{
-                    if(!recordArr.find(r => r.name == d.data.name)){
-                        recordArr.push({name: d.data.name,status: d.status, attemptNo: 1});
-                    }else{
+        }).then(details => {
+            details.map(data => {
+                data.map(d => {
+                    if (!recordArr.find(r => r.name == d.data.name)) {
+                        recordArr.push({name: d.data.name, status: d.status, attemptNo: 1});
+                    } else {
                         var indexNo = recordArr.findIndex(r => r.name == d.data.name);
-                        recordArr[indexNo].status = recordArr[indexNo].status != "Success" ? d.status : recordArr[indexNo].status;
+                        recordArr[indexNo].status = recordArr[indexNo].status != constRegistrationIntentRecordStatus.SUCCESS ? d.status : recordArr[indexNo].status;
                         recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
                     }
                 })
             })
             return recordArr;
         }).then(playerAttemptNumber =>{
-            var manualSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Manual'}).length;
-            var firstSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 1}).length;
-            var secondSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 2}).length;
-            var thirdSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 3}).length;
-            var fouthSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 4}).length;
-            var fifthSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo == 5}).length;
-            var fifthUpSuccess = playerAttemptNumber.filter(function(event){return event.status == 'Success' && event.attemptNo > 5}).length;
+            var manualSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.MANUAL}).length;
+            var firstSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 1}).length;
+            var secondSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 2}).length;
+            var thirdSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 3}).length;
+            var fouthSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 4}).length;
+            var fifthSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo == 5}).length;
+            var fifthUpSuccess = playerAttemptNumber.filter(function(event){return event.status == constRegistrationIntentRecordStatus.SUCCESS && event.attemptNo > 5}).length;
 
             var manualSuccessPercent = totalHeadCount ? (manualSuccess/ totalHeadCount * 100).toFixed(2) : 0;
             var firstSuccessPercent = totalHeadCount ? (firstSuccess/ totalHeadCount * 100).toFixed(2) : 0;
@@ -1799,17 +1837,35 @@ var proposal = {
 
             var returnArr = [];
 
-            returnArr.push({manualRegistrationTotalSuccess: "HEAD_COUNT", totalSuccess: totalHeadCount, manualSuccess: manualSuccess, firstSuccess: firstSuccess,
-                secondSuccess: secondSuccess, thirdSuccess: thirdSuccess, fouthSuccess: fouthSuccess, fifthSuccess: fifthSuccess, fifthUpSuccess: fifthUpSuccess})
+            returnArr.push({
+                manualRegistrationTotalSuccess: "HEAD_COUNT",
+                totalSuccess: totalHeadCount,
+                manualSuccess: manualSuccess,
+                firstSuccess: firstSuccess,
+                secondSuccess: secondSuccess,
+                thirdSuccess: thirdSuccess,
+                fouthSuccess: fouthSuccess,
+                fifthSuccess: fifthSuccess,
+                fifthUpSuccess: fifthUpSuccess
+            })
 
-            returnArr.push({manualRegistrationTotalSuccess: "PERCENTAGE", totalSuccess: 100.00, manualSuccess: manualSuccessPercent, firstSuccess: firstSuccessPercent,
-                secondSuccess: secondSuccessPercent, thirdSuccess: thirdSuccessPercent, fouthSuccess: fouthSuccessPercent, fifthSuccess: fifthSuccessPercent, fifthUpSuccess: fifthUpSuccessPercent})
+            returnArr.push({
+                manualRegistrationTotalSuccess: "PERCENTAGE",
+                totalSuccess: 100.00,
+                manualSuccess: manualSuccessPercent,
+                firstSuccess: firstSuccessPercent,
+                secondSuccess: secondSuccessPercent,
+                thirdSuccess: thirdSuccessPercent,
+                fouthSuccess: fouthSuccessPercent,
+                fifthSuccess: fifthSuccessPercent,
+                fifthUpSuccess: fifthUpSuccessPercent
+            })
 
             return returnArr;
         });
     },
 
-    getPlayerRegistrationIntentRecordByStatus: function(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, attemptNo){
+    getPlayerRegistrationIntentRecordByStatus: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, attemptNo) {
         var queryObj = {
             createTime: {
                 $gte: new Date(startTime),
@@ -1817,28 +1873,28 @@ var proposal = {
             },
         };
 
-        if(statusArr){
+        if (statusArr) {
             queryObj.status = {$in: statusArr};
         }
 
         var returnArr = [];
         var recordArr = [];
-        var prom =[];
+        var prom = [];
 
-        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name",queryObj).lean().then(dataList =>{
-            dataList.map(playerName =>{
+        return dbconfig.collection_playerRegistrationIntentRecord.distinct("data.name", queryObj).lean().then(dataList => {
+            dataList.map(playerName => {
                 prom.push(dbconfig.collection_playerRegistrationIntentRecord.find({'data.name': playerName}).sort({createTime: -1}));
             })
             return Q.all(prom);
-        }).then(details =>{
-            details.map(data =>{
-                data.map(d =>{
-                    if(!recordArr.find(r => r.name == d.data.name)){
-                        recordArr.push({name: d.data.name,status: d.status, attemptNo: 1});
-                    }else{
+        }).then(details => {
+            details.map(data => {
+                data.map(d => {
+                    if (!recordArr.find(r => r.name == d.data.name)) {
+                        recordArr.push({name: d.data.name, status: d.status, attemptNo: 1});
+                    } else {
                         var indexNo = recordArr.findIndex(r => r.name == d.data.name);
                         if(indexNo >= 0){
-                            recordArr[indexNo].status = recordArr[indexNo].status != "Success" ? d.status : recordArr[indexNo].status;
+                            recordArr[indexNo].status = recordArr[indexNo].status != constRegistrationIntentRecordStatus.SUCCESS ? d.status : recordArr[indexNo].status;
                             recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
                         }
                     }
@@ -1848,14 +1904,15 @@ var proposal = {
             return recordArr;
         }).then(playerAttemptNumber =>{
             if(attemptNo == 0){
-                return playerAttemptNumber.filter(function(event){return statusArr.includes(event.status) && event.attemptNo > 5})
+                return playerAttemptNumber.filter(function(event){return statusArr.includes(parseInt(event.status)) && event.attemptNo > 5})
             }else if(attemptNo < 0){
                 return playerAttemptNumber;
             }else {
-                return playerAttemptNumber.filter(function(event){return statusArr.includes(event.status) && event.attemptNo == attemptNo})
+                return playerAttemptNumber.filter(function(event){return statusArr.includes(parseInt(event.status)) && event.attemptNo == attemptNo})
             }
         }).then(data => {
-            let statusArray = ["Success", "Fail", "Manual"];
+            let statusArray = [constRegistrationIntentRecordStatus.INTENT,constRegistrationIntentRecordStatus.VERIFICATION_CODE,constRegistrationIntentRecordStatus.SUCCESS,constRegistrationIntentRecordStatus.FAIL
+                ,constRegistrationIntentRecordStatus.MANUAL];
             data.map(d => {
                 userName = d.name;
                 let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArray, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum);
@@ -1948,7 +2005,10 @@ var proposal = {
                                     "$data.rewardAmount"
                                 ]}},
                                 // totalRewardAmount: {$sum: "$data.rewardAmount"},
-                                totalTopUpAmount: {$sum: "$data.topUpAmount"}
+                                totalTopUpAmount: {$sum: "$data.topUpAmount"},
+                                totalUpdateAmount: {$sum: "$data.updateAmount"},
+                                totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
+                                totalCommissionAmount: {$sum: "$data.commissionAmount"}
                             }
                         }
                     ]);
@@ -2032,7 +2092,10 @@ var proposal = {
                             0,
                             "$data.rewardAmount"
                         ]}},
-                        totalTopUpAmount: {$sum: "$data.topUpAmount"}
+                        totalTopUpAmount: {$sum: "$data.topUpAmount"},
+                        totalUpdateAmount: {$sum: "$data.updateAmount"},
+                        totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
+                        totalCommissionAmount: {$sum: "$data.commissionAmount"}
                     }
                 }
             ]);
@@ -2094,6 +2157,9 @@ var proposal = {
                     total += summary[0].totalAmount;
                     total += summary[0].totalRewardAmount;
                     total += summary[0].totalTopUpAmount;
+                    total += summary[0].totalUpdateAmount;
+                    total += summary[0].totalNegativeProfitAmount;
+                    total += summary[0].totalCommissionAmount;
                 }
                 deferred.resolve({
                     size: totalSize,
@@ -3275,7 +3341,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
         for (let i = 0; i < proposals.length; i++) {
             let prom = new Promise(function (res) {
                 let proposal = JSON.parse(JSON.stringify(proposals[i]));
-                if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
+                if (proposal.status === constRegistrationIntentRecordStatus.SUCCESS || proposal.status === constRegistrationIntentRecordStatus.APPROVED) {
                     Promise.all([handleSuccessProposal(proposal)]).then(
                         () => {
                             insertedProposals[i] = proposal;
@@ -3302,7 +3368,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
         );
 
         function handleFailurePlayer(proposal) {
-            let playerName = proposal.data.name;
+            let playerName = proposal.data ? proposal.data.name : "";
 
             let allCountQuery = {
                 "data.name": playerName
@@ -3332,7 +3398,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
         }
 
         function handleSuccessProposal(proposal) {
-            let playerName = proposal.data.name;
+            let playerName = proposal.data ? proposal.data.name : "";
 
             let allCountQuery = {
                 "data.name": playerName
@@ -3404,7 +3470,7 @@ function getMinutesBetweenDates(startDate, endDate) {
     return Math.floor(diff / 60000);
 }
 
-function convertStringNumber(Arr){
+function convertStringNumber(Arr) {
     let Arrs = JSON.parse(JSON.stringify(Arr));
     let result = []
     Arrs.forEach(item => {

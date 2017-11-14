@@ -108,9 +108,14 @@ let dbPlayerInfo = {
                         return Q.resolve(true);
                     }
 
+                    platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                    let smsExpiredDate = new Date();
+                    smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
+
                     let smsProm = dbconfig.collection_smsVerificationLog.findOne({
                         platformId: platformId,
-                        tel: inputData.phoneNumber
+                        tel: inputData.phoneNumber,
+                        createTime: {$gte: smsExpiredDate}
                     }).sort({createTime: -1});
 
                     return smsProm.then(
@@ -122,12 +127,13 @@ let dbPlayerInfo = {
                                     _id: verificationSMS._id
                                 }).then(
                                     () => {
+                                        dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                         Q.resolve(true);
                                     }
                                 );
                             }
                             else {
-                                let errorMessage = verificationSMS ? "Invalid SMS Validation Code" : "Incorrect SMS Validation Code";
+                                let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
                                 // Verification code is invalid
                                 return Q.reject({
                                     status: constServerCode.VALIDATION_CODE_INVALID,
@@ -186,8 +192,20 @@ let dbPlayerInfo = {
             ).then(
                 validData => {
                     if (validData && validData.isPlayerNameValid) {
+
+                        // phone number white listing
+                        if (platformObj.whiteListingPhoneNumbers
+                            && platformObj.whiteListingPhoneNumbers.length > 0
+                            && inputData.phoneNumber
+                            && platformObj.whiteListingPhoneNumbers.indexOf(inputData.phoneNumber) > -1)
+                            return {isPhoneNumberValid: true};
+
                         if (platformObj.allowSamePhoneNumberToRegister === true) {
-                            return {isPhoneNumberValid: true}
+                            return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
+                                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
+                                platform: platformObjId
+                            }, platformObj.samePhoneNumberRegisterCount);
+                            // return {isPhoneNumberValid: true}
                         } else {
                             return dbPlayerInfo.isPhoneNumberValidToRegister({
                                 phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
@@ -254,19 +272,18 @@ let dbPlayerInfo = {
                         }
 
                         //check partnerId when create player account manually
-                        if(inputData.partner){
+                        if (inputData.partner) {
                             delete inputData.referral;
                             let partnerObjId = ObjectId(inputData.partner);
                             let partnerProm = dbconfig.collection_partner.findOne({
                                 _id: partnerObjId,
                                 platform: platformObjId
                             }).then(
-                                data =>{
-                                    if(data){
+                                data => {
+                                    if (data) {
                                         inputData.partnerId = data.partnerId;
                                         return inputData;
-                                    }else
-                                    {
+                                    } else {
                                         delete inputData.partner;
                                         return inputData;
                                     }
@@ -282,7 +299,7 @@ let dbPlayerInfo = {
                             }
                             inputData.domain = filteredDomain;
 
-                            if(inputData.partnerId){
+                            if (inputData.partnerId) {
                                 let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
                                     data => {
                                         if (data) {
@@ -743,7 +760,11 @@ let dbPlayerInfo = {
             function (data) {
                 if (data.isPlayerNameValid) {
                     if (platformData.allowSamePhoneNumberToRegister === true) {
-                        return {isPhoneNumberValid: true};
+                        return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
+                            phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
+                            platform: playerdata.platform
+                        }, platformData.samePhoneNumberRegisterCount);
+                        // return {isPhoneNumberValid: true};
                     } else {
                         return dbPlayerInfo.isPhoneNumberValidToRegister({
                             phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
@@ -1380,10 +1401,14 @@ let dbPlayerInfo = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
+                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                        let smsExpiredDate = new Date();
+                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
                         // Check verification SMS match
                         return dbconfig.collection_smsVerificationLog.findOne({
                             platformObjId: playerObj.platform,
-                            tel: playerObj.phoneNumber
+                            tel: playerObj.phoneNumber,
+                            createTime: {$gte: smsExpiredDate}
                         }).sort({createTime: -1}).then(
                             verificationSMS => {
                                 // Check verification SMS code
@@ -1393,12 +1418,13 @@ let dbPlayerInfo = {
                                         {_id: verificationSMS._id}
                                     ).then(
                                         () => {
+                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                             return Q.resolve(true);
                                         }
                                     )
                                 }
                                 else {
-                                    let errorMessage = verificationSMS ? "Invalid SMS Validation Code" : "Incorrect SMS Validation Code";
+                                    let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
                                     return Q.reject({
                                         status: constServerCode.VALIDATION_CODE_INVALID,
                                         name: "ValidationError",
@@ -1521,6 +1547,7 @@ let dbPlayerInfo = {
     updatePlayerPayment: function (userAgent, query, updateData, skipSMSVerification) {
         let playerObj = null;
         let platformObjId;
+        let smsLogData;
         // Get platform
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
@@ -1556,10 +1583,14 @@ let dbPlayerInfo = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
+                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                        let smsExpiredDate = new Date();
+                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
                         // Check verification SMS match
                         return dbconfig.collection_smsVerificationLog.findOne({
                             platformObjId: playerObj.platform,
-                            tel: playerObj.phoneNumber
+                            tel: playerObj.phoneNumber,
+                            createTime: {$gte: smsExpiredDate}
                         }).sort({createTime: -1}).then(
                             verificationSMS => {
                                 // Check verification SMS code
@@ -1569,12 +1600,14 @@ let dbPlayerInfo = {
                                         {_id: verificationSMS._id}
                                     ).then(
                                         () => {
+                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
+                                            smsLogData = {tel: verificationSMS.tel, message: verificationSMS.code};
                                             return Q.resolve(true);
                                         }
                                     )
                                 }
                                 else {
-                                    let errorMessage = verificationSMS ? "Invalid SMS Validation Code" : "Incorrect SMS Validation Code";
+                                    let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
                                     return Q.reject({
                                         status: constServerCode.VALIDATION_CODE_INVALID,
                                         name: "ValidationError",
@@ -1604,7 +1637,10 @@ let dbPlayerInfo = {
                 let inputDeviceData = dbUtility.getInputDevice(userAgent,false);
                 updateData.isPlayerInit = true;
                 updateData.playerName = playerObj.name;
-                dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {data: updateData, inputDevice: inputDeviceData});
+                dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {
+                    data: updateData,
+                    inputDevice: inputDeviceData
+                }, smsLogData);
                 return updatedData;
             }
         )
@@ -2047,7 +2083,7 @@ let dbPlayerInfo = {
 
                     let promArr = [recordProm, logProm, levelProm];
 
-                    if (proposalData.data.limitedOfferObjId) {
+                    if (proposalData && proposalData.data && proposalData.data.limitedOfferObjId) {
                         let newProp;
                         let limitedOfferProm = dbUtility.findOneAndUpdateForShard(
                             dbconfig.collection_proposal,
@@ -5261,6 +5297,18 @@ let dbPlayerInfo = {
         );
     },
 
+    isExceedPhoneNumberValidToRegister: function (query, count) {
+        return dbconfig.collection_players.findOne(query).count().then(
+            playerDataCount => {
+                if (playerDataCount > count) {
+                    return {isPhoneNumberValid: false};
+                } else {
+                    return {isPhoneNumberValid: true};
+                }
+            }
+        );
+    },
+
     getRewardsForPlayer: function (playerId, rewardType, startTime, endTime, startIndex, count) {
         var queryProm = null;
         var playerName = '';
@@ -5498,7 +5546,7 @@ let dbPlayerInfo = {
 
                         return Q.all([playerProm, levelsProm]).spread(
                             function (player, playerLevels) {
-                                if (!player){
+                                if (!player) {
                                     return Q.reject({name: "DataError", message: "Cannot find player"});
                                 }
                                 return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
@@ -5506,7 +5554,6 @@ let dbPlayerInfo = {
                             function () {
                                 return Q.reject({name: "DataError", message: "Cannot find player"});
                             }
-
                         );
                     }
                     else {
@@ -9115,7 +9162,7 @@ let dbPlayerInfo = {
         ).then(
             rewardEvent => {
                 if (rewardEvent && rewardEvent.type) {
-
+                    // Check reward individual permission
                     let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerInfo, rewardEvent._id);
                     if (playerIsForbiddenForThisReward) {
                         return Q.reject({name: "DataError", message: "Player is forbidden for this reward."});
@@ -9132,7 +9179,7 @@ let dbPlayerInfo = {
                         });
                     }
 
-                    //  the following behavior can generate reward task
+                    // The following behavior can generate reward task
                     let rewardTaskWithProposalList = [
                         constRewardType.FIRST_TOP_UP,
                         constRewardType.PLAYER_TOP_UP_RETURN,
@@ -9145,7 +9192,9 @@ let dbPlayerInfo = {
                         constRewardType.GAME_PROVIDER_REWARD,
                         constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD,
                         constRewardType.PLAYER_PACKET_RAIN_REWARD,
+                        constRewardType.PLAYER_TOP_UP_RETURN_GROUP
                     ];
+
                     // Check any consumption after topup upon apply reward
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
@@ -10485,7 +10534,9 @@ let dbPlayerInfo = {
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                     return playerIdObj._id;
                                 }),
-                                isDX: true
+                                option: {
+                                    isDX: true
+                                }
                             });
                         },
                         processResponse: function (record) {
@@ -10562,7 +10613,8 @@ let dbPlayerInfo = {
         );
     },
 
-    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, isDX) {
+    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option) {
+        option = option || {};
         let proms = [];
         let proposalType = [];
 
@@ -10572,7 +10624,7 @@ let dbPlayerInfo = {
                 for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
                     let prom;
 
-                    if (isDX) {
+                    if (option.isDX) {
                         prom = dbconfig.collection_players.findOne({
                             _id: playerObjIds[p]
                         }).then(
@@ -10585,7 +10637,33 @@ let dbPlayerInfo = {
                         );
 
                         proms.push(prom);
-                    } else {
+                    } else if (option.isFeedback) {
+                        let feedBackIds = playerObjIds;
+                        let feedbackData;
+
+                        prom = dbconfig.collection_playerFeedback.findOne({
+                            _id: feedBackIds[p]
+                        })
+                        .populate({path: 'adminId', select: '_id adminName', model: dbconfig.collection_admin})
+                        .then(
+                            data => {
+                                feedbackData = JSON.parse(JSON.stringify(data));
+                                let qStartTime = new Date(feedbackData.createTime);
+                                let qEndTime = moment(qStartTime).add(query.days, 'day');
+                                return getPlayerRecord(feedbackData.playerId, qStartTime, qEndTime);
+                            }
+                        ).then(
+                            data => {
+                                let playerRecord = JSON.parse(JSON.stringify(data));
+                                if(typeof playerRecord==="object") {
+                                    playerRecord.feedback = feedbackData;
+                                }
+                                return playerRecord;
+                            }
+                        );
+                        proms.push(prom);
+                    }
+                    else {
                         proms.push(getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime)));
                     }
 
@@ -10749,6 +10827,12 @@ let dbPlayerInfo = {
             }
             if (query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
                 playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
+            }
+            if (query.hasOwnProperty('isRealPlayer')) {
+                playerQuery.isRealPlayer = query.isRealPlayer;
+            }
+            if (query.hasOwnProperty('partner')) {
+                playerQuery.partner = query.partner;
             }
 
             // Player Score Query Operator
@@ -11032,6 +11116,17 @@ let dbPlayerInfo = {
         ).then(
             res => res.viewInfo[field]
         );
+    },
+
+
+    setBonusShowInfo: (playerId, showInfo) => {
+        return dbUtility.findOneAndUpdateForShard(
+            dbconfig.collection_players,
+            {playerId: playerId},
+            {"viewInfo.showInfoState": parseInt(showInfo)},
+            constShardKeys.collection_players
+        )
+
     },
 
     createUpdateTopUpGroupLog: (player, adminId, bankGroup, remark) => {
@@ -11354,7 +11449,7 @@ let dbPlayerInfo = {
         }
 
         // if true, user can filter phone across all platform
-        if(filterAllPlatform) {
+        if (filterAllPlatform) {
             // display phoneNumber from DB without asterisk masking
             var dbPhone = dbconfig.collection_players.aggregate([
                 {$match: {"phoneNumber": oldNewPhone}},
@@ -11375,13 +11470,13 @@ let dbPlayerInfo = {
         // display phoneNumber result that matched input phoneNumber
         return dbPhone.then(playerData => {
             // encrypted phoneNumber in DB will be decrypted
-            for (let q = 0; q < playerData.length; q ++) {
+            for (let q = 0; q < playerData.length; q++) {
                 if (playerData[q].phoneNumber.length > 20) {
                     playerData[q].phoneNumber = rsaCrypto.decrypt(playerData[q].phoneNumber);
                 }
             }
 
-            for (let z = 0; z < playerData.length; z ++) {
+            for (let z = 0; z < playerData.length; z++) {
                 arrayDbPhone.push(playerData[z].phoneNumber);
             }
 
@@ -11396,7 +11491,12 @@ let dbPlayerInfo = {
             // don't join, remain as array
             samePhoneXLS = samePhone;
 
-            return {samePhoneXLS: samePhoneXLS, diffPhoneXLS: diffPhoneXLS, samePhoneTotalXLS: samePhoneTotalXLS, diffPhoneTotalXLS: diffPhoneTotalXLS};
+            return {
+                samePhoneXLS: samePhoneXLS,
+                diffPhoneXLS: diffPhoneXLS,
+                samePhoneTotalXLS: samePhoneTotalXLS,
+                diffPhoneTotalXLS: diffPhoneTotalXLS
+            };
         }).then(data => {
             return data;
         });

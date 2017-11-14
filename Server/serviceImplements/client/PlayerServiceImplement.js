@@ -300,13 +300,11 @@ let PlayerServiceImplement = function () {
     this.login.expectsData = 'name: String, password: String, platformId: String';
     this.login.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.name && data.password && data.platformId);
-
         data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             data.lastLoginIp = forwardedIp[0].trim();
         }
-
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua], isValidData, true, true, true).then(
@@ -836,8 +834,9 @@ let PlayerServiceImplement = function () {
         conn.smsCode = randomCode;
         let captchaValidation = conn.captchaCode && data.captcha && conn.captchaCode.toString() === data.captcha.toString();
         conn.captchaCode = null;
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData, false, false, true);
     };
 
     this.sendSMSCodeToPlayer.expectsData = 'platformId: String';
@@ -846,7 +845,8 @@ let PlayerServiceImplement = function () {
         let smsCode = parseInt(Math.random() * 9000 + 1000);
         let captchaValidation = conn.captchaCode && data.captcha && conn.captchaCode.toString() === data.captcha.toString();
         conn.captchaCode = null;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation], isValidData, false, false, true);
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData, false, false, true);
     };
 
     this.authenticate.expectsData = 'playerId: String, token: String';

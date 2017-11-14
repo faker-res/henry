@@ -795,7 +795,6 @@ var dbPlayerTopUpRecord = {
                 var updateData = {
                     status: constProposalStatus.PENDING
                 };
-                console.log(res);
                 updateData.data = Object.assign({}, proposal.data);
                 updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
                 updateData.data.merchantNo = merchantResponse.result ? merchantResponse.result.merchantNo : "";
@@ -1703,7 +1702,7 @@ var dbPlayerTopUpRecord = {
                 }
 
             ).then(
-                pmsResult=>{
+                pmsResult => {
                     pmsData = pmsResult;
                     var queryObj = {};
                     let start = new Date();
@@ -1712,9 +1711,10 @@ var dbPlayerTopUpRecord = {
                     end.setHours(23, 59, 59, 999);
                     if (alipayAccount) {
                         queryObj['data.alipayAccount'] = pmsResult.result.alipayAccount;
-                    }else if(alipayName){
+                    } else if (alipayName) {
                         queryObj['data.alipayName'] = pmsResult.result.alipayName;
-                    }else{}
+                    } else {
+                    }
                     queryObj['data.platformId'] = ObjectId(player.platform._id);
                     queryObj['mainType'] = 'TopUp';
                     queryObj["createTime"] = {};
@@ -1771,7 +1771,8 @@ var dbPlayerTopUpRecord = {
                         proposalId: data.proposalId,
                         requestId: request.result.requestId,
                         status: data.status,
-                        result: request.result
+                        result: request.result,
+                        restTime: Math.abs(parseInt((new Date().getTime() - new Date(request.result.validTime).getTime()) / 1000))
                     };
                 }
             );
@@ -1963,12 +1964,12 @@ var dbPlayerTopUpRecord = {
                     let end = new Date();
                     end.setHours(23, 59, 59, 999);
                     if (pmsData.result.weChatAccount) {
-                        queryObj['$or']= [
-                            {'data.wechatAccount':pmsData.result.weChatAccount},
-                            {'data.weChatAccount':pmsData.result.weChatAccount}
+                        queryObj['$or'] = [
+                            {'data.wechatAccount': pmsData.result.weChatAccount},
+                            {'data.weChatAccount': pmsData.result.weChatAccount}
                         ]
                     }
-                    if(pmsData.result.weChatName){
+                    if (pmsData.result.weChatName) {
                         queryObj['$or'] = [
                             {'data.wechatName': pmsData.result.weChatName},
                             {'data.weChatName': pmsData.result.weChatName}
@@ -2026,7 +2027,8 @@ var dbPlayerTopUpRecord = {
                         proposalId: data.proposalId,
                         requestId: request.result.requestId,
                         status: data.status,
-                        result: request.result
+                        result: request.result,
+                        restTime: Math.abs(parseInt((new Date().getTime() - new Date(request.result.validTime).getTime()) / 1000))
                     };
                 }
             );

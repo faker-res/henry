@@ -1082,12 +1082,83 @@ define(['js/app'], function (myApp) {
                 });
                 $scope.safeApply();
             } else if (choice == "FEEDBACK_REPORT") {
-                vm.feedbackQuery = {};
-                vm.feedbackSummaryData = {};
-                utilService.actionAfterLoaded("#feedbackReportTable", function () {
-                    vm.commonInitTime(vm.winRateQuery, '#feedbackReportQuery');
+                utilService.actionAfterLoaded('#feedbackReportTable', function () {
+                    let yesterday = utilService.setNDaysAgo(new Date(), 1);
+                    let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
+                    let todayEndTime = utilService.getTodayEndTime();
+
+                    vm.allFeedbackResults = {};
+                    vm.allFeedbackTopics = {};
+
+                    $scope.$socketPromise('getAllPlayerFeedbackResults').then(
+                        function (data) {
+                            vm.allFeedbackResults = data.data;
+                            console.log("vm.allFeedbackResults", data.data);
+                            $scope.safeApply();
+                        },
+                        function (err) {
+                            console.log("vm.allFeedbackResults", err);
+                        }
+                    ).catch(function (err) {
+                        console.log("vm.allFeedbackResults", err)
+                    });
+
+                    $scope.$socketPromise('getAllPlayerFeedbackTopics').then(
+                        function (data) {
+                            vm.allFeedbackTopics = data.data;
+                            console.log("vm.allFeedbackTopics", data.data);
+                            $scope.safeApply();
+                        },
+                        function (err) {
+                            console.log("vm.allFeedbackTopics", err);
+                        }
+                    ).catch(function (err) {
+                        console.log("vm.allFeedbackTopics", err)
+                    });
+
+                    // Get Departments Detail
+                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
+                        console.log('getDepartmentTreeById', data);
+                        let parentId;
+                        vm.queryDepartments = [];
+                        vm.queryRoles = [];
+
+                        data.data.map(e => {
+                            if (e.departmentName == vm.selectedPlatform.name) {
+                                vm.queryDepartments.push(e);
+                                parentId = e._id;
+                            }
+                        });
+
+                        data.data.map(e => {
+                            if (String(parentId) == String(e.parent)) {
+                                vm.queryDepartments.push(e);
+                            }
+                        });
+
+                        $scope.$digest();
+                        if (typeof(callback) == 'function') {
+                            callback(data.data);
+                        }
+                    });
+
+                    vm.feedbackQuery = {
+                        userType: 'Real Player (all)',
+                        result: [],
+                        topic: [],
+                        days: 1,
+                        valueScoreOperator: ">=",
+                        topUpTimesOperator: ">=",
+                        bonusTimesOperator: ">=",
+                        topUpAmountOperator: ">="
+                    };
+                    vm.feedbackQuery.start = utilService.createDatePicker('#feedbackReportQuery .startTime');
+                    vm.feedbackQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                    vm.feedbackQuery.end = utilService.createDatePicker('#feedbackReportQuery .endTime');
+                    vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                    $scope.safeApply();
                 });
-                $scope.safeApply();
+
             } else if (choice == "ONLINE_PAYMENT_MISMATCH_REPORT") {
                 vm.onlinePaymentMismatchQuery = {type: 'online'};
                 vm.proposalMismatchDetail = {};
@@ -1467,11 +1538,11 @@ define(['js/app'], function (myApp) {
             }, 0);
         };
 
-        vm.setQueryRole = () => {
+        vm.setQueryRole = (modal) => {
             vm.queryRoles = [];
 
             vm.queryDepartments.map(e => {
-                if (vm.dxNewPlayerQuery.departments.indexOf(e._id) >= 0) {
+                if (modal.departments.indexOf(e._id) >= 0) {
                     vm.queryRoles = vm.queryRoles.concat(e.roles);
                 }
             });
@@ -1480,11 +1551,11 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
-        vm.setQueryAdmins = () => {
+        vm.setQueryAdmins = (modal) => {
             vm.queryAdmins = [];
 
             vm.queryRoles.map(e => {
-                if (vm.dxNewPlayerQuery.roles.indexOf(e._id) >= 0) {
+                if (modal.roles.indexOf(e._id) >= 0) {
                     vm.queryAdmins = vm.queryAdmins.concat(e.users);
                 }
             });
@@ -1822,13 +1893,13 @@ define(['js/app'], function (myApp) {
                         item.merchantName = vm.getMerchantName(item.data.merchantNo);
                         item.merchantNo$ = item.data.merchantNo != null ? item.data.merchantNo
                             : item.data.bankCardNo != null ? item.data.bankCardNo
-                                : item.data.wechatAccount != null ? item.data.wechatAccount
-                                    : item.data.weChatAccount != null ? item.data.weChatAccount
-                                        : item.data.alipayAccount != null ? item.data.alipayAccount
-                                            : item.data.accountNo != null ? item.data.accountNo
-                                                : null;
-                        item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
-                        item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
+                            : item.data.wechatAccount != null ? item.data.wechatAccount
+                            : item.data.weChatAccount != null ? item.data.weChatAccount
+                            : item.data.alipayAccount != null ? item.data.alipayAccount
+                            : item.data.accountNo != null ? item.data.accountNo
+                            : null;
+                            item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
+                            item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         if (item.type.name == 'PlayerTopUp') {
                             //show detail topup type info for online topup.
                             let typeID = item.data.topUpType || item.data.topupType
@@ -2681,6 +2752,294 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        ////////////////////FEEDBACK REPORT//////////////////////
+        vm.searchFeedbackReport = function (newSearch) {
+            $('#feedbackReportTableSpin').show();
+
+            let admins = [];
+            let query = {};
+
+            if (vm.feedbackQuery.departments) {
+                if (vm.feedbackQuery.roles) {
+                    vm.queryRoles.map(e => {
+                        if (vm.feedbackQuery.roles.indexOf(e._id) >= 0) {
+                            e.users.map(f => admins.push(f.adminName))
+                        }
+                    })
+                } else {
+                    vm.queryRoles.map(e => e.users.map(f => admins.push(f.adminName)))
+                }
+            }
+
+            if(vm.feedbackQuery.userType && vm.feedbackQuery.userType!=null) {
+                query.playerType = vm.feedbackQuery.userType;
+            }
+            if(vm.feedbackQuery.days && vm.feedbackQuery.days!=null) {
+                query.days = vm.feedbackQuery.days;
+            }
+            if(vm.feedbackQuery.result && vm.feedbackQuery.result.length > 0) {
+                query.result = {$in: vm.feedbackQuery.result};
+            }
+            if(vm.feedbackQuery.topic && vm.feedbackQuery.topic.length > 0) {
+                query.topic = {$in: vm.feedbackQuery.topic};
+            }
+            if(vm.feedbackQuery.admins && vm.feedbackQuery.admins.length > 0) {
+                query.admins = vm.feedbackQuery.admins;
+            }
+
+            query.start = vm.feedbackQuery.start.data('datetimepicker').getLocalDate();
+            query.end = vm.feedbackQuery.end.data('datetimepicker').getLocalDate();
+            query.credibilityRemarks = vm.feedbackQuery.credibility;
+            query.valueScoreOperator = vm.feedbackQuery.valueOperator;
+            query.playerScoreValue = vm.feedbackQuery.valueFormal;
+            query.playerScoreValueTwo = vm.feedbackQuery.valueLatter;
+            query.topUpTimesOperator = vm.feedbackQuery.topUpTimesOperator;
+            query.topUpTimesValue = vm.feedbackQuery.topUpTimesFormal;
+            query.topUpTimesValueTwo = vm.feedbackQuery.topUpTimesLatter;
+            query.bonusTimesOperator = vm.feedbackQuery.bonusTimesOperator;
+            query.bonusTimesValue = vm.feedbackQuery.bonusTimesFormal;
+            query.bonusTimesValueTwo = vm.feedbackQuery.bonusTimesLatter;
+            query.topUpAmountOperator = vm.feedbackQuery.topUpAmountOperator;
+            query.topUpAmountValue = vm.feedbackQuery.topUpAmountFormal;
+            query.topUpAmountValueTwo = vm.feedbackQuery.topUpAmountLatter;
+
+            let sendquery = {
+                platformId: vm.curPlatformId,
+                query: query,
+                index: newSearch ? 0 : (vm.feedbackQuery.index || 0),
+                limit: vm.feedbackQuery.limit || 5000,
+                sortCol: vm.feedbackQuery.sortCol || {createTime: -1},
+            };
+            console.log('sendquery', sendquery);
+            socketService.$socket($scope.AppSocket, 'getFeedbackReport', sendquery, function (data) {
+                console.log('retData', data);
+                vm.feedbackQuery.totalCount = data.data.size;
+                $('#feedbackReportTableSpin').hide();
+
+                vm.drawFeedbackReport(data.data.data.map(item => {
+                    item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                    item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.feedback.createTime);
+                    item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.endTime);
+                    item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
+                    item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
+                    item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
+                    item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
+                    item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                    item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                    item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
+                    item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
+                    item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
+                    item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
+                    item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
+                    item.feedbackTopic$ = (item.feedback.topic == null ||item.feedback.topic == undefined) ? '-' : item.feedback.topic;
+                    item.feedback$ = "";
+                    item.credibility$ = "";
+                    if (item.credibilityRemarks) {
+                        for (let i = 0; i < item.credibilityRemarks.length; i++) {
+                            for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                    item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                }
+                            }
+                        }
+                    }
+
+                    item.providerArr = [];
+                    for (var key in item.providerDetail) {
+                        if (item.providerDetail.hasOwnProperty(key)) {
+                            item.providerDetail[key].providerId = key;
+                            item.providerArr.push(item.providerDetail[key]);
+                        }
+                    }
+
+                    item.provider$ = "";
+                    if (item.providerDetail) {
+                        for (let i = 0; i < item.providerArr.length; i++) {
+                            item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                            item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                            item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                            item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                            for (let j = 0; j < vm.allProviders.length; j++) {
+                                if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                    item.providerArr[i].name = vm.allProviders[j].name;
+                                    item.provider$ += vm.allProviders[j].name + "<br>";
+                                }
+                            }
+                        }
+                    }
+
+                    item.profit$ = 0;
+                    if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
+                        item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
+                    }
+
+                    return item;
+                }), data.data.size, newSearch);
+                $scope.safeApply();
+            });
+        };
+
+        vm.drawFeedbackReport = function (data, size, newSearch) {
+            var tableOptions = {
+                data: data,
+                "order": vm.feedbackQuery.aaSorting || [[3, 'desc']],
+                aoColumnDefs: [
+                    {'sortCol': 'name', 'aTargets': [0], bSortable: true},
+                    {'sortCol': 'playerValue', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'credibilityRemarks', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'feedbackTime', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'endTime', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [17], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [21], bSortable: true},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {title: $translate('PLAYER_VALUE'), data: "valueScore"},
+                    {title: $translate('CREDIBILITY'), data: "credibility$"},
+                    {title: $translate('FEEDBACK_TIME'), data: "createTime$"},
+                    {title: $translate('endTime'), data: "endTime$"},
+                    {
+                        title: $translate('LOBBY'), data: "provider$", "className": 'expandPlayerReport',
+                        render: function (data) {
+                            return "<a>" + data + "</a>";
+                        }
+                    },
+                    {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$", sClass: "sumFloat"},
+                    {title: $translate('TOPUP_WECHAT'), data: "weChatTopUpAmount$", sClass: "sumFloat"},
+                    {title: $translate('PlayerAlipayTopUp'), data: "aliPayTopUpAmount$", sClass: "sumFloat"},
+                    {title: $translate('TOPUPONLINE'), data: "onlineTopUpAmount$", sClass: "sumFloat"},
+                    {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes", sClass: "sumInt"},
+                    {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$", sClass: "sumFloat"},
+                    {title: $translate('WITHDRAW_COUNT'), data: "bonusTimes", sClass: "sumInt"},
+                    {title: $translate('WITHDRAW_AMOUNT'), data: "bonusAmount$", sClass: "sumFloat"},
+                    {title: $translate('PROMOTION'), data: "rewardAmount$", sClass: "sumFloat"},
+                    {
+                        title: $translate('CONSUMPTION_RETURN_AMOUNT'),
+                        data: "consumptionReturnAmount$",
+                        sClass: "sumFloat"
+                    },
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: "sumInt"},
+                    {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$", sClass: "sumFloat"},
+                    {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$", sClass: "sumFloat"},
+                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: "sumProfit"},
+                    {title: $translate('FEEDBACK_ADMIN'), data: "feedback.adminId.adminName"},
+                    {
+                        title: $translate('FEEDBACK_TOPIC'),
+                        data: "feedbackTopic$",
+                        "className": 'expandFeedbackReport',
+                        render: function (data) {
+                            return "<a>" + data + "</a>";
+                        }
+                    },
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"}
+                ],
+                "paging": false,
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            if (playerTbl) {
+                playerTbl.clear();
+            }
+            var playerTbl = utilService.createDatatableWithFooter('#feedbackReportTable', tableOptions, {}, true);
+            utilService.setDataTablePageInput('feedbackReportTable', playerTbl, $translate);
+
+            $('#feedbackReportTable').resize();
+            $('#feedbackReportTable tbody').off('click', 'td.expandPlayerReport');
+            $('#feedbackReportTable tbody').on('click', 'td.expandPlayerReport', function () {
+                var tr = $(this).closest('tr');
+                var row = playerTbl.row(tr);
+
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                }
+                else {
+                    // Open this row
+                    var data = row.data();
+                    console.log('content', data);
+                    var id = 'playertable' + data._id;
+                    row.child(vm.createInnerTable(id)).show();
+                    vm[id] = {};
+                    vm.allGame = [];
+                    var gameId = [];
+                    if (data.gameDetail) {
+                        for (let n = 0; n < data.gameDetail.length; n++) {
+                            gameId[n] = data.gameDetail[n].gameId;
+                        }
+
+                        vm.getGameByIds(gameId).then(
+                            function () {
+                                for (let i = 0; i < data.gameDetail.length; i++) {
+                                    data.gameDetail[i].profit = parseFloat(data.gameDetail[i].bonusAmount / data.gameDetail[i].validAmount * -100).toFixed(2) + "%";
+                                    for (let j = 0; j < vm.allGame.length; j++){
+                                        if (data.gameDetail[i].gameId.toString() == vm.allGame[j]._id.toString()){
+                                            data.gameDetail[i].name = vm.allGame[j].name;
+                                        }
+                                    }
+                                }
+                                vm.drawPlatformTable(data, id, data.providerArr.length, newSearch, vm.feedbackQuery);
+                            }
+                        )
+                    }
+
+                    tr.addClass('shown');
+                }
+            });
+            $('#feedbackReportTable tbody').off('click', 'td.expandFeedbackReport');
+            $('#feedbackReportTable tbody').on('click', 'td.expandFeedbackReport', function () {
+                let tr = $(this).closest('tr');
+                let row = playerTbl.row(tr);
+
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                }
+                else {
+                    // Open this row
+                    let data = row.data();
+                    console.log('content', data);
+                    let id = 'playertable' + data._id;
+                    row.child(vm.createInnerTable(id)).show();
+
+                    if (data.feedback) {
+                        data.feedback.createTime$ = data.createTime$;
+                        for(let x = 0; x < vm.allFeedbackResults.length; x++) {
+                            if(vm.allFeedbackResults[x].key == data.feedback.result) {
+                                data.feedback.result$ = vm.allFeedbackResults[x].value;
+                                break;
+                            }
+                        }
+                    }
+                    vm.drawFeedbackTable(data, id, 1, newSearch, vm.feedbackQuery);
+
+                    tr.addClass('shown');
+                }
+            });
+            $('#feedbackReportTable').off('order.dt');
+            $('#feedbackReportTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'playerQuery', vm.searchFeedbackReport);
+            });
+        };
+
+
         /////// player domain report
         vm.searchPlayerDomainRepport = function (newSearch) {
             $('#playerDomainReportTableSpin').show();
@@ -3407,6 +3766,42 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'playerQuery', vm.searchDXNewPlayerReport);
             });
         };
+
+        /////////////////draw feedback detail table inside player result/////////////////////////////
+        vm.drawFeedbackTable = function (data, id, size, newSearch, qObj) {
+            let holder = data;
+            let tableOptions = {
+                data: [data.feedback],
+                "ordering": false,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('FEEDBACK_ADMIN'), data: "adminId.adminName", sClass: "realNameCell wordWrap"},
+                    {title: $translate('FEEDBACK_TIME'), data: "createTime$"},
+                    {title: $translate('FEEDBACK_TOPIC'), data: "topic"},
+                    {title: $translate('FEEDBACK_RESULT'), data: "result$"},
+                    {title: $translate('REMARKS'), data: "content"}
+                ],
+                "paging": false,
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            console.log("drawFeedbackTable2",tableOptions);
+            let feedbackDetailTable;
+            if (feedbackDetailTable) {
+                feedbackDetailTable.clear();
+            }
+            $('#' + id + 'label').text($translate("total") + ' ' + size + ' ' + $translate("records"));
+            feedbackDetailTable = utilService.createDatatableWithFooter('#' + id, tableOptions, {});
+            utilService.setDataTablePageInput(id, feedbackDetailTable, $translate);
+
+            $('#' + id).resize();
+        };
+        //////////////////////end draw feedback detail table inside player result block///////////////////////////////
 
         ///////draw Platform table inside player start///////
         vm.drawPlatformTable = function (data, id, size, newSearch, qObj) {

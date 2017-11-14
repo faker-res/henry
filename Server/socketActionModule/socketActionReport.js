@@ -3,6 +3,7 @@ var dbProposal = require('./../db_modules/dbProposal');
 var utility = require('./../modules/encrypt');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+var dbPlayerFeedback = require('./../db_modules/dbPlayerFeedback');
 var dbRewardTask = require('./../db_modules/dbRewardTask');
 var dbLogger = require("./../modules/dbLogger");
 var dbGameProviderDaySummary = require('./../db_modules/dbGameProviderDaySummary');
@@ -248,6 +249,14 @@ function socketActionReport(socketIO, socket) {
             let platformId = ObjectId(data.platformId);
 
             socketUtil.emitter(self.socket, dbPlayerInfo.getDXNewPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        getFeedbackReport: function getFeedbackReport(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.platformId && data.query.days);
+            let platformId = ObjectId(data.platformId);
+
+            socketUtil.emitter(self.socket, dbPlayerFeedback.getPlayerFeedbackReportAdvance, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
         // getFullAttendanceProposalReport: function getFullAttendanceProposalReport(data) {
