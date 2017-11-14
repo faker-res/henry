@@ -361,7 +361,10 @@ describe("Test proposal", function () {
     it('Create test partner', function (done) {
         var testPartnerData = {
             partnerName: "testPartner" + date,
+            realName: "testPartner",
+            password: "888888",
             platform: testPlatformId,
+            phoneNumber: "88888888"
         };
         dbPartner.createPartner(testPartnerData).then(
             function (data) {
@@ -376,13 +379,14 @@ describe("Test proposal", function () {
 
     it('Create test partner update bank info proposal', function (done) {
         var proposalData = {
+            platformId: testPlatformId,
             data: {
                 partnerName: testPartnerName,
                 curData: {},
-                updateData: {bankAccount: "12345"}
+                updateData: {bankAddress: "test address"}
             }
         };
-        dbProposal.createProposalWithTypeName(testPlatformId, constProposalType.UPDATE_PARTNER_BANK_INFO, proposalData).then(
+        dbProposal.createProposalWithTypeNameWithProcessInfo(testPlatformId, constProposalType.UPDATE_PARTNER_BANK_INFO, proposalData).then(
             function (data) {
                 done();
             },

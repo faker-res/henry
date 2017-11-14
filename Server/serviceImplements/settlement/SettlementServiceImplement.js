@@ -190,7 +190,7 @@ var SettlementServiceImplement = function () {
     this.getConsumptionDetailOfPlayers.expectsData = 'platformObjId: ObjectId, playerObjIds: [], startTime: Date, endTime: Date, query: {}';
     this.getConsumptionDetailOfPlayers.onRequest = function(wsFunc, conn, data) {
         var isValidData = Boolean(data && data.platformId && data.startTime && data.endTime && data.playerObjIds);
-        var args = [ObjectId(data.platformId), data.startTime, data.endTime, data.query, data.playerObjIds, data.isDX];
+        var args = [ObjectId(data.platformId), data.startTime, data.endTime, data.query, data.playerObjIds, data.option];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getConsumptionDetailOfPlayers, args, isValidData);
     };
 

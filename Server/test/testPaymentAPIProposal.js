@@ -91,6 +91,13 @@ describe("Test Payment API - Proposal Service", function () {
                 proposalId = data.proposalId;
                 proposalTypeId = data.type;
             }
+        ).then(function (data) {
+                //console.log('Approve TopUp Proposal', data);
+                done();
+            },
+            function (error) {
+                console.log({'topUp Success': error});
+            }
         )
     });
 
@@ -160,16 +167,16 @@ describe("Test Payment API - Proposal Service", function () {
         });
     });
 
-    it('Should update topUp proposal status Success ', function (done) {
-        proposalAPITest.topupSuccess(function (data) {
-            data.status.should.equal(200);
-            done();
-        }, {
-            playerId: testPlayerId,
-            proposalId: proposalId,
-            amount: topUpAmount
-        });
-    });
+    // it('Should update topUp proposal status Success ', function (done) {
+    //     proposalAPITest.topupSuccess(function (data) {
+    //         data.status.should.equal(200);
+    //         done();
+    //     }, {
+    //         playerId: testPlayerId,
+    //         proposalId: proposalId,
+    //         amount: topUpAmount
+    //     });
+    // });
 
 
     // it('Should update topUp proposal status Fail', function (done) {

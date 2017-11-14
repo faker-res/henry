@@ -110,7 +110,6 @@ var dbPlayerTopUpIntentRecord = {
 
         var prom1 = dbPaymentChannel.getPaymentChannel({channelId: inputData.topupChannel});
         var prom2 = dbPlayerInfo.getPlayerInfo({playerId: inputData.playerId});
-
         Q.all([prom1, prom2]).then(
             function (data) {
                 if (data && data[0] && data[1]) {

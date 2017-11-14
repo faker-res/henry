@@ -52,7 +52,6 @@ var proposal = {
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
         let deferred = Q.defer();
         let plyProm = null;
-
         // create proposal for partner
         if (proposalData.isPartner) {
             let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
@@ -148,7 +147,6 @@ var proposal = {
                     }
                 )
         }
-
         return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
             data => {
                 if (smsLogInfo && data && data.proposalId)
@@ -2865,10 +2863,11 @@ var proposal = {
                         mGroupD.push(sItem)
                     });
                 });
-                query['$or'] = [
-                    {'data.merchantNo': {$in: convertStringNumber(mGroupC)}},
-                    {'data.merchantNo': {$in: convertStringNumber(mGroupD)}}
-                ]
+                if(data.merchantNo.length > 0){
+                    query['data.merchantNo'] = {$in: convertStringNumber(mGroupC)};
+                }else if(data.merchantGroup.length > 0 && data.merchantNo.length == 0){
+                    query['data.merchantNo'] = {$in: convertStringNumber(mGroupD)}
+                }
             }
         }
 
