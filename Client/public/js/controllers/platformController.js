@@ -13479,7 +13479,7 @@ define(['js/app'], function (myApp) {
         vm.changeRewardParamLayout = (model) => {
             vm.rewardMainParamTable = [];
 
-            // Check whether reward is dyanmic amount
+            // Check whether reward is dynamic amount
             if (model && model.name == "isDynamicRewardAmount") {
                 vm.isDynamicRewardAmt = model.value;
             }

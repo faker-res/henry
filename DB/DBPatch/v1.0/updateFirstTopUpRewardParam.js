@@ -574,7 +574,7 @@ db.rewardParam.update({
         param: {
             tblOptFixed: {
                 rewardParam: {
-                    minTopUpAmount: {type: "number", des: "Minimum top up amount"},
+                    minConsumptionAmount: {type: "number", des: "Minimum consumption amount"},
                     rewardAmount: {type: "number", des: "Reward amount"},
                     spendingTimes: {type: "number", des: "Spending times"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
