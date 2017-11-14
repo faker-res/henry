@@ -278,23 +278,7 @@ define(['js/app'], function (myApp) {
                     return agent.indexOf(targetDevices) != -1;
                 });
             }
-            // online topup
-            if (thirdParty && thirdParty.length > 0) {
-                let tpGroup = [];
-                thirdParty.forEach(item => {
-                    if (item.length > 0) {
-                        item.forEach(i => {
-                            tpGroup.push(i);
-                        })
-                    }
-                })
-                if (tpGroup.length > 0 && vm.merchantCloneList) {
-                    vm.merchantCloneList = vm.merchantCloneList.filter(item => {
-                        let mno = String(item.merchantNo);
-                        return tpGroup.indexOf(item.merchantNo) != -1
-                    })
-                }
-            }
+
             if (topupType && topupType.length > 0 && vm.merchantCloneList) {
                 // display online topup type
                 vm.merchantCloneList = vm.merchantCloneList.filter(item => {
@@ -316,6 +300,26 @@ define(['js/app'], function (myApp) {
                     }
                 )
             }
+
+
+            // online topup
+            if (thirdParty && thirdParty.length > 0) {
+                let tpGroup = [];
+                thirdParty.forEach(item => {
+                    if (item.list.length > 0) {
+                        item.list.forEach(i => {
+                            tpGroup.push(i);
+                        })
+                    }
+                })
+                if (tpGroup.length > 0 && vm.merchantCloneList) {
+                    vm.merchantCloneList = vm.merchantCloneList.filter(item => {
+                        let mno = String(item.merchantNo);
+                        return tpGroup.indexOf(item.merchantNo) != -1
+                    })
+                }
+            }
+
             //manual topup
             if (mainTopupType && vm.merchantCloneList) {
                 if (mainTopupType == '1' || mainTopupType == 1) {
@@ -1947,7 +1951,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('END_TIME'), data: "endTime$",
                         render: function (data, type, row) {
                             var text = '';
-                            if(row.status=='Success' || row.status=='Approved'){
+                            if(row.status=='Success' || row.status=='Approved' || row.status=='Cancel' || row.status=='Fail'){
                                 text = data ? data : '';
                             }
                             return "<div>" +text + "</div>";

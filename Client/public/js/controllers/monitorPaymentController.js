@@ -388,6 +388,25 @@ define(['js/app'], function (myApp) {
                     return agent.indexOf(targetDevices) != -1;
                 });
             }
+
+            if (topupType && topupType.length > 0 && vm.merchantCloneList) {
+                // display online topup type
+                vm.merchantCloneList = vm.merchantCloneList.filter(item => {
+                    return topupType.indexOf(String(item.topupType)) != -1
+                });
+                vm.merchantGroupCloneList = vm.merchantGroupCloneList.filter(
+                    item=>{
+                        let thirdPartyGroup = [];
+                        vm.merchantCloneList.forEach(item=>{
+                            if(thirdPartyGroup.indexOf(item.merchantTypeName) === -1){
+                                thirdPartyGroup.push(item.merchantTypeName);
+                            }
+                        })
+                        return thirdPartyGroup.indexOf(item.name)!==-1 && item.name
+                    }
+                )
+            }
+
             // online topup
             if (thirdParty && thirdParty.length > 0) {
                 let tpGroup = [];
@@ -438,27 +457,7 @@ define(['js/app'], function (myApp) {
                     return bankTypeId.indexOf(bnkId) != -1;
                 })
             }
-            if (topupType && topupType.length > 0 && vm.merchantCloneList) {
-                // display online topup type
-                vm.merchantCloneList = vm.merchantCloneList.filter(item => {
-                    return topupType.indexOf(String(item.topupType)) != -1
-                });
-                vm.merchantGroupCloneList = vm.merchantGroupCloneList.filter(
-                    item=>{
-                        let thirdPartyGroup = [];
-                        vm.merchantCloneList.forEach(item=>{
-                            if(thirdPartyGroup.indexOf(item.merchantTypeName) === -1){
-                                thirdPartyGroup.push(item.merchantTypeName);
-                            }
-                        })
-                        return thirdPartyGroup.indexOf(item.name)!==-1 && item.name
-                    }
-                )
-                vm.merchantCloneList.forEach(item=>{
-                    console.log(item.name + '->' + item.merchantNo + '->' +item.topupType+' <> '+item.merchantTypeName)
-                })
 
-            }
 
 
         }
@@ -719,7 +718,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('END_TIME'), data: "endTime$",
                         render: function(data, type, row){
                             var text = '';
-                            if(row.status=='Success' && row.status=='Approved'){
+                            if(row.status=='Success' || row.status=='Approved' || row.status=='Cancel' || row.status=='Fail'){
                                 text = data ? $translate(data):'';
                             }
                             return '<div>'+ text + '</div>'

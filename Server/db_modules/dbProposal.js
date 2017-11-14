@@ -2797,10 +2797,11 @@ var proposal = {
                         mGroupD.push(sItem)
                     });
                 });
-                query['$or'] = [
-                    {'data.merchantNo': {$in: convertStringNumber(mGroupC)}},
-                    {'data.merchantNo': {$in: convertStringNumber(mGroupD)}}
-                ]
+                if(data.merchantNo.length > 0){
+                    query['data.merchantNo'] = {$in: convertStringNumber(mGroupC)};
+                }else if(data.merchantGroup.length > 0 && data.merchantNo.length == 0){
+                    query['data.merchantNo'] = {$in: convertStringNumber(mGroupD)}
+                }
             }
         }
 

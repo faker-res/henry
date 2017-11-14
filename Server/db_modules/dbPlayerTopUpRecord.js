@@ -156,14 +156,17 @@ var dbPlayerTopUpRecord = {
                             mGroupC.push(item);
                         });
                         query.merchantGroup.forEach(item => {
-                            item.forEach(sItem => {
+                            item.list.forEach(sItem => {
                                 mGroupD.push(sItem)
                             });
                         });
-                        queryObj['$or'] = [
-                            {'data.merchantNo': {$in: convertStringNumber(mGroupC)}},
-                            {'data.merchantNo': {$in: convertStringNumber(mGroupD)}}
-                        ]
+
+                        if(query.merchantNo.length > 0){
+                            queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupC)};
+                        }else if(query.merchantGroup.length > 0 && query.merchantNo.length == 0){
+                            queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupD)}
+                        }
+
                     }
                 }
 
