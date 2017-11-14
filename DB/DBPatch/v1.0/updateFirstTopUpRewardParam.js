@@ -1,4 +1,3 @@
-
 var db = db.getSiblingDB("admindb");
 
 var type5 = "FirstTopUp";
@@ -29,7 +28,12 @@ db.rewardParam.update({"name": type6}, {
     $set: {
         params: {
             rewardPercentage: {type: "Percentage", des: "Reward percentage"},
-            playerLevel: {type: "DBString", action: "getPlayerLevelByPlatformId", field: "name", des: "Base Player Level"},
+            playerLevel: {
+                type: "DBString",
+                action: "getPlayerLevelByPlatformId",
+                field: "name",
+                des: "Base Player Level"
+            },
             bankCardType: {type: "Array", des: "Bank Card Type"},
             maxRewardAmountPerDay: {type: "Number", des: "Max reward amount per day"}
         }
@@ -38,24 +42,33 @@ db.rewardParam.update({"name": type6}, {
 
 //Player top up return reward
 var type10 = "PlayerTopUpReturn";
-db.rewardParam.update({"name": type10}, {$set: { params:{
-    targetEnable: {type: "Boolean", des: "If target is enabled"},
-    providers: {type: "DBArray", action:"getAllGameProviders", field: "name", des: "Game Provider"},
-    providerGroup: {type: "DBString", action: "getPlatformProviderGroup", field: "name", des: "Game Provider Group"},
-    //games: {type: "DBArray", action:"getGamesByProviderId", field: "name", des: "Games"},
-    useConsumption: {type: "Boolean", des: "If use consumption record"},
-    reward: {
-        type: "Table",
-        data:{
-            rewardPercentage: {type: "Percentage", des: "Reward percentage"},
-            spendingTimes: {type: "Number", des: "Consumption amount times"},
-            maxRewardAmount: {type: "Number", des: "Maximum reward amount"},
-            minTopUpAmount: {type: "Number", des: "Minimum top up amount"},
-            maxDailyRewardAmount: {type: "Number", des: "Maximum daily reward amount"}
-        },
-        des: "Reward parameter for each level"
+db.rewardParam.update({"name": type10}, {
+    $set: {
+        params: {
+            targetEnable: {type: "Boolean", des: "If target is enabled"},
+            providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
+            providerGroup: {
+                type: "DBString",
+                action: "getPlatformProviderGroup",
+                field: "name",
+                des: "Game Provider Group"
+            },
+            //games: {type: "DBArray", action:"getGamesByProviderId", field: "name", des: "Games"},
+            useConsumption: {type: "Boolean", des: "If use consumption record"},
+            reward: {
+                type: "Table",
+                data: {
+                    rewardPercentage: {type: "Percentage", des: "Reward percentage"},
+                    spendingTimes: {type: "Number", des: "Consumption amount times"},
+                    maxRewardAmount: {type: "Number", des: "Maximum reward amount"},
+                    minTopUpAmount: {type: "Number", des: "Minimum top up amount"},
+                    maxDailyRewardAmount: {type: "Number", des: "Maximum daily reward amount"}
+                },
+                des: "Reward parameter for each level"
+            }
+        }
     }
-}}});
+});
 
 // var param10Cursor = db.rewardParam.find({"name": type10});
 // var param10 = param10Cursor.next();
@@ -63,27 +76,31 @@ db.rewardParam.update({"name": type10}, {$set: { params:{
 // db.rewardType.insert({"name": type10, params: param10._id, des: "Player Top Up Return"});
 
 //Player Consumption incentive
-var type11= "PlayerConsumptionIncentive";
-db.rewardParam.update({"name": type11}, {$set: {params:{
-    needApply: {type: "Boolean", des: "If this reward requires player application"},
-    useConsumption: {type: "Boolean", des: "If use consumption record"},
-    reward: {
-        type: "Table",
-        data:{
-            minPlayerLevel: {type: "Number", des: "PlayerLevel"},
-            minDeficitAmount: {type: "Number", des: "Minimum deficit amount"},
-            rewardAmount: {type: "Number", des: "REWARDAMOUNT"},
-            rewardPercentage: {type: "Percentage", des: "Reward percentage"},
-            spendingTimes: {type: "Number", des: "Consumption amount times"},
-            minRewardAmount: {type: "Number", des: "Minimal reward amount"},
-            maxRewardAmount: {type: "Number", des: "Maximum reward amount"},
-            //minConsumptionAmount: {type: "Number", des: "Minimal total consumption amount"},
-            minTopUpRecordAmount: {type: "Number", des: "Minimum top up amount"},
-            //maxPlayerCredit: {type: "Number", des: "Maximum player credit"}
-        },
-        des: "Reward parameter for each level"
+var type11 = "PlayerConsumptionIncentive";
+db.rewardParam.update({"name": type11}, {
+    $set: {
+        params: {
+            needApply: {type: "Boolean", des: "If this reward requires player application"},
+            useConsumption: {type: "Boolean", des: "If use consumption record"},
+            reward: {
+                type: "Table",
+                data: {
+                    minPlayerLevel: {type: "Number", des: "PlayerLevel"},
+                    minDeficitAmount: {type: "Number", des: "Minimum deficit amount"},
+                    rewardAmount: {type: "Number", des: "REWARDAMOUNT"},
+                    rewardPercentage: {type: "Percentage", des: "Reward percentage"},
+                    spendingTimes: {type: "Number", des: "Consumption amount times"},
+                    minRewardAmount: {type: "Number", des: "Minimal reward amount"},
+                    maxRewardAmount: {type: "Number", des: "Maximum reward amount"},
+                    //minConsumptionAmount: {type: "Number", des: "Minimal total consumption amount"},
+                    minTopUpRecordAmount: {type: "Number", des: "Minimum top up amount"},
+                    //maxPlayerCredit: {type: "Number", des: "Maximum player credit"}
+                },
+                des: "Reward parameter for each level"
+            }
+        }
     }
-}}});
+});
 
 var param11Cursor = db.rewardParam.find({"name": type11});
 var param11 = param11Cursor.next();
@@ -92,17 +109,19 @@ db.rewardType.insert({"name": type11, params: param11._id, des: "Player Consumpt
 
 //Partner top up return reward
 var type12 = "PartnerTopUpReturn";
-db.rewardParam.insert({"name": type12, params:{
-    reward: {
-        type: "Table",
-        data:{
-            rewardPercentage: {type: "Percentage", des: "Reward percentage"},
-            maxRewardAmount: {type: "Number", des: "Maximum reward amount"},
-            minTopUpAmount: {type: "Number", des: "Minimal top up amount"},
-        },
-        des: "Reward parameter for each level"
+db.rewardParam.insert({
+    "name": type12, params: {
+        reward: {
+            type: "Table",
+            data: {
+                rewardPercentage: {type: "Percentage", des: "Reward percentage"},
+                maxRewardAmount: {type: "Number", des: "Maximum reward amount"},
+                minTopUpAmount: {type: "Number", des: "Minimal top up amount"},
+            },
+            des: "Reward parameter for each level"
+        }
     }
-}});
+});
 
 var param12Cursor = db.rewardParam.find({"name": type12});
 var param12 = param12Cursor.next();
@@ -111,14 +130,16 @@ db.rewardType.insert({"name": type12, params: param12._id, des: "Partner Top Up 
 
 //Player top up reward
 var type13 = "PlayerTopUpReward";
-db.rewardParam.insert({"name": type13, params:{
-    reward: {
-        minTopUpAmount: {type: "Number", des: "Minimal top up amount"},
-        rewardAmount: {type: "Number", des: "Reward amount"},
-        maxRewardAmount: {type: "Number", des: "Maximum reward amount"},
-        unlockTimes: {type: "Number", des: "Unlock times"}
+db.rewardParam.insert({
+    "name": type13, params: {
+        reward: {
+            minTopUpAmount: {type: "Number", des: "Minimal top up amount"},
+            rewardAmount: {type: "Number", des: "Reward amount"},
+            maxRewardAmount: {type: "Number", des: "Maximum reward amount"},
+            unlockTimes: {type: "Number", des: "Unlock times"}
+        }
     }
-}});
+});
 
 var param13Cursor = db.rewardParam.find({"name": type13});
 var param13 = param13Cursor.next();
@@ -338,8 +359,8 @@ db.rewardParam.insert({
                 oriPrice: {type: "Number", des: "Original Amount"},
                 offerPrice: {type: "Number", des: "Offer Amount"},
                 displayOriPrice: {type: "Boolean", des: "Display Original Price"},
-                qty : {type: "Number", des: "Quantity"},
-                limitPerson : {type: "Number", des: "Limit Apply Per Person"},
+                qty: {type: "Number", des: "Quantity"},
+                limitPerson: {type: "Number", des: "Limit Apply Per Person"},
                 limitTime: {type: "Number", des: "Offer Amount"},
                 bet: {type: "Number", des: "Bet"},
                 providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
@@ -405,7 +426,12 @@ var loseValueCond = {
     defineLoseValue: {index: 42, type: "select", des: "Define Lose Value", options: "loseValueType"},
     // Chain condition child
     //consumptionRecordProvider: {index: 102.1, type: "chain", chainKey: "102", chainType:"multiSelect", chainOptions: [2,3], des: "Consumption Record Provider", options: "consumptionRecordProviderName"},
-    consumptionRecordProvider: {index: 42.1, type: "multiSelect", des: "Consumption Record Provider", options: "consumptionRecordProviderName"},
+    consumptionRecordProvider: {
+        index: 42.1,
+        type: "multiSelect",
+        des: "Consumption Record Provider",
+        options: "consumptionRecordProviderName"
+    },
 }
 
 var latestTopUpCond = {
@@ -433,7 +459,12 @@ var consumptionCond = {
 };
 
 var consumptionProviderCond = {
-    consumptionProvider: {index: 27, type: "multiSelect", des: "Use consumptions only from these provider", options: "gameProviders"}
+    consumptionProvider: {
+        index: 27,
+        type: "multiSelect",
+        des: "Use consumptions only from these provider",
+        options: "gameProviders"
+    }
 };
 
 var dynamicCond = {
@@ -554,10 +585,10 @@ db.rewardParam.update({
     upsert: true
 });
 
-var param101Cursor = db.rewardParam.find({ "name": type101 });
+var param101Cursor = db.rewardParam.find({"name": type101});
 var param101 = param101Cursor.next();
 
-db.rewardType.update({ "name": type101 }, { $set: { params: param101._id, des: type101, isGrouped: true } }, { upsert: true });
+db.rewardType.update({"name": type101}, {$set: {params: param101._id, des: type101, isGrouped: true}}, {upsert: true});
 
 // region输值反利
 var type102 = "PlayerLoseReturnReward";
@@ -573,7 +604,11 @@ db.rewardParam.update({
             consumptionCond: consumptionCond,
             loseValueCond: loseValueCond,
             dynamicCond: {
-                isDynamicRewardAmount: {index: 50, type: "checkbox", des: "Reward amount is dynamically changed by losses"}
+                isDynamicRewardAmount: {
+                    index: 50,
+                    type: "checkbox",
+                    des: "Reward amount is dynamically changed by losses"
+                }
             }
         },
         param: {
@@ -677,7 +712,6 @@ var param103 = param103Cursor.next();
 db.rewardType.update({"name": type103}, {$set: {params: param103._id, des: type103, isGrouped: true}}, {upsert: true});
 
 
-
 // 免费体验金
 var type104 = "PlayerFreeTrialRewardGroup";
 db.rewardParam.update({
@@ -730,3 +764,64 @@ var param104Cursor = db.rewardParam.find({"name": type104});
 var param104 = param104Cursor.next();
 
 db.rewardType.update({"name": type104}, {$set: {params: param104._id, des: type104, isGrouped: true}}, {upsert: true});
+
+
+// 随机抽奖
+var type105 = "randomReward";
+db.rewardParam.update({
+    "name": type105
+}, {
+    $set: {
+        condition: {
+            generalCond: Object.assign({}, generalCond, {
+                applyType: {
+                    index: 2,
+                    type: "select",
+                    des: "Reward apply type",
+                    options: "rewardApplyType",
+                    disabled: true,
+                    value: "1"
+                },
+                canApplyFromClient: {
+                    index: 3,
+                    type: "checkbox",
+                    des: "Is player manually applicable",
+                    disabled: true,
+                    value: true
+                }
+            }),
+            periodCond: {
+                interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval"},
+            },
+            consumptionCond: consumptionCond,
+            consumptionProviderCond: consumptionProviderCond,
+            topUpCond: topUpCond,
+            latestTopUpCond: {
+                ignoreTopUpDirtyCheckForReward: {
+                    index: 32,
+                    type: "multiSelect",
+                    des: "Ignore the following rewards that applied with top up"
+                }
+            },
+            customCond: {
+                rewardAppearPeriod: {
+                    index: 22,
+                    type: "datetimePeriod",
+                    des: "Period show reward",
+                    value: {}
+                }
+
+            }
+        },
+        param: {}
+    }
+}, {
+    upsert: true
+});
+
+
+var param105Cursor = db.rewardParam.find({"name": type105});
+var param105 = param105Cursor.next();
+
+db.rewardType.update({"name": type105}, {$set: {params: param105._id, des: type105, isGrouped: true}}, {upsert: true});
+
