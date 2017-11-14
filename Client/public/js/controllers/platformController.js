@@ -13112,6 +13112,11 @@ define(['js/app'], function (myApp) {
                                 type: cond.type
                             };
 
+                            if (cond.chainType && cond.chainOptions){
+                                vm.rewardMainCondition[cond.index].chainType = cond.chainType;
+                                vm.rewardMainCondition[cond.index].chainOptions = cond.chainOptions;
+                            }
+
                             // Get options
                             switch (cond.options) {
                                 case "gameProviders":
@@ -13146,6 +13151,14 @@ define(['js/app'], function (myApp) {
                                 if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("2") > -1)) {
                                     vm.rewardDisabledParam.push("bankCardType")
                                 }
+                            }
+
+                            if  (el == "defineLoseValue"){
+                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] &&
+                                        (vm.showReward.condition[el].indexOf("2") > -1 || vm.showReward.condition[el].indexOf("3") > -1))) {
+                                    vm.rewardDisabledParam.push("consumptionRecordProvider");
+                                }
+
                             }
 
                             // Get value
@@ -13524,6 +13537,13 @@ define(['js/app'], function (myApp) {
                     vm.rewardDisabledParam.indexOf("bankCardType") === -1 ? vm.rewardDisabledParam.push("bankCardType") : null;
                 } else {
                     vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "bankCardType");
+                }
+            }
+            if(model && model.name == "defineLoseValue"){
+                if (model.value.indexOf("2") == -1 && model.value.indexOf("3") == -1) {
+                    vm.rewardDisabledParam.indexOf("consumptionRecordProvider") === -1 ? vm.rewardDisabledParam.push("consumptionRecordProvider") : null;
+                } else {
+                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "consumptionRecordProvider");
                 }
             }
 

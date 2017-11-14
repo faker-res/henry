@@ -2693,5 +2693,9 @@
   "Consumption Record Provider": "投注记录来源游戏厅",
   "deposit - withdrawal": "存-提-0点馀额",
   "consumption - reward": "投注记录总和X-1）-所有优惠",
-  "consumtion sum": "投注记录总和X-1"
+  "consumtion sum": "投注记录总和X-1",
+  "Minimum Deposit Period": "周期内最低总存款",
+  "Minimum Lose Period": "周期内最小输值（正数代表玩家输钱)",
+  "Maximum Reward": "最高优惠金额",
+  "Reward amount is dynamically changed by losses": "优惠金额随著输值变动"
 }
