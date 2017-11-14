@@ -431,6 +431,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         4: "Interval (>=, <)"
     };
 
+
     $scope.weekDay = {
         "": "",
         1: "Monday",
@@ -469,6 +470,19 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         22: "2200",
         23: "2300"
     };
+
+    $scope.loseValueType = {
+        1: "deposit - withdrawal",
+        2: "consumption - reward",
+        3: "consumtion sum"
+    }
+
+    $scope.consumptionRecordProviderName = {
+        1: "AGOTHS",
+        2: "PT",
+        3: "MG"
+    }
+
     //////// DOM initialisation operations ////////
 
     $('[data-toggle="tooltip"]').tooltip();
