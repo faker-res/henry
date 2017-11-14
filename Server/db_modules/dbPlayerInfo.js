@@ -9162,7 +9162,7 @@ let dbPlayerInfo = {
         ).then(
             rewardEvent => {
                 if (rewardEvent && rewardEvent.type) {
-
+                    // Check reward individual permission
                     let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerInfo, rewardEvent._id);
                     if (playerIsForbiddenForThisReward) {
                         return Q.reject({name: "DataError", message: "Player is forbidden for this reward."});
@@ -9179,7 +9179,7 @@ let dbPlayerInfo = {
                         });
                     }
 
-                    //  the following behavior can generate reward task
+                    // The following behavior can generate reward task
                     let rewardTaskWithProposalList = [
                         constRewardType.FIRST_TOP_UP,
                         constRewardType.PLAYER_TOP_UP_RETURN,
@@ -9192,7 +9192,9 @@ let dbPlayerInfo = {
                         constRewardType.GAME_PROVIDER_REWARD,
                         constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD,
                         constRewardType.PLAYER_PACKET_RAIN_REWARD,
+                        constRewardType.PLAYER_TOP_UP_RETURN_GROUP
                     ];
+
                     // Check any consumption after topup upon apply reward
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
@@ -9209,11 +9211,16 @@ let dbPlayerInfo = {
                         timeCheckData => {
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
                                 && rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN) {
-                                return Q.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "There is consumption after top up"
-                                });
+                                // There is consumption after top up
+                                if (rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) {
+                                    // Bypass this checking
+                                } else {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "There is consumption after top up"
+                                    });
+                                }
                             }
 
                             // if that's one reward pending , then you cannot apply other reward
