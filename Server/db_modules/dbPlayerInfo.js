@@ -11577,14 +11577,14 @@ let dbPlayerInfo = {
         let playerProm = dbconfig.collection_players.findOne({playerId:  playerId})
             .populate({path: "playerLevel", select: 'name', model: dbconfig.collection_playerLevel}).lean()
 
-        var date = new Date();
-        var firstDay = new Date(date.getFullYear(), date.getMonth(), 1, 0 , 0 ,0, 0);
-        var lastDay = date;
+        var date = dbUtility.getCurrentMonthSGTIme();
+        var firstDay = date.startTime;
+        var lastDay = date.endTime;
 
         return Promise.all([platformProm, playerProm]).then(data => {
             if(data) {
-                let platformDetails = data[0] ? data[0] : "";
-                let playerDetails = data[1] ? data[1] : "";
+                let platformDetails = data[0];
+                let playerDetails = data[1];
 
                 let bonusDetails = {};
                 if(platformDetails){
