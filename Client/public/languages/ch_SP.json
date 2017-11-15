@@ -2413,6 +2413,7 @@
   "Forbid withdraw after apply reward": "领取后禁用提款",
   "Forbid withdraw if there is balance after unlock": "投注额解锁后仍有一定馀额则禁提",
   "Remark": "备注",
+  "Daily Reward Limit": "单日累积最高优惠金额",
   "Can not find player": "无法找到玩家",
   "Invalid reward event": "无效优惠活动",
   "This referral player is incorrect": "推荐玩家无效",
