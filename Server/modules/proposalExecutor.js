@@ -1945,7 +1945,29 @@ var proposalExecutor = {
 
             executePlayerTopUpReturnGroup: function (proposalData, deferred) {
                 console.log('executePlayerTopUpReturnGroup');
-                deferred.resolve(true);
+
+                let updateData = {$set: {}};
+
+                if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
+                    updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                }
+
+                dbconfig.collection_players.findOneAndUpdate({
+                    _id: proposalData.data.playerObjId,
+                    platform: proposalData.data.platformId
+                }, updateData).then(
+                    data => {
+                        deferred.resolve(true);
+                        //createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_EASTER_EGG_REWARD, proposalData);
+                    },
+                    error => {
+                        deferred.reject({
+                            name: "DBError",
+                            message: "Failed to update playerinfo for executePlayerTopUpReturnGroup",
+                            error: error
+                        });
+                    }
+                )
             },
         },
 

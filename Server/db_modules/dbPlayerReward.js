@@ -1966,12 +1966,17 @@ let dbPlayerReward = {
      * @param adminInfo
      * @returns {Promise.<TResult>}
      */
-    applyGroupReward: (playerData, eventData, adminInfo) => {
+    applyGroupReward: (playerData, eventData, adminInfo, rewardData) => {
 
         console.log('applyGroupReward eventData', eventData);
+        console.log('applyGroupReward eventData.param.rewardParam', eventData.param.rewardParam);
+        console.log('applyGroupReward eventData.param.rewardParam[0].value', eventData.param.rewardParam[0].value);
+        console.log('rewardData', rewardData);
 
         let todayTime = dbUtility.getTodaySGTime();
-        let rewardAmount = 0;
+        let rewardAmount = 0, spendingAmount = 0;
+        let promArr = [];
+        let selectedRewardParam;
 
         let promTopUp = dbConfig.collection_playerTopUpRecord.aggregate(
             {
@@ -2023,6 +2028,65 @@ let dbPlayerReward = {
                 let topUpSum = data[0];
                 let todayPacketCount = data[1].length ? data[1].length : 0;
 
+                // Count reward amount
+                switch (eventData.type.name) {
+                    case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
+                        if (eventData.condition.isPlayerLevelDiff) {
+
+                        } else {
+                            selectedRewardParam = eventData.param.rewardParam[0].value;
+                        }
+
+                        if (eventData.param.isMultiStepReward) {
+
+                        } else {
+                            selectedRewardParam = selectedRewardParam[0];
+                        }
+
+                        console.log('selectedRewardParam', selectedRewardParam);
+
+                        if (rewardData && rewardData.selectedTopup) {
+                            if (rewardData.selectedTopup.amount < selectedRewardParam.minTopUpAmount) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "Top up amount is not enough"
+                                });
+                            }
+
+                            if (eventData.condition.isDynamicRewardAmount) {
+
+                            } else {
+                                rewardAmount = selectedRewardParam.rewardAmount;
+                                spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimesOnReward;
+                            }
+
+                        }
+                        break;
+
+                    // type 2
+
+
+                    // type 3
+
+
+                    // type 4
+
+
+                    // type 5
+
+
+                    // type 6
+
+
+                    default:
+                        return Q.reject({
+                            status: constServerCode.INVALID_DATA,
+                            name: "DataError",
+                            message: "Can not find grouped reward event type"
+                        });
+                }
+
                 // create reward proposal
                 let proposalData = {
                     type: eventData.executeProposal,
@@ -2039,11 +2103,14 @@ let dbPlayerReward = {
                         realName: playerData.realName,
                         platformObjId: playerData.platform._id,
                         rewardAmount: rewardAmount,
+                        spendingAmount: spendingAmount,
                         eventId: eventData._id,
                         eventName: eventData.name,
                         eventCode: eventData.code,
                         eventDescription: eventData.description,
-                        isIgnoreAudit: Boolean(eventData.condition && eventData.condition.isIgnoreAudit === true)
+                        isIgnoreAudit: Boolean(eventData.condition && eventData.condition.isIgnoreAudit === true),
+                        forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
+                        remark: selectedRewardParam.remark
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
