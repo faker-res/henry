@@ -878,17 +878,25 @@ var proposalExecutor = {
                                 }
                             );
                         }
-                        dbPlayerReward.applyPlayerTopUpPromo(proposalData);
-                        if(proposalData.data.bonusCode){
-                            dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                        let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData);
+                        let applyPromoCode = null;
+                        if (proposalData.data.bonusCode) {
+                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
                         }
+                        Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
+                            data => {
+                                deferred.resolve(proposalData);
+                            },
+                            error => {
+                                deferred.reject(error)
+                            }
+                        )
 
-                        deferred.resolve(proposalData);
                     },
                     function (error) {
                         deferred.reject(error);
                     }
-                );
+                )
             },
 
             /**
@@ -910,22 +918,25 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
-
-                        dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
-                        if(proposalData.data.bonusCode){
-                            dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                        let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
+                        let applyPromoCode = null;
+                        if (proposalData.data.bonusCode) {
+                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
                         }
-
-                        deferred.resolve(proposalData);
-
+                        Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
+                            data => {
+                                deferred.resolve(proposalData);
+                            },
+                            error => {
+                                deferred.reject(error)
+                            }
+                        )
                     },
                     function (error) {
                         deferred.reject(error);
                     }
-                ).then(
-                    data => deferred.resolve(proposalData),
-                    error => deferred.reject(error)
-                );
+                )
+
             },
 
             /**
@@ -974,17 +985,25 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
-                        dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'weChat');
-                        if(proposalData.data.bonusCode){
-                            dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                        let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'weChat');
+                        let applyPromoCode = null;
+                        if (proposalData.data.bonusCode) {
+                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
                         }
-
-                        deferred.resolve(proposalData);
+                        Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
+                            data => {
+                                deferred.resolve(proposalData);
+                            },
+                            error => {
+                                deferred.reject(error)
+                            }
+                        )
                     },
                     function (error) {
                         deferred.reject(error);
                     }
-                );
+                )
+
             },
 
             /**
@@ -1008,23 +1027,27 @@ var proposalExecutor = {
                                     }
                                 );
                             }
-
                             // DEBUG: Reward sometime not applied issue
                             console.log('applyForPlatformTransactionReward - Start', proposalData.proposalId);
-                            if(proposalData.data.bonusCode){
-                                dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                            // return dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
+                            let applyforTransactionReward = dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
+                            let applyPromoCode = null;
+                            if (proposalData.data.bonusCode) {
+                                applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
                             }
-                            dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
-                            deferred.resolve(proposalData);
-
-                            },
+                            Promise.all([applyforTransactionReward, applyPromoCode]).then(
+                                data => {
+                                    deferred.resolve(proposalData);
+                                },
+                                error => {
+                                    deferred.reject(error)
+                                }
+                            )
+                        },
                         function (error) {
                             deferred.reject(error);
                         }
-                    ).then(
-                        data => deferred.resolve(data),
-                        error => deferred.reject(error)
-                    );
+                    )
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
