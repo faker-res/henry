@@ -1833,6 +1833,9 @@ define(['js/app'], function (myApp) {
             delete vm.selectedProposalDetailForDisplay.devCheckMsg;
             delete vm.selectedProposalDetailForDisplay.useLockedCredit;
             // delete vm.selectedProposalDetailForDisplay.remark;
+            delete vm.selectedProposalDetailForDisplay.isIgnoreAudit;
+            delete vm.selectedProposalDetailForDisplay.forbidWithdrawAfterApply;
+
             function canCancelProposal(proposal) {
                 if (!proposal || vm.rightPanelTitle == "APPROVAL_PROPOSAL")return false;
                 var creatorId = (proposal && proposal.creator) ? proposal.creator.id : '';
