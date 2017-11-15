@@ -18,6 +18,8 @@ var playerTopUpRecordSchema = new Schema({
     bDirty: {type: Boolean, default: false},
     //used by which reward
     usedType: {type: String},
+    //used by which reward event
+    usedEvent: [{type: Schema.ObjectId}],
     //merchant top up type
     merchantTopUpType: {type: String},
     //bank card type

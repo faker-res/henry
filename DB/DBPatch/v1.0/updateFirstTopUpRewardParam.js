@@ -447,7 +447,8 @@ var latestTopUpCond = {
     ignoreTopUpDirtyCheckForReward: {
         index: 32,
         type: "multiSelect",
-        des: "Ignore the following rewards that applied with top up"
+        des: "Ignore the following rewards that applied with top up",
+        options: "allRewardEvent"
     }
 };
 
@@ -495,7 +496,7 @@ db.rewardParam.update({
                 rewardParam: {
                     minTopUpAmount: {type: "number", des: "Minimum top up amount"},
                     rewardAmount: {type: "number", des: "Reward amount"},
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    spendingTimesOnReward: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "checkbox",
