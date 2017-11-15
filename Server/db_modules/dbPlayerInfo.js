@@ -5472,7 +5472,7 @@ let dbPlayerInfo = {
             }
         );
     },
-
+    
     // TODO:
     // Now that we have level down processing, we will need to check player level as part of schedule, but checking every player would be very inefficient!
     // In fact we only need to:
@@ -5564,6 +5564,39 @@ let dbPlayerInfo = {
                 }
             );
         }
+    },
+
+    getPlayerLevelUpgrade: function (playerId) {
+
+        if (!playerId){
+            return Q.reject ({name: "DataError", message: "Can not find the player"})
+        }
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean()
+          .then( playerObj => {
+              let platformId= playerObj.platform;
+
+              const playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate(
+                  {
+                      path: "playerLevel",
+                      model: dbconfig.collection_playerLevel
+                  }).lean().exec();
+
+              const levelsProm = dbconfig.collection_playerLevel.find({
+                  platform: platformId
+              }).sort({value: 1}).lean().exec();
+
+              return Q.all([playerProm, levelsProm]).spread(
+                  function (player, playerLevels) {
+                      if (!player || !playerLevels)
+                          return Q.reject({name: "DataError", message: "Data not found"});
+
+                      return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                  },
+                  function () {
+                      return Q.reject({name: "DataError", message: "Data not found"});
+                  }
+              );
+          });
     },
 
     /**
