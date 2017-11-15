@@ -164,8 +164,8 @@
                                 th(style="width:70px" ng-if="vm.isPlayerLevelDiff") {{vm.allPlayerLvl[$index].name}}
                                 th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                             tbody(ng-repeat="entry in cond.value track by $index")
-                                td(ng-if="vm.isMultiStepReward")
-                                    i.fa.fa-plus(ng-click='cond.value.push({})')
+                                td(ng-if="vm.isPlayerLevelDiff || vm.isMultiStepReward")
+                                    i.fa.fa-plus(ng-if="vm.isMultiStepReward" ng-click='cond.value.push({})')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'string' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]")
                                     span.percentage(ng-if="v.type == 'percentage'")
