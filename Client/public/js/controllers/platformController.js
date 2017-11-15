@@ -13072,6 +13072,10 @@ define(['js/app'], function (myApp) {
                 vm.rewardDisabledParam = [];
                 vm.platformRewardTypeChanged();
 
+                utilService.actionAfterLoaded("#rewardMainTasks", function () {
+                    vm.disableAllRewardInput(true);
+                });
+
                 console.log('vm.rewardParams', vm.rewardParams);
                 $scope.safeApply();
             };
@@ -13083,6 +13087,14 @@ define(['js/app'], function (myApp) {
                         console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                         return true;
                     }
+                });
+
+                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                    vm.platformProvider = data.data.gameProviders;
+                    $scope.safeApply();
+                    vm.disableAllRewardInput();
+                }, function (data) {
+                    console.log("cannot get gameProvider", data);
                 });
 
                 // Handling for reward group
@@ -13212,12 +13224,7 @@ define(['js/app'], function (myApp) {
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
 
-                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
-                    vm.platformProvider = data.data.gameProviders;
-                    $scope.safeApply();
-                }, function (data) {
-                    console.log("cannot get gameProvider", data);
-                });
+
 
                 // Initialise the models with some default values
                 // and grab any required external data (e.g. for select box lists)
@@ -13521,7 +13528,10 @@ define(['js/app'], function (myApp) {
             }
 
 
+
+
             delete vm.rewardMainParam.rewardParam;
+
         };
 
         vm.rewardSelectOnChange = (model) => {
@@ -13587,6 +13597,15 @@ define(['js/app'], function (myApp) {
                     return true;
                 }
             }
+
+            vm.disableAllRewardInput = function (disabled) {
+                typeof disabled == "boolean" ? vm.rewardDisabledInput = disabled : disabled = vm.rewardDisabledInput;
+                $("#rewardMainTasks :input").prop("disabled", disabled);
+                if (!disabled) {
+                    $("#rewardMainTasks :input").removeClass("disabled");
+                }
+            }
+
             vm.clearCanApplyFromClient = function () {
                 if (!vm.showReward.needApply) {
                     vm.showReward.canApplyFromClient = false;

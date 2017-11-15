@@ -8,7 +8,7 @@
         .panel-body
             ul.list-group.treeview(style='height:567px;overflow-y:auto')
                 li.list-group-item(ng-repeat='(i,v) in vm.allRewardEvent', ng-class='{active: v == vm.showReward}', ng-click='vm.rewardEventClicked(i,v)') {{v.name}}
-            button.btn.btn-primary.common-button(style='text-align:center', ng-click='vm.initReward()')
+            button.btn.btn-primary.common-button(style='text-align:center', ng-click='vm.initReward();vm.disableAllRewardInput(false)')
                 text {{"Add Event"|translate}}
                 img.img-create
 .col-sm-10(ng-if="vm.curPlatformText", style='padding-left:0;padding-right:0;')
@@ -134,11 +134,11 @@
                             input.form-control(ng-if="v.type == 'string' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="vm.rewardMainParam[i].value")
                         table.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTable track by $index")
                             thead
-                                th(ng-if="!vm.isPlayerLevelDiff")
+                                th(ng-if="!vm.isPlayerLevelDiff && !vm.platformRewardShowEdit()")
                                 th(style="width:70px" ng-if="vm.isPlayerLevelDiff") {{vm.allPlayerLvl[$index].name}}
                                 th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                             tbody(ng-repeat="entry in cond.value track by $index")
-                                td
+                                td(ng-if='!vm.platformRewardShowEdit()')
                                     i.fa.fa-plus(ng-click='cond.value.push({})')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'string' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]")
@@ -150,10 +150,10 @@
                 //- Intuitive UI: The Delete Event button should probably be on the left, next to Add Event.  (Or it could be an X button next to the name of the currently selected event.)
                 //-               The Edit Event button could be a "pencil" icon in the top-right corner of the form.
                 button.common-button.btn.btn-danger(ng-if='vm.platformRewardShowEdit("DELETE") && checkViewPermission("Platform", "Reward", "Delete")', data-toggle="modal", data-target='#modalDeleteReward') {{'DELETE' | translate}}
-                button.common-button.btn.btn-warning(ng-if='vm.platformRewardShowEdit("CANCEL")', ng-click="vm.platformRewardPageName='showReward';vm.clearRewardFormData()") {{'CANCEL' | translate}}
-                button.common-button.btn.btn-info(ng-if='vm.platformRewardShowEdit("EDIT") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.platformRewardPageName='updateReward'") {{'EDIT' | translate}}
-                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("UPDATE") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.editReward()") {{'UPDATE' | translate}}
-                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("CREATE") && checkViewPermission("Platform", "Reward", "Add")', ng-click="vm.submitReward()") {{'CREATE' | translate}}
+                button.common-button.btn.btn-warning(ng-if='vm.platformRewardShowEdit("CANCEL")', ng-click="vm.platformRewardPageName='showReward';vm.clearRewardFormData();vm.disableAllRewardInput(true)") {{'CANCEL' | translate}}
+                button.common-button.btn.btn-info(ng-if='vm.platformRewardShowEdit("EDIT") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)") {{'EDIT' | translate}}
+                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("UPDATE") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.editReward();vm.disableAllRewardInput(true)") {{'UPDATE' | translate}}
+                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("CREATE") && checkViewPermission("Platform", "Reward", "Add")', ng-click="vm.submitReward();vm.disableAllRewardInput(false)") {{'CREATE' | translate}}
             .clearfix
 
 #modalDeleteReward.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
