@@ -2458,7 +2458,7 @@
   "Player is updating bank info": "玩家正在更新支付资料",
   "Cannot find bonus": "无法找到提款资料",
   "Update player credit failed": "更新玩家额度失败",
-  "Player does not need to earn reward consecutively in order for it to accumulate": "当日未领取奖金可隔多日申请（周期内）",
+  "Player does not need to earn reward consecutively in order for it to accumulate": "玩家需从头连续每天满足条件才可累积（周期内）",
   "Player can delay apply for reward within period": "当日未领取奖金可隔多日申请（周期内）",
   "Use consumptions only from these provider": "（领优惠前）检查投注额来记录游戏厅",
   "Top up agent": "存款装置",

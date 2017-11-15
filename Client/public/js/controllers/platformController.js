@@ -13121,6 +13121,14 @@ define(['js/app'], function (myApp) {
 
                             // Get options
                             switch (cond.options) {
+                                case "allRewardEvent":
+                                    let rewardEvents = {};
+                                    for (let i = 0; i < vm.allRewardEvent.length; i++) {
+                                        let event = vm.allRewardEvent[i];
+                                        rewardEvents[event._id] = event.name;
+                                    }
+                                    result = rewardEvents;
+                                    break;
                                 case "gameProviders":
                                     let gameProviders = {};
                                     for (let i = 0; i < vm.allGameProviders.length; i++) {
