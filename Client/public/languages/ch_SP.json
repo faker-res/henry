@@ -66,7 +66,6 @@
 
   "consumptionReward": "投注额优惠",
   "Check consumption source by provider": "（领优惠前）检查投注额来源游戏厅",
-
   "Manual Apply": "通过前、后台个别申请",
   "Auto Apply": "满足条件后自动生成",
   "Batch Apply": "后台提供按钮批量提交",
@@ -2723,5 +2722,4 @@
   "Minimum Lose Period": "周期内最小输值（正数代表玩家输钱)",
   "Maximum Reward": "最高优惠金额",
   "Reward amount is dynamically changed by losses": "优惠金额随著输值变动"
-
 }

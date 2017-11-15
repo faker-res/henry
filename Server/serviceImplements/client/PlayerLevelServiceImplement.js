@@ -25,9 +25,9 @@ var PlayerLevelServiceImplement = function () {
     };
 
 
-    this.upgrade.expectsData= '';
+    this.upgrade.expectsData = '';
     this.upgrade.onRequest = function (wsFunc, conn, data) {
-        var isValidData =  Boolean(conn.playerId);
+        var isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerLevelUpgrade, [conn.playerId], isValidData);
     }
 };

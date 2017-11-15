@@ -1268,7 +1268,12 @@ var dbPlayerConsumptionRecord = {
                     }
                     return dbconfig.collection_playerConsumptionRecord.update(
                         {_id: {$in: recordIds}},
-                        {usedType: constRewardType.CONSECUTIVE_TOP_UP, bDirty: true, usedEvent: rewardTask.eventId, usedTaskId: rewardTask._id},
+                        {
+                            usedType: constRewardType.CONSECUTIVE_TOP_UP,
+                            bDirty: true,
+                            usedEvent: rewardTask.eventId,
+                            usedTaskId: rewardTask._id
+                        },
                         {multi: true}
                     ).exec();
                 }
@@ -1409,7 +1414,12 @@ var dbPlayerConsumptionRecord = {
                     }
                     return dbconfig.collection_playerConsumptionRecord.update(
                         {_id: {$in: recordIds}},
-                        {usedType: constRewardType.FULL_ATTENDANCE, bDirty: true, usedEvent: rewardTask.eventId, usedTaskId: rewardTask._id},
+                        {
+                            usedType: constRewardType.FULL_ATTENDANCE,
+                            bDirty: true,
+                            usedEvent: rewardTask.eventId,
+                            usedTaskId: rewardTask._id
+                        },
                         {multi: true}
                     ).exec();
                 }
