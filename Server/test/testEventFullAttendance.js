@@ -350,7 +350,8 @@ describe("Test full attendance reward event", function () {
             var playerData = {
                 name: "testpayer" + i + date.getTime(),
                 platform: testPlatformId,
-                password: "123456"
+                password: "123456",
+                phoneNumber: "11111111" + i
             };
             proms.push(dbPlayerInfo.createPlayerInfo(playerData));
         }

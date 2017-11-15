@@ -37,6 +37,7 @@ var testGameTypes = require("../test/testGameTypes");
 var commonTestActions = require("./../test_modules/commonTestActions.js");
 var rewardEventGenerator = require("./../test_modules/rewardEventGenerator.js");
 var dataGenerator = require("./../test_modules/dataGenerator.js");
+var dbutility = require('./../modules/dbutility');
 
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
@@ -117,7 +118,8 @@ describe("Test consumption return reward event", function () {
                 name: "testpayer"+ i + date.getTime(),
                 platform: testPlatformId,
                 password: "123",
-                playerLevel: testPlayerLevels[i%testPlayerLevels.length]
+                playerLevel: testPlayerLevels[i%testPlayerLevels.length],
+                phoneNumber: "11111111" + i,
             };
             proms.push( dbPlayerInfo.createPlayerInfo(playerData) );
         }
@@ -258,6 +260,9 @@ describe("Test consumption return reward event", function () {
     // });
 
     it('Should get consume rebate amount', function () {
+        if (dbutility.isCurrentSGTimePassed12PM()) {
+            return true;
+        }
         return dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturn(testPlayersPlayerId[1]).then(
             function (playerConsumptionReturn) {
                 //console.log("playerConsumptionReturn:", playerConsumptionReturn);

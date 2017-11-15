@@ -36,9 +36,11 @@ describe("Test socket partner", function () {
 
             var date = new Date().getTime();
             testPartnerName = "testpartner" + date;
+            realName = "realname" + date; // added
 
             var createPartner = {
                 "partnerName": testPartnerName,
+                "realName": realName, // added
                 "email": "testPartner123@gmail.com",
                 "password": "123456",
                 "platform": testPlatformObjId,
@@ -64,9 +66,11 @@ describe("Test socket partner", function () {
 
             var date = new Date().getTime();
             var testPartnerName1 = "testpartner" + date;
+            realName = "realname" + date; // added
 
             var createPartner = {
                 "partnerName": testPartnerName1,
+                "realName": realName, // added
                 "email": "testPartner123@gmail.com",
                 "password": "123456",
                 "platform": testPlatformObjId,
@@ -210,7 +214,8 @@ describe("Test socket partner", function () {
             platform: testPlatformObjId,
             password: "123456",
             partner: testPartnerObjId,
-            topUpSum: 200
+            topUpSum: 200,
+            phoneNumber: "111" + date // added
         };
         dbPlayerInfo.createPlayerInfo(playerData).then(
             function (data) {

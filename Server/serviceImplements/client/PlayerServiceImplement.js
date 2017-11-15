@@ -300,13 +300,11 @@ let PlayerServiceImplement = function () {
     this.login.expectsData = 'name: String, password: String, platformId: String';
     this.login.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.name && data.password && data.platformId);
-
         data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             data.lastLoginIp = forwardedIp[0].trim();
         }
-
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua], isValidData, true, true, true).then(

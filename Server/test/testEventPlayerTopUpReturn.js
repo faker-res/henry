@@ -343,7 +343,7 @@ describe("Test player top up return", function () {
                         numberOfSuccesses++;
                         proposalData = proposal;
                         proposalData.data.applyAmount.should.be.greaterThan(0);
-                        //console.log("proposal:", proposal);
+                        console.log("proposal:", proposal);
                     },
                     error => {
                         numberOfFailures++;
@@ -379,13 +379,13 @@ describe("Test player top up return", function () {
         );
     });
 
-    it('Check player credit after accepting', function () {
-        return dbConfig.collection_players.findOne({playerId: testPlayerId}).select('validCredit').then(
-            player => {
-                player.validCredit.should.equal(validCreditBefore - proposalData.data.applyAmount);
-            }
-        );
-    });
+    // it('Check player credit after accepting', function () {
+    //     return dbConfig.collection_players.findOne({playerId: testPlayerId}).select('validCredit').then(
+    //         player => {
+    //             player.validCredit.should.equal(validCreditBefore - proposalData.data.applyAmount);
+    //         }
+    //     );
+    // });
 
     it('Test reward task should be created', function () {
         return dbRewardTask.getPlayerCurRewardTask(testPlayerObjId).then(

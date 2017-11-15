@@ -157,13 +157,12 @@ let RewardServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setShowInfo, [conn.playerId, "limitedOfferInfo", data.showInfo], isValidData, false, false, true);
     };
 
-    // to enable or disable showing BonusShowInfo
-    this.setBonusShowInfo.expectsData = 'playerId: String, platformId: String, showInfoState: Number|Boolean';
+    // to enable or disable showing ShowInfo
+    this.setBonusShowInfo.expectsData = 'setShowInfo: Number|String';
     this.setBonusShowInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.platformId);
+        let isValidData = Boolean(data);
 
-
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setBonusShowInfo, [data.playerId, data.platformId, data.showInfoState], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setBonusShowInfo, [conn.playerId, data.setShowInfo], isValidData);
     };
 };
 

@@ -192,6 +192,14 @@ let dbPlayerInfo = {
             ).then(
                 validData => {
                     if (validData && validData.isPlayerNameValid) {
+
+                        // phone number white listing
+                        if (platformObj.whiteListingPhoneNumbers
+                            && platformObj.whiteListingPhoneNumbers.length > 0
+                            && inputData.phoneNumber
+                            && platformObj.whiteListingPhoneNumbers.indexOf(inputData.phoneNumber) > -1)
+                            return {isPhoneNumberValid: true};
+
                         if (platformObj.allowSamePhoneNumberToRegister === true) {
                             return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
                                 phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
@@ -1553,7 +1561,10 @@ let dbPlayerInfo = {
                         //     code: constServerCode.INVALID_DATA,
                         //     message: "Bank account name is different from real name"
                         // });
-                        updateData.realName = updateData.bankAccountName;
+                        if (updateData.bankAccountName.indexOf('*') > -1)
+                            delete updateData.bankAccountName;
+                        else
+                            updateData.realName = updateData.bankAccountName;
                     }
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
@@ -2075,7 +2086,7 @@ let dbPlayerInfo = {
 
                     let promArr = [recordProm, logProm, levelProm];
 
-                    if (proposalData.data.limitedOfferObjId) {
+                    if (proposalData && proposalData.data && proposalData.data.limitedOfferObjId) {
                         let newProp;
                         let limitedOfferProm = dbUtility.findOneAndUpdateForShard(
                             dbconfig.collection_proposal,
@@ -2599,7 +2610,7 @@ let dbPlayerInfo = {
                 var proms = records.map(rec =>
                     dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                         {_id: rec._id, createTime: rec.createTime, bDirty: {$ne: true}},
-                        {bDirty: true},
+                        {bDirty: true, usedType: constRewardType.FIRST_TOP_UP, $push: {usedEvent: eventData._id}},
                         {new: true}
                     )
                 );
@@ -5556,6 +5567,39 @@ let dbPlayerInfo = {
                 }
             );
         }
+    },
+
+    getPlayerLevelUpgrade: function (playerId) {
+
+        if (!playerId) {
+            return Q.reject({name: "DataError", message: "Can not find the player"})
+        }
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean()
+            .then(playerObj => {
+                let platformId = playerObj.platform;
+
+                const playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate(
+                    {
+                        path: "playerLevel",
+                        model: dbconfig.collection_playerLevel
+                    }).lean().exec();
+
+                const levelsProm = dbconfig.collection_playerLevel.find({
+                    platform: platformId
+                }).sort({value: 1}).lean().exec();
+
+                return Q.all([playerProm, levelsProm]).spread(
+                    function (player, playerLevels) {
+                        if (!player || !playerLevels)
+                            return Q.reject({name: "DataError", message: "Data not found"});
+
+                        return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                    },
+                    function () {
+                        return Q.reject({name: "DataError", message: "Data not found"});
+                    }
+                );
+            });
     },
 
     /**
@@ -8520,7 +8564,11 @@ let dbPlayerInfo = {
                             proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                             return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                                 {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                                {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_RETURN},
+                                {
+                                    bDirty: true,
+                                    usedType: constRewardType.PLAYER_TOP_UP_RETURN,
+                                    $push: {usedEvent: eventData._id}
+                                },
                                 {new: true}
                             ).then(
                                 data => {
@@ -9072,7 +9120,11 @@ let dbPlayerInfo = {
                         proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                            {bDirty: true},
+                            {
+                                bDirty: true,
+                                usedType: constRewardType.PLAYER_TOP_UP_REWARD,
+                                $push: {usedEvent: eventData._id}
+                            },
                             {new: true}
                         ).then(
                             data => {
@@ -9161,7 +9213,7 @@ let dbPlayerInfo = {
         ).then(
             rewardEvent => {
                 if (rewardEvent && rewardEvent.type) {
-
+                    // Check reward individual permission
                     let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerInfo, rewardEvent._id);
                     if (playerIsForbiddenForThisReward) {
                         return Q.reject({name: "DataError", message: "Player is forbidden for this reward."});
@@ -9178,7 +9230,7 @@ let dbPlayerInfo = {
                         });
                     }
 
-                    //  the following behavior can generate reward task
+                    // The following behavior can generate reward task
                     let rewardTaskWithProposalList = [
                         constRewardType.FIRST_TOP_UP,
                         constRewardType.PLAYER_TOP_UP_RETURN,
@@ -9191,7 +9243,9 @@ let dbPlayerInfo = {
                         constRewardType.GAME_PROVIDER_REWARD,
                         constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD,
                         constRewardType.PLAYER_PACKET_RAIN_REWARD,
+                        constRewardType.PLAYER_TOP_UP_RETURN_GROUP
                     ];
+
                     // Check any consumption after topup upon apply reward
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
@@ -9204,15 +9258,24 @@ let dbPlayerInfo = {
                         }, rewardTaskWithProposalList);
                     }
 
+                    let rewardData = {};
+
                     return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
                         timeCheckData => {
+                            rewardData.selectedTopup = timeCheckData[0];
+
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
                                 && rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN) {
-                                return Q.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "There is consumption after top up"
-                                });
+                                // There is consumption after top up
+                                if (rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) {
+                                    // Bypass this checking
+                                } else {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "There is consumption after top up"
+                                    });
+                                }
                             }
 
                             // if that's one reward pending , then you cannot apply other reward
@@ -9296,6 +9359,10 @@ let dbPlayerInfo = {
                                     break;
                                 case constRewardType.PLAYER_PACKET_RAIN_REWARD:
                                     return dbPlayerReward.applyPacketRainReward(playerId, code, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
+                                case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
+                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
                                     break;
                                 default:
                                     return Q.reject({
@@ -9999,7 +10066,11 @@ let dbPlayerInfo = {
                         proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                            {bDirty: true},
+                            {
+                                bDirty: true,
+                                usedType: constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD,
+                                $push: {usedEvent: eventData._id}
+                            },
                             {new: true}
                         ).then(
                             data => {
@@ -10531,7 +10602,9 @@ let dbPlayerInfo = {
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                     return playerIdObj._id;
                                 }),
-                                isDX: true
+                                option: {
+                                    isDX: true
+                                }
                             });
                         },
                         processResponse: function (record) {
@@ -10608,7 +10681,8 @@ let dbPlayerInfo = {
         );
     },
 
-    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, isDX) {
+    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option) {
+        option = option || {};
         let proms = [];
         let proposalType = [];
 
@@ -10618,7 +10692,7 @@ let dbPlayerInfo = {
                 for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
                     let prom;
 
-                    if (isDX) {
+                    if (option.isDX) {
                         prom = dbconfig.collection_players.findOne({
                             _id: playerObjIds[p]
                         }).then(
@@ -10631,7 +10705,33 @@ let dbPlayerInfo = {
                         );
 
                         proms.push(prom);
-                    } else {
+                    } else if (option.isFeedback) {
+                        let feedBackIds = playerObjIds;
+                        let feedbackData;
+
+                        prom = dbconfig.collection_playerFeedback.findOne({
+                            _id: feedBackIds[p]
+                        })
+                        .populate({path: 'adminId', select: '_id adminName', model: dbconfig.collection_admin})
+                        .then(
+                            data => {
+                                feedbackData = JSON.parse(JSON.stringify(data));
+                                let qStartTime = new Date(feedbackData.createTime);
+                                let qEndTime = moment(qStartTime).add(query.days, 'day');
+                                return getPlayerRecord(feedbackData.playerId, qStartTime, qEndTime);
+                            }
+                        ).then(
+                            data => {
+                                let playerRecord = JSON.parse(JSON.stringify(data));
+                                if(typeof playerRecord==="object") {
+                                    playerRecord.feedback = feedbackData;
+                                }
+                                return playerRecord;
+                            }
+                        );
+                        proms.push(prom);
+                    }
+                    else {
                         proms.push(getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime)));
                     }
 
@@ -10795,6 +10895,12 @@ let dbPlayerInfo = {
             }
             if (query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
                 playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
+            }
+            if (query.hasOwnProperty('isRealPlayer')) {
+                playerQuery.isRealPlayer = query.isRealPlayer;
+            }
+            if (query.hasOwnProperty('partner')) {
+                playerQuery.partner = query.partner;
             }
 
             // Player Score Query Operator
@@ -11081,11 +11187,11 @@ let dbPlayerInfo = {
     },
 
 
-    setBonusShowInfo: (playerId, platformId, showInfoState) => {
+    setBonusShowInfo: (playerId, showInfo) => {
         return dbUtility.findOneAndUpdateForShard(
             dbconfig.collection_players,
             {playerId: playerId},
-            {"viewInfo.showInfoState": showInfoState},
+            {"viewInfo.showInfoState": parseInt(showInfo)},
             constShardKeys.collection_players
         )
 
