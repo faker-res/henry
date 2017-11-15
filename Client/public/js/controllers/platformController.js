@@ -9089,7 +9089,8 @@ define(['js/app'], function (myApp) {
                     fromFPMS: true,
                     createTime: vm.playerManualTopUp.createTime.data('datetimepicker').getLocalDate(),
                     remark: vm.playerManualTopUp.remark,
-                    groupBankcardList: vm.playerManualTopUp.groupBankcardList
+                    groupBankcardList: vm.playerManualTopUp.groupBankcardList,
+                    bonusCode: vm.playerManualTopUp.bonusCode
                 };
                 vm.playerManualTopUp.submitted = true;
                 $scope.safeApply();
@@ -10449,6 +10450,7 @@ define(['js/app'], function (myApp) {
                     amount: vm.playerAlipayTopUp.amount,
                     alipayName: vm.playerAlipayTopUp.alipayName,
                     alipayAccount: vm.playerAlipayTopUp.alipayAccount,
+                    bonusCode: vm.playerAlipayTopUp.bonusCode,
                     remark: vm.playerAlipayTopUp.remark,
                     createTime: vm.playerAlipayTopUp.createTime.data('datetimepicker').getLocalDate()
                 };
@@ -10525,6 +10527,7 @@ define(['js/app'], function (myApp) {
                     amount: vm.playerWechatPayTopUp.amount,
                     wechatPayName: vm.playerWechatPayTopUp.wechatPayName || " ",
                     wechatPayAccount: vm.playerWechatPayTopUp.wechatPayAccount,
+                    bonusCode: vm.playerWechatPayTopUp.bonusCode,
                     remark: vm.playerWechatPayTopUp.remark,
                     createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate()
                 };
