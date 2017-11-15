@@ -24,6 +24,12 @@ var PlayerLevelServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLevelRewardForPlayer, [{playerId: conn.playerId}], isValidData);
     };
 
+
+    this.upgrade.expectsData= '';
+    this.upgrade.onRequest = function (wsFunc, conn, data) {
+        var isValidData =  Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerLevelUpgrade, [conn.playerId], isValidData);
+    }
 };
 
 var proto = PlayerLevelServiceImplement.prototype = Object.create(PlayerLevelService.prototype);

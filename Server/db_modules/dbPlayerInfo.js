@@ -1561,7 +1561,10 @@ let dbPlayerInfo = {
                         //     code: constServerCode.INVALID_DATA,
                         //     message: "Bank account name is different from real name"
                         // });
-                        updateData.realName = updateData.bankAccountName;
+                        if (updateData.bankAccountName.indexOf('*') > -1)
+                            delete updateData.bankAccountName;
+                        else
+                            updateData.realName = updateData.bankAccountName;
                     }
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
@@ -2607,7 +2610,7 @@ let dbPlayerInfo = {
                 var proms = records.map(rec =>
                     dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                         {_id: rec._id, createTime: rec.createTime, bDirty: {$ne: true}},
-                        {bDirty: true},
+                        {bDirty: true, usedType: constRewardType.FIRST_TOP_UP, $push: {usedEvent: eventData._id}},
                         {new: true}
                     )
                 );
@@ -5566,6 +5569,39 @@ let dbPlayerInfo = {
         }
     },
 
+    getPlayerLevelUpgrade: function (playerId) {
+
+        if (!playerId){
+            return Q.reject ({name: "DataError", message: "Can not find the player"})
+        }
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean()
+          .then( playerObj => {
+              let platformId= playerObj.platform;
+
+              const playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate(
+                  {
+                      path: "playerLevel",
+                      model: dbconfig.collection_playerLevel
+                  }).lean().exec();
+
+              const levelsProm = dbconfig.collection_playerLevel.find({
+                  platform: platformId
+              }).sort({value: 1}).lean().exec();
+
+              return Q.all([playerProm, levelsProm]).spread(
+                  function (player, playerLevels) {
+                      if (!player || !playerLevels)
+                          return Q.reject({name: "DataError", message: "Data not found"});
+
+                      return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                  },
+                  function () {
+                      return Q.reject({name: "DataError", message: "Data not found"});
+                  }
+              );
+          });
+    },
+
     /**
      * Check if player can level down.
      *
@@ -8521,7 +8557,7 @@ let dbPlayerInfo = {
                             proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                             return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                                 {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                                {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_RETURN},
+                                {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_RETURN, $push: {usedEvent: eventData._id}},
                                 {new: true}
                             ).then(
                                 data => {
@@ -9073,7 +9109,7 @@ let dbPlayerInfo = {
                         proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                            {bDirty: true},
+                            {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_REWARD, $push: {usedEvent: eventData._id}},
                             {new: true}
                         ).then(
                             data => {
@@ -9310,6 +9346,7 @@ let dbPlayerInfo = {
                                     return dbPlayerReward.applyPacketRainReward(playerId, code, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
+                                case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
                                     return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
                                     break;
                                 default:
@@ -10014,7 +10051,7 @@ let dbPlayerInfo = {
                         proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                            {bDirty: true},
+                            {bDirty: true, usedType: constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD, $push: {usedEvent: eventData._id}},
                             {new: true}
                         ).then(
                             data => {
