@@ -1974,8 +1974,9 @@ let dbPlayerReward = {
         console.log('rewardData', rewardData);
 
         let todayTime = dbUtility.getTodaySGTime();
-        let rewardAmount = 0;
+        let rewardAmount = 0, spendingAmount = 0;
         let promArr = [];
+        let selectedRewardParam;
 
         let promTopUp = dbConfig.collection_playerTopUpRecord.aggregate(
             {
@@ -2030,8 +2031,6 @@ let dbPlayerReward = {
                 // Count reward amount
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
-                        let selectedRewardParam;
-
                         if (eventData.condition.isPlayerLevelDiff) {
 
                         } else {
@@ -2054,6 +2053,14 @@ let dbPlayerReward = {
                                     message: "Top up amount is not enough"
                                 });
                             }
+
+                            if (eventData.condition.isDynamicRewardAmount) {
+
+                            } else {
+                                rewardAmount = selectedRewardParam.rewardAmount;
+                                spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimesOnReward;
+                            }
+
                         }
                         break;
 
@@ -2096,11 +2103,13 @@ let dbPlayerReward = {
                         realName: playerData.realName,
                         platformObjId: playerData.platform._id,
                         rewardAmount: rewardAmount,
+                        spendingAmount: spendingAmount,
                         eventId: eventData._id,
                         eventName: eventData.name,
                         eventCode: eventData.code,
                         eventDescription: eventData.description,
-                        isIgnoreAudit: Boolean(eventData.condition && eventData.condition.isIgnoreAudit === true)
+                        isIgnoreAudit: Boolean(eventData.condition && eventData.condition.isIgnoreAudit === true),
+                        forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true)
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
