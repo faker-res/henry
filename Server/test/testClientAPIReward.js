@@ -518,7 +518,6 @@ describe("Test Client API - reward service", function () {
     it('Should get consume rebate amount', function (done) {
         clientRewardAPITest.getConsumeRebateAmount(function (data) {
             if (data.data) {
-                console.log(data.data)
                 var total = data.data;
                 total.should.have.property('totalAmount');
 
