@@ -1561,7 +1561,10 @@ let dbPlayerInfo = {
                         //     code: constServerCode.INVALID_DATA,
                         //     message: "Bank account name is different from real name"
                         // });
-                        updateData.realName = updateData.bankAccountName;
+                        if (updateData.bankAccountName.indexOf('*') > -1)
+                            delete updateData.bankAccountName;
+                        else
+                            updateData.realName = updateData.bankAccountName;
                     }
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
