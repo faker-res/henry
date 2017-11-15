@@ -5475,7 +5475,7 @@ let dbPlayerInfo = {
             }
         );
     },
-    
+
     // TODO:
     // Now that we have level down processing, we will need to check player level as part of schedule, but checking every player would be very inefficient!
     // In fact we only need to:
@@ -5571,35 +5571,35 @@ let dbPlayerInfo = {
 
     getPlayerLevelUpgrade: function (playerId) {
 
-        if (!playerId){
-            return Q.reject ({name: "DataError", message: "Can not find the player"})
+        if (!playerId) {
+            return Q.reject({name: "DataError", message: "Can not find the player"})
         }
         return dbconfig.collection_players.findOne({playerId: playerId}).lean()
-          .then( playerObj => {
-              let platformId= playerObj.platform;
+            .then(playerObj => {
+                let platformId = playerObj.platform;
 
-              const playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate(
-                  {
-                      path: "playerLevel",
-                      model: dbconfig.collection_playerLevel
-                  }).lean().exec();
+                const playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate(
+                    {
+                        path: "playerLevel",
+                        model: dbconfig.collection_playerLevel
+                    }).lean().exec();
 
-              const levelsProm = dbconfig.collection_playerLevel.find({
-                  platform: platformId
-              }).sort({value: 1}).lean().exec();
+                const levelsProm = dbconfig.collection_playerLevel.find({
+                    platform: platformId
+                }).sort({value: 1}).lean().exec();
 
-              return Q.all([playerProm, levelsProm]).spread(
-                  function (player, playerLevels) {
-                      if (!player || !playerLevels)
-                          return Q.reject({name: "DataError", message: "Data not found"});
+                return Q.all([playerProm, levelsProm]).spread(
+                    function (player, playerLevels) {
+                        if (!player || !playerLevels)
+                            return Q.reject({name: "DataError", message: "Data not found"});
 
-                      return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
-                  },
-                  function () {
-                      return Q.reject({name: "DataError", message: "Data not found"});
-                  }
-              );
-          });
+                        return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                    },
+                    function () {
+                        return Q.reject({name: "DataError", message: "Data not found"});
+                    }
+                );
+            });
     },
 
     /**
@@ -8557,7 +8557,11 @@ let dbPlayerInfo = {
                             proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                             return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                                 {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                                {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_RETURN, $push: {usedEvent: eventData._id}},
+                                {
+                                    bDirty: true,
+                                    usedType: constRewardType.PLAYER_TOP_UP_RETURN,
+                                    $push: {usedEvent: eventData._id}
+                                },
                                 {new: true}
                             ).then(
                                 data => {
@@ -9109,7 +9113,11 @@ let dbPlayerInfo = {
                         proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                            {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_REWARD, $push: {usedEvent: eventData._id}},
+                            {
+                                bDirty: true,
+                                usedType: constRewardType.PLAYER_TOP_UP_REWARD,
+                                $push: {usedEvent: eventData._id}
+                            },
                             {new: true}
                         ).then(
                             data => {
@@ -9243,8 +9251,12 @@ let dbPlayerInfo = {
                         }, rewardTaskWithProposalList);
                     }
 
+                    let rewardData = {};
+
                     return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
                         timeCheckData => {
+                            rewardData.selectedTopup = timeCheckData[0];
+
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
                                 && rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN) {
                                 // There is consumption after top up
@@ -9343,7 +9355,7 @@ let dbPlayerInfo = {
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                                 case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
-                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo);
+                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
                                     break;
                                 default:
                                     return Q.reject({
@@ -10047,7 +10059,11 @@ let dbPlayerInfo = {
                         proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                            {bDirty: true, usedType: constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD, $push: {usedEvent: eventData._id}},
+                            {
+                                bDirty: true,
+                                usedType: constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD,
+                                $push: {usedEvent: eventData._id}
+                            },
                             {new: true}
                         ).then(
                             data => {

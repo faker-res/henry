@@ -455,7 +455,12 @@ var dbRewardTask = {
                                 bDirty = true;
                                 proms.push(dbconfig.collection_playerConsumptionRecord.findOneAndUpdate(
                                     {_id: consumptionRecord._id, createTime: consumptionRecord.createTime},
-                                    {bDirty: true, usedType: taskData.rewardType, usedEvent: taskData.eventId, usedTaskId: taskData._id}
+                                    {
+                                        bDirty: true,
+                                        usedType: taskData.rewardType,
+                                        usedEvent: taskData.eventId,
+                                        usedTaskId: taskData._id
+                                    }
                                 ));
                             }
                             return Q.all(proms);
