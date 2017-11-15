@@ -162,6 +162,22 @@ var dbUtility = {
         };
     },
 
+    getCurrentBiWeekSGTIme: function () {
+        let startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
+        let endTime = moment(startTime).add(14, 'days').toDate();
+        let todayDay = moment().tz('Asia/Singapore').date();
+
+        if (todayDay >= 15) {
+            startTime = endTime;
+            endTime = moment().tz('Asia/Singapore').endOf('month').toDate();
+        }
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getLastMonthSGTime: function () {
         var startTime = moment().tz('Asia/Singapore').subtract(1, 'months').startOf('month').toDate();
         let endTime = moment(startTime).add(1, 'months').toDate();
