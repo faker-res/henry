@@ -464,7 +464,7 @@ db.rewardParam.update({
                 rewardParam: {
                     minTopUpAmount: {type: "number", des: "Minimum top up amount"},
                     rewardAmount: {type: "number", des: "Reward amount"},
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    spendingTimesOnReward: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "checkbox",

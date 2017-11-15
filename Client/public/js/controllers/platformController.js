@@ -13092,6 +13092,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainParam = {};
                     vm.isPlayerLevelDiff = false;
                     vm.isDynamicRewardAmt = false;
+                    vm.isMultiStepReward = false;
                     vm.rewardMainParamEntry = [{}];
                     vm.rewardDisabledParam = [];
 
@@ -13190,6 +13191,11 @@ define(['js/app'], function (myApp) {
                         if (vm.showReward && vm.showReward.param && vm.showReward.param.hasOwnProperty(el) && el != "rewardParam") {
                             vm.rewardMainParam[el] = paramType[el];
                             vm.rewardMainParam[el].value = vm.showReward.param[el];
+                        }
+
+                        // Get multi step reward flag
+                        if (el == "isMultiStepReward" && vm.showReward && vm.showReward.param && vm.showReward.param[el] === true) {
+                            vm.isMultiStepReward = true;
                         }
                     });
 
@@ -13492,6 +13498,10 @@ define(['js/app'], function (myApp) {
         vm.changeRewardParamLayout = (model) => {
             vm.rewardMainParamTable = [];
 
+            if (model == "isMultiStepReward") {
+                vm.isMultiStepReward = vm.rewardMainParam[model].value;
+            }
+
             // Check whether reward is dynamic amount
             if (model && model.name == "isDynamicRewardAmount") {
                 vm.isDynamicRewardAmt = model.value;
@@ -13519,7 +13529,6 @@ define(['js/app'], function (myApp) {
                     value: [{}]
                 });
             }
-
 
             delete vm.rewardMainParam.rewardParam;
         };

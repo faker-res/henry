@@ -9207,8 +9207,12 @@ let dbPlayerInfo = {
                         }, rewardTaskWithProposalList);
                     }
 
+                    let rewardData = {};
+
                     return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
                         timeCheckData => {
+                            rewardData.selectedTopup = timeCheckData[0];
+
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
                                 && rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN) {
                                 // There is consumption after top up
@@ -9306,7 +9310,7 @@ let dbPlayerInfo = {
                                     return dbPlayerReward.applyPacketRainReward(playerId, code, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
-                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo);
+                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
                                     break;
                                 default:
                                     return Q.reject({

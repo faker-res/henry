@@ -1966,12 +1966,16 @@ let dbPlayerReward = {
      * @param adminInfo
      * @returns {Promise.<TResult>}
      */
-    applyGroupReward: (playerData, eventData, adminInfo) => {
+    applyGroupReward: (playerData, eventData, adminInfo, rewardData) => {
 
         console.log('applyGroupReward eventData', eventData);
+        console.log('applyGroupReward eventData.param.rewardParam', eventData.param.rewardParam);
+        console.log('applyGroupReward eventData.param.rewardParam[0].value', eventData.param.rewardParam[0].value);
+        console.log('rewardData', rewardData);
 
         let todayTime = dbUtility.getTodaySGTime();
         let rewardAmount = 0;
+        let promArr = [];
 
         let promTopUp = dbConfig.collection_playerTopUpRecord.aggregate(
             {
@@ -2022,6 +2026,59 @@ let dbPlayerReward = {
             data => {
                 let topUpSum = data[0];
                 let todayPacketCount = data[1].length ? data[1].length : 0;
+
+                // Count reward amount
+                switch (eventData.type.name) {
+                    case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
+                        let selectedRewardParam;
+
+                        if (eventData.condition.isPlayerLevelDiff) {
+
+                        } else {
+                            selectedRewardParam = eventData.param.rewardParam[0].value;
+                        }
+
+                        if (eventData.param.isMultiStepReward) {
+
+                        } else {
+                            selectedRewardParam = selectedRewardParam[0];
+                        }
+
+                        console.log('selectedRewardParam', selectedRewardParam);
+
+                        if (rewardData && rewardData.selectedTopup) {
+                            if (rewardData.selectedTopup.amount < selectedRewardParam.minTopUpAmount) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "Top up amount is not enough"
+                                });
+                            }
+                        }
+                        break;
+
+                    // type 2
+
+
+                    // type 3
+
+
+                    // type 4
+
+
+                    // type 5
+
+
+                    // type 6
+
+
+                    default:
+                        return Q.reject({
+                            status: constServerCode.INVALID_DATA,
+                            name: "DataError",
+                            message: "Can not find grouped reward event type"
+                        });
+                }
 
                 // create reward proposal
                 let proposalData = {
