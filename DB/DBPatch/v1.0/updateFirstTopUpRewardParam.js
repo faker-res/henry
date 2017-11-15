@@ -447,7 +447,8 @@ var latestTopUpCond = {
     ignoreTopUpDirtyCheckForReward: {
         index: 32,
         type: "multiSelect",
-        des: "Ignore the following rewards that applied with top up"
+        des: "Ignore the following rewards that applied with top up",
+        options: "allRewardEvent"
     }
 };
 
@@ -495,13 +496,13 @@ db.rewardParam.update({
                 rewardParam: {
                     minTopUpAmount: {type: "number", des: "Minimum top up amount"},
                     rewardAmount: {type: "number", des: "Reward amount"},
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    spendingTimesOnReward: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             },
             tblOptDynamic: {
@@ -519,7 +520,7 @@ db.rewardParam.update({
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             }
         }
@@ -575,7 +576,7 @@ db.rewardParam.update({
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             },
             tblOptDynamic: {} // will never reach here
@@ -613,6 +614,7 @@ db.rewardParam.update({
         },
         param: {
             tblOptFixed: {
+                isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
                 rewardParam: {
                     minDeposit: {type: "number", des: "Minimum Deposit Period"},
                     minLoseAmount: {type: "number", des: "Minimum Lose Period"},
@@ -623,10 +625,11 @@ db.rewardParam.update({
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             },
             tblOptDynamic: {
+                isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
                 rewardParam: {
                     minDeposit: {type: "number", des: "Minimum Deposit Period"},
                     minLoseAmount: {type: "number", des: "Minimum Lose Period"},
@@ -638,7 +641,7 @@ db.rewardParam.update({
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             }
         }
@@ -674,6 +677,7 @@ db.rewardParam.update({
         },
         param: {
             tblOptFixed: {
+                isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
                 rewardParam: {
                     minConsumptionAmount: {type: "number", des: "Minimum consumption amount"},
                     rewardAmount: {type: "number", des: "Reward amount"},
@@ -683,23 +687,10 @@ db.rewardParam.update({
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             },
-            // tblOptDynamic: {
-            //     rewardParam: {
-            //         minTopUpAmount: {type: "number", des: "Minimum top up amount"},
-            //         rewardPercentage: {type: "percentage", des: "Reward percentage"},
-            //         maxRewardInSingleTopUp: {type: "number", des: "Max reward in single top up"},
-            //         spendingTimes: {type: "number", des: "Spending times"},
-            //         forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
-            //         forbidWithdrawIfBalanceAfterUnlock: {
-            //             type: "checkbox",
-            //             des: "Forbid withdraw if there is balance after unlock"
-            //         },
-            //         remark: {type: "string", des: "Remark"},
-            //     }
-            // }
+            tblOptDynamic: {}
         }
     }
 }, {
@@ -750,7 +741,7 @@ db.rewardParam.update({
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             },
             tblOptDynamic: {} // will never reach here
@@ -805,15 +796,37 @@ db.rewardParam.update({
             },
             customCond: {
                 rewardAppearPeriod: {
-                    index: 22,
+                    index: 26,
                     type: "datetimePeriod",
                     des: "Period show reward",
-                    value: {}
+                    value: [{startDate: "", startTime: "", endDate: "", endTime: ""}]
                 }
 
             }
         },
-        param: {}
+        param: {
+            tblOptFixed: {
+                rewardParam: {
+                    numberParticipation: {type: "number", des: "Number of participation"},
+                    requiredTopUpAmount: {type: "number", des: "Required top up amount"},
+                    operatorOption: {type: "checkbox", des: "Required both"},
+                    requiredConsumptionAmount: {type: "number", des: "Required consumption amount"},
+                    rewardPercentageAmount: {
+                        type: "PercentageAmount",
+                        des: "Reward percentage and reward amount",
+                        value: [{percentage: "", amount: ""}]
+                    },
+                    spendingTimes: {type: "number", des: "Spending times"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "checkbox",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "string", des: "Remark"},
+                }
+            },
+            tblOptDynamic: {} // will never reach here
+        }
     }
 }, {
     upsert: true

@@ -1179,6 +1179,7 @@ var dbPlayerConsumptionRecord = {
      */
     checkRecordForConsecutiveTopUpTask: function (taskId, playerId, platformId, startTime, spendingAmount, rewardAmount) {
         var deferred = Q.defer();
+        let rewardTask;
 
         dbconfig.collection_playerConsumptionRecord.aggregate(
             [
@@ -1225,6 +1226,7 @@ var dbPlayerConsumptionRecord = {
             //mark related record with reward type
             function (data) {
                 if (data) {
+                    rewardTask = data;
                     return dbconfig.collection_playerConsumptionRecord.find(
                         {
                             playerId: playerId,
@@ -1266,7 +1268,12 @@ var dbPlayerConsumptionRecord = {
                     }
                     return dbconfig.collection_playerConsumptionRecord.update(
                         {_id: {$in: recordIds}},
-                        {usedType: constRewardType.CONSECUTIVE_TOP_UP, bDirty: true},
+                        {
+                            usedType: constRewardType.CONSECUTIVE_TOP_UP,
+                            bDirty: true,
+                            usedEvent: rewardTask.eventId,
+                            usedTaskId: rewardTask._id
+                        },
                         {multi: true}
                     ).exec();
                 }
@@ -1318,6 +1325,7 @@ var dbPlayerConsumptionRecord = {
      */
     checkRecordForFullAttendanceTask: function (taskId, playerId, platformId, startTime, spendingAmount, rewardAmount) {
         var deferred = Q.defer();
+        let rewardTask;
 
         dbconfig.collection_playerConsumptionRecord.aggregate(
             [
@@ -1364,6 +1372,7 @@ var dbPlayerConsumptionRecord = {
             //mark related record with reward type
             function (data) {
                 if (data) {
+                    rewardTask = data;
                     return dbconfig.collection_playerConsumptionRecord.find(
                         {
                             playerId: playerId,
@@ -1405,7 +1414,12 @@ var dbPlayerConsumptionRecord = {
                     }
                     return dbconfig.collection_playerConsumptionRecord.update(
                         {_id: {$in: recordIds}},
-                        {usedType: constRewardType.FULL_ATTENDANCE, bDirty: true},
+                        {
+                            usedType: constRewardType.FULL_ATTENDANCE,
+                            bDirty: true,
+                            usedEvent: rewardTask.eventId,
+                            usedTaskId: rewardTask._id
+                        },
                         {multi: true}
                     ).exec();
                 }
