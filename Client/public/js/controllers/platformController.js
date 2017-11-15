@@ -13155,6 +13155,10 @@ define(['js/app'], function (myApp) {
                                     if (result) {
                                         for (let key in result) {
                                             result[key] = $translate(result[key]);
+                                            // to decode html entities, unwanted encoding by $translate
+                                            let txt = document.createElement("textarea");
+                                            txt.innerHTML = result[key];
+                                            result[key] = txt.value;
                                         }
                                     }
                                     break;
