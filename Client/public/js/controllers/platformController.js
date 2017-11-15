@@ -13131,6 +13131,11 @@ define(['js/app'], function (myApp) {
                                     break;
                                 default:
                                     result = $scope[cond.options];
+                                    if(result) {
+                                        for(let key in result) {
+                                            result[key] = $translate(result[key]);
+                                        }
+                                    }
                                     break;
                             }
 
