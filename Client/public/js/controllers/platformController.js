@@ -13073,6 +13073,10 @@ define(['js/app'], function (myApp) {
                 vm.rewardDisabledParam = [];
                 vm.platformRewardTypeChanged();
 
+                utilService.actionAfterLoaded("#rewardMainTasks", function () {
+                    vm.disableAllRewardInput(true);
+                });
+
                 console.log('vm.rewardParams', vm.rewardParams);
                 $scope.safeApply();
             };
@@ -13086,6 +13090,14 @@ define(['js/app'], function (myApp) {
                     }
                 });
 
+                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                    vm.platformProvider = data.data.gameProviders;
+                    $scope.safeApply();
+                    vm.disableAllRewardInput();
+                }, function (data) {
+                    console.log("cannot get gameProvider", data);
+                });
+
                 // Handling for reward group
                 if (vm.showRewardTypeData.isGrouped) {
                     vm.rewardMainTask = [];
@@ -13096,7 +13108,7 @@ define(['js/app'], function (myApp) {
                     vm.isMultiStepReward = false;
                     vm.rewardMainParamEntry = [{}];
                     vm.rewardDisabledParam = [];
-                    vm.rewardPeriod = [{startDate: "", startTime: "", endDate: "", endTime: ""}];
+                    vm.isRandomReward = false;
                     let params = vm.showRewardTypeData.params;
 
                     // Set condition value
@@ -13228,23 +13240,23 @@ define(['js/app'], function (myApp) {
                             if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
                                 vm.showReward.param.rewardParam.forEach((el, idx) => {
                                     vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
+
                                 })
                             }
                         } else {
                             if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
                                 vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
                         }
+                        if (el == "rewardPercentageAmount") {
+                            vm.isRandomReward = true;
+                            vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = [{percentage: "", amount: ""}];
+                        }
                     });
                 }
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
 
-                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
-                    vm.platformProvider = data.data.gameProviders;
-                    $scope.safeApply();
-                }, function (data) {
-                    console.log("cannot get gameProvider", data);
-                });
+
 
                 // Initialise the models with some default values
                 // and grab any required external data (e.g. for select box lists)
@@ -13537,26 +13549,42 @@ define(['js/app'], function (myApp) {
 
             vm.rewardMainParam = Object.assign({}, paramType);
 
-            if (vm.isPlayerLevelDiff) {
-                vm.allPlayerLvl.forEach((e, idx) => {
+
+                if (vm.isPlayerLevelDiff) {
+                    vm.allPlayerLvl.forEach((e, idx) => {
+                        let value = [{}];
+                        if (vm.isRandomReward) {
+                            value = [{"rewardPercentageAmount": [{percentage: "", amount: ""}]}];
+                        }
+                        vm.rewardMainParamTable.push({
+                            header: vm.rewardMainParam.rewardParam,
+                            value: value
+                        });
+
+                    });
+                } else {
+                    let value = [{}];
+                    if (vm.isRandomReward) {
+                        value = [{"rewardPercentageAmount": [{percentage: "", amount: ""}]}];
+                    }
+
                     vm.rewardMainParamTable.push({
                         header: vm.rewardMainParam.rewardParam,
-                        value: [{}]
+                        value: value
                     });
-                });
-            } else {
-                vm.rewardMainParamTable.push({
-                    header: vm.rewardMainParam.rewardParam,
-                    value: [{}]
-                });
-            }
+                }
 
-            delete vm.rewardMainParam.rewardParam;
+                delete vm.rewardMainParam.rewardParam;
+            };
+
+        vm.rewardPeriodNewRow = (valueCollection) => {
+            valueCollection.push({startDate: "", startTime: "", endDate: "", endTime: ""});
+            console.log(vm.rewardMainCondition);
         };
 
-        vm.rewardPeriodNewRow = () => {
-            vm.rewardPeriod.push({startDate: "", startTime: "", endDate: "", endTime: ""});
-            console.log(vm.rewardPeriod);
+        vm.rewardPercentageAmountNewRow = (valueCollection) => {
+            valueCollection.push({percentage: "", amount: ""});
+            console.log(vm.rewardMainParamTable);
         };
 
         vm.rewardSelectOnChange = (model) => {
@@ -13622,6 +13650,15 @@ define(['js/app'], function (myApp) {
                     return true;
                 }
             }
+
+            vm.disableAllRewardInput = function (disabled) {
+                typeof disabled == "boolean" ? vm.rewardDisabledInput = disabled : disabled = vm.rewardDisabledInput;
+                $("#rewardMainTasks :input").prop("disabled", disabled);
+                if (!disabled) {
+                    $("#rewardMainTasks :input").removeClass("disabled");
+                }
+            }
+
             vm.clearCanApplyFromClient = function () {
                 if (!vm.showReward.needApply) {
                     vm.showReward.canApplyFromClient = false;
