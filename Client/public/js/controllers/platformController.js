@@ -9089,7 +9089,8 @@ define(['js/app'], function (myApp) {
                     fromFPMS: true,
                     createTime: vm.playerManualTopUp.createTime.data('datetimepicker').getLocalDate(),
                     remark: vm.playerManualTopUp.remark,
-                    groupBankcardList: vm.playerManualTopUp.groupBankcardList
+                    groupBankcardList: vm.playerManualTopUp.groupBankcardList,
+                    bonusCode: vm.playerManualTopUp.bonusCode
                 };
                 vm.playerManualTopUp.submitted = true;
                 $scope.safeApply();
@@ -10449,6 +10450,7 @@ define(['js/app'], function (myApp) {
                     amount: vm.playerAlipayTopUp.amount,
                     alipayName: vm.playerAlipayTopUp.alipayName,
                     alipayAccount: vm.playerAlipayTopUp.alipayAccount,
+                    bonusCode: vm.playerAlipayTopUp.bonusCode,
                     remark: vm.playerAlipayTopUp.remark,
                     createTime: vm.playerAlipayTopUp.createTime.data('datetimepicker').getLocalDate()
                 };
@@ -10525,6 +10527,7 @@ define(['js/app'], function (myApp) {
                     amount: vm.playerWechatPayTopUp.amount,
                     wechatPayName: vm.playerWechatPayTopUp.wechatPayName || " ",
                     wechatPayAccount: vm.playerWechatPayTopUp.wechatPayAccount,
+                    bonusCode: vm.playerWechatPayTopUp.bonusCode,
                     remark: vm.playerWechatPayTopUp.remark,
                     createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate()
                 };
@@ -13155,6 +13158,10 @@ define(['js/app'], function (myApp) {
                                     if (result) {
                                         for (let key in result) {
                                             result[key] = $translate(result[key]);
+                                            // to decode html entities, unwanted encoding by $translate
+                                            let txt = document.createElement("textarea");
+                                            txt.innerHTML = result[key];
+                                            result[key] = txt.value;
                                         }
                                     }
                                     break;
@@ -13192,6 +13199,20 @@ define(['js/app'], function (myApp) {
                             // Get value
                             if (vm.showReward && vm.showReward.condition && vm.showReward.condition.hasOwnProperty(el)) {
                                 vm.rewardMainCondition[cond.index].value = vm.showReward.condition[el];
+                            }
+
+                            // Get interval value 1
+                            if (cond.type == "interval") {
+                                if (vm.rewardMainCondition[cond.index].value.length == 2) {
+                                    vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
+                                    vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];
+                                }
+
+                                if (vm.rewardMainCondition[cond.index].value.length == 3) {
+                                    vm.rewardMainCondition[cond.index].value2 = vm.rewardMainCondition[cond.index].value[2];
+                                    vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
+                                    vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];
+                                }
                             }
 
                             // Render dateTimePicker
@@ -13605,6 +13626,11 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            if (model && model.name == "topUpCountType") {
+                delete model.value1;
+                delete model.value2;
+            }
+
             $scope.safeApply();
         };
 
@@ -13649,9 +13675,13 @@ define(['js/app'], function (myApp) {
 
             vm.disableAllRewardInput = function (disabled) {
                 typeof disabled == "boolean" ? vm.rewardDisabledInput = disabled : disabled = vm.rewardDisabledInput;
+                let disabledElements = $("#rewardMainTasks :input:disabled");
                 $("#rewardMainTasks :input").prop("disabled", disabled);
                 if (!disabled) {
                     $("#rewardMainTasks :input").removeClass("disabled");
+                }
+                if(vm.isRandomReward){
+                    disabledElements.prop("disabled", true);
                 }
             }
 
@@ -13966,6 +13996,17 @@ define(['js/app'], function (myApp) {
                             // Save name and code to outer level
                             if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "validStartTime" || condName == "validEndTime") {
                                 curReward[condName] = condValue;
+                            }
+
+                            // Interval type handling
+                            if (condType == "interval") {
+                                if (vm.rewardMainCondition[e].hasOwnProperty("value1")) {
+                                    condValue = [condValue, vm.rewardMainCondition[e].value1];
+
+                                    if (vm.rewardMainCondition[e].hasOwnProperty("value2")) {
+                                        condValue.push(vm.rewardMainCondition[e].value2);
+                                    }
+                                }
                             }
 
                             // Save reward condition

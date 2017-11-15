@@ -1577,7 +1577,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime) {
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -1646,7 +1646,9 @@ var dbPlayerTopUpRecord = {
                     if (createTime) {
                         proposalData.depositeTime = new Date(createTime);
                     }
-
+                    if (bonusCode){
+                        proposalData.bonusCode = bonusCode;
+                    }
                     proposalData.creator = entryType === "ADMIN" ? {
                         type: 'admin',
                         name: adminName,
@@ -1721,7 +1723,6 @@ var dbPlayerTopUpRecord = {
                     queryObj["createTime"]["$gte"] = start;
                     queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
-                    console.log(queryObj);
                     return dbconfig.collection_proposal.aggregate(
                         {$match: queryObj},
                         {
@@ -1837,7 +1838,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestWechatTopup: function (userAgent, playerId, amount, wechatName, wechatAccount, entryType, adminId, adminName, remark, createTime) {
+    requestWechatTopup: function (userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -1894,7 +1895,9 @@ var dbPlayerTopUpRecord = {
                         if (createTime) {
                             proposalData.depositeTime = new Date(createTime);
                         }
-
+                        if(bonusCode){
+                            proposalData.bonusCode = bonusCode;
+                        }
                         proposalData.creator = entryType === "ADMIN" ? {
                             type: 'admin',
                             name: adminName,
