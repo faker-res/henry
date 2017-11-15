@@ -13096,6 +13096,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainParamEntry = [{}];
                     vm.rewardDisabledParam = [];
                     vm.rewardPeriod = [{startDate: "", startTime: "", endDate: "", endTime: ""}];
+                    vm.isRandomReward = false;
                     let params = vm.showRewardTypeData.params;
 
                     // Set condition value
@@ -13205,11 +13206,16 @@ define(['js/app'], function (myApp) {
                             if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
                                 vm.showReward.param.rewardParam.forEach((el, idx) => {
                                     vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
+
                                 })
                             }
                         } else {
                             if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
                                 vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
+                        }
+                        if (el == "rewardPercentageAmount") {
+                            vm.isRandomReward = true;
+                            vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = [{percentage: "", amount: ""}];
                         }
                     });
                 }
@@ -13512,18 +13518,26 @@ define(['js/app'], function (myApp) {
 
                 if (vm.isPlayerLevelDiff) {
                     vm.allPlayerLvl.forEach((e, idx) => {
+                        let value = [{}];
+                        if (vm.isRandomReward) {
+                            value = [{"rewardPercentageAmount": [{percentage: "", amount: ""}]}];
+                        }
                         vm.rewardMainParamTable.push({
                             header: vm.rewardMainParam.rewardParam,
-                            value: [{}]
+                            value: value
                         });
+
                     });
                 } else {
+                    let value = [{}];
+                    if (vm.isRandomReward) {
+                        value = [{"rewardPercentageAmount": [{percentage: "", amount: ""}]}];
+                    }
                     vm.rewardMainParamTable.push({
                         header: vm.rewardMainParam.rewardParam,
-                        value: [{}]
+                        value: value
                     });
                 }
-
 
                 delete vm.rewardMainParam.rewardParam;
             };
@@ -13531,6 +13545,11 @@ define(['js/app'], function (myApp) {
             vm.rewardPeriodNewRow = () => {
                 vm.rewardPeriod.push({startDate: "", startTime: "", endDate: "", endTime: ""});
                 console.log(vm.rewardPeriod);
+            };
+
+            vm.rewardPercentageAmountNewRow = (valueCollection) => {
+                valueCollection.push({percentage: "", amount: ""});
+                console.log(vm.rewardMainParamTable);
             };
 
             vm.rewardSelectOnChange = (model) => {
