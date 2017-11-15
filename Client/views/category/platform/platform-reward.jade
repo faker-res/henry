@@ -145,10 +145,10 @@
 
                             div(style="width:50%;display: inline-block" ng-if="v.type == 'interval'")
                                 div(ng-if="vm.rewardMainCondition[i].value != 4")
-                                    select.form-control(style="width:50%;display: inline-block" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options")
+                                    select.form-control(style="width:50%;display: inline-block" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options" ng-change="vm.rewardSelectOnChange(vm.rewardMainCondition[i])")
                                     input.form-control(style="width:50%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value1")
                                 div(ng-if="vm.rewardMainCondition[i].value == 4")
-                                    select.form-control(style="width:34%;display: inline-block" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options")
+                                    select.form-control(style="width:34%;display: inline-block" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options" ng-change="vm.rewardSelectOnChange(vm.rewardMainCondition[i])")
                                     input.form-control(style="width:33%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value1")
                                     input.form-control(style="width:33%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value2")
 

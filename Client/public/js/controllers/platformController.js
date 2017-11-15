@@ -13201,6 +13201,20 @@ define(['js/app'], function (myApp) {
                                 vm.rewardMainCondition[cond.index].value = vm.showReward.condition[el];
                             }
 
+                            // Get interval value 1
+                            if (cond.type == "interval") {
+                                if (vm.rewardMainCondition[cond.index].value.length == 2) {
+                                    vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
+                                    vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];
+                                }
+
+                                if (vm.rewardMainCondition[cond.index].value.length == 3) {
+                                    vm.rewardMainCondition[cond.index].value2 = vm.rewardMainCondition[cond.index].value[2];
+                                    vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
+                                    vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];
+                                }
+                            }
+
                             // Render dateTimePicker
                             let id = "#rewardMainTaskDate-" + cond.index;
                             utilService.actionAfterLoaded(id, function () {
@@ -13612,6 +13626,11 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            if (model && model.name == "topUpCountType") {
+                delete model.value1;
+                delete model.value2;
+            }
+
             $scope.safeApply();
         };
 
@@ -13977,6 +13996,17 @@ define(['js/app'], function (myApp) {
                             // Save name and code to outer level
                             if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "validStartTime" || condName == "validEndTime") {
                                 curReward[condName] = condValue;
+                            }
+
+                            // Interval type handling
+                            if (condType == "interval") {
+                                if (vm.rewardMainCondition[e].hasOwnProperty("value1")) {
+                                    condValue = [condValue, vm.rewardMainCondition[e].value1];
+
+                                    if (vm.rewardMainCondition[e].hasOwnProperty("value2")) {
+                                        condValue.push(vm.rewardMainCondition[e].value2);
+                                    }
+                                }
                             }
 
                             // Save reward condition
