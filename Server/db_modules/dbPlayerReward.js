@@ -2109,7 +2109,8 @@ let dbPlayerReward = {
                         eventCode: eventData.code,
                         eventDescription: eventData.description,
                         isIgnoreAudit: Boolean(eventData.condition && eventData.condition.isIgnoreAudit === true),
-                        forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true)
+                        forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
+                        remark: selectedRewardParam.remark
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
