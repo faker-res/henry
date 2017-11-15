@@ -502,7 +502,7 @@ db.rewardParam.update({
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             },
             tblOptDynamic: {
@@ -520,7 +520,7 @@ db.rewardParam.update({
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             }
         }
@@ -576,7 +576,7 @@ db.rewardParam.update({
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             },
             tblOptDynamic: {} // will never reach here
@@ -614,6 +614,7 @@ db.rewardParam.update({
         },
         param: {
             tblOptFixed: {
+                isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
                 rewardParam: {
                     minDeposit: {type: "number", des: "Minimum Deposit Period"},
                     minLoseAmount: {type: "number", des: "Minimum Lose Period"},
@@ -624,10 +625,11 @@ db.rewardParam.update({
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             },
             tblOptDynamic: {
+                isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
                 rewardParam: {
                     minDeposit: {type: "number", des: "Minimum Deposit Period"},
                     minLoseAmount: {type: "number", des: "Minimum Lose Period"},
@@ -639,7 +641,7 @@ db.rewardParam.update({
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             }
         }
@@ -684,7 +686,7 @@ db.rewardParam.update({
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             },
             tblOptDynamic: {}
@@ -738,7 +740,7 @@ db.rewardParam.update({
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             },
             tblOptDynamic: {} // will never reach here

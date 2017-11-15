@@ -113,7 +113,7 @@
                         .full-width-input-block(ng-hide="vm.rewardDisabledParam.indexOf(vm.rewardMainCondition[i].name) > -1")
                             label.control-label {{v.des | translate}}
 
-                            input.form-control(ng-if="v.type == 'string' || v.type == 'checkbox'" type="{{v.type}}" ng-change="vm.changeRewardParamLayout(vm.rewardMainCondition[i]);" ng-model="vm.rewardMainCondition[i].value" ng-disabled="v.disabled")
+                            input.form-control(ng-if="v.type == 'text' || v.type == 'checkbox'" type="{{v.type}}" ng-change="vm.changeRewardParamLayout(vm.rewardMainCondition[i]);" ng-model="vm.rewardMainCondition[i].value" ng-disabled="v.disabled")
                             select.form-control(ng-if="v.type == 'select'" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v for (i,v) in v.options" ng-change="vm.rewardSelectOnChange(vm.rewardMainCondition[i])" ng-disabled="v.disabled")
 
                             div.dateTimePicker(id="rewardMainTaskDate-{{i}}" style="display: inline-block" ng-if="v.type == 'date'")
@@ -157,7 +157,7 @@
                     .col-md-12.well.scrollRecord
                         div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
                             label {{v.des | translate}}
-                            input.form-control(ng-if="v.type == 'string' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-change="vm.changeRewardParamLayout(i);" ng-model="vm.rewardMainParam[i].value")
+                            input.form-control(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-change="vm.changeRewardParamLayout(i);" ng-model="vm.rewardMainParam[i].value")
                         table.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTable track by $index")
                             thead
                                 th(ng-if="!vm.isPlayerLevelDiff && vm.isMultiStepReward && !vm.platformRewardShowEdit()")
@@ -167,7 +167,7 @@
                                 td(ng-if="vm.isMultiStepReward && !vm.platformRewardShowEdit()")
                                     i.fa.fa-plus(ng-click='cond.value.push({})')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
-                                    input(ng-if="v.type == 'string' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]")
+                                    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]")
                                     span.percentage(ng-if="v.type == 'percentage'")
                                         input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
 
