@@ -795,10 +795,10 @@ db.rewardParam.update({
             },
             customCond: {
                 rewardAppearPeriod: {
-                    index: 22,
+                    index: 26,
                     type: "datetimePeriod",
                     des: "Period show reward",
-                    value: {}
+                    value: [{startDate: "", startTime: "", endDate: "", endTime: ""}]
                 }
 
             }

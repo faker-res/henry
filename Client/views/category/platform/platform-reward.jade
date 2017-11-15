@@ -127,7 +127,7 @@
                                         th {{'to' | translate}}
                                         th
                                 tbody
-                                    tr(ng-repeat='(idx,val) in vm.rewardPeriod')
+                                    tr(ng-repeat='(idx,val) in v.value')
                                         td
                                             select.form-control(ng-model='val.startDate' ng-options='i as v | translate for (i,v) in weekDay')
                                         td
@@ -139,7 +139,7 @@
                                         td
                                             select.form-control(ng-model='val.endTime' ng-options='i as v for (i,v) in dayTime')
                                         td
-                                            i.fa.fa-plus(ng-click='vm.rewardPeriodNewRow()')
+                                            i.fa.fa-plus(ng-click='vm.rewardPeriodNewRow(v.value)')
                             select.spicker.form-control(ng-if="v.type == 'multiSelect'"  ng-model="vm.rewardMainCondition[i].value" multiple, data-width='50%' data-actions-box='true' ng-change="vm.rewardSelectOnChange(vm.rewardMainCondition[i])")
                                 option(style="display: inline-block" ng-repeat='(i,v) in v.options', value='{{i}}' ng-init='$last && vm.endLoadWeekDay()') {{v}}
 
