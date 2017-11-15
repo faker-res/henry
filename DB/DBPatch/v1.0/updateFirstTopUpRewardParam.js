@@ -675,6 +675,7 @@ db.rewardParam.update({
         },
         param: {
             tblOptFixed: {
+                isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
                 rewardParam: {
                     minConsumptionAmount: {type: "number", des: "Minimum consumption amount"},
                     rewardAmount: {type: "number", des: "Reward amount"},
