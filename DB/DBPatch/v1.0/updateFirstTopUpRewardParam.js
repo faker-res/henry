@@ -796,7 +796,7 @@ db.rewardParam.update({
                     index: 26,
                     type: "datetimePeriod",
                     des: "Period show reward",
-                    value: {}
+                    value: [{startDate: "", startTime: "", endDate: "", endTime: ""}]
                 }
 
             }

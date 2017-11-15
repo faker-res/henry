@@ -13096,7 +13096,6 @@ define(['js/app'], function (myApp) {
                     vm.isMultiStepReward = false;
                     vm.rewardMainParamEntry = [{}];
                     vm.rewardDisabledParam = [];
-                    vm.rewardPeriod = [{startDate: "", startTime: "", endDate: "", endTime: ""}];
                     vm.isRandomReward = false;
                     let params = vm.showRewardTypeData.params;
 
@@ -13568,9 +13567,9 @@ define(['js/app'], function (myApp) {
             };
 
 
-        vm.rewardPeriodNewRow = () => {
-            vm.rewardPeriod.push({startDate: "", startTime: "", endDate: "", endTime: ""});
-            console.log(vm.rewardPeriod);
+        vm.rewardPeriodNewRow = (valueCollection) => {
+            valueCollection.push({startDate: "", startTime: "", endDate: "", endTime: ""});
+            console.log(vm.rewardMainCondition);
         };
 
 
