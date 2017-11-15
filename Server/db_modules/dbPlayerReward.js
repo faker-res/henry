@@ -1977,6 +1977,21 @@ let dbPlayerReward = {
         let rewardAmount = 0, spendingAmount = 0;
         let promArr = [];
         let selectedRewardParam;
+        let intervalTime;
+
+        // Get interval time
+        if (eventData.condition.interval) {
+            switch (eventData.condition.interval) {
+                case "1":
+                    intervalTime = todayTime;
+                    break;
+                case "2":
+                    intervalTime = dbUtility.getCurrentWeekSGTime();
+                    break;
+                case "3":
+                    intervalTime = dbUtility.getCurrentMonthSGTIme();
+            }
+        }
 
         let promTopUp = dbConfig.collection_playerTopUpRecord.aggregate(
             {
@@ -2055,7 +2070,8 @@ let dbPlayerReward = {
                             }
 
                             if (eventData.condition.isDynamicRewardAmount) {
-
+                                rewardAmount = rewardData.selectedTopup.amount * selectedRewardParam.rewardPercentage;
+                                spendingAmount = (rewardData.selectedTopup.amount + rewardAmount) * selectedRewardParam.spendingTimes;
                             } else {
                                 rewardAmount = selectedRewardParam.rewardAmount;
                                 spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimesOnReward;
