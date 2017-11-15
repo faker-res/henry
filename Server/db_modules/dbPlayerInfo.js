@@ -11571,11 +11571,9 @@ let dbPlayerInfo = {
     },
 
     getWithdrawalInfo: function(platformId, playerId){
-
         let result = {};
 
         let platformProm = dbconfig.collection_platform.findOne({platformId: platformId});
-
         let playerProm = dbconfig.collection_players.findOne({playerId:  playerId})
             .populate({path: "playerLevel", select: 'name', model: dbconfig.collection_playerLevel}).lean()
 
@@ -11589,57 +11587,70 @@ let dbPlayerInfo = {
                 let playerDetails = data[1] ? data[1] : "";
 
                 let bonusDetails = {};
+                if(platformDetails){
+                    if(playerDetails){
+                        if(platformDetails.bonusSetting){
+                            for(let x in platformDetails.bonusSetting){
+                                if(platformDetails.bonusSetting[x].name == playerDetails.playerLevel.name){
+                                    bonusDetails = platformDetails.bonusSetting[x];
+                                }
+                            }
+                        }
 
-                for(let x in platformDetails.bonusSetting){
-                    if(platformDetails.bonusSetting[x].name == playerDetails.playerLevel.name){
-                        bonusDetails = platformDetails.bonusSetting[x];
-                    }
-                }
+                        if(bonusDetails){
+                            result.freeTimes = bonusDetails.bonusCharges;
+                            result.serviceCharge = bonusDetails.bonusPercentageCharges;
+                        }
 
-                result.freeTimes = bonusDetails.bonusCharges;
-                result.serviceCharge = bonusDetails.bonusPercentageCharges;
-                result.currentFreeAmount = playerDetails.validCredit;
-                result.freeAmount = playerDetails.validCredit;
+                        if(playerDetails.validCredit){
+                            result.currentFreeAmount = playerDetails.validCredit;
+                            result.freeAmount = playerDetails.validCredit;
+                        }
 
-                let bonusProm = dbconfig.collection_proposal.aggregate([
-                    {
-                        "$match": {
-                            "data.playerObjId": playerDetails._id,
-                            "createTime": {
-                                "$gte": firstDay,
-                                "$lt": lastDay
+                        let bonusProm = dbconfig.collection_proposal.aggregate([
+                            {
+                                "$match": {
+                                    "data.playerObjId": playerDetails._id,
+                                    "createTime": {
+                                        "$gte": firstDay,
+                                        "$lt": lastDay
+                                    },
+                                    "mainType": "PlayerBonus",
+                                    "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                }
                             },
-                            "mainType": "PlayerBonus",
-                            "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                        }
-                    },
-                    {
-                        "$group": {
-                            "_id": null,
-                            "count": {"$sum": 1},
-                            "amount": {"$sum": "$data.amount"}
-                        }
+                            {
+                                "$group": {
+                                    "_id": null,
+                                    "count": {"$sum": 1},
+                                    "amount": {"$sum": "$data.amount"}
+                                }
+                            }
+                        ]);
+
+                        let rewardProm = dbconfig.collection_rewardTaskGroup.find({playerId: playerDetails._id, platformId: platformDetails._id})
+                            .populate({path: "providerGroup", select: 'name', model: dbconfig.collection_gameProviderGroup}).lean()
+                            .then(rewardDetails => {
+                                if(!rewardDetails){
+                                    return "";
+                                }
+                                let lockListArr = [];
+                                rewardDetails.map(r =>{
+                                    lockListArr.push({name: r.providerGroup.name, lockAmount: r.targetConsumption, currentLockAmount: r.curConsumption});
+                                })
+
+                                return lockListArr;
+                            });
+
+                        return Promise.all([bonusProm,rewardProm]);
+                    }else{
+                        return "Player not found.";
                     }
-                ]);
-
-                let rewardProm = dbconfig.collection_rewardTaskGroup.find({playerId: playerDetails._id, platformId: platformDetails._id})
-                    .populate({path: "providerGroup", select: 'name', model: dbconfig.collection_gameProviderGroup}).lean()
-                    .then(rewardDetails => {
-                        if(!rewardDetails){
-                            return "";
-                        }
-                        let lockListArr = [];
-                        rewardDetails.map(r =>{
-                            lockListArr.push({name: r.providerGroup.name, lockAmount: r.targetConsumption, currentLockAmount: r.curConsumption});
-                        })
-
-                        return lockListArr;
-                    });
-
-                return Promise.all([bonusProm,rewardProm]);
+                }else{
+                    return "Platform not found.";
+                }
             }
-
-                return "";
+            return "";
         }).then(data => {
             if(data){
                 result.freeTimes = result.freeTimes - (data[0] && data[0][0] ? data[0][0].count : 0);
@@ -11649,7 +11660,6 @@ let dbPlayerInfo = {
             return result;
         });
     },
-
 };
 
 
