@@ -1561,7 +1561,10 @@ let dbPlayerInfo = {
                         //     code: constServerCode.INVALID_DATA,
                         //     message: "Bank account name is different from real name"
                         // });
-                        updateData.realName = updateData.bankAccountName;
+                        if (updateData.bankAccountName.indexOf('*') > -1)
+                            delete updateData.bankAccountName;
+                        else
+                            updateData.realName = updateData.bankAccountName;
                     }
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
@@ -2607,7 +2610,7 @@ let dbPlayerInfo = {
                 var proms = records.map(rec =>
                     dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                         {_id: rec._id, createTime: rec.createTime, bDirty: {$ne: true}},
-                        {bDirty: true},
+                        {bDirty: true, usedType: constRewardType.FIRST_TOP_UP, $push: {usedEvent: eventData._id}},
                         {new: true}
                     )
                 );
@@ -8554,7 +8557,7 @@ let dbPlayerInfo = {
                             proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                             return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                                 {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                                {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_RETURN},
+                                {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_RETURN, $push: {usedEvent: eventData._id}},
                                 {new: true}
                             ).then(
                                 data => {
@@ -9106,7 +9109,7 @@ let dbPlayerInfo = {
                         proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                            {bDirty: true},
+                            {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_REWARD, $push: {usedEvent: eventData._id}},
                             {new: true}
                         ).then(
                             data => {
@@ -9339,6 +9342,7 @@ let dbPlayerInfo = {
                                     return dbPlayerReward.applyPacketRainReward(playerId, code, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
+                                case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
                                     return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo);
                                     break;
                                 default:
@@ -10043,7 +10047,7 @@ let dbPlayerInfo = {
                         proposalData.inputDevice = dbUtility.getInputDevice(userAgent,false);
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                            {bDirty: true},
+                            {bDirty: true, usedType: constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD, $push: {usedEvent: eventData._id}},
                             {new: true}
                         ).then(
                             data => {
