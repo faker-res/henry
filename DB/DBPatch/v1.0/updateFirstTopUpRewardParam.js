@@ -385,9 +385,9 @@ db.rewardType.insert({"name": type23, params: param23._id, des: "Player Limited 
 /* Reward restructured */
 var generalCond = {
     // Reward Name
-    name: {index: 0, type: "string", des: "Reward name"},
+    name: {index: 0, type: "text", des: "Reward name"},
     // Reward system code
-    code: {index: 1, type: "string", des: "Reward code"},
+    code: {index: 1, type: "text", des: "Reward code"},
     // Reward apply type
     applyType: {index: 2, type: "select", des: "Reward apply type", options: "rewardApplyType"},
     // Is player manually applicable
@@ -549,6 +549,14 @@ db.rewardParam.update({
             },
             consumptionCond: consumptionCond,
             consumptionProviderCond: consumptionProviderCond,
+            allTopUpCond: {
+                ignoreAllTopUpDirtyCheckForReward: {
+                    index: 32,
+                    type: "multiSelect",
+                    des: "Ignore the following rewards that applied with all top up",
+                    options: "allRewardEvent"
+                }
+            },
             customCond: {
                 requireNonBreakingCombo: {
                     index: 21,
@@ -565,6 +573,7 @@ db.rewardParam.update({
         },
         param: {
             tblOptFixed: {
+                isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
                 rewardParam: {
                     requiredTopUpAmount: {type: "number", des: "Required top up amount"},
                     operatorOption: {type: "checkbox", des: "Required both"},
@@ -604,6 +613,14 @@ db.rewardParam.update({
             periodCond: periodCond,
             consumptionCond: consumptionCond,
             loseValueCond: loseValueCond,
+            allTopUpCond: {
+                ignoreAllTopUpDirtyCheckForReward: {
+                    index: 32,
+                    type: "multiSelect",
+                    des: "Ignore the following rewards that applied with all top up",
+                    options: "allRewardEvent"
+                }
+            },
             dynamicCond: {
                 isDynamicRewardAmount: {
                     index: 50,
@@ -821,7 +838,7 @@ db.rewardParam.update({
                         type: "checkbox",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
-                    remark: {type: "string", des: "Remark"},
+                    remark: {type: "text", des: "Remark"},
                 }
             },
             tblOptDynamic: {} // will never reach here
