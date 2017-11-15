@@ -2722,5 +2722,10 @@
   "Minimum Deposit Period": "周期内最低总存款",
   "Minimum Lose Period": "周期内最小输值（正数代表玩家输钱)",
   "Maximum Reward": "最高优惠金额",
-  "Reward amount is dynamically changed by losses": "优惠金额随著输值变动"
+  "Reward amount is dynamically changed by losses": "优惠金额随著输值变动",
+  "Number of participation": "每场可参加次数（每次需消耗需求数据）",
+  "Required top up amount": "周期内累积存款金额（每次消耗）",
+  "Required both": "且 / 或",
+  "Required consumption amount": "周期内累积投注额（每次消耗）",
+  "Reward percentage and reward amount": "中奖机率％+优惠金额"
 }
