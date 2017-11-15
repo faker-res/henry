@@ -1968,6 +1968,7 @@ let dbPlayerReward = {
      */
     applyGroupReward: (playerData, eventData, adminInfo, rewardData) => {
 
+        console.log('applyGroupReward playerData', playerData);
         console.log('applyGroupReward eventData', eventData);
         console.log('applyGroupReward eventData.param.rewardParam', eventData.param.rewardParam);
         console.log('applyGroupReward eventData.param.rewardParam[0].value', eventData.param.rewardParam[0].value);
@@ -1989,7 +1990,13 @@ let dbPlayerReward = {
                     intervalTime = dbUtility.getCurrentWeekSGTime();
                     break;
                 case "3":
+                    intervalTime = dbUtility.getCurrentBiWeekSGTIme();
+                    break;
+                case "4":
                     intervalTime = dbUtility.getCurrentMonthSGTIme();
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -2047,7 +2054,7 @@ let dbPlayerReward = {
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                         if (eventData.condition.isPlayerLevelDiff) {
-
+                            selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
                         } else {
                             selectedRewardParam = eventData.param.rewardParam[0].value;
                         }
