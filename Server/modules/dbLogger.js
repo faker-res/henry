@@ -269,7 +269,7 @@ var dbLogger = {
     },
 
     // this actually create all the validation sms log instead of just for registration
-    createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, purpose, inputDevice, status, error) {
+    createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, purpose, inputDevice, playerName, status, error) {
         let smsPurposes = Object.keys(constSMSPurpose).map(function (key) {
             return constSMSPurpose[key];
         });
@@ -287,7 +287,10 @@ var dbLogger = {
             phoneQuery = {$in: [rsaCrypto.encrypt(tel), tel]};
         }
 
-        dbconfig.collection_players.findOne({phoneNumber: phoneQuery}, {name: 1, bankAccount: 1}).lean().then(
+        let playerQuery = {phoneNumber: phoneQuery};
+        if (playerName) playerQuery.name = playerName;
+
+        dbconfig.collection_players.findOne(playerQuery, {name: 1, bankAccount: 1}).lean().then(
             playerData => {
                 var logData = {
                     type: type,
@@ -299,11 +302,12 @@ var dbLogger = {
                     purpose: purpose,
                     status: status,
                     error: error,
+                    recipientName: playerName
                 };
 
                 if (playerData) {
                     if (playerData.name)
-                        logData.recipientName = playerData.name;
+                        logData.recipientName = logData.recipientName || playerData.name;
 
                     if (purpose === constSMSPurpose.UPDATE_BANK_INFO && !playerData.bankAccount)
                         logData.purpose = constSMSPurpose.UPDATE_BANK_INFO_FIRST;
