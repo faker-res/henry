@@ -499,7 +499,7 @@ db.rewardParam.update({
                     spendingTimesOnReward: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
-                        type: "checkbox",
+                        type: "number",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
                     remark: {type: "text", des: "Remark"},
@@ -517,7 +517,7 @@ db.rewardParam.update({
                     spendingTimes: {type: "number", des: "Spending times"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
-                        type: "checkbox",
+                        type: "number",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
                     remark: {type: "text", des: "Remark"},
