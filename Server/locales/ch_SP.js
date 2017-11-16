@@ -148,6 +148,7 @@ var simplifiedChinese = {
     "Referral does not have enough topup amount": "被推荐人充值额度不够",
     "Player does not have enough return amount": "您的洗码额度不足100元，无法提前结算洗码，谢谢",
     "Player has applied for max reward times": "您已经达到了该奖励今日的申请上限",
+    "Player has applied for max reward times in event period": "您已经达到了该奖励周期内的申请上限",
     "Player do not have permission for reward": "您好， 您目前暂无申请优惠的权限，请联系客服。",
     "Username should be alphanumeric and within 12 characters": "用户名只能为6-12位的数字和字母",
     "Username should be alphanumeric and within 20 characters": "用户名只能为6-20位的数字和字母",
