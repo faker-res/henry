@@ -2060,7 +2060,7 @@ let dbPlayerReward = {
                 console.log('eventInPeriodData', eventInPeriodData);
 
                 // Check reward apply limit in period
-                if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval < eventInPeriodCount) {
+                if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
                     return Q.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
@@ -2076,7 +2076,8 @@ let dbPlayerReward = {
                 }
 
                 if (eventData.param.isMultiStepReward) {
-
+                    let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
+                    selectedRewardParam = selectedRewardParam[eventStep];
                 } else {
                     selectedRewardParam = selectedRewardParam[0];
                 }
