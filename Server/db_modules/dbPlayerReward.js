@@ -2059,14 +2059,21 @@ let dbPlayerReward = {
                 console.log('topupInPeriodData', topupInPeriodData);
                 console.log('eventInPeriodData', eventInPeriodData);
 
-                if ()
+                // Check reward apply limit in period
+                if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval < eventInPeriodCount) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: "Player has applied for max reward times in event period"
+                    });
+                }
 
                 // Set reward param to use
-                    if (eventData.condition.isPlayerLevelDiff) {
-                        selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
-                    } else {
-                        selectedRewardParam = eventData.param.rewardParam[0].value;
-                    }
+                if (eventData.condition.isPlayerLevelDiff) {
+                    selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
+                } else {
+                    selectedRewardParam = eventData.param.rewardParam[0].value;
+                }
 
                 if (eventData.param.isMultiStepReward) {
 
