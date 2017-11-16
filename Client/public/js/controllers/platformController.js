@@ -13137,7 +13137,20 @@ define(['js/app'], function (myApp) {
 
                             // Get options
                             switch (cond.options) {
+                                case "providerGroup":
+                                    if (!vm.gameProviderGroup) break;
+                                    let providerGroup = {};
+                                    for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                                        let group = vm.gameProviderGroup[i];
+                                        providerGroup[group._id] = group.name;
+                                    }
+                                    result = providerGroup;
+                                    break;
+                                case "bankType":
+                                    result = vm.allBankTypeList;
+                                    break;
                                 case "allRewardEvent":
+                                    if (!vm.allRewardEvent) break;
                                     let rewardEvents = {};
                                     for (let i = 0; i < vm.allRewardEvent.length; i++) {
                                         let event = vm.allRewardEvent[i];
@@ -13146,6 +13159,7 @@ define(['js/app'], function (myApp) {
                                     result = rewardEvents;
                                     break;
                                 case "gameProviders":
+                                    if (!vm.allGameProviders) break;
                                     let gameProviders = {};
                                     for (let i = 0; i < vm.allGameProviders.length; i++) {
                                         let provider = vm.allGameProviders[i];
