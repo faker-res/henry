@@ -13249,7 +13249,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
-                    vm.changeRewardParamLayout();
+                    vm.changeRewardParamLayout(null, true);
 
                     // Set param table value
                     Object.keys(paramType.rewardParam).forEach(el => {
@@ -13545,8 +13545,8 @@ define(['js/app'], function (myApp) {
                 vm.showRewardFormValid = true;
             };
 
-        vm.changeRewardParamLayout = (model) => {
-            vm.rewardMainParamTable = [];
+        vm.changeRewardParamLayout = (model, isFirstLoad) => {
+            let isResetLayout = Boolean(isFirstLoad);
 
             if (model == "isMultiStepReward") {
                 vm.isMultiStepReward = vm.rewardMainParam[model].value;
@@ -13555,16 +13555,21 @@ define(['js/app'], function (myApp) {
             // Check whether reward is dynamic amount
             if (model && model.name == "isDynamicRewardAmount") {
                 vm.isDynamicRewardAmt = model.value;
+                isResetLayout = true;
             }
 
             // Check whether reward is differ by player level
             if (model && model.name == "isPlayerLevelDiff") {
                 vm.isPlayerLevelDiff = model.value;
+                isResetLayout = true;
             }
 
-            let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+            if (isResetLayout) {
+                vm.rewardMainParamTable = [];
 
-            vm.rewardMainParam = Object.assign({}, paramType);
+                let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+
+                vm.rewardMainParam = Object.assign({}, paramType);
 
 
                 if (vm.isPlayerLevelDiff) {
@@ -13592,7 +13597,8 @@ define(['js/app'], function (myApp) {
                 }
 
                 delete vm.rewardMainParam.rewardParam;
-            };
+            }
+        };
 
         vm.rewardPeriodNewRow = (valueCollection) => {
             valueCollection.push({startDate: "", startTime: "", endDate: "", endTime: ""});
@@ -13675,13 +13681,13 @@ define(['js/app'], function (myApp) {
 
             vm.disableAllRewardInput = function (disabled) {
                 typeof disabled == "boolean" ? vm.rewardDisabledInput = disabled : disabled = vm.rewardDisabledInput;
-                let disabledElements = $("#rewardMainTasks :input:disabled");
                 $("#rewardMainTasks :input").prop("disabled", disabled);
                 if (!disabled) {
                     $("#rewardMainTasks :input").removeClass("disabled");
                 }
                 if(vm.isRandomReward){
-                    disabledElements.prop("disabled", true);
+                    $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
+                    $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", true);
                 }
             }
 
@@ -14093,6 +14099,17 @@ define(['js/app'], function (myApp) {
                             // Save name and code to outer level
                             if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "validStartTime" || condName == "validEndTime") {
                                 sendData[condName] = condValue;
+                            }
+
+                            // Interval type handling
+                            if (condType == "interval") {
+                                if (vm.rewardMainCondition[e].hasOwnProperty("value1")) {
+                                    condValue = [condValue, vm.rewardMainCondition[e].value1];
+
+                                    if (vm.rewardMainCondition[e].hasOwnProperty("value2")) {
+                                        condValue.push(vm.rewardMainCondition[e].value2);
+                                    }
+                                }
                             }
 
                             // Save reward condition

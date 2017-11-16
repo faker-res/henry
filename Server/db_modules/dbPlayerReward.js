@@ -2000,13 +2000,23 @@ let dbPlayerReward = {
             }
         }
 
-        let promTopUp = dbConfig.collection_playerTopUpRecord.aggregate(
+        let topupMatchQuery = {
+            playerId: playerData._id,
+            platformId: playerData.platform._id,
+            createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+        };
+
+        let eventQuery = {
+            "data.platformObjId": playerData.platform._id,
+            "data.playerObjId": playerData._id,
+            "data.eventId": eventData._id,
+            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+            settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+        };
+
+        let todayTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
             {
-                $match: {
-                    playerId: playerData._id,
-                    platformId: playerData.platform._id,
-                    createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
-                }
+                $match: topupMatchQuery
             },
             {
                 $group: {
@@ -2026,47 +2036,55 @@ let dbPlayerReward = {
             }
         );
 
-        let todayPropsProm = dbConfig.collection_proposalType.findOne({
-            name: eventData.type.name,
-            platformId: playerData.platform._id
-        }).lean().then(
-            typeData => {
-                if (typeData) {
-                    return dbConfig.collection_proposal.find({
-                        type: typeData._id,
-                        "data.playerObjId": playerData._id,
-                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING]},
-                        settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
-                    }).lean();
-                }
-                else {
-                    return Q.reject({name: "DataError", message: "Cannot find reward"});
-                }
-            }
-        );
+        let todayPropsProm = dbConfig.collection_proposal.find(eventQuery).lean();
 
-        return Promise.all([promTopUp, todayPropsProm]).then(
+
+        if (intervalTime) {
+            topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+        }
+
+        let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
+        let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
+
+        return Promise.all([todayTopupProm, todayPropsProm, topupInPeriodProm, eventInPeriodProm]).then(
             data => {
                 let topUpSum = data[0];
                 let todayPacketCount = data[1].length ? data[1].length : 0;
+                let topupInPeriodData = data[2];
+                let eventInPeriodData = data[3];
+
+                let eventInPeriodCount = eventInPeriodData.length;
+
+                console.log('topupInPeriodData', topupInPeriodData);
+                console.log('eventInPeriodData', eventInPeriodData);
+
+                // Check reward apply limit in period
+                if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: "Player has applied for max reward times in event period"
+                    });
+                }
+
+                // Set reward param to use
+                if (eventData.condition.isPlayerLevelDiff) {
+                    selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
+                } else {
+                    selectedRewardParam = eventData.param.rewardParam[0].value;
+                }
+
+                if (eventData.param.isMultiStepReward) {
+                    let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
+                    selectedRewardParam = selectedRewardParam[eventStep];
+                } else {
+                    selectedRewardParam = selectedRewardParam[0];
+                }
 
                 // Count reward amount
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
-                        if (eventData.condition.isPlayerLevelDiff) {
-                            selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
-                        } else {
-                            selectedRewardParam = eventData.param.rewardParam[0].value;
-                        }
-
-                        if (eventData.param.isMultiStepReward) {
-
-                        } else {
-                            selectedRewardParam = selectedRewardParam[0];
-                        }
-
-                        console.log('selectedRewardParam', selectedRewardParam);
-
                         if (rewardData && rewardData.selectedTopup) {
                             if (rewardData.selectedTopup.amount < selectedRewardParam.minTopUpAmount) {
                                 return Q.reject({
@@ -2083,7 +2101,6 @@ let dbPlayerReward = {
                                 rewardAmount = selectedRewardParam.rewardAmount;
                                 spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimesOnReward;
                             }
-
                         }
                         break;
 
