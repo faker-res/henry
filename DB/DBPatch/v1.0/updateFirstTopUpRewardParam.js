@@ -410,7 +410,7 @@ var topUpCond = {
     // Online top up type
     onlineTopUpType: {index: 12, type: "multiSelect", des: "Online top up type", options: "merchantTopupTypeJson"},
     // Bank card type
-    bankCardType: {index: 13, type: "multiSelect", des: "Bank card type"}
+    bankCardType: {index: 13, type: "multiSelect", des: "Bank card type", options: "bankType"}
 };
 
 var periodCond = {

@@ -13137,6 +13137,9 @@ define(['js/app'], function (myApp) {
 
                             // Get options
                             switch (cond.options) {
+                                case "bankType":
+                                    result = vm.allBankTypeList;
+                                    break;
                                 case "allRewardEvent":
                                     let rewardEvents = {};
                                     for (let i = 0; i < vm.allRewardEvent.length; i++) {
