@@ -26,7 +26,8 @@ const constRewardType = {
     PLAYER_PACKET_RAIN_REWARD: "PlayerPacketRainReward",
     PLAYER_PROMO_CODE_REWARD: "PlayerPromoCodeReward",
     PLAYER_LIMITED_OFFERS_REWARD: "PlayerLimitedOfferReward",
-    PLAYER_TOP_UP_RETURN_GROUP: "PLAYER_TOP_UP_RETURN_GROUP",
+    PLAYER_TOP_UP_RETURN_GROUP: "PlayerTopUpReturnGroup",
+    PLAYER_CONSECUTIVE_REWARD_GROUP: "PlayerConsecutiveRewardGroup",
 };
 
 module.exports = constRewardType;

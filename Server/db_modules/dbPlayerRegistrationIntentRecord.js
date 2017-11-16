@@ -81,7 +81,7 @@ var dbPlayerRegistrationIntentRecord = {
         };
 
         if(data.lastLoginIp && data.lastLoginIp != "undefined"){
-            dbUtil.getGeoIp(data.lastLoginIp).then(
+            return dbUtil.getGeoIp(data.lastLoginIp).then(
                 ipData=>{
                     if(data){
                         data.ipArea = ipData;

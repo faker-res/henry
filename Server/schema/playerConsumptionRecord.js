@@ -38,6 +38,10 @@ var playerConsumptionRecordSchema = new Schema({
     settlementTime: {type: Date},
     //has been used for which reward type
     usedType: {type: String},
+    // had been used for which reward event
+    usedEvent: {type: Schema.ObjectId},
+    // had been used for which task id
+    usedTaskId: {type: Schema.ObjectId},
     //check if record has been used for other reward
     bDirty: {type: Boolean, default: false, index: true},
     // check if record is duplicate

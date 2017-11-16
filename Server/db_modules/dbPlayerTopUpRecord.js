@@ -138,10 +138,13 @@ var dbPlayerTopUpRecord = {
                 if ((!query.merchantNo || query.merchantNo.length == 0) && query.merchantGroup && query.merchantGroup.length > 0) {
                     let mGroupList = [];
                     query.merchantGroup.forEach(item => {
-                        item.forEach(sItem => {
-                            mGroupList.push(sItem)
-                        })
+                        if(item.list.length > 0){
+                            item.list.forEach(sItem => {
+                                mGroupList.push(sItem)
+                            })
+                        }
                     })
+                    // console.log(mGroupList);
                     queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
                 }
 
@@ -153,14 +156,17 @@ var dbPlayerTopUpRecord = {
                             mGroupC.push(item);
                         });
                         query.merchantGroup.forEach(item => {
-                            item.forEach(sItem => {
+                            item.list.forEach(sItem => {
                                 mGroupD.push(sItem)
                             });
                         });
-                        queryObj['$or'] = [
-                            {'data.merchantNo': {$in: convertStringNumber(mGroupC)}},
-                            {'data.merchantNo': {$in: convertStringNumber(mGroupD)}}
-                        ]
+
+                        if(query.merchantNo.length > 0){
+                            queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupC)};
+                        }else if(query.merchantGroup.length > 0 && query.merchantNo.length == 0){
+                            queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupD)}
+                        }
+
                     }
                 }
 
@@ -190,7 +196,6 @@ var dbPlayerTopUpRecord = {
                     return type._id;
                 });
                 queryObj.type = {$in: typeIds};
-                console.log(queryObj);
                 // console.log('queryObj', JSON.stringify(queryObj, null, 4));
                 var a = dbconfig.collection_proposal.find(queryObj).count();
                 var b = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
@@ -1572,7 +1577,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime) {
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -1641,7 +1646,9 @@ var dbPlayerTopUpRecord = {
                     if (createTime) {
                         proposalData.depositeTime = new Date(createTime);
                     }
-
+                    if (bonusCode){
+                        proposalData.bonusCode = bonusCode;
+                    }
                     proposalData.creator = entryType === "ADMIN" ? {
                         type: 'admin',
                         name: adminName,
@@ -1716,7 +1723,6 @@ var dbPlayerTopUpRecord = {
                     queryObj["createTime"]["$gte"] = start;
                     queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
-                    console.log(queryObj);
                     return dbconfig.collection_proposal.aggregate(
                         {$match: queryObj},
                         {
@@ -1832,7 +1838,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestWechatTopup: function (userAgent, playerId, amount, wechatName, wechatAccount, entryType, adminId, adminName, remark, createTime) {
+    requestWechatTopup: function (userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -1889,7 +1895,9 @@ var dbPlayerTopUpRecord = {
                         if (createTime) {
                             proposalData.depositeTime = new Date(createTime);
                         }
-
+                        if(bonusCode){
+                            proposalData.bonusCode = bonusCode;
+                        }
                         proposalData.creator = entryType === "ADMIN" ? {
                             type: 'admin',
                             name: adminName,

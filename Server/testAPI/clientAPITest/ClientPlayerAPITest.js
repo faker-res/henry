@@ -531,6 +531,20 @@
 
     };
 
+    proto.getWithdrawalInfo = function (callback, requestData) {
+        var thisObj = this;
+        var data = requestData || {};
+
+        thisObj.playerService.getWithdrawalInfo.request(data);
+        thisObj.playerService.getWithdrawalInfo.once(function (data) {
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+
+
+    };
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

@@ -536,8 +536,29 @@ describe("Test Client API - reward service", function () {
         }, {});
     });
 
+    it('Should reset the state of showInfo ', function (done) {
+
+       /* dbPlayerInfo.setBonusShowInfo(testPlayerId,1).then(function (data){
+            console.log("++++++++++++++++++++",data)
+            data.viewInfo.showInfoState.should.equal(true);
+           //data.viewInfo.showInfoState.should.equal(false);
+            done();
+        }, function (error) {
+            console.log({'reset Error': error});
+        });*/
+        clientRewardAPITest.setBonusShowInfo(function (data) {
+
+            if (data) {
+                data.data.viewInfo.showInfoState.should.equal(true);
+                done();
+            }
+
+        }, {playerId: testPlayerId, setShowInfo: 1});
+
+    });
+
     //todo:: re-eanble after first top up update
-    return;
+   return;
     // it('Should check - the user should be valid for first top-up reward', function (done) {
     //
     //     clientRewardAPITest.isValidForFirstTopUpReward(function (data) {
@@ -595,7 +616,7 @@ describe("Test Client API - reward service", function () {
         })
     });
 
-
+    
 });
 
 

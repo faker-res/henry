@@ -151,6 +151,7 @@ var proposalExecutor = {
             this.executions.executePlayerPacketRainReward.des = "Player Packet Rain Reward";
             this.executions.executePlayerPromoCodeReward.des = "Player Promo Code Reward";
             this.executions.executePlayerLimitedOfferReward.des = "Player Limited Offer Reward";
+            this.executions.executePlayerTopUpReturnGroup.des = "Player Top Up Return Group Reward";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -201,6 +202,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerPacketRainReward.des = "Reject Player Packet Rain Reward";
             this.rejections.rejectPlayerPromoCodeReward.des = "Reject Player Promo Code Reward";
             this.rejections.rejectPlayerLimitedOfferReward.des = "Reject Player Limited Offer Reward";
+            this.rejections.rejectPlayerTopUpReturnGroup.des = "Reject Player Top Up Return Group Reward";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -878,14 +880,25 @@ var proposalExecutor = {
                                 }
                             );
                         }
-                        dbPlayerReward.applyPlayerTopUpPromo(proposalData);
+                        let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData);
+                        let applyPromoCode = null;
+                        if (proposalData.data.bonusCode) {
+                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                        }
+                        Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
+                            data => {
+                                deferred.resolve(proposalData);
+                            },
+                            error => {
+                                deferred.reject(error)
+                            }
+                        )
 
-                        deferred.resolve(proposalData);
                     },
                     function (error) {
                         deferred.reject(error);
                     }
-                );
+                )
             },
 
             /**
@@ -907,16 +920,25 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
-
-                        return dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
+                        let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
+                        let applyPromoCode = null;
+                        if (proposalData.data.bonusCode) {
+                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                        }
+                        Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
+                            data => {
+                                deferred.resolve(proposalData);
+                            },
+                            error => {
+                                deferred.reject(error)
+                            }
+                        )
                     },
                     function (error) {
                         deferred.reject(error);
                     }
-                ).then(
-                    data => deferred.resolve(proposalData),
-                    error => deferred.reject(error)
-                );
+                )
+
             },
 
             /**
@@ -965,13 +987,25 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
-                        dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'weChat');
-                        deferred.resolve(proposalData);
+                        let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'weChat');
+                        let applyPromoCode = null;
+                        if (proposalData.data.bonusCode) {
+                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                        }
+                        Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
+                            data => {
+                                deferred.resolve(proposalData);
+                            },
+                            error => {
+                                deferred.reject(error)
+                            }
+                        )
                     },
                     function (error) {
                         deferred.reject(error);
                     }
-                );
+                )
+
             },
 
             /**
@@ -995,19 +1029,27 @@ var proposalExecutor = {
                                     }
                                 );
                             }
-
                             // DEBUG: Reward sometime not applied issue
                             console.log('applyForPlatformTransactionReward - Start', proposalData.proposalId);
-
-                            return dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
+                            // return dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
+                            let applyforTransactionReward = dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
+                            let applyPromoCode = null;
+                            if (proposalData.data.bonusCode) {
+                                applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                            }
+                            Promise.all([applyforTransactionReward, applyPromoCode]).then(
+                                data => {
+                                    deferred.resolve(proposalData);
+                                },
+                                error => {
+                                    deferred.reject(error)
+                                }
+                            )
                         },
                         function (error) {
                             deferred.reject(error);
                         }
-                    ).then(
-                        data => deferred.resolve(data),
-                        error => deferred.reject(error)
-                    );
+                    )
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
@@ -1941,6 +1983,32 @@ var proposalExecutor = {
                 }
             },
 
+            executePlayerTopUpReturnGroup: function (proposalData, deferred) {
+                console.log('executePlayerTopUpReturnGroup');
+
+                let updateData = {$set: {}};
+
+                if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
+                    updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                }
+
+                dbconfig.collection_players.findOneAndUpdate({
+                    _id: proposalData.data.playerObjId,
+                    platform: proposalData.data.platformId
+                }, updateData).then(
+                    data => {
+                        deferred.resolve(true);
+                        //createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_EASTER_EGG_REWARD, proposalData);
+                    },
+                    error => {
+                        deferred.reject({
+                            name: "DBError",
+                            message: "Failed to update playerinfo for executePlayerTopUpReturnGroup",
+                            error: error
+                        });
+                    }
+                )
+            },
         },
 
         /**
@@ -2498,6 +2566,10 @@ var proposalExecutor = {
             },
 
             rejectPlayerLimitedOfferReward: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerTopUpReturnGroup: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
         }

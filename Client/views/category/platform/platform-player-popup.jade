@@ -909,6 +909,9 @@
                                 select.form-control(ng-model='vm.playerManualTopUp.districtId', ng-disabled='vm.freezeZoneSelection')
                                     option(ng-repeat='(i,v) in vm.districtList', value='{{v.id}}') {{v.name}}
                             .form-group-col-md-6
+                                label {{'promoCode' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerManualTopUp.bonusCode')
+                            .form-group-col-md-6
                                 label {{'remark' | translate}}
                                 input.form-control(type='text', ng-model='vm.playerManualTopUp.remark')
                             .form-group-col-md-6
@@ -953,6 +956,10 @@
                                 .control-label
                                 label {{'alipayAccount' | translate}}
                                 input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
+                            .form-group.col-md-12
+                                .control-label
+                                label {{'promoCode' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.bonusCode')
                             .form-group.col-md-12
                                 .control-label
                                 label {{'REMARK' | translate}}
@@ -1001,6 +1008,10 @@
                                 .control-label
                                 label {{'wechatPayAccount' | translate}}
                                 input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayAccount', required)
+                            .form-group.col-md-12
+                                .control-label
+                                label {{'promoCode' | translate}}
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.bonusCode')
                             .form-group.col-md-12
                                 .control-label
                                 label {{'REMARK' | translate}}
@@ -1165,7 +1176,7 @@
                             .form-group(ng-show='vm.showApplyRewardEvent')
                                 label.control-label {{"REWARD_EVENT" | translate}}
                                 select.form-control(ng-model='vm.playerApplyRewardPara.rewardObj',ng-change='vm.playerApplyRewardCodeChange(vm.playerApplyRewardPara.rewardObj)', required)
-                                    option(ng-repeat='(i,v) in vm.allRewardEvent', ng-if='v.needApply', value='{{v}}') {{v.name}}({{v.code}})
+                                    option(ng-repeat='(i,v) in vm.allRewardEvent', ng-if='v.needApply || v.condition.applyType == 1', value='{{v}}') {{v.name}}({{v.code}})
                             .form-group(ng-if='vm.playerApplyRewardShow.TopupRecordSelect')
                                 label.control-label {{'TOP_UP_LIST' | translate}}
                                 .clearfix
