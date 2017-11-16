@@ -2031,10 +2031,10 @@ define(['js/app'], function (myApp) {
 
                     {title: $translate('START_TIME'), data: "startTime$"},
                     {
-                        title: $translate('END_TIME'), data: "endTime$",
+                        title: $translate('Approved Time'), data: "endTime$",
                         render: function (data, type, row) {
                             var text = '';
-                            if (row.status == 'Success' || row.status == 'Approved' || row.status == 'Cancel' || row.status == 'Fail') {
+                            if (row.status == 'Success' || row.status == 'Approved') {
                                 text = data ? data : '';
                             }
                             return "<div>" + text + "</div>";
