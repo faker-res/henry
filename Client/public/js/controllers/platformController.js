@@ -13566,6 +13566,17 @@ define(['js/app'], function (myApp) {
                 vm.isMultiStepReward = vm.rewardMainParam[model].value;
             }
 
+            // Disable player withdrawal permission handling
+            if (model && model.i && model.v && model.entry) {
+                if (model.i == "forbidWithdrawIfBalanceAfterUnlock" && model.v.type == "number") {
+                    model.entry.forbidWithdrawAfterApply = false;
+                }
+
+                if (model.i == "forbidWithdrawAfterApply" && model.v.type == "checkbox") {
+                    delete model.entry.forbidWithdrawIfBalanceAfterUnlock;
+                }
+            }
+
             // Check whether reward is dynamic amount
             if (model && model.name == "isDynamicRewardAmount") {
                 vm.isDynamicRewardAmt = model.value;
