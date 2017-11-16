@@ -979,6 +979,11 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [data.playerObjId, data.platformObjId], isValidData, false, false, true);
     };
 
+    this.getWithdrawalInfo.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data.playerId && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWithdrawalInfo, [data.platformId, data.playerId], isValidData, false, false, true);
+    };
+
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;

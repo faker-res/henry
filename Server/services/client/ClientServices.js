@@ -79,7 +79,8 @@
                 "getUnreadMail",
                 "deleteAllMail",
                 "deleteMail",
-                "manualPlayerLevelUp"
+                "manualPlayerLevelUp",
+                "getWithdrawalInfo"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
