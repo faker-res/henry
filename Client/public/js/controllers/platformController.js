@@ -13675,13 +13675,13 @@ define(['js/app'], function (myApp) {
 
             vm.disableAllRewardInput = function (disabled) {
                 typeof disabled == "boolean" ? vm.rewardDisabledInput = disabled : disabled = vm.rewardDisabledInput;
-                let disabledElements = $("#rewardMainTasks :input:disabled");
                 $("#rewardMainTasks :input").prop("disabled", disabled);
                 if (!disabled) {
                     $("#rewardMainTasks :input").removeClass("disabled");
                 }
                 if(vm.isRandomReward){
-                    disabledElements.prop("disabled", true);
+                    $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
+                    $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", true);
                 }
             }
 
