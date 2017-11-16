@@ -1321,6 +1321,26 @@
     </div>
 </div>
 
+<h3>GET WITHDRAWAL INFO (获取玩家提款信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label name="playerId">Player Id
+            <input id="playerId" name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Platform ObjectId
+            <input id="platformId" type=text name="platformId">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getWithdrawalInfo" data-api-name="getWithdrawalInfo">Get Withdrawal Info</button>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlayerAPITest, ClientConnectionAPITest) {
