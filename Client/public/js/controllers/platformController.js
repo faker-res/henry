@@ -13203,12 +13203,12 @@ define(['js/app'], function (myApp) {
 
                             // Get interval value 1
                             if (cond.type == "interval") {
-                                if (vm.rewardMainCondition[cond.index].value.length == 2) {
+                                if (vm.rewardMainCondition[cond.index].value && vm.rewardMainCondition[cond.index].value.length == 2) {
                                     vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
                                     vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];
                                 }
 
-                                if (vm.rewardMainCondition[cond.index].value.length == 3) {
+                                if (vm.rewardMainCondition[cond.index].value && vm.rewardMainCondition[cond.index].value.length == 3) {
                                     vm.rewardMainCondition[cond.index].value2 = vm.rewardMainCondition[cond.index].value[2];
                                     vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
                                     vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];
