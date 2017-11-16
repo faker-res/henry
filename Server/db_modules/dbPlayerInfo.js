@@ -759,6 +759,12 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data.isPlayerNameValid) {
+                    if (platformData.whiteListingPhoneNumbers
+                        && platformData.whiteListingPhoneNumbers.length > 0
+                        && playerdata.phoneNumber
+                        && platformData.whiteListingPhoneNumbers.indexOf(playerdata.phoneNumber) > -1)
+                        return {isPhoneNumberValid: true};
+
                     if (platformData.allowSamePhoneNumberToRegister === true) {
                         return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
                             phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
