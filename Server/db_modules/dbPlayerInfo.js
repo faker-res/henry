@@ -11589,6 +11589,11 @@ let dbPlayerInfo = {
                 let bonusDetails = {};
                 if(platformDetails){
                     if(playerDetails){
+                        result.freeTimes = 0;
+                        result.serviceCharge = 0;
+                        result.currentFreeAmount = 0;
+                        result.freeAmount = 0;
+
                         if(platformDetails.bonusSetting){
                             for(let x in platformDetails.bonusSetting){
                                 if(platformDetails.bonusSetting[x].name == playerDetails.playerLevel.name){
