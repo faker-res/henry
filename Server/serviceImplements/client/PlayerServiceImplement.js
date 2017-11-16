@@ -725,7 +725,7 @@ let PlayerServiceImplement = function () {
     this.updatePaymentInfo.expectsData = 'playerId: String';
     this.updatePaymentInfo.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId) && data.bankName && data.bankAccountName && data.bankAccountType);
+        let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId) && data.bankName && data.bankAccountType);
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
         }
@@ -977,6 +977,11 @@ let PlayerServiceImplement = function () {
     this.manualPlayerLevelUp.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.playerObjId && data.platformObjId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [data.playerObjId, data.platformObjId], isValidData, false, false, true);
+    };
+
+    this.getWithdrawalInfo.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data.playerId && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWithdrawalInfo, [data.platformId, data.playerId], isValidData, false, false, true);
     };
 
 };

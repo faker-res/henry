@@ -7090,11 +7090,18 @@ let dbPlayerInfo = {
                                 let creditCharge = 0;
                                 let amountAfterUpdate = player.validCredit - amount;
                                 let playerLevelVal = player.playerLevel.value;
-
                                 if (playerData.platform.bonusSetting) {
-                                    let bonusSetting = playerData.platform.bonusSetting.find((item) => {
-                                        return item.value == playerLevelVal
-                                    });
+                                    // let bonusSetting = playerData.platform.bonusSetting.find((item) => {
+                                    //     return item.value == playerLevelVal
+                                    // });
+
+                                    let bonusSetting = {};
+
+                                    for(let x in playerData.platform.bonusSetting){
+                                        if(playerData.platform.bonusSetting[x].value == playerLevelVal){
+                                            bonusSetting = playerData.platform.bonusSetting[x];
+                                        }
+                                    }
                                     if (todayBonusApply.length >= bonusSetting.bonusCharges && bonusSetting.bonusPercentageCharges > 0) {
                                         creditCharge = (finalAmount * bonusSetting.bonusPercentageCharges) * 0.01;
                                         finalAmount = finalAmount - creditCharge;
@@ -11563,6 +11570,96 @@ let dbPlayerInfo = {
         });
     },
 
+    getWithdrawalInfo: function(platformId, playerId){
+        let result = {};
+
+        let platformProm = dbconfig.collection_platform.findOne({platformId: platformId});
+        let playerProm = dbconfig.collection_players.findOne({playerId:  playerId})
+            .populate({path: "playerLevel", select: 'name', model: dbconfig.collection_playerLevel}).lean()
+
+        var date = dbUtility.getCurrentMonthSGTIme();
+        var firstDay = date.startTime;
+        var lastDay = date.endTime;
+
+        return Promise.all([platformProm, playerProm]).then(data => {
+            if(data) {
+                let platformDetails = data[0];
+                let playerDetails = data[1];
+
+                let bonusDetails = {};
+                if(platformDetails){
+                    if(playerDetails){
+                        if(platformDetails.bonusSetting){
+                            for(let x in platformDetails.bonusSetting){
+                                if(platformDetails.bonusSetting[x].name == playerDetails.playerLevel.name){
+                                    bonusDetails = platformDetails.bonusSetting[x];
+                                }
+                            }
+                        }
+
+                        if(bonusDetails){
+                            result.freeTimes = bonusDetails.bonusCharges;
+                            result.serviceCharge = bonusDetails.bonusPercentageCharges;
+                        }
+
+                        if(playerDetails.validCredit){
+                            result.currentFreeAmount = playerDetails.validCredit;
+                            result.freeAmount = playerDetails.validCredit;
+                        }
+
+                        let bonusProm = dbconfig.collection_proposal.aggregate([
+                            {
+                                "$match": {
+                                    "data.playerObjId": playerDetails._id,
+                                    "createTime": {
+                                        "$gte": firstDay,
+                                        "$lt": lastDay
+                                    },
+                                    "mainType": "PlayerBonus",
+                                    "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                }
+                            },
+                            {
+                                "$group": {
+                                    "_id": null,
+                                    "count": {"$sum": 1},
+                                    "amount": {"$sum": "$data.amount"}
+                                }
+                            }
+                        ]);
+
+                        let rewardProm = dbconfig.collection_rewardTaskGroup.find({playerId: playerDetails._id, platformId: platformDetails._id})
+                            .populate({path: "providerGroup", select: 'name', model: dbconfig.collection_gameProviderGroup}).lean()
+                            .then(rewardDetails => {
+                                if(!rewardDetails){
+                                    return "";
+                                }
+                                let lockListArr = [];
+                                rewardDetails.map(r =>{
+                                    lockListArr.push({name: r.providerGroup.name, lockAmount: r.targetConsumption, currentLockAmount: r.curConsumption});
+                                })
+
+                                return lockListArr;
+                            });
+
+                        return Promise.all([bonusProm,rewardProm]);
+                    }else{
+                        return "Player not found.";
+                    }
+                }else{
+                    return "Platform not found.";
+                }
+            }
+            return "";
+        }).then(data => {
+            if(data){
+                result.freeTimes = result.freeTimes - (data[0] && data[0][0] ? data[0][0].count : 0);
+                result.lockList = data[1] ? data[1]: "";
+            }
+
+            return result;
+        });
+    },
 };
 
 

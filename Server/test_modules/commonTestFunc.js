@@ -79,6 +79,9 @@ var commonTestFunc = {
                     phoneNumber: '80808080',
                     email: 'testPlayer@sinonet.com.sg',
 
+                    //Add in new details
+                    viewInfo: {showInfoState: true, limitedOfferInfo:1},
+
                     // Example bank details (may need some improvement)
                     bankName: 'Banky McBankFace',
                     bankAccount: '123456',
