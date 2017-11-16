@@ -541,8 +541,6 @@
                 callback(data);
             }
         });
-
-
     };
 
     if (isNode) {
