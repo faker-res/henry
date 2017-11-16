@@ -13137,7 +13137,20 @@ define(['js/app'], function (myApp) {
 
                             // Get options
                             switch (cond.options) {
+                                case "providerGroup":
+                                    if (!vm.gameProviderGroup) break;
+                                    let providerGroup = {};
+                                    for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                                        let group = vm.gameProviderGroup[i];
+                                        providerGroup[group._id] = group.name;
+                                    }
+                                    result = providerGroup;
+                                    break;
+                                case "bankType":
+                                    result = vm.allBankTypeList;
+                                    break;
                                 case "allRewardEvent":
+                                    if (!vm.allRewardEvent) break;
                                     let rewardEvents = {};
                                     for (let i = 0; i < vm.allRewardEvent.length; i++) {
                                         let event = vm.allRewardEvent[i];
@@ -13146,6 +13159,7 @@ define(['js/app'], function (myApp) {
                                     result = rewardEvents;
                                     break;
                                 case "gameProviders":
+                                    if (!vm.allGameProviders) break;
                                     let gameProviders = {};
                                     for (let i = 0; i < vm.allGameProviders.length; i++) {
                                         let provider = vm.allGameProviders[i];
@@ -13203,12 +13217,12 @@ define(['js/app'], function (myApp) {
 
                             // Get interval value 1
                             if (cond.type == "interval") {
-                                if (vm.rewardMainCondition[cond.index].value.length == 2) {
+                                if (vm.rewardMainCondition[cond.index].value && vm.rewardMainCondition[cond.index].value.length == 2) {
                                     vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
                                     vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];
                                 }
 
-                                if (vm.rewardMainCondition[cond.index].value.length == 3) {
+                                if (vm.rewardMainCondition[cond.index].value && vm.rewardMainCondition[cond.index].value.length == 3) {
                                     vm.rewardMainCondition[cond.index].value2 = vm.rewardMainCondition[cond.index].value[2];
                                     vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
                                     vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];

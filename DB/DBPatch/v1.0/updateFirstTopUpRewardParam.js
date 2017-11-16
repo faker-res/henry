@@ -410,7 +410,7 @@ var topUpCond = {
     // Online top up type
     onlineTopUpType: {index: 12, type: "multiSelect", des: "Online top up type", options: "merchantTopupTypeJson"},
     // Bank card type
-    bankCardType: {index: 13, type: "multiSelect", des: "Bank card type"}
+    bankCardType: {index: 13, type: "multiSelect", des: "Bank card type", options: "bankType"}
 };
 
 var periodCond = {
@@ -456,7 +456,7 @@ var consumptionCond = {
     // Is consumption shared with XIMA
     isSharedWithXIMA: {index: 40, type: "checkbox", des: "Consumption can be shared with XIMA"},
     // Provider group binded with this reward
-    providerGroup: {index: 41, type: "multiSelect", des: "Provider group"},
+    providerGroup: {index: 41, type: "multiSelect", des: "Provider group", options: "providerGroup"},
 };
 
 var consumptionProviderCond = {

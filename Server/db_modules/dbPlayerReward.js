@@ -2055,12 +2055,10 @@ let dbPlayerReward = {
                 let eventInPeriodData = data[3];
 
                 let eventInPeriodCount = eventInPeriodData.length;
-
-                console.log('topupInPeriodData', topupInPeriodData);
-                console.log('eventInPeriodData', eventInPeriodData);
+                let rewardAmountInPeriod = eventInPeriodData.reduce((a, b) => a + b.data.rewardAmount, 0);
 
                 // Check reward apply limit in period
-                if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval < eventInPeriodCount) {
+                if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
                     return Q.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
@@ -2076,12 +2074,13 @@ let dbPlayerReward = {
                 }
 
                 if (eventData.param.isMultiStepReward) {
-
+                    let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
+                    selectedRewardParam = selectedRewardParam[eventStep];
                 } else {
                     selectedRewardParam = selectedRewardParam[0];
                 }
 
-                // Count reward amount
+                // Count reward amount and spending amount
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                         if (rewardData && rewardData.selectedTopup) {
@@ -2095,6 +2094,20 @@ let dbPlayerReward = {
 
                             if (eventData.condition.isDynamicRewardAmount) {
                                 rewardAmount = rewardData.selectedTopup.amount * selectedRewardParam.rewardPercentage;
+
+                                // Check reward amount exceed daily limit
+                                if (eventData.param.dailyMaxRewardAmount) {
+                                    if (rewardAmountInPeriod >= eventData.param.dailyMaxRewardAmount) {
+                                        return Q.reject({
+                                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                            name: "DataError",
+                                            message: "Player has applied for max reward times"
+                                        });
+                                    } else if (rewardAmount + rewardAmountInPeriod > eventData.param.dailyMaxRewardAmount) {
+                                        rewardAmount = eventData.param.dailyMaxRewardAmount - rewardAmountInPeriod;
+                                    }
+                                }
+
                                 spendingAmount = (rewardData.selectedTopup.amount + rewardAmount) * selectedRewardParam.spendingTimes;
                             } else {
                                 rewardAmount = selectedRewardParam.rewardAmount;
