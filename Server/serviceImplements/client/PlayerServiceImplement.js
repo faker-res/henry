@@ -846,7 +846,7 @@ let PlayerServiceImplement = function () {
         let captchaValidation = conn.captchaCode && data.captcha && conn.captchaCode.toString() === data.captcha.toString();
         conn.captchaCode = null;
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData);
     };
 
     this.authenticate.expectsData = 'playerId: String, token: String';
