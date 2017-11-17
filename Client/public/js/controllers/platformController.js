@@ -10756,94 +10756,6 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
-
-            // vm.submitPlayerFeedbackQuery = function (index) {
-            //     if (!vm.selectedPlatform)return;
-            //     console.log('vm.feedback', vm.playerFeedbackQuery);
-            //     var sendQuery = {platform: vm.selectedPlatform.id};
-            //     if (vm.playerFeedbackQuery.isRealPlayer == "1") {
-            //         sendQuery.isRealPlayer = true;
-            //     } else if (vm.playerFeedbackQuery.isRealPlayer == "2") {
-            //         sendQuery.isTestPlayer = true;
-            //     }
-            //     if (vm.playerFeedbackQuery.playerLevel != "all") {
-            //         sendQuery.playerLevel = vm.playerFeedbackQuery.playerLevel;
-            //     }
-            //     if (vm.playerFeedbackQuery.trustLevel != "all") {
-            //         sendQuery.trustLevel = vm.playerFeedbackQuery.trustLevel;
-            //     }
-            //     if (vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').getLocalDate()
-            //         || vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').getLocalDate()) {
-            //         sendQuery.lastAccessTime = {
-            //             $gte: vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').getLocalDate() || new Date(0),
-            //             $lt: vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').getLocalDate() || new Date(),
-            //         };
-            //     }
-            //     if (vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').getLocalDate()
-            //         || vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').getLocalDate()) {
-            //         sendQuery.lastFeedbackTime = {
-            //             $gte: vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').getLocalDate() || new Date(0),
-            //             $lt: vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').getLocalDate() || new Date(),
-            //         }
-            //     }
-            //
-            //     if (vm.playerFeedbackQuery.topUpTimes != "-1") {
-            //         switch (vm.playerFeedbackQuery.topUpTimes) {
-            //             case "0":
-            //                 sendQuery.topUpTimes = {
-            //                     $gte: 0,
-            //                     $lte: 1
-            //                 };
-            //                 break;
-            //             case "1"://today
-            //                 sendQuery.topUpTimes = {
-            //                     $gte: 2
-            //                 };
-            //                 break;
-            //         }
-            //     }
-            //
-            //     if (vm.playerFeedbackQuery.isNewSystem === 'old') {
-            //         sendQuery.isNewSystem = {$ne : true};
-            //     } else if (vm.playerFeedbackQuery.isNewSystem === 'new') {
-            //         sendQuery.isNewSystem = true;
-            //     }
-            //
-            //     if (vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
-            //         sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
-            //     }
-            //
-            //     $('#platformFeedbackSpin').show();
-            //     console.log('sendQuery', sendQuery);
-            //     socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
-            //         query: sendQuery,
-            //         index: vm.feedbackPlayersPara.index - 1
-            //     }, function (data) {
-            //         console.log('_getPlayerFeedbackQuery', data);
-            //         vm.curFeedbackPlayer = data.data.data;
-            //         vm.feedbackPlayersPara.total = data.data.total || 0;
-            //         vm.feedbackPlayersPara.index = data.data.index + 1;
-            //         $('#platformFeedbackSpin').hide();
-            //         if (!vm.curFeedbackPlayer) {
-            //             $scope.safeApply();
-            //             return;
-            //         }
-            //
-            //         vm.addFeedback = {
-            //             playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
-            //             platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
-            //         };
-            //         if (vm.curFeedbackPlayer._id) {
-            //             vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-            //                 vm.curPlayerFeedbackDetail = data;
-            //                 $scope.safeApply();
-            //             })
-            //         } else {
-            //             vm.curPlayerFeedbackDetail = {};
-            //             $scope.safeApply();
-            //         }
-            //     });
-            // }
         vm.submitPlayerFeedbackQuery = function (isNewSearch) {
             if (!vm.selectedPlatform) return;
             console.log('vm.feedback', vm.playerFeedbackQuery);
@@ -11094,10 +11006,10 @@ define(['js/app'], function (myApp) {
 
         vm.initPlayerFeedback = function () {
             console.log("initPlayerFeedback");
-            vm.playerFeedbackQuery.index = 0;
-            vm.playerFeedbackQuery.limit = 10;
             vm.playerFeedbackSearchType = "many";
             vm.playerFeedbackQuery = {};
+            vm.playerFeedbackQuery.index = 0;
+            vm.playerFeedbackQuery.limit = 10;
             vm.playerFeedbackQuery.playerType = "Real Player (all)";
             vm.playerFeedbackQuery.playerLevel = "all";
             vm.playerFeedbackQuery.lastAccess = "15-28";
