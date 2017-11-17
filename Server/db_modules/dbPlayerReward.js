@@ -2078,6 +2078,35 @@ let dbPlayerReward = {
             promArr.push(targetDayConsumptionAmount);
         }
 
+        if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
+            let consumptionMatchQuery = {
+                createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+            };
+
+            if (intervalTime) {
+                consumptionMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            }
+
+            if (eventData.condition.consumptionProvider && eventData.condition.consumptionProvider.length > 0) {
+                let consumptionProviders = [];
+                eventData.condition.consumptionProvider.forEach(providerId => {
+                    consumptionProviders.push(ObjectId(providerId));
+                });
+
+                consumptionMatchQuery.providerId = {$in: eventData.condition.consumptionProvider}
+            }
+
+            let targetDayConsumptionAmount = dbConfig.collection_playerConsumptionRecord.aggregate([
+                {$match: consumptionMatchQuery},
+                {$group: {
+                    _id: null,
+                    amount: {$sum: "$amount"}
+                }}
+            ]);
+
+            promArr.push(targetDayConsumptionAmount);
+        }
+
         return Promise.all([todayTopupProm, todayPropsProm, topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
             data => {
                 let topUpSum = data[0];
@@ -2278,6 +2307,7 @@ let dbPlayerReward = {
                             let curReward = null;
                             let combination = [];
 
+                            let meetTopUpCondition = false, meetConsumptionCondition = false;
                             if (topUpSum >= selectedRewardParam.requiredTopUpAmount && selectedRewardParam.requiredTopUpAmount > curMinTopUpAmount) {
                                 curMinTopUpAmount = selectedRewardParam.requiredTopUpAmount;
                                 curReward = selectedRewardParam;
@@ -2295,15 +2325,34 @@ let dbPlayerReward = {
                                 );
                             }
 
-
-
                             // Player's top up amount is not enough for this reward
-                            if (!curReward) {
-                                return Q.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Top up amount is not enough"
-                                })
+                            if (curReward) {
+                                meetTopUpCondition = true;
+                            }
+
+                            if (selectedRewardParam.requiredConsumptionAmount) {
+                                let consumptionAmount = rewardSpecificData[0].amount;
+                                meetConsumptionCondition = consumptionAmount >= selectedRewardParam.requiredConsumptionAmount;
+                            } else {
+                                meetConsumptionCondition = true;
+                            }
+
+                            if (selectedRewardParam.operatorOption) { // true = and, false = or
+                                if (!(meetTopUpCondition && meetConsumptionCondition)) {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "Player does not have enough top up or consumption amount"
+                                    });
+                                }
+                            } else {
+                                if (!(meetTopUpCondition || meetConsumptionCondition)) {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "Player does not have enough top up or consumption amount"
+                                    });
+                                }
                             }
 
                             let pNumber = Math.random() * totalProbability;
