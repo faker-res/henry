@@ -2085,6 +2085,7 @@ let dbPlayerReward = {
 
             if (intervalTime) {
                 consumptionMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
             }
 
             if (eventData.condition.consumptionProvider && eventData.condition.consumptionProvider.length > 0) {
@@ -2102,9 +2103,61 @@ let dbPlayerReward = {
                     _id: null,
                     amount: {$sum: "$amount"}
                 }}
-            ]);
+            ]).then(
+                summary => {
+                    if (summary && summary[0]) {
+                        return summary[0].amount;
+                    }
+                    else {
+                        return 0;
+                    }
+                }
+            );
 
             promArr.push(targetDayConsumptionAmount);
+
+            let periodTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
+                {
+                    $match: topupMatchQuery
+                },
+                {
+                    $group: {
+                        _id: {playerId: "$playerId"},
+                        amount: {$sum: "$amount"}
+                    }
+                }
+            ).then(
+                summary => {
+                    if (summary && summary[0]) {
+                        return summary[0].amount;
+                    }
+                    else {
+                        return 0;
+                    }
+                }
+            );
+            promArr.push(periodTopupProm);
+            let periodPropsProm = dbConfig.collection_proposal.aggregate(
+                {
+                    $match: eventQuery
+                },
+                {
+                    $group: {
+                        _id: null,
+                        amount: {$sum: 1}
+                    }
+                }
+            ).then(
+                summary => {
+                    if (summary && summary[0]) {
+                        return summary[0].amount;
+                    }
+                    else {
+                        return 0;
+                    }
+                }
+            );
+            promArr.push(periodPropsProm);
         }
 
         return Promise.all([todayTopupProm, todayPropsProm, topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
@@ -2299,39 +2352,15 @@ let dbPlayerReward = {
                     // type 6
                     case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
                         selectedRewardParam = selectedRewardParam[0];
-                        if (selectedRewardParam.numberParticipation && todayPacketCount < selectedRewardParam.numberParticipation) {
-
-                            //calculate player reward amount
-                            let totalProbability = 0;
-                            let curMinTopUpAmount = -1;
-                            let curReward = null;
-                            let combination = [];
+                        if (selectedRewardParam.numberParticipation && rewardSpecificData[2] < selectedRewardParam.numberParticipation) {
 
                             let meetTopUpCondition = false, meetConsumptionCondition = false;
-                            if (topUpSum >= selectedRewardParam.requiredTopUpAmount && selectedRewardParam.requiredTopUpAmount > curMinTopUpAmount) {
-                                curMinTopUpAmount = selectedRewardParam.requiredTopUpAmount;
-                                curReward = selectedRewardParam;
-                                totalProbability = 0;
-                                combination = [];
-
-                                selectedRewardParam.rewardPercentageAmount.forEach(
-                                    percentageAmount => {
-                                        totalProbability += percentageAmount.percentage ? percentageAmount.percentage : 0;
-                                        combination.push({
-                                            totalProbability: totalProbability,
-                                            rewardAmount: percentageAmount.amount
-                                        });
-                                    }
-                                );
-                            }
-
-                            // Player's top up amount is not enough for this reward
-                            if (curReward) {
+                            if (rewardSpecificData[1] >= selectedRewardParam.requiredTopUpAmount) {
                                 meetTopUpCondition = true;
                             }
 
                             if (selectedRewardParam.requiredConsumptionAmount) {
-                                let consumptionAmount = rewardSpecificData[0].amount;
+                                let consumptionAmount = rewardSpecificData[0];
                                 meetConsumptionCondition = consumptionAmount >= selectedRewardParam.requiredConsumptionAmount;
                             } else {
                                 meetConsumptionCondition = true;
@@ -2354,6 +2383,20 @@ let dbPlayerReward = {
                                     });
                                 }
                             }
+
+                            //calculate player reward amount
+                            let totalProbability = 0;
+                            let combination = [];
+
+                            selectedRewardParam.rewardPercentageAmount.forEach(
+                                percentageAmount => {
+                                    totalProbability += percentageAmount.percentage ? percentageAmount.percentage : 0;
+                                    combination.push({
+                                        totalProbability: totalProbability,
+                                        rewardAmount: percentageAmount.amount
+                                    });
+                                }
+                            );
 
                             let pNumber = Math.random() * totalProbability;
                             combination.some(

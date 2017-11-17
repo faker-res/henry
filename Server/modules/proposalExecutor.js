@@ -70,7 +70,10 @@ var proposalExecutor = {
                     proposalExecutor.executions[executionType](proposalData, deferred);
                     return deferred.promise.then(
                         responseData => {
-                            return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalData._id, createTime: proposalData.createTime}, {settleTime: new Date()}).then(
+                            return dbconfig.collection_proposal.findOneAndUpdate({
+                                _id: proposalData._id,
+                                createTime: proposalData.createTime
+                            }, {settleTime: new Date()}).then(
                                 res => {
                                     if (proposalData.mainType === 'Reward' && executionType != "executeManualUnlockPlayerReward") {
                                         return createRewardLogForProposal("GET_FROM_PROPOSAL", proposalData).then(
@@ -250,7 +253,7 @@ var proposalExecutor = {
                     var usedRecords = [];
                     if (proposalData && proposalData.data) {
                         if (proposalData.data.topUpRecordIds) {
-                            if(proposalData.data.topUpRecordIds.constructor === Array) {
+                            if (proposalData.data.topUpRecordIds.constructor === Array) {
                                 usedRecords = proposalData.data.topUpRecordIds;
                             } else {
                                 usedRecords.push(proposalData.data.topUpRecordIds);
@@ -1834,7 +1837,10 @@ var proposalExecutor = {
                         taskData.targetProviders = proposalData.data.providers;
                     }
 
-                    dbconfig.collection_players.findOneAndUpdate({_id: proposalData.data.playerObjId, platform: proposalData.data.platformId}, {applyingEasterEgg: false}).then(
+                    dbconfig.collection_players.findOneAndUpdate({
+                        _id: proposalData.data.playerObjId,
+                        platform: proposalData.data.platformId
+                    }, {applyingEasterEgg: false}).then(
                         data => {
                             createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_EASTER_EGG_REWARD, proposalData);
                         },
@@ -1868,8 +1874,8 @@ var proposalExecutor = {
             /**
              * execution function for player intention proposal
              */
-            executePlayerRegistrationIntention:function (proposalData, deferred) {
-                 deferred.resolve(proposalData);
+            executePlayerRegistrationIntention: function (proposalData, deferred) {
+                deferred.resolve(proposalData);
             },
 
             executePlayerConsecutiveConsumptionReward: function (proposalData, deferred) {
@@ -2034,7 +2040,28 @@ var proposalExecutor = {
                 //verify data
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && proposalData.data.rewardAmount) {
                     proposalData.data.proposalId = proposalData.proposalId;
-                    changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constRewardType.PLAYER_PACKET_RAIN_REWARD, proposalData.data).then(deferred.resolve, deferred.reject);
+                    let deferred1 = Q.defer();
+                    changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constRewardType.PLAYER_PACKET_RAIN_REWARD, proposalData.data)
+                        .then(data => {
+                                let updateData = {$set: {}};
+
+                                if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
+                                    updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                                }
+
+                                dbconfig.collection_players.findOneAndUpdate(
+                                    {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
+                                    updateData
+                                ).then(
+                                    () => {
+                                        deferred.resolve(data);
+                                    },
+                                    deferred.reject
+                                );
+                            },
+                            deferred.reject
+                        );
+
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect player random reward group proposal data"});
@@ -2556,7 +2583,10 @@ var proposalExecutor = {
             },
 
             rejectPlayerEasterEggReward: function (proposalData, deferred) {
-                dbconfig.collection_players.findOneAndUpdate({_id: proposalData.data.playerObjId, platform: proposalData.data.platformId}, {applyingEasterEgg: false}).then(
+                dbconfig.collection_players.findOneAndUpdate({
+                    _id: proposalData.data.playerObjId,
+                    platform: proposalData.data.platformId
+                }, {applyingEasterEgg: false}).then(
                     data => {
                         deferred.resolve("Proposal is rejected");
                     },
