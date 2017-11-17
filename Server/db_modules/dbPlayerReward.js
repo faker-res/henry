@@ -2265,7 +2265,10 @@ let dbPlayerReward = {
 
 
                     // type 5
-
+                    case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
+                        rewardAmount = selectedRewardParam[0].rewardAmount;
+                        spendingAmount = selectedRewardParam[0].rewardAmount * selectedRewardParam[0].spendingTimes;
+                        break;
 
                     // type 6
 
