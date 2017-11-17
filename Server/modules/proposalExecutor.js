@@ -1984,30 +1984,47 @@ var proposalExecutor = {
             },
 
             executePlayerTopUpReturnGroup: function (proposalData, deferred) {
-                console.log('executePlayerTopUpReturnGroup');
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
+                        rewardType: constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        currentAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
+                        initAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
+                        useConsumption: Boolean(proposalData.data.useConsumption),
+                        eventId: proposalData.data.eventId,
+                        applyAmount: proposalData.data.applyAmount,
+                        providerGroup: proposalData.data.providerGroup
+                    };
 
-                let updateData = {$set: {}};
+                    let deferred1 = Q.defer();
+                    createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_TOP_UP_RETURN_GROUP, proposalData);
+                    deferred1.promise.then(
+                        data => {
+                            let updateData = {$set: {}};
 
-                if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
-                    updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
+                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                            }
+
+                            dbconfig.collection_players.findOneAndUpdate(
+                                {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
+                                updateData
+                            ).then(
+                                () => {
+                                    deferred.resolve(data);
+                                },
+                                deferred.reject
+                            );
+                        },
+                        deferred.reject
+                    );
                 }
-
-                dbconfig.collection_players.findOneAndUpdate({
-                    _id: proposalData.data.playerObjId,
-                    platform: proposalData.data.platformId
-                }, updateData).then(
-                    data => {
-                        deferred.resolve(true);
-                        //createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_EASTER_EGG_REWARD, proposalData);
-                    },
-                    error => {
-                        deferred.reject({
-                            name: "DBError",
-                            message: "Failed to update playerinfo for executePlayerTopUpReturnGroup",
-                            error: error
-                        });
-                    }
-                )
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect player top up return group proposal data"});
+                }
             },
         },
 
