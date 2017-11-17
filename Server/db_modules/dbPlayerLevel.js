@@ -234,7 +234,7 @@ let dbPlayerLevelInfo = {
 
                     // Check level down
                     if (playerData.playerLevel.value > 0 && !levelUpObj) {
-                        // Check if player can level UP and which level player can level up to
+                        // Check if player can level DOWN and which level player can level down to
                         for (let i = 0; i < checkingDownLevels.length; i++) {
                             const level = checkingDownLevels[i];
 
@@ -248,16 +248,24 @@ let dbPlayerLevelInfo = {
                                     const meetsTopupCondition = playersTopupForPeriod >= conditionSet.topupMinimum;
                                     const meetsConsumptionCondition = playersConsumptionForPeriod >= conditionSet.consumptionMinimum;
 
-                                    const meetsEnoughConditions =
-                                        conditionSet.topupMinimum <= 0
-                                            ? conditionSet.consumptionMinimum <= 0
-                                            ? false
-                                            : meetsConsumptionCondition
-                                            : conditionSet.consumptionMinimum <= 0
-                                            ? meetsTopupCondition
-                                            : conditionSet.andConditions
-                                                ? meetsTopupCondition && meetsConsumptionCondition
-                                                : meetsTopupCondition || meetsConsumptionCondition;
+                                    let meetsEnoughConditions = false;
+
+                                    if (conditionSet.topupMinimum > 0 || conditionSet.consumptionMinimum > 0) {
+                                        if (conditionSet.andConditions) {
+                                            meetsEnoughConditions = meetsTopupCondition && meetsConsumptionCondition
+                                        } else {
+                                            if (conditionSet.topupMinimum <= 0) {
+                                                meetsEnoughConditions = meetsConsumptionCondition;
+                                            } else if (conditionSet.consumptionMinimum <= 0) {
+                                                meetsEnoughConditions = meetsTopupCondition;
+                                            } else {
+                                                meetsEnoughConditions = meetsTopupCondition || meetsConsumptionCondition
+                                            }
+                                        }
+                                    } else {
+                                        levelObjId = playerData.playerLevel.value > 0 ? levels[0]._id : null;
+                                        levelDownObj = levels[0];
+                                    }
 
                                     if (meetsEnoughConditions) {
                                         levelObjId = level._id;
