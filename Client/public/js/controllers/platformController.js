@@ -4929,9 +4929,16 @@ define(['js/app'], function (myApp) {
                             onClickAsync: function (showPopover) {
                                 var that = this;
                                 var row = JSON.parse(this.dataset.row);
-                                vm.getRewardTaskDetail(row._id, function (data) {
-                                    showPopover(that, '#rewardTaskPopover', data);
-                                });
+
+                                if (vm.selectedPlatform.data.useProviderGroup) {
+                                    vm.getRewardTaskGroupDetail(row._id, function (data) {
+                                        showPopover(that, '#rewardTaskGroupPopover', data);
+                                    });
+                                } else {
+                                    vm.getRewardTaskDetail(row._id, function (data) {
+                                        showPopover(that, '#rewardTaskPopover', data);
+                                    });
+                                }
                             }
                         });
 
@@ -7309,6 +7316,19 @@ define(['js/app'], function (myApp) {
 
                     return deferred.promise;
                 };
+
+        vm.getRewardTaskGroupDetail = (playerId, callback) => {
+            return $scope.$socketPromise('getPlayerAllRewardTaskGroupDetailByPlayerObjId', {_id: playerId}).then(
+                res => {
+                    vm.curRewardTask = res.data;
+                    console.log('vm.curRewardTask', vm.curRewardTask);
+                    $scope.safeApply();
+                    if (callback) {
+                        callback(vm.curRewardTask);
+                    }
+                }
+            )
+        }
 
             // vm.prepareShowFeedbackRecord = function () {
             //     vm.playerFeedbackData = [];
