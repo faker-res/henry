@@ -9369,6 +9369,7 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                                 case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
                                 case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
+                                case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
                                     return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
                                     break;
                                 default:
