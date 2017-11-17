@@ -2705,7 +2705,7 @@
   "Merchant Name":"名称",
   "RESPONSE_TIMEOUT": "回应超时",
   "Whitelisting Phone Number": "电话号码白名单（一行一个）",
-  "randomReward": "随机抽奖",
+  "PlayerRandomRewardGroup": "随机抽奖（组）",
   "Period show reward": "周期内出现场次（前端允许申请时段）",
   "Monday": "星期一",
   "Tuesday": "星期二",

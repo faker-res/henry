@@ -13280,7 +13280,7 @@ define(['js/app'], function (myApp) {
                         }
                         if (el == "rewardPercentageAmount") {
                             vm.isRandomReward = true;
-                            vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = [{percentage: "", amount: ""}];
+                            vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !=="undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{percentage: "", amount: ""}];
                         }
                     });
                 }
