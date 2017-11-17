@@ -108,7 +108,7 @@ let dbPlayerInfo = {
                         return Q.resolve(true);
                     }
 
-                    platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                    platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
                     let smsExpiredDate = new Date();
                     smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
 
@@ -1407,7 +1407,7 @@ let dbPlayerInfo = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
                         let smsExpiredDate = new Date();
                         smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
                         // Check verification SMS match
@@ -1592,7 +1592,7 @@ let dbPlayerInfo = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
                         let smsExpiredDate = new Date();
                         smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
                         // Check verification SMS match
