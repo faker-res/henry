@@ -833,7 +833,7 @@ db.rewardParam.update({
                         des: "Reward percentage and reward amount",
                         value: [{percentage: "", amount: ""}]
                     },
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    spendingTimesOnReward: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "checkbox",

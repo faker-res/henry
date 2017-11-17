@@ -2164,6 +2164,8 @@ let dbPlayerReward = {
                                 );
                             }
 
+
+
                             // Player's top up amount is not enough for this reward
                             if (!curReward) {
                                 return Q.reject({
@@ -2182,6 +2184,7 @@ let dbPlayerReward = {
                                     return rewardAmount;
                                 }
                             );
+                            spendingAmount = rewardAmount * selectedRewardParam.spendingTimesOnReward;
                         }
                         else {
                             return Q.reject({

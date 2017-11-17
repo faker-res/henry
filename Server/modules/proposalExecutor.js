@@ -2031,30 +2031,14 @@ var proposalExecutor = {
             },
 
             executePlayerRandomRewardGroup: function (proposalData, deferred) {
-                console.log('executePlayerRandomRewardGroup');
-
-                let updateData = {$set: {}};
-
-                if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
-                    updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                //verify data
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && proposalData.data.rewardAmount) {
+                    proposalData.data.proposalId = proposalData.proposalId;
+                    changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constRewardType.PLAYER_PACKET_RAIN_REWARD, proposalData.data).then(deferred.resolve, deferred.reject);
                 }
-
-                dbconfig.collection_players.findOneAndUpdate({
-                    _id: proposalData.data.playerObjId,
-                    platform: proposalData.data.platformId
-                }, updateData).then(
-                    data => {
-                        deferred.resolve(true);
-                        //createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_EASTER_EGG_REWARD, proposalData);
-                    },
-                    error => {
-                        deferred.reject({
-                            name: "DBError",
-                            message: "Failed to update playerinfo for executePlayerRandomRewardGroup",
-                            error: error
-                        });
-                    }
-                )
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect player random reward group proposal data"});
+                }
             },
 
         },
