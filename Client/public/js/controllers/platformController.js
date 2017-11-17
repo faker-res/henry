@@ -227,7 +227,7 @@ define(['js/app'], function (myApp) {
                 UPDATE_PASSWORD: 'updatePassword',
                 UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
                 UPDATE_BANK_INFO: 'updateBankInfo',
-                RESET_PASSWORD: 'resetPassword'
+                // RESET_PASSWORD: 'resetPassword'
             };
 
             vm.constProposalStatus = {
