@@ -82,7 +82,7 @@ var platformSchema = new Schema({
     // SMS Verification Setting For Payment Update
     requireSMSVerificationForPaymentUpdate: {type: Boolean, default: false},
     // SMS Verification Expired Time (in Minute)
-    smsVerificationExpireTime: {type: Number, default: 1440},
+    smsVerificationExpireTime: {type: Number, default: 5},
     // allow same phone number to register
     allowSamePhoneNumberToRegister: {type: Boolean, default: true},
     // same phone number to register count
