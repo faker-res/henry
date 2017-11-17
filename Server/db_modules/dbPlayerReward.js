@@ -2137,7 +2137,61 @@ let dbPlayerReward = {
 
 
                     // type 6
+                    case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
+                        selectedRewardParam = selectedRewardParam[0];
+                        if (selectedRewardParam.numberParticipation && todayPacketCount < selectedRewardParam.numberParticipation) {
 
+                            //calculate player reward amount
+                            let totalProbability = 0;
+                            let curMinTopUpAmount = -1;
+                            let curReward = null;
+                            let combination = [];
+
+                            if (topUpSum >= selectedRewardParam.requiredTopUpAmount && selectedRewardParam.requiredTopUpAmount > curMinTopUpAmount) {
+                                curMinTopUpAmount = selectedRewardParam.requiredTopUpAmount;
+                                curReward = selectedRewardParam;
+                                totalProbability = 0;
+                                combination = [];
+
+                                selectedRewardParam.rewardPercentageAmount.forEach(
+                                    percentageAmount => {
+                                        totalProbability += percentageAmount.percentage ? percentageAmount.percentage : 0;
+                                        combination.push({
+                                            totalProbability: totalProbability,
+                                            rewardAmount: percentageAmount.amount
+                                        });
+                                    }
+                                );
+                            }
+
+                            // Player's top up amount is not enough for this reward
+                            if (!curReward) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "Top up amount is not enough"
+                                })
+                            }
+
+                            let pNumber = Math.random() * totalProbability;
+                            combination.some(
+                                eReward => {
+                                    if (pNumber <= eReward.totalProbability) {
+                                        rewardAmount = eReward.rewardAmount;
+                                    }
+                                    return rewardAmount;
+                                }
+                            );
+                        }
+                        else {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                                name: "DataError",
+                                message: "Please try again random reward tomorrow"
+                            });
+                        }
+
+                        break;
 
                     default:
                         return Q.reject({
@@ -2180,6 +2234,7 @@ let dbPlayerReward = {
                 if (applyAmount > 0) {
                     proposalData.data.applyAmount = applyAmount;
                 }
+
 
                 return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
 

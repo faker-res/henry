@@ -152,6 +152,7 @@ var proposalExecutor = {
             this.executions.executePlayerPromoCodeReward.des = "Player Promo Code Reward";
             this.executions.executePlayerLimitedOfferReward.des = "Player Limited Offer Reward";
             this.executions.executePlayerTopUpReturnGroup.des = "Player Top Up Return Group Reward";
+            this.executions.executePlayerRandomRewardGroup.des = "Player Random Reward Group Reward";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -203,6 +204,8 @@ var proposalExecutor = {
             this.rejections.rejectPlayerPromoCodeReward.des = "Reject Player Promo Code Reward";
             this.rejections.rejectPlayerLimitedOfferReward.des = "Reject Player Limited Offer Reward";
             this.rejections.rejectPlayerTopUpReturnGroup.des = "Reject Player Top Up Return Group Reward";
+            this.rejections.rejectPlayerRandomRewardGroup.des = "Reject Player Random Reward Group Reward";
+
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -2009,6 +2012,34 @@ var proposalExecutor = {
                     }
                 )
             },
+
+            executePlayerRandomRewardGroup: function (proposalData, deferred) {
+                console.log('executePlayerRandomRewardGroup');
+
+                let updateData = {$set: {}};
+
+                if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
+                    updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                }
+
+                dbconfig.collection_players.findOneAndUpdate({
+                    _id: proposalData.data.playerObjId,
+                    platform: proposalData.data.platformId
+                }, updateData).then(
+                    data => {
+                        deferred.resolve(true);
+                        //createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_EASTER_EGG_REWARD, proposalData);
+                    },
+                    error => {
+                        deferred.reject({
+                            name: "DBError",
+                            message: "Failed to update playerinfo for executePlayerRandomRewardGroup",
+                            error: error
+                        });
+                    }
+                )
+            },
+
         },
 
         /**
@@ -2570,6 +2601,10 @@ var proposalExecutor = {
             },
 
             rejectPlayerTopUpReturnGroup: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerRandomRewardGroup: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
         }
