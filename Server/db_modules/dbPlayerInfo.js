@@ -8201,6 +8201,13 @@ let dbPlayerInfo = {
                     return Q.reject({name: "DataError", message: "Cannot find proposal type"});
                 }
             }
+        ).then(
+            proposalData => {
+                if( proposalData && proposalData.data && proposalData.data.validTime) {
+                    proposalData.restTime = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.validTime).getTime()) / 1000));
+                }
+                return proposalData;
+            }
         );
     },
 
@@ -8306,6 +8313,13 @@ let dbPlayerInfo = {
                     return Q.reject({name: "DataError", message: "Cannot find proposal type"});
                 }
             }
+        ).then(
+            proposalData => {
+                if( proposalData && proposalData.data && proposalData.data.validTime) {
+                    proposalData.restTime = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.validTime).getTime()) / 1000));
+                }
+                return proposalData;
+            }
         );
     },
 
@@ -8340,6 +8354,13 @@ let dbPlayerInfo = {
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find proposal type"});
                 }
+            }
+        ).then(
+            proposalData => {
+                if( proposalData && proposalData.data && proposalData.data.validTime) {
+                    proposalData.restTime = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.validTime).getTime()) / 1000));
+                }
+                return proposalData;
             }
         );
     },
