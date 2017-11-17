@@ -2116,7 +2116,7 @@ let dbPlayerReward = {
 
             promArr.push(targetDayConsumptionAmount);
 
-            let periodTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
+            let periodTopupAmountProm = dbConfig.collection_playerTopUpRecord.aggregate(
                 {
                     $match: topupMatchQuery
                 },
@@ -2136,27 +2136,8 @@ let dbPlayerReward = {
                     }
                 }
             );
-            promArr.push(periodTopupProm);
-            let periodPropsProm = dbConfig.collection_proposal.aggregate(
-                {
-                    $match: eventQuery
-                },
-                {
-                    $group: {
-                        _id: null,
-                        amount: {$sum: 1}
-                    }
-                }
-            ).then(
-                summary => {
-                    if (summary && summary[0]) {
-                        return summary[0].amount;
-                    }
-                    else {
-                        return 0;
-                    }
-                }
-            );
+            promArr.push(periodTopupAmountProm);
+            let periodPropsProm = dbConfig.collection_proposal.find(eventQuery).lean();
             promArr.push(periodPropsProm);
         }
 
@@ -2172,6 +2153,9 @@ let dbPlayerReward = {
                 let rewardAmountInPeriod = eventInPeriodData.reduce((a, b) => a + b.data.rewardAmount, 0);
 
                 let consecutiveNumber;
+                // For Type 6 use
+                let useTopUpAmount;
+                let useConsumptionAmount;
 
                 // Check reward apply limit in period
                 if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
@@ -2352,16 +2336,26 @@ let dbPlayerReward = {
                     // type 6
                     case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
                         selectedRewardParam = selectedRewardParam[0];
-                        if (selectedRewardParam.numberParticipation && rewardSpecificData[2] < selectedRewardParam.numberParticipation) {
+                        let consumptionAmount = rewardSpecificData[0];
+                        let topUpAmount = rewardSpecificData[1];
+                        let periodProps = rewardSpecificData[2];
+                        let applyRewardTimes = periodProps.length;
+                        let totalUseTopUpAmount = periodProps.reduce((sum, value) => sum + value.data.useTopUpAmount, 0);
+                        let totalUseConsumptionAmount = periodProps.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
+                        useTopUpAmount=0;
+                        useConsumptionAmount=0;
+                        //periodProps.reduce((sum, value) => sum + value, 1);
 
+                        if (selectedRewardParam.numberParticipation && applyRewardTimes < selectedRewardParam.numberParticipation) {
                             let meetTopUpCondition = false, meetConsumptionCondition = false;
-                            if (rewardSpecificData[1] >= selectedRewardParam.requiredTopUpAmount) {
+                            if ((topUpAmount-totalUseTopUpAmount) >= selectedRewardParam.requiredTopUpAmount) {
+                                useTopUpAmount = selectedRewardParam.requiredTopUpAmount;
                                 meetTopUpCondition = true;
                             }
 
                             if (selectedRewardParam.requiredConsumptionAmount) {
-                                let consumptionAmount = rewardSpecificData[0];
-                                meetConsumptionCondition = consumptionAmount >= selectedRewardParam.requiredConsumptionAmount;
+                                useConsumptionAmount = selectedRewardParam.requiredConsumptionAmount;
+                                meetConsumptionCondition = (consumptionAmount-totalUseConsumptionAmount) >= selectedRewardParam.requiredConsumptionAmount;
                             } else {
                                 meetConsumptionCondition = true;
                             }
@@ -2382,6 +2376,11 @@ let dbPlayerReward = {
                                         message: "Player does not have enough top up or consumption amount"
                                     });
                                 }
+                                //Only use one of the condition, reset another
+                                if(meetTopUpCondition)
+                                    useConsumptionAmount=0;
+                                if(meetConsumptionCondition)
+                                    useTopUpAmount=0;
                             }
 
                             //calculate player reward amount
@@ -2471,8 +2470,15 @@ let dbPlayerReward = {
                     proposalData.data.applyTargetDate = todayTime.startTime;
                 }
 
-                return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
+                if (useTopUpAmount!=null) {
+                    proposalData.data.useTopUpAmount = useTopUpAmount;
+                }
 
+                if (!useConsumptionAmount!=null) {
+                    proposalData.data.useConsumptionAmount = useConsumptionAmount;
+                }
+
+                return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
             }
         );
     },
