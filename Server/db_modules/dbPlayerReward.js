@@ -1975,7 +1975,7 @@ let dbPlayerReward = {
         console.log('rewardData', rewardData);
 
         let todayTime = dbUtility.getTodaySGTime();
-        let rewardAmount = 0, spendingAmount = 0;
+        let rewardAmount = 0, spendingAmount = 0, applyAmount = 0;
         let promArr = [];
         let selectedRewardParam;
         let intervalTime;
@@ -2055,12 +2055,10 @@ let dbPlayerReward = {
                 let eventInPeriodData = data[3];
 
                 let eventInPeriodCount = eventInPeriodData.length;
-
-                console.log('topupInPeriodData', topupInPeriodData);
-                console.log('eventInPeriodData', eventInPeriodData);
+                let rewardAmountInPeriod = eventInPeriodData.reduce((a, b) => a + b.data.rewardAmount, 0);
 
                 // Check reward apply limit in period
-                if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval < eventInPeriodCount) {
+                if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
                     return Q.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
@@ -2068,24 +2066,33 @@ let dbPlayerReward = {
                     });
                 }
 
-                // Set reward param to use
+                // Set reward param for player level to use
                 if (eventData.condition.isPlayerLevelDiff) {
                     selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
                 } else {
                     selectedRewardParam = eventData.param.rewardParam[0].value;
                 }
 
-                if (eventData.param.isMultiStepReward) {
-
-                } else {
-                    selectedRewardParam = selectedRewardParam[0];
-                }
-
-                // Count reward amount
+                // Count reward amount and spending amount
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                         if (rewardData && rewardData.selectedTopup) {
-                            if (rewardData.selectedTopup.amount < selectedRewardParam.minTopUpAmount) {
+                            applyAmount = rewardData.selectedTopup.amount;
+
+                            // Set reward param step to use
+                            if (eventData.param.isMultiStepReward) {
+                                if (eventData.param.isSteppingReward) {
+                                    let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
+                                    selectedRewardParam = selectedRewardParam[eventStep];
+                                } else {
+                                    selectedRewardParam = selectedRewardParam.filter(e => e.minTopUpAmount >= applyAmount).sort((a, b) => a.minTopUpAmount - b.minTopUpAmount);
+                                    selectedRewardParam = selectedRewardParam[0];
+                                }
+                            } else {
+                                selectedRewardParam = selectedRewardParam[0];
+                            }
+
+                            if (applyAmount < selectedRewardParam.minTopUpAmount) {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
@@ -2094,8 +2101,22 @@ let dbPlayerReward = {
                             }
 
                             if (eventData.condition.isDynamicRewardAmount) {
-                                rewardAmount = rewardData.selectedTopup.amount * selectedRewardParam.rewardPercentage;
-                                spendingAmount = (rewardData.selectedTopup.amount + rewardAmount) * selectedRewardParam.spendingTimes;
+                                rewardAmount = applyAmount * selectedRewardParam.rewardPercentage;
+
+                                // Check reward amount exceed daily limit
+                                if (eventData.param.dailyMaxRewardAmount) {
+                                    if (rewardAmountInPeriod >= eventData.param.dailyMaxRewardAmount) {
+                                        return Q.reject({
+                                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                            name: "DataError",
+                                            message: "Player has applied for max reward times"
+                                        });
+                                    } else if (rewardAmount + rewardAmountInPeriod > eventData.param.dailyMaxRewardAmount) {
+                                        rewardAmount = eventData.param.dailyMaxRewardAmount - rewardAmountInPeriod;
+                                    }
+                                }
+
+                                spendingAmount = (applyAmount + rewardAmount) * selectedRewardParam.spendingTimes;
                             } else {
                                 rewardAmount = selectedRewardParam.rewardAmount;
                                 spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimesOnReward;
@@ -2154,6 +2175,12 @@ let dbPlayerReward = {
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
                 };
+
+                // Custom proposal data field
+                if (applyAmount > 0) {
+                    proposalData.data.applyAmount = applyAmount;
+                }
+
                 return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
 
             }

@@ -410,7 +410,7 @@ var topUpCond = {
     // Online top up type
     onlineTopUpType: {index: 12, type: "multiSelect", des: "Online top up type", options: "merchantTopupTypeJson"},
     // Bank card type
-    bankCardType: {index: 13, type: "multiSelect", des: "Bank card type"}
+    bankCardType: {index: 13, type: "multiSelect", des: "Bank card type", options: "bankType"}
 };
 
 var periodCond = {
@@ -456,7 +456,7 @@ var consumptionCond = {
     // Is consumption shared with XIMA
     isSharedWithXIMA: {index: 40, type: "checkbox", des: "Consumption can be shared with XIMA"},
     // Provider group binded with this reward
-    providerGroup: {index: 41, type: "multiSelect", des: "Provider group"},
+    providerGroup: {index: 41, type: "multiSelect", des: "Provider group", options: "providerGroup"},
 };
 
 var consumptionProviderCond = {
@@ -499,7 +499,7 @@ db.rewardParam.update({
                     spendingTimesOnReward: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
-                        type: "checkbox",
+                        type: "number",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
                     remark: {type: "text", des: "Remark"},
@@ -517,7 +517,7 @@ db.rewardParam.update({
                     spendingTimes: {type: "number", des: "Spending times"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
-                        type: "checkbox",
+                        type: "number",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
                     remark: {type: "text", des: "Remark"},
@@ -674,7 +674,7 @@ db.rewardType.update({"name": type102}, {$set: {params: param102._id, des: type1
 //endregion
 
 // 投注额奖励
-var type103 = "consumptionReward";
+var type103 = "PlayerConsumptionRewardGroup";
 db.rewardParam.update({
     "name": type103
 }, {
@@ -775,7 +775,7 @@ db.rewardType.update({"name": type104}, {$set: {params: param104._id, des: type1
 
 
 // 随机抽奖
-var type105 = "randomReward";
+var type105 = "PlayerRandomRewardGroup";
 db.rewardParam.update({
     "name": type105
 }, {

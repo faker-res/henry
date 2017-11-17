@@ -13137,7 +13137,20 @@ define(['js/app'], function (myApp) {
 
                             // Get options
                             switch (cond.options) {
+                                case "providerGroup":
+                                    if (!vm.gameProviderGroup) break;
+                                    let providerGroup = {};
+                                    for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                                        let group = vm.gameProviderGroup[i];
+                                        providerGroup[group._id] = group.name;
+                                    }
+                                    result = providerGroup;
+                                    break;
+                                case "bankType":
+                                    result = vm.allBankTypeList;
+                                    break;
                                 case "allRewardEvent":
+                                    if (!vm.allRewardEvent) break;
                                     let rewardEvents = {};
                                     for (let i = 0; i < vm.allRewardEvent.length; i++) {
                                         let event = vm.allRewardEvent[i];
@@ -13146,6 +13159,7 @@ define(['js/app'], function (myApp) {
                                     result = rewardEvents;
                                     break;
                                 case "gameProviders":
+                                    if (!vm.allGameProviders) break;
                                     let gameProviders = {};
                                     for (let i = 0; i < vm.allGameProviders.length; i++) {
                                         let provider = vm.allGameProviders[i];
@@ -13203,12 +13217,12 @@ define(['js/app'], function (myApp) {
 
                             // Get interval value 1
                             if (cond.type == "interval") {
-                                if (vm.rewardMainCondition[cond.index].value.length == 2) {
+                                if (vm.rewardMainCondition[cond.index].value && vm.rewardMainCondition[cond.index].value.length == 2) {
                                     vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
                                     vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];
                                 }
 
-                                if (vm.rewardMainCondition[cond.index].value.length == 3) {
+                                if (vm.rewardMainCondition[cond.index].value && vm.rewardMainCondition[cond.index].value.length == 3) {
                                     vm.rewardMainCondition[cond.index].value2 = vm.rewardMainCondition[cond.index].value[2];
                                     vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
                                     vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];
@@ -13266,7 +13280,7 @@ define(['js/app'], function (myApp) {
                         }
                         if (el == "rewardPercentageAmount") {
                             vm.isRandomReward = true;
-                            vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = [{percentage: "", amount: ""}];
+                            vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !=="undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{percentage: "", amount: ""}];
                         }
                     });
                 }
@@ -13550,6 +13564,17 @@ define(['js/app'], function (myApp) {
 
             if (model == "isMultiStepReward") {
                 vm.isMultiStepReward = vm.rewardMainParam[model].value;
+            }
+
+            // Disable player withdrawal permission handling
+            if (model && model.i && model.v && model.entry) {
+                if (model.i == "forbidWithdrawIfBalanceAfterUnlock" && model.v.type == "number") {
+                    model.entry.forbidWithdrawAfterApply = false;
+                }
+
+                if (model.i == "forbidWithdrawAfterApply" && model.v.type == "checkbox") {
+                    delete model.entry.forbidWithdrawIfBalanceAfterUnlock;
+                }
             }
 
             // Check whether reward is dynamic amount
@@ -14029,9 +14054,6 @@ define(['js/app'], function (myApp) {
 
                     // Set param table
                     Object.keys(vm.rewardMainParamTable).forEach((e, idx) => {
-                        console.log('e', e);
-                        console.log('vm.rewardMainParamTable[e]', vm.rewardMainParamTable[e]);
-
                         let levelParam = {
                             levelId: vm.allPlayerLvl[idx]._id,
                             value: vm.rewardMainParamTable[e].value
@@ -14039,9 +14061,6 @@ define(['js/app'], function (myApp) {
 
                         curReward.param.rewardParam.push(levelParam);
                     });
-
-                    console.log('vm.rewardMainParam', vm.rewardMainParam);
-                    console.log('vm.rewardMainParamTable', vm.rewardMainParamTable);
                 } else {
 
                 }
@@ -14080,7 +14099,8 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     platform: vm.selectedPlatform.id,
                     type: vm.showRewardTypeData._id,
-                    condition: {}
+                    condition: {},
+                    param: {}
                 };
 
                 if (vm.showRewardTypeData.isGrouped === true) {
@@ -14115,7 +14135,24 @@ define(['js/app'], function (myApp) {
                             // Save reward condition
                             sendData.condition[condName] = condValue;
                         }
-                    })
+                    });
+
+                    // Set param
+                    Object.keys(vm.rewardMainParam).forEach(e => {
+                        sendData.param[e] = vm.rewardMainParam[e].value;
+                    });
+
+                    sendData.param.rewardParam = [];
+
+                    // Set param table
+                    Object.keys(vm.rewardMainParamTable).forEach((e, idx) => {
+                        let levelParam = {
+                            levelId: vm.allPlayerLvl[idx]._id,
+                            value: vm.rewardMainParamTable[e].value
+                        };
+
+                        sendData.param.rewardParam.push(levelParam);
+                    });
                 } else {
                     sendData = vm.showReward;
                     sendData.name = vm.showReward.name;
