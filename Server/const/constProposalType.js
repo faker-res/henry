@@ -55,6 +55,7 @@ const constProposalType = {
     PLAYER_LIMITED_OFFER_REWARD: "PlayerLimitedOfferReward",
     PLAYER_TOP_UP_RETURN_GROUP: "PlayerTopUpReturnGroup",
     PLAYER_RANDOM_REWARD_GROUP: "PlayerRandomRewardGroup",
+    PLAYER_CONSUMPTION_REWARD_GROUP: "PlayerConsumptionRewardGroup",
 };
 
 module.exports = constProposalType;

@@ -674,7 +674,7 @@ db.rewardType.update({"name": type102}, {$set: {params: param102._id, des: type1
 //endregion
 
 // 投注额奖励
-var type103 = "consumptionReward";
+var type103 = "PlayerConsumptionRewardGroup";
 db.rewardParam.update({
     "name": type103
 }, {
