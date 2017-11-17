@@ -9270,6 +9270,7 @@ let dbPlayerInfo = {
                         constRewardType.GAME_PROVIDER_REWARD,
                         constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD,
                         constRewardType.PLAYER_PACKET_RAIN_REWARD,
+                        constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
                         constRewardType.PLAYER_TOP_UP_RETURN_GROUP
                     ];
 
@@ -9391,6 +9392,9 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
                                 case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
                                 case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
+                                    if (data.applyTargetDate) {
+                                        rewardData.applyTargetDate = data.applyTargetDate;
+                                    }
                                     return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
                                     break;
                                 default:
