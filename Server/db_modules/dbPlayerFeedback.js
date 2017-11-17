@@ -505,7 +505,7 @@ var dbPlayerFeedback = {
      */
     getPlayerLastNFeedbackRecord: function (playerId, limit) {
         lilmit = limit || 5;
-        return dbconfig.collection_playerFeedback.find({playerId: playerId}).sort({createTime: 1}).limit(limit)
+        return dbconfig.collection_playerFeedback.find({playerId: playerId}).sort({createTime: -1}).limit(limit)
             .populate({path: "adminId", model: dbconfig.collection_admin}).exec();
     }
 };

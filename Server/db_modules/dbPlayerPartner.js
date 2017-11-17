@@ -60,7 +60,7 @@ let dbPlayerPartner = {
                         return Promise.all([plyProm, partnerProm]);
                     }
                     else {
-                        platformObj.smsVerificationExpireTime = platformObj.smsVerificationExpireTime || 1440;
+                        platformObj.smsVerificationExpireTime = platformObj.smsVerificationExpireTime || 5;
                         let smsExpiredDate = new Date();
                         smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformObj.smsVerificationExpireTime);
                         let smsProm = dbConfig.collection_smsVerificationLog.findOne({
@@ -423,7 +423,7 @@ let dbPlayerPartner = {
         ).then(
             playerData => {
                 if (!playerData || (!playerData[0] && !playerData[1])) {
-                    platform.smsVerificationExpireTime = platform.smsVerificationExpireTime || 1440;
+                    platform.smsVerificationExpireTime = platform.smsVerificationExpireTime || 5;
                     let smsExpiredDate = new Date();
                     smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platform.smsVerificationExpireTime);
                     // 4. Check if smsCode is matched
@@ -651,7 +651,7 @@ let dbPlayerPartner = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        platform.smsVerificationExpireTime = platform.smsVerificationExpireTime || 1440;
+                        platform.smsVerificationExpireTime = platform.smsVerificationExpireTime || 5;
                         let smsExpiredDate = new Date();
                         smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
                         // Check verification SMS match

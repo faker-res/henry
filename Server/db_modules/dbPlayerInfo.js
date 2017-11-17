@@ -108,7 +108,7 @@ let dbPlayerInfo = {
                         return Q.resolve(true);
                     }
 
-                    platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                    platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
                     let smsExpiredDate = new Date();
                     smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
 
@@ -1407,7 +1407,7 @@ let dbPlayerInfo = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
                         let smsExpiredDate = new Date();
                         smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
                         // Check verification SMS match
@@ -1592,7 +1592,7 @@ let dbPlayerInfo = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 1440;
+                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
                         let smsExpiredDate = new Date();
                         smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
                         // Check verification SMS match
@@ -8201,6 +8201,13 @@ let dbPlayerInfo = {
                     return Q.reject({name: "DataError", message: "Cannot find proposal type"});
                 }
             }
+        ).then(
+            proposalData => {
+                if( proposalData && proposalData.data && proposalData.data.validTime) {
+                    proposalData.restTime = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.validTime).getTime()) / 1000));
+                }
+                return proposalData;
+            }
         );
     },
 
@@ -8306,6 +8313,13 @@ let dbPlayerInfo = {
                     return Q.reject({name: "DataError", message: "Cannot find proposal type"});
                 }
             }
+        ).then(
+            proposalData => {
+                if( proposalData && proposalData.data && proposalData.data.validTime) {
+                    proposalData.restTime = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.validTime).getTime()) / 1000));
+                }
+                return proposalData;
+            }
         );
     },
 
@@ -8340,6 +8354,13 @@ let dbPlayerInfo = {
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find proposal type"});
                 }
+            }
+        ).then(
+            proposalData => {
+                if( proposalData && proposalData.data && proposalData.data.validTime) {
+                    proposalData.restTime = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.validTime).getTime()) / 1000));
+                }
+                return proposalData;
             }
         );
     },

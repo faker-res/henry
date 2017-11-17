@@ -129,7 +129,7 @@
                     option(value='new') {{'NEW_SYSTEM'|translate}}
                     option(value='old') {{'OLD_SYSTEM'|translate}}
             .inlineBlk
-                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.submitPlayerFeedbackQuery();') {{"SEARCH_SINGLE" | translate}}
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_SINGLE" | translate}}
             .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_LIST" | translate}}
                 span#platformFeedbackSpin.collapse
