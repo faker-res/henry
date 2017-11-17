@@ -10869,6 +10869,10 @@ define(['js/app'], function (myApp) {
             $('#platformFeedbackSpin').show();
             console.log('sendQuery', sendQuery);
             console.log('vm.playerFeedbackSearchType', vm.playerFeedbackSearchType);
+            if(isNewSearch) {
+                vm.feedbackPlayersPara.index = 1;
+                vm.playerFeedbackQuery.index = 0;
+            }
             if (vm.playerFeedbackSearchType == "one") {
                 socketService.$socket($scope.AppSocket, 'getSinglePlayerFeedbackQuery', {
                     query: sendQuery,
