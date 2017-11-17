@@ -2224,7 +2224,9 @@ let dbPlayerReward = {
                         eventDescription: eventData.description,
                         isIgnoreAudit: Boolean(eventData.condition && eventData.condition.isIgnoreAudit === true),
                         forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
-                        remark: selectedRewardParam.remark
+                        remark: selectedRewardParam.remark,
+                        useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),
+                        providerGroup: eventData.condition.providerGroup
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
