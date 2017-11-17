@@ -9368,6 +9368,8 @@ let dbPlayerInfo = {
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                                 case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
+                                case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
+                                case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
                                     return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
                                     break;
                                 default:
@@ -11595,6 +11597,11 @@ let dbPlayerInfo = {
                 let bonusDetails = {};
                 if(platformDetails){
                     if(playerDetails){
+                        result.freeTimes = 0;
+                        result.serviceCharge = 0;
+                        result.currentFreeAmount = 0;
+                        result.freeAmount = 0;
+
                         if(platformDetails.bonusSetting){
                             for(let x in platformDetails.bonusSetting){
                                 if(platformDetails.bonusSetting[x].name == playerDetails.playerLevel.name){
