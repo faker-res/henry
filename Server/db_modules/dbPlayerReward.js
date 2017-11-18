@@ -2078,6 +2078,69 @@ let dbPlayerReward = {
             promArr.push(targetDayConsumptionAmount);
         }
 
+        if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
+            let consumptionMatchQuery = {
+                createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+            };
+
+            if (intervalTime) {
+                consumptionMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            }
+
+            if (eventData.condition.consumptionProvider && eventData.condition.consumptionProvider.length > 0) {
+                let consumptionProviders = [];
+                eventData.condition.consumptionProvider.forEach(providerId => {
+                    consumptionProviders.push(ObjectId(providerId));
+                });
+
+                consumptionMatchQuery.providerId = {$in: eventData.condition.consumptionProvider}
+            }
+
+            let targetDayConsumptionAmount = dbConfig.collection_playerConsumptionRecord.aggregate([
+                {$match: consumptionMatchQuery},
+                {$group: {
+                    _id: null,
+                    amount: {$sum: "$amount"}
+                }}
+            ]).then(
+                summary => {
+                    if (summary && summary[0]) {
+                        return summary[0].amount;
+                    }
+                    else {
+                        return 0;
+                    }
+                }
+            );
+
+            promArr.push(targetDayConsumptionAmount);
+
+            let periodTopupAmountProm = dbConfig.collection_playerTopUpRecord.aggregate(
+                {
+                    $match: topupMatchQuery
+                },
+                {
+                    $group: {
+                        _id: {playerId: "$playerId"},
+                        amount: {$sum: "$amount"}
+                    }
+                }
+            ).then(
+                summary => {
+                    if (summary && summary[0]) {
+                        return summary[0].amount;
+                    }
+                    else {
+                        return 0;
+                    }
+                }
+            );
+            promArr.push(periodTopupAmountProm);
+            let periodPropsProm = dbConfig.collection_proposal.find(eventQuery).lean();
+            promArr.push(periodPropsProm);
+        }
+
         return Promise.all([todayTopupProm, todayPropsProm, topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
             data => {
                 let topUpSum = data[0];
@@ -2090,6 +2153,9 @@ let dbPlayerReward = {
                 let rewardAmountInPeriod = eventInPeriodData.reduce((a, b) => a + b.data.rewardAmount, 0);
 
                 let consecutiveNumber;
+                // For Type 6 use
+                let useTopUpAmount;
+                let useConsumptionAmount;
 
                 // Check reward apply limit in period
                 if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
@@ -2268,7 +2334,89 @@ let dbPlayerReward = {
 
 
                     // type 6
+                    case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
+                        selectedRewardParam = selectedRewardParam[0];
+                        let consumptionAmount = rewardSpecificData[0];
+                        let topUpAmount = rewardSpecificData[1];
+                        let periodProps = rewardSpecificData[2];
+                        let applyRewardTimes = periodProps.length;
+                        let totalUseTopUpAmount = periodProps.reduce((sum, value) => sum + value.data.useTopUpAmount, 0);
+                        let totalUseConsumptionAmount = periodProps.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
+                        useTopUpAmount=0;
+                        useConsumptionAmount=0;
+                        //periodProps.reduce((sum, value) => sum + value, 1);
 
+                        if (selectedRewardParam.numberParticipation && applyRewardTimes < selectedRewardParam.numberParticipation) {
+                            let meetTopUpCondition = false, meetConsumptionCondition = false;
+                            if ((topUpAmount-totalUseTopUpAmount) >= selectedRewardParam.requiredTopUpAmount) {
+                                useTopUpAmount = selectedRewardParam.requiredTopUpAmount;
+                                meetTopUpCondition = true;
+                            }
+
+                            if (selectedRewardParam.requiredConsumptionAmount) {
+                                useConsumptionAmount = selectedRewardParam.requiredConsumptionAmount;
+                                meetConsumptionCondition = (consumptionAmount-totalUseConsumptionAmount) >= selectedRewardParam.requiredConsumptionAmount;
+                            } else {
+                                meetConsumptionCondition = true;
+                            }
+
+                            if (selectedRewardParam.operatorOption) { // true = and, false = or
+                                if (!(meetTopUpCondition && meetConsumptionCondition)) {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "Player does not have enough top up or consumption amount"
+                                    });
+                                }
+                            } else {
+                                if (!(meetTopUpCondition || meetConsumptionCondition)) {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "Player does not have enough top up or consumption amount"
+                                    });
+                                }
+                                //Only use one of the condition, reset another
+                                if(meetTopUpCondition)
+                                    useConsumptionAmount=0;
+                                if(meetConsumptionCondition)
+                                    useTopUpAmount=0;
+                            }
+
+                            //calculate player reward amount
+                            let totalProbability = 0;
+                            let combination = [];
+
+                            selectedRewardParam.rewardPercentageAmount.forEach(
+                                percentageAmount => {
+                                    totalProbability += percentageAmount.percentage ? percentageAmount.percentage : 0;
+                                    combination.push({
+                                        totalProbability: totalProbability,
+                                        rewardAmount: percentageAmount.amount
+                                    });
+                                }
+                            );
+
+                            let pNumber = Math.random() * totalProbability;
+                            combination.some(
+                                eReward => {
+                                    if (pNumber <= eReward.totalProbability) {
+                                        rewardAmount = eReward.rewardAmount;
+                                    }
+                                    return rewardAmount;
+                                }
+                            );
+                            spendingAmount = rewardAmount * selectedRewardParam.spendingTimesOnReward;
+                        }
+                        else {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                                name: "DataError",
+                                message: "Please try again random reward tomorrow"
+                            });
+                        }
+
+                        break;
 
                     default:
                         return Q.reject({
@@ -2322,8 +2470,15 @@ let dbPlayerReward = {
                     proposalData.data.applyTargetDate = todayTime.startTime;
                 }
 
-                return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
+                if (useTopUpAmount!=null) {
+                    proposalData.data.useTopUpAmount = useTopUpAmount;
+                }
 
+                if (!useConsumptionAmount!=null) {
+                    proposalData.data.useConsumptionAmount = useConsumptionAmount;
+                }
+
+                return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
             }
         );
     },
