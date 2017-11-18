@@ -456,7 +456,7 @@ var consumptionCond = {
     // Is consumption shared with XIMA
     isSharedWithXIMA: {index: 40, type: "checkbox", des: "Consumption can be shared with XIMA"},
     // Provider group binded with this reward
-    providerGroup: {index: 41, type: "multiSelect", des: "Provider group", options: "providerGroup"},
+    providerGroup: {index: 41, type: "select", des: "Provider group", options: "providerGroup"},
 };
 
 var consumptionProviderCond = {
@@ -833,7 +833,7 @@ db.rewardParam.update({
                         des: "Reward percentage and reward amount",
                         value: [{percentage: "", amount: ""}]
                     },
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    spendingTimesOnReward: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "checkbox",

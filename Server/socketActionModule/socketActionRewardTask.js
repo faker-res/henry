@@ -1,4 +1,5 @@
 const dbRewardTask = require('./../db_modules/dbRewardTask');
+const dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
 const socketUtil = require('./../modules/socketutility');
 const dbPlayerConsumptionWeekSummary = require('./../db_modules/dbPlayerConsumptionWeekSummary');
 const dbPlayerReward = require('./../db_modules/dbPlayerReward');
@@ -96,6 +97,12 @@ function socketActionRewardTask(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbRewardTask.getPlayerAllRewardTaskDetailByPlayerObjId, [data], actionName, isValidData);
+        },
+
+        getPlayerAllRewardTaskGroupDetailByPlayerObjId: function getPlayerAllRewardTaskGroupDetailByPlayerObjId(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId, [data], actionName, isValidData);
         },
     };
     socketActionRewardTask.actions = this.actions;

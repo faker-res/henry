@@ -293,7 +293,7 @@ var dbPlayerConsumptionWeekSummary = {
                                     var summaryIds = thisPlayersConsumptionSummaries.map(summary => summary._id);
                                     var proposalData = {
                                         type: proposalTypeId,
-                                        entryType: constProposalEntryType.SYSTEM,
+                                        entryType: bRequest ? constProposalEntryType.CLIENT : constProposalEntryType.SYSTEM,
                                         userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                                         data: {
                                             playerObjId: playerData._id,
