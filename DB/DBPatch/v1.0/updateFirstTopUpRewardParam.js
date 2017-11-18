@@ -601,7 +601,7 @@ var param101 = param101Cursor.next();
 db.rewardType.update({"name": type101}, {$set: {params: param101._id, des: type101, isGrouped: true}}, {upsert: true});
 
 // region输值反利
-var type102 = "PlayerLoseReturnReward";
+var type102 = "PlayerLoseReturnRewardGroup";
 
 db.rewardParam.update({
     "name": type102

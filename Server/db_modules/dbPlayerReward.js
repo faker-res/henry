@@ -2141,6 +2141,80 @@ let dbPlayerReward = {
             promArr.push(periodPropsProm);
         }
 
+        if (eventData.type.name == constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP){
+            let bonusQuery = {
+                "data.platformId": playerData.platform._id,
+                "data.playerObjId": playerData._id,
+                mainType: constProposalMainType.PlayerBonus,
+                // "data.eventId": eventData._id,
+                status: {$in: [constProposalStatus.AUTOAUDIT, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                // settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+            };
+
+            let todayBonusProm = dbConfig.collection_proposal.aggregate(
+                {
+                    $match: bonusQuery
+                },
+                {
+                    $group: {
+                        _id: {playerId: "$data.playerObjId"},
+                        amount: {$sum: "$amount"}
+                    }
+                }
+            ).then(
+                summary => {
+                    if (summary && summary[0]) {
+                        return summary[0].amount;
+                    }
+                    else {
+                        // No topup record will return 0
+                        return 0;
+                    }
+                }
+            );
+            promArr.push(todayBonusProm);
+
+            let totalTopupMatchQuery = {
+                playerId: playerData._id,
+                platformId: playerData.platform._id,
+                // createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+            };
+
+            let totalTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
+                {
+                    $match: totalTopupMatchQuery
+                },
+                {
+                    $group: {
+                        _id: {playerId: "$playerId"},
+                        amount: {$sum: "$amount"}
+                    }
+                }
+            ).then(
+                summary => {
+                    if (summary && summary[0]) {
+                        return summary[0].amount;
+                    }
+                    else {
+                        // No topup record will return 0
+                        return 0;
+                    }
+                }
+            );
+            promArr.push(totalTopupProm);
+
+            let creditsDailyLogQuery = {
+                playerObjId: playerData._id,
+                createTime : {$gte: todayTime.startTime, $lt: todayTime.endTime}
+            };
+
+            db.getCollection('playerCreditsDailyLog').aggregate([
+                {"$match": creditsDailyLogQuery},
+                {"$group":{_id:{playerId: "$playerObjId"},amount:{$sum: {$sum:["$validCredit","$lockedCredit","$gameCredit"]}}}}
+            ]);
+
+        }
+
         return Promise.all([todayTopupProm, todayPropsProm, topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
             data => {
                 let topUpSum = data[0];
