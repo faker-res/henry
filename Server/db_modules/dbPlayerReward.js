@@ -2104,10 +2104,12 @@ let dbPlayerReward = {
 
             let targetDayConsumptionAmount = dbConfig.collection_playerConsumptionRecord.aggregate([
                 {$match: consumptionMatchQuery},
-                {$group: {
-                    _id: null,
-                    amount: {$sum: "$amount"}
-                }}
+                {
+                    $group: {
+                        _id: null,
+                        amount: {$sum: "$amount"}
+                    }
+                }
             ]).then(
                 summary => {
                     if (summary && summary[0]) {
@@ -2379,20 +2381,20 @@ let dbPlayerReward = {
                         let applyRewardTimes = periodProps.length;
                         let totalUseTopUpAmount = periodProps.reduce((sum, value) => sum + value.data.useTopUpAmount, 0);
                         let totalUseConsumptionAmount = periodProps.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
-                        useTopUpAmount=0;
-                        useConsumptionAmount=0;
+                        useTopUpAmount = 0;
+                        useConsumptionAmount = 0;
                         //periodProps.reduce((sum, value) => sum + value, 1);
 
                         if (selectedRewardParam.numberParticipation && applyRewardTimes < selectedRewardParam.numberParticipation) {
                             let meetTopUpCondition = false, meetConsumptionCondition = false;
-                            if ((topUpAmount-totalUseTopUpAmount) >= selectedRewardParam.requiredTopUpAmount) {
+                            if ((topUpAmount - totalUseTopUpAmount) >= selectedRewardParam.requiredTopUpAmount) {
                                 useTopUpAmount = selectedRewardParam.requiredTopUpAmount;
                                 meetTopUpCondition = true;
                             }
 
                             if (selectedRewardParam.requiredConsumptionAmount) {
                                 useConsumptionAmount = selectedRewardParam.requiredConsumptionAmount;
-                                meetConsumptionCondition = (consumptionAmount-totalUseConsumptionAmount) >= selectedRewardParam.requiredConsumptionAmount;
+                                meetConsumptionCondition = (consumptionAmount - totalUseConsumptionAmount) >= selectedRewardParam.requiredConsumptionAmount;
                             } else {
                                 meetConsumptionCondition = true;
                             }
@@ -2414,10 +2416,10 @@ let dbPlayerReward = {
                                     });
                                 }
                                 //Only use one of the condition, reset another
-                                if(meetTopUpCondition)
-                                    useConsumptionAmount=0;
-                                if(meetConsumptionCondition)
-                                    useTopUpAmount=0;
+                                if (meetTopUpCondition)
+                                    useConsumptionAmount = 0;
+                                if (meetConsumptionCondition)
+                                    useTopUpAmount = 0;
                             }
 
                             //calculate player reward amount
@@ -2507,11 +2509,11 @@ let dbPlayerReward = {
                     proposalData.data.applyTargetDate = todayTime.startTime;
                 }
 
-                if (useTopUpAmount!=null) {
+                if (useTopUpAmount != null) {
                     proposalData.data.useTopUpAmount = useTopUpAmount;
                 }
 
-                if (!useConsumptionAmount!=null) {
+                if (!useConsumptionAmount != null) {
                     proposalData.data.useConsumptionAmount = useConsumptionAmount;
                 }
 
