@@ -2091,6 +2091,7 @@ let dbPlayerReward = {
             if (intervalTime) {
                 consumptionMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                 eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                topupMatchQuery.createTime =  {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
             if (eventData.condition.consumptionProvider && eventData.condition.consumptionProvider.length > 0) {
