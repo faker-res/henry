@@ -14084,6 +14084,7 @@ define(['js/app'], function (myApp) {
                 } else {
                     sendData = vm.showReward;
                     sendData.name = vm.showReward.name;
+                    sendData.platform = vm.selectedPlatform.id;
                     sendData.description = vm.showReward.description;
                     sendData.param = vm.rewardParams;
                     sendData.condition = vm.rewardCondition;
