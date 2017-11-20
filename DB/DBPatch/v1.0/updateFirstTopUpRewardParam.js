@@ -568,16 +568,15 @@ db.rewardParam.update({
                     type: "checkbox",
                     des: "Player can delay apply for reward within period"
                 },
-                // allowReclaimMissedRewardDay: {index: 21.1, type: "checkbox", des: "If not checked, player have to claim reward on that particular day"},
             },
         },
         param: {
             tblOptFixed: {
                 isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
+                requiredTopUpAmount: {type: "number", des: "Required top up amount"},
+                requiredConsumptionAmount: {type: "number", des: "Required consumption amount"},
+                operatorOption: {type: "checkbox", des: "Required both"},
                 rewardParam: {
-                    requiredTopUpAmount: {type: "number", des: "Required top up amount"},
-                    operatorOption: {type: "checkbox", des: "Required both"},
-                    requiredConsumptionAmount: {type: "number", des: "Required consumption amount"},
                     rewardAmount: {type: "number", des: "Reward amount"},
                     spendingTimes: {type: "number", des: "Spending times"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
