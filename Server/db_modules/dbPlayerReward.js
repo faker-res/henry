@@ -30,6 +30,8 @@ const dbConfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
 const rewardUtility = require("../modules/rewardUtility");
 
+let rsaCrypto = require("../modules/rsaCrypto");
+
 let dbPlayerReward = {
     getConsecutiveLoginRewardDay: function (playerId, code) {
         let platformId = null;
@@ -2368,8 +2370,61 @@ let dbPlayerReward = {
 
                     // type 5
                     case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
-                        rewardAmount = selectedRewardParam[0].rewardAmount;
-                        spendingAmount = selectedRewardParam[0].rewardAmount * selectedRewardParam[0].spendingTimes;
+                        selectedRewardParam = selectedRewardParam[0];
+
+                        if (selectedRewardParam.rewardAmount && selectedRewardParam.spendingTimes) {
+
+                            // check IP address
+                            if (eventData.condition.checkIPFreeTrialReward) {
+                                // find matching IP address
+                                let matchIPAddress = dbConfig.collection_players.aggregate([
+                                    {$match: {"lastLoginIp": playerData.lastLoginIp}},
+                                    {$project: {name: 1, lastLoginIp: 1, _id: 0}}
+                                ]);
+
+                                matchIPAddress.then(lastLoginIP => {
+                                    // including this player, check if got another same IP address
+                                    if (lastLoginIP.length >= 2) {
+                                        return Q.reject({
+                                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                            name: "DataError",
+                                            message: "Another player found using the same IP Address"
+                                        });
+                                    }
+                                });
+                            }
+
+                            // check phone number
+                            if (eventData.condition.checkPhoneFreeTrialReward) {
+                                // find matching phone number
+                                let matchPhoneNum = dbConfig.collection_players.aggregate([
+                                    {$match: {"phoneNumber": rsaCrypto.encrypt(playerData.phoneNumber)}},
+                                    {$project: {name: 1, phoneNumber: 1, _id: 0}}
+                                ]);
+
+                                matchPhoneNum.then(phone => {
+                                    // including this player, check if got another same phone number
+                                    if (phone.length >= 2) {
+                                        return Q.reject({
+                                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                            name: "DataError",
+                                            message: "Another player found using the same phone number"
+                                        });
+                                    }
+                                });
+                            }
+
+                        }
+                        else {
+                            return Q.reject({
+                                status: constServerCode.INVALID_PARAM,
+                                name: "DataError",
+                                message: "Reward Amount and Spending Times cannot be empty. Please check reward condition."
+                            });
+                        }
+
+                        rewardAmount = selectedRewardParam.rewardAmount;
+                        spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimes;
                         break;
 
                     // type 6
