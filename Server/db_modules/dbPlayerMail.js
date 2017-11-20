@@ -6,10 +6,15 @@ const constSystemParam = require("../const/constSystemParam.js");
 const Q = require("q");
 var smsAPI = require('../externalAPI/smsAPI');
 var dbLogger = require('./../modules/dbLogger');
+const dbPlayerRegistrationIntentRecord = require('./../db_modules/dbPlayerRegistrationIntentRecord.js');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const moment = require('moment-timezone');
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
+const constSMSPurpose = require('../const/constSMSPurpose');
+const queryPhoneLocation = require('query-mobile-phone-area');
+const constProposalStatus = require('../const/constProposalStatus');
+const constRegistrationIntentRecordStatus = require('../const/constRegistrationIntentRecordStatus');
 
 const dbPlayerMail = {
 
@@ -182,7 +187,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice) {
+    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, data) {
         let lastMin = moment().subtract(1, 'minutes');
         let channel = null;
         let platformObjId = null;
@@ -267,6 +272,40 @@ const dbPlayerMail = {
         ).then(
             function (retData) {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
+
+                let smsPurposes = Object.keys(constSMSPurpose).map(function (key) {
+                    return constSMSPurpose[key];
+                });
+
+                // if (Object.values(constSMSPurpose).indexOf(purpose) === -1) {
+                if (smsPurposes.indexOf(purpose) === 1) {
+                    data.smsCode = code
+
+                    if( data.phoneNumber ){
+                        var queryRes = queryPhoneLocation(data.phoneNumber);
+                        if (queryRes) {
+                            data.phoneProvince = queryRes.province;
+                            data.phoneCity = queryRes.city;
+                            data.phoneType = queryRes.type;
+                        }
+
+                        let proposal = {data: data};
+                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, proposal, constProposalStatus.PENDING);
+                    }
+
+                    let newIntentData = {
+                        data: data,
+                        status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
+                        name: data.name
+                    };
+                    let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+                    return newRecord.save().then(data => {
+                        if(data){
+                            return true;
+                        }
+                    });
+                }
+
                 return true;
             }
         );

@@ -2732,5 +2732,6 @@
   "Greater and equal to (>=)": "大过或等于 (>=)",
   "Less than and equal to (<=)": "小过或等于 (<=)",
   "Equal to (=)": "等于 (=)",
-  "Interval (>=, <)": "区间 (>=, <)"
+  "Interval (>=, <)": "区间 (>=, <)",
+  "SMS": "短信"
 }

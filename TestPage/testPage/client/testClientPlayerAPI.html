@@ -62,6 +62,14 @@
         </label>
     </div>
     <div>
+        <label id="code">Purpose
+            <input type=text name="purpose">
+        </label>
+    </div>
+    <div>
+        <button id="getSmsCode" data-api-name="getSMSCode">Get SMS Code</button>
+    </div>
+    <div>
         <button id="getRegCaptcha">Get Captcha Code</button>
         <img id="playerRegCaptchaImg"/>
     </div>
@@ -1333,6 +1341,51 @@
 
     <div>
         <button id="getWithdrawalInfo" data-api-name="getWithdrawalInfo">Get Withdrawal Info</button>
+    </div>
+</div>
+
+<h3>GET CARD TYPE LIST (获取点卡类型列表)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input id="platformId" type=text name="platformId">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getCardTypeList" data-api-name="getCardTypeList">Get Card Type List</button>
+    </div>
+</div>
+
+<h3>GET SIGN INFO (获取签到信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input id="platformId" type=text name="platformId">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getSignInfo" data-api-name="getSignInfo">Get Sign Info</button>
+    </div>
+</div>
+
+<h3>GET SIGN BONUS (获取签到奖励)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input id="platformId" type=text name="platformId">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getSignBonus" data-api-name="getSignBonus">Get Sign Bonus</button>
     </div>
 </div>
 
