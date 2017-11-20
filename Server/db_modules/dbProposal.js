@@ -31,6 +31,7 @@ const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constSystemParam = require("../const/constSystemParam.js");
 const constServerCode = require("../const/constServerCode.js");
 const constPlayerTopUpType = require("../const/constPlayerTopUpType");
+let rsaCrypto = require("../modules/rsaCrypto");
 
 var proposal = {
 
@@ -1491,6 +1492,250 @@ var proposal = {
             return {data: returnData[0], size: returnData[1], summary: summaryObj};
         });
     },
+    getDuplicatePlayerPhoneNumber: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId) {//need
+        platformId = Array.isArray(platformId) ? platformId : [platformId];
+
+        //check proposal without process
+        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
+
+        let playerProm = [];
+        return Q.all([prom1]).then(//removed , prom2
+            data => {
+                if (data && data[0]) { // removed  && data[1]
+                    var types = data[0];
+                    // var processes = data[1];
+                    if (types && types.length > 0) {
+                        var proposalTypesId = [];
+                        for (var i = 0; i < types.length; i++) {
+                            if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
+                                proposalTypesId.push(types[i]._id);
+                            }
+                        }
+
+                        var queryObj = {
+                            status: {$in: statusArr},
+                            data:  { $exists: true, $ne: null }
+                        };
+                        if (startTime && endTime) {
+                            queryObj['createTime'] = {
+                                $gte: new Date(startTime),
+                                $lt: new Date(endTime)
+                            }
+                        }
+                        if (userName) {
+                            queryObj['data.name'] = userName;
+                        }
+                        if (phoneNumber) {
+                            queryObj['data.phoneNumber'] = phoneNumber;
+                        }
+
+                        if (size >= 0) {
+                            var a = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj)
+                                .populate({path: 'playerId', model: dbconfig.collection_players})
+                                .sort(sortCol).skip(index).limit(size).lean()
+                                .then(
+                                    pdata => {
+                                        pdata.map(item => {
+                                            // only displayPhoneNum equal true, encode the phone num
+                                            if (item.data && item.data.phone && !displayPhoneNum) {
+                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                            }
+                                            if (item.data && item.data.phoneNumber && !displayPhoneNum) {
+                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                            }
+                                            if (item.data && (item.data.playerId || item.data.name)) {
+                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId, item.data.name, proposalTypesId));
+                                            }
+
+                                            return item
+                                        })
+
+                                        return pdata;
+                                    })
+                                .then(proposals => {
+                                    proposals = insertPlayerRepeatCount(proposals, platformId[0]);
+
+                                    return proposals
+                                })
+                        } else {
+                            a = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj)
+                                .then(
+                                    pdata => {
+                                        pdata.map(item => {
+                                            // only displayPhoneNum equal true, encode the phone num
+                                            if (item.data && item.data.phone && !displayPhoneNum) {
+                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                            }
+                                            if (item.data && item.data.phoneNumber && !displayPhoneNum) {
+                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                            }
+                                            if (item.data && (item.data.playerId || item.data.name)) {
+                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId, item.data.name, proposalTypesId));
+                                            }
+
+                                            return item
+                                        })
+
+                                        return pdata;
+                                    })
+                                .then(proposals => {
+                                    proposals = insertPlayerRepeatCount(proposals, platformId[0]);
+
+                                    return proposals
+                                })
+                        }
+                        console.log(rsaCrypto.encrypt(phoneNumber));
+                        var b = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj).count();
+                        var c = dbconfig.collection_players.find({phoneNumber: rsaCrypto.encrypt(phoneNumber)}).populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+                        var d = dbconfig.collection_players.find({phoneNumber: rsaCrypto.encrypt(phoneNumber)}).populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+                        return Q.all([a, b, c, d])
+                    }
+                    else {
+                        return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
+                    }
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform proposal related data"});
+                }
+            }
+        ).then(returnData => {
+            return Q.all(playerProm).then(data => {
+
+                data.map(d => {
+                    if (d && ((d[0] && d[0].playerId) || (d[1] && d[1].data.name))) {
+                        for (var i = 0; i < returnData[0].length; i++) {
+                            if (d[0] && d[0].playerId && d[0].playerId == returnData[0][i].data.playerId) {
+                                if (d[0].csOfficer) {
+                                    returnData[0][i].data.csOfficer = d[0].csOfficer.adminName;
+                                }
+                                if (d[0].promoteWay) {
+                                    returnData[0][i].data.promoteWay = d[0].promoteWay;
+                                }
+                                if (d[0].registrationTime) {
+                                    returnData[0][i].data.registrationTime = d[0].registrationTime;
+                                }
+                                if (d[0].topUpTimes) {
+                                    returnData[0][i].data.topUpTimes = d[0].topUpTimes;
+                                }
+                                if (d[0].userAgent) {
+                                    for (var j = 0; j < d[0].userAgent.length; j++) {
+                                        returnData[0][i].data.device = dbutility.getInputDevice(d[0].userAgent, false);
+                                    }
+                                }
+                                if (d[0].playerLevel) {
+                                    returnData[0][i].data.playerLevel = d[0].playerLevel;
+                                }
+                                if (d[0].credibilityRemarks) {
+                                    returnData[0][i].data.credibilityRemarks = d[0].credibilityRemarks;
+                                }
+                                if (d[0].valueScore) {
+                                    returnData[0][i].data.valueScore = d[0].valueScore;
+                                }
+                                if (d[0].lastAccessTime) {
+                                    returnData[0][i].data.lastAccessTime = d[0].lastAccessTime;
+                                }
+                                if (d[0].status) {
+                                    returnData[0][i].data.playerStatus = d[0].status;
+                                }
+                            }
+
+                            if (d[1] && d[1].data && d[1].data.name && d[1].data.name == returnData[0][i].data.name) {
+                                if (d[1].proposalId) {
+                                    returnData[0][i].data.proposalId = d[1].proposalId;
+                                }
+                            }
+                        }
+                    }
+                })
+                let duplicateList = [];
+                let plyData = [];
+                let partnerData = [];
+                returnData[2].forEach(item=>{
+                    console.log(item);
+                    // plyData.push({'name':item.name, 'realName':item.realName ,'data.proposal':123});
+                    let playerUnitData = {
+                        'data':{
+                            'playerId': item.playerId ? item.playerId:'',
+                            'realName': item.realName ? item.realName:'',
+                            'lastLoginIp': item.lastLoginIp ? item.lastLoginIp:'',
+                            'topUpTimes': item.topUpTimes,
+                            'smsCode': '',
+                            'remarks': '',
+                            'device' : '',
+                            'promoteWay' : '',
+                            'csOfficer': '',
+                            'registrationTime' : item.registrationTime ? item.registrationTime : "",
+                            'lastAccessTime': item.lastAccessTime ? item.lastAccessTime: "",
+                            'proposalId': '',
+                            'playerLevel': item.playerLevel,
+                            'credibilityRemarks': item.credibilityRemarks ? item.credibilityRemarks : "",
+                            'valueScore': item.valueScore,
+                            'phoneProvince':item.phoneProvince? item.phoneProvince: '',
+                            'phoneCity': item.phoneCity ? item.phoneCity: ''
+                        },
+                    }
+                    plyData.push(playerUnitData);
+                })
+
+                returnData[3].forEach(item=>{
+                    console.log(item);
+                    // plyData.push({'name':item.name, 'realName':item.realName ,'data.proposal':123});
+                    let partnerUnitData = {
+                        'data':{
+                            'name': item.name ? item.name : '',
+                            'playerId': item.playerId ? item.playerId:'',
+                            'realName': item.realName ? item.realName:'',
+                            'lastLoginIp': item.lastLoginIp ? item.lastLoginIp:'',
+                            'topUpTimes': item.topUpTimes,
+                            'smsCode': '',
+                            'remarks': '',
+                            'device' : '',
+                            'promoteWay' : '',
+                            'csOfficer': '',
+                            'registrationTime' : item.registrationTime ? item.registrationTime : "",
+                            'lastAccessTime': item.lastAccessTime ? item.lastAccessTime: "",
+                            'proposalId': '',
+                            'playerLevel': item.playerLevel,
+                            'credibilityRemarks': item.credibilityRemarks ? item.credibilityRemarks : "",
+                            'valueScore': item.valueScore,
+                            'phoneProvince':item.phoneProvince? item.phoneProvince: '',
+                            'phoneCity': item.phoneCity ? item.phoneCity: ''
+                        },
+                    }
+                    partnerData.push(partnerUnitData);
+                })
+
+                // record.playerId = record.data.playerId ? record.data.playerId : "";
+                // record.name = record.data.name ? record.data.name : "";
+                // record.realName = record.data.realName ? record.data.realName : "";
+                // record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
+                // record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+                // record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
+                // record.smsCode = record.data.smsCode ? record.data.smsCode : "";
+                // record.remarks = record.data.remarks ? record.data.remarks : "";
+                // record.device = record.data.device ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
+                // record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
+                // record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
+                // record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
+                // record.proposalId = record.data.proposalId ? record.data.proposalId : "";
+                // record.playerLevelName = record.data.playerLevel ? record.data.playerLevel.name : "";
+                // record.credibilityRemarks = record.data.credibilityRemarks ? vm.credibilityRemarks.filter(item => {
+                //     return record.data.credibilityRemarks.includes(item._id);
+                // }) : [];
+
+                duplicateList = returnData[0].concat(plyData, partnerData);
+                // return {data: plyData, size: returnData[1]};
+                let result = {data: duplicateList, size: returnData[1]};
+                // let result = { data: returnData[0], size:returnData[1]};
+                console.log(result);
+
+                return result;
+
+
+            })
+
+        });
+    },
 
     getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
@@ -1514,7 +1759,7 @@ var proposal = {
 
                         var queryObj = {
                             status: {$in: statusArr},
-                            data:  { $exists: true, $ne: null } 
+                            data:  { $exists: true, $ne: null }
                         };
                         if (startTime && endTime) {
                             queryObj['createTime'] = {

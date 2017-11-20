@@ -2734,7 +2734,7 @@ define(['js/app'], function (myApp) {
 
             vm.preparePhoneDuplicateRecords = function (queryData, newSearch) {
                 vm.phoneDuplicateListRecords = [];
-                socketService.$socket($scope.AppSocket, 'getPlayerProposalsForAdminId', queryData, function (data) {
+                socketService.$socket($scope.AppSocket, 'getDuplicatePlayerPhoneNumber', queryData, function (data) {
                     vm.phoneDuplicateListRecords = data.data.data;
                     vm.phoneDuplicate.totalCount = data.data.size;
                     vm.phoneDuplicate.loading = false;
