@@ -303,7 +303,6 @@ describe("Test partner consumption return reward event", function () {
         partnerTreeConfig.consumptionConfig = consumptionConfig;
         partnerTreeConfig.topUpConfig = topUpConfig;
         partnerTreeConfig.generatedData = generatedData;
-
         return dataGenerator.ensureTestGames(generatedData).then(
             () => dataGenerator.createPartnerTree(partnerTreeConfig)
         );

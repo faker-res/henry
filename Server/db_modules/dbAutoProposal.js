@@ -309,6 +309,13 @@ function checkProposalConsumption(proposal, platformObj) {
                                 );
                                 break;
                             case "Reward":
+                                // Get list of restricted providers
+                                let providerArr;
+
+                                if (getProp.data.providers && getProp.data.providers.length > 0) {
+                                    providerArr = getProp.data.providers.map(e => ObjectId(e._id));
+                                }
+
                                 // Consumption return proposal does not need to check consumption
                                 if (getProp.type == constProposalType.PLAYER_CONSUMPTION_RETURN
                                     || getProp.type == constProposalType.PARTNER_CONSUMPTION_RETURN) {
@@ -321,7 +328,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                 else {
                                     // Only check rewards that require consumption
                                     proms.push(
-                                        getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, new Date(queryDateFrom), new Date(queryDateTo)).then(
+                                        getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, new Date(queryDateFrom), new Date(queryDateTo), providerArr).then(
                                             record => {
                                                 let curConsumption = 0, bonusAmount = 0;
                                                 let initBonusAmount = 0;
@@ -447,6 +454,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                 lastTopUpResult.requiredConsumption += checkResult[i].requiredConsumption;
                                 lastTopUpResult.initBonusAmount += checkResult[i].initBonusAmount;
                                 lastTopUpResult.bonusAmount += checkResult[i].bonusAmount;
+                                lastTopUpResult.isCleared = isClearCycle;
                             }
 
                             // Check consumption for each cycle
@@ -778,13 +786,13 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
     }).sort({createTime: -1}).limit(1).lean().then(
         retData => {
             if (retData && retData[0]) {
-                return retData[0].settleTime ? retData[0].settleTime : retData[0].createTime;
+                return retData[0].createTime;
             }
         }
     );
 }
 
-function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo) {
+function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo, providerIdArr) {
     let matchObj = {
         platformId: ObjectId(platformId),
         createTime: {
@@ -793,6 +801,10 @@ function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo) {
         },
         playerId: ObjectId(playerId)
     };
+
+    if (providerIdArr) {
+        matchObj.providerId = {$in: providerIdArr};
+    }
 
     let groupObj = {
         _id: {playerId: "$playerId", platformId: "$platformId"},

@@ -29,7 +29,7 @@ describe("Test Report", function () {
             socket.once('_getPlatform', function (data) {
                 socket.close();
                 if (data.success) {
-                    testPlatformObjId = data.data._id;
+                    testPlayerPlatformObjId = testPlatformObjId = data.data._id;
                     testPlatformPrefix = data.data.prefix;
                     done();
                 }
@@ -65,9 +65,9 @@ describe("Test Report", function () {
     it('Should find player', function (done) {
         socketConnection.createConnection().then(function (socket) {
             socket.connected.should.equal(true);
-
             var queryPlayer = {
-                "name": testPlatformPrefix + PLATFORM_PREFIX_SEPARATOR + testPlayerName
+                "name": testPlatformPrefix + PLATFORM_PREFIX_SEPARATOR + testPlayerName,
+                "platform": testPlatformObjId
             };
             socket.emit('getPlayerInfo', queryPlayer);
             socket.once('_getPlayerInfo', function (data) {
@@ -75,7 +75,7 @@ describe("Test Report", function () {
                 if (data.success && data.data) {
                     testPlayerObjId = data.data._id;
                     testPlayerId = data.data.playerId;
-                    testPlayerPlatformObjId = data.data.platform;
+                    //testPlayerPlatformObjId = data.data.platform;
                     done();
                 }
             });

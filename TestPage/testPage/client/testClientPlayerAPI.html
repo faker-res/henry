@@ -324,6 +324,11 @@
             <input id="phoneinput" type=text name="phoneNumber">
         </label>
     </div>
+    <div>
+        <label>Purpose
+            <input type=text name="purpose">
+        </label>
+    </div>
     <button id="getVerificationCode" data-api-name="getSMSCode">Get Verification Code</button>
     <p>
         <!--<div>-->
@@ -346,6 +351,11 @@
     <div>
         <label>platformId
             <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Purpose
+            <input type=text name="purpose">
         </label>
     </div>
     <button id="getVerificationCodeAfterLogin" data-api-name="sendSMSCodeToPlayer">Get Verification Code</button>
@@ -1299,7 +1309,7 @@
         </label>
     </div>
     <div>
-        <label >Platform ObjectId
+        <label>Platform ObjectId
             <input id="platformObjId" type=text name="platformObjId">
         </label>
     </div>
@@ -1308,6 +1318,21 @@
     <div>
         <!--For testing Modify the player information API (8)-->
         <button id="manualPlayerLevelUp" data-api-name="manualPlayerLevelUp">Manual Level Up</button>
+    </div>
+</div>
+
+<h3>GET WITHDRAWAL INFO (获取玩家提款信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input id="platformId" type=text name="platformId">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getWithdrawalInfo" data-api-name="getWithdrawalInfo">Get Withdrawal Info</button>
     </div>
 </div>
 

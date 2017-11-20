@@ -55,6 +55,13 @@
         this.playerLevelService.getAllLevel.once(callback);
     };
 
+    proto.upgrade = function (callback, requestData) {
+
+        var data = requestData || {playerId: testPlayerId};
+        this.playerLevelService.upgrade.request(data);
+        this.playerLevelService.upgrade.once(callback);
+    };
+
     if(isNode){
         module.exports = ClientPlayerLevelAPITest;
     } else {

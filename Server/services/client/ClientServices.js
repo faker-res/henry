@@ -79,7 +79,8 @@
                 "getUnreadMail",
                 "deleteAllMail",
                 "deleteMail",
-                "manualPlayerLevelUp"
+                "manualPlayerLevelUp",
+                "getWithdrawalInfo"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -224,7 +225,8 @@
             var functionNames = [
                 "getLevel",
                 "getLevelReward",
-                "getAllLevel"
+                "getAllLevel",
+                "upgrade"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -259,7 +261,8 @@
                 "getLimitedOffers",
                 "applyLimitedOffers",
                 "getLimitedOfferBonus",
-                "setLimitedOfferShowInfo"
+                "setLimitedOfferShowInfo",
+                "setBonusShowInfo"
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

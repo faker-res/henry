@@ -160,7 +160,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVertificationSMS: function (platformObjId, platformId, data, verifyCode) {
+    sendVertificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName) {
         var sendObj = {
             tel: data.tel,
             channel: data.channel,
@@ -168,22 +168,21 @@ const dbPlayerMail = {
             message: data.message,
             delay: data.delay || 0,
         };
-        console.log(sendObj);
         return smsAPI.sending_sendMessage(sendObj).then(
             retData => {
                 console.log(retData);
                 console.log('[smsAPI] Sent verification code to: ', data.tel);
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, 'success');
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'success');
                 return retData;
             },
             retErr => {
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, 'failure', retErr);
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr);
                 return Q.reject({message: retErr, error: retErr});
             }
         );
     },
-  
-    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation) {
+
+    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName) {
         let lastMin = moment().subtract(1, 'minutes');
         let channel = null;
         let platformObjId = null;
@@ -196,7 +195,7 @@ const dbPlayerMail = {
                 if (platformData) {
                     platform = platformData;
                     platformObjId = platform._id;
-                    // verfiy captcha if necessary
+                    // verify captcha if necessary
                     if (platform.requireCaptchaInSMS) {
                         if (!captchaValidation) {
                             return Q.reject({
@@ -262,7 +261,7 @@ const dbPlayerMail = {
                 };
                 // Log the verification SMS before send
                 new dbconfig.collection_smsVerificationLog(saveObj).save();
-                return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code);
+                return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
    
             }
         ).then(
@@ -273,10 +272,10 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationCodeToPlayer: function (playerId, smsCode, platformId, captchaValidation) {
+    sendVerificationCodeToPlayer: function (playerId, smsCode, platformId, captchaValidation, purpose, inputDevice) {
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platform => {
-                platformObjId = platform._id;
+                let platformObjId = platform._id;
                 return dbconfig.collection_players.findOne({
                     playerId: playerId,
                     platform: platformObjId
@@ -287,7 +286,7 @@ const dbPlayerMail = {
             }
         ).then(
             player => {
-                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation);
+                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation, purpose, inputDevice, player.name);
             },
             error => {
                 return Q.reject({name: "DBError", message: "Error in getting player data", error: error});

@@ -126,6 +126,7 @@ var simplifiedChinese = {
     "Cannot find top up return event data for platform": "无法找到奖励活动",
     "You have reached the max reward amount today": "已达到当天奖励额度上限",
     "Some top up records have been used": "充值记录已被使用",
+    "Top up count has not met period condition": "未达到周期内存款笔数条件",
     "Error calculating player consumption return": "结算返点失败",
     "Platform is not ready for settlement": "平台正在结算",
     "Payment is not available": "支付维护中",
@@ -148,6 +149,7 @@ var simplifiedChinese = {
     "Referral does not have enough topup amount": "被推荐人充值额度不够",
     "Player does not have enough return amount": "您的洗码额度不足100元，无法提前结算洗码，谢谢",
     "Player has applied for max reward times": "您已经达到了该奖励今日的申请上限",
+    "Player has applied for max reward times in event period": "您已经达到了该奖励周期内的申请上限",
     "Player do not have permission for reward": "您好， 您目前暂无申请优惠的权限，请联系客服。",
     "Username should be alphanumeric and within 12 characters": "用户名只能为6-12位的数字和字母",
     "Username should be alphanumeric and within 20 characters": "用户名只能为6-20位的数字和字母",
@@ -181,7 +183,9 @@ var simplifiedChinese = {
     "Cant find player current reward.": "游戏正在维护中，请稍后再试",
     "Player is forbidden for this reward.": "您目前暂无申请此优惠的权限，详情请联系客服。",
     "SMS is not available": "短信发送失败，请再次尝试",
-    "Cant apply this reward, contact cs": "不符合领取条件，请联系客服"
+    "Cant apply this reward, contact cs": "不符合领取条件，请联系客服",
+    "PARTNER": "代理",
+    "Incorrect SMS Validation Code": "验证码错误，请再次输入",
     //todo::add missing messages here
 
     /*

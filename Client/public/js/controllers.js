@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('myApp.controllers', ['ngSanitize', 'ngCsv']).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter) {
+angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporter', 'ui.grid.resizeColumns', 'ui.grid.moveColumns', 'ngSanitize', 'ngCsv']).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter) {
     //todo::disable console log for production
     // if(CONFIG.NODE_ENV != "local"){
     //     window.console = { log: function(){}, warn: function(){}, error: function(){}, info: function(){} };
@@ -284,12 +284,12 @@ angular.module('myApp.controllers', ['ngSanitize', 'ngCsv']).controller('AppCtrl
     $scope.setClickedHeaderIcon = function () {
         var location = $location.path().slice(1);
 
-        if(location == "platform")
+        if (location == "platform")
             $('#cssmenu .navbar-brand  a[name*="platform"]').parent().addClass('clickedWebsiteBusiness');
         else
             $('#cssmenu .navbar-brand  a[name*="platform"]').parent().removeClass('clickedWebsiteBusiness');
 
-        if(location == "mainPage")
+        if (location == "mainPage")
             $('#cssmenu .navbar-brand  a[name*="mainPage"]').parent().addClass('clickedBackstagePrivilege');
         else
             $('#cssmenu .navbar-brand  a[name*="mainPage"]').parent().removeClass('clickedBackstagePrivilege');
@@ -347,6 +347,12 @@ angular.module('myApp.controllers', ['ngSanitize', 'ngCsv']).controller('AppCtrl
         '1': 'MerchantUse_CreateAccount',
         '2': 'MerchantUse_Normal'
     };
+    $scope.merchantTopupMainTypeJson = {
+        1: "Online",
+        2: "Manual",
+        3: "Alipay",
+        4: "Wechatpay"
+    };
     $scope.merchantTopupTypeJson = {
         '1': 'NetPay',
         '2': 'WechatQR',
@@ -403,6 +409,80 @@ angular.module('myApp.controllers', ['ngSanitize', 'ngCsv']).controller('AppCtrl
         1: "NORMAL",
         2: "FORBID"
     };
+
+    $scope.rewardInterval = {
+        1: "Daily",
+        2: "Weekly",
+        3: "Biweekly",
+        4: "Monthly",
+        5: "No Interval"
+    };
+
+    $scope.rewardApplyType = {
+        1: "Manual Apply",
+        2: "Auto Apply",
+        3: "Batch Apply"
+    };
+
+    $scope.intervalType = {
+        1: "Greater and equal to (>=)",
+        2: "Less than and equal to (<=)",
+        3: "Equal to (=)",
+        4: "Interval (>=, <)"
+    };
+
+
+    $scope.weekDay = {
+        "": "",
+        1: "Monday",
+        2: "Tuesday",
+        3: "Wednesday",
+        4: "Thursday",
+        5: "Friday",
+        6: "Saturday",
+        7: "Sunday"
+    };
+
+    $scope.dayTime = {
+        "": "",
+        0: "0000",
+        1: "0100",
+        2: "0200",
+        3: "0300",
+        4: "0400",
+        5: "0500",
+        6: "0600",
+        7: "0700",
+        8: "0800",
+        9: "0900",
+        10: "1000",
+        11: "1100",
+        12: "1200",
+        13: "1300",
+        14: "1400",
+        15: "1500",
+        16: "1600",
+        17: "1700",
+        18: "1800",
+        19: "1900",
+        20: "2000",
+        21: "2100",
+        22: "2200",
+        23: "2300"
+    };
+
+    $scope.loseValueType = {
+        1: "deposit - withdrawal",
+        2: "consumption - reward",
+        3: "consumtion sum"
+    }
+
+    $scope.consumptionRecordProviderName = {
+        1: "AGOTHS",
+        2: "PT",
+        3: "MG"
+    }
+
     //////// DOM initialisation operations ////////
 
     $('[data-toggle="tooltip"]').tooltip();
@@ -454,6 +534,7 @@ angular.module('myApp.controllers', ['ngSanitize', 'ngCsv']).controller('AppCtrl
 
     $scope.getChannelList = function (callback) {
         socketService.$socket($scope.AppSocket, 'getSMSChannelList', {}, onSuccess, onFail, true);
+
         function onSuccess(data) {
             $scope.channelList = data.data.channels.filter(item => {
                 return (item != 1) && (item != '1');
@@ -473,6 +554,7 @@ angular.module('myApp.controllers', ['ngSanitize', 'ngCsv']).controller('AppCtrl
     }
     $scope.sendSMSToPlayer = function (src, callback) {
         socketService.$socket($scope.AppSocket, 'sendSMSToPlayer', src, onSuccess, onFail, true);
+
         function onSuccess(data) {
             if (callback) {
                 callback.call(this, data);
@@ -487,6 +569,7 @@ angular.module('myApp.controllers', ['ngSanitize', 'ngCsv']).controller('AppCtrl
     }
     $scope.sendSMSToNewPlayer = function (src, callback) {
         socketService.$socket($scope.AppSocket, 'sentSMSToNewPlayer', src, onSuccess, onFail, true);
+
         function onSuccess(data) {
             if (callback) {
                 callback.call(this, data);
@@ -504,6 +587,7 @@ angular.module('myApp.controllers', ['ngSanitize', 'ngCsv']).controller('AppCtrl
         $scope.phoneCall.random = Math.random();
         $scope.phoneCall.capthaSrc = "http://www.phoneapichat.com/servlet/GetMaCode?random=" + $scope.phoneCall.random;
         $('#phoneCaptha').prev().show();
+
         function checkCaptha() {
             var img = $('#phoneCaptha');
             if (img && img[0]) {
@@ -530,6 +614,7 @@ angular.module('myApp.controllers', ['ngSanitize', 'ngCsv']).controller('AppCtrl
         socketService.$socket($scope.AppSocket, 'getAdminInfo', {
             adminName: $scope.getUserName()
         }, onSuccess, onFail, true);
+
         function onSuccess(data) {
             console.log('admin data', data);
             var adminData = data.data;
@@ -546,7 +631,7 @@ angular.module('myApp.controllers', ['ngSanitize', 'ngCsv']).controller('AppCtrl
 
             // let url = "http://eu.tel400.me/cti/previewcallout.action";//http://101.78.133.213/cti/previewcallout.action";
 
-            let urls = ["http://eu.tel400.me/cti/previewcallout.action", "http://jinbailitw.tel400.me/cti/previewcallout.action"];
+            let urls = ["http://eu.tel400.me/cti/previewcallout.action", "http://jinbailitw.tel400.me/cti/previewcallout.action", "http://jinbailicro.tel400.me/cti/previewcallout.action"];
 
             urls.forEach(
                 url => {
@@ -874,9 +959,9 @@ angular.module('myApp.controllers', ['ngSanitize', 'ngCsv']).controller('AppCtrl
         var location = $location.path().slice(1);
         $('#cssmenu .navbar-brand  a[name*="' + location + '"]').parent().addClass('active');
 
-        if(location == "platform")
+        if (location == "platform")
             $('#cssmenu .navbar-brand  a[name*="' + location + '"]').parent().addClass('clickedWebsiteBusiness');
-        else if(location == "mainPage")
+        else if (location == "mainPage")
             $('#cssmenu .navbar-brand  a[name*="' + location + '"]').parent().addClass('clickedBackstagePrivilege');
 
         $translate(location).then(
@@ -1072,7 +1157,7 @@ angular.module('myApp.controllers', ['ngSanitize', 'ngCsv']).controller('AppCtrl
         $cookies.put('curFPMSServer', server);
         $scope.connectSocket();
     };
-    $scope.changeLogoImg = (url) =>{
+    $scope.changeLogoImg = (url) => {
         $scope.companyLogo = url;
     };
 

@@ -227,6 +227,7 @@ describe("Test Partner Referral Reward event", function () {
         for (var i = 0; i < testPartnerNum; i++) {
             var playerData = {
                 partnerName: "testPartner" + date + ":" + i,
+                realName: "testRealName" + date + i,
                 platform: testPlatformId,
                 password: "123",
                 level: generatedData.testPartnerLevels[partnerIndexToPartnerLevelValue(i)]._id
@@ -257,7 +258,8 @@ describe("Test Partner Referral Reward event", function () {
                 name: "testpayer" + i + date.getTime(),
                 platform: testPlatformId,
                 password: "123",
-                games: [testGameId2, testGameId]
+                games: [testGameId2, testGameId],
+                phoneNumber: "11111111" + i
             };
             proms.push(dbPlayerInfo.createPlayerInfo(playerData));
         }

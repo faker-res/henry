@@ -55,8 +55,8 @@ let dbPlayerLevelInfo = {
 
         return dbconfig.collection_platform.findOne({"_id": platformObjId}).then(
             (platformData) => {
-                let platformPeriod = upOrDown? platformData.playerLevelUpPeriod: platformData.playerLevelDownPeriod;
-                if (platformPeriod){
+                let platformPeriod = upOrDown ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
+                if (platformPeriod) {
                     if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
                         period = dbUtil.getYesterdaySGTime();
                     } else if (platformPeriod == constPlayerLevelUpPeriod.WEEK) {
@@ -64,15 +64,15 @@ let dbPlayerLevelInfo = {
                     } else if (platformPeriod == constPlayerLevelUpPeriod.MONTH) {
                         period = dbUtil.getLastMonthSGTime();
                     }
-                }else {
+                } else {
                     period = dbUtil.getLastMonthSGTime();
                 }
 
-                if (!upOrDown){
+                if (!upOrDown) {
                     period.startTime = moment(period.startTime).add(12, 'hours').toDate();
                     period.endTime = moment(period.endTime).add(12, 'hours').toDate();
                 }
-                console.log('check level time',period);
+                console.log('check level time', period);
 
                 return dbconfig.collection_playerLevel.find({platform: platformObjId}).sort({value: 1}).lean().then(
                     levels => {
@@ -145,7 +145,7 @@ let dbPlayerLevelInfo = {
             .populate(
                 {path: "playerLevel", model: dbconfig.collection_playerLevel}
                 // ,{path: "platform", model: dbconfig.collection_platform, select: ["playerLevelUpPeriod","playerLevelDownPeriod"]}]
-                ).lean();
+            ).lean();
 
         let topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
             {
@@ -204,37 +204,39 @@ let dbPlayerLevelInfo = {
                 // Check level up
                 // Only player with top up or consumption last month worth checking
                 if (playersTopupForPeriod > 0 || playersConsumptionForPeriod > 0) {
-                    // Check if player can level UP and which level player can level up to
-                    for (let i = 0; i < checkingUpLevels.length; i++) {
-                        const level = checkingUpLevels[i];
+                    if (upOrDown) {
+                        // Check if player can level UP and which level player can level up to
+                        for (let i = 0; i < checkingUpLevels.length; i++) {
+                            const level = checkingUpLevels[i];
 
-                        if (level.value > playerData.playerLevel.value) {
-                            const conditionSets = level.levelUpConfig;
+                            if (level.value > playerData.playerLevel.value) {
+                                const conditionSets = level.levelUpConfig;
 
-                            for (let j = 0; j < conditionSets.length; j++) {
-                                const conditionSet = conditionSets[j];
+                                for (let j = 0; j < conditionSets.length; j++) {
+                                    const conditionSet = conditionSets[j];
 
-                                const meetsTopupCondition = playersTopupForPeriod >= conditionSet.topupLimit;
-                                const meetsConsumptionCondition = playersConsumptionForPeriod >= conditionSet.consumptionLimit;
+                                    const meetsTopupCondition = playersTopupForPeriod >= conditionSet.topupLimit;
+                                    const meetsConsumptionCondition = playersConsumptionForPeriod >= conditionSet.consumptionLimit;
 
-                                const meetsEnoughConditions =
-                                    conditionSet.andConditions
-                                        ? meetsTopupCondition && meetsConsumptionCondition
-                                        : meetsTopupCondition || meetsConsumptionCondition;
+                                    const meetsEnoughConditions =
+                                        conditionSet.andConditions
+                                            ? meetsTopupCondition && meetsConsumptionCondition
+                                            : meetsTopupCondition || meetsConsumptionCondition;
 
-                                if (meetsEnoughConditions) {
-                                    levelObjId = level._id;
-                                    levelUpObj = level;
+                                    if (meetsEnoughConditions) {
+                                        levelObjId = level._id;
+                                        levelUpObj = level;
+                                    }
+
+
                                 }
-
-
                             }
                         }
                     }
 
                     // Check level down
                     if (playerData.playerLevel.value > 0 && !levelUpObj) {
-                        // Check if player can level UP and which level player can level up to
+                        // Check if player can level DOWN and which level player can level down to
                         for (let i = 0; i < checkingDownLevels.length; i++) {
                             const level = checkingDownLevels[i];
 
@@ -248,17 +250,24 @@ let dbPlayerLevelInfo = {
                                     const meetsTopupCondition = playersTopupForPeriod >= conditionSet.topupMinimum;
                                     const meetsConsumptionCondition = playersConsumptionForPeriod >= conditionSet.consumptionMinimum;
 
-                                    const meetsEnoughConditions =
-                                        conditionSet.topupMinimum <= 0
-                                            ? conditionSet.consumptionMinimum <= 0
-                                            ? false
-                                            : meetsConsumptionCondition
-                                            : conditionSet.consumptionMinimum <= 0
-                                            ? meetsTopupCondition
-                                            : conditionSet.andConditions
-                                                ? meetsTopupCondition && meetsConsumptionCondition
-                                                : meetsTopupCondition || meetsConsumptionCondition;
+                                    let meetsEnoughConditions = false;
 
+                                    if (conditionSet.topupMinimum > 0 || conditionSet.consumptionMinimum > 0) {
+                                        if (conditionSet.andConditions) {
+                                            meetsEnoughConditions = meetsTopupCondition && meetsConsumptionCondition
+                                        } else {
+                                            if (conditionSet.topupMinimum <= 0) {
+                                                meetsEnoughConditions = meetsConsumptionCondition;
+                                            } else if (conditionSet.consumptionMinimum <= 0) {
+                                                meetsEnoughConditions = meetsTopupCondition;
+                                            } else {
+                                                meetsEnoughConditions = meetsTopupCondition || meetsConsumptionCondition
+                                            }
+                                        }
+                                    } else {
+                                        levelObjId = playerData.playerLevel.value > 0 ? levels[0]._id : null;
+                                        levelDownObj = levels[0];
+                                    }
                                     if (meetsEnoughConditions) {
                                         levelObjId = level._id;
                                         levelDownObj = level;
@@ -273,7 +282,6 @@ let dbPlayerLevelInfo = {
                     levelObjId = playerData.playerLevel.value > 0 ? levels[0]._id : null;
                     levelDownObj = levels[0];
                 }
-
                 if (levelObjId && String(levelObjId) != String(playerData.playerLevel._id) && ((upOrDown && levelUpObj) || (!upOrDown && levelDownObj))) {
                     let proposalData = {
                         levelValue: upOrDown ? levelUpObj.value : levelDownObj.value,

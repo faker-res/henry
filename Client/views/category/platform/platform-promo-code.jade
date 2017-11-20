@@ -503,9 +503,21 @@
 
                 // Tab - Activate Promo Code
                 div(ng-if='vm.selectedPromoCodeTab=="activatePromoCode" && checkViewPermission("Platform", "promoCode", "activatePromoCode")')
-                    label {{"SET_PROMO_CODE_FLAG" | translate}}
-                    .pull-right
-                        button.btn.btn-primary.common-button(ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("validActive")') {{"SET" | translate}}
+                    #promoCodeActivate.block-query.col-md-12.well
+                        div
+                            label.control-label {{'START_CREATE_TIME' | translate}}
+                            .startCreateTime
+                        div
+                            label.control-label {{'END_CREATE_TIME' | translate}}
+                            .endCreateTime
+                        div
+                            label {{"IS_ACTIVE" | translate}}
+                            select.form-control(ng-model='vm.promoCodeActivate.flag')
+                                option(value='false') {{'NO' | translate}}
+                                option(value='true') {{"YES" | translate}}
+                        .pull-right
+                            button.btn.btn-primary.common-button(ng-click='vm.setPromoCodeActivate()') {{"SET" | translate}}
+                            label {{vm.promoCodeActivate.message}}
 
                 // Tab - Promo Code Analysis
                 div(ng-if='vm.selectedPromoCodeTab=="promoCodeAnalysis" && checkViewPermission("Platform", "promoCode", "promoCodeAnalysis")')
@@ -542,24 +554,6 @@
                     .clearfix
                     label(ng-if="vm.promoCodeAnalysis2.totalCount") {{"Player Anaysis" | translate}} : {{"Total" | translate}} {{vm.promoCodeAnalysis2.totalCount}} {{"records" | translate}}
                     table#promoCodeAnalysis2Table.common-table.display(style="min-width:100% ;overflow: scroll")
-
-
-#modalYesNo.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
-        .modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{vm.modalYesNo.modalTitle}}
-            .modal-body
-                .panel.panel-primary
-                    .panel-body
-                        .row
-                            .col-md-12
-                                .well
-                                    text {{vm.modalYesNo.modalText}}
-            .modal-footer
-                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.modalYesNo.actionYes()") {{"CONFIRM" | translate}}
-                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalDeletePromoCodeUserGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')

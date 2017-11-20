@@ -214,6 +214,11 @@ define([], function () {
                 .replace(',', ' ');
         }
 
+        this.getLocalTime = function (date) {
+            if (!date) return null;
+            return new Date(date.getTime() - new Date().getTimezoneOffset() * 60 * 1000);
+        };
+
         this.setLocalDayStartTime = function (date) {
             if (!date) return null;
             date.setHours(0, 0, 0, 0);
@@ -722,6 +727,7 @@ define([], function () {
                 case "UpdatePartnerEmail":
                 case "UpdatePartnerPhone":
                 case "UpdatePartnerQQ":
+                case "UpdatePartnerWeChat":
                     groupName = "PARTNER_INFORMATION";
                     break;
                 case "UpdatePlayerCredit":

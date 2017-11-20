@@ -1,8 +1,11 @@
 var dbconfig = require('./../modules/dbproperties');
 var Q = require("q");
+var SettlementBalancer = require('../settlementModule/settlementBalancer');
+var moment = require('moment-timezone');
 var constSystemParam = require('../const/constSystemParam');
 var mongoose = require('mongoose');
 var constPlayerFeedbackResult = require('./../const/constPlayerFeedbackResult');
+const ObjectId = mongoose.Types.ObjectId;
 
 var dbPlayerFeedback = {
 
@@ -58,7 +61,7 @@ var dbPlayerFeedback = {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {};
 
-        function getTopupCoountWithinPeriod(feedback) {
+        function getTopUpCountWithinPeriod(feedback) {
             return dbconfig.collection_playerTopUpRecord.aggregate([
                 {
                     $match: {
@@ -139,13 +142,15 @@ var dbPlayerFeedback = {
                 var proms = [];
                 returnedData.forEach(
                     feedback => {
-                        if (feedback.result == constPlayerFeedbackResult.NORMAL) {
-                            proms.push(
-                                getTopupCoountWithinPeriod(feedback)
-                            )
-                        } else {
-                            proms.push(Q.resolve({}));
-                        }
+                        // if (feedback.result == constPlayerFeedbackResult.NORMAL) {
+                        //     proms.push(
+                        //         getTopupCountWithinPeriod(feedback)
+                        //     )
+                        // } else {
+                        //     proms.push(Q.resolve({}));
+                        // }
+
+                        proms.push(getTopUpCountWithinPeriod(feedback));
                     }
                 );
                 return Q.all(proms);
@@ -224,16 +229,270 @@ var dbPlayerFeedback = {
         )
     },
 
-    getPlayerFeedbackQuery: function (query, index) {
+    getPlayerFeedbackReportAdvance: function (platform, query, index, limit, sortCol) {
+        limit = limit ? limit : 20;
+        index = index ? index : 0;
+        query = query ? query : {};
+
+        let startDate = new Date(query.start);
+        let endDate = new Date(query.end);
+        let result = [];
+
+        let matchObjFeedback = {
+            platform: platform,
+            createTime: {$gte: startDate, $lt: endDate}
+        };
+        if(query.result) {
+            matchObjFeedback.result = query.result;
+        }
+        if(query.topic) {
+            matchObjFeedback.topic = query.topic;
+        }
+
+        switch (query.playerType) {
+            case 'Test Player':
+                query.isRealPlayer = false;
+                break;
+            case 'Real Player (all)':
+                query.isRealPlayer = true;
+                break;
+            case 'Real Player (Individual)':
+                query.isRealPlayer = true;
+                query.partner = null;
+                break;
+            case 'Real Player (Under Partner)':
+                query.isRealPlayer = true;
+                query.partner = {$ne: null};
+        }
+        if("playerType" in query) {
+            delete query.playerType;
+        }
+
+        let stream = dbconfig.collection_playerFeedback.aggregate([
+            {
+                $match: matchObjFeedback
+            }
+        ]).cursor({batchSize: 100}).allowDiskUse(true).exec();
+
+        let balancer = new SettlementBalancer();
+        return balancer.initConns().then(function () {
+            return Q(
+                balancer.processStream(
+                    {
+                        stream: stream,
+                        batchSize: constSystemParam.BATCH_SIZE,
+                        makeRequest: function (feedbackIdObjs, request) {
+                            request("player", "getConsumptionDetailOfPlayers", {
+                                platformId: platform,
+                                startTime: query.start,
+                                endTime: moment(query.start).add(query.days, "day"),
+                                query: query,
+                                playerObjIds: feedbackIdObjs.map(function (feedbackIdObj) {
+                                    return feedbackIdObj._id;
+                                }),
+                                option: {
+                                    isFeedback: true
+                                }
+                            });
+                        },
+                        processResponse: function (record) {
+                            result = result.concat(record.data);
+                        }
+                    }
+                )
+            );
+        }).then(
+            () => {
+                // handle index limit sortcol here
+                if (Object.keys(sortCol).length > 0) {
+                    result.sort(function (a, b) {
+                        if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
+                            return 1 * sortCol[Object.keys(sortCol)[0]];
+                        } else {
+                            return -1 * sortCol[Object.keys(sortCol)[0]];
+                        }
+                    });
+                }
+                else {
+                    result.sort(function (a, b) {
+                        if (a._id > b._id) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    });
+                }
+
+
+                let outputResult = [];
+                for (let i = 0, len = limit; i < len; i++) {
+                    result[index + i] ? outputResult.push(result[index + i]) : null;
+                }
+
+                // Output filter admin (which is CS officer)
+                outputResult = query.admins && query.admins.length > 0 ? outputResult.filter(e => query.admins.indexOf(e.feedback.adminId._id) >= 0) : outputResult;
+
+                return {size: result.length, data: outputResult};
+            }
+        );
+    },
+
+    // getPlayerFeedbackQuery: function (query, index) {
+    //     index = index || 0;
+    //     console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",query);
+    //     let match = {};
+    //
+    //     if(query.platform) {
+    //         match.platform = ObjectId(query.platform);
+    //         delete query.platform;
+    //     }
+    //     if(query.credibilityRemarks) {
+    //         match.credibilityRemarks = {};
+    //         query.credibilityRemarks.forEach(
+    //             function(value, key){
+    //                 query.credibilityRemarks[key] = ObjectId(value);
+    //         });
+    //         match.credibilityRemarks['$in'] = query.credibilityRemarks;
+    //         delete query.credibilityRemarks;
+    //     }
+    //     if(query.lastAccessTimeFrom || query.lastAccessTimeTill) {
+    //         match.lastAccessTime = {};
+    //     }
+    //     if(query.lastAccessTimeFrom) {
+    //         match.lastAccessTime['$lt'] = new Date(query.lastAccessTimeFrom);
+    //         delete query.lastAccessTimeFrom;
+    //     }
+    //     if(query.lastAccessTimeTill) {
+    //         match.lastAccessTime['$gte'] = new Date(query.lastAccessTimeTill);
+    //         delete query.lastAccessTimeTill;
+    //     }
+    //     if(query.lastFeedbackTimeFrom || query.lastFeedbackTimeTill) {
+    //         match.lastFeedbackTime = {};
+    //     }
+    //     if(query.lastFeedbackTimeFrom) {
+    //         match.lastFeedbackTime['$lt'] = new Date(query.lastFeedbackTimeFrom);
+    //         delete query.lastFeedbackTimeFrom;
+    //     }
+    //     if(query.lastFeedbackTimeTill) {
+    //         match.lastFeedbackTime['$gte'] = new Date(query.lastFeedbackTimeTill);
+    //         delete query.lastFeedbackTimeTill;
+    //     }
+    //     if(query.gameProviderPlayed) {
+    //         match.gameProviderPlayed = {};
+    //         query.gameProviderPlayed.forEach(
+    //             function(value, key){
+    //                 query.gameProviderPlayed[key] = ObjectId(value);
+    //             });
+    //         match.gameProviderPlayed['$in'] = query.gameProviderPlayed;
+    //         delete query.gameProviderPlayed;
+    //     }
+    //     query.noMoreFeedback = {$ne: true};
+    //     match = Object.assign(match,query);
+    //     console.log("!@#$%^&*()_)(*&^%$#@!",match);
+    //
+    //     let a = dbconfig.collection_players.aggregate([
+    //         {
+    //             $match: match
+    //         },
+    //         {
+    //             $skip: index
+    //         },
+    //         {
+    //             $limit: 1
+    //         },
+    //         {
+    //             $lookup: {
+    //                 from: "playerCredibilityUpdateLog",
+    //                 localField: "_id",
+    //                 foreignField: "player",
+    //                 as: "playerCredibilityUpdateLog"
+    //             }
+    //         }
+    //     ]).exec(function(err,player) {
+    //         console.error("!@#$%^&*()_)(*&^%$#@!",err);
+    //         console.log("!@#$%^&*()_)(*&^%$#@!",player);
+    //         dbconfig.collection_playerLevel.populate(player, {path: "_id"}), function(err, result) {
+    //             return result;
+    //         }
+    //     });
+    //         // find(query).skip(index).limit(1)
+    //         // .populate({path: "partner", model: dbconfig.collection_partner})
+    //         // .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+    //
+    //     let b = dbconfig.collection_players.find(match).count();
+    //     return Q.all([a, b]).then(data => {
+    //         return {
+    //             data: data[0] ? data[0][0] : {},
+    //             index: index,
+    //             total: data[1]
+    //         }
+    //     });
+    // },
+
+    getSinglePlayerFeedbackQuery: function (query, index) {
         index = index || 0;
         query.noMoreFeedback = {$ne: true};
-        // query["$where"] = "(this.lastAccessTime > this.lastFeedbackTime || !this.lastFeedbackTime )&& !this.noMoreFeedback";
-        var a = dbconfig.collection_players.find(query).skip(index).limit(1)
-            .populate({path: "partner", model: dbconfig.collection_partner});
-        var b = dbconfig.collection_players.find(query).count();
-        return Q.all([a, b]).then(data => {
+        switch (query.playerType) {
+            case 'Test Player':
+                query.isRealPlayer = false;
+                break;
+            case 'Real Player (all)':
+                query.isRealPlayer = true;
+                break;
+            case 'Real Player (Individual)':
+                query.isRealPlayer = true;
+                query.partner = null;
+                break;
+            case 'Real Player (Under Partner)':
+                query.isRealPlayer = true;
+                query.partner = {$ne: null};
+        }
+        if ("playerType" in query) {
+            delete query.playerType;
+        }
+        let player = dbconfig.collection_players.find(query).skip(index).limit(1)
+            .populate({path: "partner", model: dbconfig.collection_partner})
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
+        let count = dbconfig.collection_players.find(query).count();
+        return Q.all([player, count]).then(data => {
             return {
                 data: data[0] ? data[0][0] : {},
+                index: index,
+                total: data[1]
+            }
+        });
+    },
+
+    getPlayerFeedbackQuery: function (query, index, limit, sortCol) {
+        index = index || 0;
+        limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
+        query.noMoreFeedback = {$ne: true};
+        switch (query.playerType) {
+            case 'Test Player':
+                query.isRealPlayer = false;
+                break;
+            case 'Real Player (all)':
+                query.isRealPlayer = true;
+                break;
+            case 'Real Player (Individual)':
+                query.isRealPlayer = true;
+                query.partner = null;
+                break;
+            case 'Real Player (Under Partner)':
+                query.isRealPlayer = true;
+                query.partner = {$ne: null};
+        }
+        if ("playerType" in query) {
+            delete query.playerType;
+        }
+        let players = dbconfig.collection_players.find(query).skip(index).limit(limit)
+            .populate({path: "partner", model: dbconfig.collection_partner})
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+            .sort(sortCol).lean();
+        let count = dbconfig.collection_players.find(query).count();
+        return Q.all([players, count]).then(data => {
+            return {
+                data: data[0] ? data[0] : {},
                 index: index,
                 total: data[1]
             }
@@ -246,7 +505,7 @@ var dbPlayerFeedback = {
      */
     getPlayerLastNFeedbackRecord: function (playerId, limit) {
         lilmit = limit || 5;
-        return dbconfig.collection_playerFeedback.find({playerId: playerId}).sort({createTime: 1}).limit(limit)
+        return dbconfig.collection_playerFeedback.find({playerId: playerId}).sort({createTime: -1}).limit(limit)
             .populate({path: "adminId", model: dbconfig.collection_admin}).exec();
     }
 };

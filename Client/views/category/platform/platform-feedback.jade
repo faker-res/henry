@@ -1,6 +1,6 @@
 .row
     .col-md-12
-        .well.feedbackQueryDiv
+        //.well.feedbackQueryDiv
             .inlineBlk
                 label {{"TYPE" | translate}}
                 select.form-control(ng-model='vm.playerFeedbackQuery.isRealPlayer', required)
@@ -60,15 +60,149 @@
                 span#platformFeedbackSpin.collapse
                     i.fa.fa-spinner.fa-spin
                 span.margin-left-5
+        .well.feedbackQueryDiv
+            .inlineBlk
+                label {{"USER_TYPE"|translate}}
+                select.form-control(style='max-width:300px', ng-model="vm.playerFeedbackQuery.playerType")
+                    option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
+                    option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
+                    option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                    option(value='Test Player') {{'TEST_PLAYER' | translate}}
+            .inlineBlk
+                label {{"Player Level" | translate}}
+                select.form-control(ng-model='vm.playerFeedbackQuery.playerLevel')
+                    option(value='all') {{'ALL' | translate}}
+                    option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+            .inlineBlk(style="width:200px;")
+                label.control-label {{'CREDIBILITY' | translate}}
+                select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.playerFeedbackQuery.credibilityRemarks')
+            .inlineBlk
+                //上次登入（距今）
+                label {{"LAST_ACCESS_TILL_NOW"|translate}}
+                div
+                    select.form-control(ng-model="vm.playerFeedbackQuery.lastAccess" style="width:105px;display:inline-block")
+                        option(value='0-7') {{'0-7'}}{{'DAYS'|translate}}
+                        option(value='8-14') {{'8-14'}}{{'DAYS'|translate}}
+                        option(value='15-28') {{'15-28'}}{{'DAYS'|translate}}
+                        option(value='29') {{'29'}}{{'DAYS_AND_ABOVE'|translate}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.lastAccessFormal" style="width:80px;display:inline-block" ng-show="vm.playerFeedbackQuery.lastAccess === 'range'")
+                    div.text-center(style="width:15px;display:inline-block" ng-show="vm.playerFeedbackQuery.lastAccess === 'range'") -
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.lastAccessLatter" style="width:80px;display:inline-block" ng-show="vm.playerFeedbackQuery.lastAccess === 'range'")
+            .inlineBlk
+                //过滤回访（天）
+                label {{"FILTER_FEEDBACK_DAY"|translate}}
+                div
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.filterFeedback" style="width:100px;display:inline-block")
+            .inlineBlk
+                label {{"DEPOSIT_COUNT"|translate}}
+                div
+                    select.form-control(ng-model="vm.playerFeedbackQuery.depositCountOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.depositCountFormal" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerFeedbackQuery.depositCountOperator === 'range'") -
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.depositCountLatter" style="width:80px;display:inline-block" ng-if="vm.playerFeedbackQuery.depositCountOperator === 'range'")
+            .inlineBlk
+                label {{"PLAYER_VALUE"|translate}}
+                div
+                    select.form-control(ng-model="vm.playerFeedbackQuery.playerValueOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.playerValueFormal" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerFeedbackQuery.playerValueOperator === 'range'") -
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.playerValueLatter" style="width:80px;display:inline-block" ng-if="vm.playerFeedbackQuery.playerValueOperator === 'range'")
+            .inlineBlk(style="width:200px;")
+                label {{"GAME_LOBBY"|translate}}
+                select.form-control#selectGameProvider(multiple="multiple", style='min-width:100px;height:34px;', ng-options='provider._id as provider.name for provider in vm.allGameProviders', ng-model='vm.playerFeedbackQuery.gameProviderId')
+            .inlineBlk
+                label {{"SYSTEM_PLAYER" | translate}}
+                select.form-control(ng-model='vm.playerFeedbackQuery.isNewSystem', style="width:100px;")
+                    option(value='') {{'all'|translate}}
+                    option(value='new') {{'NEW_SYSTEM'|translate}}
+                    option(value='old') {{'OLD_SYSTEM'|translate}}
+            .inlineBlk
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_SINGLE" | translate}}
+            .inlineBlk
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_LIST" | translate}}
+                span#platformFeedbackSpin.collapse
+                    i.fa.fa-spinner.fa-spin
+                span.margin-left-5
+
 .row.margin-top-bottom-small(ng-show='!vm.selectedPlatform')
     .text-center.text-danger
         label {{"NO_PLATFORM_MESSAGE" | translate}}
+.col-md-12
+    //label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.platformPlayerCount}} ({{"Search Result" | translate}} : {{vm.searchPlayerCount}})
+    label(ng-show='vm.platformPlayerCount') {{"Search Result" | translate}} : {{vm.feedbackPlayersPara.total}}
+
 .row.margin-top-bottom-small(ng-show='vm.selectedPlatform')
-    .col-md-4
-        .panel.panel-primary
+    .col-md-12
+        table.common-table#playerFeedbackDataTable.display(style="min-width:100%;")
+            thead
+        #playerFeedbackTablePage(ng-show='vm.playerFeedbackSearchType=="many"')
+.row.margin-top-bottom-small(ng-show='vm.selectedPlatform && vm.playerFeedbackSearchType=="one"')
+    .col-md-6
+        .panel.panel-primary.margin-top-bottom-small(ng-if="checkViewPermission('Platform','Feedback','Create')",style='background-color: #e4e4e4')
+            .panel-heading.panel-heading-sm
+                .panel-title
+                    .text-center {{"ADD_FEEDBACK" | translate}}
+            .panel-body
+                table(style='min-width:100%')
+                    tbody
+                        tr
+                            td {{'FEEDBACK_RESULTS' | translate}}
+                            td
+                                select(ng-model='vm.addFeedback.result', required)
+                                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
+                                button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
+                        tr
+                            td {{'FEEDBACK_TOPIC' | translate}}
+                            td
+                                select(ng-model='vm.addFeedback.topic', required)
+                                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackTopics', value='{{v.key}}') {{v.value}}
+                                button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
+                        tr
+                            td
+                                text {{"REMARK" | translate}}
+                            td.textareaDetail
+                                textarea.form-control(type="textarea", rows='4', ng-model='vm.addFeedback.content')
+                        tr
+                            td(colspan=2)
+                                .text-center
+                                    button.btn.btn-danger.margin-right-5(ng-click='vm.addFeedback.content="";vm.addFeedback.result="";vm.addFeedback.topic="";') {{'Reset' | translate}}
+                                    button.btn.btn-success(ng-disabled="!vm.addFeedback.result || !vm.addFeedback.topic || !vm.addFeedback.content", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
+        .clearfix
+        .panel.panel-primary.margin-top-bottom-small
             .panel-heading
-                .text-center {{"Player Information" | translate}}
-            .panel-body#feedbackPlayerInfo
+                .text-center {{"CREDIBILITY_RECORD" | translate}}
+            .panel-body
+                table.simple-table
+                    thead
+                        tr
+                            th {{"OPERATOR_NAME" | translate}}
+                            th {{"TIME" | translate}}
+                            th {{"CREDIBILITY" | translate}}
+                            th {{"remark" | translate}}
+                    tbody
+                        tr(ng-repeat='(i, data) in vm.playerCredibilityComment')
+                            td(style= "border: 1px solid #0099CC")
+                                text {{data.admin}}
+                            td(style= "border: 1px solid #0099CC")
+                                text {{data.createTime}}
+                            td(style="text-align:center;border: 1px solid #0099CC")
+                                text {{data.remarks$}}
+                            td(style = "background-color:white;border: 1px solid #0099CC")
+                                text {{data.comment}}
+
+            //.panel-body#feedbackPlayerInfo
                 table.simple-table
                     tbody
                         tr
@@ -127,25 +261,27 @@
                             td {{"topUpTimes" | translate}}
                             td {{vm.curFeedbackPlayer.topUpTimes}}
 
-    .col-md-8
-        #playerAllFeedbackPanel.panel.panel-primary
-            .panel-heading
+    .col-md-6
+        #playerAllFeedbackPanel.panel.panel-primary.margin-top-bottom-small
+            .panel-heading(style='padding: 10px 0px;')
                 .text-center
                     label {{"Feedback History" | translate}} : {{vm.curPlayerFeedbackDetail.length}}
-                hr.margin-top-bottom-small
+                hr.margin-top-bottom-small(style='margin:4px;')
                 .displayTable
                     .colGrid(style='width:160px') {{"TIME" | translate}}
-                    .colGrid {{"ADMIN" | translate}}
-                    .colGrid(style='width:140px') {{"RESULT" | translate}}
+                    .colGrid(style='width:100px') {{"ADMIN" | translate}}
+                    .colGrid(style='width:120px') {{"RESULT" | translate}}
+                    .colGrid(style='width:130px') {{"FEEDBACK_TOPIC" | translate}}
                     .colGrid(style='width:calc(75% - 300px)') {{"REMARK" | translate}}
-            .panel-body(style='height: 200px;')
+            .panel-body(style='height: 300px;')
                 .displayTable(ng-repeat='(i,v) in vm.curPlayerFeedbackDetail', ng-show='vm.curPlayerFeedbackDetail.length>0')
                     .colGrid(style='width:160px') {{vm.dateReformat(v.createTime)}}
-                    .colGrid {{v.adminId.adminName || 'Unknown' | translate}}
-                    .colGrid(style='width:140px') {{v.result | translate}}
+                    .colGrid(style='width:100px') {{v.adminId.adminName || 'Unknown' | translate}}
+                    .colGrid(style='width:120px') {{v.result | translate}}
+                    .colGrid(style='width:130px') {{v.topic | translate}}
                     .colGrid(style='width:calc(75% - 300px)') {{v.content}}
-        .clearfix
-        .panel.panel-primary.margin-top-bottom-small(ng-if="checkViewPermission('Platform','Feedback','Create')",style='background-color: #e4e4e4')
+        //.clearfix
+        //.panel.panel-primary.margin-top-bottom-small(ng-if="checkViewPermission('Platform','Feedback','Create')",style='background-color: #e4e4e4')
             .panel-heading.panel-heading-sm
                 .panel-title
                     .text-center {{"ADD_FEEDBACK" | translate}}
@@ -156,7 +292,14 @@
                             td {{'FEEDBACK_RESULTS' | translate}}
                             td
                                 select(ng-model='vm.addFeedback.result', required)
-                                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackString', value='{{v}}') {{v|translate}}
+                                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
+                                button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Platform', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
+                        tr
+                            td {{'FEEDBACK_TOPIC' | translate}}
+                            td
+                                select(ng-model='vm.addFeedback.topic', required)
+                                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackTopics', value='{{v.key}}') {{v.value}}
+                                button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Platform', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
                         tr
                             td
                                 text {{"REMARK" | translate}}
@@ -165,9 +308,9 @@
                         tr
                             td(colspan=2)
                                 .text-center
-                                    button.btn.btn-danger.margin-right-5(ng-click='vm.addFeedback.content="";vm.addFeedback.result=""') {{'Reset' | translate}}
-                                    button.btn.btn-success(ng-disabled="!vm.addFeedback.result || !vm.addFeedback.content", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
-.row(ng-show='vm.selectedPlatform')
+                                    button.btn.btn-danger.margin-right-5(ng-click='vm.addFeedback.content="";vm.addFeedback.result="";vm.addFeedback.topic="";') {{'Reset' | translate}}
+                                    button.btn.btn-success(ng-disabled="!vm.addFeedback.result || !vm.addFeedback.topic || !vm.addFeedback.content", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
+.row(ng-show='vm.selectedPlatform&&vm.playerFeedbackSearchType=="one"')
     .col-md-12
         .pull-left
             button.btn.btn-primary(ng-click='vm.callPlayer(vm.curFeedbackPlayer)') {{"CallPlayer" | translate}}
@@ -187,6 +330,3 @@
                 input.form-control(style='width: 80px', type='number', ng-model='vm.feedbackPlayersPara.index', ng-change='vm.getFeedbackPlayer(vm.feedbackPlayersPara.index)')
             .inlineBlk
                 label {{'Page' | translate}}
-
-
-

@@ -106,6 +106,16 @@ var dbUtility = {
         };
     },
 
+    getTargetSGTime: function (target) {
+        var startTime = moment(target).tz('Asia/Singapore').startOf('day').toDate();
+        var endTime = moment(startTime).add(1, 'days').toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getPreviousSGMonday: function () {
         // Get midnight on the morning of this week's Monday.
         // (That could be tomorrow if today is Sunday!)
@@ -156,6 +166,22 @@ var dbUtility = {
     getCurrentMonthSGTIme: function () {
         var startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
         var endTime = moment().tz('Asia/Singapore').endOf('month').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getCurrentBiWeekSGTIme: function () {
+        let startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
+        let endTime = moment(startTime).add(14, 'days').toDate();
+        let todayDay = moment().tz('Asia/Singapore').date();
+
+        if (todayDay >= 15) {
+            startTime = endTime;
+            endTime = moment().tz('Asia/Singapore').endOf('month').toDate();
+        }
+
         return {
             startTime: startTime,
             endTime: endTime
@@ -567,6 +593,7 @@ var dbUtility = {
                 if (!res.city && res.province) {
                     res.city = res.province
                 }
+                console.log(res);
                 deferred.resolve(res);
             }
         });

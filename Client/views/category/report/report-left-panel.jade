@@ -45,6 +45,8 @@
                                 text {{'PLAYERDOMAIN_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.WINRATE_REPORT}}" ng-click='vm.loadPage("WINRATE_REPORT")', ng-if="checkViewPermission('Report', 'General', 'WINRATE_REPORT')")
                                 text {{'WINRATE_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.FEEDBACK_REPORT}}" ng-click='vm.loadPage("FEEDBACK_REPORT")', ng-if="checkViewPermission('Report', 'General', 'FEEDBACK_REPORT')")
+                                text {{'FEEDBACK_REPORT' | translate}}
 
             .panel.panel-default
                 .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#reportCategory", href='#rewardReports')

@@ -2,8 +2,25 @@
     .col-md-12
         .well#smsRecordQueryDiv
             .inlineBlk
+                label.control-label {{'ACCOUNT' | translate}}
+                input.form-control(ng-model='vm.smsRecordQuery.recipientName')
+            .inlineBlk
                 label.control-label {{'PHONENUMBER' | translate}}
-                input.form-control(ng-model='vm.smsRecordQuery.phoneNumber', placeholder="{{'SEARCH' | translate}}" ng-blur="vm.submitSMSRecordQuery(true)")
+                input.form-control(ng-model='vm.smsRecordQuery.phoneNumber', ng-blur="vm.submitSMSRecordQuery(true)")
+            .inlineBlk
+                label {{"Type"|translate}}
+                select.form-control(ng-model="vm.smsRecordQuery.purpose", ng-options='v | translate for (i,v) in vm.allSMSPurpose')
+                    option(value='') {{'all'|translate}}
+            .inlineBlk
+                label {{"DEVICE"|translate}}
+                select.form-control(ng-model="vm.smsRecordQuery.inputDevice")
+                    option(value='') {{'all'|translate}}
+                    option(value=1) {{'Web Player'|translate}}
+                    option(value=2) {{'Web Agent'|translate}}
+                    option(value=3) {{'HTML5 Player'|translate}}
+                    option(value=4) {{'HTML5 Agent'|translate}}
+                    option(value=5) {{'APP Player'|translate}}
+                    option(value=6) {{'APP Agent'|translate}}
             .inlineBlk
                 label.control-label {{'Start date' | translate}}
                 .startTime
