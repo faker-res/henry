@@ -808,7 +808,8 @@ db.rewardParam.update({
                 ignoreTopUpDirtyCheckForReward: {
                     index: 32,
                     type: "multiSelect",
-                    des: "Ignore the following rewards that applied with top up"
+                    des: "Ignore the following rewards that applied with top up",
+                    options: "allRewardEvent"
                 }
             },
             customCond: {
