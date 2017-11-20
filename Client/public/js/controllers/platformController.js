@@ -8310,11 +8310,11 @@ define(['js/app'], function (myApp) {
                     playerName: vm.selectedSinglePlayer.name,
                     requiredUnlockAmount: vm.playerAddRewardTask.requiredUnlockAmount,
                     currentAmount: vm.playerAddRewardTask.currentAmount,
-                    amount: vm.playerAddRewardTask.currentAmount,
+                    rewardAmount: vm.playerAddRewardTask.currentAmount,
                     initAmount: vm.playerAddRewardTask.currentAmount,
                     useConsumption: Boolean(vm.playerAddRewardTask.useConsumption),
                     remark: vm.playerAddRewardTask.remark,
-                }
+                };
                 console.log('sendObj', sendObj);
                 socketService.$socket($scope.AppSocket, 'createPlayerRewardTask', sendObj, function (data) {
                     vm.playerAddRewardTask.resMsg = $translate('SUCCESS');
