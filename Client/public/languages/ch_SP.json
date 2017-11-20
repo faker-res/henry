@@ -64,7 +64,7 @@
   "DAYS": "天",
   "DAYS_AND_ABOVE": "天以上",
 
-  "consumptionReward": "投注额优惠",
+  "PlayerConsumptionRewardGroup": "投注额优惠（组）",
   "Check consumption source by provider": "（领优惠前）检查投注额来源游戏厅",
   "Manual Apply": "通过前、后台个别申请",
   "Auto Apply": "满足条件后自动生成",
@@ -1368,7 +1368,7 @@
   "SELECT_XLS_FILE": "选择Excel文件",
   "XLS_LENGTH": "总数据",
 
-  "PlayerFreeTrialRewardGroup": "免费体验金",
+  "PlayerFreeTrialRewardGroup": "免费体验金（组）",
   "Check if this IP address has received free trial": "（领优惠前）检查该IP是否曾经领过",
   "Check if this phone number has received free trial": "（领优惠前）检查该电话是否曾经领过",
   "Need SMS verification": "（领优惠中）是否需要短信验证",
@@ -2705,7 +2705,7 @@
   "Merchant Name":"名称",
   "RESPONSE_TIMEOUT": "回应超时",
   "Whitelisting Phone Number": "电话号码白名单（一行一个）",
-  "randomReward": "随机抽奖",
+  "PlayerRandomRewardGroup": "随机抽奖（组）",
   "Period show reward": "周期内出现场次（前端允许申请时段）",
   "Monday": "星期一",
   "Tuesday": "星期二",
@@ -2733,5 +2733,7 @@
   "Less than and equal to (<=)": "小过或等于 (<=)",
   "Equal to (=)": "等于 (=)",
   "Interval (>=, <)": "区间 (>=, <)",
-  "SMS": "短信"
+  "SMS": "短信",
+  "Approved Time": "成功执行时间",
+  "Please try again random reward tomorrow": "今日已参与，明日继续随机抽奖吧！"
 }

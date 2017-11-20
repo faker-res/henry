@@ -2031,10 +2031,10 @@ define(['js/app'], function (myApp) {
 
                     {title: $translate('START_TIME'), data: "startTime$"},
                     {
-                        title: $translate('END_TIME'), data: "endTime$",
+                        title: $translate('Approved Time'), data: "endTime$",
                         render: function (data, type, row) {
                             var text = '';
-                            if (row.status == 'Success' || row.status == 'Approved' || row.status == 'Cancel' || row.status == 'Fail') {
+                            if (row.status == 'Success' || row.status == 'Approved') {
                                 text = data ? data : '';
                             }
                             return "<div>" + text + "</div>";
@@ -2882,30 +2882,31 @@ define(['js/app'], function (myApp) {
         vm.drawFeedbackReport = function (data, size, newSearch) {
             var tableOptions = {
                 data: data,
-                "order": vm.feedbackQuery.aaSorting || [[3, 'desc']],
+                "order": vm.feedbackQuery.aaSorting || [[4, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'name', 'aTargets': [0], bSortable: true},
-                    {'sortCol': 'playerValue', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'credibilityRemarks', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'feedbackTime', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'endTime', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'topUpAmount', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'bonusTimes', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'bonusAmount', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'rewardAmount', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'consumptionTimes', 'aTargets': [15], bSortable: true},
-                    {'sortCol': 'validConsumptionAmount', 'aTargets': [16], bSortable: true},
-                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [17], bSortable: true},
-                    {'sortCol': 'consumptionAmount', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'name', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'playerValue', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'credibilityRemarks', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'feedbackTime', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'endTime', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'manualTopUpAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [17], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [18], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [22], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('ORDER')},
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
                     {title: $translate('PLAYER_VALUE'), data: "valueScore"},
                     {title: $translate('CREDIBILITY'), data: "credibility$"},
@@ -2958,6 +2959,11 @@ define(['js/app'], function (myApp) {
             }
             var playerTbl = utilService.createDatatableWithFooter('#feedbackReportTable', tableOptions, {}, true);
             utilService.setDataTablePageInput('feedbackReportTable', playerTbl, $translate);
+            playerTbl.on( 'order.dt', function () {
+                playerTbl.column(0, {order:'applied'}).nodes().each( function (cell, i) {
+                    cell.innerHTML = i+1;
+                } );
+            } ).draw();
 
             $('#feedbackReportTable').resize();
             $('#feedbackReportTable tbody').off('click', 'td.expandPlayerReport');
@@ -3035,7 +3041,7 @@ define(['js/app'], function (myApp) {
             });
             $('#feedbackReportTable').off('order.dt');
             $('#feedbackReportTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'playerQuery', vm.searchFeedbackReport);
+                vm.commonSortChangeHandler(a, 'feedbackQuery', vm.searchFeedbackReport);
             });
         };
 

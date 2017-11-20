@@ -1490,7 +1490,7 @@ var dbPlatform = {
             result => {
                 smsLogCount = result[1];
 
-                let smsVerificationExpireTime = result[2] && result[2].smsVerificationExpireTime ? result[2].smsVerificationExpireTime : 1440;
+                let smsVerificationExpireTime = result[2] && result[2].smsVerificationExpireTime ? result[2].smsVerificationExpireTime : 5;
 
                 return dbPlatform.getSMSRepeatCount(result[0], smsVerificationExpireTime);
             }

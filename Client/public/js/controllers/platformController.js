@@ -227,7 +227,7 @@ define(['js/app'], function (myApp) {
                 UPDATE_PASSWORD: 'updatePassword',
                 UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
                 UPDATE_BANK_INFO: 'updateBankInfo',
-                RESET_PASSWORD: 'resetPassword'
+                // RESET_PASSWORD: 'resetPassword'
             };
 
             vm.constProposalStatus = {
@@ -4932,9 +4932,16 @@ define(['js/app'], function (myApp) {
                             onClickAsync: function (showPopover) {
                                 var that = this;
                                 var row = JSON.parse(this.dataset.row);
-                                vm.getRewardTaskDetail(row._id, function (data) {
-                                    showPopover(that, '#rewardTaskPopover', data);
-                                });
+
+                                if (vm.selectedPlatform.data.useProviderGroup) {
+                                    vm.getRewardTaskGroupDetail(row._id, function (data) {
+                                        showPopover(that, '#rewardTaskGroupPopover', data);
+                                    });
+                                } else {
+                                    vm.getRewardTaskDetail(row._id, function (data) {
+                                        showPopover(that, '#rewardTaskPopover', data);
+                                    });
+                                }
                             }
                         });
 
@@ -7312,6 +7319,19 @@ define(['js/app'], function (myApp) {
 
                     return deferred.promise;
                 };
+
+        vm.getRewardTaskGroupDetail = (playerId, callback) => {
+            return $scope.$socketPromise('getPlayerAllRewardTaskGroupDetailByPlayerObjId', {_id: playerId}).then(
+                res => {
+                    vm.curRewardTask = res.data;
+                    console.log('vm.curRewardTask', vm.curRewardTask);
+                    $scope.safeApply();
+                    if (callback) {
+                        callback(vm.curRewardTask);
+                    }
+                }
+            )
+        }
 
             // vm.prepareShowFeedbackRecord = function () {
             //     vm.playerFeedbackData = [];
@@ -10759,94 +10779,6 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
-
-            // vm.submitPlayerFeedbackQuery = function (index) {
-            //     if (!vm.selectedPlatform)return;
-            //     console.log('vm.feedback', vm.playerFeedbackQuery);
-            //     var sendQuery = {platform: vm.selectedPlatform.id};
-            //     if (vm.playerFeedbackQuery.isRealPlayer == "1") {
-            //         sendQuery.isRealPlayer = true;
-            //     } else if (vm.playerFeedbackQuery.isRealPlayer == "2") {
-            //         sendQuery.isTestPlayer = true;
-            //     }
-            //     if (vm.playerFeedbackQuery.playerLevel != "all") {
-            //         sendQuery.playerLevel = vm.playerFeedbackQuery.playerLevel;
-            //     }
-            //     if (vm.playerFeedbackQuery.trustLevel != "all") {
-            //         sendQuery.trustLevel = vm.playerFeedbackQuery.trustLevel;
-            //     }
-            //     if (vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').getLocalDate()
-            //         || vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').getLocalDate()) {
-            //         sendQuery.lastAccessTime = {
-            //             $gte: vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').getLocalDate() || new Date(0),
-            //             $lt: vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').getLocalDate() || new Date(),
-            //         };
-            //     }
-            //     if (vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').getLocalDate()
-            //         || vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').getLocalDate()) {
-            //         sendQuery.lastFeedbackTime = {
-            //             $gte: vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').getLocalDate() || new Date(0),
-            //             $lt: vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').getLocalDate() || new Date(),
-            //         }
-            //     }
-            //
-            //     if (vm.playerFeedbackQuery.topUpTimes != "-1") {
-            //         switch (vm.playerFeedbackQuery.topUpTimes) {
-            //             case "0":
-            //                 sendQuery.topUpTimes = {
-            //                     $gte: 0,
-            //                     $lte: 1
-            //                 };
-            //                 break;
-            //             case "1"://today
-            //                 sendQuery.topUpTimes = {
-            //                     $gte: 2
-            //                 };
-            //                 break;
-            //         }
-            //     }
-            //
-            //     if (vm.playerFeedbackQuery.isNewSystem === 'old') {
-            //         sendQuery.isNewSystem = {$ne : true};
-            //     } else if (vm.playerFeedbackQuery.isNewSystem === 'new') {
-            //         sendQuery.isNewSystem = true;
-            //     }
-            //
-            //     if (vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
-            //         sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
-            //     }
-            //
-            //     $('#platformFeedbackSpin').show();
-            //     console.log('sendQuery', sendQuery);
-            //     socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
-            //         query: sendQuery,
-            //         index: vm.feedbackPlayersPara.index - 1
-            //     }, function (data) {
-            //         console.log('_getPlayerFeedbackQuery', data);
-            //         vm.curFeedbackPlayer = data.data.data;
-            //         vm.feedbackPlayersPara.total = data.data.total || 0;
-            //         vm.feedbackPlayersPara.index = data.data.index + 1;
-            //         $('#platformFeedbackSpin').hide();
-            //         if (!vm.curFeedbackPlayer) {
-            //             $scope.safeApply();
-            //             return;
-            //         }
-            //
-            //         vm.addFeedback = {
-            //             playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
-            //             platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
-            //         };
-            //         if (vm.curFeedbackPlayer._id) {
-            //             vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-            //                 vm.curPlayerFeedbackDetail = data;
-            //                 $scope.safeApply();
-            //             })
-            //         } else {
-            //             vm.curPlayerFeedbackDetail = {};
-            //             $scope.safeApply();
-            //         }
-            //     });
-            // }
         vm.submitPlayerFeedbackQuery = function (isNewSearch) {
             if (!vm.selectedPlatform) return;
             console.log('vm.feedback', vm.playerFeedbackQuery);
@@ -10960,6 +10892,10 @@ define(['js/app'], function (myApp) {
             $('#platformFeedbackSpin').show();
             console.log('sendQuery', sendQuery);
             console.log('vm.playerFeedbackSearchType', vm.playerFeedbackSearchType);
+            if(isNewSearch) {
+                vm.feedbackPlayersPara.index = 1;
+                vm.playerFeedbackQuery.index = 0;
+            }
             if (vm.playerFeedbackSearchType == "one") {
                 socketService.$socket($scope.AppSocket, 'getSinglePlayerFeedbackQuery', {
                     query: sendQuery,
@@ -11010,39 +10946,31 @@ define(['js/app'], function (myApp) {
                     vm.playerFeedbackQuery.total = data.data.total || 0;
                     vm.playerFeedbackQuery.index = data.data.index || 0;
                     vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total}, isNewSearch);
-                    // vm.playerTable.rows(function (idx, rowData, node) {
-                    //     if (rowData._id == result[0]._id) {
-                    //         vm.playerTableRowClicked(rowData);
-                    //         vm.selectedPlayersCount = 1;
-                    //         $(node).addClass('selected');
-                    //         found = true;
-                    //     }
-                    // })
 
-                    vm.curFeedbackPlayer = data.data.data;
-                    vm.feedbackPlayersPara.total = data.data.total || 0;
-                    vm.feedbackPlayersPara.index = data.data.index + 1;
+                    // vm.curFeedbackPlayer = data.data.data;
+                    // vm.feedbackPlayersPara.total = data.data.total || 0;
+                    // vm.feedbackPlayersPara.index = data.data.index + 1;
                     $('#platformFeedbackSpin').hide();
-                    if (!vm.curFeedbackPlayer) {
-                        $scope.safeApply();
-                        return;
-                    }
-
-                    vm.addFeedback = {
-                        playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
-                        platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
-                    };
-                    if (vm.curFeedbackPlayer._id) {
-                        vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                            vm.curPlayerFeedbackDetail = data;
-                            $scope.safeApply();
-                        });
-                        vm.getPlayerCredibilityComment(vm.curFeedbackPlayer._id);
-                        $scope.safeApply();
-                    } else {
-                        vm.curPlayerFeedbackDetail = {};
-                        $scope.safeApply();
-                    }
+                    // if (!vm.curFeedbackPlayer) {
+                    //     $scope.safeApply();
+                    //     return;
+                    // }
+                    //
+                    // vm.addFeedback = {
+                    //     playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
+                    //     platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
+                    // };
+                    // if (vm.curFeedbackPlayer._id) {
+                    //     vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                    //         vm.curPlayerFeedbackDetail = data;
+                    //         $scope.safeApply();
+                    //     });
+                    //     vm.getPlayerCredibilityComment(vm.curFeedbackPlayer._id);
+                    //     $scope.safeApply();
+                    // } else {
+                    //     vm.curPlayerFeedbackDetail = {};
+                    //     $scope.safeApply();
+                    // }
                 });
             }
             vm.playerCredibilityComment = [];
@@ -11097,10 +11025,10 @@ define(['js/app'], function (myApp) {
 
         vm.initPlayerFeedback = function () {
             console.log("initPlayerFeedback");
-            vm.playerFeedbackQuery.index = 0;
-            vm.playerFeedbackQuery.limit = 10;
             vm.playerFeedbackSearchType = "many";
             vm.playerFeedbackQuery = {};
+            vm.playerFeedbackQuery.index = 0;
+            vm.playerFeedbackQuery.limit = 10;
             vm.playerFeedbackQuery.playerType = "Real Player (all)";
             vm.playerFeedbackQuery.playerLevel = "all";
             vm.playerFeedbackQuery.lastAccess = "15-28";
@@ -13283,7 +13211,7 @@ define(['js/app'], function (myApp) {
                         }
                         if (el == "rewardPercentageAmount") {
                             vm.isRandomReward = true;
-                            vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = [{percentage: "", amount: ""}];
+                            vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !=="undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{percentage: "", amount: ""}];
                         }
                     });
                 }
@@ -13567,6 +13495,17 @@ define(['js/app'], function (myApp) {
 
             if (model == "isMultiStepReward") {
                 vm.isMultiStepReward = vm.rewardMainParam[model].value;
+            }
+
+            // Disable player withdrawal permission handling
+            if (model && model.i && model.v && model.entry) {
+                if (model.i == "forbidWithdrawIfBalanceAfterUnlock" && model.v.type == "number") {
+                    model.entry.forbidWithdrawAfterApply = false;
+                }
+
+                if (model.i == "forbidWithdrawAfterApply" && model.v.type == "checkbox") {
+                    delete model.entry.forbidWithdrawIfBalanceAfterUnlock;
+                }
             }
 
             // Check whether reward is dynamic amount
@@ -14046,9 +13985,6 @@ define(['js/app'], function (myApp) {
 
                     // Set param table
                     Object.keys(vm.rewardMainParamTable).forEach((e, idx) => {
-                        console.log('e', e);
-                        console.log('vm.rewardMainParamTable[e]', vm.rewardMainParamTable[e]);
-
                         let levelParam = {
                             levelId: vm.allPlayerLvl[idx]._id,
                             value: vm.rewardMainParamTable[e].value
@@ -14056,9 +13992,6 @@ define(['js/app'], function (myApp) {
 
                         curReward.param.rewardParam.push(levelParam);
                     });
-
-                    console.log('vm.rewardMainParam', vm.rewardMainParam);
-                    console.log('vm.rewardMainParamTable', vm.rewardMainParamTable);
                 } else {
 
                 }
@@ -14097,7 +14030,8 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     platform: vm.selectedPlatform.id,
                     type: vm.showRewardTypeData._id,
-                    condition: {}
+                    condition: {},
+                    param: {}
                 };
 
                 if (vm.showRewardTypeData.isGrouped === true) {
@@ -14132,10 +14066,28 @@ define(['js/app'], function (myApp) {
                             // Save reward condition
                             sendData.condition[condName] = condValue;
                         }
-                    })
+                    });
+
+                    // Set param
+                    Object.keys(vm.rewardMainParam).forEach(e => {
+                        sendData.param[e] = vm.rewardMainParam[e].value;
+                    });
+
+                    sendData.param.rewardParam = [];
+
+                    // Set param table
+                    Object.keys(vm.rewardMainParamTable).forEach((e, idx) => {
+                        let levelParam = {
+                            levelId: vm.allPlayerLvl[idx]._id,
+                            value: vm.rewardMainParamTable[e].value
+                        };
+
+                        sendData.param.rewardParam.push(levelParam);
+                    });
                 } else {
                     sendData = vm.showReward;
                     sendData.name = vm.showReward.name;
+                    sendData.platform = vm.selectedPlatform.id;
                     sendData.description = vm.showReward.description;
                     sendData.param = vm.rewardParams;
                     sendData.condition = vm.rewardCondition;

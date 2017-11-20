@@ -277,7 +277,6 @@ const dbPlayerMail = {
                     return constSMSPurpose[key];
                 });
 
-                // if (Object.values(constSMSPurpose).indexOf(purpose) === -1) {
                 if (smsPurposes.indexOf(purpose) === 1) {
                     data.smsCode = code
 
