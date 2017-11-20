@@ -165,7 +165,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVertificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice) {
+    sendVertificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName) {
         var sendObj = {
             tel: data.tel,
             channel: data.channel,
@@ -177,17 +177,17 @@ const dbPlayerMail = {
             retData => {
                 console.log(retData);
                 console.log('[smsAPI] Sent verification code to: ', data.tel);
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, 'success');
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'success');
                 return retData;
             },
             retErr => {
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, 'failure', retErr);
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr);
                 return Q.reject({message: retErr, error: retErr});
             }
         );
     },
 
-    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, data) {
+    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, data) {
         let lastMin = moment().subtract(1, 'minutes');
         let channel = null;
         let platformObjId = null;
@@ -266,18 +266,14 @@ const dbPlayerMail = {
                 };
                 // Log the verification SMS before send
                 new dbconfig.collection_smsVerificationLog(saveObj).save();
-                return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice);
+                return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
    
             }
         ).then(
             function (retData) {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
 
-                let smsPurposes = Object.keys(constSMSPurpose).map(function (key) {
-                    return constSMSPurpose[key];
-                });
-
-                if (smsPurposes.indexOf(purpose) === 1) {
+                if (purpose == constSMSPurpose.REGISTRATION) {
                     data.smsCode = code
 
                     if( data.phoneNumber ){
@@ -324,7 +320,7 @@ const dbPlayerMail = {
             }
         ).then(
             player => {
-                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation, purpose, inputDevice);
+                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation, purpose, inputDevice, player.name);
             },
             error => {
                 return Q.reject({name: "DBError", message: "Error in getting player data", error: error});

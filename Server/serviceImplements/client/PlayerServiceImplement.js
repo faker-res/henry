@@ -836,7 +836,7 @@ let PlayerServiceImplement = function () {
         conn.captchaCode = null;
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
     };
 
     this.sendSMSCodeToPlayer.expectsData = 'platformId: String';
