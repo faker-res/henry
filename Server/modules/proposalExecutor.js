@@ -2091,8 +2091,8 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
-                        type: constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,
-                        rewardType: constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,
+                        type: constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
+                        rewardType: constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
                         platformId: proposalData.data.platformId,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
                         currentAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
@@ -2104,7 +2104,7 @@ var proposalExecutor = {
                     };
 
                     let deferred1 = Q.defer();
-                    createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP, proposalData);
+                    createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP, proposalData);
                     deferred1.promise.then(
                         data => {
                             let updateData = {$set: {}};
