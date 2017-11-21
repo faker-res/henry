@@ -1112,6 +1112,7 @@
   "IS_ACTIVE": "Active",
   "SET": "Set",
   "PROMO_CODE_MODIFIED": "Promo Code Modified",
+  "PlayerConsumptionRewardGroup": "Consumption Reward (Group)",
   "PlayerRandomRewardGroup": "Random Reward"
 
 }

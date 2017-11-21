@@ -2091,6 +2091,7 @@ let dbPlayerReward = {
             if (intervalTime) {
                 consumptionMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                 eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                topupMatchQuery.createTime =  {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
             if (eventData.condition.consumptionProvider && eventData.condition.consumptionProvider.length > 0) {
@@ -2146,6 +2147,23 @@ let dbPlayerReward = {
             promArr.push(periodTopupAmountProm);
             let periodPropsProm = dbConfig.collection_proposal.find(eventQuery).lean();
             promArr.push(periodPropsProm);
+        }
+
+        if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP) {
+            let consumptionQuery = {
+                platformId: playerData.platform._id,
+                playerId: playerData._id,
+                createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime}
+            };
+            if(intervalTime) {
+                consumptionQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            }
+            if(eventData.condition.consumptionProviderSource) {
+                consumptionQuery.providerId = {$in: eventData.condition.consumptionProviderSource};
+            }
+
+            let consumptions = dbConfig.collection_playerConsumptionRecord.find(consumptionQuery).lean();
+            promArr.push(consumptions);
         }
 
         return Promise.all([todayTopupProm, todayPropsProm, topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
@@ -2364,7 +2382,33 @@ let dbPlayerReward = {
 
 
                     // type 4
+                    case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
+                        // （领优惠前）检查投注额来源游戏厅q
+                        let consumptions = rewardSpecificData[0];
+                        let totalConsumption = 0;
+                        for(let x in consumptions) {
+                            totalConsumption += consumptions[x].validAmount;
+                        }
 
+                        // Set reward param step to use
+                        if (eventData.param.isMultiStepReward) {
+                            selectedRewardParam = selectedRewardParam.filter(e => e.minConsumptionAmount <= totalConsumption).sort((a, b) => b.minConsumptionAmount - a.minConsumptionAmount);
+                            selectedRewardParam = selectedRewardParam[0];
+                        } else {
+                            selectedRewardParam = selectedRewardParam[0];
+                        }
+
+                        if (!selectedRewardParam || totalConsumption < selectedRewardParam.minConsumptionAmount) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "Consumption amount is not enough"
+                            });
+                        }
+
+                        rewardAmount = selectedRewardParam.rewardAmount;
+                        spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimes;
+                        break;
 
                     // type 5
                     case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
@@ -2416,10 +2460,15 @@ let dbPlayerReward = {
                                     });
                                 }
                                 //Only use one of the condition, reset another
-                                if (meetTopUpCondition)
+                                if (meetTopUpCondition && meetConsumptionCondition) {
+                                    // if both condition true, then use TopUpAmount first
                                     useConsumptionAmount = 0;
-                                if (meetConsumptionCondition)
-                                    useTopUpAmount = 0;
+                                } else {
+                                    if (meetTopUpCondition)
+                                        useConsumptionAmount = 0;
+                                    if (meetConsumptionCondition)
+                                        useTopUpAmount = 0;
+                                }
                             }
 
                             //calculate player reward amount

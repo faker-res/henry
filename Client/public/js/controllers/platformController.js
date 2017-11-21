@@ -10944,30 +10944,9 @@ define(['js/app'], function (myApp) {
                     vm.playerFeedbackQuery.index = data.data.index || 0;
                     vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total}, isNewSearch);
 
-                    // vm.curFeedbackPlayer = data.data.data;
-                    // vm.feedbackPlayersPara.total = data.data.total || 0;
-                    // vm.feedbackPlayersPara.index = data.data.index + 1;
+                    vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
                     $('#platformFeedbackSpin').hide();
-                    // if (!vm.curFeedbackPlayer) {
-                    //     $scope.safeApply();
-                    //     return;
-                    // }
-                    //
-                    // vm.addFeedback = {
-                    //     playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
-                    //     platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
-                    // };
-                    // if (vm.curFeedbackPlayer._id) {
-                    //     vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                    //         vm.curPlayerFeedbackDetail = data;
-                    //         $scope.safeApply();
-                    //     });
-                    //     vm.getPlayerCredibilityComment(vm.curFeedbackPlayer._id);
-                    //     $scope.safeApply();
-                    // } else {
-                    //     vm.curPlayerFeedbackDetail = {};
-                    //     $scope.safeApply();
-                    // }
+                    $scope.safeApply();
                 });
             }
             vm.playerCredibilityComment = [];
@@ -13040,6 +13019,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainParamEntry = [{}];
                     vm.rewardDisabledParam = [];
                     vm.isRandomReward = false;
+                    vm.platformRewardIsEnabled = false;
                     let params = vm.showRewardTypeData.params;
 
                     // Set condition value
@@ -13558,8 +13538,18 @@ define(['js/app'], function (myApp) {
             console.log(vm.rewardMainCondition);
         };
 
+        vm.rewardPeriodDeleteRow = (idx,valueCollection) => {
+            valueCollection.splice(idx,1);
+            console.log(vm.rewardMainCondition);
+        };
+
         vm.rewardPercentageAmountNewRow = (valueCollection) => {
             valueCollection.push({percentage: "", amount: ""});
+            console.log(vm.rewardMainParamTable);
+        };
+
+        vm.rewardPercentageAmountDeleteRow = (idx,valueCollection) => {
+            valueCollection.splice(idx,1);
             console.log(vm.rewardMainParamTable);
         };
 
@@ -13638,6 +13628,7 @@ define(['js/app'], function (myApp) {
                 if (!disabled) {
                     $("#rewardMainTasks :input").removeClass("disabled");
                 }
+                vm.platformRewardIsEnabled = !disabled;
                 if(vm.isRandomReward){
                     $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
                     $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", true);
