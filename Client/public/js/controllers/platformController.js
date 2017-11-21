@@ -9752,6 +9752,13 @@ define(['js/app'], function (myApp) {
                         } else {
                             item.provider$ = item.providerStr$;
                         }
+
+                        if (item.rewardType){
+                            item.rewardType = $translate(item.rewardType);
+                        }
+
+                        item.isUnlock = $translate(item.isUnlock);
+
                         return item;
                     }) : [];
                     var size = data.data ? data.data.size : 0;
