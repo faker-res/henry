@@ -52,6 +52,7 @@ const constProposalMainType = {
     "PlayerLimitedOfferReward": constMainType.REWARD,
     "PlayerTopUpReturnGroup": constMainType.REWARD,
     "PlayerRandomRewardGroup": constMainType.REWARD,
+    "PlayerLoseReturnRewardGroup": constMainType.REWARD,
 
     //UPDATE_PLAYER
     "UpdatePlayerInfo" : constMainType.UPDATE_PLAYER,
