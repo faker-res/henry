@@ -1672,7 +1672,8 @@ var proposal = {
                             'credibilityRemarks': item.credibilityRemarks ? item.credibilityRemarks : "",
                             'valueScore': item.valueScore ? item.valueScore: 0 ,
                             'phoneProvince':item.phoneProvince? item.phoneProvince: '',
-                            'phoneCity': item.phoneCity ? item.phoneCity: ''
+                            'phoneCity': item.phoneCity ? item.phoneCity: '',
+                            'ipArea': proposal.getPlayerRegistrationIPArea(platformId, item.playerId) //item.ipArea ? item.ipArea: '',
                         },
                     }
                     plyData.push(playerUnitData);
@@ -1699,12 +1700,12 @@ var proposal = {
                             'credibilityRemarks': item.credibilityRemarks ? item.credibilityRemarks : "",
                             'valueScore': item.valueScore ? item.valueScore: '',
                             'phoneProvince':item.phoneProvince? item.phoneProvince: '',
-                            'phoneCity': item.phoneCity ? item.phoneCity: ''
+                            'phoneCity': item.phoneCity ? item.phoneCity: '',
+                            'ipArea': proposal.getPlayerRegistrationIPArea(platformId, item.playerId)
                         },
                     }
                     partnerData.push(partnerUnitData);
                 })
-
                 // record.playerId = record.data.playerId ? record.data.playerId : "";
                 // record.name = record.data.name ? record.data.name : "";
                 // record.realName = record.data.realName ? record.data.realName : "";
@@ -1728,16 +1729,27 @@ var proposal = {
                 let resultSize = plyData.size + partnerData.size+ returnData[1];
                 let result = {data: duplicateList, size: resultSize};
                 // let result = { data: returnData[0], size:returnData[1]};
-                console.log(result);
-
-                return result;
-
-
+                return Q.all([result])
             })
+        })
+        .then(data=>{
+            console.log(data);
+            return data;
+        })
 
-        });
     },
+    getPlayerRegistrationIPArea: function(platformId, playerId){
 
+        dbconfig.collection_playerRegistrationIntentRecord.findOne({playerId: playerId})
+            .then(data=>{
+                if(data){
+                    console.log(data);
+                    return data;
+                }else{
+                    return {}
+                }
+            })
+    },
     getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
 
