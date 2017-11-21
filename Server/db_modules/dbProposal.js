@@ -1647,12 +1647,26 @@ var proposal = {
                         }
                     }
                 })
+
+            }).then(
+                ips => {
+                    let tempArr = [];
+                returnData[2].forEach(item=>{
+                    console.log(item);
+                    // Promise.all([proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'playerId') ])
+                    tempArr.push(proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'playerId') );
+                })
+                return Promise.all(tempArr);
+            })
+            .then(ips2 => {
                 let duplicateList = [];
                 let plyData = [];
                 let partnerData = [];
-
                 returnData[2].forEach(item=>{
                     console.log(item);
+                    // Promise.all([proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'playerId') ]).then(
+                    //     temp => {
+                            console.log(ips2);
                     // plyData.push({'name':item.name, 'realName':item.realName ,'data.proposal':123});
                     let playerUnitData = {
                         'data':{
@@ -1673,11 +1687,20 @@ var proposal = {
                             'valueScore': item.valueScore ? item.valueScore: 0 ,
                             'phoneProvince':item.phoneProvince? item.phoneProvince: '',
                             'phoneCity': item.phoneCity ? item.phoneCity: '',
-                            'ipArea': proposal.getPlayerRegistrationIPArea(platformId, item.playerId) //item.ipArea ? item.ipArea: '',
+                            // 'ipArea': proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'playerId') //item.ipArea ? item.ipArea: '',
+                            // 'ipArea': ips2, //item.ipArea ? item.ipArea: '',
+                            'name':  item.name ? item.name:''
                         },
-                    }
+                    };
+                    let ipArea= ips2.filter(dataItem=>{
+                        return dataItem.data.playerId == item.playerId
+                    })
+                    playerUnitData.data.ipArea = ipArea[0].data.ipArea;
+                    // item.playerId
+                    // playerUnitData.data.ipArea = ips2[0].ipArea;
                     plyData.push(playerUnitData);
-                })
+                // })
+                });
 
                 returnData[3].forEach(item=>{
                     // plyData.push({'name':item.name, 'realName':item.realName ,'data.proposal':123});
@@ -1701,54 +1724,53 @@ var proposal = {
                             'valueScore': item.valueScore ? item.valueScore: '',
                             'phoneProvince':item.phoneProvince? item.phoneProvince: '',
                             'phoneCity': item.phoneCity ? item.phoneCity: '',
-                            'ipArea': proposal.getPlayerRegistrationIPArea(platformId, item.playerId)
+                            'ipArea': proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'partnerId')
                         },
                     }
                     partnerData.push(partnerUnitData);
                 })
-                // record.playerId = record.data.playerId ? record.data.playerId : "";
-                // record.name = record.data.name ? record.data.name : "";
-                // record.realName = record.data.realName ? record.data.realName : "";
-                // record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
-                // record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
-                // record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
-                // record.smsCode = record.data.smsCode ? record.data.smsCode : "";
-                // record.remarks = record.data.remarks ? record.data.remarks : "";
-                // record.device = record.data.device ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
-                // record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
-                // record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
-                // record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
-                // record.proposalId = record.data.proposalId ? record.data.proposalId : "";
-                // record.playerLevelName = record.data.playerLevel ? record.data.playerLevel.name : "";
-                // record.credibilityRemarks = record.data.credibilityRemarks ? vm.credibilityRemarks.filter(item => {
-                //     return record.data.credibilityRemarks.includes(item._id);
-                // }) : [];
-
-                duplicateList = returnData[0].concat(plyData, partnerData);
+                duplicateList = returnData[0].concat(plyData,partnerData );
                 // return {data: plyData, size: returnData[1]};
                 let resultSize = plyData.size + partnerData.size+ returnData[1];
                 let result = {data: duplicateList, size: resultSize};
+                console.log(plyData);
                 // let result = { data: returnData[0], size:returnData[1]};
-                return Q.all([result])
+                // return Q.all([result])
+                return result;
             })
         })
-        .then(data=>{
-            console.log(data);
-            return data;
-        })
+        // .then(data=>{
+        //     return data[0];
+        // })
 
     },
-    getPlayerRegistrationIPArea: function(platformId, playerId){
+    getPlayerRegistrationIPArea: function(platformId, id, type){
+        let query = {};
+        if(type == 'playerId'){
+            query = { 'data.playerId' : id  }
+        }else{
+            query = { 'data.partnerId' : id  }
+        }
+        // query.status = ['Success', 'Approve'];
 
-        dbconfig.collection_playerRegistrationIntentRecord.findOne({playerId: playerId})
-            .then(data=>{
-                if(data){
-                    console.log(data);
-                    return data;
-                }else{
-                    return {}
-                }
-            })
+        console.log(query);
+        // return new Promise(function (resolve) {
+           return dbconfig.collection_playerRegistrationIntentRecord.findOne(query)
+                .then(data=>{
+                    console.log('i am here')
+                    if(data){
+                        console.log(data);
+                        console.log('hiha');
+                        // let result = data.data.ipArea ? data.data.ipArea : {}
+                        let result = data;
+                        return result;
+                    }else{
+                        console.log('nothing');
+                        return result;
+                        // resolve({});
+                    }
+                })
+        // });
     },
     getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
