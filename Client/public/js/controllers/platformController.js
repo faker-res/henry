@@ -13061,7 +13061,9 @@ define(['js/app'], function (myApp) {
                             switch (cond.options) {
                                 case "providerGroup":
                                     if (!vm.gameProviderGroup) break;
-                                    let providerGroup = {};
+                                    let providerGroup = {
+                                        "": "LOCAL_CREDIT"
+                                    };
                                     for (let i = 0; i < vm.gameProviderGroup.length; i++) {
                                         let group = vm.gameProviderGroup[i];
                                         providerGroup[group._id] = group.name;
