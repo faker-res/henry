@@ -159,6 +159,7 @@ var proposalExecutor = {
             this.executions.executePlayerConsecutiveRewardGroup.des = "Player Consecutive Group Reward";
             this.executions.executePlayerLoseReturnRewardGroup.des = "Player Lose Return Group Reward";
             this.executions.executePlayerConsumptionRewardGroup.des = "Player Consumption Group Reward";
+            this.executions.executePlayerFreeTrialRewardGroup.des = "Player Free Trial Reward Group";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -214,7 +215,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerConsecutiveRewardGroup.des = "Reject Player Consecutive Group Reward";
             this.rejections.rejectPlayerLoseReturnRewardGroup.des = "Reject Player Lose Return Group Reward";
             this.rejections.rejectPlayerConsumptionRewardGroup.des = "Reject Player Consumption Group Reward";
-
+            this.rejections.rejectPlayerFreeTrialRewardGroup.des = "Reject Player Free Trial Reward Group";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -2205,6 +2206,49 @@ var proposalExecutor = {
                     deferred.reject({name: "DataError", message: "Incorrect player consumption return group proposal data"});
                 }
             },
+
+            executePlayerFreeTrialRewardGroup: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,
+                        rewardType: constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        currentAmount: proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.rewardAmount,
+                        useConsumption: Boolean(proposalData.data.useConsumption),
+                        eventId: proposalData.data.eventId,
+                        providerGroup: proposalData.data.providerGroup
+                    };
+
+                    let deferred1 = Q.defer();
+                    createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP, proposalData);
+                    deferred1.promise.then(
+                        data => {
+                            let updateData = {$set: {}};
+
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
+                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                            }
+
+                            dbconfig.collection_players.findOneAndUpdate(
+                                {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
+                                updateData
+                            ).then(
+                                () => {
+                                    deferred.resolve(data);
+                                },
+                                deferred.reject
+                            );
+                        },
+                        deferred.reject
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect player free trial reward group proposal data"});
+                }
+            },
         },
 
         /**
@@ -2786,6 +2830,10 @@ var proposalExecutor = {
             },
 
             rejectPlayerConsumptionRewardGroup: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerFreeTrialRewardGroup: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
         }
