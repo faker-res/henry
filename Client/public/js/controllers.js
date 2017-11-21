@@ -477,11 +477,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         3: "consumtion sum"
     }
 
-    $scope.consumptionRecordProviderName = {
-        1: "AGOTHS",
-        2: "PT",
-        3: "MG"
-    }
+    // $scope.consumptionRecordProviderName = {
+    //     1: "AGOTHS",
+    //     2: "PT",
+    //     3: "MG"
+    // }
 
     //////// DOM initialisation operations ////////
 

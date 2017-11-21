@@ -426,12 +426,18 @@ var loseValueCond = {
     defineLoseValue: {index: 42, type: "select", des: "Define Lose Value", options: "loseValueType"},
     // Chain condition child
     //consumptionRecordProvider: {index: 102.1, type: "chain", chainKey: "102", chainType:"multiSelect", chainOptions: [2,3], des: "Consumption Record Provider", options: "consumptionRecordProviderName"},
-    consumptionRecordProvider: {
+    // consumptionRecordProvider: {
+    //     index: 42.1,
+    //     type: "multiSelect",
+    //     des: "Consumption Record Provider",
+    //     options: "consumptionRecordProviderName"
+    // },
+    consumptionProvider: {
         index: 42.1,
         type: "multiSelect",
         des: "Consumption Record Provider",
-        options: "consumptionRecordProviderName"
-    },
+        options: "gameProviders"
+    }
 }
 
 var latestTopUpCond = {

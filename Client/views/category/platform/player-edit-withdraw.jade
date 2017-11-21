@@ -8,7 +8,7 @@ form(name='form_playerPaymentInfo').well
             select.form-control(ng-model='playerPayment.bankName', ng-show='!isEditingPlayerPayment', disabled)
                 option(ng-repeat="(i,v) in allBankTypeList", value='{{i}}') {{v}}
             .col-md-6(style='padding-left:0', ng-show='isEditingPlayerPayment')
-                select.form-control(ng-model='playerPayment.bankName', ng-options='i as v for (i,v) in filteredBankTypeList')
+                select.form-control(ng-model='playerPayment.bankName', ng-options='i as v for (i,v) in filteredBankTypeList', required)
             .col-md-6(style='padding-right:0', ng-show='isEditingPlayerPayment')
                 input.form-control(type='text', placeholder="{{'SEARCH' | translate}}", ng-model='filterBankName', ng-change='filterBankname("playerPayment")')
         .form-group-col-md-6

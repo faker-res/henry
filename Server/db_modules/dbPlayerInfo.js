@@ -9317,7 +9317,6 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_PACKET_RAIN_REWARD,
                         constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
                         constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
-                        constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
                         constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP
                     ];
 
