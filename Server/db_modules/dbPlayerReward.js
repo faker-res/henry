@@ -2891,11 +2891,11 @@ let dbPlayerReward = {
                     proposalData.data.applyTargetDate = todayTime.startTime;
                 }
 
-                if (useTopUpAmount != null) {
+                if (useTopUpAmount !== null) {
                     proposalData.data.useTopUpAmount = useTopUpAmount;
                 }
 
-                if (!useConsumptionAmount != null) {
+                if (useConsumptionAmount !== null) {
                     proposalData.data.useConsumptionAmount = useConsumptionAmount;
                 }
 
