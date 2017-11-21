@@ -8317,11 +8317,11 @@ define(['js/app'], function (myApp) {
                     playerName: vm.selectedSinglePlayer.name,
                     requiredUnlockAmount: vm.playerAddRewardTask.requiredUnlockAmount,
                     currentAmount: vm.playerAddRewardTask.currentAmount,
-                    amount: vm.playerAddRewardTask.currentAmount,
+                    rewardAmount: vm.playerAddRewardTask.currentAmount,
                     initAmount: vm.playerAddRewardTask.currentAmount,
                     useConsumption: Boolean(vm.playerAddRewardTask.useConsumption),
                     remark: vm.playerAddRewardTask.remark,
-                }
+                };
                 console.log('sendObj', sendObj);
                 socketService.$socket($scope.AppSocket, 'createPlayerRewardTask', sendObj, function (data) {
                     vm.playerAddRewardTask.resMsg = $translate('SUCCESS');
@@ -10951,30 +10951,9 @@ define(['js/app'], function (myApp) {
                     vm.playerFeedbackQuery.index = data.data.index || 0;
                     vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total}, isNewSearch);
 
-                    // vm.curFeedbackPlayer = data.data.data;
-                    // vm.feedbackPlayersPara.total = data.data.total || 0;
-                    // vm.feedbackPlayersPara.index = data.data.index + 1;
+                    vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
                     $('#platformFeedbackSpin').hide();
-                    // if (!vm.curFeedbackPlayer) {
-                    //     $scope.safeApply();
-                    //     return;
-                    // }
-                    //
-                    // vm.addFeedback = {
-                    //     playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
-                    //     platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
-                    // };
-                    // if (vm.curFeedbackPlayer._id) {
-                    //     vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                    //         vm.curPlayerFeedbackDetail = data;
-                    //         $scope.safeApply();
-                    //     });
-                    //     vm.getPlayerCredibilityComment(vm.curFeedbackPlayer._id);
-                    //     $scope.safeApply();
-                    // } else {
-                    //     vm.curPlayerFeedbackDetail = {};
-                    //     $scope.safeApply();
-                    // }
+                    $scope.safeApply();
                 });
             }
             vm.playerCredibilityComment = [];
@@ -13047,6 +13026,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainParamEntry = [{}];
                     vm.rewardDisabledParam = [];
                     vm.isRandomReward = false;
+                    vm.platformRewardIsEnabled = false;
                     let params = vm.showRewardTypeData.params;
 
                     // Set condition value
@@ -13140,7 +13120,7 @@ define(['js/app'], function (myApp) {
                             if (el == "defineLoseValue") {
                                 if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] &&
                                         (vm.showReward.condition[el].indexOf("2") > -1 || vm.showReward.condition[el].indexOf("3") > -1))) {
-                                    vm.rewardDisabledParam.push("consumptionRecordProvider");
+                                    vm.rewardDisabledParam.push("consumptionProvider");
                                 }
 
                             }
@@ -13565,8 +13545,18 @@ define(['js/app'], function (myApp) {
             console.log(vm.rewardMainCondition);
         };
 
+        vm.rewardPeriodDeleteRow = (idx,valueCollection) => {
+            valueCollection.splice(idx,1);
+            console.log(vm.rewardMainCondition);
+        };
+
         vm.rewardPercentageAmountNewRow = (valueCollection) => {
             valueCollection.push({percentage: "", amount: ""});
+            console.log(vm.rewardMainParamTable);
+        };
+
+        vm.rewardPercentageAmountDeleteRow = (idx,valueCollection) => {
+            valueCollection.splice(idx,1);
             console.log(vm.rewardMainParamTable);
         };
 
@@ -13586,9 +13576,9 @@ define(['js/app'], function (myApp) {
             }
             if (model && model.name == "defineLoseValue") {
                 if (model.value.indexOf("2") == -1 && model.value.indexOf("3") == -1) {
-                    vm.rewardDisabledParam.indexOf("consumptionRecordProvider") === -1 ? vm.rewardDisabledParam.push("consumptionRecordProvider") : null;
+                    vm.rewardDisabledParam.indexOf("consumptionProvider") === -1 ? vm.rewardDisabledParam.push("consumptionProvider") : null;
                 } else {
-                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "consumptionRecordProvider");
+                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "consumptionProvider");
                 }
             }
 
@@ -13645,6 +13635,7 @@ define(['js/app'], function (myApp) {
                 if (!disabled) {
                     $("#rewardMainTasks :input").removeClass("disabled");
                 }
+                vm.platformRewardIsEnabled = !disabled;
                 if(vm.isRandomReward){
                     $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
                     $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", true);
@@ -14576,23 +14567,27 @@ define(['js/app'], function (myApp) {
 
                 let tmpt = vm.proposalTemplate[templateNo];
                 $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
                 $(tmpt).on('shown.bs.modal', function (e) {
                     $scope.safeApply();
                 })
 
 
             })
-            }
+        };
         vm.showNewPlayerModal = function (data, templateNo) {
-                vm.newPlayerProposal = data;
+            vm.newPlayerProposal = data;
 
-                let tmpt = vm.proposalTemplate[templateNo];
-                $(tmpt).modal('show');
-                $(tmpt).on('shown.bs.modal', function (e) {
-                    $scope.safeApply();
-                })
+            let tmpt = vm.proposalTemplate[templateNo];
+            $(tmpt).modal('show');
+            $(tmpt).on('shown.bs.modal', function (e) {
+                $scope.safeApply();
+            })
 
-            }
+        };
             // display  proposal detail
             vm.showProposalDetailField = function (obj, fieldName, val) {
                 if (!obj) return '';
