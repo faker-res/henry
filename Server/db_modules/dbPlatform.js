@@ -1581,10 +1581,11 @@ var dbPlatform = {
                     }
 
                     let nextSMSCountProm;
+                    let createTime = Date.parse(log.createTime);
 
                     if (isUsed)
                         nextSMSCountProm = Promise.resolve(-1);
-                    else if (nextUsedTime || log.createTime < smsVerificationExpireDate)
+                    else if (nextUsedTime || createTime < smsVerificationExpireDate)
                         nextSMSCountProm = Promise.resolve(1);
                     else
                         nextSMSCountProm = dbconfig.collection_smsLog.find({
