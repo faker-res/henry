@@ -14560,23 +14560,27 @@ define(['js/app'], function (myApp) {
 
                 let tmpt = vm.proposalTemplate[templateNo];
                 $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
                 $(tmpt).on('shown.bs.modal', function (e) {
                     $scope.safeApply();
                 })
 
 
             })
-            }
+        };
         vm.showNewPlayerModal = function (data, templateNo) {
-                vm.newPlayerProposal = data;
+            vm.newPlayerProposal = data;
 
-                let tmpt = vm.proposalTemplate[templateNo];
-                $(tmpt).modal('show');
-                $(tmpt).on('shown.bs.modal', function (e) {
-                    $scope.safeApply();
-                })
+            let tmpt = vm.proposalTemplate[templateNo];
+            $(tmpt).modal('show');
+            $(tmpt).on('shown.bs.modal', function (e) {
+                $scope.safeApply();
+            })
 
-            }
+        };
             // display  proposal detail
             vm.showProposalDetailField = function (obj, fieldName, val) {
                 if (!obj) return '';
