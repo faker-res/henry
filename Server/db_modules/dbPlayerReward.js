@@ -2210,7 +2210,7 @@ let dbPlayerReward = {
                             }
                         }
                     ).then(
-                        summary => {;
+                        summary => {
                             if (summary && summary[0]) {
                                 return summary[0].amount;
                             }
