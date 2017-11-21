@@ -7086,14 +7086,14 @@ let dbPlayerInfo = {
                         //         errorMessage: "Player does not have this permission"
                         //     });
                         // }
-                        if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
-                            || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
-                                name: "DataError",
-                                errorMessage: "Player does not have valid payment information"
-                            });
-                        }
+                        // if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
+                        //     || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
+                        //     return Q.reject({
+                        //         status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+                        //         name: "DataError",
+                        //         errorMessage: "Player does not have valid payment information"
+                        //     });
+                        // }
 
                         let todayTime = dbUtility.getTodaySGTime();
                         let creditProm = Q.resolve();
@@ -9316,7 +9316,8 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD,
                         constRewardType.PLAYER_PACKET_RAIN_REWARD,
                         constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
-                        constRewardType.PLAYER_TOP_UP_RETURN_GROUP
+                        constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
+                        constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP
                     ];
 
                     // Check any consumption after topup upon apply reward
@@ -9438,6 +9439,7 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
                                 case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
                                 case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
+                                case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
