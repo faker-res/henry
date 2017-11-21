@@ -2091,6 +2091,7 @@ let dbPlayerReward = {
             if (intervalTime) {
                 consumptionMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                 eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                topupMatchQuery.createTime =  {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
             if (eventData.condition.consumptionProvider && eventData.condition.consumptionProvider.length > 0) {
@@ -2459,10 +2460,15 @@ let dbPlayerReward = {
                                     });
                                 }
                                 //Only use one of the condition, reset another
-                                if (meetTopUpCondition)
+                                if (meetTopUpCondition && meetConsumptionCondition) {
+                                    // if both condition true, then use TopUpAmount first
                                     useConsumptionAmount = 0;
-                                if (meetConsumptionCondition)
-                                    useTopUpAmount = 0;
+                                } else {
+                                    if (meetTopUpCondition)
+                                        useConsumptionAmount = 0;
+                                    if (meetConsumptionCondition)
+                                        useTopUpAmount = 0;
+                                }
                             }
 
                             //calculate player reward amount
