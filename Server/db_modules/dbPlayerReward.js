@@ -1989,7 +1989,7 @@ let dbPlayerReward = {
         let useTopUpAmount;
         let useConsumptionAmount;
         let allRewardProm;
-
+        let isUpdateValidCredit = false;
 
         // Get interval time
         if (eventData.condition.interval) {
@@ -2492,6 +2492,11 @@ let dbPlayerReward = {
 
                             // Set top up record update flag
                             isUpdateTopupRecord = true;
+
+                            // Set player valid credit update flag
+                            if (eventData.condition.providerGroup) {
+                                isUpdateValidCredit = true;
+                            }
                         }
                         break;
 
@@ -2920,6 +2925,10 @@ let dbPlayerReward = {
                             },
                             {new: true}
                         ));
+                    }
+
+                    if (isUpdateValidCredit) {
+
                     }
 
                     return Promise.all(postPropPromArr);
