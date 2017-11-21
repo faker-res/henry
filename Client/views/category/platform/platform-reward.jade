@@ -139,7 +139,8 @@
                                         td
                                             select.form-control(ng-model='val.endTime' ng-options='i as v for (i,v) in dayTime')
                                         td
-                                            i.fa.fa-plus(ng-click='vm.rewardPeriodNewRow(v.value)')
+                                            i.fa.fa-minus(ng-click='vm.rewardPeriodDeleteRow(idx,v.value)' ng-show='vm.platformRewardIsEnabled && idx!=0')
+                                            i.fa.fa-plus(ng-click='vm.rewardPeriodNewRow(v.value)' ng-show='vm.platformRewardIsEnabled && idx==0')
                             select.spicker.form-control(ng-if="v.type == 'multiSelect'"  ng-model="vm.rewardMainCondition[i].value" multiple, data-width='50%' data-actions-box='true' ng-change="vm.rewardSelectOnChange(vm.rewardMainCondition[i])")
                                 option(style="display: inline-block" ng-repeat='(i,v) in v.options', value='{{i}}' ng-init='$last && vm.endLoadWeekDay()') {{v}}
 
@@ -184,7 +185,8 @@
                                                 td
                                                     input(type="number" ng-model="val.amount" style="width: 150px;")
                                                 td
-                                                    i.fa.fa-plus(ng-click='vm.rewardPercentageAmountNewRow(entry[i])')
+                                                    i.fa.fa-minus(ng-click='vm.rewardPercentageAmountDeleteRow(idx,entry[i])' ng-show='vm.platformRewardIsEnabled && idx!=0')
+                                                    i.fa.fa-plus(ng-click='vm.rewardPercentageAmountNewRow(entry[i])' ng-show='vm.platformRewardIsEnabled && idx==0')
 
             .pull-right
                 //- Intuitive UI: The Delete Event button should probably be on the left, next to Add Event.  (Or it could be an X button next to the name of the currently selected event.)

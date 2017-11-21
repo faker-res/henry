@@ -698,7 +698,7 @@ db.rewardParam.update({
                 rewardParam: {
                     minConsumptionAmount: {type: "number", des: "Minimum consumption amount"},
                     rewardAmount: {type: "number", des: "Reward amount"},
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    spendingTimes: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "checkbox",
@@ -808,7 +808,8 @@ db.rewardParam.update({
                 ignoreTopUpDirtyCheckForReward: {
                     index: 32,
                     type: "multiSelect",
-                    des: "Ignore the following rewards that applied with top up"
+                    des: "Ignore the following rewards that applied with top up",
+                    options: "allRewardEvent"
                 }
             },
             customCond: {

@@ -3009,12 +3009,12 @@ define(['js/app'], function (myApp) {
                                             'class': 'fa fa-comment',
                                             'style': 'padding-left:15px',
                                             'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
-                                            'title': $translate("PHONE")
+                                            'title': $translate("SMS")
                                         }));
                                     }
 
                                     if (row.status != vm.constRegistrationIntentRecordStatus.SUCCESS && row.status != vm.constRegistrationIntentRecordStatus.MANUAL) {
-                                        displayTXT = $translate('SMS/PHONE/CREATE_ACC');
+                                        displayTXT = $translate('CREATE_NEW_PLAYER');
                                         action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                         link.append($('<div>', {
                                             'class': 'fa fa-user-plus',
@@ -3024,11 +3024,11 @@ define(['js/app'], function (myApp) {
                                         }));
 
                                     } else {
-                                        displayTXT = $translate('SMS/PHONE/FEEDBACK');
+                                        displayTXT = $translate('FEEDBACK');
                                         action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
                                         $('#modalAddPlayerFeedback').css('z-Index', 1051);
                                         link.append($('<div>', {
-                                            'class': 'fa fa-envelope-o',
+                                            'class': 'fa fa-commenting',
                                             'style': 'padding-left:15px',
                                             'data-row': JSON.stringify(row),
                                             'data-toggle': 'modal',
@@ -3088,15 +3088,18 @@ define(['js/app'], function (myApp) {
             };
 
             vm.operatePlayerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                let smsExpiredDate = new Date();
+                smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - vm.selectedPlatform.data.smsVerificationExpireTime);
+                let createTime = Date.parse(aData.createTime);
                 switch (true) {
                     case ((aData.status == vm.constRegistrationIntentRecordStatus.INTENT || aData.status == vm.constRegistrationIntentRecordStatus.FAIL ||
-                        aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount == 0)): {
+                        aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount == 0 && createTime >= smsExpiredDate)): {
                         $(nRow).css('background-color', 'rgba(255, 153, 153, 100)', 'important');
                         //$(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
                         break;
                     }
                     case ((aData.status == vm.constRegistrationIntentRecordStatus.INTENT || aData.status == vm.constRegistrationIntentRecordStatus.FAIL ||
-                        aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount > 0)): {
+                        aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount > 0 || createTime < smsExpiredDate)): {
                         $(nRow).css('background-color', 'rgba(153, 153, 153, 100)', 'important');
                         break;
                     }
@@ -3642,7 +3645,7 @@ define(['js/app'], function (myApp) {
 
         vm.preparePlayerRegistrationIntentRecordsByStatus = function (newSearch) {
                 vm.queryData.attemptNo = vm.attemptNo ? vm.attemptNo : 0;
-            vm.queryData.status = Array.isArray(vm.status) ? vm.status : [vm.status];
+                vm.queryData.status = Array.isArray(vm.status) ? vm.status : [vm.status];
                 vm.playerRegistrationRecords.loading = true;
 
                 vm.queryData.size = newSearch ? 10 : (vm.playerRegistrationRecords.limit || 10);
@@ -3779,12 +3782,12 @@ define(['js/app'], function (myApp) {
                                             'class': 'fa fa-comment',
                                             'style': 'padding-left:15px',
                                             'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
-                                            'title': $translate("PHONE")
+                                            'title': $translate("SMS")
                                         }));
                                     }
 
                                     if (row.status != vm.constRegistrationIntentRecordStatus.SUCCESS && row.status != vm.constRegistrationIntentRecordStatus.MANUAL) {
-                                        displayTXT = $translate('SMS/PHONE/CREATE_ACC');
+                                        displayTXT = $translate('CREATE_NEW_PLAYER');
                                         action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                         link.append($('<div>', {
                                             'class': 'fa fa-user-plus',
@@ -3794,11 +3797,11 @@ define(['js/app'], function (myApp) {
                                         }));
 
                                     } else {
-                                        displayTXT = $translate('SMS/PHONE/FEEDBACK');
+                                        displayTXT = $translate('FEEDBACK');
                                         action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
                                         $('#modalAddPlayerFeedback').css('z-Index', 1051);
                                         link.append($('<div>', {
-                                            'class': 'fa fa-envelope-o',
+                                            'class': 'fa fa-commenting',
                                             'style': 'padding-left:15px',
                                             'data-row': JSON.stringify(row),
                                             'data-toggle': 'modal',
@@ -8310,11 +8313,11 @@ define(['js/app'], function (myApp) {
                     playerName: vm.selectedSinglePlayer.name,
                     requiredUnlockAmount: vm.playerAddRewardTask.requiredUnlockAmount,
                     currentAmount: vm.playerAddRewardTask.currentAmount,
-                    amount: vm.playerAddRewardTask.currentAmount,
+                    rewardAmount: vm.playerAddRewardTask.currentAmount,
                     initAmount: vm.playerAddRewardTask.currentAmount,
                     useConsumption: Boolean(vm.playerAddRewardTask.useConsumption),
                     remark: vm.playerAddRewardTask.remark,
-                }
+                };
                 console.log('sendObj', sendObj);
                 socketService.$socket($scope.AppSocket, 'createPlayerRewardTask', sendObj, function (data) {
                     vm.playerAddRewardTask.resMsg = $translate('SUCCESS');
@@ -10944,30 +10947,9 @@ define(['js/app'], function (myApp) {
                     vm.playerFeedbackQuery.index = data.data.index || 0;
                     vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total}, isNewSearch);
 
-                    // vm.curFeedbackPlayer = data.data.data;
-                    // vm.feedbackPlayersPara.total = data.data.total || 0;
-                    // vm.feedbackPlayersPara.index = data.data.index + 1;
+                    vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
                     $('#platformFeedbackSpin').hide();
-                    // if (!vm.curFeedbackPlayer) {
-                    //     $scope.safeApply();
-                    //     return;
-                    // }
-                    //
-                    // vm.addFeedback = {
-                    //     playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
-                    //     platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
-                    // };
-                    // if (vm.curFeedbackPlayer._id) {
-                    //     vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                    //         vm.curPlayerFeedbackDetail = data;
-                    //         $scope.safeApply();
-                    //     });
-                    //     vm.getPlayerCredibilityComment(vm.curFeedbackPlayer._id);
-                    //     $scope.safeApply();
-                    // } else {
-                    //     vm.curPlayerFeedbackDetail = {};
-                    //     $scope.safeApply();
-                    // }
+                    $scope.safeApply();
                 });
             }
             vm.playerCredibilityComment = [];
@@ -13040,6 +13022,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainParamEntry = [{}];
                     vm.rewardDisabledParam = [];
                     vm.isRandomReward = false;
+                    vm.platformRewardIsEnabled = false;
                     let params = vm.showRewardTypeData.params;
 
                     // Set condition value
@@ -13558,8 +13541,18 @@ define(['js/app'], function (myApp) {
             console.log(vm.rewardMainCondition);
         };
 
+        vm.rewardPeriodDeleteRow = (idx,valueCollection) => {
+            valueCollection.splice(idx,1);
+            console.log(vm.rewardMainCondition);
+        };
+
         vm.rewardPercentageAmountNewRow = (valueCollection) => {
             valueCollection.push({percentage: "", amount: ""});
+            console.log(vm.rewardMainParamTable);
+        };
+
+        vm.rewardPercentageAmountDeleteRow = (idx,valueCollection) => {
+            valueCollection.splice(idx,1);
             console.log(vm.rewardMainParamTable);
         };
 
@@ -13638,6 +13631,7 @@ define(['js/app'], function (myApp) {
                 if (!disabled) {
                     $("#rewardMainTasks :input").removeClass("disabled");
                 }
+                vm.platformRewardIsEnabled = !disabled;
                 if(vm.isRandomReward){
                     $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
                     $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", true);
@@ -14084,6 +14078,7 @@ define(['js/app'], function (myApp) {
                 } else {
                     sendData = vm.showReward;
                     sendData.name = vm.showReward.name;
+                    sendData.platform = vm.selectedPlatform.id;
                     sendData.description = vm.showReward.description;
                     sendData.param = vm.rewardParams;
                     sendData.condition = vm.rewardCondition;

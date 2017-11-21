@@ -2925,3 +2925,7 @@ input[type='number'].leftALignNumber {
     font-size: 14px;
     display: inline-block;
 }
+
+#newPlayerListTable_wrapper .dataTable {
+    font-size: 12px;
+}
