@@ -1650,6 +1650,7 @@ var proposal = {
                 let duplicateList = [];
                 let plyData = [];
                 let partnerData = [];
+
                 returnData[2].forEach(item=>{
                     console.log(item);
                     // plyData.push({'name':item.name, 'realName':item.realName ,'data.proposal':123});
@@ -1669,7 +1670,7 @@ var proposal = {
                             'proposalId': '',
                             'playerLevel': item.playerLevel,
                             'credibilityRemarks': item.credibilityRemarks ? item.credibilityRemarks : "",
-                            'valueScore': item.valueScore,
+                            'valueScore': item.valueScore ? item.valueScore: 0 ,
                             'phoneProvince':item.phoneProvince? item.phoneProvince: '',
                             'phoneCity': item.phoneCity ? item.phoneCity: ''
                         },
@@ -1678,7 +1679,6 @@ var proposal = {
                 })
 
                 returnData[3].forEach(item=>{
-                    console.log(item);
                     // plyData.push({'name':item.name, 'realName':item.realName ,'data.proposal':123});
                     let partnerUnitData = {
                         'data':{
@@ -1697,7 +1697,7 @@ var proposal = {
                             'proposalId': '',
                             'playerLevel': item.playerLevel,
                             'credibilityRemarks': item.credibilityRemarks ? item.credibilityRemarks : "",
-                            'valueScore': item.valueScore,
+                            'valueScore': item.valueScore ? item.valueScore: '',
                             'phoneProvince':item.phoneProvince? item.phoneProvince: '',
                             'phoneCity': item.phoneCity ? item.phoneCity: ''
                         },
@@ -1725,7 +1725,8 @@ var proposal = {
 
                 duplicateList = returnData[0].concat(plyData, partnerData);
                 // return {data: plyData, size: returnData[1]};
-                let result = {data: duplicateList, size: returnData[1]};
+                let resultSize = plyData.size + partnerData.size+ returnData[1];
+                let result = {data: duplicateList, size: resultSize};
                 // let result = { data: returnData[0], size:returnData[1]};
                 console.log(result);
 
