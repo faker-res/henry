@@ -5815,22 +5815,67 @@ let dbPlayerInfo = {
                                     // @todo It may be fairer to give the player the reward for every level he passed
                                     //       up through, not just for the top one he reached.
 
+                                    let proposalData = {
+                                        levelValue: levelUpObj.value,
+                                        levelName: levelUpObj.name,
+                                        levelObjId: levelObjId,
+                                        levelOldName: playerObj.playerLevel.name,
+                                        upOrDown: "LEVEL_UP" ,
+                                        playerObjId: playerObj._id,
+                                        playerName: playerObj.name,
+                                        playerId: playerObj.playerId,
+                                        platformObjId: playerObj.platform
+                                    };
+
+                                    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {data: proposalData}).then(
+                                        createdMigrationProposal => {
+                                            return dbconfig.collection_proposalType.findOne({
+                                                platformId: playerObj.platform,
+                                                name: constProposalType.PLAYER_LEVEL_UP
+                                            }).lean();
+                                        }
+                                    ).then(
+                                        proposalTypeData => {
+                                            // check if player has level up to this level previously
+                                            return dbconfig.collection_proposal.findOne({
+                                                'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
+                                                'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
+                                                'data.levelValue': levelUpObj.value,
+                                                type: proposalTypeData._id,
+                                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                            }).lean();
+                                        }
+                                    ).then(
+                                        rewardProp => {
+                                            if (!rewardProp) {
+                                                // if this is level up and player has not reach this level before
+                                                // create level up reward proposal
+                                                if (levelUpObj && levelUpObj.reward && levelUpObj.reward.bonusCredit) {
+                                                    proposalData.rewardAmount = levelUpObj.reward.bonusCredit;
+                                                    proposalData.isRewardTask = levelUpObj.reward.isRewardTask;
+
+                                                    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
+                                                }
+                                            }
+                                        }
+                                    );
+
                                     // If there is a reward for this level, give it to the player
-                                    if (levelUpObj && levelUpObj.reward && levelUpObj.reward.bonusCredit) {
-                                        //console.log(`Giving the player credit: ${levelUpObj.reward.bonusCredit}`);
-                                        var proposalData = {
-                                            rewardAmount: levelUpObj.reward.bonusCredit,
-                                            isRewardTask: levelUpObj.reward.isRewardTask,
-                                            levelValue: levelUpObj.value,
-                                            levelName: levelUpObj.name,
-                                            levelOldName: playerObj.playerLevel.name,
-                                            playerObjId: playerObj._id,
-                                            playerName: playerObj.name,
-                                            playerId: playerObj.playerId,
-                                            platformObjId: playerObj.platform
-                                        };
-                                        return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
-                                    }
+                                    // if (levelUpObj && levelUpObj.reward && levelUpObj.reward.bonusCredit) {
+                                    //     //console.log(`Giving the player credit: ${levelUpObj.reward.bonusCredit}`);
+                                    //     var proposalData = {
+                                    //         rewardAmount: levelUpObj.reward.bonusCredit,
+                                    //         isRewardTask: levelUpObj.reward.isRewardTask,
+                                    //         levelValue: levelUpObj.value,
+                                    //         levelName: levelUpObj.name,
+                                    //         levelOldName: playerObj.playerLevel.name,
+                                    //         playerObjId: playerObj._id,
+                                    //         playerName: playerObj.name,
+                                    //         playerId: playerObj.playerId,
+                                    //         platformObjId: playerObj.platform
+                                    //     };
+                                    //     return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
+                                    // }
                                 }
                             }
                         );
