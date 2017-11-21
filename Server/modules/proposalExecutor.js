@@ -70,7 +70,10 @@ var proposalExecutor = {
                     proposalExecutor.executions[executionType](proposalData, deferred);
                     return deferred.promise.then(
                         responseData => {
-                            return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalData._id, createTime: proposalData.createTime}, {settleTime: new Date()}).then(
+                            return dbconfig.collection_proposal.findOneAndUpdate({
+                                _id: proposalData._id,
+                                createTime: proposalData.createTime
+                            }, {settleTime: new Date()}).then(
                                 res => {
                                     if (proposalData.mainType === 'Reward' && executionType != "executeManualUnlockPlayerReward") {
                                         return createRewardLogForProposal("GET_FROM_PROPOSAL", proposalData).then(
@@ -152,6 +155,8 @@ var proposalExecutor = {
             this.executions.executePlayerPromoCodeReward.des = "Player Promo Code Reward";
             this.executions.executePlayerLimitedOfferReward.des = "Player Limited Offer Reward";
             this.executions.executePlayerTopUpReturnGroup.des = "Player Top Up Return Group Reward";
+            this.executions.executePlayerRandomRewardGroup.des = "Player Random Reward Group Reward";
+            this.executions.executePlayerConsecutiveRewardGroup.des = "Player Consecutive Group Reward";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -203,6 +208,9 @@ var proposalExecutor = {
             this.rejections.rejectPlayerPromoCodeReward.des = "Reject Player Promo Code Reward";
             this.rejections.rejectPlayerLimitedOfferReward.des = "Reject Player Limited Offer Reward";
             this.rejections.rejectPlayerTopUpReturnGroup.des = "Reject Player Top Up Return Group Reward";
+            this.rejections.rejectPlayerRandomRewardGroup.des = "Reject Player Random Reward Group Reward";
+            this.rejections.rejectPlayerConsecutiveRewardGroup.des = "Reject Player Consecutive Group Reward";
+
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -247,7 +255,7 @@ var proposalExecutor = {
                     var usedRecords = [];
                     if (proposalData && proposalData.data) {
                         if (proposalData.data.topUpRecordIds) {
-                            if(proposalData.data.topUpRecordIds.constructor === Array) {
+                            if (proposalData.data.topUpRecordIds.constructor === Array) {
                                 usedRecords = proposalData.data.topUpRecordIds;
                             } else {
                                 usedRecords.push(proposalData.data.topUpRecordIds);
@@ -1831,7 +1839,10 @@ var proposalExecutor = {
                         taskData.targetProviders = proposalData.data.providers;
                     }
 
-                    dbconfig.collection_players.findOneAndUpdate({_id: proposalData.data.playerObjId, platform: proposalData.data.platformId}, {applyingEasterEgg: false}).then(
+                    dbconfig.collection_players.findOneAndUpdate({
+                        _id: proposalData.data.playerObjId,
+                        platform: proposalData.data.platformId
+                    }, {applyingEasterEgg: false}).then(
                         data => {
                             createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_EASTER_EGG_REWARD, proposalData);
                         },
@@ -1865,8 +1876,8 @@ var proposalExecutor = {
             /**
              * execution function for player intention proposal
              */
-            executePlayerRegistrationIntention:function (proposalData, deferred) {
-                 deferred.resolve(proposalData);
+            executePlayerRegistrationIntention: function (proposalData, deferred) {
+                deferred.resolve(proposalData);
             },
 
             executePlayerConsecutiveConsumptionReward: function (proposalData, deferred) {
@@ -2001,6 +2012,82 @@ var proposalExecutor = {
 
                     let deferred1 = Q.defer();
                     createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_TOP_UP_RETURN_GROUP, proposalData);
+                    deferred1.promise.then(
+                        data => {
+                            let updateData = {$set: {}};
+
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
+                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                            }
+
+                            dbconfig.collection_players.findOneAndUpdate(
+                                {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
+                                updateData
+                            ).then(
+                                () => {
+                                    deferred.resolve(data);
+                                },
+                                deferred.reject
+                            );
+                        },
+                        deferred.reject
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect player top up return group proposal data"});
+                }
+            },
+
+            executePlayerRandomRewardGroup: function (proposalData, deferred) {
+                //verify data
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && proposalData.data.rewardAmount) {
+                    proposalData.data.proposalId = proposalData.proposalId;
+                    let deferred1 = Q.defer();
+                    changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constRewardType.PLAYER_PACKET_RAIN_REWARD, proposalData.data)
+                        .then(data => {
+                                let updateData = {$set: {}};
+
+                                if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
+                                    updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                                }
+
+                                dbconfig.collection_players.findOneAndUpdate(
+                                    {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
+                                    updateData
+                                ).then(
+                                    () => {
+                                        deferred.resolve(data);
+                                    },
+                                    deferred.reject
+                                );
+                            },
+                            deferred.reject
+                        );
+
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect player random reward group proposal data"});
+                }
+            },
+
+            executePlayerConsecutiveRewardGroup: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,
+                        rewardType: constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        currentAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
+                        initAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
+                        useConsumption: Boolean(proposalData.data.useConsumption),
+                        eventId: proposalData.data.eventId,
+                        applyAmount: proposalData.data.applyAmount,
+                        providerGroup: proposalData.data.providerGroup
+                    };
+
+                    let deferred1 = Q.defer();
+                    createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP, proposalData);
                     deferred1.promise.then(
                         data => {
                             let updateData = {$set: {}};
@@ -2542,7 +2629,10 @@ var proposalExecutor = {
             },
 
             rejectPlayerEasterEggReward: function (proposalData, deferred) {
-                dbconfig.collection_players.findOneAndUpdate({_id: proposalData.data.playerObjId, platform: proposalData.data.platformId}, {applyingEasterEgg: false}).then(
+                dbconfig.collection_players.findOneAndUpdate({
+                    _id: proposalData.data.playerObjId,
+                    platform: proposalData.data.platformId
+                }, {applyingEasterEgg: false}).then(
                     data => {
                         deferred.resolve("Proposal is rejected");
                     },
@@ -2588,6 +2678,14 @@ var proposalExecutor = {
             },
 
             rejectPlayerTopUpReturnGroup: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerRandomRewardGroup: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerConsecutiveRewardGroup: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
         }

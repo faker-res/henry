@@ -30,7 +30,8 @@ const constRewardType = {
     PLAYER_CONSECUTIVE_REWARD_GROUP: "PlayerConsecutiveRewardGroup",
     PLAYER_RANDOM_REWARD_GROUP: "PlayerRandomRewardGroup",
     PLAYER_CONSUMPTION_REWARD_GROUP: "PlayerConsumptionRewardGroup",
-    PLAYER_FREE_TRIAL_REWARD_GROUP: "PlayerFreeTrialRewardGroup"
+    PLAYER_FREE_TRIAL_REWARD_GROUP: "PlayerFreeTrialRewardGroup",
+    PLAYER_LOSE_RETURN_REWARD_GROUP: "PlayerLoseReturnRewardGroup"
 };
 
 module.exports = constRewardType;
