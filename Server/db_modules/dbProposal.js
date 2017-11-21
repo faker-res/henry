@@ -1531,7 +1531,7 @@ var proposal = {
 
                         if (size >= 0) {
                             var a = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj)
-                                .populate({path: 'playerId', model: dbconfig.collection_players})
+                                //.populate({path: 'playerId', model: dbconfig.collection_players})
                                 .sort(sortCol).skip(index).limit(size).lean()
                                 .then(
                                     pdata => {
@@ -1634,6 +1634,12 @@ var proposal = {
                                 }
                                 if (d[0].status) {
                                     returnData[0][i].data.playerStatus = d[0].status;
+                                }
+                                if(d[0].smsSetting){
+                                    returnData[0][i].data.smsSetting = d[0].smsSetting
+                                }
+                                if(d[0].receiveSMS){
+                                    returnData[0][i].data.receiveSMS = d[0].receiveSMS
                                 }
                             }
 

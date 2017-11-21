@@ -1989,7 +1989,7 @@ let dbPlayerReward = {
         let useTopUpAmount;
         let useConsumptionAmount;
         let allRewardProm;
-
+        let isUpdateValidCredit = false;
 
         // Get interval time
         if (eventData.condition.interval) {
@@ -2183,7 +2183,6 @@ let dbPlayerReward = {
                         }
                     ).then(
                         summary => {
-
                             if (summary && summary[0]) {
                                 return summary[0].amount;
                             }
@@ -2212,7 +2211,6 @@ let dbPlayerReward = {
                         }
                     ).then(
                         summary => {
-
                             if (summary && summary[0]) {
                                 return summary[0].amount;
                             }
@@ -2494,12 +2492,17 @@ let dbPlayerReward = {
 
                             // Set top up record update flag
                             isUpdateTopupRecord = true;
+
+                            // Set player valid credit update flag
+                            if (eventData.condition.providerGroup) {
+                                isUpdateValidCredit = true;
+                            }
                         }
                         break;
 
                     // type 2
                     case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
-
+                        applyAmount = 0;
                         let todayProposal = eventInPeriodData.filter(proposal => {
                             // Player cannot apply for earlier day if they already apply for later days within a reward period
                             return proposal.data.applyTargetDate >= todayTime.startTime;
@@ -2629,8 +2632,6 @@ let dbPlayerReward = {
                                 return (aDeposit < bDeposit) ? -1 : 1;
                             }
                         });
-                        // loseAmount = 49;
-                        // topUpinPeriod = 500
 
                         for (let j = selectedRewardParam.length-1; j >= 0; j--) {
                             if (topUpinPeriod >= selectedRewardParam[j].minDeposit  && loseAmount >= selectedRewardParam[j].minLoseAmount){
@@ -2646,8 +2647,7 @@ let dbPlayerReward = {
                             }
                         }
 
-                        // selectedRewardParam = selectedRewardParam[0];
-
+                        applyAmount = selectedRewardParam.minDeposit;
 
                         if (eventData.condition.isDynamicRewardAmount) {
                             let rewardAmountTemp = loseAmount * (selectedRewardParam.rewardPercent/100);
@@ -2660,7 +2660,7 @@ let dbPlayerReward = {
                         } else {
                             rewardAmount = selectedRewardParam.rewardAmount;
                         }
-                        spendingAmount = rewardAmount * selectedRewardParam.spendingTimesOnReward;
+                        spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
                         break;
 
 
@@ -2896,11 +2896,11 @@ let dbPlayerReward = {
                     proposalData.data.applyTargetDate = todayTime.startTime;
                 }
 
-                if (useTopUpAmount != null) {
+                if (useTopUpAmount !== null) {
                     proposalData.data.useTopUpAmount = useTopUpAmount;
                 }
 
-                if (!useConsumptionAmount != null) {
+                if (useConsumptionAmount !== null) {
                     proposalData.data.useConsumptionAmount = useConsumptionAmount;
                 }
 
@@ -2925,6 +2925,10 @@ let dbPlayerReward = {
                             },
                             {new: true}
                         ));
+                    }
+
+                    if (isUpdateValidCredit) {
+
                     }
 
                     return Promise.all(postPropPromArr);
