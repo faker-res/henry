@@ -3009,12 +3009,12 @@ define(['js/app'], function (myApp) {
                                             'class': 'fa fa-comment',
                                             'style': 'padding-left:15px',
                                             'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
-                                            'title': $translate("PHONE")
+                                            'title': $translate("SMS")
                                         }));
                                     }
 
                                     if (row.status != vm.constRegistrationIntentRecordStatus.SUCCESS && row.status != vm.constRegistrationIntentRecordStatus.MANUAL) {
-                                        displayTXT = $translate('SMS/PHONE/CREATE_ACC');
+                                        displayTXT = $translate('CREATE_NEW_PLAYER');
                                         action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                         link.append($('<div>', {
                                             'class': 'fa fa-user-plus',
@@ -3024,11 +3024,11 @@ define(['js/app'], function (myApp) {
                                         }));
 
                                     } else {
-                                        displayTXT = $translate('SMS/PHONE/FEEDBACK');
+                                        displayTXT = $translate('FEEDBACK');
                                         action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
                                         $('#modalAddPlayerFeedback').css('z-Index', 1051);
                                         link.append($('<div>', {
-                                            'class': 'fa fa-envelope-o',
+                                            'class': 'fa fa-commenting',
                                             'style': 'padding-left:15px',
                                             'data-row': JSON.stringify(row),
                                             'data-toggle': 'modal',
@@ -3088,15 +3088,18 @@ define(['js/app'], function (myApp) {
             };
 
             vm.operatePlayerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                let smsExpiredDate = new Date();
+                smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - vm.selectedPlatform.data.smsVerificationExpireTime);
+                let createTime = Date.parse(aData.createTime);
                 switch (true) {
                     case ((aData.status == vm.constRegistrationIntentRecordStatus.INTENT || aData.status == vm.constRegistrationIntentRecordStatus.FAIL ||
-                        aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount == 0)): {
+                        aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount == 0 && createTime >= smsExpiredDate)): {
                         $(nRow).css('background-color', 'rgba(255, 153, 153, 100)', 'important');
                         //$(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
                         break;
                     }
                     case ((aData.status == vm.constRegistrationIntentRecordStatus.INTENT || aData.status == vm.constRegistrationIntentRecordStatus.FAIL ||
-                        aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount > 0)): {
+                        aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount > 0 || createTime < smsExpiredDate)): {
                         $(nRow).css('background-color', 'rgba(153, 153, 153, 100)', 'important');
                         break;
                     }
@@ -3642,7 +3645,7 @@ define(['js/app'], function (myApp) {
 
         vm.preparePlayerRegistrationIntentRecordsByStatus = function (newSearch) {
                 vm.queryData.attemptNo = vm.attemptNo ? vm.attemptNo : 0;
-            vm.queryData.status = Array.isArray(vm.status) ? vm.status : [vm.status];
+                vm.queryData.status = Array.isArray(vm.status) ? vm.status : [vm.status];
                 vm.playerRegistrationRecords.loading = true;
 
                 vm.queryData.size = newSearch ? 10 : (vm.playerRegistrationRecords.limit || 10);
@@ -3779,12 +3782,12 @@ define(['js/app'], function (myApp) {
                                             'class': 'fa fa-comment',
                                             'style': 'padding-left:15px',
                                             'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
-                                            'title': $translate("PHONE")
+                                            'title': $translate("SMS")
                                         }));
                                     }
 
                                     if (row.status != vm.constRegistrationIntentRecordStatus.SUCCESS && row.status != vm.constRegistrationIntentRecordStatus.MANUAL) {
-                                        displayTXT = $translate('SMS/PHONE/CREATE_ACC');
+                                        displayTXT = $translate('CREATE_NEW_PLAYER');
                                         action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                         link.append($('<div>', {
                                             'class': 'fa fa-user-plus',
@@ -3794,11 +3797,11 @@ define(['js/app'], function (myApp) {
                                         }));
 
                                     } else {
-                                        displayTXT = $translate('SMS/PHONE/FEEDBACK');
+                                        displayTXT = $translate('FEEDBACK');
                                         action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
                                         $('#modalAddPlayerFeedback').css('z-Index', 1051);
                                         link.append($('<div>', {
-                                            'class': 'fa fa-envelope-o',
+                                            'class': 'fa fa-commenting',
                                             'style': 'padding-left:15px',
                                             'data-row': JSON.stringify(row),
                                             'data-toggle': 'modal',
@@ -13113,7 +13116,7 @@ define(['js/app'], function (myApp) {
                             if (el == "defineLoseValue") {
                                 if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] &&
                                         (vm.showReward.condition[el].indexOf("2") > -1 || vm.showReward.condition[el].indexOf("3") > -1))) {
-                                    vm.rewardDisabledParam.push("consumptionRecordProvider");
+                                    vm.rewardDisabledParam.push("consumptionProvider");
                                 }
 
                             }
@@ -13569,9 +13572,9 @@ define(['js/app'], function (myApp) {
             }
             if (model && model.name == "defineLoseValue") {
                 if (model.value.indexOf("2") == -1 && model.value.indexOf("3") == -1) {
-                    vm.rewardDisabledParam.indexOf("consumptionRecordProvider") === -1 ? vm.rewardDisabledParam.push("consumptionRecordProvider") : null;
+                    vm.rewardDisabledParam.indexOf("consumptionProvider") === -1 ? vm.rewardDisabledParam.push("consumptionProvider") : null;
                 } else {
-                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "consumptionRecordProvider");
+                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "consumptionProvider");
                 }
             }
 
