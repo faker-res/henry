@@ -2156,10 +2156,10 @@ let dbPlayerReward = {
         }
 
 
-        if (eventData.type.name == constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP){
+        if (eventData.type.name == constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
             let promiseUsed = [];
             let calculateLosses;
-            switch(eventData.condition.defineLoseValue) {
+            switch (eventData.condition.defineLoseValue) {
                 case "1":
                     let bonusQuery = {
                         "data.platformId": playerData.platform._id,
@@ -2169,7 +2169,7 @@ let dbPlayerReward = {
                         status: {$in: [constProposalStatus.PENDING, constProposalStatus.AUTOAUDIT, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                         settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                     };
-                    console.log("walaotime", todayTime);
+
 
                     let totalBonusProm = dbConfig.collection_proposal.aggregate(
                         {
@@ -2183,7 +2183,7 @@ let dbPlayerReward = {
                         }
                     ).then(
                         summary => {
-                            console.log("walaobonus", summary);
+
                             if (summary && summary[0]) {
                                 return summary[0].amount;
                             }
@@ -2212,7 +2212,7 @@ let dbPlayerReward = {
                         }
                     ).then(
                         summary => {
-                            console.log("walaotopup", summary);
+
                             if (summary && summary[0]) {
                                 return summary[0].amount;
                             }
@@ -2225,16 +2225,20 @@ let dbPlayerReward = {
 
                     let creditsDailyLogQuery = {
                         playerObjId: playerData._id,
-                        createTime : {$gte: todayTime.startTime, $lt: todayTime.endTime}
+                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                     };
 
 
                     let totalCreditsDailyProm = dbConfig.collection_playerCreditsDailyLog.aggregate([
                         {"$match": creditsDailyLogQuery},
-                        {"$group":{_id:{playerId: "$playerObjId"},amount:{$sum: {$sum:["$validCredit","$lockedCredit","$gameCredit"]}}}}
+                        {
+                            "$group": {
+                                _id: {playerId: "$playerObjId"},
+                                amount: {$sum: {$sum: ["$validCredit", "$lockedCredit", "$gameCredit"]}}
+                            }
+                        }
                     ]).then(
                         summary => {
-                            console.log("walao0dian", summary);
                             if (summary && summary[0]) {
                                 return summary[0].amount;
                             }
@@ -2245,11 +2249,11 @@ let dbPlayerReward = {
                         }
                     );
 
-                    // if (intervalTime) {
-                    //     bonusQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                    //     totalTopupProm.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                    //     creditsDailyLogQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                    // }
+                    if (intervalTime) {
+                        bonusQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                        totalTopupProm.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                        creditsDailyLogQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                    }
                     // let promiseUsed = [];
                     promiseUsed.push(totalBonusProm);
                     promiseUsed.push(totalTopupProm);
@@ -2265,10 +2269,6 @@ let dbPlayerReward = {
                     });
 
                     promArr.push(calculateLosses);
-
-                    // promArr.push(totalBonusProm);
-                    // promArr.push(totalTopupProm);
-                    // promArr.push(totalCreditsDailyProm);
                     break;
                 case "2":
                     let allRewardQuery = {
@@ -2291,7 +2291,6 @@ let dbPlayerReward = {
                         }
                     ).then(
                         summary => {
-                            console.log("walaoreward", summary);
                             if (summary && summary[0]) {
                                 return summary[0].amount;
                             }
@@ -2318,13 +2317,14 @@ let dbPlayerReward = {
 
                     let totalConsumptionAmount = dbConfig.collection_playerConsumptionRecord.aggregate([
                         {$match: consumptionQuery},
-                        {$group: {
-                            _id: null,
-                            amount: {$sum: "$bonusAmount"}
-                        }}
+                        {
+                            $group: {
+                                _id: null,
+                                amount: {$sum: "$bonusAmount"}
+                            }
+                        }
                     ]).then(
                         summary => {
-                            console.log("walaoconsumption", summary);
                             if (summary && summary[0]) {
                                 return summary[0].amount * -1;
                             }
@@ -2352,19 +2352,20 @@ let dbPlayerReward = {
                     promArr.push(calculateLosses);
 
 
-                    // if (intervalTime) {
-                    //     consumptionQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                    //     if (allRewardProm) allRewardQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                    // }
+                    if (intervalTime) {
+                        consumptionQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                        if (allRewardProm) allRewardQuery.settleTime = {
+                            $gte: intervalTime.startTime,
+                            $lte: intervalTime.endTime
+                        };
+                    }
                     // promArr.push(totalConsumptionAmount);
                     // if (allRewardProm) promArr.push(allRewardProm);
                     break;
                 default:
-                    // reject error
+                // reject error
             }
-
-
-
+        }
 
 
         if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP) {
@@ -2391,10 +2392,6 @@ let dbPlayerReward = {
                 let topupInPeriodData = data[2];
                 let eventInPeriodData = data[3];
                 let rewardSpecificData = data[4];
-                console.log("walao0",topupInPeriodData);
-                console.log("walao1",rewardSpecificData[0]);
-                console.log("walao2",rewardSpecificData[1]);
-                console.log("walao3",rewardSpecificData[2]);
 
                 let topupInPeriodCount = topupInPeriodData.length;
                 let eventInPeriodCount = eventInPeriodData.length;
@@ -2632,7 +2629,6 @@ let dbPlayerReward = {
                                 return (aDeposit < bDeposit) ? -1 : 1;
                             }
                         });
-                        console.log("walaoselected", selectedRewardParam);
                         // loseAmount = 49;
                         // topUpinPeriod = 500
 
@@ -2652,7 +2648,6 @@ let dbPlayerReward = {
 
                         // selectedRewardParam = selectedRewardParam[0];
 
-                        console.log("walaoselected2", selectedRewardParam);
 
                         if (eventData.condition.isDynamicRewardAmount) {
                             let rewardAmountTemp = loseAmount * (selectedRewardParam.rewardPercent/100);
