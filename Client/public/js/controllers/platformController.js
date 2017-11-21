@@ -10944,30 +10944,9 @@ define(['js/app'], function (myApp) {
                     vm.playerFeedbackQuery.index = data.data.index || 0;
                     vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total}, isNewSearch);
 
-                    // vm.curFeedbackPlayer = data.data.data;
-                    // vm.feedbackPlayersPara.total = data.data.total || 0;
-                    // vm.feedbackPlayersPara.index = data.data.index + 1;
+                    vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
                     $('#platformFeedbackSpin').hide();
-                    // if (!vm.curFeedbackPlayer) {
-                    //     $scope.safeApply();
-                    //     return;
-                    // }
-                    //
-                    // vm.addFeedback = {
-                    //     playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
-                    //     platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
-                    // };
-                    // if (vm.curFeedbackPlayer._id) {
-                    //     vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                    //         vm.curPlayerFeedbackDetail = data;
-                    //         $scope.safeApply();
-                    //     });
-                    //     vm.getPlayerCredibilityComment(vm.curFeedbackPlayer._id);
-                    //     $scope.safeApply();
-                    // } else {
-                    //     vm.curPlayerFeedbackDetail = {};
-                    //     $scope.safeApply();
-                    // }
+                    $scope.safeApply();
                 });
             }
             vm.playerCredibilityComment = [];

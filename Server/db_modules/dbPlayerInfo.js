@@ -9306,7 +9306,7 @@ let dbPlayerInfo = {
                                 }
                             }
 
-                            // if that's one reward pending , then you cannot apply other reward
+                            // if there is a pending reward, then no other reward can be applied.
                             if (timeCheckData[2] && timeCheckData[2] > 0) {
                                 if (rewardTaskWithProposalList.indexOf(rewardEvent.type.name) != -1) {
                                     return Q.reject({
@@ -9390,6 +9390,7 @@ let dbPlayerInfo = {
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                                 case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
+                                case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
                                 case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
                                 case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
                                     if (data.applyTargetDate) {
