@@ -3008,7 +3008,7 @@ define(['js/app'], function (myApp) {
                                         link.append($('<div>', {
                                             'class': 'fa fa-comment',
                                             'style': 'padding-left:15px',
-                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
+                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');vm.initSMSModal();',
                                             'title': $translate("SMS")
                                         }));
                                     }
@@ -3781,7 +3781,7 @@ define(['js/app'], function (myApp) {
                                         link.append($('<div>', {
                                             'class': 'fa fa-comment',
                                             'style': 'padding-left:15px',
-                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
+                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');vm.initSMSModal();',
                                             'title': $translate("SMS")
                                         }));
                                     }
@@ -5994,6 +5994,9 @@ define(['js/app'], function (myApp) {
             }
             vm.smsNewPlayerBtn = function (phoneNumber, data) {
                 vm.getSMSTemplate();
+                vm.selectedSinglePlayer = data;
+                vm.editPlayer = data.data ? data.data : "";
+                vm.selectedPlayersCount = 1
                 vm.smsPlayer = {
                     playerId: data.playerId,
                     name: data.name,
@@ -7403,8 +7406,9 @@ define(['js/app'], function (myApp) {
                 $('#smsToPlayerTab').addClass('active');
                 $('#smsLogTab').removeClass('active');
                 $('#smsSettingTab').removeClass('active');
-                $scope.safeApply();
                 vm.smsModalTab = "smsToPlayerPanel";
+                $scope.safeApply();
+
             }
 
             vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
