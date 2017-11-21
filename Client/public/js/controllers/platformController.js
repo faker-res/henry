@@ -13116,7 +13116,7 @@ define(['js/app'], function (myApp) {
                             if (el == "defineLoseValue") {
                                 if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] &&
                                         (vm.showReward.condition[el].indexOf("2") > -1 || vm.showReward.condition[el].indexOf("3") > -1))) {
-                                    vm.rewardDisabledParam.push("consumptionRecordProvider");
+                                    vm.rewardDisabledParam.push("consumptionProvider");
                                 }
 
                             }
@@ -13572,9 +13572,9 @@ define(['js/app'], function (myApp) {
             }
             if (model && model.name == "defineLoseValue") {
                 if (model.value.indexOf("2") == -1 && model.value.indexOf("3") == -1) {
-                    vm.rewardDisabledParam.indexOf("consumptionRecordProvider") === -1 ? vm.rewardDisabledParam.push("consumptionRecordProvider") : null;
+                    vm.rewardDisabledParam.indexOf("consumptionProvider") === -1 ? vm.rewardDisabledParam.push("consumptionProvider") : null;
                 } else {
-                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "consumptionRecordProvider");
+                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "consumptionProvider");
                 }
             }
 
@@ -14563,23 +14563,27 @@ define(['js/app'], function (myApp) {
 
                 let tmpt = vm.proposalTemplate[templateNo];
                 $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
                 $(tmpt).on('shown.bs.modal', function (e) {
                     $scope.safeApply();
                 })
 
 
             })
-            }
+        };
         vm.showNewPlayerModal = function (data, templateNo) {
-                vm.newPlayerProposal = data;
+            vm.newPlayerProposal = data;
 
-                let tmpt = vm.proposalTemplate[templateNo];
-                $(tmpt).modal('show');
-                $(tmpt).on('shown.bs.modal', function (e) {
-                    $scope.safeApply();
-                })
+            let tmpt = vm.proposalTemplate[templateNo];
+            $(tmpt).modal('show');
+            $(tmpt).on('shown.bs.modal', function (e) {
+                $scope.safeApply();
+            })
 
-            }
+        };
             // display  proposal detail
             vm.showProposalDetailField = function (obj, fieldName, val) {
                 if (!obj) return '';

@@ -366,9 +366,9 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     };
     $scope.merchantTargetDeviceJson = {
         '1': "clientType_Web",
-        '2': "clientType_Application",
+        '2': 'clientType_H5',
         '3': 'clientType_Both',
-        '4': 'clientType_H5'
+        '4': "clientType_Application"
     };
     $scope.userAgentType = {
         '1': "WEB",
@@ -477,11 +477,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         3: "consumtion sum"
     }
 
-    $scope.consumptionRecordProviderName = {
-        1: "AGOTHS",
-        2: "PT",
-        3: "MG"
-    }
+    // $scope.consumptionRecordProviderName = {
+    //     1: "AGOTHS",
+    //     2: "PT",
+    //     3: "MG"
+    // }
 
     //////// DOM initialisation operations ////////
 

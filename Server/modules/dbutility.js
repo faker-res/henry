@@ -106,8 +106,8 @@ var dbUtility = {
         };
     },
 
-    getTargetSGTime: function (target) {
-        var startTime = moment(target).tz('Asia/Singapore').startOf('day').toDate();
+    getTargetSGTime: function (targetDate) {
+        var startTime = moment(targetDate).tz('Asia/Singapore').startOf('day').toDate();
         var endTime = moment(startTime).add(1, 'days').toDate();
 
         return {

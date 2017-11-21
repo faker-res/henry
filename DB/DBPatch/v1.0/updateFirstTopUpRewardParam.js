@@ -426,12 +426,18 @@ var loseValueCond = {
     defineLoseValue: {index: 42, type: "select", des: "Define Lose Value", options: "loseValueType"},
     // Chain condition child
     //consumptionRecordProvider: {index: 102.1, type: "chain", chainKey: "102", chainType:"multiSelect", chainOptions: [2,3], des: "Consumption Record Provider", options: "consumptionRecordProviderName"},
-    consumptionRecordProvider: {
+    // consumptionRecordProvider: {
+    //     index: 42.1,
+    //     type: "multiSelect",
+    //     des: "Consumption Record Provider",
+    //     options: "consumptionRecordProviderName"
+    // },
+    consumptionProvider: {
         index: 42.1,
         type: "multiSelect",
         des: "Consumption Record Provider",
-        options: "consumptionRecordProviderName"
-    },
+        options: "gameProviders"
+    }
 }
 
 var latestTopUpCond = {
@@ -568,16 +574,15 @@ db.rewardParam.update({
                     type: "checkbox",
                     des: "Player can delay apply for reward within period"
                 },
-                // allowReclaimMissedRewardDay: {index: 21.1, type: "checkbox", des: "If not checked, player have to claim reward on that particular day"},
             },
         },
         param: {
             tblOptFixed: {
                 isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
+                requiredTopUpAmount: {type: "number", des: "Required top up amount"},
+                requiredConsumptionAmount: {type: "number", des: "Required consumption amount"},
+                operatorOption: {type: "checkbox", des: "Required both"},
                 rewardParam: {
-                    requiredTopUpAmount: {type: "number", des: "Required top up amount"},
-                    operatorOption: {type: "checkbox", des: "Required both"},
-                    requiredConsumptionAmount: {type: "number", des: "Required consumption amount"},
                     rewardAmount: {type: "number", des: "Reward amount"},
                     spendingTimes: {type: "number", des: "Spending times"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
@@ -601,7 +606,7 @@ var param101 = param101Cursor.next();
 db.rewardType.update({"name": type101}, {$set: {params: param101._id, des: type101, isGrouped: true}}, {upsert: true});
 
 // region输值反利
-var type102 = "PlayerLoseReturnReward";
+var type102 = "PlayerLoseReturnRewardGroup";
 
 db.rewardParam.update({
     "name": type102
