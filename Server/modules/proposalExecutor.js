@@ -2886,7 +2886,6 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
     if (proposalData.data.providerGroup) {
         gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: proposalData.data.providerGroup}).lean();
     }
-    ;
 
     Promise.all([gameProviderGroupProm, platformProm]).then(
         res => {
@@ -2896,15 +2895,6 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             // Create different process flow for lock provider group reward
             if (platform.useProviderGroup && proposalData.data.providerGroup && gameProviderGroup) {
                 dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(
-                    rewardTaskGroup => {
-                        if (rewardTaskGroup) {
-                            // Successfully created / updated reward task group
-                            // Deduct player credit on success
-                            dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, -proposalData.data.applyAmount, rewardType, proposalData);
-                        }
-                    },
-                    error => deferred.reject(error)
-                ).then(
                     data => deferred.resolve(resolveValue || data),
                     error => deferred.reject(error)
                 )
