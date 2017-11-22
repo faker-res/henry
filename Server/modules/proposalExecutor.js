@@ -244,7 +244,7 @@ var proposalExecutor = {
         refundPlayerApplyAmountIfNeeded: function (proposalData, reason) {
             return Q.resolve().then(
                 () => {
-                    if (proposalData && proposalData.data && proposalData.data.applyAmount && proposalData.data.useLockedCredit) {
+                    if (proposalData && proposalData.data && proposalData.data.applyAmount && (proposalData.data.useLockedCredit || proposalData.data.providerGroup)) {
                         // We should give a refund
                         return proposalExecutor.refundPlayer(proposalData, proposalData.data.applyAmount, reason);
                     }
@@ -2827,7 +2827,9 @@ var proposalExecutor = {
             },
 
             rejectPlayerTopUpReturnGroup: function (proposalData, deferred) {
-                deferred.resolve("Proposal is rejected");
+                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_PLAYER_TOP_UP_RETURN_GROUP).then(
+                    () => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject)
+                );
             },
 
             rejectPlayerRandomRewardGroup: function (proposalData, deferred) {
