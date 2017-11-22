@@ -1904,7 +1904,7 @@ define(['js/app'], function (myApp) {
                             //show detail topup type info for online topup.
                             let typeID = item.data.topUpType || item.data.topupType
                             item.topupTypeStr = typeID
-                                ? $translate(vm.topupTypeJson[typeID])
+                                ? $translate(merchantTopupTypeJson[typeID])
                                 : $translate("Unknown")
                         } else {
                             //show topup type for other types
@@ -5769,21 +5769,21 @@ define(['js/app'], function (myApp) {
                         "PlayerReferralReward": "PLAYER_REFERRAL_REWARD_REPORT"
                     }
 
-                    vm.topupTypeJson = {
-                        '1': 'NetPay',
-                        '2': 'WechatQR',
-                        '3': 'AlipayQR',
-                        '4': 'WechatApp',
-                        '5': 'AlipayApp',
-                        '6': 'FASTPAY',
-                        '7': 'QQPAYQR',
-                        '8': 'UnPayQR',
-                        '9': 'JdPayQR',
-                        '10': 'WXWAP',
-                        '11': 'ALIWAP',
-                        '12': 'QQWAP',
-                        '13': 'PCard'
-                    };
+                    // vm.topupTypeJson = {
+                    //     '1': 'NetPay',
+                    //     '2': 'WechatQR',
+                    //     '3': 'AlipayQR',
+                    //     '4': 'WechatApp',
+                    //     '5': 'AlipayApp',
+                    //     '6': 'FASTPAY',
+                    //     '7': 'QQPAYQR',
+                    //     '8': 'UnPayQR',
+                    //     '9': 'JdPayQR',
+                    //     '10': 'WXWAP',
+                    //     '11': 'ALIWAP',
+                    //     '12': 'QQWAP',
+                    //     '13': 'PCard'
+                    // };
                 }
             );
 
