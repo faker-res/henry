@@ -1969,7 +1969,7 @@ let dbPlayerReward = {
      * @param adminInfo
      * @returns {Promise.<TResult>}
      */
-    applyGroupReward: (playerData, eventData, adminInfo, rewardData) => {
+    applyGroupReward: (playerData, eventData, adminInfo, rewardData, inputData) => {
 
         console.log('applyGroupReward playerData', playerData);
         console.log('applyGroupReward eventData', eventData);
@@ -1990,6 +1990,7 @@ let dbPlayerReward = {
         let useConsumptionAmount;
         let allRewardProm;
         let isUpdateValidCredit = false;
+        let selectedTopUp;
 
         // Get interval time
         if (eventData.condition.interval) {
@@ -2383,6 +2384,68 @@ let dbPlayerReward = {
             promArr.push(consumptions);
         }
 
+        if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
+            // check IP address
+            if (eventData.condition.checkIPFreeTrialReward) {
+                // find matching IP address
+                let matchIPAddress = dbConfig.collection_players.aggregate(
+                    {
+                        $match: {
+                            "lastLoginIp": playerData.lastLoginIp
+                        }
+                    },
+                    {
+                        $project: {
+                            name: 1,
+                            lastLoginIp: 1,
+                            _id: 0
+                        }
+                    }
+                ).then(
+                    lastLoginIP => {
+                        // including this player, check if got another same IP address
+                        if (lastLoginIP.length >= 2) {
+                            return 0;
+                        }
+                        else {
+                            return lastLoginIP[0];
+                        }
+                    }
+                );
+                promArr.push(matchIPAddress);
+            }
+
+            // check phone number
+            if (eventData.condition.checkPhoneFreeTrialReward) {
+                // find matching phone number
+                let matchPhoneNum = dbConfig.collection_players.aggregate(
+                    {
+                        $match: {
+                            "phoneNumber": rsaCrypto.encrypt(playerData.phoneNumber)
+                        }
+                    },
+                    {
+                        $project: {
+                            name: 1,
+                            phoneNumber: 1,
+                            _id: 0
+                        }
+                    }
+                ).then(
+                    phone => {
+                        // including this player, check if got another same phone number
+                        if (phone.length >= 2) {
+                            return 0;
+                        }
+                        else {
+                            return phone[0];
+                        }
+                    }
+                );
+                promArr.push(matchPhoneNum);
+            }
+        }
+
         return Promise.all([todayTopupProm, todayPropsProm, topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
             data => {
                 let topUpSum = data[0];
@@ -2436,6 +2499,7 @@ let dbPlayerReward = {
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                         if (rewardData && rewardData.selectedTopup) {
+                            selectedTopUp = rewardData.selectedTopup;
                             applyAmount = rewardData.selectedTopup.amount;
 
                             // Check this top up has been used
@@ -2700,47 +2764,24 @@ let dbPlayerReward = {
                         selectedRewardParam = selectedRewardParam[0];
 
                         if (selectedRewardParam.rewardAmount && selectedRewardParam.spendingTimes) {
+                            let matchIPAddress = rewardSpecificData[0];
+                            let matchPhoneNum = rewardSpecificData[1];
 
-                            // check IP address
-                            if (eventData.condition.checkIPFreeTrialReward) {
-                                // find matching IP address
-                                let matchIPAddress = dbConfig.collection_players.aggregate([
-                                    {$match: {"lastLoginIp": playerData.lastLoginIp}},
-                                    {$project: {name: 1, lastLoginIp: 1, _id: 0}}
-                                ]);
-
-                                matchIPAddress.then(lastLoginIP => {
-                                    // including this player, check if got another same IP address
-                                    if (lastLoginIP.length >= 2) {
-                                        return Q.reject({
-                                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                            name: "DataError",
-                                            message: "Another player found using the same IP Address"
-                                        });
-                                    }
+                            if (!matchIPAddress) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "Another player found using the same IP Address"
                                 });
                             }
 
-                            // check phone number
-                            if (eventData.condition.checkPhoneFreeTrialReward) {
-                                // find matching phone number
-                                let matchPhoneNum = dbConfig.collection_players.aggregate([
-                                    {$match: {"phoneNumber": rsaCrypto.encrypt(playerData.phoneNumber)}},
-                                    {$project: {name: 1, phoneNumber: 1, _id: 0}}
-                                ]);
-
-                                matchPhoneNum.then(phone => {
-                                    // including this player, check if got another same phone number
-                                    if (phone.length >= 2) {
-                                        return Q.reject({
-                                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                            name: "DataError",
-                                            message: "Another player found using the same phone number"
-                                        });
-                                    }
+                            if (!matchPhoneNum) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "Another player found using the same phone number"
                                 });
                             }
-
                         }
                         else {
                             return Q.reject({
@@ -2904,6 +2945,10 @@ let dbPlayerReward = {
                     proposalData.data.useConsumptionAmount = useConsumptionAmount;
                 }
 
+                if (selectedTopUp && selectedTopUp._id) {
+                    proposalData.data.topUpRecordId = selectedTopUp._id;
+                }
+
                 return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
             }
         ).then(
@@ -2928,7 +2973,7 @@ let dbPlayerReward = {
                     }
 
                     if (isUpdateValidCredit) {
-
+                        postPropPromArr.push(dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup));
                     }
 
                     return Promise.all(postPropPromArr);
