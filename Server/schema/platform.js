@@ -129,6 +129,8 @@ var platformSchema = new Schema({
     useLockedCredit: {type: Boolean, default: false},
     // Use new type of provider group lock
     useProviderGroup: {type: Boolean, default: false},
+    // if use point system
+    usePointSystem: {type: Boolean, default: false},
     // maximum length for player name included platform prefix
     playerNameMaxLength: {type: Number, default: 0},
     // minimum length for player name included platform prefix

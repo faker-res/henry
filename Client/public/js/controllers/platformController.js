@@ -15848,7 +15848,8 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
                 vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
                 vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup;
-                vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime
+                vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime;
+                vm.platformBasic.usePointSystem = vm.selectedPlatform.data.usePointSystem;
                 vm.platformBasic.whiteListingPhoneNumbers$ = "";
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
@@ -16314,7 +16315,8 @@ define(['js/app'], function (myApp) {
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
                         smsVerificationExpireTime: srcData.smsVerificationExpireTime,
                         useProviderGroup: srcData.useProviderGroup,
-                        whiteListingPhoneNumbers: whiteListingPhoneNumbers
+                        whiteListingPhoneNumbers: whiteListingPhoneNumbers,
+                        usePointSystem: srcData.usePointSystem
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
