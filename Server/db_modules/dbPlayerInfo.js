@@ -299,7 +299,7 @@ let dbPlayerInfo = {
                             }
                             inputData.domain = filteredDomain;
 
-                            if (inputData.partnerId) {
+                            if (!inputData.partnerId) {
                                 let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
                                     data => {
                                         if (data) {
@@ -9443,7 +9443,7 @@ let dbPlayerInfo = {
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
-                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
+                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData, data);
                                     break;
                                 default:
                                     return Q.reject({

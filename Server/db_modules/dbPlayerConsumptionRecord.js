@@ -349,6 +349,7 @@ var dbPlayerConsumptionRecord = {
      * @param {Json} data
      */
     createPlayerConsumptionRecord: function (data) {
+        let isSameDay = dbUtility.isSameDaySG(data.createTime, Date.now());
         let deferred = Q.defer();
         let record = null;
 
@@ -454,7 +455,7 @@ var dbPlayerConsumptionRecord = {
                         {
                             $inc: {
                                 consumptionSum: record.validAmount,
-                                dailyConsumptionSum: record.validAmount,
+                                dailyConsumptionSum: isSameDay? record.validAmount:0,
                                 weeklyConsumptionSum: record.validAmount,
                                 pastMonthConsumptionSum: record.validAmount,
                                 consumptionTimes: 1,
@@ -505,6 +506,7 @@ var dbPlayerConsumptionRecord = {
      * @param data
      */
     createPlayerConsumptionRecordForProviderGroup: function (data) {
+        let isSameDay = dbUtility.isSameDaySG(data.createTime, Date.now());
         let record = null;
         let newRecord = new dbconfig.collection_playerConsumptionRecord(data);
 
@@ -564,7 +566,7 @@ var dbPlayerConsumptionRecord = {
                     {
                         $inc: {
                             consumptionSum: record.validAmount,
-                            dailyConsumptionSum: record.validAmount,
+                            dailyConsumptionSum: isSameDay? record.validAmount:0,
                             weeklyConsumptionSum: record.validAmount,
                             pastMonthConsumptionSum: record.validAmount,
                             consumptionTimes: 1

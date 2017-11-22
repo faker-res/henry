@@ -1969,7 +1969,7 @@ let dbPlayerReward = {
      * @param adminInfo
      * @returns {Promise.<TResult>}
      */
-    applyGroupReward: (playerData, eventData, adminInfo, rewardData) => {
+    applyGroupReward: (playerData, eventData, adminInfo, rewardData, inputData) => {
 
         console.log('applyGroupReward playerData', playerData);
         console.log('applyGroupReward eventData', eventData);
@@ -1989,7 +1989,8 @@ let dbPlayerReward = {
         let useTopUpAmount;
         let useConsumptionAmount;
         let allRewardProm;
-
+        let isUpdateValidCredit = false;
+        let selectedTopUp;
 
         // Get interval time
         if (eventData.condition.interval) {
@@ -2498,6 +2499,7 @@ let dbPlayerReward = {
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                         if (rewardData && rewardData.selectedTopup) {
+                            selectedTopUp = rewardData.selectedTopup;
                             applyAmount = rewardData.selectedTopup.amount;
 
                             // Check this top up has been used
@@ -2554,6 +2556,11 @@ let dbPlayerReward = {
 
                             // Set top up record update flag
                             isUpdateTopupRecord = true;
+
+                            // Set player valid credit update flag
+                            if (eventData.condition.providerGroup) {
+                                isUpdateValidCredit = true;
+                            }
                         }
                         break;
 
@@ -2938,6 +2945,10 @@ let dbPlayerReward = {
                     proposalData.data.useConsumptionAmount = useConsumptionAmount;
                 }
 
+                if (selectedTopUp && selectedTopUp._id) {
+                    proposalData.data.topUpRecordId = selectedTopUp._id;
+                }
+
                 return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
             }
         ).then(
@@ -2959,6 +2970,10 @@ let dbPlayerReward = {
                             },
                             {new: true}
                         ));
+                    }
+
+                    if (isUpdateValidCredit) {
+                        postPropPromArr.push(dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup));
                     }
 
                     return Promise.all(postPropPromArr);
