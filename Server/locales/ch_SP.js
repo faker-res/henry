@@ -187,7 +187,8 @@ var simplifiedChinese = {
     "PARTNER": "代理",
     "Incorrect SMS Validation Code": "验证码错误，请再次输入",
     "NO_REACH_TOPUP":"充值金额不足",
-    "NO_REACH_CONSUMPTION":"有效投注不足"
+    "NO_REACH_CONSUMPTION":"有效投注不足",
+    "NO_REACH_TOPUP_CONSUMPTION":"充值金额不足, 有效投注不足"
     //todo::add missing messages here
 
     /*

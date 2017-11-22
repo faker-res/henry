@@ -5645,7 +5645,7 @@ let dbPlayerInfo = {
             throw Error("playerLevels was not provided!");
         }
 
-        let errorerrorMsg = '';
+        let errorMsg = '';
         let errorCode = '';
         var playerObj = null;
         var levelUpObj = null;
@@ -5800,6 +5800,10 @@ let dbPlayerInfo = {
                                         if(!meetsTopupCondition){
                                             errorCode = constServerCode.NO_REACH_TOPUP;
                                             errorMsg = 'NO_REACH_TOPUP';
+                                        }
+                                        if(!meetsEnoughConditions){
+                                            errorCode = constServerCode.NO_REACH_TOPUP_CONSUMPTION;
+                                            errorMsg = 'NO_REACH_TOPUP_CONSUMPTION';
                                         }
                                     }
                                 }
