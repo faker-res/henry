@@ -2934,7 +2934,7 @@ let dbPlayerReward = {
                     }
 
                     if (isUpdateValidCredit) {
-                        postPropPromArr.push(dbPlayerInfo.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup));
+                        postPropPromArr.push(dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup));
                     }
 
                     return Promise.all(postPropPromArr);
