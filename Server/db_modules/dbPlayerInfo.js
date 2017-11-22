@@ -299,7 +299,7 @@ let dbPlayerInfo = {
                             }
                             inputData.domain = filteredDomain;
 
-                            if (inputData.partnerId) {
+                            if (!inputData.partnerId) {
                                 let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
                                     data => {
                                         if (data) {
@@ -5645,22 +5645,23 @@ let dbPlayerInfo = {
             throw Error("playerLevels was not provided!");
         }
 
+        let errorMsg = '';
+        let errorCode = '';
         var playerObj = null;
         var levelUpObj = null;
         return Promise.resolve(player).then(
             function (player) {
                 if (player && player.playerLevel) {
                     // Optimization: No point in checking level up for players who have no topup or consumption
-                    if (checkLevelUp && !checkLevelDown
-                        && player.dailyTopUpSum === 0 && player.dailyConsumptionSum === 0
-                        && player.weeklyTopUpSum === 0 && player.weeklyConsumptionSum === 0
-                        && player.pastMonthTopUpSum === 0 && player.pastMonthConsumptionSum === 0
-                    ) {
-                        return {};
-                    }
+                    // if (checkLevelUp && !checkLevelDown
+                    //     && player.dailyTopUpSum === 0 && player.dailyConsumptionSum === 0
+                    //     && player.weeklyTopUpSum === 0 && player.weeklyConsumptionSum === 0
+                    //     && player.pastMonthTopUpSum === 0 && player.pastMonthConsumptionSum === 0
+                    // ) {
+                    //     return {};
+                    // }
 
                     playerObj = player;
-
                     //// Fetch other player levels
                     //var query = {platform: playerObj.platform};
                     //
@@ -5681,6 +5682,7 @@ let dbPlayerInfo = {
                     if (checkLevelDown && !checkLevelUp) {
                         playerLevels = playerLevels.filter(level => level.value <= playerObj.playerLevel.value);
                     }
+
                     return Promise.resolve(playerLevels);
                 }
                 else {
@@ -5763,6 +5765,7 @@ let dbPlayerInfo = {
 
                                 const conditionSets = level.levelUpConfig;
 
+
                                 for (let j = 0; j < conditionSets.length; j++) {
                                     const conditionSet = conditionSets[j];
 
@@ -5789,6 +5792,19 @@ let dbPlayerInfo = {
                                     if (meetsEnoughConditions) {
                                         levelObjId = level._id;
                                         levelUpObj = level;
+                                    }else{
+                                        if(!meetsConsumptionCondition){
+                                            errorCode = constServerCode.NO_REACH_CONSUMPTION;
+                                            errorMsg = 'NO_REACH_CONSUMPTION';
+                                        }
+                                        if(!meetsTopupCondition){
+                                            errorCode = constServerCode.NO_REACH_TOPUP;
+                                            errorMsg = 'NO_REACH_TOPUP';
+                                        }
+                                        if(!meetsEnoughConditions){
+                                            errorCode = constServerCode.NO_REACH_TOPUP_CONSUMPTION;
+                                            errorMsg = 'NO_REACH_TOPUP_CONSUMPTION';
+                                        }
                                     }
                                 }
 
@@ -5881,7 +5897,11 @@ let dbPlayerInfo = {
                         );
                     }
                     else {
-                        return "No_Level_Change";
+                        return Q.reject({
+                            status: errorCode,
+                            name:"DataError",
+                            message: errorMsg
+                        })
                     }
                 }
                 else {
@@ -5889,11 +5909,19 @@ let dbPlayerInfo = {
                     //console.warn("No player, playerLevel or platform found for playerObjId: " + playerObjId);
                     // Original code would sometimes expect the player or the playerLevels to be undefined,
                     // if the player had no consumption, or they were already on the highest level.
-                    return "No_Level_Change";
+                    //return "No_Level_Change";
+                    return Q.reject({
+                        name:"DataError",
+                        message: "PlayerLevel Is Not Found"
+                    })
+
                 }
             },
             function (error) {
-                return Q.reject({name: "DBError", message: "Error in finding player level", error: error});
+                return Q.reject({
+                    status: constServerCode.REWARD_EVENT_INVALID,
+                    name: "DBError", message: "Error in finding player level", error: error
+                });
             }
         );
     },
@@ -9443,7 +9471,7 @@ let dbPlayerInfo = {
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
-                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
+                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData, data);
                                     break;
                                 default:
                                     return Q.reject({

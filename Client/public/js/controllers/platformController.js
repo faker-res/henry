@@ -3008,7 +3008,7 @@ define(['js/app'], function (myApp) {
                                         link.append($('<div>', {
                                             'class': 'fa fa-comment',
                                             'style': 'padding-left:15px',
-                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
+                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');vm.initSMSModal();',
                                             'title': $translate("SMS")
                                         }));
                                     }
@@ -3781,7 +3781,7 @@ define(['js/app'], function (myApp) {
                                         link.append($('<div>', {
                                             'class': 'fa fa-comment',
                                             'style': 'padding-left:15px',
-                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
+                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');vm.initSMSModal();',
                                             'title': $translate("SMS")
                                         }));
                                     }
@@ -5994,6 +5994,9 @@ define(['js/app'], function (myApp) {
             }
             vm.smsNewPlayerBtn = function (phoneNumber, data) {
                 vm.getSMSTemplate();
+                vm.selectedSinglePlayer = data;
+                vm.editPlayer = data.data ? data.data : "";
+                vm.selectedPlayersCount = 1
                 vm.smsPlayer = {
                     playerId: data.playerId,
                     name: data.name,
@@ -7403,8 +7406,9 @@ define(['js/app'], function (myApp) {
                 $('#smsToPlayerTab').addClass('active');
                 $('#smsLogTab').removeClass('active');
                 $('#smsSettingTab').removeClass('active');
-                $scope.safeApply();
                 vm.smsModalTab = "smsToPlayerPanel";
+                $scope.safeApply();
+
             }
 
             vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
@@ -13057,7 +13061,9 @@ define(['js/app'], function (myApp) {
                             switch (cond.options) {
                                 case "providerGroup":
                                     if (!vm.gameProviderGroup) break;
-                                    let providerGroup = {};
+                                    let providerGroup = {
+                                        "": "LOCAL_CREDIT"
+                                    };
                                     for (let i = 0; i < vm.gameProviderGroup.length; i++) {
                                         let group = vm.gameProviderGroup[i];
                                         providerGroup[group._id] = group.name;
@@ -13475,6 +13481,7 @@ define(['js/app'], function (myApp) {
                 console.log("vm.rewardCondition:", vm.rewardCondition);
                 console.log("vm.rewardParams:", vm.rewardParams);
                 vm.showRewardFormValid = true;
+                vm.endLoadWeekDay();
             };
 
         vm.changeRewardParamLayout = (model, isFirstLoad) => {
@@ -14570,23 +14577,27 @@ define(['js/app'], function (myApp) {
 
                 let tmpt = vm.proposalTemplate[templateNo];
                 $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
                 $(tmpt).on('shown.bs.modal', function (e) {
                     $scope.safeApply();
                 })
 
 
             })
-            }
+        };
         vm.showNewPlayerModal = function (data, templateNo) {
-                vm.newPlayerProposal = data;
+            vm.newPlayerProposal = data;
 
-                let tmpt = vm.proposalTemplate[templateNo];
-                $(tmpt).modal('show');
-                $(tmpt).on('shown.bs.modal', function (e) {
-                    $scope.safeApply();
-                })
+            let tmpt = vm.proposalTemplate[templateNo];
+            $(tmpt).modal('show');
+            $(tmpt).on('shown.bs.modal', function (e) {
+                $scope.safeApply();
+            })
 
-            }
+        };
             // display  proposal detail
             vm.showProposalDetailField = function (obj, fieldName, val) {
                 if (!obj) return '';
