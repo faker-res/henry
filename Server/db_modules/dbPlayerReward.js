@@ -2384,6 +2384,68 @@ let dbPlayerReward = {
             promArr.push(consumptions);
         }
 
+        if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
+            // check IP address
+            if (eventData.condition.checkIPFreeTrialReward) {
+                // find matching IP address
+                let matchIPAddress = dbConfig.collection_players.aggregate(
+                    {
+                        $match: {
+                            "lastLoginIp": playerData.lastLoginIp
+                        }
+                    },
+                    {
+                        $project: {
+                            name: 1,
+                            lastLoginIp: 1,
+                            _id: 0
+                        }
+                    }
+                ).then(
+                    lastLoginIP => {
+                        // including this player, check if got another same IP address
+                        if (lastLoginIP.length >= 2) {
+                            return 0;
+                        }
+                        else {
+                            return lastLoginIP[0];
+                        }
+                    }
+                );
+                promArr.push(matchIPAddress);
+            }
+
+            // check phone number
+            if (eventData.condition.checkPhoneFreeTrialReward) {
+                // find matching phone number
+                let matchPhoneNum = dbConfig.collection_players.aggregate(
+                    {
+                        $match: {
+                            "phoneNumber": rsaCrypto.encrypt(playerData.phoneNumber)
+                        }
+                    },
+                    {
+                        $project: {
+                            name: 1,
+                            phoneNumber: 1,
+                            _id: 0
+                        }
+                    }
+                ).then(
+                    phone => {
+                        // including this player, check if got another same phone number
+                        if (phone.length >= 2) {
+                            return 0;
+                        }
+                        else {
+                            return phone[0];
+                        }
+                    }
+                );
+                promArr.push(matchPhoneNum);
+            }
+        }
+
         return Promise.all([todayTopupProm, todayPropsProm, topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
             data => {
                 let topUpSum = data[0];
@@ -2702,47 +2764,24 @@ let dbPlayerReward = {
                         selectedRewardParam = selectedRewardParam[0];
 
                         if (selectedRewardParam.rewardAmount && selectedRewardParam.spendingTimes) {
+                            let matchIPAddress = rewardSpecificData[0];
+                            let matchPhoneNum = rewardSpecificData[1];
 
-                            // check IP address
-                            if (eventData.condition.checkIPFreeTrialReward) {
-                                // find matching IP address
-                                let matchIPAddress = dbConfig.collection_players.aggregate([
-                                    {$match: {"lastLoginIp": playerData.lastLoginIp}},
-                                    {$project: {name: 1, lastLoginIp: 1, _id: 0}}
-                                ]);
-
-                                matchIPAddress.then(lastLoginIP => {
-                                    // including this player, check if got another same IP address
-                                    if (lastLoginIP.length >= 2) {
-                                        return Q.reject({
-                                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                            name: "DataError",
-                                            message: "Another player found using the same IP Address"
-                                        });
-                                    }
+                            if (!matchIPAddress) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "Another player found using the same IP Address"
                                 });
                             }
 
-                            // check phone number
-                            if (eventData.condition.checkPhoneFreeTrialReward) {
-                                // find matching phone number
-                                let matchPhoneNum = dbConfig.collection_players.aggregate([
-                                    {$match: {"phoneNumber": rsaCrypto.encrypt(playerData.phoneNumber)}},
-                                    {$project: {name: 1, phoneNumber: 1, _id: 0}}
-                                ]);
-
-                                matchPhoneNum.then(phone => {
-                                    // including this player, check if got another same phone number
-                                    if (phone.length >= 2) {
-                                        return Q.reject({
-                                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                            name: "DataError",
-                                            message: "Another player found using the same phone number"
-                                        });
-                                    }
+                            if (!matchPhoneNum) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "Another player found using the same phone number"
                                 });
                             }
-
                         }
                         else {
                             return Q.reject({
