@@ -5778,7 +5778,11 @@ define(['js/app'], function (myApp) {
                         '6': 'FASTPAY',
                         '7': 'QQPAYQR',
                         '8': 'UnPayQR',
-                        '9': 'JdPayQR'
+                        '9': 'JdPayQR',
+                        '10': 'WXWAP',
+                        '11': 'ALIWAP',
+                        '12': 'QQWAP',
+                        '13': 'PCard'
                     };
                 }
             );
