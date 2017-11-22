@@ -43,19 +43,7 @@
                     label {{'Online Topup Type' | translate}}
                     select.form-control(ng-model='vm.paymentMonitorQuery.topupType')
                         option(value='') {{'any' | translate}}
-                        option(value='1') 网银支付(NetPay)
-                        option(value='2') 微信扫码(WechatQR)
-                        option(value='3') 支付宝扫码(AlipayQR)
-                        option(value='4') 微信App支付(WechatApp)
-                        option(value='5') 支付宝App支付(AlipayApp)
-                        option(value='6') 快捷支付(FASTPAY)
-                        option(value='7') QQ扫码(QQPAYQR)
-                        option(value='8') 银联扫码支付(UnPayQR)
-                        option(value='9') 京东钱包扫码支付(JdPayQR)
-                        option(value='10') 微信wap(WXWAP)
-                        option(value='11') 支付宝wap(ALIWAP)
-                        option(value='12') QQwap(QQWAP)
-                        option(value='13') 点卡(PCard)
+                        option(ng-repeat='(i,v) in merchantTopupTypeJson', value='{{i}}') {{ v | translate}}({{v}})
                 div(style='max-width:125px')
                     label {{'Merchant Group' | translate}}
                     select.form-control(ng-model='vm.paymentMonitorQuery.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroups')
