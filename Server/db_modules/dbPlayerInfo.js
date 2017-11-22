@@ -5498,6 +5498,8 @@ let dbPlayerInfo = {
     checkPlayerLevelUp: function (playerObjId, platformObjId) {
         //todo::temp disable player auto level up
 
+        console.log('checkPlayerLevelUp', playerObjId, platformObjId);
+
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
         }
