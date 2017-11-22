@@ -16314,7 +16314,8 @@ define(['js/app'], function (myApp) {
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
                         smsVerificationExpireTime: srcData.smsVerificationExpireTime,
                         useProviderGroup: srcData.useProviderGroup,
-                        whiteListingPhoneNumbers: whiteListingPhoneNumbers
+                        whiteListingPhoneNumbers: whiteListingPhoneNumbers,
+                        usePointSystem: srcData.usePointSystem
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
