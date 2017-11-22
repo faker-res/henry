@@ -58,7 +58,8 @@ let dbPlayerLevelInfo = {
                 let platformPeriod = upOrDown ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
                 if (platformPeriod) {
                     if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
-                        period = dbUtil.getYesterdaySGTime();
+                        // period = dbUtil.getYesterdaySGTime();
+                        period = dbUtil.getTodaySGTime();
                     } else if (platformPeriod == constPlayerLevelUpPeriod.WEEK) {
                         period = dbUtil.getLastWeekSGTime();
                     } else if (platformPeriod == constPlayerLevelUpPeriod.MONTH) {
@@ -192,6 +193,7 @@ let dbPlayerLevelInfo = {
                 let consumptionSummary = data[2][0];
                 let levelObjId = null;
                 let levelUpObj = null, levelDownObj = null;
+                let levelUpReward = 0;
                 let oldPlayerLevelName = playerData.playerLevel.name;
 
                 let playersTopupForPeriod = topUpSummary && topUpSummary.amount ? topUpSummary.amount : 0;
@@ -226,6 +228,7 @@ let dbPlayerLevelInfo = {
                                     if (meetsEnoughConditions) {
                                         levelObjId = level._id;
                                         levelUpObj = level;
+                                        levelUpReward += levelUpObj.reward.bonusCredit;
                                     }
 
 
@@ -323,7 +326,7 @@ let dbPlayerLevelInfo = {
                                 // if this is level up and player has not reach this level before
                                 // create level up reward proposal
                                 if (levelUpObj && levelUpObj.reward && levelUpObj.reward.bonusCredit) {
-                                    proposalData.rewardAmount = levelUpObj.reward.bonusCredit;
+                                    proposalData.rewardAmount = levelUpReward;
                                     proposalData.isRewardTask = levelUpObj.reward.isRewardTask;
 
                                     return dbProposal.createProposalWithTypeName(playerData.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});

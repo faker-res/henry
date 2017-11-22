@@ -2707,7 +2707,7 @@ let dbPlayerReward = {
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
                                     message: "Player's lose amount does not meet condition"
-                                    });
+                                });
                             }
                         }
 
