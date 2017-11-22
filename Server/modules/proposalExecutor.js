@@ -34,6 +34,7 @@ var dbPartner = require("../db_modules/dbPartner");
 var constProposalEntryType = require("../const/constProposalEntryType");
 var constProposalUserType = require("../const/constProposalUserType");
 var SMSSender = require('./SMSSender');
+const moment = require('moment-timezone');
 
 /**
  * Proposal executor
@@ -1403,7 +1404,8 @@ var proposalExecutor = {
                                 decryptedPhoneNo = "";
                             }
                         }
-
+                        let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
+                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
                         var message = {
                             proposalId: proposalData.proposalId,
                             platformId: player.platform.platformId,
@@ -1418,7 +1420,8 @@ var proposalExecutor = {
                             bankName: player.bankName || "",
                             phone: decryptedPhoneNo || "",
                             email: player.email || "",
-                            loginName: player.name || ""
+                            loginName: player.name || "",
+                            applyTime: cTimeString
                         };
                         //console.log("bonus_applyBonus", message);
                         return pmsAPI.bonus_applyBonus(message).then(
