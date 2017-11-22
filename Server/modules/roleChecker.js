@@ -423,6 +423,9 @@ var roleChecker = {
             "phoneNumFilter": {
                 Read: [],
                 FilterAllPlatform: []
+            },
+            "rewardPoints": {
+                Read: [],
             }
         },
         Payment: {

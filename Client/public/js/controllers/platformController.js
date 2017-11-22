@@ -14311,6 +14311,10 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.rewardPointsTabClicked = function (choice) {
+                vm.selectedRewardPointTab = choice;
+            };
+
             function loadPromoCodeTypes() {
                 socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
                     console.log('getPromoCodeTypes', data);
