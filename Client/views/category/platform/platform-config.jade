@@ -584,8 +584,8 @@
                             tr
                                 td {{'SMS_EXPIRED_TIME' | translate}}
                                 td
-                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showMinTopupAmount}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showMinTopupAmount')
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.smsVerificationExpireTime}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.smsVerificationExpireTime')
                             tr
                                 td {{'CAPTCHA_VERIFICATION_FOR_LOGIN' | translate}}
                                 td
