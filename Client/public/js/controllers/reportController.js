@@ -1904,7 +1904,7 @@ define(['js/app'], function (myApp) {
                             //show detail topup type info for online topup.
                             let typeID = item.data.topUpType || item.data.topupType
                             item.topupTypeStr = typeID
-                                ? $translate(merchantTopupTypeJson[typeID])
+                                ? $translate($scope.merchantTopupTypeJson[typeID])
                                 : $translate("Unknown")
                         } else {
                             //show topup type for other types
