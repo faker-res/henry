@@ -13481,6 +13481,7 @@ define(['js/app'], function (myApp) {
                 console.log("vm.rewardCondition:", vm.rewardCondition);
                 console.log("vm.rewardParams:", vm.rewardParams);
                 vm.showRewardFormValid = true;
+                vm.endLoadWeekDay();
             };
 
         vm.changeRewardParamLayout = (model, isFirstLoad) => {
