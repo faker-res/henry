@@ -2787,8 +2787,6 @@ let dbPlayerReward = {
                         let applyRewardTimes = periodProps.length;
                         let topUpAmount = topUpRecords.reduce((sum, value) => sum + value.amount, 0);
                         let consumptionAmount = consumptionRecords.reduce((sum, value) => sum + value.amount, 0);
-                        let totalUseTopUpAmount = periodProps.reduce((sum, value) => sum + value.data.useTopUpAmount, 0);
-                        let totalUseConsumptionAmount = periodProps.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
                         useTopUpAmount = 0;
                         useConsumptionAmount = 0;
                         //periodProps.reduce((sum, value) => sum + value, 1);
@@ -2810,7 +2808,7 @@ let dbPlayerReward = {
                             }
 
                             if (selectedRewardParam.requiredConsumptionAmount) {
-                                if(eventData.condition.useConsumptionRecord){
+                                if (eventData.condition.useConsumptionRecord) {
                                     let useConsumptionRecordAmount = 0;
                                     //For set consumption bDirty Use
                                     consumptionRecords.forEach((consumptionRecord) => {
@@ -2826,8 +2824,7 @@ let dbPlayerReward = {
                             } else {
                                 meetConsumptionCondition = true;
                             }
-                            console.log('consumptionAmount',consumptionAmount);
-                            console.log('selectedRewardParam.requiredConsumptionAmount',selectedRewardParam.requiredConsumptionAmount);
+
                             if (selectedRewardParam.operatorOption) { // true = and, false = or
                                 if (!(meetTopUpCondition && meetConsumptionCondition)) {
                                     return Q.reject({
@@ -2848,11 +2845,16 @@ let dbPlayerReward = {
                                 if (meetTopUpCondition && meetConsumptionCondition) {
                                     // if both condition true, then use TopUpAmount first
                                     useConsumptionAmount = 0;
+                                    isUpdateMultiConsumptionRecord = false;
                                 } else {
-                                    if (meetTopUpCondition)
+                                    if (meetTopUpCondition) {
                                         useConsumptionAmount = 0;
-                                    if (meetConsumptionCondition)
+                                        isUpdateMultiConsumptionRecord = false;
+                                    }
+                                    if (meetConsumptionCondition) {
                                         useTopUpAmount = 0;
+                                        isUpdateMultiTopupRecord = false;
+                                    }
                                 }
                             }
 
@@ -2977,30 +2979,26 @@ let dbPlayerReward = {
                             {new: true}
                         ));
                     }
-                    if (isUpdateMultiTopupRecord) {
-                        if (updateTopupRecordIds.length > 0) {
-                            postPropPromArr.push(dbConfig.collection_playerTopUpRecord.update(
-                                {_id: {$in: updateTopupRecordIds}},
-                                {
-                                    bDirty: true,
-                                    usedType: eventData.type.name,
-                                    $push: {usedEvent: eventData._id}
-                                },
-                                {multi: true}
-                            ));
-                        }
+                    if (isUpdateMultiTopupRecord && updateTopupRecordIds.length > 0) {
+                        postPropPromArr.push(dbConfig.collection_playerTopUpRecord.update(
+                            {_id: {$in: updateTopupRecordIds}},
+                            {
+                                bDirty: true,
+                                usedType: eventData.type.name,
+                                $push: {usedEvent: eventData._id}
+                            },
+                            {multi: true}
+                        ));
                     }
 
-                    if (isUpdateMultiConsumptionRecord) {
-                        if (updateConsumptionRecordIds.length > 0) {
-                            postPropPromArr.push(dbConfig.collection_playerConsumptionRecord.update(
-                                {_id: {$in: updateConsumptionRecordIds}},
-                                {
-                                    bDirty: true,
-                                },
-                                {multi: true}
-                            ));
-                        }
+                    if (isUpdateMultiConsumptionRecord && updateConsumptionRecordIds.length > 0) {
+                        postPropPromArr.push(dbConfig.collection_playerConsumptionRecord.update(
+                            {_id: {$in: updateConsumptionRecordIds}},
+                            {
+                                bDirty: true,
+                            },
+                            {multi: true}
+                        ));
                     }
 
                     if (isUpdateValidCredit) {

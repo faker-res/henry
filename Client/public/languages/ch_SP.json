@@ -2747,6 +2747,13 @@
   "Please try again random reward tomorrow": "今日已参与，明日继续随机抽奖吧！",
   "useConsumptionAmount": "消耗投注额",
   "useTopUpAmount": "消耗存款金额",
-  "Consumption can not be shared with XIMA": "占用投注记录（优惠产生流水不可同时洗码）"
+  "Consumption can not be shared with XIMA": "占用投注记录（优惠产生流水不可同时洗码）",
+  "rewardPoint": "积分系统",
+  "REWARD_POINTS_RULE": "积分规则",
+  "LOGIN_REWARD_POINTS": "登入积分",
+  "TOPUP_REWARD_POINTS": "存款积分",
+  "GAME_REWARD_POINTS": "游戏积分",
+  "REWARD_POINTS_RANKING": "积分排行榜",
+  "REWARD_POINTS_LOG": "积分变化记录"
 
 }
