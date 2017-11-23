@@ -4668,6 +4668,8 @@ define(['js/app'], function (myApp) {
                                     'class': 'fa fa-gamepad margin-right-5 ' + (perm.forbidPlayerFromEnteringGame === true ? "text-danger" : "text-primary"),
                                 }));
 
+                                link.append($('<br>'));
+
                                 link.append($('<i>', {
                                     'class': 'fa fa-volume-control-phone margin-right-5 ' + (perm.phoneCallFeedback === false ? "text-danger" : "text-primary"),
                                 }));
@@ -4685,6 +4687,13 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<i>', {
                                     'class': 'fa fa-gift margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
+                                }));
+
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.pointTask === false ? "rewardPointRed.png" : "rewardPointBlue.png"),
+                                    height: "14px",
+                                    width: "14px",
                                 }));
 
 
@@ -5363,6 +5372,12 @@ define(['js/app'], function (myApp) {
                                         height: '26px'
                                     },
                                     banReward: {imgType: 'i', iconClass: "fa fa-gift"},
+                                    rewardPointTask: {
+                                        imgType: 'img',
+                                        src: "images/icon/rewardPointBlue.png",
+                                        width: "26px",
+                                        height: '26px'
+                                    },
                                 };
                                 $("#playerPermissionTable td").removeClass('hide');
 
