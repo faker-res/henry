@@ -3297,27 +3297,6 @@ let dbPlayerReward = {
                     if (useConsumptionAmount !== null) {
                         proposalData.data.useConsumptionAmount = useConsumptionAmount;
                     }
-                    if (isUpdateMultiTopupRecord && updateTopupRecordIds.length > 0) {
-                        postPropPromArr.push(dbConfig.collection_playerTopUpRecord.update(
-                            {_id: {$in: updateTopupRecordIds}},
-                            {
-                                bDirty: true,
-                                usedType: eventData.type.name,
-                                $push: {usedEvent: eventData._id}
-                            },
-                            {multi: true}
-                        ));
-                    }
-
-                    if (isUpdateMultiConsumptionRecord && updateConsumptionRecordIds.length > 0) {
-                        postPropPromArr.push(dbConfig.collection_playerConsumptionRecord.update(
-                            {_id: {$in: updateConsumptionRecordIds}},
-                            {
-                                bDirty: true,
-                            },
-                            {multi: true}
-                        ));
-                    }
 
                     if (selectedTopUp && selectedTopUp._id) {
                         proposalData.data.topUpRecordId = selectedTopUp._id;
@@ -3341,6 +3320,28 @@ let dbPlayerReward = {
                                             $push: {usedEvent: eventData._id}
                                         },
                                         {new: true}
+                                    ));
+                                }
+
+                                if (isUpdateMultiTopupRecord && updateTopupRecordIds.length > 0) {
+                                    postPropPromArr.push(dbConfig.collection_playerTopUpRecord.update(
+                                        {_id: {$in: updateTopupRecordIds}},
+                                        {
+                                            bDirty: true,
+                                            usedType: eventData.type.name,
+                                            $push: {usedEvent: eventData._id}
+                                        },
+                                        {multi: true}
+                                    ));
+                                }
+
+                                if (isUpdateMultiConsumptionRecord && updateConsumptionRecordIds.length > 0) {
+                                    postPropPromArr.push(dbConfig.collection_playerConsumptionRecord.update(
+                                        {_id: {$in: updateConsumptionRecordIds}},
+                                        {
+                                            bDirty: true,
+                                        },
+                                        {multi: true}
                                     ));
                                 }
 
