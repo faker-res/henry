@@ -186,7 +186,9 @@ let dbPlayerReward = {
                         intervalTime = dbUtility.getCurrentMonthSGTIme();
                         break;
                     default:
-                        intervalTime = {startTime: event.validStartTime, endTime: validEndTime};
+                        if (event.validStartTime && event.validEndTime) {
+                            intervalTime = {startTime: event.validStartTime, endTime: event.validEndTime};
+                        }
                         break;
                 }
             }
@@ -2377,6 +2379,9 @@ let dbPlayerReward = {
                     intervalTime = dbUtility.getCurrentMonthSGTIme();
                     break;
                 default:
+                    if (event.validStartTime && event.validEndTime) {
+                        intervalTime = {startTime: event.validStartTime, endTime: event.validEndTime};
+                    }
                     break;
             }
         }
