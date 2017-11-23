@@ -2687,7 +2687,8 @@ let dbPlayerReward = {
                             }
                         }
 
-                        applyAmount = selectedRewardParam.minDeposit;
+                        // applyAmount = selectedRewardParam.minDeposit;
+                        useTopUpAmount = selectedRewardParam.minDeposit;
 
                         if (eventData.condition.isDynamicRewardAmount) {
                             let rewardAmountTemp = loseAmount * (selectedRewardParam.rewardPercent / 100);
