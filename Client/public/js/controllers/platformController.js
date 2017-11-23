@@ -22,6 +22,9 @@ define(['js/app'], function (myApp) {
             vm.districtList = [];
             vm.creditChange = {};
             vm.existPhone = false;
+            vm.rewardPointChange = {};
+            vm.rewardPointExchange = {};
+
             // constants declaration
             vm.proposalStatusList = { // removed APPROVED and REJECTED
                 PREPENDING: "PrePending",
@@ -4598,6 +4601,20 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
+                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointAdjustment')) {
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5',
+                                        'src': "images/icon/rewardPointBlue.png",
+                                        'height': "14px",
+                                        'width': "14px",
+                                        'ng-click': 'vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointAdjustment);',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalPlayerRewardPointAdjustment',
+                                        'title': $translate("REWARD_POINT_ADJUSTMENT"),
+                                        'data-placement': 'right',
+                                    }));
+                                }
                                 return link.prop('outerHTML');
                             },
                             "sClass": "alignLeft"
@@ -4671,6 +4688,8 @@ define(['js/app'], function (myApp) {
                                     'class': 'fa fa-gamepad margin-right-5 ' + (perm.forbidPlayerFromEnteringGame === true ? "text-danger" : "text-primary"),
                                 }));
 
+                                link.append($('<br>'));
+
                                 link.append($('<i>', {
                                     'class': 'fa fa-volume-control-phone margin-right-5 ' + (perm.phoneCallFeedback === false ? "text-danger" : "text-primary"),
                                 }));
@@ -4688,6 +4707,13 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<i>', {
                                     'class': 'fa fa-gift margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
+                                }));
+
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.pointTask === false ? "rewardPointRed.png" : "rewardPointBlue.png"),
+                                    height: "14px",
+                                    width: "14px",
                                 }));
 
 
@@ -5366,6 +5392,12 @@ define(['js/app'], function (myApp) {
                                         height: '26px'
                                     },
                                     banReward: {imgType: 'i', iconClass: "fa fa-gift"},
+                                    rewardPointTask: {
+                                        imgType: 'img',
+                                        src: "images/icon/rewardPointBlue.png",
+                                        width: "26px",
+                                        height: '26px'
+                                    },
                                 };
                                 $("#playerPermissionTable td").removeClass('hide');
 
@@ -7913,6 +7945,19 @@ define(['js/app'], function (myApp) {
                     table.columns.adjust().draw();
                 });
             };
+
+            vm.prepareShowPlayerRewardPointAdjustment = function () {
+                vm.rewardPointChange.finalValidAmount = vm.isOneSelectedPlayer().validRewardPoint;
+                vm.rewardPointChange.finalLockedAmount = null;
+                vm.rewardPointChange.remark = '';
+                vm.rewardPointChange.updateAmount = 0;
+
+                vm.rewardPointExchange.finalValidAmount = vm.isOneSelectedPlayer().validRewardPoint;
+                vm.rewardPointExchange.finalLockedAmount = null;
+                vm.rewardPointExchange.remark = '';
+                vm.rewardPointExchange.updateAmount = 0;
+            };
+
             vm.prepareShowPlayerCreditAdjustment = function (type) {
                 // vm.creditChange = {
                 //     finalValidAmount: vm.isOneSelectedPlayer().validCredit,

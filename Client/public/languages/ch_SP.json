@@ -1376,6 +1376,20 @@
   "Check if this phone number has received free trial": "（领优惠前）检查该电话是否曾经领过",
   "Need SMS verification": "（领优惠中）是否需要短信验证",
 
+  "REWARD_POINT_ADJUSTMENT": "修改积分",
+  "VALID_REWARD_POINT": "有效积分",
+  "CURRENT_REWARD_POINT": "更改前",
+  "CHANGE_REWARD_POINT": "积分变量",
+  "UPDATED_REWARD_POINT": "更改后",
+  "Player reward point cannot be less than 0": "玩家积分不能小于0",
+
+  "ADVANCE_REWARD_POINT_EXCHANGE": "提前积分兑换",
+  "BEFORE_REWARD_POINT_EXCHANGE": "兑换前",
+  "REWARD_POINT_EXCHANGE_AMOUNT": "积分兑换",
+  "AFTER_REWARD_POINT_EXCHANGE": "兑换后",
+
+  "rewardPointTask": "积分任务",
+
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
