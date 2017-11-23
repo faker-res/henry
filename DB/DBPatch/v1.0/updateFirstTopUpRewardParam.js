@@ -806,7 +806,7 @@ db.rewardParam.update({
             periodCond: {
                 interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval"},
             },
-            consumptionCond: consumptionCond,
+            consumptionCond: {providerGroup: {index: 41, type: "select", des: "Provider group", options: "providerGroup"}},
             consumptionProviderCond: consumptionProviderCond,
             topUpCond: topUpCond,
             latestTopUpCond: {
@@ -823,7 +823,8 @@ db.rewardParam.update({
                     type: "datetimePeriod",
                     des: "Period show reward",
                     value: [{startDate: "", startTime: "", endDate: "", endTime: ""}]
-                }
+                },
+                useConsumptionRecord: {index: 40, type: "checkbox", des: "Consumption can not be shared with XIMA"},
 
             }
         },

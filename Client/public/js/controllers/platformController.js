@@ -9763,6 +9763,13 @@ define(['js/app'], function (myApp) {
                         } else {
                             item.provider$ = item.providerStr$;
                         }
+
+                        if (item.rewardType){
+                            item.rewardType = $translate(item.rewardType);
+                        }
+
+                        item.isUnlock = $translate(item.isUnlock);
+
                         return item;
                     }) : [];
                     var size = data.data ? data.data.size : 0;
@@ -13097,7 +13104,9 @@ define(['js/app'], function (myApp) {
                             switch (cond.options) {
                                 case "providerGroup":
                                     if (!vm.gameProviderGroup) break;
-                                    let providerGroup = {};
+                                    let providerGroup = {
+                                        "": "LOCAL_CREDIT"
+                                    };
                                     for (let i = 0; i < vm.gameProviderGroup.length; i++) {
                                         let group = vm.gameProviderGroup[i];
                                         providerGroup[group._id] = group.name;
@@ -13515,6 +13524,7 @@ define(['js/app'], function (myApp) {
                 console.log("vm.rewardCondition:", vm.rewardCondition);
                 console.log("vm.rewardParams:", vm.rewardParams);
                 vm.showRewardFormValid = true;
+                vm.endLoadWeekDay();
             };
 
         vm.changeRewardParamLayout = (model, isFirstLoad) => {
@@ -14342,6 +14352,10 @@ define(['js/app'], function (myApp) {
                             });
                         });
                 }
+            };
+
+            vm.rewardPointsTabClicked = function (choice) {
+                vm.selectedRewardPointTab = choice;
             };
 
             function loadPromoCodeTypes() {
@@ -15881,7 +15895,8 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
                 vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
                 vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup;
-                vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime
+                vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime;
+                vm.platformBasic.usePointSystem = vm.selectedPlatform.data.usePointSystem;
                 vm.platformBasic.whiteListingPhoneNumbers$ = "";
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
@@ -16347,7 +16362,8 @@ define(['js/app'], function (myApp) {
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
                         smsVerificationExpireTime: srcData.smsVerificationExpireTime,
                         useProviderGroup: srcData.useProviderGroup,
-                        whiteListingPhoneNumbers: whiteListingPhoneNumbers
+                        whiteListingPhoneNumbers: whiteListingPhoneNumbers,
+                        usePointSystem: srcData.usePointSystem
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
