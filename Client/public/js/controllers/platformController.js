@@ -9813,42 +9813,6 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
 
-        // vm.drawRewardTaskGroupTable = function (newSearch, tblData, size) {
-        //     var tableOptions = $.extend({}, vm.generalDataTableOptions, {
-        //         data: tblData,
-        //         aoColumnDefs: [
-        //             {targets: '_all', defaultContent: ' ', bSortable: false}
-        //         ],
-        //         columns: [
-        //             {title: $translate('CREATETIME'), data: "createTime$"},
-        //             {title: $translate('rewardType'), data: "rewardType"},
-        //             {title: $translate('ISUNLOCK'), data: "isUnlock"},
-        //             {title: $translate('applyAmount'), data: "applyAmount"},
-        //             {title: $translate('initAMOUNT'), data: "initAmount"},
-        //             {title: $translate('currentAMOUNT'), data: "currentAmount"},
-        //             {title: $translate('bonusAmount'), data: "bonusAmount"},
-        //             {title: $translate('requiredUnlockAmount'), data: "requiredUnlockAmount"},
-        //             {title: $translate('unlockedAmount'), data: "unlockedAmount"},
-        //             {title: $translate('requiredBonusAmount'), data: "requiredBonusAmount"},
-        //             {title: $translate('unlockedBonusAmount'), data: "unlockedBonusAmount"},
-        //             // {title: $translate('targetEnable'), data: "targetEnable"},
-        //             {title: $translate('targetProviders'), data: "provider$"},
-        //             {title: $translate('useConsumption'), data: "useConsumption"},
-        //         ],
-        //         "paging": false,
-        //     });
-        //     var aTable = $("#rewardTaskGroupLogTbl").DataTable(tableOptions);
-        //     aTable.columns.adjust().draw();
-        //     vm.rewardTaskGroupLog.pageObj.init({maxCount: size}, newSearch);
-        //     $('#rewardTaskLogGroupTbl').resize();
-        //     $('#rewardTaskLogGroupTbl').off('order.dt');
-        //     $('#rewardTaskLogGroupTbl').on('order.dt', function (event, a, b) {
-        //         vm.commonSortChangeHandler(a, 'rewardTaskGroupLog', vm.getRewardTaskLogData);
-        //     });
-        //
-        //     $scope.safeApply();
-        // }
-
             //////////////////////////// reward task log end
             vm.enableDisablePlayer = function () {
                 var status = 1; //player status enable
