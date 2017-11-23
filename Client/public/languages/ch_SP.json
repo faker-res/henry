@@ -2536,6 +2536,7 @@
   "WITHDRAW_AMOUNT":"提款金额",
   "PROMOTION":"促销优惠",
   "CONSUMPTION_RETURN_AMOUNT":"洗码金额",
+  "NON_CONSUMPTION_RETURN_AMOUNT":"非洗码金额",
   "COMPANY_PROFIT": "公司营利点",
   "SMS Records":"sms发送记录",
   "SENT TIME":"尝试时间",
