@@ -1273,7 +1273,7 @@ var dbPlayerConsumptionRecord = {
                         {
                             usedType: constRewardType.CONSECUTIVE_TOP_UP,
                             bDirty: true,
-                            usedEvent: rewardTask.eventId,
+                            $push: {usedEvent: rewardTask.eventId},
                             usedTaskId: rewardTask._id
                         },
                         {multi: true}
@@ -1316,6 +1316,81 @@ var dbPlayerConsumptionRecord = {
 
         return deferred.promise;
     },
+
+    /**
+     *  Add usedEvent to consumption record
+     */
+    assignConsumptionUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, usedProposal, rewardType) {
+        let consumptionQuery = {
+            platformId: platformObjId,
+            playerId: playerObjId,
+        };
+
+        if (startTime) {
+            consumptionQuery.createTime = {$gte: startTime};
+            if (endTime) {
+                consumptionQuery.createTime.$lte = endTime;
+            }
+        }
+
+        let updateValue = {
+            bDirty: true,
+            $push: {usedEvent: eventObjId}
+        };
+
+        if (rewardType) {
+            updateValue.usedType = rewardType;
+        }
+
+        if (usedProposal) {
+            updateValue.usedProposal = usedProposal;
+        }
+
+        let recordIds = [];
+
+        return dbconfig.collection_playerConsumptionRecord.find(consumptionQuery).lean().then(
+            consumptionRecords => {
+                let curAmount = 0;
+
+                for (var i = 0; i < consumptionRecords.length; i++) {
+                    let record = consumptionRecords[i];
+                    recordIds.push(record._id);
+                    curAmount += record.amount;
+                    if (curAmount >= spendingAmount) {
+                        break;
+                    }
+                }
+
+                dbconfig.collection_playerConsumptionRecord.update(
+                    {_id: {$in: recordIds}},
+                    updateValue,
+                    {multi: true}
+                ).exec();
+
+                return recordIds;
+            }
+        )
+    },
+
+    /**
+     *  Add usedEvent to consumption record
+     */
+    unassignConsumptionUsedEvent: function (recordIds, eventObjId) {
+        return dbconfig.collection_playerConsumptionRecord.update(
+            {_id: {$in: recordIds}},
+            {bDirty: false, $pull: {usedEvent: eventObjId}},
+            {multi: true}
+        ).exec();
+    },
+
+    unassignConsumptionUsedEventByProposalId: function (proposalId, eventObjId) {
+        return dbconfig.collection_playerConsumptionRecord.update(
+            {usedProposal: proposalId},
+            {bDirty: false, $pull: {usedEvent: eventObjId}},
+            {multi: true}
+        ).exec();
+    },
+
 
     /**
      * Check record for weekly ConsecutiveTopUpTask
@@ -1419,7 +1494,7 @@ var dbPlayerConsumptionRecord = {
                         {
                             usedType: constRewardType.FULL_ATTENDANCE,
                             bDirty: true,
-                            usedEvent: rewardTask.eventId,
+                            $push: {usedEvent: rewardTask.eventId},
                             usedTaskId: rewardTask._id
                         },
                         {multi: true}
