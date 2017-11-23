@@ -255,17 +255,14 @@ let dbPlayerReward = {
             let checkRequirementMeetProms = [];
 
             let today = dbUtility.getTodaySGTime();
-
             let currentDay = dbUtility.getTargetSGTime(startCheckTime);
-            while (currentDay.startTime > today.startTime) {
+            while (currentDay.startTime <= today.startTime) {
                 checkRequirementMeetProms.push(isDayMeetRequirement(event, player, currentDay, requiredBet, requiredDeposit, requireBoth));
                 currentDay = dbUtility.getTargetSGTime(currentDay.endTime);
             }
 
             return Promise.all(checkRequirementMeetProms);
         }).then(checkResults => {
-            // do stuff base on checkResults
-
             if (checkResults) {
                 if (checkResults.length === 1) {
                     let result = checkResults[0];
@@ -337,7 +334,7 @@ let dbPlayerReward = {
                         if (streakFromPastApplied || currentStreak >= consecutiveNumber) {
                             let bonus = selectedParam.rewardAmount;
 
-                            insertOutputList(1, step, bonus, requestedTimes, targetDate,
+                            insertOutputList(1, consecutiveNumber, bonus, requestedTimes, targetDate,
                                 selectedParam.forbidWithdrawAfterApply, selectedParam.remark, selectedParam.isSharedWithXIMA,
                                 result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
                         }
@@ -371,14 +368,14 @@ let dbPlayerReward = {
                                 result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
                         }
                     }
-
-                    for (let i = outputList.length; i < paramOfLevel.length; i++) {
-                        let bonus = paramOfLevel[i].rewardAmount;
-                        let requestedTimes = paramOfLevel[i].spendingTimes || 1;
-
-                        insertOutputList(0, i+1, bonus, requestedTimes);
-                    }
                 }
+            }
+
+            for (let i = outputList.length; i < paramOfLevel.length; i++) {
+                let bonus = paramOfLevel[i].rewardAmount;
+                let requestedTimes = paramOfLevel[i].spendingTimes || 1;
+
+                insertOutputList(0, i+1, bonus, requestedTimes);
             }
 
             return {
@@ -416,7 +413,7 @@ let dbPlayerReward = {
             }
 
             if (!event.condition.isSharedWithXIMA) {
-                consumptionSumQuery.bDirty = true;
+                consumptionSumQuery.bDirty = false;
             }
 
             let consumptionProm = dbConfig.collection_playerConsumptionRecord.aggregate([
@@ -3238,7 +3235,7 @@ let dbPlayerReward = {
                         }
 
                         if (applyDetail.targetDate) {
-                            proposalData.data.applyTargetDate = applyDetail.targetDate;
+                            proposalData.data.applyTargetDate = applyDetail.targetDate.startTime;
                         }
 
                         let prom = dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);

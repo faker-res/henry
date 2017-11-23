@@ -2099,11 +2099,11 @@ var proposalExecutor = {
                         rewardType: constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
                         platformId: proposalData.data.platformId,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
-                        currentAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
-                        initAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
+                        currentAmount: proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.rewardAmount,
                         useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
-                        applyAmount: proposalData.data.applyAmount,
+                        applyAmount: 0,
                         providerGroup: proposalData.data.providerGroup
                     };
 
