@@ -230,8 +230,6 @@ let dbPlayerReward = {
                 numberOfParam = paramOfLevel.length; // number of step
             }
 
-
-            console.log('aaaa', rewardProposalData)
             if (!rewardProposalData || rewardProposalData.length === 0) {
                 startCheckTime = event.validStartTime > intervalTime.startTime ? event.validStartTime : intervalTime.startTime;
             } else {
