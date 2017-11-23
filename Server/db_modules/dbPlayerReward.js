@@ -1970,13 +1970,6 @@ let dbPlayerReward = {
      * @returns {Promise.<TResult>}
      */
     applyGroupReward: (playerData, eventData, adminInfo, rewardData, inputData) => {
-
-        console.log('applyGroupReward playerData', playerData);
-        console.log('applyGroupReward eventData', eventData);
-        console.log('applyGroupReward eventData.param.rewardParam', eventData.param.rewardParam);
-        console.log('applyGroupReward eventData.param.rewardParam[0].value', eventData.param.rewardParam[0].value);
-        console.log('rewardData', rewardData);
-
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
         let rewardAmount = 0, spendingAmount = 0, applyAmount = 0;
@@ -2320,7 +2313,7 @@ let dbPlayerReward = {
                     );
 
                     promiseUsed.push(totalConsumptionAmount);
-                    // console.log(allRewardProm);
+
                     if (allRewardProm) promiseUsed.push(allRewardProm);
 
                     calculateLosses = Promise.all(promiseUsed).then(data => {
@@ -2715,7 +2708,7 @@ let dbPlayerReward = {
 
                     // type 4
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
-                        // （领优惠前）检查投注额来源游戏厅q
+                        // （领优惠前）检查投注额来源游戏厅
                         let consumptions = rewardSpecificData[0];
                         let totalConsumption = 0;
                         for (let x in consumptions) {
