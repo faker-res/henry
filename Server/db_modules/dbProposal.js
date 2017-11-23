@@ -1553,8 +1553,6 @@ var proposal = {
                     if (!ydata[1]) {
                         ydata[1] = [];
                     }
-                    console.log(ydata[0].length);
-                    console.log(ydata[1].length);
                     let duplicateList = ydata[0].concat(ydata[1]);
                     let resultSize = ydata[0].length + ydata[1].length;
                     let result = {data: duplicateList, size: resultSize};
