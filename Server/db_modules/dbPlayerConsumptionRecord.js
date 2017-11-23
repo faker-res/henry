@@ -543,11 +543,11 @@ var dbPlayerConsumptionRecord = {
                         summaryDay: summaryDay,
                         bDirty: false
                     };
-
-                    // Handle left over amount from partial XIMA
-                    if (checkRes && checkRes.nonDirtyAmount > 0) {
-                        consumptionAmount = checkRes.nonDirtyAmount;
-                    }
+                    //
+                    // // Handle left over amount from partial XIMA
+                    // if (checkRes && checkRes.nonDirtyAmount > 0) {
+                    //     consumptionAmount = checkRes.nonDirtyAmount;
+                    // }
 
                     let updateData = {
                         $inc: {amount: consumptionAmount, validAmount: consumptionAmount}
@@ -594,7 +594,7 @@ var dbPlayerConsumptionRecord = {
                 });
             }
         ).then(
-            data => data,
+            data => record,
             error => {
                 return Q.reject({name: "DBError", message: "Error in checking player level", error: error});
             }
