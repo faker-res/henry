@@ -1513,11 +1513,17 @@ var proposal = {
                         }
                         let selectedPlatformId = platformId[0];
 
-                        var a = dbconfig.collection_players.find({platform: ObjectId(selectedPlatformId), phoneNumber: rsaCrypto.encrypt(phoneNumber)}).populate({
+                        var a = dbconfig.collection_players.find({
+                            platform: ObjectId(selectedPlatformId),
+                            phoneNumber: rsaCrypto.encrypt(phoneNumber)
+                        }).populate({
                             path: 'playerLevel',
                             model: dbconfig.collection_playerLevel
                         });
-                        var b = dbconfig.collection_partner.find({platform: ObjectId(selectedPlatformId), phoneNumber: phoneNumber}).populate({
+                        var b = dbconfig.collection_partner.find({
+                            platform: ObjectId(selectedPlatformId),
+                            phoneNumber: phoneNumber
+                        }).populate({
                             path: 'level',
                             model: dbconfig.collection_partnerLevel
                         });
@@ -1532,34 +1538,34 @@ var proposal = {
                 }
             }).then(data => {
 
-                let duplicateList = [];
-                let plyData = [];
-                let partnerData = [];
-                plyData = proposal.getPlayerIpAreaFromRecord(platformId, data[0]);
-                partnerData = proposal.getPartnerIpAreaFromRecord(platformId, data[1]);
+            let duplicateList = [];
+            let plyData = [];
+            let partnerData = [];
+            plyData = proposal.getPlayerIpAreaFromRecord(platformId, data[0]);
+            partnerData = proposal.getPartnerIpAreaFromRecord(platformId, data[1]);
 
-                return Promise.all([plyData, partnerData]).then(
-                    ydata => {
-                        let concatList = [];
-                        if(!ydata[0]){
-                            ydata[0] = [];
-                        }
-                        if(!ydata[1]){
-                            ydata[1] = [];
-                        }
-                        console.log(ydata[0].length);
-                        console.log(ydata[1].length);
-                        let duplicateList= ydata[0].concat(ydata[1]);
-                        let resultSize = ydata[0].length + ydata[1].length;
-                        let result = {data: duplicateList, size: resultSize};
-                        return result;
-                    },
-                    err => {
-                        console.log(err);
+            return Promise.all([plyData, partnerData]).then(
+                ydata => {
+                    let concatList = [];
+                    if (!ydata[0]) {
+                        ydata[0] = [];
                     }
-                )
+                    if (!ydata[1]) {
+                        ydata[1] = [];
+                    }
+                    console.log(ydata[0].length);
+                    console.log(ydata[1].length);
+                    let duplicateList = ydata[0].concat(ydata[1]);
+                    let resultSize = ydata[0].length + ydata[1].length;
+                    let result = {data: duplicateList, size: resultSize};
+                    return result;
+                },
+                err => {
+                    console.log(err);
+                }
+            )
 
-            })
+        })
     },
     getPlayerRegistrationIPArea: function(platformId, id, type){
         let query = {};
@@ -1587,34 +1593,34 @@ var proposal = {
     },
     getPlayerIpAreaFromRecord: function(platformId, playersData){
         let result = [];
-        playersData.forEach(item=>{
-            let prom = proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'playerId').then(data=>{
+        playersData.forEach(item => {
+            let prom = proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'playerId').then(data => {
                 let ipArea = {};
-                if(data.data){
-                    ipArea = data.data.ipArea? data.data.ipArea : {};
+                if (data.data) {
+                    ipArea = data.data.ipArea ? data.data.ipArea : {};
                 }
                 let playerUnitData = {
-                    'data':{
-                        'playerId': item.playerId ? item.playerId:'',
-                        'realName': item.realName ? item.realName:'',
-                        'lastLoginIp': item.lastLoginIp ? item.lastLoginIp:'',
+                    'data': {
+                        'playerId': item.playerId ? item.playerId : '',
+                        'realName': item.realName ? item.realName : '',
+                        'lastLoginIp': item.lastLoginIp ? item.lastLoginIp : '',
                         'topUpTimes': item.topUpTimes,
                         'smsCode': '',
                         'remarks': '',
-                        'device' : '',
-                        'promoteWay' : '',
+                        'device': '',
+                        'promoteWay': '',
                         'csOfficer': '',
-                        'registrationTime' : item.registrationTime ? item.registrationTime : "",
-                        'lastAccessTime': item.lastAccessTime ? item.lastAccessTime: "",
+                        'registrationTime': item.registrationTime ? item.registrationTime : "",
+                        'lastAccessTime': item.lastAccessTime ? item.lastAccessTime : "",
                         'proposalId': '',
                         'playerLevel': item.playerLevel,
                         'credibilityRemarks': item.credibilityRemarks ? item.credibilityRemarks : "",
-                        'valueScore': item.valueScore ? item.valueScore: 0 ,
-                        'phoneProvince':item.phoneProvince? item.phoneProvince: '',
-                        'phoneCity': item.phoneCity ? item.phoneCity: '',
+                        'valueScore': item.valueScore ? item.valueScore : 0,
+                        'phoneProvince': item.phoneProvince ? item.phoneProvince : '',
+                        'phoneCity': item.phoneCity ? item.phoneCity : '',
                         'ipArea': ipArea,
                         // 'ipArea': ips2, //item.ipArea ? item.ipArea: '',
-                        'name':  item.name ? item.name:''
+                        'name': item.name ? item.name : ''
                     }
                 };
                 return playerUnitData;
