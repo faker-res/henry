@@ -610,6 +610,10 @@
                                 td {{'Use Point System' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.usePointSystem', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Use Phone Number Two Steps Verification' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.usePhoneNumberTwoStepsVerification', ng-disabled='!vm.configTableEdit')
 
                             br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
