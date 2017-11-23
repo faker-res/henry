@@ -103,20 +103,10 @@ var dbPlayerRegistrationIntentRecord = {
                     return data;
                 }
             ).then(data => {
-                if(newIntentData.status != constRegistrationIntentRecordStatus.MANUAL){
-                    return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
-                }else{
-                    let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                    return newRecord.save();
-                }
+                return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
             })
         }else{
-            if(newIntentData.status != constRegistrationIntentRecordStatus.MANUAL){
-                return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
-            }else{
-                let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                return newRecord.save();
-            }
+            return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
         }
     },
 
@@ -186,7 +176,7 @@ var dbPlayerRegistrationIntentRecord = {
     updatePlayerRegistrationIntentRecordBySMSCode: function (query, updateData) {
 
         return dbconfig.collection_playerRegistrationIntentRecord.find(query).then(data => {
-            if(data){
+            if(data && data.length > 0){
                 if (query) {
                     return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(query, updateData, {new: true});
                 } else {
@@ -197,7 +187,7 @@ var dbPlayerRegistrationIntentRecord = {
                     )
                 }
             }else{
-                let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+                let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(updateData);
                 return newRecord.save();
             }
         })
