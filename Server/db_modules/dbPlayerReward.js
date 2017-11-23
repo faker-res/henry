@@ -196,11 +196,12 @@ let dbPlayerReward = {
             let similarRewardProposalProm;
 
             let rewardProposalQuery = {
-                "data.platformObjId": player.platform._id,
+                "data.platformObjId": player.platform,
                 "data.playerObjId": player._id,
                 "data.eventId": event._id,
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
             };
+            console.log(rewardProposalQuery);
 
             if (!intervalTime) {
                 // get last similar reward proposal
@@ -230,7 +231,7 @@ let dbPlayerReward = {
             }
 
 
-
+            console.log('aaaa', rewardProposalData)
             if (!rewardProposalData || rewardProposalData.length === 0) {
                 startCheckTime = event.validStartTime > intervalTime.startTime ? event.validStartTime : intervalTime.startTime;
             } else {
