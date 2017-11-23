@@ -2430,11 +2430,6 @@ let dbPlayerReward = {
             eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
         }
 
-        if (eventData.type.name === constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP) {
-            delete eventQuery.settleTime;
-            eventQuery.data.applyTargetDate = {$gte: intervalTime.startTime, $lte: intervalTime.endTime}
-        }
-
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
 
