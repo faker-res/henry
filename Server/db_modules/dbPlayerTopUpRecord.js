@@ -1148,6 +1148,7 @@ var dbPlayerTopUpRecord = {
 
     cancelManualTopupRequest: function (playerId, proposalId, adminName) {
         var proposal = null;
+        let cancelTime = new Date();
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData) {
@@ -1171,6 +1172,14 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            },
+            error => {
+                if(adminName){
+                    return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+                }
+                else{
+                    return Q.reject(error);
+                }
             }
         ).then(
             data => {
@@ -1178,7 +1187,7 @@ var dbPlayerTopUpRecord = {
                     let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
-                        {"data.cancelBy": cancelBy}
+                        {"data.cancelBy": cancelBy, "settleTime": cancelTime}
                     );
                 }
             }
@@ -1189,6 +1198,7 @@ var dbPlayerTopUpRecord = {
 
     cancelAlipayTopup: function (playerId, proposalId, adminName) {
         var proposal = null;
+        let cancelTime = new Date();
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData) {
@@ -1207,6 +1217,14 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            },
+            error => {
+                if(adminName){
+                    return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+                }
+                else{
+                    return Q.reject(error);
+                }
             }
         ).then(
             data => {
@@ -1214,7 +1232,7 @@ var dbPlayerTopUpRecord = {
                     let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
-                        {"data.cancelBy": cancelBy}
+                        {"data.cancelBy": cancelBy, "settleTime": cancelTime}
                     );
                 }
             }
@@ -1225,6 +1243,7 @@ var dbPlayerTopUpRecord = {
 
     cancelWechatTopup: function (playerId, proposalId, adminName) {
         var proposal = null;
+        let cancelTime = new Date();
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData) {
@@ -1244,6 +1263,14 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            },
+            error => {
+                if(adminName){
+                    return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+                }
+                else{
+                    return Q.reject(error);
+                }
             }
         ).then(
             data => {
@@ -1251,7 +1278,7 @@ var dbPlayerTopUpRecord = {
                     let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
-                        {"data.cancelBy": cancelBy}
+                        {"data.cancelBy": cancelBy, "settleTime": cancelTime}
                     );
                 }
             }

@@ -426,12 +426,18 @@ var loseValueCond = {
     defineLoseValue: {index: 42, type: "select", des: "Define Lose Value", options: "loseValueType"},
     // Chain condition child
     //consumptionRecordProvider: {index: 102.1, type: "chain", chainKey: "102", chainType:"multiSelect", chainOptions: [2,3], des: "Consumption Record Provider", options: "consumptionRecordProviderName"},
-    consumptionRecordProvider: {
+    // consumptionRecordProvider: {
+    //     index: 42.1,
+    //     type: "multiSelect",
+    //     des: "Consumption Record Provider",
+    //     options: "consumptionRecordProviderName"
+    // },
+    consumptionProvider: {
         index: 42.1,
         type: "multiSelect",
         des: "Consumption Record Provider",
-        options: "consumptionRecordProviderName"
-    },
+        options: "gameProviders"
+    }
 }
 
 var latestTopUpCond = {
@@ -456,7 +462,7 @@ var consumptionCond = {
     // Is consumption shared with XIMA
     isSharedWithXIMA: {index: 40, type: "checkbox", des: "Consumption can be shared with XIMA"},
     // Provider group binded with this reward
-    providerGroup: {index: 41, type: "multiSelect", des: "Provider group", options: "providerGroup"},
+    providerGroup: {index: 41, type: "select", des: "Provider group", options: "providerGroup"},
 };
 
 var consumptionProviderCond = {
@@ -568,16 +574,15 @@ db.rewardParam.update({
                     type: "checkbox",
                     des: "Player can delay apply for reward within period"
                 },
-                // allowReclaimMissedRewardDay: {index: 21.1, type: "checkbox", des: "If not checked, player have to claim reward on that particular day"},
             },
         },
         param: {
             tblOptFixed: {
                 isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
+                requiredTopUpAmount: {type: "number", des: "Required top up amount"},
+                requiredConsumptionAmount: {type: "number", des: "Required consumption amount"},
+                operatorOption: {type: "checkbox", des: "Required both"},
                 rewardParam: {
-                    requiredTopUpAmount: {type: "number", des: "Required top up amount"},
-                    operatorOption: {type: "checkbox", des: "Required both"},
-                    requiredConsumptionAmount: {type: "number", des: "Required consumption amount"},
                     rewardAmount: {type: "number", des: "Reward amount"},
                     spendingTimes: {type: "number", des: "Spending times"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
@@ -601,7 +606,7 @@ var param101 = param101Cursor.next();
 db.rewardType.update({"name": type101}, {$set: {params: param101._id, des: type101, isGrouped: true}}, {upsert: true});
 
 // region输值反利
-var type102 = "PlayerLoseReturnReward";
+var type102 = "PlayerLoseReturnRewardGroup";
 
 db.rewardParam.update({
     "name": type102
@@ -698,7 +703,7 @@ db.rewardParam.update({
                 rewardParam: {
                     minConsumptionAmount: {type: "number", des: "Minimum consumption amount"},
                     rewardAmount: {type: "number", des: "Reward amount"},
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    spendingTimes: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "checkbox",
@@ -801,14 +806,15 @@ db.rewardParam.update({
             periodCond: {
                 interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval"},
             },
-            consumptionCond: consumptionCond,
+            consumptionCond: {providerGroup: {index: 41, type: "select", des: "Provider group", options: "providerGroup"}},
             consumptionProviderCond: consumptionProviderCond,
             topUpCond: topUpCond,
             latestTopUpCond: {
                 ignoreTopUpDirtyCheckForReward: {
                     index: 32,
                     type: "multiSelect",
-                    des: "Ignore the following rewards that applied with top up"
+                    des: "Ignore the following rewards that applied with top up",
+                    options: "allRewardEvent"
                 }
             },
             customCond: {
@@ -817,7 +823,8 @@ db.rewardParam.update({
                     type: "datetimePeriod",
                     des: "Period show reward",
                     value: [{startDate: "", startTime: "", endDate: "", endTime: ""}]
-                }
+                },
+                useConsumptionRecord: {index: 40, type: "checkbox", des: "Consumption can not be shared with XIMA"},
 
             }
         },
@@ -833,7 +840,7 @@ db.rewardParam.update({
                         des: "Reward percentage and reward amount",
                         value: [{percentage: "", amount: ""}]
                     },
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    spendingTimesOnReward: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "checkbox",

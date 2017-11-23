@@ -3,11 +3,11 @@ var Schema = mongoose.Schema;
 
 var playerLoginRecordSchema = new Schema({
     //player object id
-    player: {type: Schema.Types.ObjectId},
+    player: {type: Schema.Types.ObjectId, index: true},
     //platform object id
-    platform: {type: Schema.Types.ObjectId},
+    platform: {type: Schema.Types.ObjectId, index: true},
     //login time
-    loginTime: {type: Date, default: Date.now},
+    loginTime: {type: Date, default: Date.now, index: true},
     //login ip
     loginIP: String,
     // login domain
@@ -36,5 +36,8 @@ var playerLoginRecordSchema = new Schema({
     //any additional data
     data: JSON
 });
+
+//record is unique by name and platform
+playerLoginRecordSchema.index({platform: 1, loginTime: 1});
 
 module.exports = playerLoginRecordSchema;

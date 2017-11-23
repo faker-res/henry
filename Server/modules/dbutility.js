@@ -106,6 +106,16 @@ var dbUtility = {
         };
     },
 
+    getTargetSGTime: function (targetDate) {
+        var startTime = moment(targetDate).tz('Asia/Singapore').startOf('day').toDate();
+        var endTime = moment(startTime).add(1, 'days').toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getPreviousSGMonday: function () {
         // Get midnight on the morning of this week's Monday.
         // (That could be tomorrow if today is Sunday!)

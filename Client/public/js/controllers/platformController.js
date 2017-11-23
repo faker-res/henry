@@ -227,7 +227,7 @@ define(['js/app'], function (myApp) {
                 UPDATE_PASSWORD: 'updatePassword',
                 UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
                 UPDATE_BANK_INFO: 'updateBankInfo',
-                RESET_PASSWORD: 'resetPassword'
+                // RESET_PASSWORD: 'resetPassword'
             };
 
             vm.constProposalStatus = {
@@ -3011,13 +3011,13 @@ define(['js/app'], function (myApp) {
                                         link.append($('<div>', {
                                             'class': 'fa fa-comment',
                                             'style': 'padding-left:15px',
-                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
-                                            'title': $translate("PHONE")
+                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');vm.initSMSModal();',
+                                            'title': $translate("SMS")
                                         }));
                                     }
 
                                     if (row.status != vm.constRegistrationIntentRecordStatus.SUCCESS && row.status != vm.constRegistrationIntentRecordStatus.MANUAL) {
-                                        displayTXT = $translate('SMS/PHONE/CREATE_ACC');
+                                        displayTXT = $translate('CREATE_NEW_PLAYER');
                                         action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                         link.append($('<div>', {
                                             'class': 'fa fa-user-plus',
@@ -3027,11 +3027,11 @@ define(['js/app'], function (myApp) {
                                         }));
 
                                     } else {
-                                        displayTXT = $translate('SMS/PHONE/FEEDBACK');
+                                        displayTXT = $translate('FEEDBACK');
                                         action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
                                         $('#modalAddPlayerFeedback').css('z-Index', 1051);
                                         link.append($('<div>', {
-                                            'class': 'fa fa-envelope-o',
+                                            'class': 'fa fa-commenting',
                                             'style': 'padding-left:15px',
                                             'data-row': JSON.stringify(row),
                                             'data-toggle': 'modal',
@@ -3091,15 +3091,18 @@ define(['js/app'], function (myApp) {
             };
 
             vm.operatePlayerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                let smsExpiredDate = new Date();
+                smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - vm.selectedPlatform.data.smsVerificationExpireTime);
+                let createTime = Date.parse(aData.createTime);
                 switch (true) {
                     case ((aData.status == vm.constRegistrationIntentRecordStatus.INTENT || aData.status == vm.constRegistrationIntentRecordStatus.FAIL ||
-                        aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount == 0)): {
+                        aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount == 0 && createTime >= smsExpiredDate)): {
                         $(nRow).css('background-color', 'rgba(255, 153, 153, 100)', 'important');
                         //$(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
                         break;
                     }
                     case ((aData.status == vm.constRegistrationIntentRecordStatus.INTENT || aData.status == vm.constRegistrationIntentRecordStatus.FAIL ||
-                        aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount > 0)): {
+                        aData.status == vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE) && (aData.$playerAllCount - aData.$playerCurrentCount > 0 || createTime < smsExpiredDate)): {
                         $(nRow).css('background-color', 'rgba(153, 153, 153, 100)', 'important');
                         break;
                     }
@@ -3645,7 +3648,7 @@ define(['js/app'], function (myApp) {
 
         vm.preparePlayerRegistrationIntentRecordsByStatus = function (newSearch) {
                 vm.queryData.attemptNo = vm.attemptNo ? vm.attemptNo : 0;
-            vm.queryData.status = Array.isArray(vm.status) ? vm.status : [vm.status];
+                vm.queryData.status = Array.isArray(vm.status) ? vm.status : [vm.status];
                 vm.playerRegistrationRecords.loading = true;
 
                 vm.queryData.size = newSearch ? 10 : (vm.playerRegistrationRecords.limit || 10);
@@ -3781,13 +3784,13 @@ define(['js/app'], function (myApp) {
                                         link.append($('<div>', {
                                             'class': 'fa fa-comment',
                                             'style': 'padding-left:15px',
-                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
-                                            'title': $translate("PHONE")
+                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');vm.initSMSModal();',
+                                            'title': $translate("SMS")
                                         }));
                                     }
 
                                     if (row.status != vm.constRegistrationIntentRecordStatus.SUCCESS && row.status != vm.constRegistrationIntentRecordStatus.MANUAL) {
-                                        displayTXT = $translate('SMS/PHONE/CREATE_ACC');
+                                        displayTXT = $translate('CREATE_NEW_PLAYER');
                                         action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                         link.append($('<div>', {
                                             'class': 'fa fa-user-plus',
@@ -3797,11 +3800,11 @@ define(['js/app'], function (myApp) {
                                         }));
 
                                     } else {
-                                        displayTXT = $translate('SMS/PHONE/FEEDBACK');
+                                        displayTXT = $translate('FEEDBACK');
                                         action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
                                         $('#modalAddPlayerFeedback').css('z-Index', 1051);
                                         link.append($('<div>', {
-                                            'class': 'fa fa-envelope-o',
+                                            'class': 'fa fa-commenting',
                                             'style': 'padding-left:15px',
                                             'data-row': JSON.stringify(row),
                                             'data-toggle': 'modal',
@@ -4932,9 +4935,16 @@ define(['js/app'], function (myApp) {
                             onClickAsync: function (showPopover) {
                                 var that = this;
                                 var row = JSON.parse(this.dataset.row);
-                                vm.getRewardTaskDetail(row._id, function (data) {
-                                    showPopover(that, '#rewardTaskPopover', data);
-                                });
+
+                                if (vm.selectedPlatform.data.useProviderGroup) {
+                                    vm.getRewardTaskGroupDetail(row._id, function (data) {
+                                        showPopover(that, '#rewardTaskGroupPopover', data);
+                                    });
+                                } else {
+                                    vm.getRewardTaskDetail(row._id, function (data) {
+                                        showPopover(that, '#rewardTaskPopover', data);
+                                    });
+                                }
                             }
                         });
 
@@ -5987,6 +5997,9 @@ define(['js/app'], function (myApp) {
             }
             vm.smsNewPlayerBtn = function (phoneNumber, data) {
                 vm.getSMSTemplate();
+                vm.selectedSinglePlayer = data;
+                vm.editPlayer = data.data ? data.data : "";
+                vm.selectedPlayersCount = 1
                 vm.smsPlayer = {
                     playerId: data.playerId,
                     name: data.name,
@@ -7328,6 +7341,19 @@ define(['js/app'], function (myApp) {
                     return deferred.promise;
                 };
 
+        vm.getRewardTaskGroupDetail = (playerId, callback) => {
+            return $scope.$socketPromise('getPlayerAllRewardTaskGroupDetailByPlayerObjId', {_id: playerId}).then(
+                res => {
+                    vm.curRewardTask = res.data;
+                    console.log('vm.curRewardTask', vm.curRewardTask);
+                    $scope.safeApply();
+                    if (callback) {
+                        callback(vm.curRewardTask);
+                    }
+                }
+            )
+        }
+
             // vm.prepareShowFeedbackRecord = function () {
             //     vm.playerFeedbackData = [];
             //     vm.processDataTableinModal('#modalPlayerFeedbackRecord', '#playerFeedbackRecordTable', {'dom': 't'});
@@ -7398,8 +7424,9 @@ define(['js/app'], function (myApp) {
                 $('#smsToPlayerTab').addClass('active');
                 $('#smsLogTab').removeClass('active');
                 $('#smsSettingTab').removeClass('active');
-                $scope.safeApply();
                 vm.smsModalTab = "smsToPlayerPanel";
+                $scope.safeApply();
+
             }
 
             vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
@@ -8308,11 +8335,11 @@ define(['js/app'], function (myApp) {
                     playerName: vm.selectedSinglePlayer.name,
                     requiredUnlockAmount: vm.playerAddRewardTask.requiredUnlockAmount,
                     currentAmount: vm.playerAddRewardTask.currentAmount,
-                    amount: vm.playerAddRewardTask.currentAmount,
+                    rewardAmount: vm.playerAddRewardTask.currentAmount,
                     initAmount: vm.playerAddRewardTask.currentAmount,
                     useConsumption: Boolean(vm.playerAddRewardTask.useConsumption),
                     remark: vm.playerAddRewardTask.remark,
-                }
+                };
                 console.log('sendObj', sendObj);
                 socketService.$socket($scope.AppSocket, 'createPlayerRewardTask', sendObj, function (data) {
                     vm.playerAddRewardTask.resMsg = $translate('SUCCESS');
@@ -9725,6 +9752,7 @@ define(['js/app'], function (myApp) {
                     vm.getRewardTaskLogData(true);
                 });
             }
+
             vm.getRewardTaskLogData = function (newSearch) {
                 var sendQuery = {
                     playerId: vm.selectedSinglePlayer._id,
@@ -9732,10 +9760,16 @@ define(['js/app'], function (myApp) {
                     to: vm.rewardTaskLog.query.endTime.data('datetimepicker').getLocalDate(),
                     index: newSearch ? 0 : vm.rewardTaskLog.index,
                     limit: newSearch ? 10 : vm.rewardTaskLog.limit,
-                    sortCol: vm.rewardTaskLog.sortCol || null
+                    sortCol: vm.rewardTaskLog.sortCol || null,
+                    useProviderGroup: vm.selectedPlatform.data.useProviderGroup
                 };
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardTask', sendQuery, function (data) {
                     console.log('getPlayerRewardTask', data);
+                    if(vm.selectedPlatform.data.useProviderGroup){
+                        vm.rewardTaskGroupDetails = data.data.rewardTaskGroupData;
+                        $scope.safeApply();
+                    }
+
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
                         item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
@@ -9747,6 +9781,13 @@ define(['js/app'], function (myApp) {
                         } else {
                             item.provider$ = item.providerStr$;
                         }
+
+                        if (item.rewardType){
+                            item.rewardType = $translate(item.rewardType);
+                        }
+
+                        item.isUnlock = $translate(item.isUnlock);
+
                         return item;
                     }) : [];
                     var size = data.data ? data.data.size : 0;
@@ -10774,94 +10815,6 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
-
-            // vm.submitPlayerFeedbackQuery = function (index) {
-            //     if (!vm.selectedPlatform)return;
-            //     console.log('vm.feedback', vm.playerFeedbackQuery);
-            //     var sendQuery = {platform: vm.selectedPlatform.id};
-            //     if (vm.playerFeedbackQuery.isRealPlayer == "1") {
-            //         sendQuery.isRealPlayer = true;
-            //     } else if (vm.playerFeedbackQuery.isRealPlayer == "2") {
-            //         sendQuery.isTestPlayer = true;
-            //     }
-            //     if (vm.playerFeedbackQuery.playerLevel != "all") {
-            //         sendQuery.playerLevel = vm.playerFeedbackQuery.playerLevel;
-            //     }
-            //     if (vm.playerFeedbackQuery.trustLevel != "all") {
-            //         sendQuery.trustLevel = vm.playerFeedbackQuery.trustLevel;
-            //     }
-            //     if (vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').getLocalDate()
-            //         || vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').getLocalDate()) {
-            //         sendQuery.lastAccessTime = {
-            //             $gte: vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').getLocalDate() || new Date(0),
-            //             $lt: vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').getLocalDate() || new Date(),
-            //         };
-            //     }
-            //     if (vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').getLocalDate()
-            //         || vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').getLocalDate()) {
-            //         sendQuery.lastFeedbackTime = {
-            //             $gte: vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').getLocalDate() || new Date(0),
-            //             $lt: vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').getLocalDate() || new Date(),
-            //         }
-            //     }
-            //
-            //     if (vm.playerFeedbackQuery.topUpTimes != "-1") {
-            //         switch (vm.playerFeedbackQuery.topUpTimes) {
-            //             case "0":
-            //                 sendQuery.topUpTimes = {
-            //                     $gte: 0,
-            //                     $lte: 1
-            //                 };
-            //                 break;
-            //             case "1"://today
-            //                 sendQuery.topUpTimes = {
-            //                     $gte: 2
-            //                 };
-            //                 break;
-            //         }
-            //     }
-            //
-            //     if (vm.playerFeedbackQuery.isNewSystem === 'old') {
-            //         sendQuery.isNewSystem = {$ne : true};
-            //     } else if (vm.playerFeedbackQuery.isNewSystem === 'new') {
-            //         sendQuery.isNewSystem = true;
-            //     }
-            //
-            //     if (vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
-            //         sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
-            //     }
-            //
-            //     $('#platformFeedbackSpin').show();
-            //     console.log('sendQuery', sendQuery);
-            //     socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
-            //         query: sendQuery,
-            //         index: vm.feedbackPlayersPara.index - 1
-            //     }, function (data) {
-            //         console.log('_getPlayerFeedbackQuery', data);
-            //         vm.curFeedbackPlayer = data.data.data;
-            //         vm.feedbackPlayersPara.total = data.data.total || 0;
-            //         vm.feedbackPlayersPara.index = data.data.index + 1;
-            //         $('#platformFeedbackSpin').hide();
-            //         if (!vm.curFeedbackPlayer) {
-            //             $scope.safeApply();
-            //             return;
-            //         }
-            //
-            //         vm.addFeedback = {
-            //             playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
-            //             platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
-            //         };
-            //         if (vm.curFeedbackPlayer._id) {
-            //             vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-            //                 vm.curPlayerFeedbackDetail = data;
-            //                 $scope.safeApply();
-            //             })
-            //         } else {
-            //             vm.curPlayerFeedbackDetail = {};
-            //             $scope.safeApply();
-            //         }
-            //     });
-            // }
         vm.submitPlayerFeedbackQuery = function (isNewSearch) {
             if (!vm.selectedPlatform) return;
             console.log('vm.feedback', vm.playerFeedbackQuery);
@@ -10975,6 +10928,10 @@ define(['js/app'], function (myApp) {
             $('#platformFeedbackSpin').show();
             console.log('sendQuery', sendQuery);
             console.log('vm.playerFeedbackSearchType', vm.playerFeedbackSearchType);
+            if(isNewSearch) {
+                vm.feedbackPlayersPara.index = 1;
+                vm.playerFeedbackQuery.index = 0;
+            }
             if (vm.playerFeedbackSearchType == "one") {
                 socketService.$socket($scope.AppSocket, 'getSinglePlayerFeedbackQuery', {
                     query: sendQuery,
@@ -11025,39 +10982,10 @@ define(['js/app'], function (myApp) {
                     vm.playerFeedbackQuery.total = data.data.total || 0;
                     vm.playerFeedbackQuery.index = data.data.index || 0;
                     vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total}, isNewSearch);
-                    // vm.playerTable.rows(function (idx, rowData, node) {
-                    //     if (rowData._id == result[0]._id) {
-                    //         vm.playerTableRowClicked(rowData);
-                    //         vm.selectedPlayersCount = 1;
-                    //         $(node).addClass('selected');
-                    //         found = true;
-                    //     }
-                    // })
 
-                    vm.curFeedbackPlayer = data.data.data;
-                    vm.feedbackPlayersPara.total = data.data.total || 0;
-                    vm.feedbackPlayersPara.index = data.data.index + 1;
+                    vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
                     $('#platformFeedbackSpin').hide();
-                    if (!vm.curFeedbackPlayer) {
-                        $scope.safeApply();
-                        return;
-                    }
-
-                    vm.addFeedback = {
-                        playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
-                        platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
-                    };
-                    if (vm.curFeedbackPlayer._id) {
-                        vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                            vm.curPlayerFeedbackDetail = data;
-                            $scope.safeApply();
-                        });
-                        vm.getPlayerCredibilityComment(vm.curFeedbackPlayer._id);
-                        $scope.safeApply();
-                    } else {
-                        vm.curPlayerFeedbackDetail = {};
-                        $scope.safeApply();
-                    }
+                    $scope.safeApply();
                 });
             }
             vm.playerCredibilityComment = [];
@@ -11112,10 +11040,10 @@ define(['js/app'], function (myApp) {
 
         vm.initPlayerFeedback = function () {
             console.log("initPlayerFeedback");
-            vm.playerFeedbackQuery.index = 0;
-            vm.playerFeedbackQuery.limit = 10;
             vm.playerFeedbackSearchType = "many";
             vm.playerFeedbackQuery = {};
+            vm.playerFeedbackQuery.index = 0;
+            vm.playerFeedbackQuery.limit = 10;
             vm.playerFeedbackQuery.playerType = "Real Player (all)";
             vm.playerFeedbackQuery.playerLevel = "all";
             vm.playerFeedbackQuery.lastAccess = "15-28";
@@ -13130,6 +13058,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainParamEntry = [{}];
                     vm.rewardDisabledParam = [];
                     vm.isRandomReward = false;
+                    vm.platformRewardIsEnabled = false;
                     let params = vm.showRewardTypeData.params;
 
                     // Set condition value
@@ -13157,7 +13086,9 @@ define(['js/app'], function (myApp) {
                             switch (cond.options) {
                                 case "providerGroup":
                                     if (!vm.gameProviderGroup) break;
-                                    let providerGroup = {};
+                                    let providerGroup = {
+                                        "": "LOCAL_CREDIT"
+                                    };
                                     for (let i = 0; i < vm.gameProviderGroup.length; i++) {
                                         let group = vm.gameProviderGroup[i];
                                         providerGroup[group._id] = group.name;
@@ -13223,7 +13154,7 @@ define(['js/app'], function (myApp) {
                             if (el == "defineLoseValue") {
                                 if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] &&
                                         (vm.showReward.condition[el].indexOf("2") > -1 || vm.showReward.condition[el].indexOf("3") > -1))) {
-                                    vm.rewardDisabledParam.push("consumptionRecordProvider");
+                                    vm.rewardDisabledParam.push("consumptionProvider");
                                 }
 
                             }
@@ -13575,6 +13506,7 @@ define(['js/app'], function (myApp) {
                 console.log("vm.rewardCondition:", vm.rewardCondition);
                 console.log("vm.rewardParams:", vm.rewardParams);
                 vm.showRewardFormValid = true;
+                vm.endLoadWeekDay();
             };
 
         vm.changeRewardParamLayout = (model, isFirstLoad) => {
@@ -13648,8 +13580,18 @@ define(['js/app'], function (myApp) {
             console.log(vm.rewardMainCondition);
         };
 
+        vm.rewardPeriodDeleteRow = (idx,valueCollection) => {
+            valueCollection.splice(idx,1);
+            console.log(vm.rewardMainCondition);
+        };
+
         vm.rewardPercentageAmountNewRow = (valueCollection) => {
             valueCollection.push({percentage: "", amount: ""});
+            console.log(vm.rewardMainParamTable);
+        };
+
+        vm.rewardPercentageAmountDeleteRow = (idx,valueCollection) => {
+            valueCollection.splice(idx,1);
             console.log(vm.rewardMainParamTable);
         };
 
@@ -13669,15 +13611,28 @@ define(['js/app'], function (myApp) {
             }
             if (model && model.name == "defineLoseValue") {
                 if (model.value.indexOf("2") == -1 && model.value.indexOf("3") == -1) {
-                    vm.rewardDisabledParam.indexOf("consumptionRecordProvider") === -1 ? vm.rewardDisabledParam.push("consumptionRecordProvider") : null;
+                    vm.rewardDisabledParam.indexOf("consumptionProvider") === -1 ? vm.rewardDisabledParam.push("consumptionProvider") : null;
                 } else {
-                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "consumptionRecordProvider");
+                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "consumptionProvider");
                 }
             }
 
             if (model && model.name == "topUpCountType") {
                 delete model.value1;
                 delete model.value2;
+            }
+
+            if(model && model.name == "applyType") {
+                if(model.value != 1) {
+                    for(let x in vm.rewardMainCondition) {
+                        if (vm.rewardMainCondition[x].name == "canApplyFromClient") {
+                            vm.rewardMainCondition[x].value = false;
+                        }
+                    }
+                    vm.rewardDisabledParam.indexOf("canApplyFromClient") === -1 ? vm.rewardDisabledParam.push("canApplyFromClient") : null;
+                } else {
+                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "canApplyFromClient");
+                }
             }
 
             $scope.safeApply();
@@ -13728,6 +13683,7 @@ define(['js/app'], function (myApp) {
                 if (!disabled) {
                     $("#rewardMainTasks :input").removeClass("disabled");
                 }
+                vm.platformRewardIsEnabled = !disabled;
                 if(vm.isRandomReward){
                     $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
                     $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", true);
@@ -14174,6 +14130,7 @@ define(['js/app'], function (myApp) {
                 } else {
                     sendData = vm.showReward;
                     sendData.name = vm.showReward.name;
+                    sendData.platform = vm.selectedPlatform.id;
                     sendData.description = vm.showReward.description;
                     sendData.param = vm.rewardParams;
                     sendData.condition = vm.rewardCondition;
@@ -14390,6 +14347,10 @@ define(['js/app'], function (myApp) {
                             });
                         });
                 }
+            };
+
+            vm.rewardPointsTabClicked = function (choice) {
+                vm.selectedRewardPointTab = choice;
             };
 
             function loadPromoCodeTypes() {
@@ -14658,23 +14619,27 @@ define(['js/app'], function (myApp) {
 
                 let tmpt = vm.proposalTemplate[templateNo];
                 $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
                 $(tmpt).on('shown.bs.modal', function (e) {
                     $scope.safeApply();
                 })
 
 
             })
-            }
+        };
         vm.showNewPlayerModal = function (data, templateNo) {
-                vm.newPlayerProposal = data;
+            vm.newPlayerProposal = data;
 
-                let tmpt = vm.proposalTemplate[templateNo];
-                $(tmpt).modal('show');
-                $(tmpt).on('shown.bs.modal', function (e) {
-                    $scope.safeApply();
-                })
+            let tmpt = vm.proposalTemplate[templateNo];
+            $(tmpt).modal('show');
+            $(tmpt).on('shown.bs.modal', function (e) {
+                $scope.safeApply();
+            })
 
-            }
+        };
             // display  proposal detail
             vm.showProposalDetailField = function (obj, fieldName, val) {
                 if (!obj) return '';
@@ -15925,7 +15890,8 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
                 vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
                 vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup;
-                vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime
+                vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime;
+                vm.platformBasic.usePointSystem = vm.selectedPlatform.data.usePointSystem;
                 vm.platformBasic.whiteListingPhoneNumbers$ = "";
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
@@ -16391,7 +16357,8 @@ define(['js/app'], function (myApp) {
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
                         smsVerificationExpireTime: srcData.smsVerificationExpireTime,
                         useProviderGroup: srcData.useProviderGroup,
-                        whiteListingPhoneNumbers: whiteListingPhoneNumbers
+                        whiteListingPhoneNumbers: whiteListingPhoneNumbers,
+                        usePointSystem: srcData.usePointSystem
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {

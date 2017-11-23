@@ -847,7 +847,7 @@ let PlayerServiceImplement = function () {
         conn.captchaCode = null;
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
     };
 
     this.sendSMSCodeToPlayer.expectsData = 'platformId: String';
@@ -994,7 +994,6 @@ let PlayerServiceImplement = function () {
         var isValidData = Boolean(conn.playerId && data.platformId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWithdrawalInfo, [data.platformId, conn.playerId], isValidData, false, false, true);
     };
-
 
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);

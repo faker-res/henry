@@ -1904,8 +1904,9 @@ define(['js/app'], function (myApp) {
                             //show detail topup type info for online topup.
                             let typeID = item.data.topUpType || item.data.topupType
                             item.topupTypeStr = typeID
-                                ? $translate(vm.topupTypeJson[typeID])
+                                ? $translate($scope.merchantTopupTypeJson[typeID])
                                 : $translate("Unknown")
+                            item.merchantNo$ = vm.getOnlineMerchantId(item.data.merchantNo);
                         } else {
                             //show topup type for other types
                             item.topupTypeStr = $translate(item.type.name)
@@ -1940,7 +1941,18 @@ define(['js/app'], function (myApp) {
             }
             return result;
         }
-
+        vm.getOnlineMerchantId = function (merchantNo) {
+            let result = '';
+            if (merchantNo && vm.merchantNoList) {
+                let merchant = vm.merchantNoList.filter(item => {
+                    return item.merchantNo == merchantNo
+                })
+                if (merchant.length > 0) {
+                    result = merchant[0].name
+                }
+            }
+            return result;
+        }
         vm.initAccs = function () {
             socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedPlatform.platformId},
                 data => {
@@ -2882,30 +2894,35 @@ define(['js/app'], function (myApp) {
         vm.drawFeedbackReport = function (data, size, newSearch) {
             var tableOptions = {
                 data: data,
-                "order": vm.feedbackQuery.aaSorting || [[3, 'desc']],
+                "order": vm.feedbackQuery.aaSorting || [[4, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'name', 'aTargets': [0], bSortable: true},
-                    {'sortCol': 'playerValue', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'credibilityRemarks', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'feedbackTime', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'endTime', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'topUpAmount', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'bonusTimes', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'bonusAmount', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'rewardAmount', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'consumptionTimes', 'aTargets': [15], bSortable: true},
-                    {'sortCol': 'validConsumptionAmount', 'aTargets': [16], bSortable: true},
-                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [17], bSortable: true},
-                    {'sortCol': 'consumptionAmount', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'name', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'playerValue', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'credibilityRemarks', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'feedbackTime', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'endTime', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'provider', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'manualTopUpAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [17], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [18], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [19], bSortable: true},
+                    {'sortCol': 'profit', 'aTargets': [20], bSortable: true},
+                    {'sortCol': 'feedback.adminId.adminName', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'feedbackTopic', 'aTargets': [22], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [23], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('ORDER')},
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
                     {title: $translate('PLAYER_VALUE'), data: "valueScore"},
                     {title: $translate('CREDIBILITY'), data: "credibility$"},
@@ -2958,6 +2975,11 @@ define(['js/app'], function (myApp) {
             }
             var playerTbl = utilService.createDatatableWithFooter('#feedbackReportTable', tableOptions, {}, true);
             utilService.setDataTablePageInput('feedbackReportTable', playerTbl, $translate);
+            playerTbl.on( 'order.dt', function () {
+                playerTbl.column(0, {order:'applied'}).nodes().each( function (cell, i) {
+                    cell.innerHTML = i+1;
+                } );
+            } ).draw();
 
             $('#feedbackReportTable').resize();
             $('#feedbackReportTable tbody').off('click', 'td.expandPlayerReport');
@@ -3035,7 +3057,7 @@ define(['js/app'], function (myApp) {
             });
             $('#feedbackReportTable').off('order.dt');
             $('#feedbackReportTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'playerQuery', vm.searchFeedbackReport);
+                vm.commonSortChangeHandler(a, 'feedbackQuery', vm.searchFeedbackReport);
             });
         };
 
@@ -5759,17 +5781,21 @@ define(['js/app'], function (myApp) {
                         "PlayerReferralReward": "PLAYER_REFERRAL_REWARD_REPORT"
                     }
 
-                    vm.topupTypeJson = {
-                        '1': 'NetPay',
-                        '2': 'WechatQR',
-                        '3': 'AlipayQR',
-                        '4': 'WechatApp',
-                        '5': 'AlipayApp',
-                        '6': 'FASTPAY',
-                        '7': 'QQPAYQR',
-                        '8': 'UnPayQR',
-                        '9': 'JdPayQR'
-                    };
+                    // vm.topupTypeJson = {
+                    //     '1': 'NetPay',
+                    //     '2': 'WechatQR',
+                    //     '3': 'AlipayQR',
+                    //     '4': 'WechatApp',
+                    //     '5': 'AlipayApp',
+                    //     '6': 'FASTPAY',
+                    //     '7': 'QQPAYQR',
+                    //     '8': 'UnPayQR',
+                    //     '9': 'JdPayQR',
+                    //     '10': 'WXWAP',
+                    //     '11': 'ALIWAP',
+                    //     '12': 'QQWAP',
+                    //     '13': 'PCard'
+                    // };
                 }
             );
 

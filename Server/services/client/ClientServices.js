@@ -80,7 +80,10 @@
                 "deleteAllMail",
                 "deleteMail",
                 "manualPlayerLevelUp",
-                "getWithdrawalInfo"
+                "getWithdrawalInfo",
+                "getCardTypeList",
+                "getSignInfo",
+                "getSignBonus"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
