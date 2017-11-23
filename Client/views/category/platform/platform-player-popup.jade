@@ -253,13 +253,13 @@
                                                 .row
                                                     .col-sm-4(style='white-space: nowrap;')
                                                         label {{'Registration Domain' | translate}}
-                                                    .col-sm-8
+                                                    .col-sm-8(style='word-wrap:break-word;')
                                                         text {{vm.selectedSinglePlayer.domain || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
                                                     .col-sm-4(style='white-space: nowrap;')
                                                         label {{'SOURCE_URL' | translate}}
-                                                    .col-sm-8
+                                                    .col-sm-8(style='word-wrap:break-word;')
                                                         text
                                                             a(href='{{vm.selectedSinglePlayer.sourceUrl}}', title='{{vm.selectedSinglePlayer.sourceUrl}}', target='_blank') {{vm.selectedSinglePlayer.$displaySourceUrl || 'Unknown' | translate}}
                                         //.inlineBlk
@@ -997,7 +997,7 @@
                                 label {{'WechatPay' | translate}}
                                 select.form-control#wechatpayOption(ng-model='vm.wechatpaysAcc',ng-change='vm.pickWechatPayAcc(vm.wechatpaysAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc', value='{{v}}') {{v.name}} {{v.accountNumber}} ({{v.state | translate}})
+                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc', value='{{v}}') {{v.nickName}} {{v.accountNumber}} ({{v.state | translate}})
                             .form-group.col-md-6
                                 .control-label
                                 label {{'wechatPayName' | translate}}
@@ -1258,6 +1258,30 @@
                                 label {{"Total" | translate}} {{vm.rewardTaskLog.totalCount}} {{"records" | translate}}
                                 table#rewardTaskLogTbl.common-table.display(style='min-width:100%')
                                 #rewardTaskLogTblPage.height30
+
+                                table#rewardTaskGroupLogTbl.noWrap.text-center.display.paddingTbl(style='width:100%;')
+                                    thead
+                                        tr
+                                            th {{'TIME' | translate}}
+                                            th {{'providerGroup' | translate}}
+                                            th {{'useConsumption' | translate}}
+                                            th {{'CURRENTAMOUNT' | translate}}
+                                            th {{'requiredUnlockAmount' | translate}}
+                                            th {{'unlockedAmount' | translate}}
+                                            th {{'rewardAmount' | translate}}
+                                            th {{'providers' | translate}}
+                                            th {{'STATUS' | translate}}
+                                    tbody
+                                        tr(ng-repeat='(i,v) in vm.rewardTaskGroupDetails')
+                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.createTime}}
+                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.providerGroup.name}}
+                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.useConsumption | translate}}
+                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.currentAmt}}
+                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.targetConsumption}}
+                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.curConsumption}}
+                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.rewardAmt}}
+                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.inProvider | translate}}
+                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.status | translate}}
 
             .modal-footer
                 //#modalPlayerAddRewardTask

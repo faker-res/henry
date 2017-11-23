@@ -191,7 +191,10 @@ let dbPlayerLevelInfo = {
                 let topUpSummary = data[1][0];
                 let consumptionSummary = data[2][0];
                 let levelObjId = null;
+                let levelUpObjId = [];
                 let levelUpObj = null, levelDownObj = null;
+                let levelUpObjArr = []
+                let levelUpCounter = 0;
                 let oldPlayerLevelName = playerData.playerLevel.name;
 
                 let playersTopupForPeriod = topUpSummary && topUpSummary.amount ? topUpSummary.amount : 0;
@@ -226,6 +229,9 @@ let dbPlayerLevelInfo = {
                                     if (meetsEnoughConditions) {
                                         levelObjId = level._id;
                                         levelUpObj = level;
+                                        levelUpObjId[levelUpCounter] = level._id;
+                                        levelUpObjArr[levelUpCounter] = level;
+                                        levelUpCounter ++;
                                     }
 
 
@@ -284,9 +290,6 @@ let dbPlayerLevelInfo = {
                 }
                 if (levelObjId && String(levelObjId) != String(playerData.playerLevel._id) && ((upOrDown && levelUpObj) || (!upOrDown && levelDownObj))) {
                     let proposalData = {
-                        levelValue: upOrDown ? levelUpObj.value : levelDownObj.value,
-                        levelName: upOrDown ? levelUpObj.name : levelDownObj.name,
-                        levelObjId: levelObjId,
                         levelOldName: oldPlayerLevelName,
                         upOrDown: upOrDown ? "LEVEL_UP" : "LEVEL_DOWN",
                         playerObjId: playerData._id,
@@ -295,42 +298,74 @@ let dbPlayerLevelInfo = {
                         platformObjId: playerData.platform
                     };
 
-                    return dbProposal.createProposalWithTypeName(playerData.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {data: proposalData}).then(
-                        createdMigrationProposal => {
-                            if (upOrDown) {
-                                return dbconfig.collection_proposalType.findOne({
-                                    platformId: platformObjId,
-                                    name: constProposalType.PLAYER_LEVEL_UP
-                                }).lean();
-                            }
-                        }
-                    ).then(
-                        proposalTypeData => {
-                            // check if player has level up to this level previously
-                            if (upOrDown) {
-                                return dbconfig.collection_proposal.findOne({
-                                    'data.playerObjId': {$in: [ObjectId(playerData._id), String(playerData._id)]},
-                                    'data.platformObjId': {$in: [ObjectId(playerData.platform), String(playerData.platform)]},
-                                    'data.levelValue': levelUpObj.value,
-                                    type: proposalTypeData._id,
-                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                                }).lean();
-                            }
-                        }
-                    ).then(
-                        rewardProp => {
-                            if (upOrDown && !rewardProp) {
-                                // if this is level up and player has not reach this level before
-                                // create level up reward proposal
-                                if (levelUpObj && levelUpObj.reward && levelUpObj.reward.bonusCredit) {
-                                    proposalData.rewardAmount = levelUpObj.reward.bonusCredit;
-                                    proposalData.isRewardTask = levelUpObj.reward.isRewardTask;
+                    let promResolve = Promise.resolve();
 
-                                    return dbProposal.createProposalWithTypeName(playerData.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
+                    if (upOrDown) {
+                        for (let i = 0; i < levelUpCounter; i++) {
+                            let tempProposal = JSON.parse(JSON.stringify(proposalData));
+                            if (i > 0) {
+                                tempProposal.levelOldName = levelUpObjArr[i - 1].name;
+                            }
+                            tempProposal.levelValue = levelUpObjArr[i].value;
+                            tempProposal.levelName = levelUpObjArr[i].name;
+                            tempProposal.levelObjId = levelUpObjId[i];
+                            let proposalProm = function () {
+                                return createProposal(tempProposal, i);
+                            }
+                            promResolve = promResolve.then(proposalProm);
+                        }
+
+                    } else {
+                        let tempProposal = JSON.parse(JSON.stringify(proposalData));
+                        tempProposal.levelValue = levelDownObj.value;
+                        tempProposal.levelName = levelDownObj.name;
+                        tempProposal.levelObjId = levelObjId;
+                        let proposalProm = function () {
+                            return createProposal(tempProposal);
+                        }
+                        promResolve = promResolve.then(proposalProm);
+                    }
+
+                    return promResolve;
+
+                    function createProposal (proposal, index) {
+                        return dbProposal.createProposalWithTypeName(playerData.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {data: proposal}).then(
+                            createdMigrationProposal => {
+                                if (upOrDown) {
+                                    return dbconfig.collection_proposalType.findOne({
+                                        platformId: platformObjId,
+                                        name: constProposalType.PLAYER_LEVEL_UP
+                                    }).lean();
                                 }
                             }
-                        }
-                    );
+                        ).then(
+                            proposalTypeData => {
+                                // check if player has level up to this level previously
+                                if (upOrDown) {
+                                    return dbconfig.collection_proposal.findOne({
+                                        'data.playerObjId': {$in: [ObjectId(playerData._id), String(playerData._id)]},
+                                        'data.platformObjId': {$in: [ObjectId(playerData.platform), String(playerData.platform)]},
+                                        'data.levelValue': proposal.levelValue,
+                                        type: proposalTypeData._id,
+                                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                    }).lean();
+                                }
+                            }
+                        ).then(
+                            rewardProp => {
+                                if (upOrDown && !rewardProp) {
+                                    // if this is level up and player has not reach this level before
+                                    // create level up reward proposal
+                                    if (levelUpObjArr[index] && levelUpObjArr[index].reward && levelUpObjArr[index].reward.bonusCredit) {
+                                        proposal.rewardAmount = levelUpObjArr[index].reward.bonusCredit;
+                                        proposal.isRewardTask = levelUpObjArr[index].reward.isRewardTask;
+
+                                        return dbProposal.createProposalWithTypeName(playerData.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposal});
+                                    }
+                                }
+                            }
+                        );
+                    }
 
                 }
             }

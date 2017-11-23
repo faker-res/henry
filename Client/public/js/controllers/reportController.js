@@ -1906,6 +1906,7 @@ define(['js/app'], function (myApp) {
                             item.topupTypeStr = typeID
                                 ? $translate($scope.merchantTopupTypeJson[typeID])
                                 : $translate("Unknown")
+                            item.merchantNo$ = vm.getOnlineMerchantId(item.data.merchantNo);
                         } else {
                             //show topup type for other types
                             item.topupTypeStr = $translate(item.type.name)
@@ -1940,7 +1941,18 @@ define(['js/app'], function (myApp) {
             }
             return result;
         }
-
+        vm.getOnlineMerchantId = function (merchantNo) {
+            let result = '';
+            if (merchantNo && vm.merchantNoList) {
+                let merchant = vm.merchantNoList.filter(item => {
+                    return item.merchantNo == merchantNo
+                })
+                if (merchant.length > 0) {
+                    result = merchant[0].name
+                }
+            }
+            return result;
+        }
         vm.initAccs = function () {
             socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedPlatform.platformId},
                 data => {

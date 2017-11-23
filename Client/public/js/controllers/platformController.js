@@ -9734,6 +9734,7 @@ define(['js/app'], function (myApp) {
                     vm.getRewardTaskLogData(true);
                 });
             }
+
             vm.getRewardTaskLogData = function (newSearch) {
                 var sendQuery = {
                     playerId: vm.selectedSinglePlayer._id,
@@ -9741,10 +9742,16 @@ define(['js/app'], function (myApp) {
                     to: vm.rewardTaskLog.query.endTime.data('datetimepicker').getLocalDate(),
                     index: newSearch ? 0 : vm.rewardTaskLog.index,
                     limit: newSearch ? 10 : vm.rewardTaskLog.limit,
-                    sortCol: vm.rewardTaskLog.sortCol || null
+                    sortCol: vm.rewardTaskLog.sortCol || null,
+                    useProviderGroup: vm.selectedPlatform.data.useProviderGroup
                 };
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardTask', sendQuery, function (data) {
                     console.log('getPlayerRewardTask', data);
+                    if(vm.selectedPlatform.data.useProviderGroup){
+                        vm.rewardTaskGroupDetails = data.data.rewardTaskGroupData;
+                        $scope.safeApply();
+                    }
+
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
                         item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
@@ -14309,6 +14316,10 @@ define(['js/app'], function (myApp) {
                             });
                         });
                 }
+            };
+
+            vm.rewardPointsTabClicked = function (choice) {
+                vm.selectedRewardPointTab = choice;
             };
 
             function loadPromoCodeTypes() {
