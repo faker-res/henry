@@ -254,7 +254,8 @@
                                                     .col-sm-4(style='white-space: nowrap;')
                                                         label {{'Registration Domain' | translate}}
                                                     .col-sm-8(style='word-wrap:break-word;')
-                                                        text {{vm.selectedSinglePlayer.domain || 'Unknown' | translate}}
+                                                        a(href='{{vm.selectedSinglePlayer.domain}}', title='{{vm.selectedSinglePlayer.domain}}', target='_blank') {{vm.selectedSinglePlayer.$displayDomain || 'Unknown' | translate}}
+                                                        //text {{vm.selectedSinglePlayer.domain || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
                                                     .col-sm-4(style='white-space: nowrap;')
