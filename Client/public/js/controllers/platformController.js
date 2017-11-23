@@ -9817,7 +9817,12 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardTask', sendQuery, function (data) {
                     console.log('getPlayerRewardTask', data);
                     if(vm.selectedPlatform.data.useProviderGroup){
-                        vm.rewardTaskGroupDetails = data.data.rewardTaskGroupData;
+                        let tblData = data && data.data ? data.data.rewardTaskGroupData.map(item => {
+                            item.createTime$ = vm.dateReformat(item.createTime);
+                            return item;
+                        }) : [];
+                        vm.rewardTaskGroupDetails = tblData;
+                        //vm.rewardTaskGroupDetails = data.data.rewardTaskGroupData;
                         $scope.safeApply();
                     }
 
