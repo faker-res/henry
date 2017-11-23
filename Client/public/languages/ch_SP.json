@@ -595,6 +595,7 @@
   "Use Provider Group": "使用锁大厅组",
   "Use Reward Main Group": "使用新式优惠",
   "Use Point System": "使用积分系统",
+  "Use Phone Number Two Steps Verification": "更改手机号码2步验证",
   "Pending": "待审核",
   "Approved": "成功",
   "Rejected": "失败",
@@ -1374,6 +1375,20 @@
   "Check if this IP address has received free trial": "（领优惠前）检查该IP是否曾经领过",
   "Check if this phone number has received free trial": "（领优惠前）检查该电话是否曾经领过",
   "Need SMS verification": "（领优惠中）是否需要短信验证",
+
+  "REWARD_POINT_ADJUSTMENT": "修改积分",
+  "VALID_REWARD_POINT": "有效积分",
+  "CURRENT_REWARD_POINT": "更改前",
+  "CHANGE_REWARD_POINT": "积分变量",
+  "UPDATED_REWARD_POINT": "更改后",
+  "Player reward point cannot be less than 0": "玩家积分不能小于0",
+
+  "ADVANCE_REWARD_POINT_EXCHANGE": "提前积分兑换",
+  "BEFORE_REWARD_POINT_EXCHANGE": "兑换前",
+  "REWARD_POINT_EXCHANGE_AMOUNT": "积分兑换",
+  "AFTER_REWARD_POINT_EXCHANGE": "兑换后",
+
+  "rewardPointTask": "积分任务",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
@@ -2743,6 +2758,7 @@
   "Less than and equal to (<=)": "小过或等于 (<=)",
   "Equal to (=)": "等于 (=)",
   "Interval (>=, <)": "区间 (>=, <)",
+  "Phone Number Already Exists":"电话号码已存在",
   "SMS": "短信",
   "Approved Time": "成功执行时间",
   "Please try again random reward tomorrow": "今日已参与，明日继续随机抽奖吧！",

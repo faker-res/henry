@@ -103,20 +103,10 @@ var dbPlayerRegistrationIntentRecord = {
                     return data;
                 }
             ).then(data => {
-                if(newIntentData.status != constRegistrationIntentRecordStatus.MANUAL){
-                    return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
-                }else{
-                    let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                    return newRecord.save();
-                }
+                return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
             })
         }else{
-            if(newIntentData.status != constRegistrationIntentRecordStatus.MANUAL){
-                return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
-            }else{
-                let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                return newRecord.save();
-            }
+            return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
         }
     },
 
@@ -184,15 +174,23 @@ var dbPlayerRegistrationIntentRecord = {
      * @param {string} updateData - The update data string
      */
     updatePlayerRegistrationIntentRecordBySMSCode: function (query, updateData) {
-        if (query) {
-            return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(query, updateData, {new: true});
-        } else {
-            return dbUtil.findOneAndUpdateForShard(
-                dbconfig.collection_playerRegistrationIntentRecord,
-                query, updateData,
-                constShardKeys.collection_playerRegistrationIntentRecord
-            )
-        }
+
+        return dbconfig.collection_playerRegistrationIntentRecord.find(query).then(data => {
+            if(data && data.length > 0){
+                if (query) {
+                    return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(query, updateData, {new: true});
+                } else {
+                    return dbUtil.findOneAndUpdateForShard(
+                        dbconfig.collection_playerRegistrationIntentRecord,
+                        query, updateData,
+                        constShardKeys.collection_playerRegistrationIntentRecord
+                    )
+                }
+            }else{
+                let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(updateData);
+                return newRecord.save();
+            }
+        })
     },
     /**
      * Get playerRegIntentRecord information

@@ -886,7 +886,20 @@
   "SELECT_XLS_FILE": "Select Excel File",
   "XLS_LENGTH": "Data length",
 
-  "PlayerFreeTrialRewardGroup": "Player Free Trial Reward Group",
+  "PlayerFreeTrialRewardGroup": "Player Free Trial Reward (Group)",
+
+  "REWARD_POINT_ADJUSTMENT": "Modify Reward Point",
+  "VALID_REWARD_POINT": "Valid Reward Point",
+  "CURRENT_REWARD_POINT": "Before Update",
+  "CHANGE_REWARD_POINT": "Change Reward Point",
+  "UPDATED_REWARD_POINT": "After Update",
+
+  "ADVANCE_REWARD_POINT_EXCHANGE": "Advance Reward Point Exchange",
+  "BEFORE_REWARD_POINT_EXCHANGE": "Before Exchange",
+  "REWARD_POINT_EXCHANGE_AMOUNT": "Reward Point Exchange",
+  "AFTER_REWARD_POINT_EXCHANGE": "After Exchange",
+
+  "rewardPointTask": "Reward Point Task",
 
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
