@@ -1172,6 +1172,14 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            },
+            error => {
+                if(adminName){
+                    return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+                }
+                else{
+                    return Q.reject(error);
+                }
             }
         ).then(
             data => {
@@ -1209,6 +1217,14 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            },
+            error => {
+                if(adminName){
+                    return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+                }
+                else{
+                    return Q.reject(error);
+                }
             }
         ).then(
             data => {
@@ -1247,6 +1263,14 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            },
+            error => {
+                if(adminName){
+                    return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+                }
+                else{
+                    return Q.reject(error);
+                }
             }
         ).then(
             data => {
