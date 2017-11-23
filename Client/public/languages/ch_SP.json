@@ -2733,5 +2733,6 @@
   "Less than and equal to (<=)": "小过或等于 (<=)",
   "Equal to (=)": "等于 (=)",
   "Interval (>=, <)": "区间 (>=, <)",
-  "Approved Time":"成功执行时间"
+  "Approved Time":"成功执行时间",
+  "Phone Number Already Exists":"电话号码已存在"
 }

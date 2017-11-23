@@ -1511,84 +1511,17 @@ var proposal = {
                                 proposalTypesId.push(types[i]._id);
                             }
                         }
+                        let selectedPlatformId = platformId[0];
 
-                        var queryObj = {
-                            status: {$in: statusArr},
-                            data:  { $exists: true, $ne: null }
-                        };
-                        if (startTime && endTime) {
-                            queryObj['createTime'] = {
-                                $gte: new Date(startTime),
-                                $lt: new Date(endTime)
-                            }
-                        }
-                        if (userName) {
-                            queryObj['data.name'] = userName;
-                        }
-                        if (phoneNumber) {
-                            queryObj['data.phoneNumber'] = phoneNumber;
-                        }
-
-                        if (size >= 0) {
-                            var a = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj)
-                                .populate({path: 'playerId', model: dbconfig.collection_players})
-                                .sort(sortCol).skip(index).limit(size).lean()
-                                .then(
-                                    pdata => {
-                                        pdata.map(item => {
-                                            // only displayPhoneNum equal true, encode the phone num
-                                            if (item.data && item.data.phone && !displayPhoneNum) {
-                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                                            }
-                                            if (item.data && item.data.phoneNumber && !displayPhoneNum) {
-                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                            }
-                                            if (item.data && (item.data.playerId || item.data.name)) {
-                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId, item.data.name, proposalTypesId));
-                                            }
-
-                                            return item
-                                        })
-
-                                        return pdata;
-                                    })
-                                .then(proposals => {
-                                    proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-
-                                    return proposals
-                                })
-                        } else {
-                            a = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj)
-                                .then(
-                                    pdata => {
-                                        pdata.map(item => {
-                                            // only displayPhoneNum equal true, encode the phone num
-                                            if (item.data && item.data.phone && !displayPhoneNum) {
-                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                                            }
-                                            if (item.data && item.data.phoneNumber && !displayPhoneNum) {
-                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                            }
-                                            if (item.data && (item.data.playerId || item.data.name)) {
-                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId, item.data.name, proposalTypesId));
-                                            }
-
-                                            return item
-                                        })
-
-                                        return pdata;
-                                    })
-                                .then(proposals => {
-                                    proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-
-                                    return proposals
-                                })
-                        }
-                        console.log(rsaCrypto.encrypt(phoneNumber));
-                        var b = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj).count();
-                        var c = dbconfig.collection_players.find({phoneNumber: rsaCrypto.encrypt(phoneNumber)}).populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
-                        var d = dbconfig.collection_players.find({phoneNumber: rsaCrypto.encrypt(phoneNumber)}).populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
-                        return Q.all([a, b, c, d])
+                        var a = dbconfig.collection_players.find({platform: ObjectId(selectedPlatformId), phoneNumber: rsaCrypto.encrypt(phoneNumber)}).populate({
+                            path: 'playerLevel',
+                            model: dbconfig.collection_playerLevel
+                        });
+                        var b = dbconfig.collection_partner.find({platform: ObjectId(selectedPlatformId), phoneNumber: phoneNumber}).populate({
+                            path: 'level',
+                            model: dbconfig.collection_partnerLevel
+                        });
+                        return Q.all([a, b])
                     }
                     else {
                         return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
@@ -1597,152 +1530,36 @@ var proposal = {
                 else {
                     return Q.reject({name: "DataError", message: "Can not find platform proposal related data"});
                 }
-            }
-        ).then(returnData => {
-            return Q.all(playerProm).then(data => {
+            }).then(data => {
 
-                data.map(d => {
-                    if (d && ((d[0] && d[0].playerId) || (d[1] && d[1].data.name))) {
-                        for (var i = 0; i < returnData[0].length; i++) {
-                            if (d[0] && d[0].playerId && d[0].playerId == returnData[0][i].data.playerId) {
-                                if (d[0].csOfficer) {
-                                    returnData[0][i].data.csOfficer = d[0].csOfficer.adminName;
-                                }
-                                if (d[0].promoteWay) {
-                                    returnData[0][i].data.promoteWay = d[0].promoteWay;
-                                }
-                                if (d[0].registrationTime) {
-                                    returnData[0][i].data.registrationTime = d[0].registrationTime;
-                                }
-                                if (d[0].topUpTimes) {
-                                    returnData[0][i].data.topUpTimes = d[0].topUpTimes;
-                                }
-                                if (d[0].userAgent) {
-                                    for (var j = 0; j < d[0].userAgent.length; j++) {
-                                        returnData[0][i].data.device = dbutility.getInputDevice(d[0].userAgent, false);
-                                    }
-                                }
-                                if (d[0].playerLevel) {
-                                    returnData[0][i].data.playerLevel = d[0].playerLevel;
-                                }
-                                if (d[0].credibilityRemarks) {
-                                    returnData[0][i].data.credibilityRemarks = d[0].credibilityRemarks;
-                                }
-                                if (d[0].valueScore) {
-                                    returnData[0][i].data.valueScore = d[0].valueScore;
-                                }
-                                if (d[0].lastAccessTime) {
-                                    returnData[0][i].data.lastAccessTime = d[0].lastAccessTime;
-                                }
-                                if (d[0].status) {
-                                    returnData[0][i].data.playerStatus = d[0].status;
-                                }
-                            }
-
-                            if (d[1] && d[1].data && d[1].data.name && d[1].data.name == returnData[0][i].data.name) {
-                                if (d[1].proposalId) {
-                                    returnData[0][i].data.proposalId = d[1].proposalId;
-                                }
-                            }
-                        }
-                    }
-                })
-
-            }).then(
-                ips => {
-                    let tempArr = [];
-                returnData[2].forEach(item=>{
-                    console.log(item);
-                    // Promise.all([proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'playerId') ])
-                    tempArr.push(proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'playerId') );
-                })
-                return Promise.all(tempArr);
-            })
-            .then(ips2 => {
                 let duplicateList = [];
                 let plyData = [];
                 let partnerData = [];
-                returnData[2].forEach(item=>{
-                    console.log(item);
-                    // Promise.all([proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'playerId') ]).then(
-                    //     temp => {
-                            console.log(ips2);
-                    // plyData.push({'name':item.name, 'realName':item.realName ,'data.proposal':123});
-                    let playerUnitData = {
-                        'data':{
-                            'playerId': item.playerId ? item.playerId:'',
-                            'realName': item.realName ? item.realName:'',
-                            'lastLoginIp': item.lastLoginIp ? item.lastLoginIp:'',
-                            'topUpTimes': item.topUpTimes,
-                            'smsCode': '',
-                            'remarks': '',
-                            'device' : '',
-                            'promoteWay' : '',
-                            'csOfficer': '',
-                            'registrationTime' : item.registrationTime ? item.registrationTime : "",
-                            'lastAccessTime': item.lastAccessTime ? item.lastAccessTime: "",
-                            'proposalId': '',
-                            'playerLevel': item.playerLevel,
-                            'credibilityRemarks': item.credibilityRemarks ? item.credibilityRemarks : "",
-                            'valueScore': item.valueScore ? item.valueScore: 0 ,
-                            'phoneProvince':item.phoneProvince? item.phoneProvince: '',
-                            'phoneCity': item.phoneCity ? item.phoneCity: '',
-                            // 'ipArea': proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'playerId') //item.ipArea ? item.ipArea: '',
-                            // 'ipArea': ips2, //item.ipArea ? item.ipArea: '',
-                            'name':  item.name ? item.name:''
-                        },
-                    };
-                    let ipArea= ips2.filter(dataItem=>{
-                        return dataItem.data.playerId == item.playerId
-                    })
-                    playerUnitData.data.ipArea = ipArea[0].data.ipArea;
-                    // item.playerId
-                    // playerUnitData.data.ipArea = ips2[0].ipArea;
-                    plyData.push(playerUnitData);
-                // })
-                });
+                plyData = proposal.getPlayerIpAreaFromRecord(platformId, data[0]);
+                partnerData = proposal.getPartnerIpAreaFromRecord(platformId, data[1]);
 
-                returnData[3].forEach(item=>{
-                    // plyData.push({'name':item.name, 'realName':item.realName ,'data.proposal':123});
-                    let partnerUnitData = {
-                        'data':{
-                            'name': item.name ? item.name : '',
-                            'playerId': item.playerId ? item.playerId:'',
-                            'realName': item.realName ? item.realName:'',
-                            'lastLoginIp': item.lastLoginIp ? item.lastLoginIp:'',
-                            'topUpTimes': item.topUpTimes,
-                            'smsCode': '',
-                            'remarks': '',
-                            'device' : '',
-                            'promoteWay' : '',
-                            'csOfficer': '',
-                            'registrationTime' : item.registrationTime ? item.registrationTime : "",
-                            'lastAccessTime': item.lastAccessTime ? item.lastAccessTime: "",
-                            'proposalId': '',
-                            'playerLevel': item.playerLevel,
-                            'credibilityRemarks': item.credibilityRemarks ? item.credibilityRemarks : "",
-                            'valueScore': item.valueScore ? item.valueScore: '',
-                            'phoneProvince':item.phoneProvince? item.phoneProvince: '',
-                            'phoneCity': item.phoneCity ? item.phoneCity: '',
-                            'ipArea': proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'partnerId')
-                        },
+                return Promise.all([plyData, partnerData]).then(
+                    ydata => {
+                        let concatList = [];
+                        if(!ydata[0]){
+                            ydata[0] = [];
+                        }
+                        if(!ydata[1]){
+                            ydata[1] = [];
+                        }
+                        console.log(ydata[0].length);
+                        console.log(ydata[1].length);
+                        let duplicateList= ydata[0].concat(ydata[1]);
+                        let resultSize = ydata[0].length + ydata[1].length;
+                        let result = {data: duplicateList, size: resultSize};
+                        return result;
+                    },
+                    err => {
+                        console.log(err);
                     }
-                    partnerData.push(partnerUnitData);
-                })
-                duplicateList = returnData[0].concat(plyData,partnerData );
-                // return {data: plyData, size: returnData[1]};
-                let resultSize = plyData.size + partnerData.size+ returnData[1];
-                let result = {data: duplicateList, size: resultSize};
-                console.log(plyData);
-                // let result = { data: returnData[0], size:returnData[1]};
-                // return Q.all([result])
-                return result;
-            })
-        })
-        // .then(data=>{
-        //     return data[0];
-        // })
+                )
 
+            })
     },
     getPlayerRegistrationIPArea: function(platformId, id, type){
         let query = {};
@@ -1754,23 +1571,95 @@ var proposal = {
         // query.status = ['Success', 'Approve'];
 
         console.log(query);
-        // return new Promise(function (resolve) {
            return dbconfig.collection_playerRegistrationIntentRecord.findOne(query)
                 .then(data=>{
-                    console.log('i am here')
                     if(data){
-                        console.log(data);
-                        console.log('hiha');
-                        // let result = data.data.ipArea ? data.data.ipArea : {}
-                        let result = data;
+                        let ipArea = {};
+                        if(data.data){
+                            ipArea = data.data.ipArea? data.data.ipArea : {};
+                        }
+                        let result = ipArea;
                         return result;
                     }else{
-                        console.log('nothing');
-                        return result;
-                        // resolve({});
+                        return {};
                     }
                 })
-        // });
+    },
+    getPlayerIpAreaFromRecord: function(platformId, playersData){
+        let result = [];
+        playersData.forEach(item=>{
+            let prom = proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'playerId').then(data=>{
+                let ipArea = {};
+                if(data.data){
+                    ipArea = data.data.ipArea? data.data.ipArea : {};
+                }
+                let playerUnitData = {
+                    'data':{
+                        'playerId': item.playerId ? item.playerId:'',
+                        'realName': item.realName ? item.realName:'',
+                        'lastLoginIp': item.lastLoginIp ? item.lastLoginIp:'',
+                        'topUpTimes': item.topUpTimes,
+                        'smsCode': '',
+                        'remarks': '',
+                        'device' : '',
+                        'promoteWay' : '',
+                        'csOfficer': '',
+                        'registrationTime' : item.registrationTime ? item.registrationTime : "",
+                        'lastAccessTime': item.lastAccessTime ? item.lastAccessTime: "",
+                        'proposalId': '',
+                        'playerLevel': item.playerLevel,
+                        'credibilityRemarks': item.credibilityRemarks ? item.credibilityRemarks : "",
+                        'valueScore': item.valueScore ? item.valueScore: 0 ,
+                        'phoneProvince':item.phoneProvince? item.phoneProvince: '',
+                        'phoneCity': item.phoneCity ? item.phoneCity: '',
+                        'ipArea': ipArea,
+                        // 'ipArea': ips2, //item.ipArea ? item.ipArea: '',
+                        'name':  item.name ? item.name:''
+                    }
+                };
+                return playerUnitData;
+            });
+            result.push(prom);
+        });
+        return Promise.all(result);
+    },
+    getPartnerIpAreaFromRecord:function(platformId, partnerData){
+
+        let result = [];
+        partnerData.forEach(item => {
+            let prom = proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'partnerId').then(data => {
+                let ipArea = {};
+                if (data.data) {
+                    ipArea = data.data.ipArea ? data.data.ipArea : {};
+                }
+                let partnerUnitData = {
+                    'data': {
+                        'name': item.partnerName ? item.partnerName : '',
+                        'playerId': item.playerId ? item.playerId : '',
+                        'realName': item.realName ? item.realName : '',
+                        'lastLoginIp': item.lastLoginIp ? item.lastLoginIp : '',
+                        'topUpTimes': item.topUpTimes,
+                        'smsCode': '',
+                        'remarks': '',
+                        'device': '',
+                        'promoteWay': '',
+                        'csOfficer': '',
+                        'registrationTime': item.registrationTime ? item.registrationTime : "",
+                        'lastAccessTime': item.lastAccessTime ? item.lastAccessTime : "",
+                        'proposalId': '',
+                        'playerLevel': item.level,
+                        'credibilityRemarks': item.credibilityRemarks ? item.credibilityRemarks : "",
+                        'valueScore': item.valueScore ? item.valueScore : '',
+                        'phoneProvince': item.phoneProvince ? item.phoneProvince : '',
+                        'phoneCity': item.phoneCity ? item.phoneCity : '',
+                        'ipArea': ipArea
+                    },
+                }
+                return partnerUnitData;
+            })
+            result.push(prom);
+        })
+        return Promise.all(result);
     },
     getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];

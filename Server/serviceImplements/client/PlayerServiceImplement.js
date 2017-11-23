@@ -69,10 +69,8 @@ let PlayerServiceImplement = function () {
                 console.log("Player registration reporoId:", reporoId);
                 data.domain = data.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
             }
-            console.log('*******')
-            console.log(data.lastLoginIp);
             if(data.lastLoginIp){
-                dbUtility.getGeoIp('58.14.0.0').then(
+                dbUtility.getGeoIp(data.lastLoginIp).then(
                     ipData=>{
                         if(data){
                             data.ipArea = ipData;
