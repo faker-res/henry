@@ -55,7 +55,7 @@ function socketActionRewardTask(socketIO, socket) {
         getPlayerRewardTask: function getPlayerRewardTask(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId);
-            socketUtil.emitter(self.socket, dbRewardTask.getPlayerRewardTask, [data.playerId, data.from, data.to, data.index, data.limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardTask.getPlayerRewardTask, [data.playerId, data.from, data.to, data.index, data.limit, data.sortCol, data.useProviderGroup], actionName, isValidData);
         },
 
         manualUnlockRewardTask: function manualUnlockRewardTask(data) {

@@ -9734,6 +9734,7 @@ define(['js/app'], function (myApp) {
                     vm.getRewardTaskLogData(true);
                 });
             }
+
             vm.getRewardTaskLogData = function (newSearch) {
                 var sendQuery = {
                     playerId: vm.selectedSinglePlayer._id,
@@ -9741,10 +9742,16 @@ define(['js/app'], function (myApp) {
                     to: vm.rewardTaskLog.query.endTime.data('datetimepicker').getLocalDate(),
                     index: newSearch ? 0 : vm.rewardTaskLog.index,
                     limit: newSearch ? 10 : vm.rewardTaskLog.limit,
-                    sortCol: vm.rewardTaskLog.sortCol || null
+                    sortCol: vm.rewardTaskLog.sortCol || null,
+                    useProviderGroup: vm.selectedPlatform.data.useProviderGroup
                 };
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardTask', sendQuery, function (data) {
                     console.log('getPlayerRewardTask', data);
+                    if(vm.selectedPlatform.data.useProviderGroup){
+                        vm.rewardTaskGroupDetails = data.data.rewardTaskGroupData;
+                        $scope.safeApply();
+                    }
+
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
                         item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
@@ -9798,6 +9805,42 @@ define(['js/app'], function (myApp) {
 
                 $scope.safeApply();
             }
+
+        // vm.drawRewardTaskGroupTable = function (newSearch, tblData, size) {
+        //     var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+        //         data: tblData,
+        //         aoColumnDefs: [
+        //             {targets: '_all', defaultContent: ' ', bSortable: false}
+        //         ],
+        //         columns: [
+        //             {title: $translate('CREATETIME'), data: "createTime$"},
+        //             {title: $translate('rewardType'), data: "rewardType"},
+        //             {title: $translate('ISUNLOCK'), data: "isUnlock"},
+        //             {title: $translate('applyAmount'), data: "applyAmount"},
+        //             {title: $translate('initAMOUNT'), data: "initAmount"},
+        //             {title: $translate('currentAMOUNT'), data: "currentAmount"},
+        //             {title: $translate('bonusAmount'), data: "bonusAmount"},
+        //             {title: $translate('requiredUnlockAmount'), data: "requiredUnlockAmount"},
+        //             {title: $translate('unlockedAmount'), data: "unlockedAmount"},
+        //             {title: $translate('requiredBonusAmount'), data: "requiredBonusAmount"},
+        //             {title: $translate('unlockedBonusAmount'), data: "unlockedBonusAmount"},
+        //             // {title: $translate('targetEnable'), data: "targetEnable"},
+        //             {title: $translate('targetProviders'), data: "provider$"},
+        //             {title: $translate('useConsumption'), data: "useConsumption"},
+        //         ],
+        //         "paging": false,
+        //     });
+        //     var aTable = $("#rewardTaskGroupLogTbl").DataTable(tableOptions);
+        //     aTable.columns.adjust().draw();
+        //     vm.rewardTaskGroupLog.pageObj.init({maxCount: size}, newSearch);
+        //     $('#rewardTaskLogGroupTbl').resize();
+        //     $('#rewardTaskLogGroupTbl').off('order.dt');
+        //     $('#rewardTaskLogGroupTbl').on('order.dt', function (event, a, b) {
+        //         vm.commonSortChangeHandler(a, 'rewardTaskGroupLog', vm.getRewardTaskLogData);
+        //     });
+        //
+        //     $scope.safeApply();
+        // }
 
             //////////////////////////// reward task log end
             vm.enableDisablePlayer = function () {
