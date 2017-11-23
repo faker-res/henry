@@ -801,6 +801,7 @@ let dbPlayerInfo = {
             },
             function (error) {
                 deferred.reject({
+                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
                     name: "DBError",
                     message: "Phone number already exists",
                     error: error
