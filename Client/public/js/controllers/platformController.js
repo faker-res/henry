@@ -21,6 +21,8 @@ define(['js/app'], function (myApp) {
             vm.cityList = [];
             vm.districtList = [];
             vm.creditChange = {};
+            vm.rewardPointChange = {};
+            vm.rewardPointExchange = {};
 
             // constants declaration
             vm.proposalStatusList = { // removed APPROVED and REJECTED
@@ -4595,6 +4597,20 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
+                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointAdjustment')) {
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5',
+                                        'src': "images/icon/rewardPointBlue.png",
+                                        'height': "14px",
+                                        'width': "14px",
+                                        'ng-click': 'vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointAdjustment);',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalPlayerRewardPointAdjustment',
+                                        'title': $translate("REWARD_POINT_ADJUSTMENT"),
+                                        'data-placement': 'right',
+                                    }));
+                                }
                                 return link.prop('outerHTML');
                             },
                             "sClass": "alignLeft"
@@ -7904,6 +7920,19 @@ define(['js/app'], function (myApp) {
                     table.columns.adjust().draw();
                 });
             };
+
+            vm.prepareShowPlayerRewardPointAdjustment = function () {
+                vm.rewardPointChange.finalValidAmount = vm.isOneSelectedPlayer().validRewardPoint;
+                vm.rewardPointChange.finalLockedAmount = null;
+                vm.rewardPointChange.remark = '';
+                vm.rewardPointChange.updateAmount = 0;
+
+                vm.rewardPointExchange.finalValidAmount = vm.isOneSelectedPlayer().validRewardPoint;
+                vm.rewardPointExchange.finalLockedAmount = null;
+                vm.rewardPointExchange.remark = '';
+                vm.rewardPointExchange.updateAmount = 0;
+            };
+
             vm.prepareShowPlayerCreditAdjustment = function (type) {
                 // vm.creditChange = {
                 //     finalValidAmount: vm.isOneSelectedPlayer().validCredit,
