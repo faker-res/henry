@@ -1567,27 +1567,22 @@ var proposal = {
     },
     getPlayerRegistrationIPArea: function(platformId, id, type){
         let query = {};
-        if(type == 'playerId'){
-            query = { 'data.playerId' : id  }
-        }else{
-            query = { 'data.partnerId' : id  }
+        if (type == 'playerId') {
+            query = {'data.playerId': id}
+        } else {
+            query = {'data.partnerId': id}
         }
-        // query.status = ['Success', 'Approve'];
+        query.status = 3;
 
-        console.log(query);
-           return dbconfig.collection_playerRegistrationIntentRecord.findOne(query)
-                .then(data=>{
-                    if(data){
-                        let ipArea = {};
-                        if(data.data){
-                            ipArea = data.data.ipArea? data.data.ipArea : {};
-                        }
-                        let result = ipArea;
-                        return result;
-                    }else{
-                        return {};
-                    }
-                })
+        return dbconfig.collection_playerRegistrationIntentRecord.findOne(query)
+            .then(data => {
+                if (data) {
+                    let result = data;
+                    return result;
+                } else {
+                    return {};
+                }
+            })
     },
     getPlayerIpAreaFromRecord: function(platformId, playersData){
         let result = [];
@@ -1617,7 +1612,6 @@ var proposal = {
                         'phoneProvince': item.phoneProvince ? item.phoneProvince : '',
                         'phoneCity': item.phoneCity ? item.phoneCity : '',
                         'ipArea': ipArea,
-                        // 'ipArea': ips2, //item.ipArea ? item.ipArea: '',
                         'name': item.name ? item.name : ''
                     }
                 };
