@@ -1639,7 +1639,7 @@ define(['js/app'], function (myApp) {
                     $.each(data2.data, function (i, v) {
                         if (vm.filterWechatPayAcc && (vm.filterWechatPayAcc != 'all' && vm.filterWechatPayAcc != '') && (!vm.filterWechatPayAcc.find(wpa => wpa.accountNumber == v.accountNumber))) {
 
-                        } else if (vm.filterWechatPayName && (vm.filterWechatPayName != 'all' && vm.filterWechatPayName != '') && (!vm.filterWechatPayName.find(wpn => wpn.name == v.name))) {
+                        } else if (vm.filterWechatPayName && (vm.filterWechatPayName != 'all' && vm.filterWechatPayName != '') && (!vm.filterWechatPayName.find(wpn => wpn.nickName == v.nickName))) {
 
                         } else {
                             vm.includedWechatPays.push(v);
