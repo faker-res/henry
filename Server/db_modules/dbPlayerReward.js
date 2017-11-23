@@ -2378,8 +2378,8 @@ let dbPlayerReward = {
                     intervalTime = dbUtility.getCurrentMonthSGTIme();
                     break;
                 default:
-                    if (event.validStartTime && event.validEndTime) {
-                        intervalTime = {startTime: event.validStartTime, endTime: event.validEndTime};
+                    if (eventData.validStartTime && eventData.validEndTime) {
+                        intervalTime = {startTime: eventData.validStartTime, endTime: eventData.validEndTime};
                     }
                     break;
             }
