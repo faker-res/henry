@@ -58,8 +58,7 @@ let dbPlayerLevelInfo = {
                 let platformPeriod = upOrDown ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
                 if (platformPeriod) {
                     if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
-                        // period = dbUtil.getYesterdaySGTime();
-                        period = dbUtil.getTodaySGTime();
+                        period = dbUtil.getYesterdaySGTime();
                     } else if (platformPeriod == constPlayerLevelUpPeriod.WEEK) {
                         period = dbUtil.getLastWeekSGTime();
                     } else if (platformPeriod == constPlayerLevelUpPeriod.MONTH) {
