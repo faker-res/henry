@@ -1260,7 +1260,7 @@
                                 table#rewardTaskLogTbl.common-table.display(style='min-width:100%')
                                 #rewardTaskLogTblPage.height30
 
-                                table#rewardTaskGroupLogTbl.noWrap.text-center.display.paddingTbl(style='width:100%;')
+                                table#rewardTaskGroupLogTbl.text-center.display.paddingTbl(style='width:100%;')
                                     thead
                                         tr
                                             th {{'TIME' | translate}}
@@ -1270,17 +1270,19 @@
                                             th {{'requiredUnlockAmount' | translate}}
                                             th {{'unlockedAmount' | translate}}
                                             th {{'rewardAmount' | translate}}
+                                            th {{'NON_CONSUMPTION_RETURN_AMOUNT' | translate}}
                                             th {{'providers' | translate}}
                                             th {{'STATUS' | translate}}
                                     tbody
                                         tr(ng-repeat='(i,v) in vm.rewardTaskGroupDetails')
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.createTime}}
+                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.createTime$}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.providerGroup.name}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.useConsumption | translate}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.currentAmt}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.targetConsumption}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.curConsumption}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.rewardAmt}}
+                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.forbidXIMAAmt}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.inProvider | translate}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.status | translate}}
 
@@ -1414,3 +1416,56 @@
                 button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.creditChange.updateAmount || vm.creditChange.finalValidAmount<0', ng-click="vm.updatePlayerCredit();") {{"UPDATE" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
+#modalPlayerRewardPointAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'REWARD_POINT_ADJUSTMENT' | translate}} : {{vm.selectedSinglePlayer.name}} ({{vm.selectedSinglePlayer.realName}})
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        label {{'VALID_REWARD_POINT' | translate}}
+                        table.col-md-12.paddingTbl.text-center.datatable-sm
+                            tbody
+                                tr
+                                    td.col-md-4.oblique {{'CURRENT_REWARD_POINT' | translate}}
+                                    td.col-md-4.oblique {{'CHANGE_REWARD_POINT' | translate}}
+                                    td.col-md-4.oblique {{'UPDATED_REWARD_POINT' | translate}}
+                                tr
+                                    td {{vm.selectedSinglePlayer.validRewardPoint | number:2}}
+                                    td
+                                        input.text-success(type='number', ng-model='vm.rewardPointChange.updateAmount', ng-change="vm.rewardPointChange.finalValidAmount=vm.selectedSinglePlayer.validRewardPoint+vm.rewardPointChange.updateAmount")
+                                    td
+                                        label.text-danger {{vm.rewardPointChange.finalValidAmount || 0 | number:2}}
+                                        .text-danger(ng-show='vm.rewardPointChange.finalValidAmount<0') {{'Player reward point cannot be less than 0' | translate}}
+                        .row
+                            .col-md-6
+                                label.control-label {{'REMARKS' | translate}}
+                            .col-md-12.textareaDetail
+                                textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.rewardPointChange.remark")
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        label {{'ADVANCE_REWARD_POINT_EXCHANGE' | translate}}
+                        table.col-md-12.paddingTbl.text-center.datatable-sm
+                            tbody
+                                tr
+                                    td.col-md-4.oblique {{'BEFORE_REWARD_POINT_EXCHANGE' | translate}}
+                                    td.col-md-4.oblique {{'REWARD_POINT_EXCHANGE_AMOUNT' | translate}}
+                                    td.col-md-4.oblique {{'AFTER_REWARD_POINT_EXCHANGE' | translate}}
+                                tr
+                                    td {{vm.selectedSinglePlayer.validRewardPoint | number:2}}
+                                    td
+                                        input.text-success(type='number', ng-model='vm.rewardPointExchange.updateAmount', ng-change="vm.rewardPointExchange.finalValidAmount=vm.selectedSinglePlayer.validRewardPoint+vm.rewardPointExchange.updateAmount")
+                                    td
+                                        label.text-danger {{vm.rewardPointExchange.finalValidAmount || 0 | number:2}}
+                                        .text-danger(ng-show='vm.rewardPointExchange.finalValidAmount<0') {{'Player reward point cannot be less than 0' | translate}}
+                        .row
+                            .col-md-6
+                                label.control-label {{'REMARKS' | translate}}
+                            .col-md-12.textareaDetail
+                                textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.rewardPointExchange.remark")
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointChange.updateAmount || vm.rewardPointChange.finalValidAmount<0 ||!vm.rewardPointExchange.updateAmount || vm.rewardPointExchange.finalValidAmount<0', ng-click="vm.updatePlayerRewardPoint();") {{"UPDATE" | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
