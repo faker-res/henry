@@ -219,7 +219,10 @@ let dbPlayerReward = {
             paramOfLevel = event.param.rewardParam[0].value;
 
             if (event.condition.isPlayerLevelDiff) {
-                paramOfLevel = event.param.rewardParam.filter(e => e.levelId == String(player.playerLevel))[0].value || paramOfLevel;
+                let rewardParam = event.param.rewardParam.filter(e => e.levelId == String(player.playerLevel._id));
+                if (rewardParam && rewardParam[0] && rewardParam[0].value) {
+                    paramOfLevel = rewardParam[0].value;
+                }
             }
 
             if (event.param.isMultiStepReward) {
