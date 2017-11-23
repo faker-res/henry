@@ -9734,6 +9734,7 @@ define(['js/app'], function (myApp) {
                     vm.getRewardTaskLogData(true);
                 });
             }
+
             vm.getRewardTaskLogData = function (newSearch) {
                 var sendQuery = {
                     playerId: vm.selectedSinglePlayer._id,
@@ -9741,10 +9742,16 @@ define(['js/app'], function (myApp) {
                     to: vm.rewardTaskLog.query.endTime.data('datetimepicker').getLocalDate(),
                     index: newSearch ? 0 : vm.rewardTaskLog.index,
                     limit: newSearch ? 10 : vm.rewardTaskLog.limit,
-                    sortCol: vm.rewardTaskLog.sortCol || null
+                    sortCol: vm.rewardTaskLog.sortCol || null,
+                    useProviderGroup: vm.selectedPlatform.data.useProviderGroup
                 };
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardTask', sendQuery, function (data) {
                     console.log('getPlayerRewardTask', data);
+                    if(vm.selectedPlatform.data.useProviderGroup){
+                        vm.rewardTaskGroupDetails = data.data.rewardTaskGroupData;
+                        $scope.safeApply();
+                    }
+
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
                         item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
@@ -14311,6 +14318,10 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.rewardPointsTabClicked = function (choice) {
+                vm.selectedRewardPointTab = choice;
+            };
+
             function loadPromoCodeTypes() {
                 socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
                     console.log('getPromoCodeTypes', data);
@@ -15848,7 +15859,8 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
                 vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
                 vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup;
-                vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime
+                vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime;
+                vm.platformBasic.usePointSystem = vm.selectedPlatform.data.usePointSystem;
                 vm.platformBasic.whiteListingPhoneNumbers$ = "";
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
@@ -16314,7 +16326,8 @@ define(['js/app'], function (myApp) {
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
                         smsVerificationExpireTime: srcData.smsVerificationExpireTime,
                         useProviderGroup: srcData.useProviderGroup,
-                        whiteListingPhoneNumbers: whiteListingPhoneNumbers
+                        whiteListingPhoneNumbers: whiteListingPhoneNumbers,
+                        usePointSystem: srcData.usePointSystem
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {

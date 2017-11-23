@@ -584,8 +584,8 @@
                             tr
                                 td {{'SMS_EXPIRED_TIME' | translate}}
                                 td
-                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showMinTopupAmount}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showMinTopupAmount')
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.smsVerificationExpireTime}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.smsVerificationExpireTime')
                             tr
                                 td {{'CAPTCHA_VERIFICATION_FOR_LOGIN' | translate}}
                                 td
@@ -606,6 +606,10 @@
                                 td {{'Use Provider Group' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.useProviderGroup', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Use Point System' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.usePointSystem', ng-disabled='!vm.configTableEdit')
 
                             br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
