@@ -13604,6 +13604,19 @@ define(['js/app'], function (myApp) {
                 delete model.value2;
             }
 
+            if(model && model.name == "applyType") {
+                if(model.value != 1) {
+                    for(let x in vm.rewardMainCondition) {
+                        if (vm.rewardMainCondition[x].name == "canApplyFromClient") {
+                            vm.rewardMainCondition[x].value = false;
+                        }
+                    }
+                    vm.rewardDisabledParam.indexOf("canApplyFromClient") === -1 ? vm.rewardDisabledParam.push("canApplyFromClient") : null;
+                } else {
+                    vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "canApplyFromClient");
+                }
+            }
+
             $scope.safeApply();
         };
 
