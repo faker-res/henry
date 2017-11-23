@@ -2919,7 +2919,7 @@ let dbPlayerReward = {
                     // type 2
                     case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
                         isMultiApplication = true;
-
+                        applyAmount = 0;
 
                         if (!rewardSpecificData || !rewardSpecificData[0]) {
                             if (todayProposal.length > 0) {
@@ -2958,98 +2958,15 @@ let dbPlayerReward = {
                                 });
                             }
                         }
+                        if (applicationDetails && applicationDetails.length < 1) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "Not Valid for the reward."
+                            });
+                        }
 
                         break;
-                        // applyAmount = 0;
-                        // let todayProposal = eventInPeriodData.filter(proposal => {
-                        //     // Player cannot apply for earlier day if they already apply for later days within a reward period
-                        //     return proposal.data.applyTargetDate >= todayTime.startTime;
-                        // });
-                        //
-                        // rewardData.applyTargetDate = rewardData.applyTargetDate || todayTime.startTime;
-                        //
-                        // if (todayProposal.length > 0) {
-                        //     return Q.reject({
-                        //         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                        //         name: "DataError",
-                        //         message: "The player already has this reward. Not Valid for the reward."
-                        //     });
-                        // }
-                        // // check the consecutive number of this apply
-                        // if (eventData.param.isMultiStepReward) {
-                        //     let lastSucceededProposalWithinPeriod;
-                        //     for (let i = 0; i < eventInPeriodData.length; i++) {
-                        //         let proposal = eventInPeriodData[i];
-                        //         if (proposal.status == constProposalStatus.APPROVED || proposal.status == constProposalStatus.SUCCESS) {
-                        //             if(!lastSucceededProposalWithinPeriod || lastSucceededProposalWithinPeriod.data.applyTargetDate < proposal.data.applyTargetDate) {
-                        //                 lastSucceededProposalWithinPeriod = proposal;
-                        //             }
-                        //         }
-                        //     }
-                        //
-                        //     if (lastSucceededProposalWithinPeriod) {
-                        //         consecutiveNumber = lastSucceededProposalWithinPeriod && lastSucceededProposalWithinPeriod.data
-                        //             ? proposal.data.consecutiveNumber + 1
-                        //             : 1;
-                        //     } else {
-                        //         consecutiveNumber = 1;
-                        //     }
-                        // } else {
-                        //     consecutiveNumber = 1;
-                        // }
-                        //
-                        // // get the correct param
-                        // if (eventData.param.isMultiStepReward) {
-                        //     selectedRewardParam = selectedRewardParam[consecutiveNumber-1];
-                        // } else {
-                        //     selectedRewardParam = selectedRewardParam[0];
-                        // }
-                        //
-                        // // check if player meet the daily condition
-                        // let meetTopUpCondition = false, meetConsumptionCondition = false;
-                        // if (selectedRewardParam.requiredTopUpAmount) {
-                        //     let targetDayTopUpRecord = topupInPeriodData.filter(proposal => {
-                        //         // Player cannot apply for earlier day if they already apply for later days within a reward period
-                        //         return proposal.settleTime >= todayTime.startTime && proposal.settleTime < todayTime.endTime;
-                        //     });
-                        //     let targetDayTopUpSum = 0;
-                        //     targetDayTopUpRecord.map(proposal => {
-                        //         targetDayTopUpSum += proposal.data.amount;
-                        //     });
-                        //     meetTopUpCondition = targetDayTopUpSum >= selectedRewardParam.requiredTopUpAmount;
-                        // } else {
-                        //     meetTopUpCondition = true;
-                        // }
-                        //
-                        // if (selectedRewardParam.requiredConsumptionAmount) {
-                        //     let consumptionAmount = rewardSpecificData[0].amount;
-                        //     meetConsumptionCondition = consumptionAmount >= selectedRewardParam.requiredConsumptionAmount;
-                        // } else {
-                        //     meetConsumptionCondition = true;
-                        // }
-                        //
-                        // if (selectedRewardParam.operatorOption) { // true = and, false = or
-                        //     if (!(meetTopUpCondition && meetConsumptionCondition)) {
-                        //         return Q.reject({
-                        //             status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                        //             name: "DataError",
-                        //             message: "Player does not have enough top up or consumption amount"
-                        //         });
-                        //     }
-                        // } else {
-                        //     if (!(meetTopUpCondition || meetConsumptionCondition)) {
-                        //         return Q.reject({
-                        //             status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                        //             name: "DataError",
-                        //             message: "Player does not have enough top up or consumption amount"
-                        //         });
-                        //     }
-                        // }
-                        // // get the reward detail
-                        // rewardAmount = selectedRewardParam.rewardAmount;
-                        // spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimes;
-                        // break;
-
 
                     // type 3
                     case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
