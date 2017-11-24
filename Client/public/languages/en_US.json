@@ -897,6 +897,7 @@
   "ADVANCE_REWARD_POINT_EXCHANGE": "Advance Reward Point Exchange",
   "BEFORE_REWARD_POINT_EXCHANGE": "Before Exchange",
   "REWARD_POINT_EXCHANGE_AMOUNT": "Reward Point Exchange",
+  "REWARD_POINT_EXCHANGE_DAILY_LIMIT": "Daily limit",
   "AFTER_REWARD_POINT_EXCHANGE": "After Exchange",
 
   "rewardPointTask": "Reward Point Task",
