@@ -15,7 +15,7 @@ var rewardPoints = new Schema({
 
     createTime: {type: Date, default: Date.now},
     // event details base on category
-    progress: [{type: JSON, default: {}}]
+    progress: {type: JSON, default: {}}
 });
 
 module.exports = rewardPoints;
