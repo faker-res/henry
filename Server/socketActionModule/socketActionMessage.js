@@ -37,14 +37,16 @@ class socketActionMessage {
      * @param {Object} message
      */
     notifySocketByPlatform(message){
-        var platform = message.data.platformId;
-        var sockets = this.socektIOServer.sockets.sockets;
-        if(sockets){
-            for (let key of Object.keys(sockets)) {
-                var socket = sockets[key];
-                if(socket.decoded_token && socket.decoded_token.platforms){
-                    if(socket.decoded_token.platforms == "admin" || socket.decoded_token.platforms.indexOf(platform) >= 0 ){
-                        socket.emit(message.functionName, message);
+        if(message && message.data){
+            var platform = message.data.platformId;
+            var sockets = this.socektIOServer.sockets.sockets;
+            if(sockets){
+                for (let key of Object.keys(sockets)) {
+                    var socket = sockets[key];
+                    if(socket.decoded_token && socket.decoded_token.platforms){
+                        if(socket.decoded_token.platforms == "admin" || socket.decoded_token.platforms.indexOf(platform) >= 0 ){
+                            socket.emit(message.functionName, message);
+                        }
                     }
                 }
             }
