@@ -14141,7 +14141,6 @@ define(['js/app'], function (myApp) {
 
                 if (vm.showRewardTypeData.isGrouped === true) {
                     // Set condition
-                    console.log("WLAOWHOLE",vm.rewardMainCondition);
                     Object.keys(vm.rewardMainCondition).forEach(e => {
                         if (vm.rewardMainCondition[e].value !== undefined) {
                             let condName = vm.rewardMainCondition[e].name;
