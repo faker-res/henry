@@ -5681,15 +5681,15 @@ let dbPlayerInfo = {
 
                     if (checkLevelUp && !checkLevelDown) {
                         playerLevels = playerLevels.filter(level => level.value > playerObj.playerLevel.value);
-                        if(playerLevels.length == 0){
+                        if (playerLevels.length == 0) {
                             levelErrorMsg = 'Reached Max Level';
                         }
-                    }else if (checkLevelDown && !checkLevelUp) {
+                    } else if (checkLevelDown && !checkLevelUp) {
                         playerLevels = playerLevels.filter(level => level.value <= playerObj.playerLevel.value);
-                        if(playerLevels.length == 0){
+                        if (playerLevels.length == 0) {
                             levelErrorMsg = 'Reached Min Level';
                         }
-                    }else{
+                    } else {
                         levelErrorMsg = 'Player Level Not Found';
                     }
                     return Promise.resolve(playerLevels);
@@ -5800,18 +5800,18 @@ let dbPlayerInfo = {
                                     if (meetsEnoughConditions) {
                                         levelObjId = level._id;
                                         levelUpObj = level;
-                                    }else{
+                                    } else {
 
-                                        if(!levelUpEnd){
-                                            if(!meetsEnoughConditions){
+                                        if (!levelUpEnd) {
+                                            if (!meetsEnoughConditions) {
                                                 errorCode = constServerCode.NO_REACH_TOPUP_CONSUMPTION;
                                                 errorMsg = 'NO_REACH_TOPUP_CONSUMPTION';
                                             }
-                                            if(!meetsConsumptionCondition && meetsTopupCondition){
+                                            if (!meetsConsumptionCondition && meetsTopupCondition) {
                                                 errorCode = constServerCode.NO_REACH_CONSUMPTION;
                                                 errorMsg = 'NO_REACH_CONSUMPTION';
                                             }
-                                            if(!meetsTopupCondition && meetsConsumptionCondition){
+                                            if (!meetsTopupCondition && meetsConsumptionCondition) {
                                                 errorCode = constServerCode.NO_REACH_TOPUP;
                                                 errorMsg = 'NO_REACH_TOPUP';
                                             }
@@ -5851,7 +5851,7 @@ let dbPlayerInfo = {
                                         levelName: levelUpObj.name,
                                         levelObjId: levelObjId,
                                         levelOldName: playerObj.playerLevel.name,
-                                        upOrDown: "LEVEL_UP" ,
+                                        upOrDown: "LEVEL_UP",
                                         playerObjId: playerObj._id,
                                         playerName: playerObj.name,
                                         playerId: playerObj.playerId,
@@ -5890,7 +5890,7 @@ let dbPlayerInfo = {
                                             }
                                         }
                                     ).then(
-                                        proposalResult=>{
+                                        proposalResult => {
                                             console.log(proposalResult);
 
                                             let rewardPrice = [];
@@ -5899,24 +5899,24 @@ let dbPlayerInfo = {
                                             let levelUpDistance = levelUpObj.value - playerObj.playerLevel.value;
                                             let prevLevelName = playerObj.playerLevel.name || '';
                                             let currentLevelName = levelUpObj.name || '';
-                                            for(var i = 0; i < levelUpDistance; i++){
+                                            for (var i = 0; i < levelUpDistance; i++) {
                                                 rewardPrice.push(levels[i].reward.bonusCredit);
                                             }
                                             let rewardPriceCount = rewardPrice.length;
-                                            let mainMessage =  '恭喜您从 '+ prevLevelName +' 升级到 '+ currentLevelName;
+                                            let mainMessage = '恭喜您从 ' + prevLevelName + ' 升级到 ' + currentLevelName;
                                             let subMessage = ',获得';
                                             rewardPrice.forEach(
-                                                function(val, index){
+                                                function (val, index) {
                                                     let colon = '、';
-                                                    if(index==rewardPrice.length-1){
+                                                    if (index == rewardPrice.length - 1) {
                                                         colon = '';
                                                     }
-                                                    subMessage += ''+ val +'元'+colon;
+                                                    subMessage += '' + val + '元' + colon;
                                                 }
                                             )
-                                            subMessage += '共'+ rewardPrice.length +'个礼包';
+                                            subMessage += '共' + rewardPrice.length + '个礼包';
                                             let message = mainMessage + subMessage;
-                                            return {message:message}
+                                            return {message: message}
 
                                         }
                                     )
@@ -5944,7 +5944,7 @@ let dbPlayerInfo = {
                     else {
                         return Q.reject({
                             status: errorCode,
-                            name:"DataError",
+                            name: "DataError",
                             message: errorMsg
                         })
                     }
@@ -5956,7 +5956,7 @@ let dbPlayerInfo = {
                     // if the player had no consumption, or they were already on the highest level.
                     //return "No_Level_Change";
                     return Q.reject({
-                        name:"DataError",
+                        name: "DataError",
                         message: levelErrorMsg
                     })
 
