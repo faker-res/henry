@@ -83,6 +83,88 @@ var dbPlayerTopUpRecord = {
         ).allowDiskUse(true).exec();
     },
 
+    assignTopUpRecordUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, byPassedEvent, usedProposal, rewardType) {
+        let topUpQuery = {
+            platformId: platformObjId,
+            playerId: playerObjId,
+        };
+
+        if (startTime) {
+            topUpQuery.createTime = {$gte: startTime};
+            if (endTime) {
+                topUpQuery.createTime.$lte = endTime;
+            }
+        }
+
+        let updateValue = {
+            bDirty: true,
+            $push: {usedEvent: eventObjId}
+        };
+
+        if (rewardType) {
+            updateValue.usedType = rewardType;
+        }
+
+        if (usedProposal) {
+            updateValue.usedProposal = usedProposal;
+        }
+
+        let recordIds = [];
+
+        let rewardEventQuery = {platform: platformObjId};
+
+        if (byPassedEvent && byPassedEvent.length > 0) {
+            rewardEventQuery._id = {$nin: byPassedEvent};
+        }
+
+        return dbconfig.collection_rewardEvent.distinct("_id", rewardEventQuery).then(
+            rewardEventIds => {
+                topUpQuery.usedProposal = {$nin: rewardEventIds};
+                dbconfig.collection_playerTopUpRecord.find(topUpQuery).lean()
+            }
+        ).then(
+            consumptionRecords => {
+                let curAmount = 0;
+
+                for (var i = 0; i < consumptionRecords.length; i++) {
+                    let record = consumptionRecords[i];
+                    recordIds.push(record._id);
+                    curAmount += record.amount;
+                    if (curAmount >= spendingAmount) {
+                        break;
+                    }
+                }
+
+                dbconfig.collection_playerTopUpRecord.update(
+                    {_id: {$in: recordIds}},
+                    updateValue,
+                    {multi: true}
+                ).exec();
+
+                return recordIds;
+            }
+        );
+    },
+
+    /**
+     *  Add usedEvent to consumption record
+     */
+    unassignTopUpRecordUsedEvent: function (recordIds, eventObjId) {
+        dbconfig.collection_playerTopUpRecord.update(
+            {_id: {$in: recordIds}},
+            {bDirty: false, $pull: {usedEvent: eventObjId}},
+            {multi: true}
+        ).exec();
+    },
+
+    unassignTopUpRecordUsedEventByProposal: function (proposalId, eventObjId) {
+        dbconfig.collection_playerTopUpRecord.update(
+            {usedProposal: proposalId},
+            {bDirty: false, $pull: {usedEvent: eventObjId}},
+            {multi: true}
+        ).exec();
+    },
+
     /**
      * Get total top up amount in a certain period of time
      * @param {Date} startTime,endTime - The date info
@@ -1148,6 +1230,7 @@ var dbPlayerTopUpRecord = {
 
     cancelManualTopupRequest: function (playerId, proposalId, adminName) {
         var proposal = null;
+        let cancelTime = new Date();
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData) {
@@ -1171,6 +1254,14 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            },
+            error => {
+                if(adminName){
+                    return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+                }
+                else{
+                    return Q.reject(error);
+                }
             }
         ).then(
             data => {
@@ -1178,7 +1269,7 @@ var dbPlayerTopUpRecord = {
                     let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
-                        {"data.cancelBy": cancelBy}
+                        {"data.cancelBy": cancelBy, "settleTime": cancelTime}
                     );
                 }
             }
@@ -1189,6 +1280,7 @@ var dbPlayerTopUpRecord = {
 
     cancelAlipayTopup: function (playerId, proposalId, adminName) {
         var proposal = null;
+        let cancelTime = new Date();
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData) {
@@ -1207,6 +1299,14 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            },
+            error => {
+                if(adminName){
+                    return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+                }
+                else{
+                    return Q.reject(error);
+                }
             }
         ).then(
             data => {
@@ -1214,7 +1314,7 @@ var dbPlayerTopUpRecord = {
                     let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
-                        {"data.cancelBy": cancelBy}
+                        {"data.cancelBy": cancelBy, "settleTime": cancelTime}
                     );
                 }
             }
@@ -1225,6 +1325,7 @@ var dbPlayerTopUpRecord = {
 
     cancelWechatTopup: function (playerId, proposalId, adminName) {
         var proposal = null;
+        let cancelTime = new Date();
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData) {
@@ -1244,6 +1345,14 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            },
+            error => {
+                if(adminName){
+                    return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+                }
+                else{
+                    return Q.reject(error);
+                }
             }
         ).then(
             data => {
@@ -1251,7 +1360,7 @@ var dbPlayerTopUpRecord = {
                     let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
-                        {"data.cancelBy": cancelBy}
+                        {"data.cancelBy": cancelBy, "settleTime": cancelTime}
                     );
                 }
             }
@@ -1577,7 +1686,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime) {
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -1646,7 +1755,9 @@ var dbPlayerTopUpRecord = {
                     if (createTime) {
                         proposalData.depositeTime = new Date(createTime);
                     }
-
+                    if (bonusCode){
+                        proposalData.bonusCode = bonusCode;
+                    }
                     proposalData.creator = entryType === "ADMIN" ? {
                         type: 'admin',
                         name: adminName,
@@ -1721,7 +1832,6 @@ var dbPlayerTopUpRecord = {
                     queryObj["createTime"]["$gte"] = start;
                     queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
-                    console.log(queryObj);
                     return dbconfig.collection_proposal.aggregate(
                         {$match: queryObj},
                         {
@@ -1837,7 +1947,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestWechatTopup: function (userAgent, playerId, amount, wechatName, wechatAccount, entryType, adminId, adminName, remark, createTime) {
+    requestWechatTopup: function (userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -1894,7 +2004,9 @@ var dbPlayerTopUpRecord = {
                         if (createTime) {
                             proposalData.depositeTime = new Date(createTime);
                         }
-
+                        if(bonusCode){
+                            proposalData.bonusCode = bonusCode;
+                        }
                         proposalData.creator = entryType === "ADMIN" ? {
                             type: 'admin',
                             name: adminName,

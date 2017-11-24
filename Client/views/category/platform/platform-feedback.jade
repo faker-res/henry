@@ -129,7 +129,7 @@
                     option(value='new') {{'NEW_SYSTEM'|translate}}
                     option(value='old') {{'OLD_SYSTEM'|translate}}
             .inlineBlk
-                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.submitPlayerFeedbackQuery();') {{"SEARCH_SINGLE" | translate}}
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_SINGLE" | translate}}
             .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_LIST" | translate}}
                 span#platformFeedbackSpin.collapse
@@ -142,7 +142,6 @@
 .col-md-12
     //label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.platformPlayerCount}} ({{"Search Result" | translate}} : {{vm.searchPlayerCount}})
     label(ng-show='vm.platformPlayerCount') {{"Search Result" | translate}} : {{vm.feedbackPlayersPara.total}}
-    i#loadingPlayerTableSpin.fa.fa-spin.fa-refresh.margin-left-5.text-danger.collapse
 
 .row.margin-top-bottom-small(ng-show='vm.selectedPlatform')
     .col-md-12

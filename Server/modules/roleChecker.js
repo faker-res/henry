@@ -158,6 +158,9 @@ var roleChecker = {
         "deleteGameProvider": true,
 
         "getGameTypeList": true,
+        "getAllGameTypes": true,
+        "getRewardEventsForPlatform": true,
+
 
         //todo::to be added to permission list
         "getCredibilityRemarks": true,
@@ -267,6 +270,7 @@ var roleChecker = {
                 applyBonus: ['applyBonusRequest'],
                 BonusHistory: [],
                 CreditAdjustment: ['createUpdatePlayerCreditProposal'],
+                RewardPointAdjustment: [],
                 CreditChangeLog: ['getPlayerCreditChangeLogsByQuery', 'getPagedPlayerCreditChangeLogs'],
                 PlayerExpenses: ['getPlayerConsumptionRecords', 'getPlayerTotalConsumptionForTimeFrame', 'playerPurchase'],
                 AddRewardTask: ['createPlayerRewardTask'],
@@ -423,6 +427,10 @@ var roleChecker = {
             "phoneNumFilter": {
                 Read: [],
                 FilterAllPlatform: []
+            },
+            "rewardPoints": {
+                Read: ['getRewardPointsLvlConfig'],
+                Update: ['upsertRewardPointsLvlConfig']
             }
         },
         Payment: {
@@ -537,7 +545,7 @@ var roleChecker = {
         },
         Report: {
             General: {
-                Read: ['getPlatform', 'getProposalTypeByPlatformId'],
+                Read: ['getPlatform', 'getProposalTypeByPlatformId', "getAllGameTypes", "getPlayerLevelByPlatformId", "getRewardEventsForPlatform", "getPromoCodeTypes"],
                 TOPUP_REPORT: ['topupReport', "getMerchantTypeList"],
                 PROPOSAL_REPORT: ['getProposalStaticsReport'],
                 PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],

@@ -82,7 +82,7 @@ var platformSchema = new Schema({
     // SMS Verification Setting For Payment Update
     requireSMSVerificationForPaymentUpdate: {type: Boolean, default: false},
     // SMS Verification Expired Time (in Minute)
-    smsVerificationExpireTime: {type: Number, default: 1440},
+    smsVerificationExpireTime: {type: Number, default: 5},
     // allow same phone number to register
     allowSamePhoneNumberToRegister: {type: Boolean, default: true},
     // same phone number to register count
@@ -129,6 +129,10 @@ var platformSchema = new Schema({
     useLockedCredit: {type: Boolean, default: false},
     // Use new type of provider group lock
     useProviderGroup: {type: Boolean, default: false},
+    // if use point system
+    usePointSystem: {type: Boolean, default: false},
+    // if use phone number 2 steps verification
+    usePhoneNumberTwoStepsVerification: {type: Boolean, default: false},
     // maximum length for player name included platform prefix
     playerNameMaxLength: {type: Number, default: 0},
     // minimum length for player name included platform prefix

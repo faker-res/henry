@@ -4,6 +4,7 @@ const dbconfig = require('./../modules/dbproperties');
 const dbRewardTask = require('./../db_modules/dbRewardTask');
 
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
+const constServerCode = require('../const/constServerCode');
 
 let dbRewardTaskGroup = {
     getPlayerRewardTaskGroup: (platformId, providerId, playerId, createTime) => {
@@ -61,7 +62,38 @@ let dbRewardTaskGroup = {
                 });
             }
         )
-    }
+    },
+
+    getPlayerAllRewardTaskGroupDetailByPlayerObjId: (query) => {
+        return dbconfig.collection_players.findOne(query).then(
+            playerData => {
+                if (playerData) {
+                    let playerObjId = playerData._id;
+
+                    return dbconfig.collection_rewardTaskGroup.find({
+                        platformId: playerData.platform,
+                        playerId: playerObjId,
+                        status: constRewardTaskStatus.STARTED
+                    }).populate({
+                        path: "providerGroup",
+                        model: dbconfig.collection_gameProviderGroup
+                    }).lean();
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "No player found matching query"
+                    });
+                }
+
+            },
+            error => Q.reject({name: "DBError", message: "Error in getting reward task", error: error})
+        ).then(
+            rewardTasks => rewardTasks,
+            error => Q.reject({name: "DBError", message: "Error in getting reward task", error: error})
+        );
+    },
 };
 
 module.exports = dbRewardTaskGroup;

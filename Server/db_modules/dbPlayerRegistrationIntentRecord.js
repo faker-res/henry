@@ -52,6 +52,11 @@ var dbPlayerRegistrationIntentRecord = {
                 id: data.playerId
             }
         };
+
+        if(data.smsCode){
+            data.smsCode = parseInt(data.smsCode);
+        }
+
         let newProposal = {
             creator: proposalData.creator,
             data: data,
@@ -80,6 +85,12 @@ var dbPlayerRegistrationIntentRecord = {
             name: data.name
         };
 
+        let query = {
+            name: data.name,
+            "data.phoneNumber": data.phoneNumber,
+            "data.smsCode": data.smsCode
+        }
+
         if(data.lastLoginIp && data.lastLoginIp != "undefined"){
             return dbUtil.getGeoIp(data.lastLoginIp).then(
                 ipData=>{
@@ -92,12 +103,10 @@ var dbPlayerRegistrationIntentRecord = {
                     return data;
                 }
             ).then(data => {
-                let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                return newRecord.save();
+                return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
             })
         }else{
-            let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-            return newRecord.save();
+            return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
         }
     },
 
@@ -112,7 +121,7 @@ var dbPlayerRegistrationIntentRecord = {
                     }).lean().then(
                         proposalData => {
                             if( proposalData ){
-                                if(proposalData.status != constProposalStatus.SUCCESS){
+                                //if(proposalData.status != constProposalStatus.SUCCESS){
                                     dbconfig.collection_proposal.findOneAndUpdate(
                                         {_id: proposalData._id, createTime: proposalData.createTime},
                                         {
@@ -121,7 +130,7 @@ var dbPlayerRegistrationIntentRecord = {
                                             "data.playerId": data.data.playerId
                                         }
                                     ).then();
-                                }
+                                //}
                             }
                             else{
                                 dbProposal.createProposalWithTypeName(platform, constProposalType.PLAYER_REGISTRATION_INTENTION, data).then(
@@ -157,6 +166,31 @@ var dbPlayerRegistrationIntentRecord = {
                 constShardKeys.collection_playerRegistrationIntentRecord
             )
         }
+    },
+
+    /**
+     * Update a playerRegIntentRecord information by SMSCode
+     * @param {String}  query - The query string
+     * @param {string} updateData - The update data string
+     */
+    updatePlayerRegistrationIntentRecordBySMSCode: function (query, updateData) {
+
+        return dbconfig.collection_playerRegistrationIntentRecord.find(query).then(data => {
+            if(data && data.length > 0){
+                if (query) {
+                    return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(query, updateData, {new: true});
+                } else {
+                    return dbUtil.findOneAndUpdateForShard(
+                        dbconfig.collection_playerRegistrationIntentRecord,
+                        query, updateData,
+                        constShardKeys.collection_playerRegistrationIntentRecord
+                    )
+                }
+            }else{
+                let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(updateData);
+                return newRecord.save();
+            }
+        })
     },
     /**
      * Get playerRegIntentRecord information

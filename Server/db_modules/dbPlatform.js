@@ -1490,7 +1490,7 @@ var dbPlatform = {
             result => {
                 smsLogCount = result[1];
 
-                let smsVerificationExpireTime = result[2] && result[2].smsVerificationExpireTime ? result[2].smsVerificationExpireTime : 1440;
+                let smsVerificationExpireTime = result[2] && result[2].smsVerificationExpireTime ? result[2].smsVerificationExpireTime : 5;
 
                 return dbPlatform.getSMSRepeatCount(result[0], smsVerificationExpireTime);
             }
@@ -1581,10 +1581,11 @@ var dbPlatform = {
                     }
 
                     let nextSMSCountProm;
+                    let createTime = Date.parse(log.createTime);
 
                     if (isUsed)
                         nextSMSCountProm = Promise.resolve(-1);
-                    else if (nextUsedTime || log.createTime < smsVerificationExpireDate)
+                    else if (nextUsedTime || createTime < smsVerificationExpireDate)
                         nextSMSCountProm = Promise.resolve(1);
                     else
                         nextSMSCountProm = dbconfig.collection_smsLog.find({

@@ -69,6 +69,17 @@ let PlayerServiceImplement = function () {
                 console.log("Player registration reporoId:", reporoId);
                 data.domain = data.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
             }
+            if(data.lastLoginIp){
+                dbUtility.getGeoIp(data.lastLoginIp).then(
+                    ipData=>{
+                        if(data){
+                            data.ipArea = ipData;
+                        }else{
+                            data.ipArea = {'province':'', 'city':''};
+                        }
+                    })
+            }
+
             //set email to qq if there is only qq number and no email data
             if (data.qq && !data.email) {
                 data.email = data.qq + "@qq.com";
@@ -725,7 +736,7 @@ let PlayerServiceImplement = function () {
     this.updatePaymentInfo.expectsData = 'playerId: String';
     this.updatePaymentInfo.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId) && data.bankName && data.bankAccountName && data.bankAccountType);
+        let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId) && data.bankName && data.bankAccountType);
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
         }
@@ -836,7 +847,7 @@ let PlayerServiceImplement = function () {
         conn.captchaCode = null;
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
     };
 
     this.sendSMSCodeToPlayer.expectsData = 'platformId: String';
@@ -846,7 +857,7 @@ let PlayerServiceImplement = function () {
         let captchaValidation = conn.captchaCode && data.captcha && conn.captchaCode.toString() === data.captcha.toString();
         conn.captchaCode = null;
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData);
     };
 
     this.authenticate.expectsData = 'playerId: String, token: String';
@@ -977,6 +988,11 @@ let PlayerServiceImplement = function () {
     this.manualPlayerLevelUp.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.playerObjId && data.platformObjId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [data.playerObjId, data.platformObjId], isValidData, false, false, true);
+    };
+
+    this.getWithdrawalInfo.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWithdrawalInfo, [data.platformId, conn.playerId], isValidData, false, false, true);
     };
 
 };

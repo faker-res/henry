@@ -3,10 +3,13 @@ const Q = require("q");
 const cpmsAPI = require("../externalAPI/cpmsAPI");
 
 const constGameStatus = require('./../const/constGameStatus');
+const constPlayerCreditChangeType = require('../const/constPlayerCreditChangeType');
 const constProposalStatus = require('./../const/constProposalStatus');
 const constProposalType = require('./../const/constProposalType');
+const constServerCode = require('../const/constServerCode');
 
 const dbconfig = require('./../modules/dbproperties');
+const dbLogger = require("./../modules/dbLogger");
 
 const dbPlayerUtility = {
     getPlayerCreditByObjId: function (playerObjId) {
@@ -97,6 +100,71 @@ const dbPlayerUtility = {
                 }
             }
         )
+    },
+
+    tryToDeductCreditFromPlayer: (playerObjId, platformObjId, updateAmount, reasonType, data) => {
+        return Q.resolve().then(
+            () => {
+                if (updateAmount < 0) {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "tryToDeductCreditFromPlayer expects a positive value to deduct",
+                        updateAmount: updateAmount
+                    });
+                }
+            }
+        ).then(
+            () => dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).select('validCredit')
+        ).then(
+            player => {
+                if (player.validCredit < updateAmount) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                        name: "DataError",
+                        message: "Player does not have enough credit."
+                    });
+                }
+            }
+        ).then(
+            () => dbPlayerUtility.changePlayerCredit(playerObjId, platformObjId, -updateAmount, reasonType, data)
+        ).then(
+            player => {
+                if (player.validCredit < 0) {
+                    // First reset the deduction, then report the problem
+                    return Q.resolve().then(
+                        () => dbPlayerUtility.refundPlayerCredit(playerObjId, platformObjId, +updateAmount, constPlayerCreditChangeType.DEDUCT_BELOW_ZERO_REFUND, data)
+                    ).then(
+                        () => Q.reject({
+                            status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                            name: "DataError",
+                            message: "Player does not have enough credit.",
+                            data: '(detected after withdrawl)'
+                        })
+                    );
+                }
+            }
+        ).then(
+            () => true
+        );
+    },
+
+    changePlayerCredit: function changePlayerCredit(playerObjId, platformObjId, updateAmount, reasonType, data) {
+        return dbconfig.collection_players.findOneAndUpdate(
+            {_id: playerObjId, platform: platformObjId},
+            {$inc: {validCredit: updateAmount}},
+            {new: true}
+        ).then(
+            player => {
+                if (!player) {
+                    return Q.reject({name: "DataError", message: "Can't update player credit: player not found."});
+                }
+                dbLogger.createCreditChangeLog(playerObjId, platformObjId, updateAmount, reasonType, player.validCredit, null, data);
+                return player;
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error updating player.", error: error});
+            }
+        );
     },
 };
 

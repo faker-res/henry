@@ -90,7 +90,7 @@ var dbRewardEvent = {
                 if (typeData && typeData._id) {
                     return dbconfig.collection_rewardEvent.find(
                         {type: typeData._id, platform: platformId, code: code}
-                    ).populate({path: "rewardType", model: dbconfig.collection_rewardType}).exec();
+                    ).populate({path: "rewardType", model: dbconfig.collection_rewardType}).sort({_id: -1}).exec();
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Can't find reward type for type name"});

@@ -31,6 +31,7 @@ const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constSystemParam = require("../const/constSystemParam.js");
 const constServerCode = require("../const/constServerCode.js");
 const constPlayerTopUpType = require("../const/constPlayerTopUpType");
+let rsaCrypto = require("../modules/rsaCrypto");
 
 var proposal = {
 
@@ -211,15 +212,16 @@ var proposal = {
                     proposalData.data.platformId = data[0].platformId;
                     proposalData.mainType = constProposalMainType[data[0].name];
 
-                    if (data[1]._id) {
-                        proposalData.process = data[1]._id;
-                        proposalData.status = constProposalStatus.PENDING;
-                    }
-                    else if (data[1] === constSystemParam.PROPOSAL_NO_STEP) {
+                    // Proposal process step check
+                    if (data[1] === constSystemParam.PROPOSAL_NO_STEP || proposalData.data.isIgnoreAudit) {
                         bExecute = true;
                         proposalData.noSteps = true;
                         proposalData.status = proposalData.status || constProposalStatus.APPROVED;
+                    } else if (data[1]._id) {
+                        proposalData.process = data[1]._id;
+                        proposalData.status = constProposalStatus.PENDING;
                     }
+
                     if (data[0].name == constProposalType.PLAYER_TOP_UP || data[0].name == constProposalType.PLAYER_MANUAL_TOP_UP ||
                         data[0].name == constProposalType.PLAYER_ALIPAY_TOP_UP || data[0].name == constProposalType.PLAYER_WECHAT_TOP_UP
                         || data[0].name == constProposalType.PLAYER_QUICKPAY_TOP_UP
@@ -278,7 +280,7 @@ var proposal = {
                         }
                     }
 
-                    // SCHEDULED AUTO APPROVAL - DISABLED FOR CSTEST
+                    // SCHEDULED AUTO APPROVAL
                     if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.isAutoApproval) {
                         proposalData.status = constProposalStatus.AUTOAUDIT;
                     }
@@ -286,8 +288,12 @@ var proposal = {
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
                             //for online top up and player consumption return, there can be multiple pending proposals
-                            if (pendingProposal && data[0].name != constProposalType.PLAYER_TOP_UP && data[0].name != constProposalType.PLAYER_CONSUMPTION_RETURN
-                                && data[0].name != constProposalType.PLAYER_REGISTRATION_INTENTION) {
+                            if (pendingProposal
+                                && data[0].name != constProposalType.PLAYER_TOP_UP
+                                && data[0].name != constProposalType.PLAYER_CONSUMPTION_RETURN
+                                && data[0].name != constProposalType.PLAYER_REGISTRATION_INTENTION
+                                && data[0].name != constProposalType.PLAYER_CONSECUTIVE_REWARD_GROUP
+                            ) {
                                 deferred.reject({
                                     name: "DBError",
                                     message: "Player or partner already has a pending proposal for this type"
@@ -383,10 +389,10 @@ var proposal = {
             .populate({path: "data.allowedProviders", model: dbconfig.collection_gameProvider})
             .then(
                 proposalData => {
-                    if(proposalData.data.phone){
+                    if(proposalData && proposalData.data && proposalData.data.phone){
                         proposalData.data.phone = dbutility.encodePhoneNum(proposalData.data.phone);
                     }
-                    if(proposalData.data.phoneNumber){
+                    if(proposalData && proposalData.data && proposalData.data.phoneNumber){
                         proposalData.data.phoneNumber = dbutility.encodePhoneNum(proposalData.data.phoneNumber);
                     }
 
@@ -1490,7 +1496,173 @@ var proposal = {
             return {data: returnData[0], size: returnData[1], summary: summaryObj};
         });
     },
+    getDuplicatePlayerPhoneNumber: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId) {//need
+        platformId = Array.isArray(platformId) ? platformId : [platformId];
 
+        //check proposal without process
+        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
+
+        let playerProm = [];
+        return Q.all([prom1]).then(//removed , prom2
+            data => {
+                if (data && data[0]) { // removed  && data[1]
+                    var types = data[0];
+                    // var processes = data[1];
+                    if (types && types.length > 0) {
+                        var proposalTypesId = [];
+                        for (var i = 0; i < types.length; i++) {
+                            if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
+                                proposalTypesId.push(types[i]._id);
+                            }
+                        }
+                        let selectedPlatformId = platformId[0];
+
+                        var a = dbconfig.collection_players.find({
+                            platform: ObjectId(selectedPlatformId),
+                            phoneNumber: rsaCrypto.encrypt(phoneNumber)
+                        }).populate({
+                            path: 'playerLevel',
+                            model: dbconfig.collection_playerLevel
+                        });
+                        var b = dbconfig.collection_partner.find({
+                            platform: ObjectId(selectedPlatformId),
+                            phoneNumber: phoneNumber
+                        }).populate({
+                            path: 'level',
+                            model: dbconfig.collection_partnerLevel
+                        });
+                        return Q.all([a, b])
+                    }
+                    else {
+                        return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
+                    }
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform proposal related data"});
+                }
+            }).then(data => {
+
+            let duplicateList = [];
+            let plyData = [];
+            let partnerData = [];
+            plyData = proposal.getPlayerIpAreaFromRecord(platformId, data[0]);
+            partnerData = proposal.getPartnerIpAreaFromRecord(platformId, data[1]);
+
+            return Promise.all([plyData, partnerData]).then(
+                ydata => {
+                    let concatList = [];
+                    if (!ydata[0]) {
+                        ydata[0] = [];
+                    }
+                    if (!ydata[1]) {
+                        ydata[1] = [];
+                    }
+                    let duplicateList = ydata[0].concat(ydata[1]);
+                    let resultSize = ydata[0].length + ydata[1].length;
+                    let result = {data: duplicateList, size: resultSize};
+                    return result;
+                },
+                err => {
+                    console.log(err);
+                }
+            )
+
+        })
+    },
+    getPlayerRegistrationIPArea: function(platformId, id, type){
+        let query = {};
+        if (type == 'playerId') {
+            query = {'data.playerId': id}
+        } else {
+            query = {'data.partnerId': id}
+        }
+        query.status = 3;
+
+        return dbconfig.collection_playerRegistrationIntentRecord.findOne(query)
+            .then(data => {
+                if (data) {
+                    let result = data;
+                    return result;
+                } else {
+                    return {};
+                }
+            })
+    },
+    getPlayerIpAreaFromRecord: function(platformId, playersData){
+        let result = [];
+        playersData.forEach(item => {
+            let prom = proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'playerId').then(data => {
+                let ipArea = {};
+                if (data.data) {
+                    ipArea = data.data.ipArea ? data.data.ipArea : {};
+                }
+                let playerUnitData = {
+                    'data': {
+                        'playerId': item.playerId ? item.playerId : '',
+                        'realName': item.realName ? item.realName : '',
+                        'lastLoginIp': item.lastLoginIp ? item.lastLoginIp : '',
+                        'topUpTimes': item.topUpTimes,
+                        'smsCode': '',
+                        'remarks': '',
+                        'device': '',
+                        'promoteWay': '',
+                        'csOfficer': '',
+                        'registrationTime': item.registrationTime ? item.registrationTime : "",
+                        'lastAccessTime': item.lastAccessTime ? item.lastAccessTime : "",
+                        'proposalId': '',
+                        'playerLevel': item.playerLevel,
+                        'credibilityRemarks': item.credibilityRemarks ? item.credibilityRemarks : "",
+                        'valueScore': item.valueScore ? item.valueScore : 0,
+                        'phoneProvince': item.phoneProvince ? item.phoneProvince : '',
+                        'phoneCity': item.phoneCity ? item.phoneCity : '',
+                        'ipArea': ipArea,
+                        'name': item.name ? item.name : ''
+                    }
+                };
+                return playerUnitData;
+            });
+            result.push(prom);
+        });
+        return Promise.all(result);
+    },
+    getPartnerIpAreaFromRecord:function(platformId, partnerData){
+
+        let result = [];
+        partnerData.forEach(item => {
+            let prom = proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'partnerId').then(data => {
+                let ipArea = {};
+                if (data.data) {
+                    ipArea = data.data.ipArea ? data.data.ipArea : {};
+                }
+                let partnerUnitData = {
+                    'data': {
+                        'name': item.partnerName ? item.partnerName : '',
+                        'playerId': item.playerId ? item.playerId : '',
+                        'realName': item.realName ? item.realName : '',
+                        'lastLoginIp': item.lastLoginIp ? item.lastLoginIp : '',
+                        'topUpTimes': item.topUpTimes,
+                        'smsCode': '',
+                        'remarks': '',
+                        'device': '',
+                        'promoteWay': '',
+                        'csOfficer': '',
+                        'registrationTime': item.registrationTime ? item.registrationTime : "",
+                        'lastAccessTime': item.lastAccessTime ? item.lastAccessTime : "",
+                        'proposalId': '',
+                        'playerLevel': item.level,
+                        'credibilityRemarks': item.credibilityRemarks ? item.credibilityRemarks : "",
+                        'valueScore': item.valueScore ? item.valueScore : '',
+                        'phoneProvince': item.phoneProvince ? item.phoneProvince : '',
+                        'phoneCity': item.phoneCity ? item.phoneCity : '',
+                        'ipArea': ipArea
+                    },
+                }
+                return partnerUnitData;
+            })
+            result.push(prom);
+        })
+        return Promise.all(result);
+    },
     getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
 
@@ -1513,7 +1685,7 @@ var proposal = {
 
                         var queryObj = {
                             status: {$in: statusArr},
-                            data:  { $exists: true, $ne: null } 
+                            data:  { $exists: true, $ne: null }
                         };
                         if (startTime && endTime) {
                             queryObj['createTime'] = {
@@ -1530,7 +1702,7 @@ var proposal = {
 
                         if (size >= 0) {
                             var a = dbconfig.collection_playerRegistrationIntentRecord.find(queryObj)
-                                .populate({path: 'playerId', model: dbconfig.collection_players})
+                                //.populate({path: 'playerId', model: dbconfig.collection_players})
                                 .sort(sortCol).skip(index).limit(size).lean()
                                 .then(
                                     pdata => {
@@ -1633,6 +1805,12 @@ var proposal = {
                                 }
                                 if (d[0].status) {
                                     returnData[0][i].data.playerStatus = d[0].status;
+                                }
+                                if(d[0].smsSetting){
+                                    returnData[0][i].data.smsSetting = d[0].smsSetting
+                                }
+                                if(d[0].receiveSMS){
+                                    returnData[0][i].data.receiveSMS = d[0].receiveSMS
                                 }
                             }
 
@@ -1911,11 +2089,11 @@ var proposal = {
                 return playerAttemptNumber.filter(function(event){return statusArr.includes(parseInt(event.status)) && event.attemptNo == attemptNo})
             }
         }).then(data => {
-            let statusArray = [constRegistrationIntentRecordStatus.INTENT,constRegistrationIntentRecordStatus.VERIFICATION_CODE,constRegistrationIntentRecordStatus.SUCCESS,constRegistrationIntentRecordStatus.FAIL
-                ,constRegistrationIntentRecordStatus.MANUAL];
+            // let statusArray = [constRegistrationIntentRecordStatus.INTENT,constRegistrationIntentRecordStatus.VERIFICATION_CODE,constRegistrationIntentRecordStatus.SUCCESS,constRegistrationIntentRecordStatus.FAIL
+            //     ,constRegistrationIntentRecordStatus.MANUAL];
             data.map(d => {
                 userName = d.name;
-                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArray, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum);
+                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum);
                 returnArr.push(p);
             })
         }).then(data => {

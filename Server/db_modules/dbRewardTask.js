@@ -184,7 +184,7 @@ var dbRewardTask = {
             .exec();
     },
 
-    getPlayerRewardTask: function (playerId, from, to, index, limit, sortCol) {
+    getPlayerRewardTask: function (playerId, from, to, index, limit, sortCol, useProviderGroup) {
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'createTime': -1};
@@ -195,12 +195,22 @@ var dbRewardTask = {
                 $lt: new Date(to)
             }
         }
-        var a = dbconfig.collection_rewardTask.find(queryObj).count();
-        var b = dbconfig.collection_rewardTask.find(queryObj).sort(sortCol).skip(index).limit(limit)
+
+        let a,b,c,d;
+
+        a = dbconfig.collection_rewardTask.find(queryObj).count();
+        b = dbconfig.collection_rewardTask.find(queryObj).sort(sortCol).skip(index).limit(limit)
             .populate({path: "targetProviders", model: dbconfig.collection_gameProvider}).lean();
-        return Q.all([a, b]).then(
+
+        if(useProviderGroup) {
+            c = dbconfig.collection_rewardTaskGroup.find(queryObj).count();
+            d = dbconfig.collection_rewardTaskGroup.find(queryObj).sort(sortCol).skip(index).limit(limit)
+                .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
+        }
+
+        return Q.all([a, b, c, d]).then(
             data => {
-                return {size: data[0], data: data[1]}
+                return {size: data[0], data: data[1], rewardTaskGroupSize: data[2], rewardTaskGroupData: data[3]}
             }
         )
     },
@@ -441,7 +451,7 @@ var dbRewardTask = {
                             status: taskData.status,
                             unlockTime: taskData.unlockTime
                         }
-                    ).then(
+                    ).lean().then(
                         newTaskData => {
                             var proms = [];
                             if (!newTaskData.isUnlock && bAchieved) {
@@ -455,7 +465,12 @@ var dbRewardTask = {
                                 bDirty = true;
                                 proms.push(dbconfig.collection_playerConsumptionRecord.findOneAndUpdate(
                                     {_id: consumptionRecord._id, createTime: consumptionRecord.createTime},
-                                    {bDirty: true}
+                                    {
+                                        bDirty: true,
+                                        usedType: taskData.rewardType,
+                                        $push: {usedEvent: taskData.eventId},
+                                        usedTaskId: taskData._id
+                                    }
                                 ));
                             }
                             return Q.all(proms);
