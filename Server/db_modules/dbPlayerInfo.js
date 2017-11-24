@@ -9317,6 +9317,7 @@ let dbPlayerInfo = {
     },
 
     applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName) {
+        data = data || {};
         let playerInfo = null;
         let adminInfo = '';
         if (adminId && adminName) {
@@ -9538,6 +9539,48 @@ let dbPlayerInfo = {
                 }
             }
         );
+    },
+
+    getPlayerCheckInBonus: function (userAgent, playerId) {
+        let platformObjId;
+        let playersQuery = {
+            playerId: playerId
+        };
+        return dbconfig.collection_players.findOne(playersQuery).lean().then(
+            player => {
+                platformObjId = player.platform;
+                let rewardTypeQuery = {
+                    name: constProposalType.PLAYER_CONSECUTIVE_REWARD_GROUP
+                };
+                return dbconfig.collection_rewardType.findOne(rewardTypeQuery);
+            }
+        ).then(
+            rewardType => {
+                if(rewardType) {
+                    let rewardEventQuery = {
+                        platform: platformObjId,
+                        type: rewardType._id
+                    };
+                    return dbconfig.collection_rewardEvent.find(rewardEventQuery).lean().sort({validStartTime: -1});
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Cannot find reward type for type name"
+                    });
+                }
+            }
+        ).then(
+            rewardEvents => {
+                if(rewardEvents && rewardEvents.length > 0) {
+                    return dbPlayerInfo.applyRewardEvent(userAgent, playerId, rewardEvents[0].code);
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Cannot find reward event for platform and type name"
+                    });
+                }
+            }
+        )
     },
 
     getPlayerTransferErrorLog: function (playerObjId) {

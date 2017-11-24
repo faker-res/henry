@@ -93,7 +93,7 @@ var dbRewardEvent = {
                     ).populate({path: "rewardType", model: dbconfig.collection_rewardType}).sort({_id: -1}).exec();
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Can't find reward type for type name"});
+                    deferred.reject({name: "DataError", message: "Cannot find reward type for type name"});
                 }
             },
             function (error) {
@@ -101,7 +101,7 @@ var dbRewardEvent = {
             }
         ).then(
             function (eventData) {
-                if (eventData) {
+                if (eventData && eventData.length > 0) {
                     if (rewardTypeName == constProposalType.PLATFORM_TRANSACTION_REWARD) {
                         deferred.resolve(eventData);
                     } else {
@@ -109,7 +109,7 @@ var dbRewardEvent = {
                     }
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Can't find reward event for platform and type name"});
+                    deferred.reject({name: "DataError", message: "Cannot find reward event for platform and type name"});
                 }
             },
             function (error) {
