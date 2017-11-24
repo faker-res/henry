@@ -14407,6 +14407,56 @@ define(['js/app'], function (myApp) {
 
             vm.rewardPointsTabClicked = function (choice) {
                 vm.selectedRewardPointTab = choice;
+                switch (choice) {
+                    case 'rewardPointsRule':
+                        vm.isRewardPointsLvlConfigEditing = false;
+                        vm.rewardPointsLvlConfig = {};
+                        Q.all([vm.getRewardPointsLvlConfig(),vm.getAllPlayerLevels(),vm.getPlatformProviderGroup()]).then(
+                            (data) => {
+                                // Check is all player level already set rewardPointsLvlConfig
+                                vm.allPlayerLvl.forEach((playerLvl) => {
+                                    let isPlayerLvlSet = false;
+                                    vm.rewardPointsLvlConfig = vm.rewardPointsLvlConfig ? vm.rewardPointsLvlConfig : {};
+                                    vm.rewardPointsLvlConfig.params = vm.rewardPointsLvlConfig.params ? vm.rewardPointsLvlConfig.params : [];
+                                    vm.rewardPointsLvlConfig.params.forEach((param) => {
+                                        if (param.levelObjId == playerLvl._id) {
+                                            isPlayerLvlSet = true;
+                                        }
+                                    });
+                                    if (!isPlayerLvlSet) {
+                                        vm.rewardPointsLvlConfig.params.push({'levelObjId' : playerLvl._id});
+                                    }
+                                });
+                                $scope.safeApply();
+                            }
+                        );
+                        break;
+                    case 'loginRewardPoints':
+                        break;
+                    case 'topupRewardPoints':
+                        break;
+                    case 'gameRewardPoints':
+                        break;
+                    case 'rewardPointsRanking':
+                        break;
+                    case 'rewardPointsLog':
+                        break;
+                }
+            };
+
+            vm.getRewardPointsLvlConfig = () => {
+                return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: vm.selectedPlatform.id}).then((data) => {
+                    vm.rewardPointsLvlConfig = data.data;
+                    $scope.safeApply();
+                });
+            };
+
+            vm.rewardPointsLvlConfigSubmit = () => {
+                vm.rewardPointsLvlConfig.platformObjId = vm.rewardPointsLvlConfig.platformObjId ? vm.rewardPointsLvlConfig.platformObjId : vm.selectedPlatform.id;
+                $scope.$socketPromise('upsertRewardPointsLvlConfig', {rewardPointsLvlConfig: vm.rewardPointsLvlConfig}).then((data) => {
+                    vm.isRewardPointsLvlConfigEditing=false;
+                    $scope.safeApply();
+                });
             };
 
             function loadPromoCodeTypes() {
