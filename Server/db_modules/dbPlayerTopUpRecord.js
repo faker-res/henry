@@ -83,6 +83,88 @@ var dbPlayerTopUpRecord = {
         ).allowDiskUse(true).exec();
     },
 
+    assignTopUpRecordUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, byPassedEvent, usedProposal, rewardType) {
+        let topUpQuery = {
+            platformId: platformObjId,
+            playerId: playerObjId,
+        };
+
+        if (startTime) {
+            topUpQuery.createTime = {$gte: startTime};
+            if (endTime) {
+                topUpQuery.createTime.$lte = endTime;
+            }
+        }
+
+        let updateValue = {
+            bDirty: true,
+            $push: {usedEvent: eventObjId}
+        };
+
+        if (rewardType) {
+            updateValue.usedType = rewardType;
+        }
+
+        if (usedProposal) {
+            updateValue.usedProposal = usedProposal;
+        }
+
+        let recordIds = [];
+
+        let rewardEventQuery = {platform: platformObjId};
+
+        if (byPassedEvent && byPassedEvent.length > 0) {
+            rewardEventQuery._id = {$nin: byPassedEvent};
+        }
+
+        return dbconfig.collection_rewardEvent.distinct("_id", rewardEventQuery).then(
+            rewardEventIds => {
+                topUpQuery.usedProposal = {$nin: rewardEventIds};
+                dbconfig.collection_playerTopUpRecord.find(topUpQuery).lean()
+            }
+        ).then(
+            consumptionRecords => {
+                let curAmount = 0;
+
+                for (var i = 0; i < consumptionRecords.length; i++) {
+                    let record = consumptionRecords[i];
+                    recordIds.push(record._id);
+                    curAmount += record.amount;
+                    if (curAmount >= spendingAmount) {
+                        break;
+                    }
+                }
+
+                dbconfig.collection_playerTopUpRecord.update(
+                    {_id: {$in: recordIds}},
+                    updateValue,
+                    {multi: true}
+                ).exec();
+
+                return recordIds;
+            }
+        );
+    },
+
+    /**
+     *  Add usedEvent to consumption record
+     */
+    unassignTopUpRecordUsedEvent: function (recordIds, eventObjId) {
+        dbconfig.collection_playerTopUpRecord.update(
+            {_id: {$in: recordIds}},
+            {bDirty: false, $pull: {usedEvent: eventObjId}},
+            {multi: true}
+        ).exec();
+    },
+
+    unassignTopUpRecordUsedEventByProposal: function (proposalId, eventObjId) {
+        dbconfig.collection_playerTopUpRecord.update(
+            {usedProposal: proposalId},
+            {bDirty: false, $pull: {usedEvent: eventObjId}},
+            {multi: true}
+        ).exec();
+    },
+
     /**
      * Get total top up amount in a certain period of time
      * @param {Date} startTime,endTime - The date info

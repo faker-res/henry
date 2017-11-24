@@ -468,7 +468,7 @@ var dbRewardTask = {
                                     {
                                         bDirty: true,
                                         usedType: taskData.rewardType,
-                                        usedEvent: taskData.eventId,
+                                        $push: {usedEvent: taskData.eventId},
                                         usedTaskId: taskData._id
                                     }
                                 ));
