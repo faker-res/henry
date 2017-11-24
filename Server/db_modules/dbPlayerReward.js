@@ -26,6 +26,7 @@ const dbRewardEvent = require('./../db_modules/dbRewardEvent');
 const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 const dbPlayerPayment = require('../db_modules/dbPlayerPayment');
 const dbPlayerTopUpRecord = require('../db_modules/dbPlayerTopUpRecord');
+const dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
 
 const dbConfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
@@ -3236,6 +3237,13 @@ let dbPlayerReward = {
 
                         if (applyDetail.targetDate) {
                             proposalData.data.applyTargetDate = applyDetail.targetDate.startTime;
+                        }
+
+                        let addUsedEventProms = [];
+                        let addUsedEventToConsumptionProm = Promise.resolve();
+                        if (applyDetail.requiredConsumptionMet) {
+                            addUsedEventToConsumptionProm = dbPlayerConsumptionRecord.assignConsumptionUsedEvent(
+                                playerData.platform._id, playerData._id, eventData._id,)
                         }
 
                         let prom = dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
