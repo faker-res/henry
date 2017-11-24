@@ -158,6 +158,9 @@ var roleChecker = {
         "deleteGameProvider": true,
 
         "getGameTypeList": true,
+        "getAllGameTypes": true,
+        "getRewardEventsForPlatform": true,
+
 
         //todo::to be added to permission list
         "getCredibilityRemarks": true,
@@ -541,7 +544,7 @@ var roleChecker = {
         },
         Report: {
             General: {
-                Read: ['getPlatform', 'getProposalTypeByPlatformId'],
+                Read: ['getPlatform', 'getProposalTypeByPlatformId', "getAllGameTypes", "getPlayerLevelByPlatformId", "getRewardEventsForPlatform", "getPromoCodeTypes"],
                 TOPUP_REPORT: ['topupReport', "getMerchantTypeList"],
                 PROPOSAL_REPORT: ['getProposalStaticsReport'],
                 PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],
