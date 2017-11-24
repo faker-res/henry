@@ -4711,7 +4711,7 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.pointTask === false ? "rewardPointRed.png" : "rewardPointBlue.png"),
+                                    'src': "images/icon/" + (perm.rewardPointTask === false ? "rewardPointRed.png" : "rewardPointBlue.png"),
                                     height: "14px",
                                     width: "14px",
                                 }));
