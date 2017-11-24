@@ -350,7 +350,7 @@ let dbPlayerReward = {
                                 let bonus = currentParam.rewardAmount;
                                 let requestedTimes = currentParam.spendingTimes || 1;
 
-                                insertOutputList(1, step, bonus, requestedTimes, result.targetDate.startTime,
+                                insertOutputList(1, currentStreak+1, bonus, requestedTimes, result.targetDate.startTime,
                                     currentParam.forbidWithdrawAfterApply, currentParam.remark, currentParam.isSharedWithXIMA,
                                     result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
                             }
@@ -362,7 +362,7 @@ let dbPlayerReward = {
                             let bonus = selectedParam.rewardAmount;
                             let requestedTimes = selectedParam.spendingTimes || 1;
 
-                            insertOutputList(1, step, bonus, requestedTimes, result.targetDate.startTime,
+                            insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate.startTime,
                                 selectedParam.forbidWithdrawAfterApply, selectedParam.remark, selectedParam.isSharedWithXIMA,
                                 result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
                         }
