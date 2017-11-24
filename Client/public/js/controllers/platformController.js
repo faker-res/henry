@@ -14051,7 +14051,11 @@ define(['js/app'], function (myApp) {
 
                             // Get time string in object type
                             if (condType == "date") {
-                                condValue = condValue.data('datetimepicker').getLocalDate();
+                                if (condValue.find("input").val()) {
+                                    condValue = condValue.data('datetimepicker').getLocalDate();
+                                } else {
+                                    condValue = null;
+                                }
                             }
 
                             // Save name and code to outer level
@@ -14071,7 +14075,9 @@ define(['js/app'], function (myApp) {
                             }
 
                             // Save reward condition
-                            curReward.condition[condName] = condValue;
+                            if ((condType == "date" && condValue) || condType != "date") {
+                                curReward.condition[condName] = condValue;
+                            }
                         }
                     });
 
@@ -14135,15 +14141,19 @@ define(['js/app'], function (myApp) {
 
                 if (vm.showRewardTypeData.isGrouped === true) {
                     // Set condition
+                    console.log("WLAOWHOLE",vm.rewardMainCondition);
                     Object.keys(vm.rewardMainCondition).forEach(e => {
                         if (vm.rewardMainCondition[e].value !== undefined) {
                             let condName = vm.rewardMainCondition[e].name;
                             let condType = vm.rewardMainCondition[e].type;
                             let condValue = vm.rewardMainCondition[e].value;
-
                             // Get time string in object type
                             if (condType == "date") {
-                                condValue = condValue.data('datetimepicker').getLocalDate();
+                                if (condValue.find("input").val()) {
+                                    condValue = condValue.data('datetimepicker').getLocalDate();
+                                } else {
+                                    condValue = null;
+                                }
                             }
 
                             // Save name and code to outer level
@@ -14163,7 +14173,9 @@ define(['js/app'], function (myApp) {
                             }
 
                             // Save reward condition
-                            sendData.condition[condName] = condValue;
+                            if ((condType == "date" && condValue) || condType != "date") {
+                                sendData.condition[condName] = condValue;
+                            }
                         }
                     });
 
@@ -14198,6 +14210,7 @@ define(['js/app'], function (myApp) {
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                 console.log('vm.rewardMainCondition', vm.rewardMainCondition);
                 console.log("newReward", sendData);
+                console.log("newReward2", vm.showReward.validStartTime);
                 socketService.$socket($scope.AppSocket, 'createRewardEvent', sendData, function (data) {
                     //vm.allGameProvider = data.data;
                     vm.rewardTabClicked();
