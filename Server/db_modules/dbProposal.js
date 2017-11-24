@@ -389,10 +389,10 @@ var proposal = {
             .populate({path: "data.allowedProviders", model: dbconfig.collection_gameProvider})
             .then(
                 proposalData => {
-                    if(proposalData.data.phone){
+                    if(proposalData && proposalData.data && proposalData.data.phone){
                         proposalData.data.phone = dbutility.encodePhoneNum(proposalData.data.phone);
                     }
-                    if(proposalData.data.phoneNumber){
+                    if(proposalData && proposalData.data && proposalData.data.phoneNumber){
                         proposalData.data.phoneNumber = dbutility.encodePhoneNum(proposalData.data.phoneNumber);
                     }
 

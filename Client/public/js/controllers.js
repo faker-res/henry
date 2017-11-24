@@ -479,7 +479,21 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         1: "deposit - withdrawal",
         2: "consumption - reward",
         3: "consumtion sum"
-    }
+    };
+
+    $scope.constRewardPointsIntervalPeriod = {
+        1: "Daily",
+        2: "Weekly",
+        3: "Biweekly",
+        4: "Monthly",
+        5: "No Interval",
+        6: "Custom"
+    };
+
+    $scope.constRewardPointsApplyMethod = {
+        1: "Manual Apply",
+        2: "Auto Apply"
+    };
 
     // $scope.consumptionRecordProviderName = {
     //     1: "AGOTHS",
