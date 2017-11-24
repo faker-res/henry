@@ -555,30 +555,6 @@
         });
     };
 
-    proto.getSignInfo = function (callback, requestData) {
-        var thisObj = this;
-        var data = requestData || {};
-
-        thisObj.playerService.getSignInfo.request(data);
-        thisObj.playerService.getSignInfo.once(function (data) {
-            if (typeof callback === "function") {
-                callback(data);
-            }
-        });
-    };
-
-    proto.getSignBonus = function (callback, requestData) {
-        var thisObj = this;
-        var data = requestData || {};
-
-        thisObj.playerService.getSignBonus.request(data);
-        thisObj.playerService.getSignBonus.once(function (data) {
-            if (typeof callback === "function") {
-                callback(data);
-            }
-        });
-    };
-
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

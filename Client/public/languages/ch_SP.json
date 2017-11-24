@@ -2766,6 +2766,8 @@
   "Please try again random reward tomorrow": "今日已参与，明日继续随机抽奖吧！",
   "useConsumptionAmount": "消耗投注额",
   "useTopUpAmount": "消耗存款金额",
+  "Reached Max Level":"已达到最高等级",
+  "Reached Min Level":"目前在起始等级",
   "Consumption can not be shared with XIMA": "占用投注记录（优惠产生流水不可同时洗码）",
   "rewardPoint": "积分系统",
   "REWARD_POINTS_RULE": "积分规则",
@@ -2781,6 +2783,14 @@
   "pointToCreditManualMaxPoints": "积分 至 真钱 提前单日最高可兑换积分",
   "pointToCreditAutoRate (N points : 1 credit)": "积分 至 真钱 到期兑换比例（N 积分 : 1 真钱）",
   "pointToCreditAutoMaxPoints": "积分 至 真钱 到期最高可兑换积分",
-  "spendingAmountOnReward": "兑换真钱后流水倍数"
+  "spendingAmountOnReward": "兑换真钱后流水倍数",
+  "rewardPointsCategory": "积分类型",
+  "loginRewardPoints": "登入积分",
+  "displayOrder": "展示顺序",
+  "targetDestination": "登入目标",
+  "consecutiveCount": "累积登入天数",
+  "rewardPoints": "获得积分",
+  "rewardTitle": "文字标题",
+  "rewardContent": "内文说明"
 
 }

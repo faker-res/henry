@@ -219,6 +219,20 @@
         this.rewardService.setBonusShowInfo.once(callback);
     };
 
+    proto.getSignInfo = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardService.getSignInfo.request(data);
+        this.rewardService.getSignInfo.once(callback);
+    };
+
+    proto.getSignBonus = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardService.getSignBonus.request(data);
+        this.rewardService.getSignBonus.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientRewardAPITest;
     } else {
