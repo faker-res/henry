@@ -107,6 +107,7 @@ var playerSchema = new Schema({
         alipayTransaction: {type: Boolean, default: true},
         quickpayTransaction: {type: Boolean, default: true},
         banReward: {type: Boolean, default: false},
+        rewardPointTask: {type: Boolean, default: true},
         disableWechatPay: {type: Boolean, default: false},
         forbidPlayerConsumptionReturn: {type: Boolean, default: false},
         forbidPlayerConsumptionIncentive: {type: Boolean, default: false},

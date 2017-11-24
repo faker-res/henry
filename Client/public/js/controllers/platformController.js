@@ -4629,6 +4629,7 @@ define(['js/app'], function (myApp) {
                                     'class': 'playerPermissionPopover',
                                     'ng-click': "vm.permissionPlayer = " + JSON.stringify(row)
                                     + "; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;"
+                                    + "; vm.permissionPlayer.permission.rewardPointTask = !vm.permissionPlayer.permission.rewardPointTask;"
                                     + "; vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
@@ -5405,6 +5406,7 @@ define(['js/app'], function (myApp) {
 
                                 // Invert second render
                                 row.permission.banReward = !row.permission.banReward;
+                                row.permission.rewardPointTask = !row.permission.rewardPointTask;
                                 row.permission.disableWechatPay = !row.permission.disableWechatPay;
                                 row.permission.forbidPlayerConsumptionReturn = !row.permission.forbidPlayerConsumptionReturn;
                                 row.permission.forbidPlayerConsumptionIncentive = !row.permission.forbidPlayerConsumptionIncentive;
@@ -5446,6 +5448,10 @@ define(['js/app'], function (myApp) {
                                     // Invert faked permission display
                                     if (changeObj.hasOwnProperty('banReward')) {
                                         changeObj.banReward = !changeObj.banReward;
+                                    }
+
+                                    if (changeObj.hasOwnProperty('rewardPointTask')) {
+                                        changeObj.rewardPointTask = !changeObj.rewardPointTask;
                                     }
 
                                     if (changeObj.hasOwnProperty('disableWechatPay')) {
@@ -14051,7 +14057,11 @@ define(['js/app'], function (myApp) {
 
                             // Get time string in object type
                             if (condType == "date") {
-                                condValue = condValue.data('datetimepicker').getLocalDate();
+                                if (condValue.find("input").val()) {
+                                    condValue = condValue.data('datetimepicker').getLocalDate();
+                                } else {
+                                    condValue = null;
+                                }
                             }
 
                             // Save name and code to outer level
@@ -14071,7 +14081,9 @@ define(['js/app'], function (myApp) {
                             }
 
                             // Save reward condition
-                            curReward.condition[condName] = condValue;
+                            if ((condType == "date" && condValue) || condType != "date") {
+                                curReward.condition[condName] = condValue;
+                            }
                         }
                     });
 
@@ -14140,10 +14152,13 @@ define(['js/app'], function (myApp) {
                             let condName = vm.rewardMainCondition[e].name;
                             let condType = vm.rewardMainCondition[e].type;
                             let condValue = vm.rewardMainCondition[e].value;
-
                             // Get time string in object type
                             if (condType == "date") {
-                                condValue = condValue.data('datetimepicker').getLocalDate();
+                                if (condValue.find("input").val()) {
+                                    condValue = condValue.data('datetimepicker').getLocalDate();
+                                } else {
+                                    condValue = null;
+                                }
                             }
 
                             // Save name and code to outer level
@@ -14163,7 +14178,9 @@ define(['js/app'], function (myApp) {
                             }
 
                             // Save reward condition
-                            sendData.condition[condName] = condValue;
+                            if ((condType == "date" && condValue) || condType != "date") {
+                                sendData.condition[condName] = condValue;
+                            }
                         }
                     });
 
@@ -14198,6 +14215,7 @@ define(['js/app'], function (myApp) {
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                 console.log('vm.rewardMainCondition', vm.rewardMainCondition);
                 console.log("newReward", sendData);
+                console.log("newReward2", vm.showReward.validStartTime);
                 socketService.$socket($scope.AppSocket, 'createRewardEvent', sendData, function (data) {
                     //vm.allGameProvider = data.data;
                     vm.rewardTabClicked();
