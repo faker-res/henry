@@ -5496,8 +5496,6 @@ let dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     checkPlayerLevelUp: function (playerObjId, platformObjId) {
-        //todo::temp disable player auto level up
-
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
         }
@@ -5793,16 +5791,16 @@ let dbPlayerInfo = {
                                     if (meetsEnoughConditions) {
                                         levelObjId = level._id;
                                         levelUpObj = level;
-                                    }else{
-                                        if(!meetsConsumptionCondition){
+                                    } else {
+                                        if (!meetsConsumptionCondition) {
                                             errorCode = constServerCode.NO_REACH_CONSUMPTION;
                                             errorMsg = 'NO_REACH_CONSUMPTION';
                                         }
-                                        if(!meetsTopupCondition){
+                                        if (!meetsTopupCondition) {
                                             errorCode = constServerCode.NO_REACH_TOPUP;
                                             errorMsg = 'NO_REACH_TOPUP';
                                         }
-                                        if(!meetsEnoughConditions){
+                                        if (!meetsEnoughConditions) {
                                             errorCode = constServerCode.NO_REACH_TOPUP_CONSUMPTION;
                                             errorMsg = 'NO_REACH_TOPUP_CONSUMPTION';
                                         }
@@ -5897,13 +5895,13 @@ let dbPlayerInfo = {
                             }
                         );
                     }
-                    else {
-                        return Q.reject({
-                            status: errorCode,
-                            name:"DataError",
-                            message: errorMsg
-                        })
-                    }
+                    // else {
+                    //     return Q.reject({
+                    //         status: errorCode,
+                    //         name:"DataError",
+                    //         message: errorMsg
+                    //     })
+                    // }
                 }
                 else {
                     // Either player, player.playerLevel, the platform or the platform's playerLevels were not found.

@@ -70,6 +70,8 @@ var playerMailSchema = require('./../schema/playerMail');
 let playerFeedbackResultSchema = require('./../schema/playerFeedbackResult');
 let playerFeedbackTopicSchema = require('./../schema/playerFeedbackTopic');
 
+let rewardPointsLvlConfigSchema = require('./../schema/rewardPointsLvlConfig');
+
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -159,6 +161,8 @@ let promoCodeUserGroupModel = db_admin.model('promoCodeUserGroup', promoCodeUser
 
 let playerFeedbackResultModel = db_admin.model('playerFeedbackResult', playerFeedbackResultSchema, 'playerFeedbackResult');
 let playerFeedbackTopicModel = db_admin.model('playerFeedbackTopic', playerFeedbackTopicSchema, 'playerFeedbackTopic');
+
+let rewardPointsLvlConfigModel = db_admin.model('rewardPointsLvlConfig', rewardPointsLvlConfigSchema, 'rewardPointsLvlConfig');
 
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
@@ -348,6 +352,7 @@ var dbProperties = {
     collection_rewardType: rewardTypeModel,
     collection_rewardCondition: rewardConditionModel,
     collection_rewardTask: rewardTaskModel,
+    collection_rewardPointsLvlConfig: rewardPointsLvlConfigModel,
 
     collection_players: playerModel,
     collection_playerLevel: playerLevelModel,

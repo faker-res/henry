@@ -2773,6 +2773,14 @@
   "TOPUP_REWARD_POINTS": "存款积分",
   "GAME_REWARD_POINTS": "游戏积分",
   "REWARD_POINTS_RANKING": "积分排行榜",
-  "REWARD_POINTS_LOG": "积分变化记录"
+  "REWARD_POINTS_LOG": "积分变化记录",
+  "intervalPeriod": "（到期）积分清零/兑换周期",
+  "applyMethod": "获取积分提案申请（生成）方式",
+  "dailyMaxPoints": "单日获取积分上限",
+  "pointToCreditManualRate (N points : 1 Credit)": "积分 至 真钱 提前兑换比例（N 积分 : 1 真钱）",
+  "pointToCreditManualMaxPoints": "积分 至 真钱 提前单日最高可兑换积分",
+  "pointToCreditAutoRate (N points : 1 credit)": "积分 至 真钱 到期兑换比例（N 积分 : 1 真钱）",
+  "pointToCreditAutoMaxPoints": "积分 至 真钱 到期最高可兑换积分",
+  "spendingAmountOnReward": "兑换真钱后流水倍数"
 
 }

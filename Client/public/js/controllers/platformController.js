@@ -14057,7 +14057,11 @@ define(['js/app'], function (myApp) {
 
                             // Get time string in object type
                             if (condType == "date") {
-                                condValue = condValue.data('datetimepicker').getLocalDate();
+                                if (condValue.find("input").val()) {
+                                    condValue = condValue.data('datetimepicker').getLocalDate();
+                                } else {
+                                    condValue = null;
+                                }
                             }
 
                             // Save name and code to outer level
@@ -14077,7 +14081,9 @@ define(['js/app'], function (myApp) {
                             }
 
                             // Save reward condition
-                            curReward.condition[condName] = condValue;
+                            if ((condType == "date" && condValue) || condType != "date") {
+                                curReward.condition[condName] = condValue;
+                            }
                         }
                     });
 
@@ -14141,15 +14147,19 @@ define(['js/app'], function (myApp) {
 
                 if (vm.showRewardTypeData.isGrouped === true) {
                     // Set condition
+                    console.log("WLAOWHOLE",vm.rewardMainCondition);
                     Object.keys(vm.rewardMainCondition).forEach(e => {
                         if (vm.rewardMainCondition[e].value !== undefined) {
                             let condName = vm.rewardMainCondition[e].name;
                             let condType = vm.rewardMainCondition[e].type;
                             let condValue = vm.rewardMainCondition[e].value;
-
                             // Get time string in object type
                             if (condType == "date") {
-                                condValue = condValue.data('datetimepicker').getLocalDate();
+                                if (condValue.find("input").val()) {
+                                    condValue = condValue.data('datetimepicker').getLocalDate();
+                                } else {
+                                    condValue = null;
+                                }
                             }
 
                             // Save name and code to outer level
@@ -14169,7 +14179,9 @@ define(['js/app'], function (myApp) {
                             }
 
                             // Save reward condition
-                            sendData.condition[condName] = condValue;
+                            if ((condType == "date" && condValue) || condType != "date") {
+                                sendData.condition[condName] = condValue;
+                            }
                         }
                     });
 
@@ -14204,6 +14216,7 @@ define(['js/app'], function (myApp) {
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                 console.log('vm.rewardMainCondition', vm.rewardMainCondition);
                 console.log("newReward", sendData);
+                console.log("newReward2", vm.showReward.validStartTime);
                 socketService.$socket($scope.AppSocket, 'createRewardEvent', sendData, function (data) {
                     //vm.allGameProvider = data.data;
                     vm.rewardTabClicked();
@@ -14413,6 +14426,56 @@ define(['js/app'], function (myApp) {
 
             vm.rewardPointsTabClicked = function (choice) {
                 vm.selectedRewardPointTab = choice;
+                switch (choice) {
+                    case 'rewardPointsRule':
+                        vm.isRewardPointsLvlConfigEditing = false;
+                        vm.rewardPointsLvlConfig = {};
+                        Q.all([vm.getRewardPointsLvlConfig(),vm.getAllPlayerLevels(),vm.getPlatformProviderGroup()]).then(
+                            (data) => {
+                                // Check is all player level already set rewardPointsLvlConfig
+                                vm.allPlayerLvl.forEach((playerLvl) => {
+                                    let isPlayerLvlSet = false;
+                                    vm.rewardPointsLvlConfig = vm.rewardPointsLvlConfig ? vm.rewardPointsLvlConfig : {};
+                                    vm.rewardPointsLvlConfig.params = vm.rewardPointsLvlConfig.params ? vm.rewardPointsLvlConfig.params : [];
+                                    vm.rewardPointsLvlConfig.params.forEach((param) => {
+                                        if (param.levelObjId == playerLvl._id) {
+                                            isPlayerLvlSet = true;
+                                        }
+                                    });
+                                    if (!isPlayerLvlSet) {
+                                        vm.rewardPointsLvlConfig.params.push({'levelObjId' : playerLvl._id});
+                                    }
+                                });
+                                $scope.safeApply();
+                            }
+                        );
+                        break;
+                    case 'loginRewardPoints':
+                        break;
+                    case 'topupRewardPoints':
+                        break;
+                    case 'gameRewardPoints':
+                        break;
+                    case 'rewardPointsRanking':
+                        break;
+                    case 'rewardPointsLog':
+                        break;
+                }
+            };
+
+            vm.getRewardPointsLvlConfig = () => {
+                return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: vm.selectedPlatform.id}).then((data) => {
+                    vm.rewardPointsLvlConfig = data.data;
+                    $scope.safeApply();
+                });
+            };
+
+            vm.rewardPointsLvlConfigSubmit = () => {
+                vm.rewardPointsLvlConfig.platformObjId = vm.rewardPointsLvlConfig.platformObjId ? vm.rewardPointsLvlConfig.platformObjId : vm.selectedPlatform.id;
+                $scope.$socketPromise('upsertRewardPointsLvlConfig', {rewardPointsLvlConfig: vm.rewardPointsLvlConfig}).then((data) => {
+                    vm.isRewardPointsLvlConfigEditing=false;
+                    $scope.safeApply();
+                });
             };
 
             function loadPromoCodeTypes() {
