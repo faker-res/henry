@@ -5649,6 +5649,10 @@ let dbPlayerInfo = {
         let errorCode = '';
         var playerObj = null;
         var levelUpObj = null;
+        var levelErrorMsg = '';
+        // A flag to determine LevelUp Stop At Where.
+        var levelUpEnd = false;
+
         return Promise.resolve(player).then(
             function (player) {
                 if (player && player.playerLevel) {
@@ -5660,7 +5664,6 @@ let dbPlayerInfo = {
                     // ) {
                     //     return {};
                     // }
-
                     playerObj = player;
                     //// Fetch other player levels
                     //var query = {platform: playerObj.platform};
@@ -5678,11 +5681,17 @@ let dbPlayerInfo = {
 
                     if (checkLevelUp && !checkLevelDown) {
                         playerLevels = playerLevels.filter(level => level.value > playerObj.playerLevel.value);
-                    }
-                    if (checkLevelDown && !checkLevelUp) {
+                        if(playerLevels.length == 0){
+                            levelErrorMsg = 'Reached Max Level';
+                        }
+                    }else if (checkLevelDown && !checkLevelUp) {
                         playerLevels = playerLevels.filter(level => level.value <= playerObj.playerLevel.value);
+                        if(playerLevels.length == 0){
+                            levelErrorMsg = 'Reached Min Level';
+                        }
+                    }else{
+                        levelErrorMsg = 'Player Level Not Found';
                     }
-
                     return Promise.resolve(playerLevels);
                 }
                 else {
@@ -5765,7 +5774,6 @@ let dbPlayerInfo = {
 
                                 const conditionSets = level.levelUpConfig;
 
-
                                 for (let j = 0; j < conditionSets.length; j++) {
                                     const conditionSet = conditionSets[j];
 
@@ -5793,18 +5801,25 @@ let dbPlayerInfo = {
                                         levelObjId = level._id;
                                         levelUpObj = level;
                                     }else{
-                                        if(!meetsConsumptionCondition){
-                                            errorCode = constServerCode.NO_REACH_CONSUMPTION;
-                                            errorMsg = 'NO_REACH_CONSUMPTION';
+
+                                        if(!levelUpEnd){
+                                            if(!meetsEnoughConditions){
+                                                errorCode = constServerCode.NO_REACH_TOPUP_CONSUMPTION;
+                                                errorMsg = 'NO_REACH_TOPUP_CONSUMPTION';
+                                            }
+                                            if(!meetsConsumptionCondition && meetsTopupCondition){
+                                                errorCode = constServerCode.NO_REACH_CONSUMPTION;
+                                                errorMsg = 'NO_REACH_CONSUMPTION';
+                                            }
+                                            if(!meetsTopupCondition && meetsConsumptionCondition){
+                                                errorCode = constServerCode.NO_REACH_TOPUP;
+                                                errorMsg = 'NO_REACH_TOPUP';
+                                            }
                                         }
-                                        if(!meetsTopupCondition){
-                                            errorCode = constServerCode.NO_REACH_TOPUP;
-                                            errorMsg = 'NO_REACH_TOPUP';
-                                        }
-                                        if(!meetsEnoughConditions){
-                                            errorCode = constServerCode.NO_REACH_TOPUP_CONSUMPTION;
-                                            errorMsg = 'NO_REACH_TOPUP_CONSUMPTION';
-                                        }
+                                        // because it will loop All the level, so i set a flag in here,
+                                        // to show what's the condition the player dont meet .
+                                        // otherwise, later state will override the prev state
+                                        levelUpEnd = true;
                                     }
                                 }
 
@@ -5874,7 +5889,37 @@ let dbPlayerInfo = {
                                                 }
                                             }
                                         }
-                                    );
+                                    ).then(
+                                        proposalResult=>{
+                                            console.log(proposalResult);
+
+                                            let rewardPrice = [];
+                                            let prevLevel = Number(playerObj.playerLevel.value) + 1;
+                                            let currentLevel = levelUpObj.value + 1;
+                                            let levelUpDistance = levelUpObj.value - playerObj.playerLevel.value;
+                                            let prevLevelName = playerObj.playerLevel.name || '';
+                                            let currentLevelName = levelUpObj.name || '';
+                                            for(var i = 0; i < levelUpDistance; i++){
+                                                rewardPrice.push(levels[i].reward.bonusCredit);
+                                            }
+                                            let rewardPriceCount = rewardPrice.length;
+                                            let mainMessage =  '恭喜您从 '+ prevLevelName +' 升级到 '+ currentLevelName;
+                                            let subMessage = ',获得';
+                                            rewardPrice.forEach(
+                                                function(val, index){
+                                                    let colon = '、';
+                                                    if(index==rewardPrice.length-1){
+                                                        colon = '';
+                                                    }
+                                                    subMessage += ''+ val +'元'+colon;
+                                                }
+                                            )
+                                            subMessage += '共'+ rewardPrice.length +'个礼包';
+                                            let message = mainMessage + subMessage;
+                                            return {message:message}
+
+                                        }
+                                    )
 
                                     // If there is a reward for this level, give it to the player
                                     // if (levelUpObj && levelUpObj.reward && levelUpObj.reward.bonusCredit) {
@@ -5912,7 +5957,7 @@ let dbPlayerInfo = {
                     //return "No_Level_Change";
                     return Q.reject({
                         name:"DataError",
-                        message: "PlayerLevel Is Not Found"
+                        message: levelErrorMsg
                     })
 
                 }

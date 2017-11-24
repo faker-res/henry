@@ -2737,5 +2737,7 @@
   "Approved Time": "成功执行时间",
   "Please try again random reward tomorrow": "今日已参与，明日继续随机抽奖吧！",
   "useConsumptionAmount": "消耗投注额",
-  "useTopUpAmount": "消耗存款金额"
+  "useTopUpAmount": "消耗存款金额",
+  "Reached Max Level":"已达到最高等级",
+  "Reached Min Level":"目前在起始等级"
 }
