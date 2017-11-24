@@ -24,6 +24,50 @@
 
                 // Tab - rewardPointsRule
                 div#createPromoCodePage(ng-if='vm.selectedRewardPointTab=="rewardPointsRule" && checkViewPermission("Platform", "rewardPoints", "rewardPointsRule")')
+                    .full-width-input-block
+                        label {{"intervalPeriod" | translate}}
+                        select.form-control(ng-model='vm.rewardPointsLvlConfig.intervalPeriod' ng-options="+(i) as v | translate for (i,v) in constRewardPointsIntervalPeriod" ng-disabled='!vm.isRewardPointsLvlConfigEditing', required)
+                    .full-width-input-block
+                        label {{"applyMethod" | translate}}
+                        select.form-control(ng-model='vm.rewardPointsLvlConfig.applyMethod' ng-options="+(i) as v | translate for (i,v) in constRewardPointsApplyMethod" ng-disabled='!vm.isRewardPointsLvlConfigEditing', required)
+                    br
+                    br
+                    table.simple-table(style="width:100%")
+                        thead
+                            tr
+                                th {{'playerLevel' | translate}}
+                                th {{'dailyMaxPoints' | translate}}
+                                th {{'pointToCreditManualRate (N points : 1 Credit)' | translate}}
+                                th {{'pointToCreditManualMaxPoints' | translate}}
+                                th {{'pointToCreditAutoRate (N points : 1 credit)' | translate}}
+                                th {{'pointToCreditAutoMaxPoints' | translate}}
+                                th {{'spendingAmountOnReward' | translate}}
+                                th {{'providerGroup' | translate}}
+                        tbody
+                            tr(ng-repeat='(idx,val) in vm.rewardPointsLvlConfig.params')
+                                td(ng-repeat='(k,v) in vm.allPlayerLvl' ng-if='val.levelObjId==v._id') {{v.name}}
+                                td
+                                    input.form-control(type='number' ng-model='val.dailyMaxPoints' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
+                                td
+                                    input.form-control(type='number' ng-model='val.pointToCreditManualRate' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
+                                td
+                                    input.form-control(type='number' ng-model='val.pointToCreditManualMaxPoints' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
+                                td
+                                    input.form-control(type='number' ng-model='val.pointToCreditAutoRate' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
+                                td
+                                    input.form-control(type='number' ng-model='val.pointToCreditAutoMaxPoints' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
+                                td
+                                    input.form-control(type='number' ng-model='val.spendingAmountOnReward' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
+                                td
+                                    select.form-control(ng-model="val.providerGroup" ng-options="v._id as v.name | translate for (i,v) in vm.gameProviderGroup" ng-disabled='!vm.isRewardPointsLvlConfigEditing')
+
+                    br
+                    .pull-right
+                        button.btn.btn-danger.common-button(ng-if='vm.isRewardPointsLvlConfigEditing' ng-click='vm.isRewardPointsLvlConfigEditing=false;vm.rewardPointsTabClicked("rewardPointsRule")') {{'CANCEL' | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.isRewardPointsLvlConfigEditing' ng-click='vm.rewardPointsLvlConfigSubmit()') {{'CONFIRM' | translate}}
+                        button.btn.btn-primary.common-button(ng-if='!vm.isRewardPointsLvlConfigEditing' ng-click='vm.isRewardPointsLvlConfigEditing=true;')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
 
 
                 // Tab - loginRewardPoints
@@ -38,7 +82,7 @@
                 div(ng-if='vm.selectedRewardPointTab=="gameRewardPoints" && checkViewPermission("Platform", "rewardPoints", "gameRewardPoints")')
 
                 // Tab - rewardPointsRanking
-                div(ng-if='vm.selectedRewardPointTab=="rewardPointsRanking" && checkViewPermission("Platform", "rewardPoints", "rewardPointsRanking"")')
+                div(ng-if='vm.selectedRewardPointTab=="rewardPointsRanking" && checkViewPermission("Platform", "rewardPoints", "rewardPointsRanking")')
 
 
                 // Tab - rewardPointsLog

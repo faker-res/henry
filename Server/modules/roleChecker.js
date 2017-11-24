@@ -425,7 +425,8 @@ var roleChecker = {
                 FilterAllPlatform: []
             },
             "rewardPoints": {
-                Read: [],
+                Read: ['getRewardPointsLvlConfig'],
+                Update: ['upsertRewardPointsLvlConfig']
             }
         },
         Payment: {
