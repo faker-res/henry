@@ -5636,6 +5636,9 @@ let dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod) {
+
+        console.log('checkPlayerLevelMigration', player, playerLevels, checkLevelUp, checkLevelDown);
+
         if (!player) {
             throw Error("player was not provided!");
         }
