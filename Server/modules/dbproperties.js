@@ -71,6 +71,10 @@ let playerFeedbackResultSchema = require('./../schema/playerFeedbackResult');
 let playerFeedbackTopicSchema = require('./../schema/playerFeedbackTopic');
 
 let rewardPointsLvlConfigSchema = require('./../schema/rewardPointsLvlConfig');
+let rewardPointsSchema = require('./../schema/rewardPoints');
+let rewardPointsEventSchema = require('./../schema/rewardPointsEvent');
+let rewardPointsTaskSchema = require('./../schema/rewardPointsTask');
+
 
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
@@ -89,6 +93,7 @@ var rewardTypeModel = db_admin.model('rewardType', rewardTypeSchema, 'rewardType
 var rewardRuleModel = db_admin.model('rewardRule', rewardRuleSchema, 'rewardRule');
 var rewardParamModel = db_admin.model('rewardParam', rewardParamSchema, 'rewardParam');
 var rewardConditionModel = db_admin.model('rewardCondition', rewardConditionSchema, 'rewardCondition');
+let rewardPointsEventModel = db_admin.model('rewardPointsEvent', rewardPointsEventSchema, 'rewardPointsEvent');
 
 var apiUserModel = db_admin.model('apiUser', apiUserSchema, 'apiUser');
 var platformModel = db_admin.model('platform', platformSchema, 'platform');
@@ -170,6 +175,8 @@ var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema
 var partnerModel = db_player.model('partner', partnerSchema, 'partner');
 
 var rewardTaskModel = db_player.model('rewardTask', rewardTaskSchema, 'rewardTask');
+let rewardPointsModel = db_player.model('rewardPoints', rewardPointsSchema, 'rewardPoints');
+let rewardPointsTaskModel = db_player.model('rewardPointsTask', rewardPointsTaskSchema, 'rewardPointsTask');
 
 //----------------------------------------logs db properties-----------------------------------------------------------
 var playerMailModel = dbLogs.model('playerMail', playerMailSchema, 'playerMail');
@@ -306,6 +313,9 @@ let playerForbidGameLogModel = dbLogs.model('playerForbidGameLog', playerForbidG
 let playerForbidTopUpLogSchema = require('./../schema/logs/playerForbidTopUpLog');
 let playerForbidTopUpLogModel = dbLogs.model('playerForbidTopUpLog', playerForbidTopUpLogSchema, 'playerForbidTopUpLog');
 
+let rewardPointsLogSchema = require('./../schema/rewardPointsLog');
+let rewardPointsLogModel = dbLogs.model('rewardPointsLog', rewardPointsLogSchema, 'rewardPointsLog');
+
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -353,6 +363,9 @@ var dbProperties = {
     collection_rewardCondition: rewardConditionModel,
     collection_rewardTask: rewardTaskModel,
     collection_rewardPointsLvlConfig: rewardPointsLvlConfigModel,
+    collection_rewardPointsEvent: rewardPointsEventModel,
+    collection_rewardPoints: rewardPointsModel,
+    collection_rewardPointsTask: rewardPointsTaskModel,
 
     collection_players: playerModel,
     collection_playerLevel: playerLevelModel,
@@ -449,6 +462,7 @@ var dbProperties = {
     collection_playerForbidRewardLog: playerForbidRewardLogModel,
     collection_playerForbidGameLog: playerForbidGameLogModel,
     collection_playerForbidTopUpLog: playerForbidTopUpLogModel,
+    collection_rewardPointsLog: rewardPointsLogModel,
     collection_rewardTaskGroup: rewardTaskGroupModel,
 
     //unique
