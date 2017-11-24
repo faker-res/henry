@@ -313,7 +313,7 @@ let playerForbidGameLogModel = dbLogs.model('playerForbidGameLog', playerForbidG
 let playerForbidTopUpLogSchema = require('./../schema/logs/playerForbidTopUpLog');
 let playerForbidTopUpLogModel = dbLogs.model('playerForbidTopUpLog', playerForbidTopUpLogSchema, 'playerForbidTopUpLog');
 
-let rewardPointsLogSchema = require('./../schema/rewardPointsLog');
+let rewardPointsLogSchema = require('./../schema/logs/rewardPointsLog');
 let rewardPointsLogModel = dbLogs.model('rewardPointsLog', rewardPointsLogSchema, 'rewardPointsLog');
 
 //unique schema
