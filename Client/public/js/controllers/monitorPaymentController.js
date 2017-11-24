@@ -568,9 +568,10 @@ define(['js/app'], function (myApp) {
                             item.topupTypeStr = typeID
                                 ? $translate(vm.topUpTypeList[typeID])
                                 : $translate("Unknown")
+                            item.merchantNo$ = vm.getOnlineMerchantId(item.data.merchantNo);
                         } else {
                             //show topup type for other types
-                            item.topupTypeStr = $translate(item.type.name)
+                            item.topupTypeStr = $translate(item.type.name);
                         }
                         item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
                         //item.endTime$ = item.data.lastSettleTime ? utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) : "-";
@@ -587,18 +588,33 @@ define(['js/app'], function (myApp) {
         vm.getMerchantName = function (merchantNo) {
             let merchantName = '';
             let result = '';
-            if (merchantNo) {
-                let merchantName = vm.merchantGroups.filter(item => {
-                    return item.list.includes(merchantNo);
+            if (merchantNo && vm.merchants) {
+                let merchant = vm.merchants.filter(item => {
+                    return item.merchantNo == merchantNo;
                 });
-                result = merchantName[0] ? merchantName[0].name : '';
-            } else {
-                result = '';
+                if (merchant.length > 0) {
+                    let merchantName = vm.merchantTypes.filter(item => {
+                        return item.merchantTypeId == merchant[0].merchantTypeId;
+                    })
+                    if (merchantName[0]) {
+                        result = merchantName[0].name;
+                    }
+                }
             }
             return result;
         }
-
-
+        vm.getOnlineMerchantId = function (merchantNo) {
+            let result = '';
+            if (merchantNo && vm.merchants) {
+                let merchant = vm.merchants.filter(item => {
+                    return item.merchantNo == merchantNo;
+                })
+                if (merchant.length > 0) {
+                    result = merchant[0].name
+                }
+            }
+            return result;
+        }
         vm.resetTopUpMonitorQuery = function () {
             vm.paymentMonitorQuery.mainTopupType = "";
             vm.paymentMonitorQuery.topupType = "";

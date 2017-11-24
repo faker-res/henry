@@ -1760,7 +1760,7 @@ define(['js/app'], function (myApp) {
             for (let i in proposalDetail) {
                 // Add provider group name
                 if (i == "providerGroup") {
-                    proposalDetail.providerGroup = vm.getProviderGroupNameById(proposalDetail[i]);
+                    proposalDetail.providerGroup = proposalDetail[i] ? vm.getProviderGroupNameById(proposalDetail[i]) : $translate("LOCAL_CREDIT");
                 }
 
                 //remove objectIDs

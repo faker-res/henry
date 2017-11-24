@@ -85,10 +85,18 @@ var dbPlayerRegistrationIntentRecord = {
             name: data.name
         };
 
-        let query = {
-            name: data.name,
-            "data.phoneNumber": data.phoneNumber,
-            "data.smsCode": data.smsCode
+        let query;
+        if(data.name){
+            query = {
+                name: data.name,
+                "data.phoneNumber": data.phoneNumber,
+                "data.smsCode": data.smsCode
+            }
+        }else{
+            query = {
+                "data.phoneNumber": data.phoneNumber,
+                "data.smsCode": data.smsCode
+            }
         }
 
         if(data.lastLoginIp && data.lastLoginIp != "undefined"){
@@ -103,20 +111,10 @@ var dbPlayerRegistrationIntentRecord = {
                     return data;
                 }
             ).then(data => {
-                if(newIntentData.status != constRegistrationIntentRecordStatus.MANUAL){
-                    return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
-                }else{
-                    let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                    return newRecord.save();
-                }
+                return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
             })
         }else{
-            if(newIntentData.status != constRegistrationIntentRecordStatus.MANUAL){
-                return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
-            }else{
-                let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                return newRecord.save();
-            }
+            return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
         }
     },
 
@@ -126,21 +124,32 @@ var dbPlayerRegistrationIntentRecord = {
                 if( typeData ){
                     return dbconfig.collection_proposal.findOne({
                         type: typeData._id,
-                        "data.name": data.data.name
-                        // "data.phoneNumber": data.data.phoneNumber
+                        "data.name": data.data.name,
+                        "data.phoneNumber": data.data.phoneNumber
                     }).lean().then(
                         proposalData => {
                             if( proposalData ){
-                                //if(proposalData.status != constProposalStatus.SUCCESS){
-                                    dbconfig.collection_proposal.findOneAndUpdate(
-                                        {_id: proposalData._id, createTime: proposalData.createTime},
-                                        {
-                                            status: status,
-                                            "data.realName": data.data.realName,
-                                            "data.playerId": data.data.playerId
-                                        }
-                                    ).then();
-                                //}
+                                return proposalData
+                            }
+                            else{
+                                return dbconfig.collection_proposal.findOne({
+                                    type: typeData._id,
+                                    "data.phoneNumber": data.data.phoneNumber
+                                }).lean();
+                            }
+                        }
+                    ).then(
+                        pData => {
+                            if(pData){
+                                dbconfig.collection_proposal.findOneAndUpdate(
+                                    {_id: pData._id, createTime: pData.createTime},
+                                    {
+                                        status: status,
+                                        "data.realName": data.data.realName,
+                                        "data.playerId": data.data.playerId,
+                                        "data.name": data.data.name
+                                    }
+                                ).then();
                             }
                             else{
                                 dbProposal.createProposalWithTypeName(platform, constProposalType.PLAYER_REGISTRATION_INTENTION, data).then(
@@ -184,15 +193,39 @@ var dbPlayerRegistrationIntentRecord = {
      * @param {string} updateData - The update data string
      */
     updatePlayerRegistrationIntentRecordBySMSCode: function (query, updateData) {
-        if (query) {
-            return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(query, updateData, {new: true});
-        } else {
-            return dbUtil.findOneAndUpdateForShard(
-                dbconfig.collection_playerRegistrationIntentRecord,
-                query, updateData,
-                constShardKeys.collection_playerRegistrationIntentRecord
-            )
-        }
+        let secondQuery = {};
+        return dbconfig.collection_playerRegistrationIntentRecord.find(query).then(data => {
+            if(data && data.length > 0) {
+                return query;
+            }else{
+                secondQuery = {
+                    "data.phoneNumber": query["data.phoneNumber"],
+                    "data.smsCode": query["data.smsCode"]
+                }
+
+                return dbconfig.collection_playerRegistrationIntentRecord.find(secondQuery).then(data2 => {
+                    if(data2 && data2.length > 0){
+                        return secondQuery;
+                    }
+                    return "Create New";
+                })
+            }
+        }).then(queryData =>{
+            if(queryData){
+                    if (queryData != "Create New") {
+                        return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(queryData, updateData, {new: true});
+                    } else {
+                        let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(updateData);
+                        return newRecord.save();
+                    }
+            }else{
+                return dbUtil.findOneAndUpdateForShard(
+                    dbconfig.collection_playerRegistrationIntentRecord,
+                    queryData, updateData,
+                    constShardKeys.collection_playerRegistrationIntentRecord
+                )
+            }
+        })
     },
     /**
      * Get playerRegIntentRecord information

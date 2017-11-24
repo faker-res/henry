@@ -587,7 +587,7 @@ db.rewardParam.update({
                     spendingTimes: {type: "number", des: "Spending times"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
-                        type: "checkbox",
+                        type: "number",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
                     remark: {type: "text", des: "Remark"},
@@ -644,7 +644,7 @@ db.rewardParam.update({
                     spendingTimes: {type: "number", des: "Spending times"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
-                        type: "checkbox",
+                        type: "number",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
                     remark: {type: "text", des: "Remark"},
@@ -660,7 +660,7 @@ db.rewardParam.update({
                     spendingTimes: {type: "number", des: "Spending times"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
-                        type: "checkbox",
+                        type: "number",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
                     remark: {type: "text", des: "Remark"},
@@ -706,7 +706,7 @@ db.rewardParam.update({
                     spendingTimes: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
-                        type: "checkbox",
+                        type: "number",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
                     remark: {type: "text", des: "Remark"},
@@ -760,7 +760,7 @@ db.rewardParam.update({
                     spendingTimes: {type: "number", des: "Spending times"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
-                        type: "checkbox",
+                        type: "number",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
                     remark: {type: "text", des: "Remark"},
@@ -806,7 +806,7 @@ db.rewardParam.update({
             periodCond: {
                 interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval"},
             },
-            consumptionCond: consumptionCond,
+            consumptionCond: {providerGroup: {index: 41, type: "select", des: "Provider group", options: "providerGroup"}},
             consumptionProviderCond: consumptionProviderCond,
             topUpCond: topUpCond,
             latestTopUpCond: {
@@ -823,7 +823,8 @@ db.rewardParam.update({
                     type: "datetimePeriod",
                     des: "Period show reward",
                     value: [{startDate: "", startTime: "", endDate: "", endTime: ""}]
-                }
+                },
+                useConsumptionRecord: {index: 40, type: "checkbox", des: "Consumption can not be shared with XIMA"},
 
             }
         },
@@ -842,7 +843,7 @@ db.rewardParam.update({
                     spendingTimesOnReward: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
-                        type: "checkbox",
+                        type: "number",
                         des: "Forbid withdraw if there is balance after unlock"
                     },
                     remark: {type: "text", des: "Remark"},

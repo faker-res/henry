@@ -299,7 +299,7 @@ let dbPlayerInfo = {
                             }
                             inputData.domain = filteredDomain;
 
-                            if (inputData.partnerId) {
+                            if (!inputData.partnerId) {
                                 let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
                                     data => {
                                         if (data) {
@@ -801,6 +801,7 @@ let dbPlayerInfo = {
             },
             function (error) {
                 deferred.reject({
+                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
                     name: "DBError",
                     message: "Phone number already exists",
                     error: error
@@ -5495,8 +5496,6 @@ let dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     checkPlayerLevelUp: function (playerObjId, platformObjId) {
-        //todo::temp disable player auto level up
-
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
         }
@@ -5815,6 +5814,7 @@ let dbPlayerInfo = {
                                                 errorCode = constServerCode.NO_REACH_TOPUP;
                                                 errorMsg = 'NO_REACH_TOPUP';
                                             }
+
                                         }
                                         // because it will loop All the level, so i set a flag in here,
                                         // to show what's the condition the player dont meet .
@@ -9516,7 +9516,7 @@ let dbPlayerInfo = {
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
-                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
+                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData, data);
                                     break;
                                 default:
                                     return Q.reject({

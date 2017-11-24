@@ -128,6 +128,10 @@
                             a.common-tab(data-toggle="tab", href="#phoneNumFilter", ng-click="vm.platformPageName='phoneNumFilter';vm.updatePageTile();vm.initPhoneNumFilter();")
                                 .fa.fa-phone.margin-right-5
                                 text.span {{"phoneNumFilter" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'rewardPoints','Read')")
+                            a.common-tab(data-toggle="tab", href="#rewardPoint", ng-click="vm.platformPageName='rewardPoint';vm.updatePageTile();")
+                                .fa.fa-file.margin-right-5
+                                text.span {{"rewardPoint" | translate}}
                         //li
                             a.common-tab(ng-show="checkViewPermission('Platform', 'BankCardGroup', 'Read')",data-toggle="tab", href="#bankCardGroup", ng-click="vm.bankCardGroupTabClicked();vm.platformPageName='bankCardGroup';vm.updatePageTile();")
                                 .fa.fa-credit-card.margin-right-5
@@ -180,6 +184,8 @@
                             include platform-registrationUrl-config
                         #phoneNumFilter.tab-pane.fade
                             include ./platform-phone-num-filter
+                        #rewardPoint.tab-pane.fade
+                            include ./platform-reward-point
                             //ui-view
                         //#bankCardGroup.tab-pane.fade
                             include ./platform-bankCardGroup

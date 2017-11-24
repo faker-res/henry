@@ -273,7 +273,7 @@ const dbPlayerMail = {
             function (retData) {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
 
-                if (purpose == constSMSPurpose.REGISTRATION) {
+                //if (purpose == constSMSPurpose.REGISTRATION) {
                     data.smsCode = code
 
                     if( data.phoneNumber ){
@@ -299,7 +299,7 @@ const dbPlayerMail = {
                             return true;
                         }
                     });
-                }
+                //}
 
                 return true;
             }
