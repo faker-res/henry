@@ -14446,6 +14446,8 @@ define(['js/app'], function (myApp) {
                                         vm.rewardPointsLvlConfig.params.push({'levelObjId' : playerLvl._id});
                                     }
                                 });
+                                vm.rewardPointsLvlConfigPeriodChange();
+                                vm.rewardPointsLvlConfigSetDisable(true);
                                 $scope.safeApply();
                             }
                         );
@@ -14475,10 +14477,67 @@ define(['js/app'], function (myApp) {
 
             vm.rewardPointsLvlConfigSubmit = () => {
                 vm.rewardPointsLvlConfig.platformObjId = vm.rewardPointsLvlConfig.platformObjId ? vm.rewardPointsLvlConfig.platformObjId : vm.selectedPlatform.id;
+                if(vm.rewardPointsLvlConfig.intervalPeriod == 6 ){
+                    vm.rewardPointsLvlConfig.customPeriodStartTime = vm.rewardPointsLvlConfig.customPeriodStartTime.data('datetimepicker').getLocalDate();
+                    vm.rewardPointsLvlConfig.customPeriodEndTime = vm.rewardPointsLvlConfig.customPeriodEndTime.data('datetimepicker').getLocalDate();
+                }else{
+                    vm.rewardPointsLvlConfig.customPeriodStartTime = null;
+                    vm.rewardPointsLvlConfig.customPeriodEndTime = null;
+                }
                 $scope.$socketPromise('upsertRewardPointsLvlConfig', {rewardPointsLvlConfig: vm.rewardPointsLvlConfig}).then((data) => {
-                    vm.isRewardPointsLvlConfigEditing=false;
+                    vm.rewardPointsLvlConfigPeriodChange();
+                    vm.rewardPointsLvlConfigSetDisable(true);
                     $scope.safeApply();
                 });
+            };
+
+            vm.rewardPointsLvlConfigPeriodChange = () => {
+                if(vm.rewardPointsLvlConfig.intervalPeriod == 6){
+                    let startDateId = "#rewardPointsLvlConfigStartDate";
+                    utilService.actionAfterLoaded(startDateId, function () {
+
+                        let dateValue = vm.rewardPointsLvlConfig.customPeriodStartTime;
+
+                        vm.rewardPointsLvlConfig.customPeriodStartTime = utilService.createDatePicker(startDateId, {
+                            language: 'en',
+                            format: 'yyyy/MM/dd hh:mm:ss'
+                        });
+                        vm.rewardPointsLvlConfig.customPeriodStartTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                        if (dateValue) {
+                            vm.rewardPointsLvlConfig.customPeriodStartTime.data('datetimepicker').setDate(utilService.getLocalTime(new Date(dateValue)));
+                        }
+                    });
+
+                    let endDateId = "#rewardPointsLvlConfigEndDate";
+                    utilService.actionAfterLoaded(endDateId, function () {
+                        let dateValue = vm.rewardPointsLvlConfig.customPeriodEndTime;
+
+                        vm.rewardPointsLvlConfig.customPeriodEndTime = utilService.createDatePicker(endDateId, {
+                            language: 'en',
+                            format: 'yyyy/MM/dd hh:mm:ss'
+                        });
+                        vm.rewardPointsLvlConfig.customPeriodEndTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                        if (dateValue) {
+                            vm.rewardPointsLvlConfig.customPeriodEndTime.data('datetimepicker').setDate(utilService.getLocalTime(new Date(dateValue)));
+                        }
+                    });
+                }
+            };
+
+            vm.rewardPointsLvlConfigSetDisable = (isDisable) => {
+                vm.isRewardPointsLvlConfigEditing=!isDisable;
+                let startDateId = "#rewardPointsLvlConfigStartDate";
+                let endDateId = "#rewardPointsLvlConfigEndDate";
+                utilService.actionAfterLoaded(startDateId, () => {
+                    $(startDateId+" :input").prop("disabled", isDisable);
+                });
+                utilService.actionAfterLoaded(endDateId, () => {
+                    $(endDateId+" :input").prop("disabled", isDisable);
+                });
+                $scope.safeApply();
+                vm.endLoadWeekDay();
             };
 
             vm.getRewardPointsEventByCategory = (category) => {

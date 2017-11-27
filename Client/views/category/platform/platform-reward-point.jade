@@ -26,7 +26,11 @@
                 div#createPromoCodePage(ng-if='vm.selectedRewardPointTab=="rewardPointsRule" && checkViewPermission("Platform", "rewardPoints", "rewardPointsRule")')
                     .full-width-input-block
                         label {{"intervalPeriod" | translate}}
-                        select.form-control(ng-model='vm.rewardPointsLvlConfig.intervalPeriod' ng-options="+(i) as v | translate for (i,v) in constRewardPointsIntervalPeriod" ng-disabled='!vm.isRewardPointsLvlConfigEditing', required)
+                        select.form-control(ng-model='vm.rewardPointsLvlConfig.intervalPeriod' ng-change='vm.rewardPointsLvlConfigPeriodChange()' ng-options="+(i) as v | translate for (i,v) in constRewardPointsIntervalPeriod" ng-disabled='!vm.isRewardPointsLvlConfigEditing', required)
+                    .full-width-input-block(style='margin-left:50%' ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
+                        div.dateTimePicker(id="rewardPointsLvlConfigStartDate" style="display: inline-block; width: 24%" ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
+                        span(ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6" style='font-size:23px') &nbsp;{{ 'to' | translate}}&nbsp;
+                        div.dateTimePicker(id="rewardPointsLvlConfigEndDate" style="display: inline-block; width: 24%" ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
                     .full-width-input-block
                         label {{"applyMethod" | translate}}
                         select.form-control(ng-model='vm.rewardPointsLvlConfig.applyMethod' ng-options="+(i) as v | translate for (i,v) in constRewardPointsApplyMethod" ng-disabled='!vm.isRewardPointsLvlConfigEditing', required)
@@ -63,9 +67,9 @@
 
                     br
                     .pull-right
-                        button.btn.btn-danger.common-button(ng-if='vm.isRewardPointsLvlConfigEditing' ng-click='vm.isRewardPointsLvlConfigEditing=false;vm.rewardPointsTabClicked("rewardPointsRule")') {{'CANCEL' | translate}}
+                        button.btn.btn-danger.common-button(ng-if='vm.isRewardPointsLvlConfigEditing' ng-click='vm.rewardPointsLvlConfigSetDisable(true);vm.rewardPointsTabClicked("rewardPointsRule")') {{'CANCEL' | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.isRewardPointsLvlConfigEditing' ng-click='vm.rewardPointsLvlConfigSubmit()') {{'CONFIRM' | translate}}
-                        button.btn.btn-primary.common-button(ng-if='!vm.isRewardPointsLvlConfigEditing' ng-click='vm.isRewardPointsLvlConfigEditing=true;')
+                        button.btn.btn-primary.common-button(ng-if='!vm.isRewardPointsLvlConfigEditing' ng-click='vm.rewardPointsLvlConfigSetDisable(false);')
                             text {{'EDIT' | translate}}
                             img.img-edit
 
@@ -90,7 +94,7 @@
                                 td {{'loginRewardPoints' | translate}}
                                 td(style="max-width:150px;")
                                     select.form-control(ng-model='val.period' ng-change='vm.rewardPointsEventPeriodChange(idx,val)' ng-options="+(i) as v | translate for (i,v) in constRewardPointsIntervalPeriod" ng-disabled='!val.isEditing')
-                                    br
+                                    br(ng-if="val.period==6")
                                     div.dateTimePicker(id="rewardPointsEventStartDate-{{idx}}" style="display: inline-block" ng-if="val.period==6")
                                     span(ng-if="val.period==6") {{ 'to' | translate}}
                                     div.dateTimePicker(id="rewardPointsEventEndDate-{{idx}}" style="display: inline-block" ng-if="val.period==6")
