@@ -3210,6 +3210,7 @@ let dbPlayerInfo = {
                     .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
                     .populate({path: "partner", model: dbconfig.collection_partner})
                     .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
+                    .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints, select: 'points'})
                     .lean().then(
                         playerData => {
                             var players = [];
@@ -3220,6 +3221,11 @@ let dbPlayerInfo = {
                                     if (playerData[ind].referral) {
                                         playerData[ind].referralName$ = playerData[ind].referral.name;
                                         playerData[ind].referral = playerData[ind].referral._id;
+                                    }
+
+                                    if (playerData[ind].rewardPointsObjId) {
+                                        playerData[ind].point$ = playerData[ind].rewardPointsObjId.points;
+                                        playerData[ind].rewardPointsObjId = playerData[ind].rewardPointsObjId._id;
                                     }
 
                                     if (isProviderGroup) {

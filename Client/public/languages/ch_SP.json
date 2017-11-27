@@ -2769,6 +2769,7 @@
   "Reached Max Level":"已达到最高等级",
   "Reached Min Level":"目前在起始等级",
   "Consumption can not be shared with XIMA": "占用投注记录（优惠产生流水不可同时洗码）",
+  "POINT": "积分",
   "rewardPoint": "积分系统",
   "REWARD_POINTS_RULE": "积分规则",
   "LOGIN_REWARD_POINTS": "登入积分",
