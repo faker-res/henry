@@ -114,20 +114,23 @@ var dbPlayerTopUpRecord = {
         let rewardEventQuery = {platform: platformObjId};
 
         if (byPassedEvent && byPassedEvent.length > 0) {
+            byPassedEvent.forEach(byPassedEventId => {
+                byPassedEvent.push(ObjectId(byPassedEventId));
+            });
             rewardEventQuery._id = {$nin: byPassedEvent};
         }
 
         return dbconfig.collection_rewardEvent.distinct("_id", rewardEventQuery).then(
             rewardEventIds => {
-                topUpQuery.usedProposal = {$nin: rewardEventIds};
-                dbconfig.collection_playerTopUpRecord.find(topUpQuery).lean()
+                topUpQuery.usedEvent = {$nin: rewardEventIds};
+                return dbconfig.collection_playerTopUpRecord.find(topUpQuery).lean()
             }
         ).then(
-            consumptionRecords => {
+            toUpRecords => {
                 let curAmount = 0;
 
-                for (var i = 0; i < consumptionRecords.length; i++) {
-                    let record = consumptionRecords[i];
+                for (var i = 0; i < toUpRecords.length; i++) {
+                    let record = toUpRecords[i];
                     recordIds.push(record._id);
                     curAmount += record.amount;
                     if (curAmount >= spendingAmount) {
