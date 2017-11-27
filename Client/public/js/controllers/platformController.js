@@ -374,6 +374,10 @@ define(['js/app'], function (myApp) {
                 vm.selectedReapplyLostOrderTab = tabName == null ? "credit" : tabName;
             };
 
+            vm.showRewardPointAdjustmentTab = function (tabName) {
+                vm.selectedRewardPointAdjustmentTab = tabName == null ? "change" : tabName;
+            };
+
             vm.showSmsTab = function (tabName) {
                 if (!tabName && (vm.selectedSinglePlayer && vm.selectedSinglePlayer.permission && vm.selectedSinglePlayer.permission.SMSFeedBack === false)) {
                     vm.smsModalTab = "smsLogPanel";
@@ -4602,13 +4606,13 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointAdjustment')) {
+                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointExchange')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': "images/icon/rewardPointBlue.png",
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointAdjustment);',
+                                        'ng-click': 'vm.showRewardPointAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointAdjustment);',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerRewardPointAdjustment',
