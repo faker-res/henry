@@ -3055,10 +3055,10 @@ define(['js/app'], function (myApp) {
                     tr.addClass('shown');
                 }
             });
-            $('#feedbackReportTable').off('order.dt');
-            $('#feedbackReportTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'feedbackQuery', vm.searchFeedbackReport);
-            });
+            // $('#feedbackReportTable').off('order.dt');
+            // $('#feedbackReportTable').on('order.dt', function (event, a, b) {
+            //     vm.commonSortChangeHandler(a, '', vm.searchFeedbackReport);
+            // });
         };
 
 

@@ -1055,7 +1055,7 @@ var dbPlayerTopUpRecord = {
                             break;
                         case 4:
                         case "4":
-                            depositMethod = "其他";
+                            depositMethod = "支付宝转账";
                             break;
                         default:
                             break;

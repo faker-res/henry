@@ -312,7 +312,7 @@ define(['js/app'], function (myApp) {
                     vm.allBankCardList = [];
                     $.each(data2.data, function (i, v) {
                         if (!vm.allBankTypeList[v.bankTypeId]) {
-                        } else if (vm.filterBankType && (vm.filterBankType != 'all') && (vm.filterBankType != v.bankTypeId)) {
+                        } else if (vm.filterBankType && (vm.filterBankType != 'all' && vm.filterBankType != '') && (!vm.filterBankType.find(bt => bt.includes('(' + v.bankTypeId + ')')))) {
                         } else {
                             vm.allBankCardList.push(v);
                         }
