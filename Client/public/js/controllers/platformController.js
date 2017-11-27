@@ -14457,6 +14457,7 @@ define(['js/app'], function (myApp) {
                         vm.endLoadWeekDay();
                         break;
                     case 'topupRewardPoints':
+                        vm.topupRewardPoints = [];
                         break;
                     case 'gameRewardPoints':
                         break;

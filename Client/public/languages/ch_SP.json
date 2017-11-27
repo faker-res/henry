@@ -2584,6 +2584,8 @@
   "CHOOSE_PROMOTE_WAY": "选择推广方式",
   "DELETE_OFFICER": "删除客服",
   "topUpAmount": "存款额",
+  "dailyTopupAmount": "每日充值金额",
+  "consecutiveTopupCount": "累积充值天数",
   "topUpProposalId": "存款提案号",
   "Offer Name": "标题",
   "Original Amount": "原价",
