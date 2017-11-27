@@ -481,6 +481,22 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         3: "consumtion sum"
     };
 
+    $scope.constRewardPointsTaskCategory = {
+        'LOGIN_REWARD_POINTS': 1,
+        'TOPUP_REWARD_POINTS': 2,
+        'GAME_REWARD_POINTS': 3
+    };
+
+    $scope.constPlayerRegistrationInterface = {
+        0: 'BACKSTAGE',
+        1: 'WEB_PLAYER',
+        2: 'WEB_AGENT',
+        3: 'H5_PLAYER',
+        4: 'H5_AGENT',
+        5: 'APP_PLAYER',
+        6: 'APP_AGENT'
+    };
+
     $scope.constRewardPointsIntervalPeriod = {
         1: "Daily",
         2: "Weekly",
