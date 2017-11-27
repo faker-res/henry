@@ -4419,6 +4419,7 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('POINT'),
+                            "orderable": false,
                             visible: vm.selectedPlatform.data.usePointSystem,
                             data: 'point$',
                             "sClass": "alignRight",
@@ -13199,10 +13200,10 @@ define(['js/app'], function (myApp) {
                             }
 
                             if (el == "topupType") {
-                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("1") > -1)) {
+                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("2") > -1)) {
                                     vm.rewardDisabledParam.push("onlineTopUpType")
                                 }
-                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("2") > -1)) {
+                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("1") > -1)) {
                                     vm.rewardDisabledParam.push("bankCardType")
                                 }
                             }

@@ -406,7 +406,7 @@ var topUpCond = {
     // User device to top up
     userAgent: {index: 10, type: "multiSelect", des: "Top up agent", options: "userAgentType"},
     // Top up type
-    topupType: {index: 11, type: "multiSelect", des: "Top up type", options: "merchantTopupMainTypeJson"},
+    topupType: {index: 11, type: "multiSelect", des: "Top up type", options: "topUpTypeList"},
     // Online top up type
     onlineTopUpType: {index: 12, type: "multiSelect", des: "Online top up type", options: "merchantTopupTypeJson"},
     // Bank card type
