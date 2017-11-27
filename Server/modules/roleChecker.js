@@ -430,7 +430,13 @@ var roleChecker = {
             },
             "rewardPoints": {
                 Read: ['getRewardPointsLvlConfig'],
-                Update: ['upsertRewardPointsLvlConfig']
+                Update: ['upsertRewardPointsLvlConfig'],
+                rewardPointsRule: [],
+                loginRewardPoints: [],
+                topupRewardPoints: [],
+                gameRewardPoints: [],
+                rewardPointsRanking: [],
+                rewardPointsLog: []
             }
         },
         Payment: {
