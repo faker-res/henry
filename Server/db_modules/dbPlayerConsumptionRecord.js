@@ -1320,10 +1320,12 @@ var dbPlayerConsumptionRecord = {
     /**
      *  Add usedEvent to consumption record
      */
-    assignConsumptionUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, usedProposal, rewardType) {
+    assignConsumptionUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, providers, usedProposal, rewardType) {
+        // providers have to be an array
         let consumptionQuery = {
             platformId: platformObjId,
             playerId: playerObjId,
+            bDirty: false
         };
 
         if (startTime) {
@@ -1331,6 +1333,10 @@ var dbPlayerConsumptionRecord = {
             if (endTime) {
                 consumptionQuery.createTime.$lte = endTime;
             }
+        }
+
+        if (providers && providers.length > 0) {
+            consumptionQuery.providerId = {$in: providers};
         }
 
         let updateValue = {
