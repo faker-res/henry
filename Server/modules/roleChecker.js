@@ -430,14 +430,17 @@ var roleChecker = {
                 FilterAllPlatform: []
             },
             "rewardPoints": {
-                Read: ['getRewardPointsLvlConfig'],
-                Update: ['upsertRewardPointsLvlConfig'],
+                Read: ['getRewardPointsLvlConfig', 'getRewardPointsEvent', 'getRewardPointsEventById', 'getRewardPointsEventByCategory'],
+                Create: ['createRewardPointsEvent'],
+                Delete: ['deleteRewardPointsEventById'],
+                Update: ['upsertRewardPointsLvlConfig', 'updateRewardPointsEvent'],
                 rewardPointsRule: [],
                 loginRewardPoints: [],
                 topupRewardPoints: [],
                 gameRewardPoints: [],
                 rewardPointsRanking: [],
                 rewardPointsLog: []
+
             }
         },
         Payment: {
