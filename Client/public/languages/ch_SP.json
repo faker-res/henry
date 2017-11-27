@@ -1628,7 +1628,7 @@
   "commissionLevel": "佣金等级",
   "commissionLevelConfig": "佣金等级设置",
   "PARTNER_COMMISSION_SETTLEMENT_MODE": "代理佣金结算模式",
-  "PlayerBonus": "提款",
+  "PlayerBonus": "玩家提款",
   "PlayerBonus:resetCredit": "玩家提款错误修正",
   "PartnerBonus": "代理提款",
   "GAME_ID": "游戏ID",
