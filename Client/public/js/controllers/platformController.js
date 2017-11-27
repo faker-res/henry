@@ -4118,7 +4118,7 @@ define(['js/app'], function (myApp) {
                             vm.selectedSinglePlayer = null;
                             vm.selectedPlayersCount = 0;
                         }
-                        if (vm.selectedSinglePlayer.referral) {
+                        if (vm.selectedSinglePlayer && vm.selectedSinglePlayer.referral) {
                             socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: vm.selectedSinglePlayer.referral}, function (data) {
                                 vm.showReferralName = data.data.name;
                                 // $scope.safeApply();
@@ -4417,18 +4417,11 @@ define(['js/app'], function (myApp) {
                             },
                             "sClass": "alignLeft"
                         },
+                        // todo :: print out point when it is ready
                         // {
-                        //     title: $translate('TELPHONE'), data: 'phoneNumber',
-                        //     render: function (data, type, row) {
-                        //         data = data || '';
-                        //         return $('<a class="telPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                        //             'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                        //             .attr('data-row', JSON.stringify(row))
-                        //             .text(data)
-                        //             .prop('outerHTML');
-                        //     },
-                        //     advSearch: true,
-                        //     "sClass": "alignLeft"
+                        //     title: $translate('POINT'),
+                        //     data: 'point$',
+                        //     "sClass": "alignLeft",
                         // },
                         {
                             title: $translate('REGISTRATION_TIME'),
@@ -4477,7 +4470,7 @@ define(['js/app'], function (myApp) {
                             },
                             "sClass": "alignRight"
 
-                        }, // todo :: Open player action report default 'login'
+                        },
                         {
                             title: "<div>" + $translate('TOP_UP') + "</div><div>" + $translate('TIMES') + "</div>",
                             "data": 'topUpTimes',
