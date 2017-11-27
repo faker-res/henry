@@ -347,11 +347,19 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         '1': 'MerchantUse_CreateAccount',
         '2': 'MerchantUse_Normal'
     };
+
+    // todo :: check if merchantTopupMainTypeJson actually got the index wrong
     $scope.merchantTopupMainTypeJson = {
         1: "Online",
         2: "Manual",
         3: "Alipay",
         4: "Wechatpay"
+    };
+    $scope.topUpTypeList = {
+        1: "TOPUPMANUAL",
+        2: "TOPUPONLINE",
+        3: "ALIPAY",
+        4: "WechatPay"
     };
     $scope.merchantTopupTypeJson = {
         '1': 'NetPay',
