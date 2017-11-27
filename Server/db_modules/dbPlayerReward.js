@@ -2350,6 +2350,7 @@ let dbPlayerReward = {
         let isUpdateTopupRecord = false;
         let isUpdateMultiTopupRecord = false;
         let isUpdateMultiConsumptionRecord = false;
+        let isSetUsedTopUpRecord = false;
         let consecutiveNumber;
         let isMultiApplication = false;
         let applicationDetails = [];
@@ -2361,6 +2362,8 @@ let dbPlayerReward = {
         let selectedTopUp;
         let updateTopupRecordIds = [];
         let updateConsumptionRecordIds = [];
+
+        let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
         // Get interval time
         if (eventData.condition.interval) {
@@ -2947,17 +2950,25 @@ let dbPlayerReward = {
                     case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                         let loseAmount = rewardSpecificData[0];
 
-                        // if (loseAmount <= 0) {
-                        //     return Q.reject({
-                        //         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                        //         name: "DataError",
-                        //         message: "Player's lose amount less than 0"
-                        //     });
-                        // }
-
                         let topUpinPeriod = 0;
+
                         for (let i = 0; i < topupInPeriodData.length; i++) {
-                            topUpinPeriod += topupInPeriodData[i].amount;
+                            let record = topupInPeriodData[i];
+                            for (let j = 0; j < record.usedEvent.length; j++) {
+                                record.usedEvent[j] = record.usedEvent[j].toString();
+                            }
+                            if (ignoreTopUpBdirtyEvent && ignoreTopUpBdirtyEvent.length > 0) {
+                                let isSubset = record.usedEvent.every(event => {
+                                    return ignoreTopUpBdirtyEvent.indexOf(event) > -1;
+                                });
+                                if (!isSubset)
+                                    continue;
+                            } else {
+                                if (record.bDirty)
+                                    continue;
+                            }
+
+                            topUpinPeriod += record.amount;
                         }
 
                         selectedRewardParam = selectedRewardParam.sort(function (a, b) {
@@ -2986,6 +2997,10 @@ let dbPlayerReward = {
                                     message: "Player's lose amount does not meet condition"
                                 });
                             }
+                        }
+
+                        if (selectedRewardParam && selectedRewardParam.minDeposit) {
+                            isSetUsedTopUpRecord = true;
                         }
 
                         // applyAmount = selectedRewardParam.minDeposit;
@@ -3347,6 +3362,14 @@ let dbPlayerReward = {
 
                                 if (isUpdateValidCredit) {
                                     postPropPromArr.push(dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup));
+                                }
+
+                                if (isSetUsedTopUpRecord) {
+                                    if (intervalTime) {
+                                        postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount,null,null,ignoreTopUpBdirtyEvent));
+                                    } else {
+                                        postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount, intervalTime.startTime, intervalTime.endTime, ignoreTopUpBdirtyEvent));
+                                    }
                                 }
 
                                 return Promise.all(postPropPromArr);
