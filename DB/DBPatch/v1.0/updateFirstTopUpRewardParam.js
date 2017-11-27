@@ -579,12 +579,12 @@ db.rewardParam.update({
         param: {
             tblOptFixed: {
                 isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
-                requiredTopUpAmount: {type: "number", des: "Required top up amount"},
-                requiredConsumptionAmount: {type: "number", des: "Required consumption amount"},
+                requiredTopUpAmount: {type: "number", des: "Required top up amount daily"},
+                requiredConsumptionAmount: {type: "number", des: "Required consumption amount daily"},
                 operatorOption: {type: "checkbox", des: "Required both"},
                 rewardParam: {
                     rewardAmount: {type: "number", des: "Reward amount"},
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    spendingTimes: {type: "number", des: "Spending times needed"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "number",
