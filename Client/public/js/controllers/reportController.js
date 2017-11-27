@@ -894,12 +894,12 @@ define(['js/app'], function (myApp) {
                         displayValues: true,
                         countSelected: $translate('# of % selected'),
                     });
-                    var $multi = ($('select#selectPromoType').next().find('.ms-choice'))[0];
+                    var $multiPromo = ($('select#selectPromoType').next().find('.ms-choice'))[0];
                     $('select#selectPromoType').next().on('click', 'li input[type=checkbox]', function () {
-                        var upText = $($multi).text().split(',').map(item => {
+                        var upText = $($multiPromo).text().split(',').map(item => {
                             return $translate(item);
                         }).join(',');
-                        $($multi).find('span').text(upText)
+                        $($multiPromo).find('span').text(upText)
                     });
                     $("select#selectPromoType").multipleSelect("checkAll");
 
@@ -909,12 +909,12 @@ define(['js/app'], function (myApp) {
                         displayValues: true,
                         countSelected: $translate('# of % selected'),
                     });
-                    var $multi = ($('select#selectRewardType').next().find('.ms-choice'))[0];
+                    var $multiReward = ($('select#selectRewardType').next().find('.ms-choice'))[0];
                     $('select#selectRewardType').next().on('click', 'li input[type=checkbox]', function () {
-                        var upText = $($multi).text().split(',').map(item => {
+                        var upText = $($multiReward).text().split(',').map(item => {
                             return $translate(item);
                         }).join(',');
-                        $($multi).find('span').text(upText)
+                        $($multiReward).find('span').text(upText)
                     });
                     $("select#selectRewardType").multipleSelect("checkAll");
 
