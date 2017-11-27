@@ -633,6 +633,7 @@ define(['js/app'], function (myApp) {
                         vm.getPlatformAnnouncements();
                         vm.promoCodeTabClicked();
                         vm.phoneNumFilterClicked();
+                        vm.rewardPointsTabClicked();
                         //     break;
                         // }
                         $scope.safeApply();
@@ -14450,6 +14451,10 @@ define(['js/app'], function (myApp) {
                         );
                         break;
                     case 'loginRewardPoints':
+                        vm.loginRewardPoints = [];
+                        vm.getAllGameProviders(vm.selectedPlatform.id);
+                        $scope.safeApply();
+                        vm.endLoadWeekDay();
                         break;
                     case 'topupRewardPoints':
                         break;
@@ -14475,6 +14480,18 @@ define(['js/app'], function (myApp) {
                     vm.isRewardPointsLvlConfigEditing=false;
                     $scope.safeApply();
                 });
+            };
+
+            vm.loginRewardPointsSubmit = (loginRewardPoints) => {
+                delete loginRewardPoints.isEditing;
+                //Todo upsert to server
+                $scope.safeApply();
+            };
+
+            vm.loginRewardPointsDelete = (index,loginRewardPoints) => {
+                vm.loginRewardPoints.splice(index,1);
+                //Todo delete from server
+                $scope.safeApply();
             };
 
             function loadPromoCodeTypes() {

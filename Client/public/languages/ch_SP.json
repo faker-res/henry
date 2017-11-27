@@ -2783,6 +2783,14 @@
   "pointToCreditManualMaxPoints": "积分 至 真钱 提前单日最高可兑换积分",
   "pointToCreditAutoRate (N points : 1 credit)": "积分 至 真钱 到期兑换比例（N 积分 : 1 真钱）",
   "pointToCreditAutoMaxPoints": "积分 至 真钱 到期最高可兑换积分",
-  "spendingAmountOnReward": "兑换真钱后流水倍数"
+  "spendingAmountOnReward": "兑换真钱后流水倍数",
+  "rewardPointsCategory": "积分类型",
+  "loginRewardPoints": "登入积分",
+  "displayOrder": "展示顺序",
+  "targetDestination": "登入目标",
+  "consecutiveCount": "累积登入天数",
+  "rewardPoints": "获得积分",
+  "rewardTitle": "文字标题",
+  "rewardContent": "内文说明"
 
 }
