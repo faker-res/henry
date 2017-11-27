@@ -5514,7 +5514,7 @@ let dbPlayerInfo = {
 
                         return Q.all([playerProm, levelsProm]).spread(
                             function (player, playerLevels) {
-                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, false );
                             }
                         );
                     }
@@ -5557,7 +5557,7 @@ let dbPlayerInfo = {
                                 if (!player) {
                                     return Q.reject({name: "DataError", message: "Cannot find player"});
                                 }
-                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true);
                             },
                             function () {
                                 return Q.reject({name: "DataError", message: "Cannot find player"});
@@ -5598,7 +5598,7 @@ let dbPlayerInfo = {
                         if (!player || !playerLevels)
                             return Q.reject({name: "DataError", message: "Data not found"});
 
-                        return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                        return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true);
                     },
                     function () {
                         return Q.reject({name: "DataError", message: "Data not found"});
@@ -5633,7 +5633,7 @@ let dbPlayerInfo = {
      * #param {String} [checkPeriod] - For level down only. We will only consider weekly conditions if checkPeriod is 'WEEK'.
      * @returns {Promise.<*>}
      */
-    checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod) {
+    checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod, showReject) {
         if (!player) {
             throw Error("player was not provided!");
         }
@@ -5942,11 +5942,15 @@ let dbPlayerInfo = {
                         );
                     }
                     else {
-                        return Q.reject({
-                            status: errorCode,
-                            name: "DataError",
-                            message: errorMsg
-                        })
+                        if(showReject){
+                            return Q.reject({
+                                status: errorCode,
+                                name: "DataError",
+                                message: errorMsg
+                            })
+                        }else{
+                            return "No_Level_Change";
+                        }
                     }
                 }
                 else {
@@ -5955,11 +5959,14 @@ let dbPlayerInfo = {
                     // Original code would sometimes expect the player or the playerLevels to be undefined,
                     // if the player had no consumption, or they were already on the highest level.
                     //return "No_Level_Change";
-                    return Q.reject({
-                        name: "DataError",
-                        message: levelErrorMsg
-                    })
-
+                    if(showReject){
+                        return Q.reject({
+                            name: "DataError",
+                            message: levelErrorMsg
+                        })
+                    }else{
+                        return "No_Level_Change";
+                    }
                 }
             },
             function (error) {
