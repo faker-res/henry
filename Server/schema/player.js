@@ -266,6 +266,8 @@ var playerSchema = new Schema({
     accAdmin: {type: String},
     csOfficer: {type: Schema.ObjectId, ref: 'admin'},
     promoteWay: {type: String},
+    // reward point object
+    rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints'},
 });
 
 //record is unique by name and platform
