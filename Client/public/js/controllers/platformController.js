@@ -4202,7 +4202,7 @@ define(['js/app'], function (myApp) {
                     columnDefs: [
                         {targets: '_all', defaultContent: ' '}
                     ],
-                    "order": vm.playerTableQuery.aaSorting || [[6, 'desc']],
+                    "order": vm.playerTableQuery.aaSorting || [[7, 'desc']],
                     columns: [
                         // {title: $translate('PLAYER_ID'), data: "playerId", advSearch: true},
                         {
@@ -4417,12 +4417,12 @@ define(['js/app'], function (myApp) {
                             },
                             "sClass": "alignLeft"
                         },
-                        // todo :: print out point when it is ready
-                        // {
-                        //     title: $translate('POINT'),
-                        //     data: 'point$',
-                        //     "sClass": "alignLeft",
-                        // },
+                        {
+                            title: $translate('POINT'),
+                            visible: vm.selectedPlatform.data.usePointSystem,
+                            data: 'point$',
+                            "sClass": "alignRight",
+                        },
                         {
                             title: $translate('REGISTRATION_TIME'),
                             data: 'registrationTime',
