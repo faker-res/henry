@@ -4149,6 +4149,8 @@ define(['js/app'], function (myApp) {
                     item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
                     item.typeName = $translate(item.type.name || "Unknown");
                     item.mainType$ = $translate(item.mainType || "Unknown");
+                    if (item.mainType === "PlayerBonus")
+                        item.mainType$ = $translate("Bonus");
                     item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
                     item.status$ = $translate(vm.getStatusStrfromRow(item));
 
