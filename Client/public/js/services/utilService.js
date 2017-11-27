@@ -720,6 +720,7 @@ define([], function () {
                 case "UpdatePlayerPhone":
                 case "UpdatePlayerQQ":
                 case "UpdatePlayerWeChat":
+                case "PlayerLevelMigration":
                     groupName = "PLAYER_INFORMATION";
                     break;
                 case "UpdatePartnerInfo":
@@ -734,7 +735,6 @@ define([], function () {
                 case "FixPlayerCreditTransfer":
                 case "UpdatePartnerCredit":
                 case "ManualUnlockPlayerReward":
-                case "PlayerLevelMigration":
                 case "PlayerRegistrationIntention":
                 case "PlayerLimitedOfferIntention":
                 default:
