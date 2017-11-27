@@ -368,6 +368,13 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         '12': 'QQWAP',
         '13': 'PCard'
     };
+    $scope.depositMethod = {
+        1: "网银转账(Online Transfer)",
+        2: "自动取款机(ATM)",
+        3: "银行柜台(Counter)",
+        4: "网银跨行(InterBank Transfer)",
+        5: "支付宝(AliPay)"
+    };
     $scope.merchantTargetDeviceJson = {
         '1': "clientType_Web",
         '2': 'clientType_H5',

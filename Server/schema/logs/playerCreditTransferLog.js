@@ -20,7 +20,7 @@ var playerCreditTransferLogSchema = new Schema({
     // transfer id
     transferId: {type: String, required: true, index: true},
     // Date of action
-    providerId: {type: String, required: true},
+    providerId: {type: String, required: true, index: true},
     // amount
     amount: {type: Number, required: true},
     // locked amount
@@ -32,7 +32,7 @@ var playerCreditTransferLogSchema = new Schema({
     // any additional JSON data
     data: JSON,
     //status
-    status: {type: String},
+    status: {type: String, index: true},
     //if this log has been used
     bUsed: {type: Boolean}
 });

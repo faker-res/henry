@@ -374,6 +374,10 @@ define(['js/app'], function (myApp) {
                 vm.selectedReapplyLostOrderTab = tabName == null ? "credit" : tabName;
             };
 
+            vm.showRewardPointAdjustmentTab = function (tabName) {
+                vm.selectedRewardPointAdjustmentTab = tabName == null ? "change" : tabName;
+            };
+
             vm.showSmsTab = function (tabName) {
                 if (!tabName && (vm.selectedSinglePlayer && vm.selectedSinglePlayer.permission && vm.selectedSinglePlayer.permission.SMSFeedBack === false)) {
                     vm.smsModalTab = "smsLogPanel";
@@ -4118,7 +4122,7 @@ define(['js/app'], function (myApp) {
                             vm.selectedSinglePlayer = null;
                             vm.selectedPlayersCount = 0;
                         }
-                        if (vm.selectedSinglePlayer.referral) {
+                        if (vm.selectedSinglePlayer && vm.selectedSinglePlayer.referral) {
                             socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: vm.selectedSinglePlayer.referral}, function (data) {
                                 vm.showReferralName = data.data.name;
                                 // $scope.safeApply();
@@ -4202,7 +4206,7 @@ define(['js/app'], function (myApp) {
                     columnDefs: [
                         {targets: '_all', defaultContent: ' '}
                     ],
-                    "order": vm.playerTableQuery.aaSorting || [[6, 'desc']],
+                    "order": vm.playerTableQuery.aaSorting || [[7, 'desc']],
                     columns: [
                         // {title: $translate('PLAYER_ID'), data: "playerId", advSearch: true},
                         {
@@ -4417,19 +4421,12 @@ define(['js/app'], function (myApp) {
                             },
                             "sClass": "alignLeft"
                         },
-                        // {
-                        //     title: $translate('TELPHONE'), data: 'phoneNumber',
-                        //     render: function (data, type, row) {
-                        //         data = data || '';
-                        //         return $('<a class="telPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                        //             'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                        //             .attr('data-row', JSON.stringify(row))
-                        //             .text(data)
-                        //             .prop('outerHTML');
-                        //     },
-                        //     advSearch: true,
-                        //     "sClass": "alignLeft"
-                        // },
+                        {
+                            title: $translate('POINT'),
+                            visible: vm.selectedPlatform.data.usePointSystem,
+                            data: 'point$',
+                            "sClass": "alignRight",
+                        },
                         {
                             title: $translate('REGISTRATION_TIME'),
                             data: 'registrationTime',
@@ -4477,7 +4474,7 @@ define(['js/app'], function (myApp) {
                             },
                             "sClass": "alignRight"
 
-                        }, // todo :: Open player action report default 'login'
+                        },
                         {
                             title: "<div>" + $translate('TOP_UP') + "</div><div>" + $translate('TIMES') + "</div>",
                             "data": 'topUpTimes',
@@ -4602,13 +4599,13 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointAdjustment')) {
+                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointExchange')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': "images/icon/rewardPointBlue.png",
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointAdjustment);',
+                                        'ng-click': 'vm.showRewardPointAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointAdjustment);',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerRewardPointAdjustment',
@@ -14457,6 +14454,7 @@ define(['js/app'], function (myApp) {
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);
                         break;
                     case 'topupRewardPoints':
+                        vm.topupRewardPoints = [];
                         break;
                     case 'gameRewardPoints':
                         break;
