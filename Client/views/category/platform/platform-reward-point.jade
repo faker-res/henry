@@ -170,7 +170,8 @@
 
                 // Tab - rewardPointsRanking
                 div(ng-if='vm.selectedRewardPointTab=="rewardPointsRanking" && checkViewPermission("Platform", "rewardPoints", "rewardPointsRanking")')
-
+                    table#rewardRankingTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                    #rewardRankingTablePage
 
                 // Tab - rewardPointsLog
                 div(ng-if='vm.selectedRewardPointTab=="rewardPointsLog" && checkViewPermission("Platform", "rewardPoints", "rewardPointsLog")')

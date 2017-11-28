@@ -14461,11 +14461,92 @@ define(['js/app'], function (myApp) {
                     case 'gameRewardPoints':
                         break;
                     case 'rewardPointsRanking':
+                        vm.playerRewardRanking = {totalCount: 0}
+                        utilService.actionAfterLoaded("#rewardRankingTablePage", function () {
+                            // vm.commonInitTime(vm.playerExpenseQuery, '#playerExpenseReportQuery');
+                            vm.playerRewardRanking.pageObj = utilService.createPageForPagingTable("#rewardRankingTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "playerRewardRanking", vm.getPlayerRewardPointsRanking)
+                            });
+                            $scope.safeApply();
+                            vm.getPlayerRewardPointsRanking(true);
+                        });
                         break;
                     case 'rewardPointsLog':
                         break;
                 }
             };
+
+            vm.getPlayerRewardPointsRanking = function (isNewSearch) {
+                vm.playerRewardRanking.index = isNewSearch ? 0 : (vm.playerRewardRanking.index || 0);
+                // vm.playerRewardRanking.sortCol = {
+                //     points: -1,
+                //     lastUpdate: 1
+                // }
+                if (!vm.playerRewardRanking.sortCol)
+                vm.playerRewardRanking.sortCol.lastUpdate = 1;
+                if (vm.playerRewardRanking.sortCol && !vm.playerRewardRanking.sortCol.points){
+                    vm.playerRewardRanking.sortCol.points = -1;
+                }
+                // show
+                var sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    index: isNewSearch ? 0 : vm.playerRewardRanking.index,
+                    limit: vm.playerRewardRanking.limit || 10,
+                    sortCol: vm.playerRewardRanking.sortCol || {}
+                };
+                socketService.$socket($scope.AppSocket, 'getRewardPoints', sendData, function (data) {
+                    // $('#promoCodeMonitorTableSpin').hide();
+                    console.log('getRewardPoints', data);
+                    vm.playerRewardRanking.totalCount = data.data.size;
+                    vm.drawPlayerRewardPointsTable(
+                    data.data.data.map((item,index) => {
+                        item.ranking = index + (sendData.index * sendData.limit) + 1;
+                        return item;
+                        })
+                        , vm.playerRewardRanking.totalCount, {}, isNewSearch)
+                    $scope.safeApply();
+                }, function (err) {
+                    console.error(err);
+                }, true);
+            }
+
+            vm.rewardSortCount = 0; // to stop sorting keep looping
+            vm.drawPlayerRewardPointsTable = function (data, size, summary, newSearch) {
+                var tableOptions = {
+                    data: data,
+                    "order": vm.playerRewardRanking.aaSorting || [[0, 'asc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'ranking', 'aTargets': [0], bSortable: true},
+                        // {'sortCol': 'playerName', 'aTargets': [1], bSortable: true},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('REWARD_POINTS_RANKING'), data: "ranking"},
+                        {title: $translate('PLAYER_NAME'), data: "playerName"},
+                        {title: $translate('LEVEL'), data: "playerLevel"},
+                        {title: $translate('REWARD_POINTS_CURRENT'), data: "points"},
+                    ],
+                    "paging": false,
+                }
+                tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
+                vm.playerRewardRanking.pageObj.init({maxCount: size}, newSearch);
+                var rankingTbl = utilService.createDatatableWithFooter('#rewardRankingTable', tableOptions, {});
+                // utilService.setDataTablePageInput('rewardRankingTable', rankingTbl, $translate);
+                
+                $('#rewardRankingTable').off('order.dt');
+                $('#rewardRankingTable').off();
+                $('#rewardRankingTable').on('order.dt', function (event, a, b) {
+                    if (vm.rewardSortCount > 0) {
+                        vm.rewardSortCount = 0;
+                        return;
+                    }
+                    vm.commonSortChangeHandler(a, 'playerRewardRanking', vm.getPlayerRewardPointsRanking);
+                    vm.rewardSortCount ++;
+                });
+                $('#rewardRankingTable').resize();
+            }
+
+
 
             vm.getRewardPointsLvlConfig = () => {
                 return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: vm.selectedPlatform.id}).then((data) => {

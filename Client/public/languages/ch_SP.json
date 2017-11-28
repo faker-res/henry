@@ -2791,6 +2791,7 @@
   "consecutiveCount": "累积登入天数",
   "rewardPoints": "获得积分",
   "rewardTitle": "文字标题",
-  "rewardContent": "内文说明"
-
+  "rewardContent": "内文说明",
+  "REWARD_POINTS_RANKING": "积分排名",
+  "REWARD_POINTS_CURRENT": "目前积分"
 }

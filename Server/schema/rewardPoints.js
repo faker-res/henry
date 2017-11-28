@@ -14,6 +14,8 @@ var rewardPoints = new Schema({
     playerLevel: {type: Number},
 
     createTime: {type: Date, default: Date.now},
+
+    lastUpdate: {type: Date, default: Date.now},
     // event details base on category
     progress: {type: Array, default: []}
 });
