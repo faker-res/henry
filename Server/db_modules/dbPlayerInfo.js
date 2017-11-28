@@ -5963,7 +5963,7 @@ let dbPlayerInfo = {
                                 message: errorMsg
                             })
                         }else{
-                            return "No_Level_Change";
+                            Q.resolve(true);
                         }
                     }
                 }
@@ -5979,7 +5979,7 @@ let dbPlayerInfo = {
                             message: levelErrorMsg
                         })
                     }else{
-                        return "No_Level_Change";
+                        Q.resolve(true);
                     }
                 }
             },
