@@ -13169,6 +13169,10 @@ define(['js/app'], function (myApp) {
                                 vm.rewardMainCondition[cond.index].chainOptions = cond.chainOptions;
                             }
 
+                            if (cond.detail) {
+                                vm.rewardMainCondition[cond.index].detail = cond.detail;
+                            }
+
                             // Get options
                             switch (cond.options) {
                                 case "providerGroup":
