@@ -1156,6 +1156,11 @@ define(['js/app'], function (myApp) {
                     vm.feedbackQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                     vm.feedbackQuery.end = utilService.createDatePicker('#feedbackReportQuery .endTime');
                     vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                    vm.feedbackQuery.limit = 10;
+                    vm.feedbackQuery.index = 0;
+                    vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)
+                    });
                     $scope.safeApply();
                 });
 
@@ -2815,12 +2820,14 @@ define(['js/app'], function (myApp) {
             query.topUpAmountValue = vm.feedbackQuery.topUpAmountFormal;
             query.topUpAmountValueTwo = vm.feedbackQuery.topUpAmountLatter;
 
+            vm.feedbackQuery.sortCol = vm.feedbackQuery.sortCol || {createTime$: -1};
+
             let sendquery = {
                 platformId: vm.curPlatformId,
                 query: query,
-                index: newSearch ? 0 : (vm.feedbackQuery.index || 0),
-                limit: vm.feedbackQuery.limit || 5000,
-                sortCol: vm.feedbackQuery.sortCol || {createTime: -1},
+                index: 0,
+                limit: 5000,
+                sortCol: vm.feedbackQuery.sortCol,
             };
             console.log('sendquery', sendquery);
             socketService.$socket($scope.AppSocket, 'getFeedbackReport', sendquery, function (data) {
@@ -2828,7 +2835,7 @@ define(['js/app'], function (myApp) {
                 vm.feedbackQuery.totalCount = data.data.size;
                 $('#feedbackReportTableSpin').hide();
 
-                vm.drawFeedbackReport(data.data.data.map(item => {
+                vm.feedbackData = data.data.data.map(item => {
                     item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                     item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.feedback.createTime);
                     item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.endTime);
@@ -2844,7 +2851,7 @@ define(['js/app'], function (myApp) {
                     item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
                     item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
                     item.feedbackTopic$ = (item.feedback.topic == null ||item.feedback.topic == undefined) ? '-' : item.feedback.topic;
-                    item.feedback$ = "";
+                    item.feedbackAdminName$ = (item && item.feedback && item.feedback.adminId && item.feedback.adminId.adminName) ? item.feedback.adminId.adminName : '-';
                     item.credibility$ = "";
                     if (item.credibilityRemarks) {
                         for (let i = 0; i < item.credibilityRemarks.length; i++) {
@@ -2886,22 +2893,49 @@ define(['js/app'], function (myApp) {
                     }
 
                     return item;
-                }), data.data.size, newSearch);
+                });
+
+                vm.drawFeedbackReport(newSearch);
                 $scope.safeApply();
             });
         };
 
-        vm.drawFeedbackReport = function (data, size, newSearch) {
-            var tableOptions = {
-                data: data,
+        vm.drawFeedbackReport = function (newSearch) {
+            function localDataProcessing() {
+                vm.feedbackQuery.sortCol = vm.feedbackQuery.sortCol || {'createTime$': -1};
+
+                let searchResult = vm.feedbackData.slice(0);
+                let sortCol = vm.feedbackQuery.sortCol;
+                let limit = vm.feedbackQuery.limit;
+                let index = vm.feedbackQuery.index;
+                if (Object.keys(sortCol).length > 0) {
+                    searchResult.sort(function (a, b) {
+                        if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
+                            return 1 * sortCol[Object.keys(sortCol)[0]];
+                        } else {
+                            return -1 * sortCol[Object.keys(sortCol)[0]];
+                        }
+                    });
+                }
+                let outputResult = [];
+                for (let i = 0, len = limit; i < len; i++) {
+                    searchResult[index + i] ? outputResult.push(searchResult[index + i]) : null;
+                }
+                return outputResult;
+            }
+
+            let result = localDataProcessing();
+            let allResultSize = vm.feedbackData.length;
+            let tableOptions = {
+                data: result,
                 "order": vm.feedbackQuery.aaSorting || [[4, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'name', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'playerValue', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'credibilityRemarks', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'feedbackTime', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'endTime', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'provider', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'valueScore', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'credibility$', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'createTime$', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'endTime$', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'provider$', 'aTargets': [6], bSortable: true},
                     {'sortCol': 'manualTopUpAmount', 'aTargets': [7], bSortable: true},
                     {'sortCol': 'weChatTopUpAmount', 'aTargets': [8], bSortable: true},
                     {'sortCol': 'aliPayTopUpAmount', 'aTargets': [9], bSortable: true},
@@ -2915,9 +2949,9 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'consumptionTimes', 'aTargets': [17], bSortable: true},
                     {'sortCol': 'validConsumptionAmount', 'aTargets': [18], bSortable: true},
                     {'sortCol': 'consumptionBonusAmount', 'aTargets': [19], bSortable: true},
-                    {'sortCol': 'profit', 'aTargets': [20], bSortable: true},
-                    {'sortCol': 'feedback.adminId.adminName', 'aTargets': [21], bSortable: true},
-                    {'sortCol': 'feedbackTopic', 'aTargets': [22], bSortable: true},
+                    {'sortCol': 'profit$', 'aTargets': [20], bSortable: true},
+                    {'sortCol': 'feedbackAdminName$', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'feedbackTopic$', 'aTargets': [22], bSortable: true},
                     {'sortCol': 'consumptionAmount', 'aTargets': [23], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
@@ -2952,7 +2986,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$", sClass: "sumFloat"},
                     {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$", sClass: "sumFloat"},
                     {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: "sumProfit"},
-                    {title: $translate('FEEDBACK_ADMIN'), data: "feedback.adminId.adminName"},
+                    {title: $translate('FEEDBACK_ADMIN'), data: "feedbackAdminName$"},
                     {
                         title: $translate('FEEDBACK_TOPIC'),
                         data: "feedbackTopic$",
@@ -2970,10 +3004,8 @@ define(['js/app'], function (myApp) {
                 }
             };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
-            if (playerTbl) {
-                playerTbl.clear();
-            }
-            var playerTbl = utilService.createDatatableWithFooter('#feedbackReportTable', tableOptions, {}, true);
+            let playerTbl = utilService.createDatatableWithFooter('#feedbackReportTable', tableOptions, {}, true);
+            vm.feedbackQuery.pageObj.init({maxCount: allResultSize}, newSearch);
             utilService.setDataTablePageInput('feedbackReportTable', playerTbl, $translate);
             playerTbl.on( 'order.dt', function () {
                 playerTbl.column(0, {order:'applied'}).nodes().each( function (cell, i) {
@@ -3055,10 +3087,10 @@ define(['js/app'], function (myApp) {
                     tr.addClass('shown');
                 }
             });
-            // $('#feedbackReportTable').off('order.dt');
-            // $('#feedbackReportTable').on('order.dt', function (event, a, b) {
-            //     vm.commonSortChangeHandler(a, '', vm.searchFeedbackReport);
-            // });
+            $('#feedbackReportTable').off('order.dt');
+            $('#feedbackReportTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'feedbackQuery', vm.drawFeedbackReport);
+            });
         };
 
 
