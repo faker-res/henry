@@ -2802,6 +2802,14 @@
   "OPEN": "打开",
   "DELETE_REWARD_POINTS": "删除积分",
   "Are you sure you want to delete reward points event": "你确定要删除积分",
-  "refreshPeriod": "刷新周期"
+  "refreshPeriod": "刷新周期",
+  "gameRewardPoints": "游戏积分",
+  "gameType": "游戏类别",
+  "betType": "下注项目",
+  "dailyConsumptionCount": "每日投注笔数",
+  "singleConsumptionAmountGreaterThan": "单笔投注金额大于",
+  "dailyValidConsumptionAmount": "每日有效投注额",
+  "dailyWinGameCount": "每日胜利局数"
+
 
 }
