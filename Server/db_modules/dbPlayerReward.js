@@ -1399,24 +1399,43 @@ let dbPlayerReward = {
             .then(
                 proposalData => {
                     let approvedProposal = [];
-                    let result = promoListData;
-                    proposalData.forEach(
-                        proposal => {
-                            let bonus = proposal.data.rewardAmount - proposal.data.applyAmount;
-                            let accountNo = dbUtility.encodeBankAcc(proposal.data.playerName);
-                            let record = {
-                                "accountNo": accountNo,
-                                "bonus": bonus,
-                                "time": proposal.settleTime
-                            }
-                            approvedProposal.push(record);
-                        }
-                    )
+                    let allProm = [];
 
-                    result.bonusList = approvedProposal;
-                    return result;
+                    proposalData.map(proposal => {
+                        let proposalId = proposal.proposalId || 'none';
+                        let prom = dbConfig.collection_promoCode.findOne({proposalId: proposalId}).then(
+                            data => {
+                                let bannerText = '';
+                                if (data.bannerText) {
+                                    bannerText = data.bannerText;
+                                }
+                                let bonusNum = proposal.data.rewardAmount - proposal.data.applyAmount;
+                                let accountNo = dbUtility.encodeBankAcc(proposal.data.playerName);
+                                let record = {
+                                    "accountNo": accountNo,
+                                    "bonus": bonusNum,
+                                    "time": proposal.settleTime,
+                                    "name": bannerText
+                                }
+                                approvedProposal.push(record);
+                                return record;
+                            })
+                        allProm.push(prom)
+                    })
+                    return Promise.all(allProm)
                 }
             )
+            .then(
+                data => {
+                    let result = promoListData;
+                    result.bonusList = data;
+                    return result;
+                },
+                err => {
+                    console.log(err);
+                }
+            )
+
     },
 
     getPromoCodesHistory: (searchQuery) => {
