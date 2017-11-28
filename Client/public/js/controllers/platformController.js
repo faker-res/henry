@@ -14655,9 +14655,7 @@ define(['js/app'], function (myApp) {
             vm.rewardPointsEventAddNewRow = (rewardPointsEventCategory,otherEventParam={}) => {
                 let defaultEvent = {category:rewardPointsEventCategory, isEditing: true};
                 vm.rewardPointsEvent.push( Object.assign(defaultEvent, otherEventParam));
-
             };
-
 
             function loadPromoCodeTypes() {
                 socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
