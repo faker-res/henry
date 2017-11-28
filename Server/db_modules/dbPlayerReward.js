@@ -2458,6 +2458,15 @@ let dbPlayerReward = {
             });
         }
 
+        // Check whether top up record is dirty
+        if (checkTopupRecordIsDirtyForReward(eventData, rewardData)) {
+            return Q.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "This top up record has been used"
+            });
+        }
+
         if (intervalTime) {
             topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
             eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
@@ -2862,15 +2871,6 @@ let dbPlayerReward = {
                         if (rewardData && rewardData.selectedTopup) {
                             selectedTopUp = rewardData.selectedTopup;
                             applyAmount = rewardData.selectedTopup.amount;
-
-                            // Check this top up has been used
-                            if (rewardData.selectedTopup.bDirty) {
-                                return Q.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "This top up record has been used"
-                                });
-                            }
 
                             // Set reward param step to use
                             if (eventData.param.isMultiStepReward) {
@@ -3456,6 +3456,23 @@ function checkInterfaceRewardPermission(eventData, rewardData) {
 
         return eventData.condition.userAgent.indexOf(registrationInterface) < 0;
     }
+}
+
+function checkTopupRecordIsDirtyForReward(eventData, rewardData) {
+    let isUsed = false;
+
+    if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0
+        && rewardData && rewardData.selectedTopup && rewardData.usedEvent && rewardData.usedEvent.length > 0) {
+        rewardData.usedEvent.map(eventId => {
+            eventData.condition.ignoreTopUpDirtyCheckForReward.map(eventIgnoreId => {
+                if (String(eventId) == String(eventIgnoreId)) {
+                    isUsed = true;
+                }
+            })
+        })
+    }
+
+    return isUsed;
 }
 
 function processConsecutiveLoginRewardRequest(playerData, inputDate, event, adminInfo, isPrevious) {
