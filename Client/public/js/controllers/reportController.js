@@ -4152,6 +4152,9 @@ define(['js/app'], function (myApp) {
                     if (item.mainType === "PlayerBonus")
                         item.mainType$ = $translate("Bonus");
                     item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                    if (item.data && item.data.remark) {
+                        item.remark$ = item.data.remark;
+                    }
                     item.status$ = $translate(vm.getStatusStrfromRow(item));
 
                     return item;
@@ -4287,7 +4290,8 @@ define(['js/app'], function (myApp) {
                         orderable: false,
                     },
                     {
-                        title: "<div>" + $translate('REMARKS'), data: " ",
+                        title: "<div>" + $translate('REMARKS'),
+                        data: "remark$",
                         orderable: false,
                     }
                 ],
