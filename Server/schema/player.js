@@ -139,7 +139,11 @@ var playerSchema = new Schema({
     //type
     phoneType: String,
 
-    /*Playe Credit*/
+    /*Player Reward Point*/
+    //valid reward point
+    validRewardPoint: {type: Number, min: 0, default: 0},
+
+    /*Player Credit*/
     //current credit balance
     creditBalance: {type: Number, min: 0, default: 0},
     //valid credit

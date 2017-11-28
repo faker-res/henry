@@ -1399,24 +1399,43 @@ let dbPlayerReward = {
             .then(
                 proposalData => {
                     let approvedProposal = [];
-                    let result = promoListData;
-                    proposalData.forEach(
-                        proposal => {
-                            let bonus = proposal.data.rewardAmount - proposal.data.applyAmount;
-                            let accountNo = dbUtility.encodeBankAcc(proposal.data.playerName);
-                            let record = {
-                                "accountNo": accountNo,
-                                "bonus": bonus,
-                                "time": proposal.settleTime
-                            }
-                            approvedProposal.push(record);
-                        }
-                    )
+                    let allProm = [];
 
-                    result.bonusList = approvedProposal;
-                    return result;
+                    proposalData.map(proposal => {
+                        let proposalId = proposal.proposalId || 'none';
+                        let prom = dbConfig.collection_promoCode.findOne({proposalId: proposalId}).then(
+                            data => {
+                                let bannerText = '';
+                                if (data.bannerText) {
+                                    bannerText = data.bannerText;
+                                }
+                                let bonusNum = proposal.data.rewardAmount - proposal.data.applyAmount;
+                                let accountNo = dbUtility.encodeBankAcc(proposal.data.playerName);
+                                let record = {
+                                    "accountNo": accountNo,
+                                    "bonus": bonusNum,
+                                    "time": proposal.settleTime,
+                                    "name": bannerText
+                                }
+                                approvedProposal.push(record);
+                                return record;
+                            })
+                        allProm.push(prom)
+                    })
+                    return Promise.all(allProm)
                 }
             )
+            .then(
+                data => {
+                    let result = promoListData;
+                    result.bonusList = data;
+                    return result;
+                },
+                err => {
+                    console.log(err);
+                }
+            )
+
     },
 
     getPromoCodesHistory: (searchQuery) => {
@@ -2337,11 +2356,14 @@ let dbPlayerReward = {
     /**
      *
      * @param playerData
-     * @param code
+     * @param eventData
      * @param adminInfo
+     * @param rewardData
+     * @param inputData
+     * @param userAgent
      * @returns {Promise.<TResult>}
      */
-    applyGroupReward: (playerData, eventData, adminInfo, rewardData, inputData) => {
+    applyGroupReward: (playerData, eventData, adminInfo, rewardData, inputData, userAgent) => {
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
         let rewardAmount = 0, spendingAmount = 0, applyAmount = 0;
@@ -2427,6 +2449,23 @@ let dbPlayerReward = {
 
         let todayPropsProm = dbConfig.collection_proposal.find(eventQuery).lean();
 
+        // Check registration interface condition
+        if (checkInterfaceRewardPermission(eventData, rewardData)) {
+            return Q.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "This interface is not allowed for reward"
+            });
+        }
+
+        // Check whether top up record is dirty
+        if (checkTopupRecordIsDirtyForReward(eventData, rewardData)) {
+            return Q.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "This top up record has been used"
+            });
+        }
 
         if (intervalTime) {
             topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
@@ -2832,15 +2871,6 @@ let dbPlayerReward = {
                         if (rewardData && rewardData.selectedTopup) {
                             selectedTopUp = rewardData.selectedTopup;
                             applyAmount = rewardData.selectedTopup.amount;
-
-                            // Check this top up has been used
-                            if (rewardData.selectedTopup.bDirty) {
-                                return Q.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "This top up record has been used"
-                                });
-                            }
 
                             // Set reward param step to use
                             if (eventData.param.isMultiStepReward) {
@@ -3318,7 +3348,9 @@ let dbPlayerReward = {
                             forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
                             remark: selectedRewardParam.remark,
                             useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),
-                            providerGroup: eventData.condition.providerGroup
+                            providerGroup: eventData.condition.providerGroup,
+                            // Use this flag for auto apply reward
+                            isGroupReward: true
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS
@@ -3416,6 +3448,32 @@ let dbPlayerReward = {
         );
     },
 };
+
+function checkInterfaceRewardPermission(eventData, rewardData) {
+    // Check registration interface condition
+    if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0) {
+        let registrationInterface = rewardData && rewardData.selectedTopup && rewardData.selectedTopup.userAgent ? rewardData.selectedTopup.userAgent : 0;
+
+        return eventData.condition.userAgent.indexOf(registrationInterface) < 0;
+    }
+}
+
+function checkTopupRecordIsDirtyForReward(eventData, rewardData) {
+    let isUsed = false;
+
+    if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0
+        && rewardData && rewardData.selectedTopup && rewardData.usedEvent && rewardData.usedEvent.length > 0) {
+        rewardData.usedEvent.map(eventId => {
+            eventData.condition.ignoreTopUpDirtyCheckForReward.map(eventIgnoreId => {
+                if (String(eventId) == String(eventIgnoreId)) {
+                    isUsed = true;
+                }
+            })
+        })
+    }
+
+    return isUsed;
+}
 
 function processConsecutiveLoginRewardRequest(playerData, inputDate, event, adminInfo, isPrevious) {
     let todayTopUpAmount = 0, todayBonusAmount = 0;

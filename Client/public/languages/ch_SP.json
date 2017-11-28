@@ -2553,6 +2553,7 @@
   "CONSUMPTION_RETURN_AMOUNT":"洗码金额",
   "NON_CONSUMPTION_RETURN_AMOUNT":"非洗码金额",
   "COMPANY_PROFIT": "公司营利点",
+  "This interface is not allowed for reward": "此装置不允许申请奖励",
   "SMS Records":"sms发送记录",
   "SENT TIME":"尝试时间",
   "NEW_QQ" : "新QQ帐号",
