@@ -4,6 +4,7 @@
 const constProposalType = {
     UPDATE_PLAYER_INFO: "UpdatePlayerInfo",
     UPDATE_PLAYER_CREDIT: "UpdatePlayerCredit",
+    UPDATE_PLAYER_REWARD_POINT: "UpdatePlayerRewardPoint",
     FIX_PLAYER_CREDIT_TRANSFER: "FixPlayerCreditTransfer",
     UPDATE_PLAYER_EMAIL: "UpdatePlayerEmail",
     UPDATE_PLAYER_PHONE: "UpdatePlayerPhone",

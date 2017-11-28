@@ -902,6 +902,8 @@
 
   "rewardPointTask": "Reward Point Task",
 
+  "UpdatePlayerRewardPoint":"Update Player Reward Point",
+
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
   "SMS_VERIFICATION": "SMS Verification",
