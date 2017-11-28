@@ -345,7 +345,6 @@ let dbPlayerReward = {
                         for (let i = 0; i < checkResults.length; i++) {
                             let result = checkResults[i];
                             if (result.meetRequirement) {
-                                currentStreak++;
                                 let currentParamNo = Math.min(currentStreak, numberOfParam - 1);
                                 let currentParam = paramOfLevel[currentParamNo];
                                 let bonus = currentParam.rewardAmount;
@@ -354,6 +353,7 @@ let dbPlayerReward = {
                                 insertOutputList(1, currentStreak+1, bonus, requestedTimes, result.targetDate,
                                     currentParam.forbidWithdrawAfterApply, currentParam.remark, currentParam.isSharedWithXIMA,
                                     result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+                                currentStreak++;
                             }
                         }
                     } else {
