@@ -352,7 +352,6 @@ var dbPlayerConsumptionRecord = {
         let isSameDay = dbUtility.isSameDaySG(data.createTime, Date.now());
         let deferred = Q.defer();
         let record = null;
-
         var newRecord = new dbconfig.collection_playerConsumptionRecord(data);
         newRecord.save().then(
             function (data) {
@@ -443,7 +442,7 @@ var dbPlayerConsumptionRecord = {
                     return record;
                 }
             },
-            function (error) {
+            function (error){
                 deferred.reject({name: "DBError", message: "Error checking player reward task", error: error});
             }
         ).then(
@@ -706,7 +705,6 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameId = data[1]._id;
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
-
                     delete recordData.name;
 
                     if (isProviderGroup) {

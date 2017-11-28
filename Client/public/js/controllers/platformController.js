@@ -7963,6 +7963,32 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointExchange.updateAmount = 0;
             };
 
+            vm.updatePlayerRewardPoint = function () {
+                var sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                    data: {
+                        playerObjId: vm.isOneSelectedPlayer()._id,
+                        playerName: vm.isOneSelectedPlayer().name,
+                        updateAmount: vm.rewardPointChange.updateAmount,
+                        curAmount: vm.isOneSelectedPlayer().validRewardPoint,
+                        realName: vm.isOneSelectedPlayer().realName,
+                        remark: vm.rewardPointChange.remark,
+                        adminName: authService.adminName
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'createUpdatePlayerRewardPointProposal', sendData, function (data) {
+                    var newData = data.data;
+                    console.log('reward point proposal', newData);
+                    if (data.data && data.data.stepInfo) {
+                        socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                    }
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                });
+            };
+
             vm.prepareShowPlayerCreditAdjustment = function (type) {
                 // vm.creditChange = {
                 //     finalValidAmount: vm.isOneSelectedPlayer().validCredit,
@@ -13141,6 +13167,10 @@ define(['js/app'], function (myApp) {
                             if (cond.chainType && cond.chainOptions) {
                                 vm.rewardMainCondition[cond.index].chainType = cond.chainType;
                                 vm.rewardMainCondition[cond.index].chainOptions = cond.chainOptions;
+                            }
+
+                            if (cond.detail) {
+                                vm.rewardMainCondition[cond.index].detail = cond.detail;
                             }
 
                             // Get options
