@@ -14541,7 +14541,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getRewardPointsEventByCategory = (category) => {
-                return $scope.$socketPromise('getRewardPointsEventByCategory', {category: category}).then((data) => {
+                return $scope.$socketPromise('getRewardPointsEventByCategory', {platformObjId: vm.selectedPlatform.id, category: category}).then((data) => {
                     console.log('getRewardPointsEventByCategory',data.data);
                     vm.rewardPointsEvent = data.data;
                     $.each(vm.rewardPointsEvent, function (idx, val) {
