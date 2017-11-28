@@ -2337,11 +2337,14 @@ let dbPlayerReward = {
     /**
      *
      * @param playerData
-     * @param code
+     * @param eventData
      * @param adminInfo
+     * @param rewardData
+     * @param inputData
+     * @param userAgent
      * @returns {Promise.<TResult>}
      */
-    applyGroupReward: (playerData, eventData, adminInfo, rewardData, inputData) => {
+    applyGroupReward: (playerData, eventData, adminInfo, rewardData, inputData, userAgent) => {
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
         let rewardAmount = 0, spendingAmount = 0, applyAmount = 0;
@@ -2842,6 +2845,20 @@ let dbPlayerReward = {
                                 });
                             }
 
+                            // Check registration interface condition
+                            if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0) {
+                                let registrationInterface = rewardData && rewardData.selectedTopup && rewardData.selectedTopup.userAgent ? rewardData.selectedTopup.userAgent : 0;
+
+                                // Interface not exist in condition
+                                if (eventData.condition.userAgent.indexOf(registrationInterface) < 0) {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "This interface is not allowed for reward"
+                                    });
+                                }
+                            }
+
                             // Set reward param step to use
                             if (eventData.param.isMultiStepReward) {
                                 if (eventData.param.isSteppingReward) {
@@ -3318,7 +3335,9 @@ let dbPlayerReward = {
                             forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
                             remark: selectedRewardParam.remark,
                             useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),
-                            providerGroup: eventData.condition.providerGroup
+                            providerGroup: eventData.condition.providerGroup,
+                            // Use this flag for auto apply reward
+                            isGroupReward: true
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS

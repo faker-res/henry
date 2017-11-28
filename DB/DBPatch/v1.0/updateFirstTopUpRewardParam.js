@@ -404,7 +404,7 @@ var generalCond = {
 
 var topUpCond = {
     // User device to top up
-    userAgent: {index: 10, type: "multiSelect", des: "Top up agent", options: "userAgentType"},
+    userAgent: {index: 10, type: "multiSelect", des: "Top up agent", options: "constPlayerRegistrationInterface"},
     // Top up type
     topupType: {index: 11, type: "multiSelect", des: "Top up type", options: "topUpTypeList"},
     // Online top up type
