@@ -270,7 +270,8 @@ var roleChecker = {
                 applyBonus: ['applyBonusRequest'],
                 BonusHistory: [],
                 CreditAdjustment: ['createUpdatePlayerCreditProposal'],
-                RewardPointAdjustment: [],
+                RewardPointChange: [],
+                RewardPointExchange: [],
                 CreditChangeLog: ['getPlayerCreditChangeLogsByQuery', 'getPagedPlayerCreditChangeLogs'],
                 PlayerExpenses: ['getPlayerConsumptionRecords', 'getPlayerTotalConsumptionForTimeFrame', 'playerPurchase'],
                 AddRewardTask: ['createPlayerRewardTask'],
@@ -429,14 +430,17 @@ var roleChecker = {
                 FilterAllPlatform: []
             },
             "rewardPoints": {
-                Read: ['getRewardPointsLvlConfig'],
-                Update: ['upsertRewardPointsLvlConfig'],
+                Read: ['getRewardPointsLvlConfig', 'getRewardPointsEvent', 'getRewardPointsEventById', 'getRewardPointsEventByCategory'],
+                Create: ['createRewardPointsEvent'],
+                Delete: ['deleteRewardPointsEventById'],
+                Update: ['upsertRewardPointsLvlConfig', 'updateRewardPointsEvent'],
                 rewardPointsRule: [],
                 loginRewardPoints: [],
                 topupRewardPoints: [],
                 gameRewardPoints: [],
                 rewardPointsRanking: [],
                 rewardPointsLog: []
+
             }
         },
         Payment: {

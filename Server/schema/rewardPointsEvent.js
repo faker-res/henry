@@ -26,6 +26,9 @@ var rewardPointsEvent = new Schema({
     rewardPoints: {type: Number},
 
     createTime: {type: Date, default: Date.now},
+
+    status: {type: Boolean, default: false},
+
     // event details base on category
     target: {type: JSON, default: {}}
 });

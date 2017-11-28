@@ -352,7 +352,6 @@ var dbPlayerConsumptionRecord = {
         let isSameDay = dbUtility.isSameDaySG(data.createTime, Date.now());
         let deferred = Q.defer();
         let record = null;
-
         var newRecord = new dbconfig.collection_playerConsumptionRecord(data);
         newRecord.save().then(
             function (data) {
@@ -443,7 +442,7 @@ var dbPlayerConsumptionRecord = {
                     return record;
                 }
             },
-            function (error) {
+            function (error){
                 deferred.reject({name: "DBError", message: "Error checking player reward task", error: error});
             }
         ).then(
@@ -543,11 +542,11 @@ var dbPlayerConsumptionRecord = {
                         summaryDay: summaryDay,
                         bDirty: false
                     };
-
-                    // Handle left over amount from partial XIMA
-                    if (checkRes && checkRes.nonDirtyAmount > 0) {
-                        consumptionAmount = checkRes.nonDirtyAmount;
-                    }
+                    //
+                    // // Handle left over amount from partial XIMA
+                    // if (checkRes && checkRes.nonDirtyAmount > 0) {
+                    //     consumptionAmount = checkRes.nonDirtyAmount;
+                    // }
 
                     let updateData = {
                         $inc: {amount: consumptionAmount, validAmount: consumptionAmount}
@@ -594,7 +593,7 @@ var dbPlayerConsumptionRecord = {
                 });
             }
         ).then(
-            data => data,
+            data => record,
             error => {
                 return Q.reject({name: "DBError", message: "Error in checking player level", error: error});
             }
@@ -706,7 +705,6 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameId = data[1]._id;
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
-
                     delete recordData.name;
 
                     if (isProviderGroup) {

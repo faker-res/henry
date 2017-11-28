@@ -347,11 +347,19 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         '1': 'MerchantUse_CreateAccount',
         '2': 'MerchantUse_Normal'
     };
+
+    // todo :: check if merchantTopupMainTypeJson actually got the index wrong
     $scope.merchantTopupMainTypeJson = {
         1: "Online",
         2: "Manual",
         3: "Alipay",
         4: "Wechatpay"
+    };
+    $scope.topUpTypeList = {
+        1: "TOPUPMANUAL",
+        2: "TOPUPONLINE",
+        3: "ALIPAY",
+        4: "WechatPay"
     };
     $scope.merchantTopupTypeJson = {
         '1': 'NetPay',
@@ -486,6 +494,22 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         1: "deposit - withdrawal",
         2: "consumption - reward",
         3: "consumtion sum"
+    };
+
+    $scope.constRewardPointsTaskCategory = {
+        'LOGIN_REWARD_POINTS': 1,
+        'TOPUP_REWARD_POINTS': 2,
+        'GAME_REWARD_POINTS': 3
+    };
+
+    $scope.constPlayerRegistrationInterface = {
+        0: 'BACKSTAGE',
+        1: 'WEB_PLAYER',
+        2: 'WEB_AGENT',
+        3: 'H5_PLAYER',
+        4: 'H5_AGENT',
+        5: 'APP_PLAYER',
+        6: 'APP_AGENT'
     };
 
     $scope.constRewardPointsIntervalPeriod = {
