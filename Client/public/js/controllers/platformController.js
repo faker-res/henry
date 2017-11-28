@@ -7977,7 +7977,6 @@ define(['js/app'], function (myApp) {
                         adminName: authService.adminName
                     }
                 };
-                console.log('updatePlayerRewardPoint-SENDDATA',sendData);
 
                 socketService.$socket($scope.AppSocket, 'createUpdatePlayerRewardPointProposal', sendData, function (data) {
                     var newData = data.data;
