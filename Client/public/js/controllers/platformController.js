@@ -374,6 +374,10 @@ define(['js/app'], function (myApp) {
                 vm.selectedReapplyLostOrderTab = tabName == null ? "credit" : tabName;
             };
 
+            vm.showRewardPointAdjustmentTab = function (tabName) {
+                vm.selectedRewardPointAdjustmentTab = tabName == null ? "change" : tabName;
+            };
+
             vm.showSmsTab = function (tabName) {
                 if (!tabName && (vm.selectedSinglePlayer && vm.selectedSinglePlayer.permission && vm.selectedSinglePlayer.permission.SMSFeedBack === false)) {
                     vm.smsModalTab = "smsLogPanel";
@@ -4118,7 +4122,7 @@ define(['js/app'], function (myApp) {
                             vm.selectedSinglePlayer = null;
                             vm.selectedPlayersCount = 0;
                         }
-                        if (vm.selectedSinglePlayer.referral) {
+                        if (vm.selectedSinglePlayer && vm.selectedSinglePlayer.referral) {
                             socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: vm.selectedSinglePlayer.referral}, function (data) {
                                 vm.showReferralName = data.data.name;
                                 // $scope.safeApply();
@@ -4202,7 +4206,7 @@ define(['js/app'], function (myApp) {
                     columnDefs: [
                         {targets: '_all', defaultContent: ' '}
                     ],
-                    "order": vm.playerTableQuery.aaSorting || [[6, 'desc']],
+                    "order": vm.playerTableQuery.aaSorting || [[7, 'desc']],
                     columns: [
                         // {title: $translate('PLAYER_ID'), data: "playerId", advSearch: true},
                         {
@@ -4417,19 +4421,13 @@ define(['js/app'], function (myApp) {
                             },
                             "sClass": "alignLeft"
                         },
-                        // {
-                        //     title: $translate('TELPHONE'), data: 'phoneNumber',
-                        //     render: function (data, type, row) {
-                        //         data = data || '';
-                        //         return $('<a class="telPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                        //             'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                        //             .attr('data-row', JSON.stringify(row))
-                        //             .text(data)
-                        //             .prop('outerHTML');
-                        //     },
-                        //     advSearch: true,
-                        //     "sClass": "alignLeft"
-                        // },
+                        {
+                            title: $translate('POINT'),
+                            "orderable": false,
+                            visible: vm.selectedPlatform.data.usePointSystem,
+                            data: 'point$',
+                            "sClass": "alignRight",
+                        },
                         {
                             title: $translate('REGISTRATION_TIME'),
                             data: 'registrationTime',
@@ -4477,7 +4475,7 @@ define(['js/app'], function (myApp) {
                             },
                             "sClass": "alignRight"
 
-                        }, // todo :: Open player action report default 'login'
+                        },
                         {
                             title: "<div>" + $translate('TOP_UP') + "</div><div>" + $translate('TIMES') + "</div>",
                             "data": 'topUpTimes',
@@ -4602,13 +4600,13 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointAdjustment')) {
+                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointExchange')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': "images/icon/rewardPointBlue.png",
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointAdjustment);',
+                                        'ng-click': 'vm.showRewardPointAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointAdjustment);',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerRewardPointAdjustment',
@@ -7963,6 +7961,32 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointExchange.finalLockedAmount = null;
                 vm.rewardPointExchange.remark = '';
                 vm.rewardPointExchange.updateAmount = 0;
+            };
+
+            vm.updatePlayerRewardPoint = function () {
+                var sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                    data: {
+                        playerObjId: vm.isOneSelectedPlayer()._id,
+                        playerName: vm.isOneSelectedPlayer().name,
+                        updateAmount: vm.rewardPointChange.updateAmount,
+                        curAmount: vm.isOneSelectedPlayer().validRewardPoint,
+                        realName: vm.isOneSelectedPlayer().realName,
+                        remark: vm.rewardPointChange.remark,
+                        adminName: authService.adminName
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'createUpdatePlayerRewardPointProposal', sendData, function (data) {
+                    var newData = data.data;
+                    console.log('reward point proposal', newData);
+                    if (data.data && data.data.stepInfo) {
+                        socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                    }
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                });
             };
 
             vm.prepareShowPlayerCreditAdjustment = function (type) {
@@ -13206,10 +13230,10 @@ define(['js/app'], function (myApp) {
                             }
 
                             if (el == "topupType") {
-                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("1") > -1)) {
+                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("2") > -1)) {
                                     vm.rewardDisabledParam.push("onlineTopUpType")
                                 }
-                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("2") > -1)) {
+                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("1") > -1)) {
                                     vm.rewardDisabledParam.push("bankCardType")
                                 }
                             }
@@ -14426,6 +14450,8 @@ define(['js/app'], function (myApp) {
 
             vm.rewardPointsTabClicked = function (choice) {
                 vm.selectedRewardPointTab = choice;
+                vm.rewardPointsEvent = [];
+                vm.deletingRewardPointsEvent = null;
                 switch (choice) {
                     case 'rewardPointsRule':
                         vm.isRewardPointsLvlConfigEditing = false;
@@ -14446,17 +14472,18 @@ define(['js/app'], function (myApp) {
                                         vm.rewardPointsLvlConfig.params.push({'levelObjId' : playerLvl._id});
                                     }
                                 });
+                                vm.rewardPointsLvlConfigPeriodChange();
+                                vm.rewardPointsLvlConfigSetDisable(true);
                                 $scope.safeApply();
                             }
                         );
                         break;
                     case 'loginRewardPoints':
-                        vm.loginRewardPoints = [];
                         vm.getAllGameProviders(vm.selectedPlatform.id);
-                        $scope.safeApply();
-                        vm.endLoadWeekDay();
+                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);
                         break;
                     case 'topupRewardPoints':
+                        vm.topupRewardPoints = [];
                         break;
                     case 'gameRewardPoints':
                         break;
@@ -14557,22 +14584,170 @@ define(['js/app'], function (myApp) {
 
             vm.rewardPointsLvlConfigSubmit = () => {
                 vm.rewardPointsLvlConfig.platformObjId = vm.rewardPointsLvlConfig.platformObjId ? vm.rewardPointsLvlConfig.platformObjId : vm.selectedPlatform.id;
+                if(vm.rewardPointsLvlConfig.intervalPeriod == 6 ){
+                    vm.rewardPointsLvlConfig.customPeriodStartTime = vm.rewardPointsLvlConfig.customPeriodStartTime.data('datetimepicker').getLocalDate();
+                    vm.rewardPointsLvlConfig.customPeriodEndTime = vm.rewardPointsLvlConfig.customPeriodEndTime.data('datetimepicker').getLocalDate();
+                }else{
+                    vm.rewardPointsLvlConfig.customPeriodStartTime = null;
+                    vm.rewardPointsLvlConfig.customPeriodEndTime = null;
+                }
                 $scope.$socketPromise('upsertRewardPointsLvlConfig', {rewardPointsLvlConfig: vm.rewardPointsLvlConfig}).then((data) => {
-                    vm.isRewardPointsLvlConfigEditing=false;
+                    vm.rewardPointsLvlConfigPeriodChange();
+                    vm.rewardPointsLvlConfigSetDisable(true);
                     $scope.safeApply();
                 });
             };
 
-            vm.loginRewardPointsSubmit = (loginRewardPoints) => {
-                delete loginRewardPoints.isEditing;
-                //Todo upsert to server
-                $scope.safeApply();
+            vm.rewardPointsLvlConfigPeriodChange = () => {
+                if(vm.rewardPointsLvlConfig.intervalPeriod == 6){
+                    let startDateId = "#rewardPointsLvlConfigStartDate";
+                    utilService.actionAfterLoaded(startDateId, function () {
+
+                        let dateValue = vm.rewardPointsLvlConfig.customPeriodStartTime;
+
+                        vm.rewardPointsLvlConfig.customPeriodStartTime = utilService.createDatePicker(startDateId, {
+                            language: 'en',
+                            format: 'yyyy/MM/dd hh:mm:ss'
+                        });
+                        vm.rewardPointsLvlConfig.customPeriodStartTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                        if (dateValue) {
+                            vm.rewardPointsLvlConfig.customPeriodStartTime.data('datetimepicker').setDate(utilService.getLocalTime(new Date(dateValue)));
+                        }
+                    });
+
+                    let endDateId = "#rewardPointsLvlConfigEndDate";
+                    utilService.actionAfterLoaded(endDateId, function () {
+                        let dateValue = vm.rewardPointsLvlConfig.customPeriodEndTime;
+
+                        vm.rewardPointsLvlConfig.customPeriodEndTime = utilService.createDatePicker(endDateId, {
+                            language: 'en',
+                            format: 'yyyy/MM/dd hh:mm:ss'
+                        });
+                        vm.rewardPointsLvlConfig.customPeriodEndTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                        if (dateValue) {
+                            vm.rewardPointsLvlConfig.customPeriodEndTime.data('datetimepicker').setDate(utilService.getLocalTime(new Date(dateValue)));
+                        }
+                    });
+                }
             };
 
-            vm.loginRewardPointsDelete = (index,loginRewardPoints) => {
-                vm.loginRewardPoints.splice(index,1);
-                //Todo delete from server
+            vm.rewardPointsLvlConfigSetDisable = (isDisable) => {
+                vm.isRewardPointsLvlConfigEditing=!isDisable;
+                let startDateId = "#rewardPointsLvlConfigStartDate";
+                let endDateId = "#rewardPointsLvlConfigEndDate";
+                utilService.actionAfterLoaded(startDateId, () => {
+                    $(startDateId+" :input").prop("disabled", isDisable);
+                });
+                utilService.actionAfterLoaded(endDateId, () => {
+                    $(endDateId+" :input").prop("disabled", isDisable);
+                });
                 $scope.safeApply();
+                vm.endLoadWeekDay();
+            };
+
+            vm.getRewardPointsEventByCategory = (category) => {
+                return $scope.$socketPromise('getRewardPointsEventByCategory', {platformObjId: vm.selectedPlatform.id, category: category}).then((data) => {
+                    console.log('getRewardPointsEventByCategory',data.data);
+                    vm.rewardPointsEvent = data.data;
+                    $.each(vm.rewardPointsEvent, function (idx, val) {
+                        vm.rewardPointsEventPeriodChange(idx,val);
+                        vm.rewardPointsEventSetDisable(idx,val,true);
+                    });
+                    $scope.safeApply();
+                    vm.endLoadWeekDay();
+                });
+            };
+
+            vm.createRewardPointsEvent = (rewardPointsEvent) => {
+                delete rewardPointsEvent.isEditing;
+                rewardPointsEvent.platformObjId = vm.selectedPlatform.id;
+                if(rewardPointsEvent.period == 6 ){
+                    rewardPointsEvent.customPeriodStartTime = rewardPointsEvent.customPeriodStartTime.data('datetimepicker').getLocalDate();
+                    rewardPointsEvent.customPeriodEndTime = rewardPointsEvent.customPeriodEndTime.data('datetimepicker').getLocalDate();
+                }else{
+                    delete rewardPointsEvent.customPeriodStartTime;
+                    delete rewardPointsEvent.customPeriodEndTime;
+                }
+                console.log(rewardPointsEvent);
+                $scope.$socketPromise('createRewardPointsEvent', {rewardPointsEvent: rewardPointsEvent}).then((data) => {
+                    vm.getRewardPointsEventByCategory(rewardPointsEvent.category);
+                });
+
+            };
+
+            vm.updateRewardPointsEvent = (idx,rewardPointsEvent) => {
+                delete rewardPointsEvent.isEditing;
+                if(rewardPointsEvent.period == 6 ){
+                    rewardPointsEvent.customPeriodStartTime = rewardPointsEvent.customPeriodStartTime.data('datetimepicker').getLocalDate();
+                    rewardPointsEvent.customPeriodEndTime = rewardPointsEvent.customPeriodEndTime.data('datetimepicker').getLocalDate();
+                }else{
+                     rewardPointsEvent.customPeriodStartTime = null;
+                     rewardPointsEvent.customPeriodEndTime = null;
+                }
+                $scope.$socketPromise('updateRewardPointsEvent', {rewardPointsEvent: rewardPointsEvent}).then((data) => {
+                    vm.rewardPointsEventPeriodChange(idx,rewardPointsEvent);
+                    vm.rewardPointsEventSetDisable(idx,rewardPointsEvent,true);
+                    $scope.safeApply();
+                    vm.endLoadWeekDay()
+                });
+            };
+
+            vm.deleteRewardPointsEvent = (rewardPointsEvent) => {
+                $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id}).then((data) => {
+                    vm.getRewardPointsEventByCategory(rewardPointsEvent.category);
+                    $scope.safeApply();
+                });
+            };
+
+            vm.rewardPointsEventPeriodChange = (idx,rewardPointsEvent) => {
+                if(rewardPointsEvent.period ==6){
+                    let startDateId = "#rewardPointsEventStartDate-"+idx;
+                    utilService.actionAfterLoaded(startDateId, function () {
+
+                        let dateValue = rewardPointsEvent.customPeriodStartTime;
+
+                        rewardPointsEvent.customPeriodStartTime = utilService.createDatePicker(startDateId, {
+                            language: 'en',
+                            format: 'yyyy/MM/dd hh:mm:ss'
+                        });
+                        rewardPointsEvent.customPeriodStartTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                        if (dateValue) {
+                            rewardPointsEvent.customPeriodStartTime.data('datetimepicker').setDate(utilService.getLocalTime(new Date(dateValue)));
+                        }
+                    });
+
+                    let endDateId = "#rewardPointsEventEndDate-"+idx;
+                    utilService.actionAfterLoaded(endDateId, function () {
+                        let dateValue = rewardPointsEvent.customPeriodEndTime;
+
+                        rewardPointsEvent.customPeriodEndTime = utilService.createDatePicker(endDateId, {
+                            language: 'en',
+                            format: 'yyyy/MM/dd hh:mm:ss'
+                        });
+                        rewardPointsEvent.customPeriodEndTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                        if (dateValue) {
+                            rewardPointsEvent.customPeriodEndTime.data('datetimepicker').setDate(utilService.getLocalTime(new Date(dateValue)));
+                        }
+                    });
+                }
+            };
+
+            vm.rewardPointsEventSetDisable = (idx,rewardPointsEvent,isDisable) => {
+                rewardPointsEvent.isEditing=!isDisable;
+                let startDateId = "#rewardPointsEventStartDate-"+idx;
+                let endDateId = "#rewardPointsEventEndDate-"+idx;
+                utilService.actionAfterLoaded(startDateId, () => {
+                    $(startDateId+" :input").prop("disabled", isDisable);
+                });
+                utilService.actionAfterLoaded(endDateId, () => {
+                    $(endDateId+" :input").prop("disabled", isDisable);
+                });
+                $scope.safeApply();
+                vm.endLoadWeekDay();
             };
 
             function loadPromoCodeTypes() {

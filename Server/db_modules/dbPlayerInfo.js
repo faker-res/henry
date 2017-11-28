@@ -1573,6 +1573,14 @@ let dbPlayerInfo = {
                         else
                             updateData.realName = updateData.bankAccountName;
                     }
+                    if( !updateData.bankAccountName && !playerData.realName ){
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "Please enter bank account name or contact cs"
+                        });
+                    }
+
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
                     })
@@ -2068,6 +2076,7 @@ let dbPlayerInfo = {
                         }
                         logData = proposalData.data;
                         recordData.proposalId = proposalData.proposalId;
+                        recordData.userAgent = proposalData.data.userAgent;
                     }
                     var newRecord = new dbconfig.collection_playerTopUpRecord(recordData);
                     var recordProm = newRecord.save();
@@ -3203,6 +3212,7 @@ let dbPlayerInfo = {
                     .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
                     .populate({path: "partner", model: dbconfig.collection_partner})
                     .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
+                    .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints, select: 'points'})
                     .lean().then(
                         playerData => {
                             var players = [];
@@ -3213,6 +3223,11 @@ let dbPlayerInfo = {
                                     if (playerData[ind].referral) {
                                         playerData[ind].referralName$ = playerData[ind].referral.name;
                                         playerData[ind].referral = playerData[ind].referral._id;
+                                    }
+
+                                    if (playerData[ind].rewardPointsObjId) {
+                                        playerData[ind].point$ = playerData[ind].rewardPointsObjId.points;
+                                        playerData[ind].rewardPointsObjId = playerData[ind].rewardPointsObjId._id;
                                     }
 
                                     if (isProviderGroup) {
@@ -5515,7 +5530,7 @@ let dbPlayerInfo = {
 
                         return Q.all([playerProm, levelsProm]).spread(
                             function (player, playerLevels) {
-                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, false );
                             }
                         );
                     }
@@ -5558,7 +5573,7 @@ let dbPlayerInfo = {
                                 if (!player) {
                                     return Q.reject({name: "DataError", message: "Cannot find player"});
                                 }
-                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true);
                             },
                             function () {
                                 return Q.reject({name: "DataError", message: "Cannot find player"});
@@ -5599,7 +5614,7 @@ let dbPlayerInfo = {
                         if (!player || !playerLevels)
                             return Q.reject({name: "DataError", message: "Data not found"});
 
-                        return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                        return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true);
                     },
                     function () {
                         return Q.reject({name: "DataError", message: "Data not found"});
@@ -5634,7 +5649,7 @@ let dbPlayerInfo = {
      * #param {String} [checkPeriod] - For level down only. We will only consider weekly conditions if checkPeriod is 'WEEK'.
      * @returns {Promise.<*>}
      */
-    checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod) {
+    checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod, showReject) {
         if (!player) {
             throw Error("player was not provided!");
         }
@@ -5943,11 +5958,15 @@ let dbPlayerInfo = {
                         );
                     }
                     else {
-                        return Q.reject({
-                            status: errorCode,
-                            name: "DataError",
-                            message: errorMsg
-                        })
+                        if(showReject){
+                            return Q.reject({
+                                status: errorCode,
+                                name: "DataError",
+                                message: errorMsg
+                            })
+                        }else{
+                            Q.resolve(true);
+                        }
                     }
                 }
                 else {
@@ -5956,11 +5975,14 @@ let dbPlayerInfo = {
                     // Original code would sometimes expect the player or the playerLevels to be undefined,
                     // if the player had no consumption, or they were already on the highest level.
                     //return "No_Level_Change";
-                    return Q.reject({
-                        name: "DataError",
-                        message: levelErrorMsg
-                    })
-
+                    if(showReject){
+                        return Q.reject({
+                            name: "DataError",
+                            message: levelErrorMsg
+                        })
+                    }else{
+                        Q.resolve(true);
+                    }
                 }
             },
             function (error) {
@@ -9518,7 +9540,7 @@ let dbPlayerInfo = {
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
-                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData, data);
+                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData, data, userAgent);
                                     break;
                                 default:
                                     return Q.reject({

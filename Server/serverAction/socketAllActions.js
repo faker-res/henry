@@ -40,6 +40,7 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionPlayerFeedbackTopic'),
     require('./../socketActionModule/socketActionRewardPointsLvlConfig'),
     require('./../socketActionModule/socketActionRewardPoints'),
+    require('./../socketActionModule/socketActionRewardPointsEvent'),
 ];
 
 var socketActions = [
