@@ -13169,6 +13169,10 @@ define(['js/app'], function (myApp) {
                                 vm.rewardMainCondition[cond.index].chainOptions = cond.chainOptions;
                             }
 
+                            if (cond.detail) {
+                                vm.rewardMainCondition[cond.index].detail = cond.detail;
+                            }
+
                             // Get options
                             switch (cond.options) {
                                 case "providerGroup":
@@ -14567,7 +14571,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getRewardPointsEventByCategory = (category) => {
-                return $scope.$socketPromise('getRewardPointsEventByCategory', {category: category}).then((data) => {
+                return $scope.$socketPromise('getRewardPointsEventByCategory', {platformObjId: vm.selectedPlatform.id, category: category}).then((data) => {
                     console.log('getRewardPointsEventByCategory',data.data);
                     vm.rewardPointsEvent = data.data;
                     $.each(vm.rewardPointsEvent, function (idx, val) {

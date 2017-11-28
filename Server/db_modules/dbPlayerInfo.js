@@ -2075,6 +2075,7 @@ let dbPlayerInfo = {
                         }
                         logData = proposalData.data;
                         recordData.proposalId = proposalData.proposalId;
+                        recordData.userAgent = proposalData.data.userAgent;
                     }
                     var newRecord = new dbconfig.collection_playerTopUpRecord(recordData);
                     var recordProm = newRecord.save();
@@ -5963,7 +5964,7 @@ let dbPlayerInfo = {
                                 message: errorMsg
                             })
                         }else{
-                            return "No_Level_Change";
+                            Q.resolve(true);
                         }
                     }
                 }
@@ -5979,7 +5980,7 @@ let dbPlayerInfo = {
                             message: levelErrorMsg
                         })
                     }else{
-                        return "No_Level_Change";
+                        Q.resolve(true);
                     }
                 }
             },
@@ -9538,7 +9539,7 @@ let dbPlayerInfo = {
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
-                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData, data);
+                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData, data, userAgent);
                                     break;
                                 default:
                                     return Q.reject({

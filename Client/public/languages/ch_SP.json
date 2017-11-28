@@ -2553,6 +2553,7 @@
   "CONSUMPTION_RETURN_AMOUNT":"洗码金额",
   "NON_CONSUMPTION_RETURN_AMOUNT":"非洗码金额",
   "COMPANY_PROFIT": "公司营利点",
+  "This interface is not allowed for reward": "此装置不允许申请奖励",
   "SMS Records":"sms发送记录",
   "SENT TIME":"尝试时间",
   "NEW_QQ" : "新QQ帐号",
@@ -2802,6 +2803,16 @@
   "OPEN": "打开",
   "DELETE_REWARD_POINTS": "删除积分",
   "Are you sure you want to delete reward points event": "你确定要删除积分",
-  "refreshPeriod": "刷新周期"
+  "refreshPeriod": "刷新周期",
+  "REWARD_NAME_DETAIL": "优惠类型（固定）-> 优惠名称（自定义/不可重复）",
+  "REWARD_CODE_DETAIL": "系统中的编号（自定义/不可重复）",
+  "REWARD_APPLY_TYPE_DETAIL": "如选 3.提交时间必须在周期结束后隔日",
+  "REWARD_CLIENT_APPLY_DETAIL": "玩家页面将可看见按钮并点击",
+  "REWARD_IGNORE_AUDIT_DETAIL": "不勾选会依据『提案流程』来走",
+  "REWARD_TOP_UP_TYPE_DETAIL": "可指定详细存款方式",
+  "REWARD_INTERVAL_DETAIL": "按照日历来定义周期（0点分界）",
+  "REWARD_TOP_UP_DIRTY_FOR_REWARD_DETAIL": "勾选后将无视该存款已申请过其他优惠",
+  "REWARD_REQUIRE_NON_BREAKING_COMBO_DETAIL": "不勾选则玩家可跨日累积签到天数",
+  "REWARD_RECLAIM_MISSED_DAY_DETAIL": "不勾选玩家需每日领取，隔日不计算"
 
 }

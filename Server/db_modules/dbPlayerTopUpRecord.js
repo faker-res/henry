@@ -350,8 +350,10 @@ var dbPlayerTopUpRecord = {
 
     /**
      * Top up success
-     * @param {Json} query
-     * @param {Json} update
+     * @param query
+     * @param queryData
+     * @param checkSteps
+     * @param skipVerify
      */
     playerTopUpSuccess: function (query, queryData, checkSteps, skipVerify) {
         var deferred = Q.defer();
@@ -359,6 +361,7 @@ var dbPlayerTopUpRecord = {
         var proposalObj = {};
         var player = {};
         var isValidForTransaction = false;
+
         dbconfig.collection_proposal.findOne(query)
             .then(
                 function (data) {
@@ -366,6 +369,10 @@ var dbPlayerTopUpRecord = {
                         topupIntentionObj = data.data;
                         proposalObj = data;
                         isValidForTransaction = topupIntentionObj.validForTransactionReward;
+
+                        // Check top up intention
+                        // Check proposal status
+                        // Check top up proposal has processing steps
                         if (!skipVerify && ((topupIntentionObj.topUpAmount != queryData.amount) || (topupIntentionObj.playerId != queryData.playerId))) {
                             deferred.reject({
                                 name: "DataError",
@@ -439,7 +446,8 @@ var dbPlayerTopUpRecord = {
                     //todo:: check top up payment channel type here
                     if (isValidForTransaction) {
                         return dbPlayerInfo.applyForPlatformTransactionReward(player.platform, player._id, topupIntentionObj.topUpAmount, player.playerLevel);
-                    } else {
+                    }
+                    else {
                         deferred.resolve(data);
                     }
                 }
