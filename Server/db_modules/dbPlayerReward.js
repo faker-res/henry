@@ -2430,6 +2430,14 @@ let dbPlayerReward = {
 
         let todayPropsProm = dbConfig.collection_proposal.find(eventQuery).lean();
 
+        // Check registration interface condition
+        if (checkInterfaceRewardPermission(eventData, rewardData)) {
+            return Q.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "This interface is not allowed for reward"
+            });
+        }
 
         if (intervalTime) {
             topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
@@ -2843,20 +2851,6 @@ let dbPlayerReward = {
                                     name: "DataError",
                                     message: "This top up record has been used"
                                 });
-                            }
-
-                            // Check registration interface condition
-                            if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0) {
-                                let registrationInterface = rewardData && rewardData.selectedTopup && rewardData.selectedTopup.userAgent ? rewardData.selectedTopup.userAgent : 0;
-
-                                // Interface not exist in condition
-                                if (eventData.condition.userAgent.indexOf(registrationInterface) < 0) {
-                                    return Q.reject({
-                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                        name: "DataError",
-                                        message: "This interface is not allowed for reward"
-                                    });
-                                }
                             }
 
                             // Set reward param step to use
@@ -3435,6 +3429,15 @@ let dbPlayerReward = {
         );
     },
 };
+
+function checkInterfaceRewardPermission(eventData, rewardData) {
+    // Check registration interface condition
+    if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0) {
+        let registrationInterface = rewardData && rewardData.selectedTopup && rewardData.selectedTopup.userAgent ? rewardData.selectedTopup.userAgent : 0;
+
+        return eventData.condition.userAgent.indexOf(registrationInterface) < 0;
+    }
+}
 
 function processConsecutiveLoginRewardRequest(playerData, inputDate, event, adminInfo, isPrevious) {
     let todayTopUpAmount = 0, todayBonusAmount = 0;
