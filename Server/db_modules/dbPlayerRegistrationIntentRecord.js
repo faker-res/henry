@@ -44,6 +44,27 @@ var dbPlayerRegistrationIntentRecord = {
         }
     },
 
+    updatePlayerRegistrationIntentRecordAPI: function (data, status) {
+        if (data && data.platformId) {
+            return dbconfig.collection_platform.findOne({platformId: data.platformId}).then(
+                function (plat) {
+                    if (plat && plat._id) {
+                        data.platformId = plat.platformId;
+                        data.platform = plat._id;
+                        return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecord(data, status);
+                    } else {
+                        return Q.reject({name: "DataError", message: "Platform does not exist"});
+                    }
+                },
+                function (err) {
+                    return Q.reject({name: "DataError", message: "Error in getting platform ID", error: err});
+                }
+            );
+        } else {
+            return Q.reject({name: "DataError", message: "Incomplete input data"});
+        }
+    },
+
     createPlayerRegistrationIntentRecord: function (data, status) {
         let proposalData = {
             creator: data.adminInfo || {
@@ -119,47 +140,22 @@ var dbPlayerRegistrationIntentRecord = {
     },
 
     createPlayerRegistrationIntentionProposal: (platform, data, status) => {
+        var deferred = Q.defer();
         dbconfig.collection_proposalType.findOne({platformId:platform, name: constProposalType.PLAYER_REGISTRATION_INTENTION}).lean().then(
             typeData => {
                 if( typeData ){
-                    return dbconfig.collection_proposal.findOne({
-                        type: typeData._id,
-                        "data.name": data.data.name,
-                        "data.phoneNumber": data.data.phoneNumber
-                    }).lean().then(
-                        proposalData => {
-                            if( proposalData ){
-                                return proposalData
-                            }
-                            else{
-                                return dbconfig.collection_proposal.findOne({
-                                    type: typeData._id,
-                                    "data.phoneNumber": data.data.phoneNumber
-                                }).lean();
-                            }
-                        }
-                    ).then(
-                        pData => {
-                            if(pData){
-                                dbconfig.collection_proposal.findOneAndUpdate(
-                                    {_id: pData._id, createTime: pData.createTime},
-                                    {
-                                        status: status,
-                                        "data.realName": data.data.realName,
-                                        "data.playerId": data.data.playerId,
-                                        "data.name": data.data.name
-                                    }
-                                ).then();
-                            }
-                            else{
-                                dbProposal.createProposalWithTypeName(platform, constProposalType.PLAYER_REGISTRATION_INTENTION, data).then(
-                                    newProposal => {
-                                        if (newProposal) {
-                                            dbconfig.collection_proposal.findOneAndUpdate({
-                                                _id: newProposal._id,
-                                                createTime: newProposal.createTime
-                                            }, {status: status}).then();
-                                        }
+                    dbProposal.createProposalWithTypeName(platform, constProposalType.PLAYER_REGISTRATION_INTENTION, data).then(
+                        newProposal => {
+                            if (newProposal) {
+                                dbconfig.collection_proposal.findOneAndUpdate({
+                                    _id: newProposal._id,
+                                    createTime: newProposal.createTime
+                                }, {status: status}).then(
+                                    function (data) {
+                                        deferred.resolve(data);
+                                    },
+                                    function (error) {
+                                        deferred.reject({name: "DBError", message: "Error finding matching proposal", error: error});
                                     }
                                 );
                             }
@@ -176,15 +172,48 @@ var dbPlayerRegistrationIntentRecord = {
      * @param {string} updateData - The update data string
      */
     updatePlayerRegistrationIntentRecord: function (query, updateData) {
-        if (query && query._id && query.creatTime) {
-            return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(query, updateData, {new: true});
-        } else {
-            return dbUtil.findOneAndUpdateForShard(
-                dbconfig.collection_playerRegistrationIntentRecord,
-                query, updateData,
-                constShardKeys.collection_playerRegistrationIntentRecord
-            )
+        let proposalProm;
+        let registrationIntentProm;
+        let queryObj = {};
+        if(query && query.name){
+            query.playerName = query.name;
         }
+        let updateQuery = {
+            status: updateData,
+            data: query
+        };
+        let intentUpdateData = {
+            name: query.name,
+            status: "",
+            data: query
+        };
+
+        queryObj['data.phoneNumber'] = query.phoneNumber ? query.phoneNumber : "";
+        queryObj['data.smsCode'] = query.smsCode ? parseInt(query.smsCode) : "";
+
+        if (query && query._id && query.createTime) {
+            proposalProm = dbconfig.collection_proposal.findOneAndUpdate(queryObj, updateQuery, {new: true});
+            if(updateData){
+                intentUpdateData.status = constRegistrationIntentRecordStatus[intentUpdateData.toString().toUpperCase()];
+            }
+            registrationIntentProm = dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(queryObj, intentUpdateData, {new: true});
+        } else {
+            proposalProm = dbUtil.findOneAndUpdateForShard(
+                dbconfig.collection_proposal,
+                queryObj, updateQuery,
+                constShardKeys.collection_proposal
+            );
+            if(updateData){
+                intentUpdateData.status = constRegistrationIntentRecordStatus[updateData.toString().toUpperCase()];
+            }
+            registrationIntentProm = dbUtil.findOneAndUpdateForShard(
+                    dbconfig.collection_playerRegistrationIntentRecord,
+                queryObj, intentUpdateData,
+                    constShardKeys.collection_playerRegistrationIntentRecord
+            );
+        }
+
+        return Promise.all([proposalProm,registrationIntentProm]);
     },
 
     /**
@@ -208,7 +237,7 @@ var dbPlayerRegistrationIntentRecord = {
                         return secondQuery;
                     }
                     return "Create New";
-                })
+                });
             }
         }).then(queryData =>{
             if(queryData){
@@ -223,7 +252,7 @@ var dbPlayerRegistrationIntentRecord = {
                     dbconfig.collection_playerRegistrationIntentRecord,
                     queryData, updateData,
                     constShardKeys.collection_playerRegistrationIntentRecord
-                )
+                );
             }
         })
     },
@@ -235,7 +264,6 @@ var dbPlayerRegistrationIntentRecord = {
         var d = new Date(Date.now() - 60 * 60 * 1000);
         query.createTime = {$gt: d.toISOString()};
         return dbconfig.collection_playerRegistrationIntentRecord.find(query).sort({createTime: -1}).limit(constSystemParam.MAX_RECORD_NUM);
-
     },
 
     /**

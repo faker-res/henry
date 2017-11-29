@@ -41,7 +41,8 @@ define(['js/app'], function (myApp) {
             EXPIRED: "Expired",
             UNDETERMINED: "Undetermined",
             AUTOAUDIT: "AutoAudit",
-            RECOVER: "Recover"
+            RECOVER: "Recover",
+            MANUAL: "Manual"
         };
         vm.depositMethodList = {
             Online: 1,
