@@ -1274,6 +1274,14 @@ let dbPlayerReward = {
         let platformData = null;
         var playerData = null;
         var promoListData = null;
+
+        if(!playerId){
+            return Q.reject({
+                status: constServerCode.INVALID_API_USER,
+                name: "DataError",
+                message:"用户未登录!"
+            })
+        }
         return dbConfig.collection_platform.findOne({platformId: platformId}).exec()
             .then(
                 platformRecord => {
