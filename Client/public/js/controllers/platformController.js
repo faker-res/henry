@@ -14466,6 +14466,8 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'topupRewardPoints':
                         vm.topupRewardPoints = [];
+                        vm.getAllGameProviders(vm.selectedPlatform.id);
+                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.TOPUP_REWARD_POINTS);
                         break;
                     case 'gameRewardPoints':
                         vm.allGameType = [];
@@ -14794,10 +14796,13 @@ define(['js/app'], function (myApp) {
                         }
 
                         if (!data.hasMoreThanOne || data.skipCheck) {
+                            sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
+                            let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
+
                             sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
                             sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
                             sendData.platformObjId = vm.selectedPlatform.id;
-                            sendData.allowedProviders = sendData.allowedProviders.length == vm.allGameProvider.length ? [] : sendData.allowedProviders.map(e => e._id);
+                            sendData.allowedProviders = sendData.allowedProviders && sendData.allowedProviders.length == usingGroup.length ? [] : sendData.allowedProviders;
                             sendData.smsContent = sendData.promoCodeType.smsContent;
 
                             console.log('sendData', sendData);
@@ -14841,7 +14846,8 @@ define(['js/app'], function (myApp) {
                     platformObjId: vm.promoCodeQuery.platformId,
                     index: vm.promoCodeQuery.index || 0,
                     limit: vm.promoCodeQuery.limit || 10,
-                    sortCol: vm.promoCodeQuery.sortCol
+                    sortCol: vm.promoCodeQuery.sortCol,
+                    isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
                 };
 
                 if (vm.promoCodeQuery.playerName && vm.promoCodeQuery.playerName.length) {
@@ -14867,7 +14873,7 @@ define(['js/app'], function (myApp) {
                     vm.drawPromoCodeHistoryTable(
                         vm.promoCodeQuery.result.map(item => {
                             item.expirationTime$ = item.expirationTime ? utilService.$getTimeFromStdTimeFormat(item.expirationTime) : "-";
-                            item.allowedProviders$ = item.allowedProviders.length == 0 ? $translate("ALL_PROVIDERS") : item.allowedProviders.map(e => e.code);
+                            item.allowedProviders$ = item.allowedProviders.length == 0 ? $translate("ALL_PROVIDERS") : item.allowedProviders.map(e => item.isProviderGroup ? e.name : e.code);
                             item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
                             item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
 

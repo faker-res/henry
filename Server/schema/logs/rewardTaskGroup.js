@@ -31,7 +31,7 @@ let rewardTaskGroupSchema = new Schema({
     curConsumption: {type: Number, default: 0},
     // Target Consumption
     targetConsumption: {type: Number, default: 0},
-    // Current credit
+    // Running reward amount based on consumption, used to unlock reward before credit is transfer out, may be delayed
     currentAmt: {type: Number, default: 0},
     // Forbidden XIMA amount
     forbidXIMAAmt: {type: Number, default: 0},

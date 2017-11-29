@@ -256,7 +256,6 @@ var dbPlayerLoginRecord = {
      * @param {String}  platform, country
      */
     getPlayerRetention: function (platform, startTime, days) {
-        console.log('getPlayerRetention reached');
         var day0PlayerObj = {};
         var dayNPlayerObj = {};
         var day0PlayerArrayProm = [];
@@ -267,25 +266,6 @@ var dbPlayerLoginRecord = {
         lastDay.setDate(lastDay.getDate() + 30 + days[days.length - 1]);
 
         for (var day = 0; day < 31; day++) {
-            if (day == 5) {
-                console.log('times',time0, time1)
-            }
-
-            //debug use query
-            dbconfig.collection_players.aggregate(
-                [{
-                    $match: {
-                        platform: platform,
-                        registrationTime: {
-                            $gte: new Date(time0),
-                            $lt: new Date(time1)
-                        }
-                    },
-                }]).exec().then(
-                dataP => {
-                    console.log('players',JSON.stringify(dataP));
-                }
-            )
 
             var temp = dbconfig.collection_players.aggregate(
                 [{
@@ -304,7 +284,7 @@ var dbPlayerLoginRecord = {
                     }
                 }, {
                     $group: {
-                        _id: time0,
+                        _id: time0.toString(),
                         playerId: {
                             "$addToSet": "$_id.playerId"
                         }
@@ -318,7 +298,6 @@ var dbPlayerLoginRecord = {
         }
         return Q.all(day0PlayerArrayProm).then(
             data => {
-                console.log('getPlayerRetention got daily register player', JSON.stringify(data, null, 2));
                 //containing new player data on each 'day 0'
                 for (var i in data) {
                     if (data[i].length > 0) {
@@ -327,7 +306,6 @@ var dbPlayerLoginRecord = {
                             .sort((a, b) => a < b ? -1 : 1);
                     }
                 }
-                console.log('getPlayerRetention day0PlayerObj', day0PlayerObj);
                 var time0 = new Date(startTime);
                 var time1 = new Date(startTime);
                 time1.setHours(23, 59, 59, 999);
@@ -338,8 +316,8 @@ var dbPlayerLoginRecord = {
                             $match: {
                                 platform: platform,
                                 loginTime: {
-                                    $gte: time0,
-                                    $lt: time1
+                                    $gte: new Date(time0),
+                                    $lt: new Date(time1)
                                 }
                             },
                         }, {
@@ -350,7 +328,7 @@ var dbPlayerLoginRecord = {
                             }
                         }, {
                             $group: {
-                                _id: time0,
+                                _id: time0.toString(),
                                 playerId: {
                                     "$addToSet": "$_id.playerId"
                                 }
@@ -380,6 +358,7 @@ var dbPlayerLoginRecord = {
                             showDate.setDate(showDate.getDate() + i);
                             var row = {date: showDate};
                             var baseArr = [];
+
                             if (day0PlayerObj[date]) {
                                 row.day0 = day0PlayerObj[date].length;
                                 baseArr = day0PlayerObj[date];
