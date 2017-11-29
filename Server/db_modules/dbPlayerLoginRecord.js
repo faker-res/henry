@@ -285,7 +285,7 @@ var dbPlayerLoginRecord = {
                     }
                 }, {
                     $group: {
-                        _id: time0,
+                        _id: time0.toString(),
                         playerId: {
                             "$addToSet": "$_id.playerId"
                         }
@@ -293,6 +293,7 @@ var dbPlayerLoginRecord = {
                 }]
             ).exec();
             day0PlayerArrayProm.push(temp);
+            console.log('getPlayerRetention time0', time0)
             time0.setDate(time0.getDate() + 1);
             time1.setDate(time1.getDate() + 1);
 
@@ -308,7 +309,7 @@ var dbPlayerLoginRecord = {
                             .sort((a, b) => a < b ? -1 : 1);
                     }
                 }
-                // console.log('getPlayerRetention day0PlayerObj', day0PlayerObj);
+                console.log('getPlayerRetention day0PlayerObj', day0PlayerObj);
                 var time0 = new Date(startTime);
                 var time1 = new Date(startTime);
                 time1.setHours(23, 59, 59, 999);
@@ -331,7 +332,7 @@ var dbPlayerLoginRecord = {
                             }
                         }, {
                             $group: {
-                                _id: time0,
+                                _id: time0.toString(),
                                 playerId: {
                                     "$addToSet": "$_id.playerId"
                                 }
