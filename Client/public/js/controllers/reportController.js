@@ -2082,7 +2082,6 @@ define(['js/app'], function (myApp) {
             $('#topupTable').resize();
 
         }
-
         ///End topup report
 
         //Start operation report
@@ -5549,6 +5548,9 @@ define(['js/app'], function (myApp) {
         vm.setPanel = function (isSet) {
             vm.hideLeftPanel = isSet;
             $cookies.put("reportShowLeft", vm.hideLeftPanel);
+            $timeout(()=>{
+                $('#topupTable').resize();
+            },0)
             $scope.safeApply();
         }
 
