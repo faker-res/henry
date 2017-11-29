@@ -14462,6 +14462,8 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'topupRewardPoints':
                         vm.topupRewardPoints = [];
+                        vm.getAllGameProviders(vm.selectedPlatform.id);
+                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.TOPUP_REWARD_POINTS);
                         break;
                     case 'gameRewardPoints':
                         vm.allGameType = [];

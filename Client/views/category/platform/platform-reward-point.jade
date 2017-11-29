@@ -148,41 +148,46 @@
                                 th {{'rewardContent' | translate}}
                                 th
                         tbody
-                            tr(ng-repeat='(idx,val) in vm.topupRewardPoints')
-                                td {{'TOPUP_REWARD_POINTS' | translate}}
+                            tr(ng-repeat="(idx,val) in vm.rewardPointsEvent | orderBy: 'index'")
+                                td(style="min-width:70px;") {{'TOPUP_REWARD_POINTS' | translate}}
                                 td(style="max-width:100px;")
-                                    select.form-control(ng-model='val.intervalPeriod' ng-options="+(i) as v | translate for (i,v) in constRewardPointsIntervalPeriod" ng-disabled='!val.isEditing')
+                                    select.form-control(ng-model='val.period' ng-change='vm.rewardPointsEventPeriodChange(idx,val)' ng-options="+(i) as v | translate for (i,v) in constRewardPointsIntervalPeriod" ng-disabled='!val.isEditing')
+                                    br(ng-if="val.period==6")
+                                    div.dateTimePicker(id="rewardPointsEventStartDate-{{idx}}" style="display: inline-block" ng-if="val.period==6")
+                                    span(ng-if="val.period==6") {{ 'to' | translate}}
+                                    div.dateTimePicker(id="rewardPointsEventEndDate-{{idx}}" style="display: inline-block" ng-if="val.period==6")
                                 td(style="max-width:80px;")
-                                    input.form-control(type='number' ng-model='val.displayOrder' ng-disabled='!val.isEditing')
+                                    input.form-control(type='number' ng-model='val.index' ng-disabled='!val.isEditing')
                                 td
                                     select.form-control(ng-model='val.userAgent' ng-options="+(i) as v | translate for (i,v) in userAgentType" ng-disabled='!val.isEditing')
                                 td
-                                    select.form-control(ng-model='val.merchantTopupMainType' ng-options="+(i) as v | translate for (i,v) in merchantTopupMainTypeJson" ng-disabled='!val.isEditing')
-                                td
-                                    select.form-control(ng-model='val.merchantTopupType' ng-options="+(i) as v | translate for (i,v) in merchantTopupTypeJson" ng-disabled='!val.isEditing')
-                                td
-                                    select.form-control(ng-model='val.depositMethod' ng-options="+(i) as v | translate for (i,v) in depositMethod" ng-disabled='!val.isEditing')
-                                td
-                                    select.form-control(ng-model='val.bankType' ng-options="+(i) as v | translate for (i,v) in vm.allBankTypeList" ng-disabled='!val.isEditing')
+                                    select.form-control(ng-model='val.target.merchantTopupMainType' ng-options="+(i) as v | translate for (i,v) in merchantTopupMainTypeJson" ng-disabled='!val.isEditing')
+                                td(style="max-width:140px;")
+                                    select.form-control(ng-model='val.target.merchantTopupType' ng-options="+(i) as v | translate for (i,v) in merchantTopupTypeJson" ng-disabled='!val.isEditing')
+                                td(style="max-width:180px;")
+                                    select.form-control(ng-model='val.target.depositMethod' ng-options="+(i) as v | translate for (i,v) in depositMethod" ng-disabled='!val.isEditing')
+                                td(style="max-width:200px;")
+                                    select.form-control(ng-model='val.target.bankType' ng-options="+(i) as v | translate for (i,v) in vm.allBankTypeList" ng-disabled='!val.isEditing')
                                 td(style="max-width:80px;")
-                                    input.form-control(type='number' ng-model='val.dailyTopupAmount' ng-disabled='!val.isEditing')
+                                    input.form-control(type='number' ng-model='val.target.dailyTopupAmount' ng-disabled='!val.isEditing')
                                 td(style="max-width:80px;")
                                     input.form-control(type='number' ng-model='val.consecutiveCount' ng-disabled='!val.isEditing')
                                 td(style="max-width:80px;")
                                     input.form-control(type='number' ng-model='val.rewardPoints' ng-disabled='!val.isEditing')
                                 td(style="max-width:150px;")
                                     input.form-control(type='text' ng-model='val.rewardTitle' ng-disabled='!val.isEditing')
-                                td
+                                td(style="max-width:185px;")
                                     input.form-control(type='text' ng-model='val.rewardContent' ng-disabled='!val.isEditing')
                                 td(style="max-width:200px;")
-                                    button.btn.btn-primary(ng-if='val.isEditing' ng-click='vm.loginRewardPointsSubmit(val);vm.endLoadWeekDay();') {{'CONFIRM' | translate}}
-                                    button.btn.btn-primary(ng-if='!val.isEditing' ng-click='val.isEditing=true;vm.endLoadWeekDay();') {{'EDIT' | translate}}
-                                    button.btn.btn-danger(ng-if='!val.isEditing' ng-click='vm.loginRewardPointsDelete($index,val)') {{'DELETE' | translate}}
-                                    button.btn.btn-warning(ng-if='!val.isEditing') {{'CLOSE' | translate}}
-
+                                    button.btn.btn-primary(ng-if='val.isEditing && !val._id' ng-click='vm.createRewardPointsEvent(val);vm.endLoadWeekDay();' ng-disabled='!(val.rewardTitle && val.period)' style='margin: 1px 1px;') {{'CONFIRM' | translate}}
+                                    button.btn.btn-primary(ng-if='val.isEditing && val._id' ng-click='vm.updateRewardPointsEvent(idx,val);' ng-disabled='!(val.rewardTitle && val.period)' style='margin: 1px 1px;') {{'CONFIRM' | translate}}
+                                    button.btn.btn-danger(ng-if='val.isEditing' ng-click='vm.rewardPointsTabClicked("topupRewardPoints");' style='margin: 1px 1px;') {{'CANCEL' | translate}}
+                                    button.btn.btn-primary(ng-if='!val.isEditing' ng-click='vm.rewardPointsEventSetDisable(idx,val,false);' style='margin: 1px 1px;') {{'EDIT' | translate}}
+                                    button.btn.btn-danger(ng-if='!val.isEditing' data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click="vm.deletingRewardPointsEvent=val" style='margin: 1px 1px;') {{'DELETE' | translate}}
+                                    button.btn.btn-warning(ng-if='!val.isEditing' ng-click='val.status = !val.status; vm.updateRewardPointsEvent(idx,val);' style='margin: 1px 1px;') {{val.status? 'CLOSE':'OPEN' | translate}}
                     br
                     .pull-right
-                        button.btn.btn-primary.common-button(ng-click='vm.topupRewardPoints.push({isEditing: true});vm.endLoadWeekDay();')
+                        button.btn.btn-primary.common-button(ng-click='vm.rewardPointsEventAddNewRow(constRewardPointsTaskCategory.TOPUP_REWARD_POINTS);vm.endLoadWeekDay();')
                             text {{'ADD' | translate}}
                             img.img-create
 
