@@ -15,6 +15,7 @@ const constSMSPurpose = require('../const/constSMSPurpose');
 const queryPhoneLocation = require('query-mobile-phone-area');
 const constProposalStatus = require('../const/constProposalStatus');
 const constRegistrationIntentRecordStatus = require('../const/constRegistrationIntentRecordStatus');
+const dbUtility = require('./../modules/dbutility');
 
 const dbPlayerMail = {
 
@@ -195,6 +196,16 @@ const dbPlayerMail = {
         let lastMinuteHistory = null;
         let platform;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
+
+        if(data.lastLoginIp && data.lastLoginIp != "undefined"){
+            dbUtility.getGeoIp(data.lastLoginIp).then(
+                ipData=>{
+                    if(data) {
+                        data.ipArea = ipData;
+                    }
+                })
+        }
+
         return getPlatform.then(
             function (platformData) {
                 if (platformData) {

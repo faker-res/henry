@@ -140,6 +140,7 @@ var dbPlayerRegistrationIntentRecord = {
     },
 
     createPlayerRegistrationIntentionProposal: (platform, data, status) => {
+        var deferred = Q.defer();
         dbconfig.collection_proposalType.findOne({platformId:platform, name: constProposalType.PLAYER_REGISTRATION_INTENTION}).lean().then(
             typeData => {
                 if( typeData ){
@@ -149,7 +150,14 @@ var dbPlayerRegistrationIntentRecord = {
                                 dbconfig.collection_proposal.findOneAndUpdate({
                                     _id: newProposal._id,
                                     createTime: newProposal.createTime
-                                }, {status: status}).then();
+                                }, {status: status}).then(
+                                    function (data) {
+                                        deferred.resolve(data);
+                                    },
+                                    function (error) {
+                                        deferred.reject({name: "DBError", message: "Error finding matching proposal", error: error});
+                                    }
+                                );
                             }
                         }
                     );
@@ -186,7 +194,7 @@ var dbPlayerRegistrationIntentRecord = {
         if (query && query._id && query.createTime) {
             proposalProm = dbconfig.collection_proposal.findOneAndUpdate(queryObj, updateQuery, {new: true});
             if(updateData){
-                intentUpdateData.status = constRegistrationIntentRecordStatus[intentUpdateData.toString().toUpperCase()]
+                intentUpdateData.status = constRegistrationIntentRecordStatus[intentUpdateData.toString().toUpperCase()];
             }
             registrationIntentProm = dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(queryObj, intentUpdateData, {new: true});
         } else {
@@ -194,15 +202,15 @@ var dbPlayerRegistrationIntentRecord = {
                 dbconfig.collection_proposal,
                 queryObj, updateQuery,
                 constShardKeys.collection_proposal
-            )
+            );
             if(updateData){
-                intentUpdateData.status = constRegistrationIntentRecordStatus[updateData.toString().toUpperCase()]
+                intentUpdateData.status = constRegistrationIntentRecordStatus[updateData.toString().toUpperCase()];
             }
             registrationIntentProm = dbUtil.findOneAndUpdateForShard(
                     dbconfig.collection_playerRegistrationIntentRecord,
                 queryObj, intentUpdateData,
                     constShardKeys.collection_playerRegistrationIntentRecord
-            )
+            );
         }
 
         return Promise.all([proposalProm,registrationIntentProm]);
@@ -229,7 +237,7 @@ var dbPlayerRegistrationIntentRecord = {
                         return secondQuery;
                     }
                     return "Create New";
-                })
+                });
             }
         }).then(queryData =>{
             if(queryData){
@@ -244,7 +252,7 @@ var dbPlayerRegistrationIntentRecord = {
                     dbconfig.collection_playerRegistrationIntentRecord,
                     queryData, updateData,
                     constShardKeys.collection_playerRegistrationIntentRecord
-                )
+                );
             }
         })
     },
@@ -256,7 +264,6 @@ var dbPlayerRegistrationIntentRecord = {
         var d = new Date(Date.now() - 60 * 60 * 1000);
         query.createTime = {$gt: d.toISOString()};
         return dbconfig.collection_playerRegistrationIntentRecord.find(query).sort({createTime: -1}).limit(constSystemParam.MAX_RECORD_NUM);
-
     },
 
     /**

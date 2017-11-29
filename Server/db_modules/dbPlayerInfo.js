@@ -393,7 +393,9 @@ let dbPlayerInfo = {
                     if (data) {
                         dbPlayerInfo.createPlayerLoginRecord(data);
                         //todo::temp disable similar player untill ip is correct
-                        dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
+                        if(data.lastLoginIp && data.lastLoginIp != "undefined"){
+                            dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
+                        }
                         // dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
                         return data;
                     }

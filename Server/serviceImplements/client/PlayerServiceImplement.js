@@ -856,15 +856,6 @@ let PlayerServiceImplement = function () {
         data.loginIps = [data.lastLoginIp];
         data.ipArea = {'province':'', 'city':''};
 
-        if(data.lastLoginIp && data.lastLoginIp != "undefined"){
-            dbUtility.getGeoIp(data.lastLoginIp).then(
-                ipData=>{
-                    if(data) {
-                        data.ipArea = ipData;
-                    }
-                })
-        }
-
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);
         data.userAgent = [{
