@@ -14540,12 +14540,8 @@ define(['js/app'], function (myApp) {
                 vm.isRewardPointsLvlConfigEditing=!isDisable;
                 let startDateId = "#rewardPointsLvlConfigStartDate";
                 let endDateId = "#rewardPointsLvlConfigEndDate";
-                utilService.actionAfterLoaded(startDateId, () => {
-                    $(startDateId+" :input").prop("disabled", isDisable);
-                });
-                utilService.actionAfterLoaded(endDateId, () => {
-                    $(endDateId+" :input").prop("disabled", isDisable);
-                });
+                vm.datetimePickerSetDisable(startDateId, isDisable);
+                vm.datetimePickerSetDisable(endDateId, isDisable);
                 $scope.safeApply();
                 vm.endLoadWeekDay();
             };
@@ -14557,8 +14553,8 @@ define(['js/app'], function (myApp) {
                     console.log('getRewardPointsEventByCategory',data.data);
                     vm.rewardPointsEvent = data.data;
                     $.each(vm.rewardPointsEvent, function (idx, val) {
-                        vm.rewardPointsEventPeriodChange(idx,val);
-                        vm.rewardPointsEventSetDisable(idx,val,true);
+                        vm.rewardPointsEventPeriodChange(idx, val);
+                        vm.rewardPointsEventSetDisable(idx, val, true);
                     });
                     $scope.safeApply();
                     vm.endLoadWeekDay();
@@ -14582,7 +14578,7 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.updateRewardPointsEvent = (idx,rewardPointsEvent) => {
+            vm.updateRewardPointsEvent = (idx, rewardPointsEvent) => {
                 delete rewardPointsEvent.isEditing;
                 if(rewardPointsEvent.period == 6 ){
                     rewardPointsEvent.customPeriodStartTime = rewardPointsEvent.customPeriodStartTime.data('datetimepicker').getLocalDate();
@@ -14593,8 +14589,8 @@ define(['js/app'], function (myApp) {
                 }
                 //Use Object.assign instead of directly use rewardPointsEvent, because datetimePicker input will disappear when add new event to vm.rewardPointsEvent
                 $scope.$socketPromise('updateRewardPointsEvent', {rewardPointsEvent: Object.assign({}, rewardPointsEvent)}).then((data) => {
-                    vm.rewardPointsEventPeriodChange(idx,rewardPointsEvent);
-                    vm.rewardPointsEventSetDisable(idx,rewardPointsEvent,true);
+                    vm.rewardPointsEventPeriodChange(idx, rewardPointsEvent);
+                    vm.rewardPointsEventSetDisable(idx, rewardPointsEvent, true);
                     $scope.safeApply();
                     vm.endLoadWeekDay();
                 });
@@ -14607,9 +14603,9 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.rewardPointsEventPeriodChange = (idx,rewardPointsEvent) => {
+            vm.rewardPointsEventPeriodChange = (idx, rewardPointsEvent) => {
                 if(rewardPointsEvent.period ==6){
-                    let startDateId = "#rewardPointsEventStartDate-"+idx;
+                    let startDateId = "#rewardPointsEventStartDate-" + idx;
                     utilService.actionAfterLoaded(startDateId, function () {
 
                         let dateValue = rewardPointsEvent.customPeriodStartTime;
@@ -14625,7 +14621,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
-                    let endDateId = "#rewardPointsEventEndDate-"+idx;
+                    let endDateId = "#rewardPointsEventEndDate-" + idx;
                     utilService.actionAfterLoaded(endDateId, function () {
                         let dateValue = rewardPointsEvent.customPeriodEndTime;
 
@@ -14642,23 +14638,29 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.rewardPointsEventSetDisable = (idx,rewardPointsEvent,isDisable) => {
+            vm.rewardPointsEventSetDisable = (idx, rewardPointsEvent, isDisable) => {
                 rewardPointsEvent.isEditing=!isDisable;
-                let startDateId = "#rewardPointsEventStartDate-"+idx;
-                let endDateId = "#rewardPointsEventEndDate-"+idx;
-                utilService.actionAfterLoaded(startDateId, () => {
-                    $(startDateId+" :input").prop("disabled", isDisable);
-                });
-                utilService.actionAfterLoaded(endDateId, () => {
-                    $(endDateId+" :input").prop("disabled", isDisable);
-                });
+                if (rewardPointsEvent.period == 6){
+                    let startDateId = "#rewardPointsEventStartDate-" + idx;
+                    let endDateId = "#rewardPointsEventEndDate-" + idx;
+                    vm.datetimePickerSetDisable(startDateId, isDisable);
+                    vm.datetimePickerSetDisable(endDateId, isDisable);
+                }
                 $scope.safeApply();
                 vm.endLoadWeekDay();
             };
 
-            vm.rewardPointsEventAddNewRow = (rewardPointsEventCategory,otherEventParam={}) => {
+            vm.rewardPointsEventAddNewRow = (rewardPointsEventCategory, otherEventParam={}) => {
                 let defaultEvent = {category:rewardPointsEventCategory, isEditing: true};
                 vm.rewardPointsEvent.push( Object.assign(defaultEvent, otherEventParam));
+            };
+
+            vm.datetimePickerSetDisable = (eleId, isDisable) => {
+                utilService.actionAfterLoaded(eleId, () => {
+                    $(eleId+" :input").prop("disabled", isDisable);
+                    //fix disable datetimepicker, calendar icon still clickable
+                    $(eleId+" :input~*").toggle(!isDisable);
+                });
             };
 
             function loadPromoCodeTypes() {

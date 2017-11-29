@@ -267,13 +267,33 @@ var dbPlayerLoginRecord = {
         lastDay.setDate(lastDay.getDate() + 30 + days[days.length - 1]);
 
         for (var day = 0; day < 31; day++) {
+            if (day == 5) {
+                console.log('times',time0, time1)
+            }
+
+            //debug use query
+            dbconfig.collection_players.aggregate(
+                [{
+                    $match: {
+                        platform: platform,
+                        registrationTime: {
+                            $gte: new Date(time0),
+                            $lt: new Date(time1)
+                        }
+                    },
+                }]).exec().then(
+                dataP => {
+                    console.log('players',JSON.stringify(dataP));
+                }
+            )
+
             var temp = dbconfig.collection_players.aggregate(
                 [{
                     $match: {
                         platform: platform,
                         registrationTime: {
-                            $gte: time0,
-                            $lt: time1
+                            $gte: new Date(time0),
+                            $lt: new Date(time1)
                         }
                     },
                 }, {
