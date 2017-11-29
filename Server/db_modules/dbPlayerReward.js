@@ -3463,8 +3463,8 @@ function checkInterfaceRewardPermission(eventData, rewardData) {
     let isForbidInterface = false;
 
     // Check registration interface condition
-    if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0) {
-        let registrationInterface = rewardData && rewardData.selectedTopup && rewardData.selectedTopup.userAgent ? rewardData.selectedTopup.userAgent : 0;
+    if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0 && rewardData && rewardData.selectedTopup) {
+        let registrationInterface = rewardData.selectedTopup.userAgent ? rewardData.selectedTopup.userAgent : 0;
 
         isForbidInterface = eventData.condition.userAgent.indexOf(registrationInterface) < 0;
     }
