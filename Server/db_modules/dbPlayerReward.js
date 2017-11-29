@@ -1471,7 +1471,10 @@ let dbPlayerReward = {
                 return dbConfig.collection_promoCode.find(query)
                     .populate({path: "playerObjId", model: dbConfig.collection_players})
                     .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
-                    .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider})
+                    .populate({
+                        path: "allowedProviders",
+                        model: searchQuery.isProviderGroup ? dbConfig.collection_gameProviderGroup : dbConfig.collection_gameProvider
+                    })
                     .sort(searchQuery.sortCol).lean();
             }
         ).then(
@@ -1585,7 +1588,7 @@ let dbPlayerReward = {
         }).then(
             playerData => {
                 playerObj = playerData;
-                platformObjId = playerObj.platform
+                platformObjId = playerObj.platform;
                 return dbConfig.collection_promoCode.find({
                     platformObjId: playerData.platform,
                     playerObjId: playerObj._id,
@@ -1727,6 +1730,13 @@ let dbPlayerReward = {
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
                 };
+
+                if (promoCodeObj.isProviderGroup) {
+                    proposalData.data.providerGroup = promoCodeObj.allowedProviders;
+                } else {
+                    proposalData.data.providers = promoCodeObj.allowedProviders;
+                }
+
                 return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
             }
         ).then(
@@ -3450,12 +3460,16 @@ let dbPlayerReward = {
 };
 
 function checkInterfaceRewardPermission(eventData, rewardData) {
+    let isForbidInterface = false;
+
     // Check registration interface condition
     if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0) {
         let registrationInterface = rewardData && rewardData.selectedTopup && rewardData.selectedTopup.userAgent ? rewardData.selectedTopup.userAgent : 0;
 
-        return eventData.condition.userAgent.indexOf(registrationInterface) < 0;
+        isForbidInterface = eventData.condition.userAgent.indexOf(registrationInterface) < 0;
     }
+
+    return isForbidInterface;
 }
 
 function checkTopupRecordIsDirtyForReward(eventData, rewardData) {

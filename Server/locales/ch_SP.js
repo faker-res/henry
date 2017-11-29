@@ -116,6 +116,7 @@ var simplifiedChinese = {
     "Not enough reward amount": "奖励额度不够",
     "Can not find player bonus proposal or provider credit": "无法找到相关数据",
     "Can not find player": "无法找到玩家",
+    "This interface is not allowed for reward": "此装置不允许申请奖励",
     "Invalid reward event": "无效奖励活动",
     "This referral player is incorrect": "推荐玩家无效",
     "This player has been used to apply this reward": "推荐玩家已被使用",

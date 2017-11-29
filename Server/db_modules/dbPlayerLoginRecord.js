@@ -267,25 +267,6 @@ var dbPlayerLoginRecord = {
         lastDay.setDate(lastDay.getDate() + 30 + days[days.length - 1]);
 
         for (var day = 0; day < 31; day++) {
-            if (day == 5) {
-                console.log('times',time0, time1)
-            }
-
-            //debug use query
-            dbconfig.collection_players.aggregate(
-                [{
-                    $match: {
-                        platform: platform,
-                        registrationTime: {
-                            $gte: new Date(time0),
-                            $lt: new Date(time1)
-                        }
-                    },
-                }]).exec().then(
-                dataP => {
-                    console.log('players',JSON.stringify(dataP));
-                }
-            )
 
             var temp = dbconfig.collection_players.aggregate(
                 [{
@@ -327,7 +308,7 @@ var dbPlayerLoginRecord = {
                             .sort((a, b) => a < b ? -1 : 1);
                     }
                 }
-                console.log('getPlayerRetention day0PlayerObj', day0PlayerObj);
+                // console.log('getPlayerRetention day0PlayerObj', day0PlayerObj);
                 var time0 = new Date(startTime);
                 var time1 = new Date(startTime);
                 time1.setHours(23, 59, 59, 999);
@@ -372,6 +353,7 @@ var dbPlayerLoginRecord = {
                         }
                         // console.log('dayNPlayerObj', dayNPlayerObj);
                         //now computing result array
+                        console.log('getPlayerRetention day0PlayerObj', day0PlayerObj)
                         var resultArr = [];
                         for (var i = 1; i < 31; i++) {
                             var date = new Date(startTime);
@@ -380,6 +362,13 @@ var dbPlayerLoginRecord = {
                             showDate.setDate(showDate.getDate() + i);
                             var row = {date: showDate};
                             var baseArr = [];
+
+                            // debug start
+                            let debugDateStringKey = {};
+                            debugDateStringKey[date] = 'foobar';
+                            console.log('getPlayerRetention date',date, date.toString(), JSON.stringify(debugDateStringKey));
+                            // debug end
+
                             if (day0PlayerObj[date]) {
                                 row.day0 = day0PlayerObj[date].length;
                                 baseArr = day0PlayerObj[date];
@@ -402,6 +391,7 @@ var dbPlayerLoginRecord = {
                                     row[days[day]] = count;
                                 }
                             }
+                            console.log('getPlayerRetention result row',JSON.stringify(row));
                             resultArr.push(row);
                         }
                         return resultArr;
