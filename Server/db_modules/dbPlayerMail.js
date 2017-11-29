@@ -273,32 +273,36 @@ const dbPlayerMail = {
             function (retData) {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
 
+                if(data.playerId){
+                    data.playerId = "";
+                }
+
                 //if (purpose == constSMSPurpose.REGISTRATION) {
-                    data.smsCode = code
+                data.smsCode = code
 
-                    if( data.phoneNumber ){
-                        var queryRes = queryPhoneLocation(data.phoneNumber);
-                        if (queryRes) {
-                            data.phoneProvince = queryRes.province;
-                            data.phoneCity = queryRes.city;
-                            data.phoneType = queryRes.type;
-                        }
-
-                        let proposal = {data: data};
-                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, proposal, constProposalStatus.PENDING);
+                if( data.phoneNumber ){
+                    var queryRes = queryPhoneLocation(data.phoneNumber);
+                    if (queryRes) {
+                        data.phoneProvince = queryRes.province;
+                        data.phoneCity = queryRes.city;
+                        data.phoneType = queryRes.type;
                     }
 
-                    let newIntentData = {
-                        data: data,
-                        status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
-                        name: data.name
-                    };
-                    let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                    return newRecord.save().then(data => {
-                        if(data){
-                            return true;
-                        }
-                    });
+                    let proposal = {data: data};
+                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, proposal, constProposalStatus.PENDING);
+                }
+
+                let newIntentData = {
+                    data: data,
+                    status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
+                    name: data.name
+                };
+                let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+                return newRecord.save().then(data => {
+                    if(data){
+                        return true;
+                    }
+                });
                 //}
 
                 return true;
