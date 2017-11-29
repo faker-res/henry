@@ -1844,7 +1844,7 @@ var proposal = {
     //     });
     // },
 
-    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId) {//need
+    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
         //check proposal without process
         var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
@@ -1998,17 +1998,28 @@ var proposal = {
                     }
                 })
 
-                for (var i = 0; i < returnData[0].length; i++) {
-                    if(returnData[0][i].data.userAgent){
-                        for (var j = 0; j < returnData[0][i].data.userAgent.length; j++) {
-                            if(!returnData[0][i].data.device){
-                                returnData[0][i].data.device = dbutility.getInputDevice(returnData[0][i].data.userAgent, false);
+                let dataArr = [];
+                if(attemptNo && attemptNo != 0 && attemptNo != -1){
+                    returnData[0].map(r =>{
+                        if(r.$playerAllCount == attemptNo){
+                            dataArr.push(r);
+                        }
+                    })
+                }else{
+                    dataArr = returnData[0];
+                }
+
+                for (var i = 0; i < dataArr.length; i++) {
+                    if(dataArr[i].data.userAgent){
+                        for (var j = 0; j < dataArr[i].data.userAgent.length; j++) {
+                            if(!dataArr[i].data.device){
+                                dataArr[i].data.device = dbutility.getInputDevice(dataArr[i].data.userAgent, false);
                             }
                         }
                     }
                 }
 
-                return {data: returnData[0], size: returnData[1]};
+                return {data: dataArr, size: returnData[1]};
             })
 
         });
@@ -2048,13 +2059,20 @@ var proposal = {
             return Q.all(prom);
         }).then(details => {
             details.map(data => {
+                let currentArrNo = 1;
                 data.map(d => {
                     if (!recordArr.find(r => r.phoneNumber == d.data.phoneNumber)) {
-                        recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1});
+                        recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1, arrNo: 1});
+                        currentArrNo = 1;
                     } else {
-                        var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber);
-                        recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
-                        recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
+                        var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber && r.arrNo == currentArrNo);
+                        if(recordArr[indexNo].status == constProposalStatus.SUCCESS){
+                            recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1, arrNo: currentArrNo + 1});
+                            currentArrNo = currentArrNo + 1;
+                        }else{
+                            recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
+                            recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
+                        }
                     }
                 })
             })
@@ -2147,19 +2165,26 @@ var proposal = {
 
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
             dataList.map(phoneNumber => {
-                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).sort({createTime: -1}));
+                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).sort({createTime: 1}));
                 totalHeadCount += 1;
             })
             return Q.all(prom);
         }).then(details => {
             details.map(data => {
+                let currentArrNo = 1;
                 data.map(d => {
                     if (!recordArr.find(r => r.phoneNumber == d.data.phoneNumber)) {
-                        recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1});
+                        recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1, arrNo: 1});
+                        currentArrNo = 1;
                     } else {
-                        var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber);
-                        recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
-                        recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
+                        var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber && r.arrNo == currentArrNo);
+                        if(recordArr[indexNo].status == constProposalStatus.SUCCESS){
+                            recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1, arrNo: currentArrNo + 1});
+                            currentArrNo = currentArrNo + 1;
+                        }else{
+                            recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
+                            recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
+                        }
                     }
                 })
             })
@@ -2211,7 +2236,7 @@ var proposal = {
         });
     },
 
-    getPlayerRegistrationIntentRecordByStatus: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, attemptNo) {
+    getPlayerRegistrationIntentRecordByStatus: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo) {
         var queryObj = {
             createTime: {
                 $gte: new Date(startTime),
@@ -2226,42 +2251,45 @@ var proposal = {
         var returnArr = [];
         var recordArr = [];
         var prom = [];
+
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
             dataList.map(phoneNumber => {
-                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).sort({createTime: -1}));
+                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).sort({createTime: 1}));
             })
             return Q.all(prom);
         }).then(details => {
             details.map(data => {
+                let currentArrNo = 1;
                 data.map(d => {
                     if (!recordArr.find(r => r.phoneNumber == d.data.phoneNumber)) {
-                        recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1});
+                        recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1, arrNo: 1});
+                        currentArrNo = 1;
                     } else {
-                        var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber);
-                        if(indexNo >= 0){
+                        var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber && r.arrNo == currentArrNo);
+                        if(recordArr[indexNo].status == constProposalStatus.SUCCESS){
+                            recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1, arrNo: currentArrNo + 1});
+                            currentArrNo = currentArrNo + 1;
+                        }else{
                             recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
                             recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
                         }
                     }
                 })
             })
-
             return recordArr;
         }).then(playerAttemptNumber =>{
             if(attemptNo == 0){
-                return playerAttemptNumber.filter(function(event){return statusArr.includes(event.status) && event.attemptNo > 5})
+                return playerAttemptNumber.filter(function(event){return statusArr.includes(event.status) && event.attemptNo > 5});
             }else if(attemptNo < 0){
-                return playerAttemptNumber;
+                return playerAttemptNumber.filter(function(event){return statusArr.includes(event.status)});
             }else {
-                return playerAttemptNumber.filter(function(event){return statusArr.includes(event.status) && event.attemptNo == attemptNo})
+                return playerAttemptNumber.filter(function(event){return statusArr.includes(event.status) && event.attemptNo == attemptNo});
             }
         }).then(data => {
-            // let statusArray = [constRegistrationIntentRecordStatus.INTENT,constRegistrationIntentRecordStatus.VERIFICATION_CODE,constRegistrationIntentRecordStatus.SUCCESS,constRegistrationIntentRecordStatus.FAIL
-            //     ,constRegistrationIntentRecordStatus.MANUAL];
             data.map(d => {
                 userName = d.name;
                 phoneNumber = d.phoneNumber
-                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum);
+                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo);
                 returnArr.push(p);
             })
         }).then(data => {
@@ -3803,7 +3831,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
                         proposal.$playerCurrentCount = currentCount;
                     }
 
-                    if(status == constProposalStatus.Pending){
+                    if(status == constProposalStatus.PENDING){
                         if(futureFailCount){
                             proposal.$playerAllCount = proposal.$playerAllCount - futureFailCount;
                         }

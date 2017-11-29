@@ -317,7 +317,7 @@ function socketActionProposal(socketIO, socket) {
             var index = data.index || 0;
             var size = data.size || 10;
             var sortCol = data.sortCol || {"createTime": -1};
-            socketUtil.emitter(self.socket, dbProposal.getPlayerProposalsForPlatformId, [data.platformId, data.type, data.status, data.name, data.phoneNumber, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.proposalId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getPlayerProposalsForPlatformId, [data.platformId, data.type, data.status, data.name, data.phoneNumber, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.proposalId,0], actionName, isValidData);
         },
 
         getDuplicatePlayerPhoneNumber: function getDuplicatePlayerPhoneNumber(data) {
@@ -357,7 +357,7 @@ function socketActionProposal(socketIO, socket) {
             var index = -1;
             var size = -1;
             var sortCol = data.sortCol || {"createTime": -1};
-            socketUtil.emitter(self.socket, dbProposal.getPlayerRegistrationIntentRecordByStatus, [data.platformId, data.type, data.status, data.name, data.phoneNumber, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.attemptNo], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getPlayerRegistrationIntentRecordByStatus, [data.platformId, data.type, data.status, data.name, data.phoneNumber, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.proposalId, data.attemptNo], actionName, isValidData);
         },
 
 
