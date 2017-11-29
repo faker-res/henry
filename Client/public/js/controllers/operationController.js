@@ -878,6 +878,8 @@ define(['js/app'], function (myApp) {
                         v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
                     }
                     v.mainType$ = $translate(v.mainType);
+                    if (v.mainType === "PlayerBonus")
+                        v.mainType$ = $translate("Bonus");
                     v.priority$ = $translate(v.data.proposalPlayerLevel ? v.data.proposalPlayerLevel : "Normal");
                     v.playerStatus$ = v.data.playerStatus;
                     v.entryType$ = $translate(vm.proposalEntryTypeList[v.entryType]);
@@ -909,6 +911,9 @@ define(['js/app'], function (myApp) {
                     // v.remark$ = v.remark.map(item => {
                     //     return item ? item.content : '';
                     // });
+                    if (v.data && v.data.remark) {
+                        v.remark$ = v.data.remark;
+                    }
                     v.playerLevel$ = v.data.playerLevelName ? $translate(v.data.playerLevelName) : '';
                     v.merchantNo$ = v.data.merchantNo != null
                         ? v.data.merchantNo
@@ -1274,6 +1279,8 @@ define(['js/app'], function (myApp) {
                         v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
                     }
                     v.mainType$ = $translate(v.mainType);
+                    if (v.mainType === "PlayerBonus")
+                        v.mainType$ = $translate("Bonus");
                     v.priority$ = $translate(v.data.proposalPlayerLevel ? v.data.proposalPlayerLevel : "Normal");
                     v.playerStatus$ = v.data.playerStatus;
                     v.entryType$ = $translate(vm.proposalEntryTypeList[v.entryType]);
@@ -1305,6 +1312,9 @@ define(['js/app'], function (myApp) {
                     // v.remark$ = v.remark.map(item => {
                     //     return item ? item.content : '';
                     // });
+                    if (v.data && v.data.remark) {
+                        v.remark$ = v.data.remark;
+                    }
                     v.playerLevel$ = v.data.playerLevelName ? $translate(v.data.playerLevelName) : '';
                     v.merchantNo$ = v.data.merchantNo != null
                         ? v.data.merchantNo

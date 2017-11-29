@@ -724,6 +724,7 @@
             .clearfix
             label {{"Total" | translate}} {{vm.feedbackQuery.totalCount}} {{"records" | translate}}
             table.common-table#feedbackReportTable.display(style="width:100% ;overflow-x: scroll")
+            #feedbackReportTablePage
 
         // rewards report
         div(ng-if='vm.currentRewardCode')

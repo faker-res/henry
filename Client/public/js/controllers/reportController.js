@@ -894,12 +894,12 @@ define(['js/app'], function (myApp) {
                         displayValues: true,
                         countSelected: $translate('# of % selected'),
                     });
-                    var $multi = ($('select#selectPromoType').next().find('.ms-choice'))[0];
+                    var $multiPromo = ($('select#selectPromoType').next().find('.ms-choice'))[0];
                     $('select#selectPromoType').next().on('click', 'li input[type=checkbox]', function () {
-                        var upText = $($multi).text().split(',').map(item => {
+                        var upText = $($multiPromo).text().split(',').map(item => {
                             return $translate(item);
                         }).join(',');
-                        $($multi).find('span').text(upText)
+                        $($multiPromo).find('span').text(upText)
                     });
                     $("select#selectPromoType").multipleSelect("checkAll");
 
@@ -909,12 +909,12 @@ define(['js/app'], function (myApp) {
                         displayValues: true,
                         countSelected: $translate('# of % selected'),
                     });
-                    var $multi = ($('select#selectRewardType').next().find('.ms-choice'))[0];
+                    var $multiReward = ($('select#selectRewardType').next().find('.ms-choice'))[0];
                     $('select#selectRewardType').next().on('click', 'li input[type=checkbox]', function () {
-                        var upText = $($multi).text().split(',').map(item => {
+                        var upText = $($multiReward).text().split(',').map(item => {
                             return $translate(item);
                         }).join(',');
-                        $($multi).find('span').text(upText)
+                        $($multiReward).find('span').text(upText)
                     });
                     $("select#selectRewardType").multipleSelect("checkAll");
 
@@ -1156,6 +1156,11 @@ define(['js/app'], function (myApp) {
                     vm.feedbackQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                     vm.feedbackQuery.end = utilService.createDatePicker('#feedbackReportQuery .endTime');
                     vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                    vm.feedbackQuery.limit = 10;
+                    vm.feedbackQuery.index = 0;
+                    vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)
+                    });
                     $scope.safeApply();
                 });
 
@@ -2077,7 +2082,6 @@ define(['js/app'], function (myApp) {
             $('#topupTable').resize();
 
         }
-
         ///End topup report
 
         //Start operation report
@@ -2815,20 +2819,37 @@ define(['js/app'], function (myApp) {
             query.topUpAmountValue = vm.feedbackQuery.topUpAmountFormal;
             query.topUpAmountValueTwo = vm.feedbackQuery.topUpAmountLatter;
 
+            vm.feedbackQuery.sortCol = vm.feedbackQuery.sortCol || {createTime$: -1};
+
             let sendquery = {
                 platformId: vm.curPlatformId,
                 query: query,
-                index: newSearch ? 0 : (vm.feedbackQuery.index || 0),
-                limit: vm.feedbackQuery.limit || 5000,
-                sortCol: vm.feedbackQuery.sortCol || {createTime: -1},
+                index: 0,
+                limit: 5000,
+                sortCol: vm.feedbackQuery.sortCol,
             };
             console.log('sendquery', sendquery);
             socketService.$socket($scope.AppSocket, 'getFeedbackReport', sendquery, function (data) {
                 console.log('retData', data);
+                vm.feedbackDataSum = {
+                    manualTopUpAmount: 0,
+                    weChatTopUpAmount: 0,
+                    aliPayTopUpAmount: 0,
+                    onlineTopUpAmount: 0,
+                    topUpTimes: 0,
+                    topUpAmount: 0,
+                    bonusTimes: 0,
+                    bonusAmount: 0,
+                    rewardAmount: 0,
+                    consumptionReturnAmount: 0,
+                    consumptionTimes: 0,
+                    validConsumptionAmount: 0,
+                    consumptionBonusAmount: 0,
+                    profit: 0,
+                    consumptionAmount: 0
+                };
                 vm.feedbackQuery.totalCount = data.data.size;
-                $('#feedbackReportTableSpin').hide();
-
-                vm.drawFeedbackReport(data.data.data.map(item => {
+                vm.feedbackData = data.data.data.map(item => {
                     item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                     item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.feedback.createTime);
                     item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.endTime);
@@ -2844,7 +2865,7 @@ define(['js/app'], function (myApp) {
                     item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
                     item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
                     item.feedbackTopic$ = (item.feedback.topic == null ||item.feedback.topic == undefined) ? '-' : item.feedback.topic;
-                    item.feedback$ = "";
+                    item.feedbackAdminName$ = (item && item.feedback && item.feedback.adminId && item.feedback.adminId.adminName) ? item.feedback.adminId.adminName : '-';
                     item.credibility$ = "";
                     if (item.credibilityRemarks) {
                         for (let i = 0; i < item.credibilityRemarks.length; i++) {
@@ -2880,28 +2901,76 @@ define(['js/app'], function (myApp) {
                         }
                     }
 
+                    item.profit = 0;
                     item.profit$ = 0;
                     if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
+                        item.profit = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100);
                         item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
                     }
 
+                    //build sumData for table Footer usage (total amount of all data)
+                    item.manualTopUpAmount ? vm.feedbackDataSum.manualTopUpAmount += item.manualTopUpAmount : null;
+                    item.weChatTopUpAmount ? vm.feedbackDataSum.weChatTopUpAmount += item.weChatTopUpAmount : null;
+                    item.aliPayTopUpAmount ? vm.feedbackDataSum.aliPayTopUpAmount += item.aliPayTopUpAmount : null;
+                    item.onlineTopUpAmount ? vm.feedbackDataSum.onlineTopUpAmount += item.onlineTopUpAmount : null;
+                    item.topUpTimes ? vm.feedbackDataSum.topUpTimes += parseInt(item.topUpTimes, 10) : null;
+                    item.topUpAmount ? vm.feedbackDataSum.topUpAmount += item.topUpAmount : null;
+                    item.bonusTimes ? vm.feedbackDataSum.bonusTimes += parseInt(item.bonusTimes, 10) : null;
+                    item.bonusAmount ? vm.feedbackDataSum.bonusAmount += item.bonusAmount : null;
+                    item.rewardAmount ? vm.feedbackDataSum.rewardAmount += item.rewardAmount : null;
+                    item.consumptionReturnAmount ? vm.feedbackDataSum.consumptionReturnAmount += item.consumptionReturnAmount : null;
+                    item.consumptionTimes ? vm.feedbackDataSum.consumptionTimes += parseInt(item.consumptionTimes, 10) : null;
+                    item.validConsumptionAmount ? vm.feedbackDataSum.validConsumptionAmount += item.validConsumptionAmount : null;
+                    item.consumptionBonusAmount ? vm.feedbackDataSum.consumptionBonusAmount += item.consumptionBonusAmount : null;
+                    item.consumptionAmount ? vm.feedbackDataSum.consumptionAmount += item.consumptionAmount : null;
+
                     return item;
-                }), data.data.size, newSearch);
+                });
+
+                vm.feedbackDataSum.profit = (-vm.feedbackDataSum.consumptionBonusAmount) / vm.feedbackDataSum.validConsumptionAmount * 100;
+
+                $('#feedbackReportTableSpin').hide();
+                vm.drawFeedbackReport(newSearch);
                 $scope.safeApply();
             });
         };
 
-        vm.drawFeedbackReport = function (data, size, newSearch) {
-            var tableOptions = {
-                data: data,
+        vm.drawFeedbackReport = function (newSearch) {
+            function localDataProcessing() {
+                vm.feedbackQuery.sortCol = vm.feedbackQuery.sortCol || {'createTime$': -1};
+
+                let searchResult = vm.feedbackData.slice(0);
+                let sortCol = vm.feedbackQuery.sortCol;
+                let limit = vm.feedbackQuery.limit;
+                let index = vm.feedbackQuery.index;
+                if (Object.keys(sortCol).length > 0) {
+                    searchResult.sort(function (a, b) {
+                        if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
+                            return 1 * sortCol[Object.keys(sortCol)[0]];
+                        } else {
+                            return -1 * sortCol[Object.keys(sortCol)[0]];
+                        }
+                    });
+                }
+                let outputResult = [];
+                for (let i = 0, len = limit; i < len; i++) {
+                    searchResult[index + i] ? outputResult.push(searchResult[index + i]) : null;
+                }
+                return outputResult;
+            }
+
+            let result = localDataProcessing();
+            let allResultSize = vm.feedbackData.length;
+            let tableOptions = {
+                data: result,
                 "order": vm.feedbackQuery.aaSorting || [[4, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'name', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'playerValue', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'credibilityRemarks', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'feedbackTime', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'endTime', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'provider', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'valueScore', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'credibility$', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'createTime$', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'endTime$', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'provider$', 'aTargets': [6], bSortable: true},
                     {'sortCol': 'manualTopUpAmount', 'aTargets': [7], bSortable: true},
                     {'sortCol': 'weChatTopUpAmount', 'aTargets': [8], bSortable: true},
                     {'sortCol': 'aliPayTopUpAmount', 'aTargets': [9], bSortable: true},
@@ -2916,8 +2985,8 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'validConsumptionAmount', 'aTargets': [18], bSortable: true},
                     {'sortCol': 'consumptionBonusAmount', 'aTargets': [19], bSortable: true},
                     {'sortCol': 'profit', 'aTargets': [20], bSortable: true},
-                    {'sortCol': 'feedback.adminId.adminName', 'aTargets': [21], bSortable: true},
-                    {'sortCol': 'feedbackTopic', 'aTargets': [22], bSortable: true},
+                    {'sortCol': 'feedbackAdminName$', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'feedbackTopic$', 'aTargets': [22], bSortable: true},
                     {'sortCol': 'consumptionAmount', 'aTargets': [23], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
@@ -2951,8 +3020,8 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: "sumInt"},
                     {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$", sClass: "sumFloat"},
                     {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$", sClass: "sumFloat"},
-                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: "sumProfit"},
-                    {title: $translate('FEEDBACK_ADMIN'), data: "feedback.adminId.adminName"},
+                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: "feedbackReportProfit"},
+                    {title: $translate('FEEDBACK_ADMIN'), data: "feedbackAdminName$"},
                     {
                         title: $translate('FEEDBACK_TOPIC'),
                         data: "feedbackTopic$",
@@ -2961,7 +3030,7 @@ define(['js/app'], function (myApp) {
                             return "<a>" + data + "</a>";
                         }
                     },
-                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"}
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: "sumFloat"}
                 ],
                 "paging": false,
                 "language": {
@@ -2970,10 +3039,25 @@ define(['js/app'], function (myApp) {
                 }
             };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
-            if (playerTbl) {
-                playerTbl.clear();
-            }
-            var playerTbl = utilService.createDatatableWithFooter('#feedbackReportTable', tableOptions, {}, true);
+            let sumData = {
+                7: vm.feedbackDataSum.manualTopUpAmount,
+                8: vm.feedbackDataSum.weChatTopUpAmount,
+                9: vm.feedbackDataSum.aliPayTopUpAmount,
+                10: vm.feedbackDataSum.onlineTopUpAmount,
+                11: vm.feedbackDataSum.topUpTimes,
+                12: vm.feedbackDataSum.topUpAmount,
+                13: vm.feedbackDataSum.bonusTimes,
+                14: vm.feedbackDataSum.bonusAmount,
+                15: vm.feedbackDataSum.rewardAmount,
+                16: vm.feedbackDataSum.consumptionReturnAmount,
+                17: vm.feedbackDataSum.consumptionTimes,
+                18: vm.feedbackDataSum.validConsumptionAmount,
+                19: vm.feedbackDataSum.consumptionBonusAmount,
+                20: vm.feedbackDataSum.profit,
+                23: vm.feedbackDataSum.consumptionAmount
+            };
+            let playerTbl = utilService.createDatatableWithFooter('#feedbackReportTable', tableOptions, sumData, false);
+            vm.feedbackQuery.pageObj.init({maxCount: allResultSize}, newSearch);
             utilService.setDataTablePageInput('feedbackReportTable', playerTbl, $translate);
             playerTbl.on( 'order.dt', function () {
                 playerTbl.column(0, {order:'applied'}).nodes().each( function (cell, i) {
@@ -3057,7 +3141,7 @@ define(['js/app'], function (myApp) {
             });
             $('#feedbackReportTable').off('order.dt');
             $('#feedbackReportTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'feedbackQuery', vm.searchFeedbackReport);
+                vm.commonSortChangeHandler(a, 'feedbackQuery', vm.drawFeedbackReport);
             });
         };
 
@@ -4149,7 +4233,12 @@ define(['js/app'], function (myApp) {
                     item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
                     item.typeName = $translate(item.type.name || "Unknown");
                     item.mainType$ = $translate(item.mainType || "Unknown");
+                    if (item.mainType === "PlayerBonus")
+                        item.mainType$ = $translate("Bonus");
                     item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                    if (item.data && item.data.remark) {
+                        item.remark$ = item.data.remark;
+                    }
                     item.status$ = $translate(vm.getStatusStrfromRow(item));
 
                     return item;
@@ -4285,7 +4374,8 @@ define(['js/app'], function (myApp) {
                         orderable: false,
                     },
                     {
-                        title: "<div>" + $translate('REMARKS'), data: " ",
+                        title: "<div>" + $translate('REMARKS'),
+                        data: "remark$",
                         orderable: false,
                     }
                 ],
@@ -5511,6 +5601,9 @@ define(['js/app'], function (myApp) {
         vm.setPanel = function (isSet) {
             vm.hideLeftPanel = isSet;
             $cookies.put("reportShowLeft", vm.hideLeftPanel);
+            $timeout(()=>{
+                $('#topupTable').resize();
+            },0)
             $scope.safeApply();
         }
 

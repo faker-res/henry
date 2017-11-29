@@ -75,8 +75,7 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.PLAYER_CONSUMPTION_RETURN_FIX, data], actionName, isValidData);
         },
 
-
-        /**
+         /**
          * Create new Proposal to update player email
          * @param {json} data - proposal data
          */

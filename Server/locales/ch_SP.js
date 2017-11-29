@@ -188,7 +188,10 @@ var simplifiedChinese = {
     "Incorrect SMS Validation Code": "验证码错误，请再次输入",
     "NO_REACH_TOPUP":"充值金额不足",
     "NO_REACH_CONSUMPTION":"有效投注不足",
-    "NO_REACH_TOPUP_CONSUMPTION":"充值金额不足, 有效投注不足"
+    "NO_REACH_TOPUP_CONSUMPTION":"充值金额不足, 有效投注不足",
+    "Reached Max Level":"已达到最高等级",
+    "Reached Min Level":"目前在起始等级",
+    "Please enter bank account name or contact cs": "请填写收款人姓名或联系客服"
     //todo::add missing messages here
 
     /*
