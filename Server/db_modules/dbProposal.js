@@ -129,45 +129,6 @@ var proposal = {
             })
     },
 
-    checkUpdateRewardPointProposal: function (platformId, typeName, proposalData) {
-        //get proposal type id
-        let ptProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: typeName}).exec();
-
-        return ptProm.then(
-            (proposalType) => {
-                //check if player or partner has pending proposal for this type
-                let queryObj;
-
-                if (proposalData.isPartner) {
-                    queryObj = {
-                        type: proposalType._id,
-                        status: constProposalStatus.PENDING,
-                        "data.partnerObjId": proposalData.data.partnerObjId
-                    }
-                }
-                else {
-                    queryObj = {
-                        type: proposalType._id,
-                        status: constProposalStatus.PENDING,
-                        "data.playerObjId": proposalData.data.playerObjId
-                    }
-                }
-
-                return dbconfig.collection_proposal.findOne(queryObj).lean().then(
-                    pendingProposal => {
-                        // there could be multiple pending proposals
-                        if (pendingProposal) {
-                            return Q.reject({
-                                name: "DBError",
-                                message: "Player or partner already has a pending proposal for this type"
-                            });
-                        }
-                    }
-                )
-            }
-        )
-    },
-
     createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
         function getStepInfo(result) {
             return dbconfig.collection_proposalProcess.findOne({_id: result.process})
