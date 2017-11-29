@@ -1387,7 +1387,7 @@ let dbPlayerReward = {
                                         "type": Object(proposalType._id),
                                         "status": {$in: ["Success", "Approved"]},
                                         "settleTime": {
-                                            '$gte': moment().subtract(4, 'hours'),
+                                            '$gte': moment().subtract(96, 'hours'),
                                             '$lte': new Date()
                                         }
                                     };
@@ -1417,8 +1417,8 @@ let dbPlayerReward = {
                                 if (data.bannerText) {
                                     bannerText = data.bannerText;
                                 }
-                                let bonusNum = proposal.data.rewardAmount - proposal.data.applyAmount;
-                                let accountNo = dbUtility.encodeBankAcc(proposal.data.playerName);
+                                let bonusNum = proposal.data.rewardAmount;
+                                let accountNo = dbPlayerReward.customAccountMask(proposal.data.playerName);
                                 let record = {
                                     "accountNo": accountNo,
                                     "bonus": bonusNum,
@@ -1445,7 +1445,17 @@ let dbPlayerReward = {
             )
 
     },
+    customAccountMask: (str)=> {
+        str = str || '';
+        let strLength = str.length;
+        let subtractNo = - (strLength - 6);
+        if(strLength <= 6){
+            return str.substring(0, 3) + "***"
+        }else{
+            return str.substring(0, 3) + "***" + str.slice(subtractNo);
+        }
 
+    },
     getPromoCodesHistory: (searchQuery) => {
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
