@@ -1263,9 +1263,7 @@
                                 table#rewardTaskGroupLogTbl.text-center.display.paddingTbl(style='width:100%;')
                                     thead
                                         tr
-                                            th {{'TIME' | translate}}
                                             th {{'providerGroup' | translate}}
-                                            th {{'useConsumption' | translate}}
                                             th {{'CURRENTAMOUNT' | translate}}
                                             th {{'requiredUnlockAmount' | translate}}
                                             th {{'unlockedAmount' | translate}}
@@ -1275,9 +1273,7 @@
                                             th {{'STATUS' | translate}}
                                     tbody
                                         tr(ng-repeat='(i,v) in vm.rewardTaskGroupDetails')
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.createTime$}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.providerGroup.name}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.useConsumption | translate}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.currentAmt}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.targetConsumption}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.curConsumption}}
