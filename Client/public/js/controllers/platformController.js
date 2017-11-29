@@ -7963,32 +7963,6 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointExchange.updateAmount = 0;
             };
 
-            vm.updatePlayerRewardPoint = function () {
-                var sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
-                    data: {
-                        playerObjId: vm.isOneSelectedPlayer()._id,
-                        playerName: vm.isOneSelectedPlayer().name,
-                        updateAmount: vm.rewardPointChange.updateAmount,
-                        curAmount: vm.isOneSelectedPlayer().validRewardPoint,
-                        realName: vm.isOneSelectedPlayer().realName,
-                        remark: vm.rewardPointChange.remark,
-                        adminName: authService.adminName
-                    }
-                };
-
-                socketService.$socket($scope.AppSocket, 'createUpdatePlayerRewardPointProposal', sendData, function (data) {
-                    var newData = data.data;
-                    console.log('reward point proposal', newData);
-                    if (data.data && data.data.stepInfo) {
-                        socketService.showProposalStepInfo(data.data.stepInfo, $translate);
-                    }
-                    vm.getPlatformPlayersData();
-                    $scope.safeApply();
-                });
-            };
-
             vm.prepareShowPlayerCreditAdjustment = function (type) {
                 // vm.creditChange = {
                 //     finalValidAmount: vm.isOneSelectedPlayer().validCredit,
@@ -14490,6 +14464,12 @@ define(['js/app'], function (myApp) {
                         vm.topupRewardPoints = [];
                         break;
                     case 'gameRewardPoints':
+                        vm.allGameType = [];
+                        vm.allGameBetType = [];
+                        //Todo get all game type
+                        //Todo get all game bet type
+                        vm.getAllGameProviders(vm.selectedPlatform.id);
+                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS);
                         break;
                     case 'rewardPointsRanking':
                         break;
@@ -14571,6 +14551,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getRewardPointsEventByCategory = (category) => {
+                vm.rewardPointsEvent = [];
+                $scope.safeApply();
                 return $scope.$socketPromise('getRewardPointsEventByCategory', {platformObjId: vm.selectedPlatform.id, category: category}).then((data) => {
                     console.log('getRewardPointsEventByCategory',data.data);
                     vm.rewardPointsEvent = data.data;
@@ -14595,7 +14577,7 @@ define(['js/app'], function (myApp) {
                 }
                 console.log(rewardPointsEvent);
                 $scope.$socketPromise('createRewardPointsEvent', {rewardPointsEvent: rewardPointsEvent}).then((data) => {
-                    vm.getRewardPointsEventByCategory(rewardPointsEvent.category);
+                    rewardPointsEvent._id = data.data._id;
                 });
 
             };
@@ -14609,11 +14591,12 @@ define(['js/app'], function (myApp) {
                      rewardPointsEvent.customPeriodStartTime = null;
                      rewardPointsEvent.customPeriodEndTime = null;
                 }
-                $scope.$socketPromise('updateRewardPointsEvent', {rewardPointsEvent: rewardPointsEvent}).then((data) => {
+                //Use Object.assign instead of directly use rewardPointsEvent, because datetimePicker input will disappear when add new event to vm.rewardPointsEvent
+                $scope.$socketPromise('updateRewardPointsEvent', {rewardPointsEvent: Object.assign({}, rewardPointsEvent)}).then((data) => {
                     vm.rewardPointsEventPeriodChange(idx,rewardPointsEvent);
                     vm.rewardPointsEventSetDisable(idx,rewardPointsEvent,true);
                     $scope.safeApply();
-                    vm.endLoadWeekDay()
+                    vm.endLoadWeekDay();
                 });
             };
 
@@ -14671,6 +14654,11 @@ define(['js/app'], function (myApp) {
                 });
                 $scope.safeApply();
                 vm.endLoadWeekDay();
+            };
+
+            vm.rewardPointsEventAddNewRow = (rewardPointsEventCategory,otherEventParam={}) => {
+                let defaultEvent = {category:rewardPointsEventCategory, isEditing: true};
+                vm.rewardPointsEvent.push( Object.assign(defaultEvent, otherEventParam));
             };
 
             function loadPromoCodeTypes() {

@@ -55,7 +55,7 @@ const constProposalMainType = {
     "PlayerRandomRewardGroup": constMainType.REWARD,
     "PlayerLoseReturnRewardGroup": constMainType.REWARD,
     "PlayerConsecutiveRewardGroup": constMainType.REWARD,
-
+    
     //UPDATE_PLAYER
     "UpdatePlayerInfo" : constMainType.UPDATE_PLAYER,
     "UpdatePlayerBankInfo": constMainType.UPDATE_PLAYER,

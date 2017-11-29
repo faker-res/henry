@@ -2082,7 +2082,6 @@ define(['js/app'], function (myApp) {
             $('#topupTable').resize();
 
         }
-
         ///End topup report
 
         //Start operation report
@@ -2832,9 +2831,24 @@ define(['js/app'], function (myApp) {
             console.log('sendquery', sendquery);
             socketService.$socket($scope.AppSocket, 'getFeedbackReport', sendquery, function (data) {
                 console.log('retData', data);
+                vm.feedbackDataSum = {
+                    manualTopUpAmount: 0,
+                    weChatTopUpAmount: 0,
+                    aliPayTopUpAmount: 0,
+                    onlineTopUpAmount: 0,
+                    topUpTimes: 0,
+                    topUpAmount: 0,
+                    bonusTimes: 0,
+                    bonusAmount: 0,
+                    rewardAmount: 0,
+                    consumptionReturnAmount: 0,
+                    consumptionTimes: 0,
+                    validConsumptionAmount: 0,
+                    consumptionBonusAmount: 0,
+                    profit: 0,
+                    consumptionAmount: 0
+                };
                 vm.feedbackQuery.totalCount = data.data.size;
-                $('#feedbackReportTableSpin').hide();
-
                 vm.feedbackData = data.data.data.map(item => {
                     item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                     item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.feedback.createTime);
@@ -2887,14 +2901,35 @@ define(['js/app'], function (myApp) {
                         }
                     }
 
+                    item.profit = 0;
                     item.profit$ = 0;
                     if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
+                        item.profit = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100);
                         item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
                     }
+
+                    //build sumData for table Footer usage (total amount of all data)
+                    item.manualTopUpAmount ? vm.feedbackDataSum.manualTopUpAmount += item.manualTopUpAmount : null;
+                    item.weChatTopUpAmount ? vm.feedbackDataSum.weChatTopUpAmount += item.weChatTopUpAmount : null;
+                    item.aliPayTopUpAmount ? vm.feedbackDataSum.aliPayTopUpAmount += item.aliPayTopUpAmount : null;
+                    item.onlineTopUpAmount ? vm.feedbackDataSum.onlineTopUpAmount += item.onlineTopUpAmount : null;
+                    item.topUpTimes ? vm.feedbackDataSum.topUpTimes += parseInt(item.topUpTimes, 10) : null;
+                    item.topUpAmount ? vm.feedbackDataSum.topUpAmount += item.topUpAmount : null;
+                    item.bonusTimes ? vm.feedbackDataSum.bonusTimes += parseInt(item.bonusTimes, 10) : null;
+                    item.bonusAmount ? vm.feedbackDataSum.bonusAmount += item.bonusAmount : null;
+                    item.rewardAmount ? vm.feedbackDataSum.rewardAmount += item.rewardAmount : null;
+                    item.consumptionReturnAmount ? vm.feedbackDataSum.consumptionReturnAmount += item.consumptionReturnAmount : null;
+                    item.consumptionTimes ? vm.feedbackDataSum.consumptionTimes += parseInt(item.consumptionTimes, 10) : null;
+                    item.validConsumptionAmount ? vm.feedbackDataSum.validConsumptionAmount += item.validConsumptionAmount : null;
+                    item.consumptionBonusAmount ? vm.feedbackDataSum.consumptionBonusAmount += item.consumptionBonusAmount : null;
+                    item.consumptionAmount ? vm.feedbackDataSum.consumptionAmount += item.consumptionAmount : null;
 
                     return item;
                 });
 
+                vm.feedbackDataSum.profit = (-vm.feedbackDataSum.consumptionBonusAmount) / vm.feedbackDataSum.validConsumptionAmount * 100;
+
+                $('#feedbackReportTableSpin').hide();
                 vm.drawFeedbackReport(newSearch);
                 $scope.safeApply();
             });
@@ -2949,7 +2984,7 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'consumptionTimes', 'aTargets': [17], bSortable: true},
                     {'sortCol': 'validConsumptionAmount', 'aTargets': [18], bSortable: true},
                     {'sortCol': 'consumptionBonusAmount', 'aTargets': [19], bSortable: true},
-                    {'sortCol': 'profit$', 'aTargets': [20], bSortable: true},
+                    {'sortCol': 'profit', 'aTargets': [20], bSortable: true},
                     {'sortCol': 'feedbackAdminName$', 'aTargets': [21], bSortable: true},
                     {'sortCol': 'feedbackTopic$', 'aTargets': [22], bSortable: true},
                     {'sortCol': 'consumptionAmount', 'aTargets': [23], bSortable: true},
@@ -2985,7 +3020,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: "sumInt"},
                     {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$", sClass: "sumFloat"},
                     {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$", sClass: "sumFloat"},
-                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: "sumProfit"},
+                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: "feedbackReportProfit"},
                     {title: $translate('FEEDBACK_ADMIN'), data: "feedbackAdminName$"},
                     {
                         title: $translate('FEEDBACK_TOPIC'),
@@ -2995,7 +3030,7 @@ define(['js/app'], function (myApp) {
                             return "<a>" + data + "</a>";
                         }
                     },
-                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"}
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: "sumFloat"}
                 ],
                 "paging": false,
                 "language": {
@@ -3004,7 +3039,24 @@ define(['js/app'], function (myApp) {
                 }
             };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
-            let playerTbl = utilService.createDatatableWithFooter('#feedbackReportTable', tableOptions, {}, true);
+            let sumData = {
+                7: vm.feedbackDataSum.manualTopUpAmount,
+                8: vm.feedbackDataSum.weChatTopUpAmount,
+                9: vm.feedbackDataSum.aliPayTopUpAmount,
+                10: vm.feedbackDataSum.onlineTopUpAmount,
+                11: vm.feedbackDataSum.topUpTimes,
+                12: vm.feedbackDataSum.topUpAmount,
+                13: vm.feedbackDataSum.bonusTimes,
+                14: vm.feedbackDataSum.bonusAmount,
+                15: vm.feedbackDataSum.rewardAmount,
+                16: vm.feedbackDataSum.consumptionReturnAmount,
+                17: vm.feedbackDataSum.consumptionTimes,
+                18: vm.feedbackDataSum.validConsumptionAmount,
+                19: vm.feedbackDataSum.consumptionBonusAmount,
+                20: vm.feedbackDataSum.profit,
+                23: vm.feedbackDataSum.consumptionAmount
+            };
+            let playerTbl = utilService.createDatatableWithFooter('#feedbackReportTable', tableOptions, sumData, false);
             vm.feedbackQuery.pageObj.init({maxCount: allResultSize}, newSearch);
             utilService.setDataTablePageInput('feedbackReportTable', playerTbl, $translate);
             playerTbl.on( 'order.dt', function () {
@@ -5549,6 +5601,9 @@ define(['js/app'], function (myApp) {
         vm.setPanel = function (isSet) {
             vm.hideLeftPanel = isSet;
             $cookies.put("reportShowLeft", vm.hideLeftPanel);
+            $timeout(()=>{
+                $('#topupTable').resize();
+            },0)
             $scope.safeApply();
         }
 
