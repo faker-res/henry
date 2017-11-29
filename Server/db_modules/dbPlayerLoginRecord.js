@@ -283,7 +283,7 @@ var dbPlayerLoginRecord = {
                     },
                 }]).exec().then(
                 dataP => {
-                    console.log(JSON.stringify('players',dataP))
+                    console.log('players',JSON.stringify(dataP));
                 }
             )
 
