@@ -90,7 +90,7 @@
                                 th {{'rewardContent' | translate}}
                                 th
                         tbody
-                            tr(ng-repeat='(idx,val) in vm.rewardPointsEvent')
+                            tr(ng-repeat="(idx,val) in vm.rewardPointsEvent | orderBy: 'index'")
                                 td {{'loginRewardPoints' | translate}}
                                 td(style="max-width:150px;")
                                     select.form-control(ng-model='val.period' ng-change='vm.rewardPointsEventPeriodChange(idx,val)' ng-options="+(i) as v | translate for (i,v) in constRewardPointsIntervalPeriod" ng-disabled='!val.isEditing' required)
@@ -210,7 +210,7 @@
                                 th {{'rewardContent' | translate}}
                                 th
                         tbody
-                            tr(ng-repeat='(idx,val) in vm.rewardPointsEvent')
+                            tr(ng-repeat="(idx,val) in vm.rewardPointsEvent | orderBy: 'index'")
                                 td(style="min-width:70px;") {{'gameRewardPoints' | translate}}
                                 td(style="max-width:190px;")
                                     select.form-control(ng-model='val.period' ng-change='vm.rewardPointsEventPeriodChange(idx,val)' ng-options="+(i) as v | translate for (i,v) in constRewardPointsIntervalPeriod" ng-disabled='!val.isEditing' required)
