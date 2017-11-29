@@ -274,7 +274,7 @@ const dbPlayerMail = {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
 
                 if(data.playerId){
-                    data.playerId = "";
+                    delete data.playerId;
                 }
 
                 //if (purpose == constSMSPurpose.REGISTRATION) {
