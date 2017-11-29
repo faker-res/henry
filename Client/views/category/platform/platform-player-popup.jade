@@ -1264,22 +1264,20 @@
                                     thead
                                         tr
                                             th {{'providerGroup' | translate}}
-                                            th {{'CURRENTAMOUNT' | translate}}
-                                            th {{'requiredUnlockAmount' | translate}}
-                                            th {{'unlockedAmount' | translate}}
                                             th {{'rewardAmount' | translate}}
+                                            th {{'CURRENTAMOUNT' | translate}}
+                                            th {{'spendingAmount' | translate}}
+                                            th {{'unlockedAmount' | translate}}
                                             th {{'NON_CONSUMPTION_RETURN_AMOUNT' | translate}}
-                                            th {{'providers' | translate}}
                                             th {{'STATUS' | translate}}
                                     tbody
                                         tr(ng-repeat='(i,v) in vm.rewardTaskGroupDetails')
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.providerGroup.name}}
+                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.rewardAmt}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.currentAmt}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.targetConsumption}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.curConsumption}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.rewardAmt}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.forbidXIMAAmt}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.inProvider | translate}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.status | translate}}
 
             .modal-footer
