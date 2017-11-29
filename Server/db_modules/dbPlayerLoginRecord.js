@@ -293,7 +293,6 @@ var dbPlayerLoginRecord = {
                 }]
             ).exec();
             day0PlayerArrayProm.push(temp);
-            console.log('getPlayerRetention time0', time0)
             time0.setDate(time0.getDate() + 1);
             time1.setDate(time1.getDate() + 1);
 
@@ -320,8 +319,8 @@ var dbPlayerLoginRecord = {
                             $match: {
                                 platform: platform,
                                 loginTime: {
-                                    $gte: time0,
-                                    $lt: time1
+                                    $gte: new Date(time0),
+                                    $lt: new Date(time1)
                                 }
                             },
                         }, {
