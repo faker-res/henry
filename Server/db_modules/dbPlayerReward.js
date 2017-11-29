@@ -1274,6 +1274,14 @@ let dbPlayerReward = {
         let platformData = null;
         var playerData = null;
         var promoListData = null;
+
+        if(!playerId){
+            return Q.reject({
+                status: constServerCode.INVALID_API_USER,
+                name: "DataError",
+                message:"用户未登录!"
+            })
+        }
         return dbConfig.collection_platform.findOne({platformId: platformId}).exec()
             .then(
                 platformRecord => {
@@ -3463,8 +3471,8 @@ function checkInterfaceRewardPermission(eventData, rewardData) {
     let isForbidInterface = false;
 
     // Check registration interface condition
-    if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0) {
-        let registrationInterface = rewardData && rewardData.selectedTopup && rewardData.selectedTopup.userAgent ? rewardData.selectedTopup.userAgent : 0;
+    if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0 && rewardData && rewardData.selectedTopup) {
+        let registrationInterface = rewardData.selectedTopup.userAgent ? rewardData.selectedTopup.userAgent : 0;
 
         isForbidInterface = eventData.condition.userAgent.indexOf(registrationInterface) < 0;
     }
