@@ -2791,6 +2791,7 @@
   "pointToCreditAutoRate (N points : 1 credit)": "积分 → 真钱 到期兑换比例（N 积分 : 1 真钱）",
   "pointToCreditAutoMaxPoints": "积分 → 真钱 到期最高可兑换积分",
   "spendingAmountOnReward": "兑换真钱后流水倍数",
+  "Invalid phone number": "无效手机号码",
   "rewardPointsCategory": "积分类型",
   "loginRewardPoints": "登入积分",
   "displayOrder": "展示顺序",
