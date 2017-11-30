@@ -9247,13 +9247,18 @@ define(['js/app'], function (myApp) {
             }
 
             vm.updatePlayerFeedback = function () {
-                var sendData = {
+                let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                    return item.key == vm.playerFeedback.result;
+                });
+                resultName = resultName.length > 0 ? resultName[0].value : "";
+                let sendData = {
                     playerId: vm.isOneSelectedPlayer()._id,
                     platform: vm.selectedPlatform.id,
                     createTime: Date.now(),
                     adminId: authService.adminId,
                     content: vm.playerFeedback.content,
                     result: vm.playerFeedback.result,
+                    resultName: resultName,
                     topic: vm.playerFeedback.topic
                 };
                 console.log('add feedback', sendData);
@@ -9262,7 +9267,7 @@ define(['js/app'], function (myApp) {
                     vm.playerFeedback = {};
                     // vm.getPlatformPlayersData();
 
-                    var rowData = vm.playerTableClickedRow.data();
+                    let rowData = vm.playerTableClickedRow.data();
                     rowData.feedbackTimes++;
                     vm.playerTableClickedRow.data(rowData).draw();
 
@@ -9271,7 +9276,8 @@ define(['js/app'], function (myApp) {
                     }
                     $scope.safeApply();
                 });
-            }
+            };
+
             vm.playerPaymentKeys = [
                 "bankName", "bankAccount", "encodedBankAccount", "bankAccountName", "bankAccountType", "bankAccountProvince", "bankAccountCity", "bankAccountDistrict", "bankAddress", "bankBranch"
             ];
@@ -11076,15 +11082,20 @@ define(['js/app'], function (myApp) {
                 vm.submitPlayerFeedbackQuery();
                 // vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
                 $scope.safeApply();
-            }
+            };
             vm.addPlayerFeedback = function (data) {
-                var sendData = {
+                let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                    return item.key == data.result;
+                });
+                resultName = resultName.length > 0 ? resultName[0].value : "";
+                let sendData = {
                     playerId: data.playerId,
                     platform: data.platform,
                     createTime: Date.now(),
                     adminId: authService.adminId,
                     content: data.content,
                     result: data.result,
+                    resultName: resultName,
                     topic: data.topic
                 };
                 console.log('sendData', sendData);
