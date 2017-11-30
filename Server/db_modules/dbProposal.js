@@ -1953,7 +1953,7 @@ var proposal = {
                         }
 
                         let proposalCount = dbconfig.collection_proposal.find(queryObj).lean().count();
-                        return Q.all([proposalCount, proposalProm])
+                        return Q.all([proposalProm, proposalCount])
                     }
                     else {
                         return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
