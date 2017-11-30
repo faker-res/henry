@@ -1751,7 +1751,7 @@ let dbPlayerReward = {
                         applyAmount: topUpProp && topUpProp.data.amount ? topUpProp.data.amount : 0,
                         topUpProposal: topUpProp && topUpProp.proposalId ? topUpProp.proposalId : null,
                         useLockedCredit: false,
-                        useConsumption: false
+                        useConsumption: !promoCodeObj.isSharedWithXIMA
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
