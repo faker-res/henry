@@ -188,6 +188,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardEvents, [data._id, data.forbidRewardEvents], actionName, isValidData);
         },
 
+        updatePlayerForbidRewardPointsEvent:  function updatePlayerForbidRewardPointsEvent(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id && data.forbidRewardPointsEvent);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardPointsEvent, [data._id, data.forbidRewardPointsEvent], actionName, isValidData);
+        },
+
         /**
          * Delete player infos by _ids
          * @param {json} data - It has to contain _ids(array of player object id)
@@ -931,6 +937,12 @@ function socketActionPlayer(socketIO, socket) {
             let limit = data.limit || 10;
             socketUtil.emitter(self.socket, dbPlayerInfo.getForbidGameLog, [data.playerId, data.startTime, data.endTime, index, limit], actionName, isValidData);
         },
+
+        /*createForbidRewardPointsEventLog: function createForbidRewardPointsEventLog(data){
+        var actionName = arguments.callee.name;
+        var isValidData = Boolean(data && data.playerId && data.adminId && data.forbidRewardPointsEventName);
+        socketUtil.emitter(self.socket, dbPlayerInfo.createForbidRewardPointsEventLog, [data.playerId, data.adminId, data.forbidRewardPointsEventName], actionName, isValidData);
+        },*/
 
         createForbidTopUpLog: function createForbidTopUpLog(data){
             var actionName = arguments.callee.name;

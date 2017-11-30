@@ -573,6 +573,7 @@ define(['js/app'], function (myApp) {
                 vm.advancedQueryObj = {};
 
                 vm.getRewardEventsByPlatform();
+                vm.getRewardPointsEvent(vm.selectedPlatform.id);
                 if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read'))
                     vm.getAdminNameByDepartment(vm.selectedPlatform.data.department);
 
@@ -4819,7 +4820,22 @@ define(['js/app'], function (myApp) {
                                     'data-container': "body",
                                     'html': '<img width="15px" height="12px" src="images/icon/' + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? "onlineTopUpRed.png" : "onlineTopUpBlue.png") + '"></img>'
                                     + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? '<sup>' + row.forbidTopUpType.length + '</sup>' : ''),
-                                    'style': "z-index: auto; width:23px",
+                                    'style': "z-index: auto; width:23px; display:inline-block;",
+                                }));
+/**/
+                                link.append($('<a>', {
+                                    'class': 'forbidRewardPointsEventPopover margin-right-5' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? " text-danger" : ""),
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'popover',
+                                    'data-placement': 'right',
+                                    'data-trigger': 'focus',
+                                    'type': 'button',
+                                    'data-html': true,
+                                    'href': '#',
+                                    'data-container': "body",
+                                    'html': '<img width="14px" height="14px" src="images/icon/' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? "rewardPointRed.png" : "rewardPointBlue.png") + '"></img>'
+                                    + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? '<sup>' + row.forbidRewardPointsEvent.length + '</sup>' : ''),
+                                    'style': "z-index: auto; width:23px; display:inline-block;",
                                 }));
 
 
@@ -5041,7 +5057,7 @@ define(['js/app'], function (myApp) {
                                 $("button.playerMessage").on('click', function () {
                                     console.log('message', this);
                                     //alert("will send message to " + vm.telphonePlayer.name);
-                                    // showMessagePlayerModalFor(vm.telephonePlayer);
+                                    // showMessagePlayerModalFor(vm.teleplhonePlayer);
 
                                 });
                                 $("button.playerTelephone").on('click', function () {
@@ -5212,6 +5228,67 @@ define(['js/app'], function (myApp) {
                                     };
                                     vm.updatePlayerForbidProviders(sendData);
                                     $(".prohibitGamePopover").popover('hide');
+                                });
+                            }
+                        });
+                        /**/
+                        utilService.setupPopover({
+                            context: container,
+                            elem: '.forbidRewardPointsEventPopover',
+                            content: function () {
+                                var data = JSON.parse(this.dataset.row);
+                                vm.forbidRewardPointsEventPopover = data;
+                                vm.forbidRewardPointsEventDisable = true;
+                                //vm.forbidGameRemark = '';
+                                $scope.safeApply();
+                                return $compile($('#forbidRewardPointsEventPopover').html())($scope);
+                            },
+                            callback: function () {
+                                let thisPopover = utilService.$getPopoverID(this);
+                                let rowData = JSON.parse(this.dataset.row);
+                                $scope.safeApply();
+
+                                $("button.forbidRewardPointsEventCancel").on('click', function () {
+                                    $(".forbidRewardPointsEventPopover").popover('hide');
+                                });
+
+                                $("button.showForbidRewardPointsEvent").on('click', function () {
+                                    $(".forbidRewardPointsEventPopover").popover('hide');
+                                });
+
+                                $("input.playerRewardPointsEventForbid").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidRewardPointsEventList = $(thisPopover).find('.playerRewardPointsEventForbid');
+                                    let forbidRewardPointsEvent = [];
+                                    $.each(forbidRewardPointsEventList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidRewardPointsEvent.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    vm.forbidRewardPointsEventDisable = vm.isForbidChanged(forbidRewardPointsEvent, vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent);
+                                    $scope.safeApply();
+                                });
+
+                                $("button.forbidRewardPointsEventConfirm").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidRewardPointsEventList = $(thisPopover).find('.playerRewardPointsEventForbid');
+                                    let forbidRewardPointsEvent = [];
+                                    $.each(forbidRewardPointsEventList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidRewardPointsEvent.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    let sendData = {
+                                        _id: rowData._id,
+                                        forbidRewardPointsEvent: forbidRewardPointsEvent,
+                                        adminName: authService.adminName
+                                    };
+                                    vm.updatePlayerForbidRewardPointsEvent(sendData);
+                                    $(".forbidRewardPointsEventPopover").popover('hide');
                                 });
                             }
                         });
@@ -10138,6 +10215,15 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+        /**/
+            vm.updatePlayerForbidRewardPointsEvent = function (sendData) {
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardPointsEvent', sendData, function (data) {
+                    vm.getPlatformPlayersData();
+                    //vm.updateForbidRewardPointsEventLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardPointsEvent, vm.rewardPointsAllEvent));
+                });
+            };
+
             vm.updatePlayerForbidRewardEvents = function (sendData) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardEvents', sendData, function (data) {
@@ -11568,9 +11654,16 @@ define(['js/app'], function (myApp) {
             });
 
             vm.activatePlayerTab = function () {
+                if(vm.selectedPlatform && vm.selectedPlatform.id){
+                    vm.getRewardPointsEvent(vm.selectedPlatform.id);
+                }
+
                 setTimeout(() => {
                     $('#playerDataTable').resize();
                 }, 300);
+
+
+
             };
 
             vm.activatePartnerTab = function () {
@@ -13048,6 +13141,8 @@ define(['js/app'], function (myApp) {
 
                 vm.getPlatformProviderGroup();
             };
+
+
 
             vm.getRewardEventsByPlatform = function () {
                 socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
@@ -14539,7 +14634,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
                 vm.endLoadWeekDay();
             };
-
+//important
             vm.getRewardPointsEventByCategory = (category) => {
                 return $scope.$socketPromise('getRewardPointsEventByCategory', {category: category}).then((data) => {
                     console.log('getRewardPointsEventByCategory',data.data);
@@ -14552,6 +14647,19 @@ define(['js/app'], function (myApp) {
                     vm.endLoadWeekDay();
                 });
             };
+
+            vm.getRewardPointsEvent = (platformId) => {
+                return $scope.$socketPromise('getRewardPointsEvent', {platformObjId: platformId}).then((data) => {
+                    if (data && data.data) {
+                        console.log('getRewardPointsAllEvent', data.data);
+                        vm.rewardPointsAllEvent = data.data;
+                        vm.
+                        $scope.safeApply();
+                    }
+
+                });
+            };
+
 
             vm.createRewardPointsEvent = (rewardPointsEvent) => {
                 delete rewardPointsEvent.isEditing;
@@ -18196,6 +18304,7 @@ define(['js/app'], function (myApp) {
                     });
             };
 
+
             vm.deletePromoteWay = function () {
                 let deletePromoteMessageId = $("#delete-promote-message");
                 vm.initClearMessage();
@@ -18662,6 +18771,20 @@ define(['js/app'], function (myApp) {
                     console.log('Forbid game log created', created);
                 });
             }
+
+            /*vm.updateForbidRewardPointsEventLog = function (playerId, forbidRewardPointsEvent) {
+                let queryData = {
+                    playerId: playerId,
+                    // remark: vm.forbidGameRemark,
+                    adminId: authService.adminId,
+                    forbidRewardPointsEventName: forbidRewardPointEvent
+                };
+
+                socketService.$socket($scope.AppSocket, 'createForbidRewardPointsEventLog', queryData, function (created) {
+                    //vm.forbidGameRemark = '';
+                    console.log('Forbid RewardPointsEvent log created', created);
+                });
+            }*/
 
             $("button.forbidGameConfirm").on('click', function () {
                 vm.getForbidGame();
