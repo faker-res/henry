@@ -277,7 +277,7 @@
                 .displayTable(ng-repeat='(i,v) in vm.curPlayerFeedbackDetail', ng-show='vm.curPlayerFeedbackDetail.length>0')
                     .colGrid(style='width:160px') {{vm.dateReformat(v.createTime)}}
                     .colGrid(style='width:100px') {{v.adminId.adminName || 'Unknown' | translate}}
-                    .colGrid(style='width:120px') {{(v.resultName || v.result) | translate}}
+                    .colGrid(style='width:120px') {{v.result$}}
                     .colGrid(style='width:130px') {{v.topic | translate}}
                     .colGrid(style='width:calc(75% - 300px)') {{v.content}}
         //.clearfix
