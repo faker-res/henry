@@ -285,16 +285,17 @@ const dbPlayerMail = {
                     return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
                 }
             }
-        ).then(retData => {
+        ).then(smsData => {
                 if(inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
                     return dbUtility.getGeoIp(inputData.lastLoginIp).then(
                         ipData=>{
-                            if(inputData) {
+                            if(ipData) {
                                 inputData.ipArea = ipData;
                             }
+                            return smsData;
                         })
                 }
-                return;
+                return smsData;
             }
         ).then(
             function (retData) {
