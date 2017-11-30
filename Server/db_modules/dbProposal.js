@@ -1850,7 +1850,7 @@ var proposal = {
     //     });
     // },
 
-    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo = 0) {//need
+    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo = 0, unlockSizeLimit = false) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
         //check proposal without process
         let prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
@@ -1887,14 +1887,12 @@ var proposal = {
                             queryObj['data.phoneNumber'] = phoneNumber;
                         }
 
-                        console.log("LH check getPlayerProposalsForPlatformId query", queryObj);
                         let proposalProm = [];
-                        if (size >= 0) {
+                        if (!unlockSizeLimit) {
                             proposalProm = dbconfig.collection_proposal.find(queryObj)
                                 .sort(sortCol).skip(index).limit(size).lean()
                                 .then(
                                     pdata => {
-                                        console.log("LH check getPlayerProposalsForPlatformId data without player info", pdata);
                                         pdata.map(item => {
                                             // only displayPhoneNum equal true, encode the phone num
                                             if (item.data && item.data.phone && !displayPhoneNum) {
@@ -1910,50 +1908,50 @@ var proposal = {
                                             return item
                                         });
 
-                                        console.log("LH check getPlayerProposalsForPlatformId data without player info 2", pdata);
                                         return pdata;
                                     })
                                 .then(proposals => {
                                     proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-                                    console.log("LH check getPlayerProposalsForPlatformId data after get repeating count", proposals);
                                     return proposals;
                                 }).catch(err => {
-                                    console.log("DBError : Error finding matching proposal", error);
+                                    console.log("DBError : Error finding matching proposal", err);
                                 });
                         } else {
-                            return Q.reject({name: "DataError", message: "Invalid size"});
+                            // return Q.reject({name: "DataError", message: "Invalid size"});
                             // this part will use all memory if there are too many records. if there is no size data, return error
-                            // proposalProm = dbconfig.collection_proposal.find(queryObj).lean()
-                            //     .then(
-                            //         pdata => {
-                            //             pdata.map(item => {
-                            //                 // only displayPhoneNum equal true, encode the phone num
-                            //                 if (item.data && item.data.phone && !displayPhoneNum) {
-                            //                     item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                            //                 }
-                            //                 if (item.data && item.data.phoneNumber && !displayPhoneNum) {
-                            //                     item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                            //                 }
-                            //                 if (item.data && item.data.playerId) {
-                            //                     playerProm.push(proposal.getPlayerDetails(item.data.playerId));
-                            //                 }
-                            //
-                            //                 return item
-                            //             });
-                            //
-                            //             return pdata;
-                            //         })
-                            //     .then(proposals => {
-                            //         proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-                            //
-                            //         return proposals
-                            //     }).catch(err => {
-                            //         console.log("DBError : Error finding matching proposal", error);
-                            //     });
+
+                            //this query will run when user click on the number in attempt number list, the query will run by phone number
+                            proposalProm = dbconfig.collection_proposal.find(queryObj).lean()
+                                .then(
+                                    pdata => {
+                                        pdata.map(item => {
+                                            // only displayPhoneNum equal true, encode the phone num
+                                            if (item.data && item.data.phone && !displayPhoneNum) {
+                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                            }
+                                            if (item.data && item.data.phoneNumber && !displayPhoneNum) {
+                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                            }
+                                            if (item.data && item.data.playerId) {
+                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId));
+                                            }
+
+                                            return item
+                                        });
+
+                                        return pdata;
+                                    })
+                                .then(proposals => {
+                                    proposals = insertPlayerRepeatCount(proposals, platformId[0]);
+
+                                    return proposals
+                                }).catch(err => {
+                                    console.log("DBError : Error finding matching proposal", err);
+                                });
                         }
 
                         let proposalCount = dbconfig.collection_proposal.find(queryObj).lean().count();
-                        return Q.all([proposalCount, proposalProm])
+                        return Q.all([proposalProm,proposalCount])
                     }
                     else {
                         return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
@@ -1964,9 +1962,7 @@ var proposal = {
                 }
             }
         ).then(returnData => {
-            console.log("LH check getPlayerProposalsForPlatformId data after promise.all", returnData[0]);
             return Q.all(playerProm).then(data => {
-                console.log("LH check getPlayerProposalsForPlatformId player details data", data);
                 data.map(d => {
                     if (d && d.playerId) {
                         for (var i = 0; i < returnData[0].length; i++) {
@@ -2027,18 +2023,19 @@ var proposal = {
                     dataArr = returnData[0];
                 }
 
-                for (var i = 0; i < dataArr.length; i++) {
-                    if (dataArr[i].data.userAgent) {
-                        for (var j = 0; j < dataArr[i].data.userAgent.length; j++) {
-                            if (!dataArr[i].data.device) {
-                                dataArr[i].data.device = dbutility.getInputDevice(dataArr[i].data.userAgent, false);
+                if(dataArr && dataArr.length > 0){
+                    for (var i = 0; i < dataArr.length; i++) {
+                        if (dataArr[i].data.userAgent) {
+                            for (var j = 0; j < dataArr[i].data.userAgent.length; j++) {
+                                if (!dataArr[i].data.device) {
+                                    dataArr[i].data.device = dbutility.getInputDevice(dataArr[i].data.userAgent, false);
+                                }
                             }
                         }
                     }
                 }
 
-                console.log("LH check getPlayerProposalsForPlatformId final data 1", returnData[0]);
-                console.log("LH check getPlayerProposalsForPlatformId final data 2", dataArr);
+
                 return {data: dataArr, size: returnData[1]};
             })
 
@@ -2051,7 +2048,6 @@ var proposal = {
             .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
             .lean().then(
                 data => {
-                    console.log("LH check getPlayerProposalsForPlatformId get playerDetails", data ? data : "");
                     return data ? data : "";
                 }
             );
@@ -2071,16 +2067,13 @@ var proposal = {
         var prom = [];
 
         var totalHeadCount = 0;
-        console.log("LH check getPlayerSelfRegistrationRecordList query", queryObj);
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
-            console.log("LH check getPlayerSelfRegistrationRecordList distinct phone number list", dataList);
             dataList.map(phoneNumber => {
                 prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
                 totalHeadCount += 1;
             })
             return Q.all(prom);
         }).then(details => {
-            console.log("LH check getPlayerSelfRegistrationRecordList proposal of each phone number", details);
             details.map(data => {
                 let currentArrNo = 1;
                 data.map(d => {
@@ -2105,7 +2098,6 @@ var proposal = {
                 })
             })
 
-            console.log("LH check getPlayerSelfRegistrationRecordList record array", recordArr);
             return recordArr;
         }).then(playerAttemptNumber => {
             var firstFail = playerAttemptNumber.filter(function (event) {
@@ -2196,7 +2188,6 @@ var proposal = {
                 fifthUpSuccess: fifthUpSuccessPercent
             })
 
-            console.log("LH check getPlayerSelfRegistrationRecordList array of final cases number", arr);
             return arr;
 
         });
@@ -2309,7 +2300,7 @@ var proposal = {
         });
     },
 
-    getPlayerRegistrationIntentRecordByStatus: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo) {
+    getPlayerRegistrationIntentRecordByStatus: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo, unlockSizeLimit) {
         var queryObj = {
             createTime: {
                 $gte: new Date(startTime),
@@ -2373,7 +2364,7 @@ var proposal = {
             data.map(d => {
                 userName = d.name;
                 phoneNumber = d.phoneNumber
-                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo);
+                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo, unlockSizeLimit);
                 returnArr.push(p);
             })
         }).then(data => {

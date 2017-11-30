@@ -3666,6 +3666,7 @@ define(['js/app'], function (myApp) {
                 vm.queryData.size = newSearch ? 10 : (vm.playerRegistrationRecords.limit || 10);
                 vm.queryData.index = newSearch ? 0 : (vm.playerRegistrationRecords.index || 0);
                 vm.queryData.sortCol = vm.playerRegistrationRecords.sortCol;
+                vm.queryData.unlockSizeLimit = true;
                 socketService.$socket($scope.AppSocket, 'getPlayerRegistrationIntentRecordByStatus', vm.queryData, function (data) {
                     vm.newPlayerListRecords = data.data;
 

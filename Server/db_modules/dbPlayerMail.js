@@ -281,7 +281,7 @@ const dbPlayerMail = {
    
             }
         ).then(retData => {
-                if(inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
+                if(inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
                     return dbUtility.getGeoIp(inputData.lastLoginIp).then(
                         ipData=>{
                             if(inputData) {
