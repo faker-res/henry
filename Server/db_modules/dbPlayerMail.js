@@ -197,10 +197,10 @@ const dbPlayerMail = {
         let platform;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
 
-        if(inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
+        if (inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined") {
             dbUtility.getGeoIp(inputData.lastLoginIp).then(
-                ipData=>{
-                    if(inputData) {
+                ipData => {
+                    if (inputData) {
                         inputData.ipArea = ipData;
                     }
                 })
@@ -222,7 +222,10 @@ const dbPlayerMail = {
                     }
 
                     let smsChannelProm = smsAPI.channel_getChannelList({});
-                    let smsVerificationLogProm = dbconfig.collection_smsVerificationLog.findOne({tel: telNum, createTime: {$gt: lastMin}}).lean();
+                    let smsVerificationLogProm = dbconfig.collection_smsVerificationLog.findOne({
+                        tel: telNum,
+                        createTime: {$gt: lastMin}
+                    }).lean();
                     let messageTemplateProm = dbconfig.collection_messageTemplate.findOne({
                         platform: platformObjId,
                         type: constMessageType.SMS_VERIFICATION,
@@ -239,56 +242,57 @@ const dbPlayerMail = {
             }
         ).then(
             function (data) {
-                channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : 2;
-                lastMinuteHistory = data[1];
-                template = data[2];
+                if (data) {
+                    channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : 2;
+                    lastMinuteHistory = data[1];
+                    template = data[2];
 
-                if (!template) {
-                    return Q.reject({message: 'Template not set for current platform'});
+                    if (!template) {
+                        return Q.reject({message: 'Template not set for current platform'});
+                    }
+
+                    template.content = template.content.replace('smsCode', code);
+
+                    if (channel === null || platformId === null) {
+                        return Q.reject({message: "cannot find platform or sms channel."});
+                    }
+
+                    // Check whether verification sms sent in last minute
+                    if (lastMinuteHistory && lastMinuteHistory.tel) {
+                        return Q.reject({message: "Verification SMS already sent within last minute"});
+                    }
+
+
+                    let saveObj = {
+                        tel: telNum,
+                        channel: channel,
+                        platformObjId: platformObjId,
+                        platformId: platformId,
+                        code: code,
+                        delay: 0
+                    };
+
+                    let sendObj = {
+                        tel: telNum,
+                        channel: channel,
+                        platformId: platformId,
+                        message: template.content,
+                        delay: 0
+                    };
+                    // Log the verification SMS before send
+                    new dbconfig.collection_smsVerificationLog(saveObj).save();
+                    return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
                 }
-
-                template.content = template.content.replace('smsCode', code);
-
-                if (channel === null || platformId === null) {
-                    return Q.reject({message: "cannot find platform or sms channel."});
-                }
-
-                // Check whether verification sms sent in last minute
-                if (lastMinuteHistory && lastMinuteHistory.tel) {
-                    return Q.reject({message: "Verification SMS already sent within last minute"});
-                }
-
-
-                let saveObj = {
-                    tel: telNum,
-                    channel: channel,
-                    platformObjId: platformObjId,
-                    platformId: platformId,
-                    code: code,
-                    delay: 0
-                };
-
-                let sendObj = {
-                    tel: telNum,
-                    channel: channel,
-                    platformId: platformId,
-                    message: template.content,
-                    delay: 0
-                };
-                // Log the verification SMS before send
-                new dbconfig.collection_smsVerificationLog(saveObj).save();
-                return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
-   
             }
         ).then(
             function (retData) {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
+                if (retData) {
+                    if (inputData && inputData.playerId) {
+                        delete inputData.playerId;
+                    }
 
-                if(inputData.playerId){
-                    delete inputData.playerId;
-                }
-
-                //if (purpose == constSMSPurpose.REGISTRATION) {
+                    //if (purpose == constSMSPurpose.REGISTRATION) {
                     inputData = inputData || {};
                     inputData.smsCode = code;
 
@@ -310,14 +314,8 @@ const dbPlayerMail = {
                         name: inputData.name
                     };
                     let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                    return newRecord.save().then(data => {
-                        if(data){
-                            return true;
-                        }
-                    });
-                //}
-
-                return true;
+                    return newRecord.save();
+                }
             }
         );
     },
