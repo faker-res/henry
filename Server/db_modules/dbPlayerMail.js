@@ -197,7 +197,7 @@ const dbPlayerMail = {
         let platform;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
 
-        if(inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
+        if(inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
             dbUtility.getGeoIp(inputData.lastLoginIp).then(
                 ipData=>{
                     if(inputData) {
