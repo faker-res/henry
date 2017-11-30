@@ -26,8 +26,8 @@ var dbPlatformGameGroup = {
 
     /**
      * Update the  game group
-     * @param {Json}  query - queryData
-     * @param {Json}  updateData -  updateData
+     * @param {json}  query - queryData
+     * @param {json}  updateData -  updateData
      */
     updatePlatformGameGroup: function (query, updateData) {
         return dbconfig.collection_platformGameGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
