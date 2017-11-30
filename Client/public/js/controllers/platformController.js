@@ -4606,7 +4606,7 @@ define(['js/app'], function (myApp) {
                                         'src': "images/icon/rewardPointBlue.png",
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.showRewardPointAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointAdjustment);',
+                                        'ng-click': 'vm.showRewardPointAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerRewardPointAdjustment',
@@ -7951,16 +7951,65 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.prepareShowPlayerRewardPointAdjustment = function () {
-                vm.rewardPointChange.finalValidAmount = vm.isOneSelectedPlayer().validRewardPoint;
-                vm.rewardPointChange.finalLockedAmount = null;
+            vm.prepareShowPlayerRewardPointsAdjustment = function () {
+                vm.isOneSelectedPlayer().finalValidAmount = 0;
                 vm.rewardPointChange.remark = '';
                 vm.rewardPointChange.updateAmount = 0;
 
-                vm.rewardPointExchange.finalValidAmount = vm.isOneSelectedPlayer().validRewardPoint;
-                vm.rewardPointExchange.finalLockedAmount = null;
-                vm.rewardPointExchange.remark = '';
-                vm.rewardPointExchange.updateAmount = 0;
+                if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
+                    vm.createPlayerRewardPointsRecord();
+                } else {
+                    vm.getPlayerRewardPointsRecord();
+                }
+            };
+
+            vm.createPlayerRewardPointsRecord = function () {
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    data: {
+                        playerId: vm.isOneSelectedPlayer()._id,
+                        points: 0,
+                        playerName: vm.isOneSelectedPlayer().name,
+                        playerLevel: vm.isOneSelectedPlayer().playerLevel.value,
+                        progress: []
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'createPlayerRewardPointsRecord', sendData, function (data) {
+                    vm.isOneSelectedPlayer().currentPoints = data.data.points;
+
+                    let playerId = data.data.playerObjId;
+                    let platformId = data.data.platformObjId;
+                    let rewardPointsObjId = data.data._id;
+
+                    vm.upsertPlayerInfoRewardPointsObjId(playerId, platformId, rewardPointsObjId);
+                    $scope.safeApply();
+                });
+            };
+
+            vm.upsertPlayerInfoRewardPointsObjId = function (playerId, platformId, rewardPointsObjId) {
+
+                let sendData = {
+                    playerId: playerId,
+                    platformId: platformId,
+                    rewardPointsObjId: rewardPointsObjId,
+                };
+
+                socketService.$socket($scope.AppSocket, 'upsertPlayerInfoRewardPointsObjId', sendData, function () {
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                });
+            };
+
+            vm.getPlayerRewardPointsRecord = function () {
+                let sendData = {
+                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsRecord', sendData, function (data) {
+                    vm.isOneSelectedPlayer().currentPoints = data.data.points;
+                    $scope.safeApply();
+                });
             };
 
             vm.prepareShowPlayerCreditAdjustment = function (type) {

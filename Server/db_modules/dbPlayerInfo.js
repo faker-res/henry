@@ -81,6 +81,46 @@ let PLATFORM_PREFIX_SEPARATOR = '';
 let dbPlayerInfo = {
 
     /**
+     * Create a new reward points record based on player data
+     */
+    createPlayerRewardPointsRecord: function (platformId, playerId, points, playerName, playerLevel, progress) {
+        let recordData = {
+            platformObjId: platformId,
+            playerObjId: playerId,
+            points: points,
+            playerName: playerName,
+            playerLevel: playerLevel,
+            progress: progress,
+            createTime: Date.now()
+        };
+        let record = new dbconfig.collection_rewardPoints(recordData);
+        record.save().then().catch(errorUtils.reportError);
+        return record;
+    },
+
+    /**
+     * Update player info with reward points record based on player id and platform id
+     */
+    upsertPlayerInfoRewardPointsObjId: function (playerId, platformId, rewardPointsObjId) {
+        let saveObj = {
+            rewardPointsObjId: rewardPointsObjId
+        };
+        return dbconfig.collection_players.findOneAndUpdate({
+            _id: playerId,
+            platform: platformId
+        }, saveObj, {upsert: true});
+    },
+
+    /**
+     * Get player reward points record based on player rewardPointsObjId
+     */
+    getPlayerRewardPointsRecord: function (rewardPointsObjId) {
+        return dbconfig.collection_rewardPoints.findOne({
+            _id: rewardPointsObjId
+        }).select('points')
+    },
+
+    /**
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
