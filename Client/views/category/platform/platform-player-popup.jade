@@ -841,7 +841,7 @@
                         tbody(ng-if='vm.playerFeedbackData.data.length>0')
                             tr(ng-repeat='(i,v) in vm.playerFeedbackData.data')
                                 td(style='min-width:150px;') {{vm.dateReformat(v.createTime)}}
-                                td {{v.result | translate}}
+                                td {{v.result$}}
                                 td(style='white-space: normal;word-wrap: break-word;max-width: 300px;') {{v.content}}
                                 td {{v.adminId.adminName}}
                                 td {{v.topic}}
@@ -1263,27 +1263,21 @@
                                 table#rewardTaskGroupLogTbl.text-center.display.paddingTbl(style='width:100%;')
                                     thead
                                         tr
-                                            th {{'TIME' | translate}}
                                             th {{'providerGroup' | translate}}
-                                            th {{'useConsumption' | translate}}
-                                            th {{'CURRENTAMOUNT' | translate}}
-                                            th {{'requiredUnlockAmount' | translate}}
-                                            th {{'unlockedAmount' | translate}}
                                             th {{'rewardAmount' | translate}}
+                                            th {{'CURRENTAMOUNT' | translate}}
+                                            th {{'spendingAmount' | translate}}
+                                            th {{'unlockedAmount' | translate}}
                                             th {{'NON_CONSUMPTION_RETURN_AMOUNT' | translate}}
-                                            th {{'providers' | translate}}
                                             th {{'STATUS' | translate}}
                                     tbody
                                         tr(ng-repeat='(i,v) in vm.rewardTaskGroupDetails')
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.createTime$}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.providerGroup.name}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.useConsumption | translate}}
+                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.rewardAmt}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.currentAmt}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.targetConsumption}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.curConsumption}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.rewardAmt}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.forbidXIMAAmt}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.inProvider | translate}}
                                             td(style="text-align:center;border: 1px solid #0099CC") {{v.status | translate}}
 
             .modal-footer
@@ -1416,71 +1410,69 @@
                 button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.creditChange.updateAmount || vm.creditChange.finalValidAmount<0', ng-click="vm.updatePlayerCredit();") {{"UPDATE" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
-#modalPlayerRewardPointAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+#modalPlayerRewardPointsAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{'REWARD_POINT_ADJUSTMENT' | translate}} : {{vm.selectedSinglePlayer.name}} ({{vm.selectedSinglePlayer.realName}})
+                h4.modal-title {{'REWARD_POINTS_ADJUSTMENT' | translate}} : {{vm.selectedSinglePlayer.name}} ({{vm.selectedSinglePlayer.realName}})
             .modal-body
                 ul.nav.nav-tabs.common-nav-tabs
-                    li(ng-class="vm.selectedRewardPointAdjustmentTab == 'change' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RewardPointChange')")
-                        a.common-tab(data-toggle="tab", ng-click="vm.showRewardPointAdjustmentTab('change');") {{"VALID_REWARD_POINT" | translate}}
-                    li(ng-class="vm.selectedRewardPointAdjustmentTab == 'exchange' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RewardPointExchange')")
-                        a.common-tab(data-toggle="tab", ng-click="vm.showRewardPointAdjustmentTab('exchange');") {{"ADVANCE_REWARD_POINT_EXCHANGE" | translate}}
+                    li(ng-class="vm.selectedRewardPointsAdjustmentTab == 'change' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RewardPointsChange')")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showRewardPointsAdjustmentTab('change');") {{"VALID_REWARD_POINTS" | translate}}
+                    li(ng-class="vm.selectedRewardPointsAdjustmentTab == 'exchange' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RewardPointExchange')")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showRewardPointsAdjustmentTab('exchange');") {{"ADVANCE_REWARD_POINTS_EXCHANGE" | translate}}
                 .panel.panel-primary(style="border-radius:0 !important;")
                     .panel-body
-                        // RewardPointChange
-                        .well(ng-show="vm.selectedRewardPointAdjustmentTab == 'change'")
-                            //label {{'VALID_REWARD_POINT' | translate}}
+                        // rewardPointsChange
+                        .well(ng-show="vm.selectedRewardPointsAdjustmentTab == 'change'")
                             table.col-md-12.paddingTbl.text-center.datatable-sm
                                 tbody
                                     tr
-                                        td.col-md-4.oblique {{'CURRENT_REWARD_POINT' | translate}}
-                                        td.col-md-4.oblique {{'CHANGE_REWARD_POINT' | translate}}
-                                        td.col-md-4.oblique {{'UPDATED_REWARD_POINT' | translate}}
+                                        td.col-md-4.oblique {{'CURRENT_REWARD_POINTS' | translate}}
+                                        td.col-md-4.oblique {{'CHANGE_REWARD_POINTS' | translate}}
+                                        td.col-md-4.oblique {{'UPDATED_REWARD_POINTS' | translate}}
                                     tr
-                                        td {{vm.selectedSinglePlayer.validRewardPoint | number:2}}
+                                        td {{vm.isOneSelectedPlayer().currentPoints}}
                                         td
-                                            input.text-success(type='number', ng-model='vm.rewardPointChange.updateAmount', ng-change="vm.rewardPointChange.finalValidAmount=vm.selectedSinglePlayer.validRewardPoint+vm.rewardPointChange.updateAmount")
+                                            input.text-success(type='number', ng-model='vm.rewardPointsChange.updateAmount', ng-change="vm.isOneSelectedPlayer().finalValidAmount=vm.isOneSelectedPlayer().currentPoints+vm.rewardPointsChange.updateAmount")
                                         td
-                                            label.text-danger {{vm.rewardPointChange.finalValidAmount || 0 | number:2}}
-                                            .text-danger(ng-show='vm.rewardPointChange.finalValidAmount<0') {{'Player reward point cannot be less than 0' | translate}}
+                                            label.text-danger {{vm.isOneSelectedPlayer().finalValidAmount || 0 }}
+                                            .text-danger(ng-show='vm.isOneSelectedPlayer().finalValidAmount<0') {{'Player reward points cannot be less than 0' | translate}}
                             .row
                                 .col-md-6
                                     label.control-label {{'REMARKS' | translate}}
                                 .col-md-12.textareaDetail
-                                    textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.rewardPointChange.remark")
-                        // RewardPointExchange
-                        .well(ng-show="vm.selectedRewardPointAdjustmentTab == 'exchange'")
-                            //label {{'ADVANCE_REWARD_POINT_EXCHANGE' | translate}}
+                                    textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.rewardPointsChange.remark")
+                        // rewardPointsExchange
+                        .well(ng-show="vm.selectedRewardPointsAdjustmentTab == 'exchange'")
                             table.col-md-12.paddingTbl.text-center.datatable-sm
                                 tbody
                                     tr
-                                        td.col-md-3.oblique {{'BEFORE_REWARD_POINT_EXCHANGE' | translate}}
-                                        td.col-md-3.oblique {{'REWARD_POINT_EXCHANGE_AMOUNT' | translate}}
-                                        td.col-md-3.oblique.strong(style='color:red') {{'REWARD_POINT_EXCHANGE_DAILY_LIMIT' | translate}}
-                                        td.col-md-3.oblique {{'AFTER_REWARD_POINT_EXCHANGE' | translate}}
+                                        td.col-md-3.oblique {{'BEFORE_REWARD_POINTS_EXCHANGE' | translate}}
+                                        td.col-md-3.oblique {{'REWARD_POINTS_EXCHANGE_AMOUNT' | translate}}
+                                        td.col-md-3.oblique.strong(style='color:red') {{'REWARD_POINTS_EXCHANGE_DAILY_LIMIT' | translate}}
+                                        td.col-md-3.oblique {{'AFTER_REWARD_POINTS_EXCHANGE' | translate}}
                                     tr
-                                        td {{vm.selectedSinglePlayer.validRewardPoint | number:2}}
+                                        td {{vm.isOneSelectedPlayer().currentPoints}}
                                         td
-                                            input.text-success(type='number', ng-model='vm.rewardPointExchange.updateAmount', ng-change="vm.rewardPointExchange.finalValidAmount=vm.selectedSinglePlayer.validRewardPoint+vm.rewardPointExchange.updateAmount")
+                                            input.text-success(type='number', ng-model='vm.rewardPointsExchange.updateAmount', ng-change="vm.isOneSelectedPlayer().finalValidAmount=vm.isOneSelectedPlayer().currentPoints+vm.rewardPointsExchange.updateAmount")
                                         td
                                             label(style='color:red;') {{xx}}
                                             label(style='color:red;') &nbsp;
                                             label(style='color:red;') / 30
                                         td
-                                            label.text-danger {{vm.rewardPointExchange.finalValidAmount || 0 | number:2}}
-                                            .text-danger(ng-show='vm.rewardPointExchange.finalValidAmount<0') {{'Player reward point cannot be less than 0' | translate}}
+                                            label.text-danger {{vm.isOneSelectedPlayer().finalValidAmount || 0}}
+                                            .text-danger(ng-show='vm.isOneSelectedPlayer().finalValidAmount<0') {{'Player reward points cannot be less than 0' | translate}}
                             .row
                                 .col-md-6
                                     label.control-label {{'REMARKS' | translate}}
                                 .col-md-12.textareaDetail
-                                    textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.rewardPointExchange.remark")
+                                    textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.rewardPointsExchange.remark")
             .modal-footer
-                div(ng-show="vm.selectedRewardPointAdjustmentTab == 'change'")
-                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointChange.updateAmount || vm.rewardPointChange.finalValidAmount<0', ng-click="vm.updatePlayerRewardPoint();") {{"UPDATE" | translate}}
+                div(ng-show="vm.selectedRewardPointsAdjustmentTab == 'change'")
+                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointsChange.updateAmount || vm.isOneSelectedPlayer().finalValidAmount<0', ng-click="vm.updatePlayerRewardPoints();") {{"UPDATE" | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
-                div(ng-show="vm.selectedRewardPointAdjustmentTab == 'exchange'")
-                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointExchange.updateAmount || vm.rewardPointExchange.finalValidAmount<0', ng-click="vm.updatePlayerRewardPoint();") {{"UPDATE" | translate}}
+                div(ng-show="vm.selectedRewardPointsAdjustmentTab == 'exchange'")
+                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointsExchange.updateAmount || vm.isOneSelectedPlayer().finalValidAmount<0', ng-click="vm.updatePlayerRewardPoints();") {{"UPDATE" | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}

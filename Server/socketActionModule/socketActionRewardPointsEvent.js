@@ -38,8 +38,8 @@ function socketActionRewardPointsEvent(socketIO, socket) {
 
         getRewardPointsEventByCategory: function getRewardPointsEventByCategory (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.category);
-            socketUtil.emitter(self.socket, dbRewardPointsEvent.getRewardPointsEventByCategory, [data.category], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.category);
+            socketUtil.emitter(self.socket, dbRewardPointsEvent.getRewardPointsEventByCategory, [data.platformObjId, data.category], actionName, isValidData);
         },
 
         deleteRewardPointsEventById: function deleteRewardPointsEventById(data) {

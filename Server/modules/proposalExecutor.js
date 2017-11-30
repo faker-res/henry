@@ -1931,13 +1931,24 @@ var proposalExecutor = {
                         rewardType: constRewardType.PLAYER_PROMO_CODE_REWARD,
                         platformId: proposalData.data.platformId,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
-                        currentAmount: proposalData.data.applyAmount,
-                        initAmount: proposalData.data.applyAmount,
+                        currentAmount: proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.rewardAmount,
                         eventId: proposalData.data.eventId,
                         useLockedCredit: proposalData.data.useLockedCredit,
                         useConsumption: Boolean(proposalData.data.useConsumption)
                     };
-                    if (proposalData.data.providers) {
+
+                    // Target providers or providerGroup
+                    if (proposalData.data.providerGroup) {
+                        taskData.providerGroup = proposalData.data.providerGroup;
+
+                        // Lock apply amount to reward if type-C promo code
+                        if (proposalData.data.promoCodeTypeValue == 3) {
+                            taskData.initAmount += proposalData.data.applyAmount;
+                            taskData.currentAmount += proposalData.data.applyAmount;
+                        }
+                    }
+                    else if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;
                     }
 

@@ -16,10 +16,11 @@ let dbRewardPointsEvent = {
             });
         },
 
-        getRewardPointsEventByCategory: (rewardPointsEventCategory) => {
+        getRewardPointsEventByCategory: (platformObjId, rewardPointsEventCategory) => {
             return dbConfig.collection_rewardPointsEvent.find({
+                platformObjId: platformObjId,
                 category: rewardPointsEventCategory
-            });
+            }).sort({index: 1});
         },
 
         createRewardPointsEvent: (data) => {

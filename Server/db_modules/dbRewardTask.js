@@ -126,6 +126,7 @@ var dbRewardTask = {
                     let updObj = {
                         $inc: {
                             rewardAmt: rewardData.initAmount,
+                            currentAmt: rewardData.initAmount,
                             targetConsumption: rewardData.requiredUnlockAmount,
                         }
                     };
@@ -147,7 +148,8 @@ var dbRewardTask = {
                         playerId: rewardData.playerId,
                         providerGroup: rewardData.providerGroup,
                         status: constRewardTaskStatus.STARTED,
-                        rewardAmt: rewardData.initAmount
+                        rewardAmt: rewardData.initAmount,
+                        currentAmt: rewardData.initAmount
                     };
 
                     if (rewardData.useConsumption) {

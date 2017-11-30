@@ -81,6 +81,45 @@ let PLATFORM_PREFIX_SEPARATOR = '';
 let dbPlayerInfo = {
 
     /**
+     * Create a new reward points record based on player data
+     */
+    createPlayerRewardPointsRecord: function (platformId, playerId, points, playerName, playerLevel, progress) {
+        let recordData = {
+            platformObjId: platformId,
+            playerObjId: playerId,
+            points: points,
+            playerName: playerName,
+            playerLevel: playerLevel,
+            progress: progress,
+            createTime: Date.now()
+        };
+        let record = new dbconfig.collection_rewardPoints(recordData);
+        return record.save();
+    },
+
+    /**
+     * Update player info with reward points record based on player id and platform id
+     */
+    upsertPlayerInfoRewardPointsObjId: function (playerId, platformId, rewardPointsObjId) {
+        let saveObj = {
+            rewardPointsObjId: rewardPointsObjId
+        };
+        return dbconfig.collection_players.findOneAndUpdate({
+            _id: playerId,
+            platform: platformId
+        }, saveObj, {upsert: true});
+    },
+
+    /**
+     * Get player reward points record based on player rewardPointsObjId
+     */
+    getPlayerRewardPointsRecord: function (rewardPointsObjId) {
+        return dbconfig.collection_rewardPoints.findOne({
+            _id: rewardPointsObjId
+        }).select('points')
+    },
+
+    /**
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
@@ -260,6 +299,7 @@ let dbPlayerInfo = {
                                 data => {
                                     if (data) {
                                         inputData.partner = data._id;
+                                        inputData.partnerId = data.partnerId;
                                         return inputData;
                                     }
                                     else {
@@ -392,7 +432,9 @@ let dbPlayerInfo = {
                     if (data) {
                         dbPlayerInfo.createPlayerLoginRecord(data);
                         //todo::temp disable similar player untill ip is correct
-                        dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
+                        if(data.lastLoginIp && data.lastLoginIp != "undefined"){
+                            dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
+                        }
                         // dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
                         return data;
                     }
@@ -2084,6 +2126,7 @@ let dbPlayerInfo = {
                         }
                         logData = proposalData.data;
                         recordData.proposalId = proposalData.proposalId;
+                        recordData.userAgent = proposalData.data.userAgent;
                     }
                     var newRecord = new dbconfig.collection_playerTopUpRecord(recordData);
                     var recordProm = newRecord.save();
@@ -5972,7 +6015,7 @@ let dbPlayerInfo = {
                                 message: errorMsg
                             })
                         }else{
-                            return "No_Level_Change";
+                            Q.resolve(true);
                         }
                     }
                 }
@@ -5988,7 +6031,7 @@ let dbPlayerInfo = {
                             message: levelErrorMsg
                         })
                     }else{
-                        return "No_Level_Change";
+                        Q.resolve(true);
                     }
                 }
             },
@@ -9442,8 +9485,10 @@ let dbPlayerInfo = {
                         timeCheckData => {
                             rewardData.selectedTopup = timeCheckData[0];
 
+                            //special handling for eu大爆炸 reward
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
-                                && rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN) {
+                                && (rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN || (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN
+                                && (rewardEvent.validStartTime || rewardEvent.validEndTime)))) {
                                 // There is consumption after top up
                                 if (rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) {
                                     // Bypass this checking
@@ -9547,7 +9592,7 @@ let dbPlayerInfo = {
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
-                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData, data);
+                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData, data, userAgent);
                                     break;
                                 default:
                                     return Q.reject({

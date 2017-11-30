@@ -41,7 +41,8 @@ define(['js/app'], function (myApp) {
             EXPIRED: "Expired",
             UNDETERMINED: "Undetermined",
             AUTOAUDIT: "AutoAudit",
-            RECOVER: "Recover"
+            RECOVER: "Recover",
+            MANUAL: "Manual"
         };
         vm.depositMethodList = {
             Online: 1,
@@ -910,6 +911,9 @@ define(['js/app'], function (myApp) {
                     // v.remark$ = v.remark.map(item => {
                     //     return item ? item.content : '';
                     // });
+                    if (v.data && v.data.remark) {
+                        v.remark$ = v.data.remark;
+                    }
                     v.playerLevel$ = v.data.playerLevelName ? $translate(v.data.playerLevelName) : '';
                     v.merchantNo$ = v.data.merchantNo != null
                         ? v.data.merchantNo
@@ -1308,6 +1312,9 @@ define(['js/app'], function (myApp) {
                     // v.remark$ = v.remark.map(item => {
                     //     return item ? item.content : '';
                     // });
+                    if (v.data && v.data.remark) {
+                        v.remark$ = v.data.remark;
+                    }
                     v.playerLevel$ = v.data.playerLevelName ? $translate(v.data.playerLevelName) : '';
                     v.merchantNo$ = v.data.merchantNo != null
                         ? v.data.merchantNo
