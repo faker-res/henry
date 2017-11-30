@@ -1142,6 +1142,26 @@
   "pointToCreditManualMaxPoints": "Point To Credit Manual Max Points",
   "pointToCreditAutoRate (N points : 1 credit)": "Point To Credit Auto Rate (N points : 1 credit)",
   "pointToCreditAutoMaxPoints": "Point To Credit Auto Max Points",
-  "spendingAmountOnReward": "Spending Amount On Reward"
+  "spendingAmountOnReward": "Spending Amount On Reward",
+  "rewardPointsCategory": "Reward Points Category",
+  "loginRewardPoints": "Login Reward Points",
+  "displayOrder": "Display Order",
+  "targetDestination": "Target Destination",
+  "consecutiveCount": "Consecutive Count",
+  "rewardPoints": "Reward Points",
+  "rewardTitle": "Reward Title",
+  "rewardContent": "Reward Content",
+  "Custom": "Custom",
+  "OPEN": "Open",
+  "DELETE_REWARD_POINTS": "Delete Reward Points",
+  "Are you sure you want to delete reward points event": "Are you sure you want to delete reward points event",
+  "refreshPeriod": "Refresh Period",
+  "gameRewardPoints": "Game Reward Points",
+  "gameType": "Game Type",
+  "betType": "Bet Type",
+  "dailyConsumptionCount": "Daily Consumption Count",
+  "singleConsumptionAmountGreaterThan": "Single Consumption Amount Greater Than",
+  "dailyValidConsumptionAmount": "Daily Valid Consumption Amount",
+  "dailyWinGameCount": "Daily Win Game Count"
 
 }

@@ -20,6 +20,8 @@ let promoCodeSchema = new Schema({
     disableWithdraw: {type: Boolean, default: false, index: true},
     // Allowed Game Providers, empty if all providers
     allowedProviders: [{type: Schema.ObjectId}],
+    // Is platform using provider group
+    isProviderGroup: {type: Boolean},
     // Banner Text
     bannerText: {type: String},
     // Promo Code

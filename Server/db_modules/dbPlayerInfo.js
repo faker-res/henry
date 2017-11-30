@@ -260,6 +260,7 @@ let dbPlayerInfo = {
                                 data => {
                                     if (data) {
                                         inputData.partner = data._id;
+                                        inputData.partnerId = data.partnerId;
                                         return inputData;
                                     }
                                     else {
@@ -392,7 +393,9 @@ let dbPlayerInfo = {
                     if (data) {
                         dbPlayerInfo.createPlayerLoginRecord(data);
                         //todo::temp disable similar player untill ip is correct
-                        dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
+                        if(data.lastLoginIp && data.lastLoginIp != "undefined"){
+                            dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
+                        }
                         // dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
                         return data;
                     }
@@ -9434,8 +9437,10 @@ let dbPlayerInfo = {
                         timeCheckData => {
                             rewardData.selectedTopup = timeCheckData[0];
 
+                            //special handling for eu大爆炸 reward
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
-                                && rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN) {
+                                && (rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN || (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN
+                                && (rewardEvent.validStartTime || rewardEvent.validEndTime)))) {
                                 // There is consumption after top up
                                 if (rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) {
                                     // Bypass this checking
