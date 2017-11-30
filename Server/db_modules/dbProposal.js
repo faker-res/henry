@@ -1913,15 +1913,13 @@ var proposal = {
                                 .then(proposals => {
                                     proposals = insertPlayerRepeatCount(proposals, platformId[0]);
                                     return proposals;
-                                }).catch(err => {
-                                    console.log("DBError : Error finding matching proposal", err);
-                                });
+                                })
                         } else {
                             // return Q.reject({name: "DataError", message: "Invalid size"});
                             // this part will use all memory if there are too many records. if there is no size data, return error
 
                             //this query will run when user click on the number in attempt number list, the query will run by phone number
-                            proposalProm = dbconfig.collection_proposal.find(queryObj).lean()
+                            proposalProm = dbconfig.collection_proposal.find(queryObj).limit(50).lean()
                                 .then(
                                     pdata => {
                                         pdata.map(item => {
@@ -1936,7 +1934,7 @@ var proposal = {
                                                 playerProm.push(proposal.getPlayerDetails(item.data.playerId));
                                             }
 
-                                            return item
+                                            return item;
                                         });
 
                                         return pdata;
@@ -1945,8 +1943,6 @@ var proposal = {
                                     proposals = insertPlayerRepeatCount(proposals, platformId[0]);
 
                                     return proposals
-                                }).catch(err => {
-                                    console.log("DBError : Error finding matching proposal", err);
                                 });
                         }
 
@@ -2026,7 +2022,7 @@ var proposal = {
 
                 if(dataArr && dataArr.length > 0){
                     for (var i = 0; i < dataArr.length; i++) {
-                        if (dataArr[i].data.userAgent) {
+                        if (dataArr[i] && dataArr[i].data && dataArr[i].data.userAgent) {
                             for (var j = 0; j < dataArr[i].data.userAgent.length; j++) {
                                 if (!dataArr[i].data.device) {
                                     dataArr[i].data.device = dbutility.getInputDevice(dataArr[i].data.userAgent, false);
@@ -2035,7 +2031,6 @@ var proposal = {
                         }
                     }
                 }
-
 
                 return {data: dataArr, size: returnData[1]};
             })
