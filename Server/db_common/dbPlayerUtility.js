@@ -109,7 +109,7 @@ const dbPlayerUtility = {
         return Q.resolve().then(
             () => {
                 if (updateAmount < 0) {
-                    return Q.reject({
+                    return Promise.reject({
                         name: "DataError",
                         message: "tryToDeductCreditFromPlayer expects a positive value to deduct",
                         updateAmount: updateAmount
@@ -154,11 +154,23 @@ const dbPlayerUtility = {
                             data: '(detected after withdrawl)'
                         })
                     );
+                } else if (playerCreditBeforeDeduct - updateAmount != player.validCredit) {
+                    // First reset the deduction, then report the problem
+                    return Q.resolve().then(
+                        () => dbPlayerUtility.refundPlayerCredit(playerObjId, platformObjId, +updateAmount, constPlayerCreditChangeType.DEDUCT_BELOW_ZERO_REFUND, data)
+                    ).then(
+                        () => Q.reject({
+                            status: constServerCode.ABNORMAL_CREDIT_DEDUCTION,
+                            name: "DataError",
+                            message: "Abnormal credit deduction",
+                            data: '(detected after deduct credit)'
+                        })
+                    );
+                } else {
+                    return true;
                 }
             }
-        ).then(
-            () => true
-        );
+        )
     },
 
     changePlayerCredit: function changePlayerCredit(playerObjId, platformObjId, updateAmount, reasonType, data) {
@@ -171,7 +183,7 @@ const dbPlayerUtility = {
                 if (!player) {
                     return Q.reject({name: "DataError", message: "Can't update player credit: player not found."});
                 }
-                dbLogger.createCreditChangeLog(playerObjId, platformObjId, updateAmount, reasonType, player.validCredit, null, data).then().catch(errorUtils.reportError);
+                dbLogger.createCreditChangeLog(playerObjId, platformObjId, updateAmount, reasonType, player.validCredit, null, data);
                 return player;
             },
             error => {

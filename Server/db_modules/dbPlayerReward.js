@@ -1697,10 +1697,12 @@ let dbPlayerReward = {
         ).then(
             consumptionSumm => {
                 if (isType2Promo || consumptionSumm.length == 0) {
-                    return dbConfig.collection_proposalType.findOne({
-                        platformId: platformObjId,
-                        name: constProposalType.PLAYER_PROMO_CODE_REWARD
-                    }).lean();
+                    // Try deduct player credit first if it is type-C promo code
+                    if (promoCodeObj.isProviderGroup && promoCodeObj.promoCodeTypeObjId.type == 3 && topUpProp && topUpProp.data && topUpProp.data.amount) {
+                        return dbPlayerUtil.tryToDeductCreditFromPlayer(playerObj._id, platformObjId, topUpProp.data.amount, promoCodeObj.promoCodeTypeObjId.name + ":Deduction", topUpProp.data)
+                    } else {
+                        return Promise.resolve();
+                    }
                 } else {
                     return Q.reject({
                         status: constServerCode.FAILED_PROMO_CODE_CONDITION,
@@ -1709,7 +1711,12 @@ let dbPlayerReward = {
                     })
                 }
             }
-        ).then(
+        ).then(() => {
+            return dbConfig.collection_proposalType.findOne({
+                platformId: platformObjId,
+                name: constProposalType.PLAYER_PROMO_CODE_REWARD
+            }).lean();
+        }).then(
             proposalTypeData => {
                 // create reward proposal
                 let proposalData = {
@@ -1730,6 +1737,7 @@ let dbPlayerReward = {
                         spendingAmount: promoCodeObj.requiredConsumption,
                         promoCode: promoCodeObj.code,
                         PROMO_CODE_TYPE: promoCodeObj.promoCodeTypeObjId.name,
+                        promoCodeTypeValue: promoCodeObj.promoCodeTypeObjId.type,
                         applyAmount: topUpProp && topUpProp.data.amount ? topUpProp.data.amount : 0,
                         topUpProposal: topUpProp && topUpProp.proposalId ? topUpProp.proposalId : null,
                         useLockedCredit: false,
