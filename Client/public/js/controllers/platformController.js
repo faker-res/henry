@@ -4826,7 +4826,7 @@ define(['js/app'], function (myApp) {
                                     + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? '<sup>' + row.forbidTopUpType.length + '</sup>' : ''),
                                     'style': "z-index: auto; width:23px; display:inline-block;",
                                 }));
-/**/
+
                                 link.append($('<a>', {
                                     'class': 'forbidRewardPointsEventPopover margin-right-5' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? " text-danger" : ""),
                                     'data-row': JSON.stringify(row),
@@ -5235,7 +5235,7 @@ define(['js/app'], function (myApp) {
                                 });
                             }
                         });
-                        /**/
+
                         utilService.setupPopover({
                             context: container,
                             elem: '.forbidRewardPointsEventPopover',
@@ -10278,7 +10278,6 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-        /**/
             vm.updatePlayerForbidRewardPointsEvent = function (sendData) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardPointsEvent', sendData, function (data) {
@@ -11744,9 +11743,6 @@ define(['js/app'], function (myApp) {
                 setTimeout(() => {
                     $('#playerDataTable').resize();
                 }, 300);
-
-
-
             };
 
             vm.activatePartnerTab = function () {
@@ -14725,7 +14721,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
                 vm.endLoadWeekDay();
             };
-//important
+
             vm.getRewardPointsEventByCategory = (category) => {
                 vm.rewardPointsEvent = [];
                 $scope.safeApply();
@@ -14752,7 +14748,6 @@ define(['js/app'], function (myApp) {
 
                 });
             };
-
 
             vm.createRewardPointsEvent = (rewardPointsEvent) => {
                 delete rewardPointsEvent.isEditing;
@@ -18421,7 +18416,6 @@ define(['js/app'], function (myApp) {
                         console.log(err);
                     });
             };
-
 
             vm.deletePromoteWay = function () {
                 let deletePromoteMessageId = $("#delete-promote-message");
