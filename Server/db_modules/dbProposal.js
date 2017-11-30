@@ -1951,7 +1951,11 @@ var proposal = {
                         }
 
                         let proposalCount = dbconfig.collection_proposal.find(queryObj).lean().count();
+<<<<<<< HEAD
                         return Q.all([proposalProm,proposalCount])
+=======
+                        return Q.all([proposalProm, proposalCount])
+>>>>>>> upstream/develop-1.1
                     }
                     else {
                         return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
