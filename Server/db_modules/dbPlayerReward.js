@@ -1618,7 +1618,7 @@ let dbPlayerReward = {
                         return Q.reject({
                             status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                             name: "ConditionError",
-                            message: "您输入了错误的优惠代码，请确认您的短信内容。"
+                            message: "Wrong promo code has entered"
                         })
                     }
 
@@ -1645,7 +1645,7 @@ let dbPlayerReward = {
                     return Q.reject({
                         status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                         name: "ConditionError",
-                        message: "您目前尚无可领取优惠，谢谢。"
+                        message: "No available promo code at the moment"
                     })
                 }
             }
@@ -1662,7 +1662,7 @@ let dbPlayerReward = {
                         return Q.reject({
                             status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                             name: "ConditionError",
-                            message: "您的最新存款已经申请其他优惠，请在重新存款后、投注前申请！"
+                            message: "Topup has been used for other reward"
                         })
                     }
 
@@ -1690,7 +1690,7 @@ let dbPlayerReward = {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_MINTOPUP,
                         name: "ConditionError",
-                        message: "您需要有新的存款 '" + promoCodeObj.minTopUpAmount + "元' 才可以领取此优惠，千万别错过了！"
+                        message: "Topup amount '$" + promoCodeObj.minTopUpAmount + "' is needed for this reward"
                     })
                 }
             }
@@ -1707,7 +1707,7 @@ let dbPlayerReward = {
                     return Q.reject({
                         status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                         name: "ConditionError",
-                        message: "您在最近一笔的存款后已经投注，请在重新存款后、投注前申请！"
+                        message: "There is consumption after topup"
                     })
                 }
             }
