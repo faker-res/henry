@@ -1951,11 +1951,8 @@ var proposal = {
                         }
 
                         let proposalCount = dbconfig.collection_proposal.find(queryObj).lean().count();
-<<<<<<< HEAD
-                        return Q.all([proposalProm,proposalCount])
-=======
+
                         return Q.all([proposalProm, proposalCount])
->>>>>>> upstream/develop-1.1
                     }
                     else {
                         return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
@@ -2364,6 +2361,13 @@ var proposal = {
                     return statusArr.includes(event.status) && event.attemptNo == attemptNo
                 });
             }
+        }).then( data => {
+            // to filter out the duplicate phonenumber generated when getting proposal of different player account with same phone number.
+            return data.filter((data, index, self) =>
+                index === self.findIndex((t) => (
+                    t.phoneNumber === data.phoneNumber
+                ))
+            );
         }).then(data => {
             data.map(d => {
                 userName = d.name;
