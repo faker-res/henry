@@ -1864,6 +1864,7 @@ var proposal = {
                         }
 
                         var queryObj = {
+                            type: {$in: proposalTypesId},
                             status: {$in: statusArr},
                             data:  { $exists: true, $ne: null }
                         };
@@ -1903,11 +1904,12 @@ var proposal = {
                                             return item
                                         })
 
+                                        console.log("LH check getPlayerProposalsForPlatformId data without player info 2", pdata);
                                         return pdata;
                                     })
                                 .then(proposals => {
                                     proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-
+                                    console.log("LH check getPlayerProposalsForPlatformId data after get repeating count", proposals);
                                     return proposals;
                                 }).catch(err => {
                                     console.log("DBError : Error finding matching proposal", error);
@@ -2041,6 +2043,7 @@ var proposal = {
             .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
             .lean().then(
                 data => {
+                    console.log("LH check getPlayerProposalsForPlatformId get playerDetails", data ? data : "");
                     return data ? data : "";
                 }
             );
