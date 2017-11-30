@@ -197,11 +197,11 @@ const dbPlayerMail = {
         let platform;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
 
-        if(data.lastLoginIp && data.lastLoginIp != "undefined"){
-            dbUtility.getGeoIp(data.lastLoginIp).then(
+        if(inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
+            dbUtility.getGeoIp(inputData.lastLoginIp).then(
                 ipData=>{
-                    if(data) {
-                        data.ipArea = ipData;
+                    if(inputData) {
+                        inputData.ipArea = ipData;
                     }
                 })
         }
@@ -284,8 +284,8 @@ const dbPlayerMail = {
             function (retData) {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
 
-                if(data.playerId){
-                    delete data.playerId;
+                if(inputData.playerId){
+                    delete inputData.playerId;
                 }
 
                 //if (purpose == constSMSPurpose.REGISTRATION) {
