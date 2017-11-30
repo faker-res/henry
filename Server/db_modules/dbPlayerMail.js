@@ -197,14 +197,14 @@ const dbPlayerMail = {
         let platform;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
 
-        if(inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
-            dbUtility.getGeoIp(inputData.lastLoginIp).then(
-                ipData=>{
-                    if(inputData) {
-                        inputData.ipArea = ipData;
-                    }
-                })
-        }
+        // if(inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
+        //     dbUtility.getGeoIp(inputData.lastLoginIp).then(
+        //         ipData=>{
+        //             if(inputData) {
+        //                 inputData.ipArea = ipData;
+        //             }
+        //         })
+        // }
 
         return getPlatform.then(
             function (platformData) {
@@ -279,6 +279,17 @@ const dbPlayerMail = {
                 new dbconfig.collection_smsVerificationLog(saveObj).save();
                 return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
    
+            }
+        ).then(retData => {
+                if(inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
+                    return dbUtility.getGeoIp(inputData.lastLoginIp).then(
+                        ipData=>{
+                            if(inputData) {
+                                inputData.ipArea = ipData;
+                            }
+                        })
+                }
+                return;
             }
         ).then(
             function (retData) {

@@ -3787,8 +3787,8 @@ function insertPlayerRepeatCount(proposals, platformId) {
             };
 
 
-            let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
-            let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
+            let allCountProm = dbconfig.collection_proposal.find(allCountQuery).lean().count();
+            let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).lean().count();
 
             //check the count of success/manual proposal records before current record.
             let previousCountProm = dbconfig.collection_proposal.find(previousCountQuery).lean().then(previousRecords => {
