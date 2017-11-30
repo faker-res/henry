@@ -2038,7 +2038,6 @@ let dbPlayerInfo = {
      * @param {String} paymentChannelName
      */
     playerTopUp: function (playerId, amount, paymentChannelName, topUpType, proposalData) {
-        console.log("walaotopup", amount);
         var deferred = Q.defer();
         dbUtility.findOneAndUpdateForShard(
             dbconfig.collection_players,

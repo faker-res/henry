@@ -72,6 +72,7 @@ let playerFeedbackTopicSchema = require('./../schema/playerFeedbackTopic');
 
 let rewardPointsLvlConfigSchema = require('./../schema/rewardPointsLvlConfig');
 let rewardPointsSchema = require('./../schema/rewardPoints');
+let rewardPointsRandomDataConfigSchema = require('./../schema/rewardPointsRandomDataConfig');
 let rewardPointsEventSchema = require('./../schema/rewardPointsEvent');
 let rewardPointsTaskSchema = require('./../schema/rewardPointsTask');
 
@@ -176,6 +177,7 @@ var partnerModel = db_player.model('partner', partnerSchema, 'partner');
 
 var rewardTaskModel = db_player.model('rewardTask', rewardTaskSchema, 'rewardTask');
 let rewardPointsModel = db_player.model('rewardPoints', rewardPointsSchema, 'rewardPoints');
+let rewardPointsRandomDataConfigModel = db_admin.model('rewardPointsRandomDataConfig', rewardPointsRandomDataConfigSchema, 'rewardPointsRandomDataConfig');
 let rewardPointsTaskModel = db_player.model('rewardPointsTask', rewardPointsTaskSchema, 'rewardPointsTask');
 
 //----------------------------------------logs db properties-----------------------------------------------------------
@@ -365,6 +367,7 @@ var dbProperties = {
     collection_rewardPointsLvlConfig: rewardPointsLvlConfigModel,
     collection_rewardPointsEvent: rewardPointsEventModel,
     collection_rewardPoints: rewardPointsModel,
+    collection_rewardPointsRandomDataConfig: rewardPointsRandomDataConfigModel,
     collection_rewardPointsTask: rewardPointsTaskModel,
 
     collection_players: playerModel,

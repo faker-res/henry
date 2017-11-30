@@ -2805,5 +2805,14 @@
   "OPEN": "打开",
   "DELETE_REWARD_POINTS": "删除积分",
   "Are you sure you want to delete reward points event": "你确定要删除积分",
-  "refreshPeriod": "刷新周期"
+  "refreshPeriod": "刷新周期",
+  "INSERT_FAKE_REWARD_POINTS": "插入假积分(区间)",
+  "INSERT_FAKE_REWARD_COUNT" : "插入数量",
+  "LOWEST_RANDOM_LEVEL" : "最低随机等级",
+  "RANDOM_GENERATE": "随机生成",
+  "INSERT_FAKE_ACCOUNT": "插入账号（前坠）",
+  "FAKE_ACC_WORD_COUNT": "假账号字数区间（含前坠）",
+  "FAKE_ACC_COMBINATION": "假账号组成模式",
+  "DIGIT": "数字",
+  "ENGLISH": "英"
 }

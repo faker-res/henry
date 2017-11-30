@@ -11,7 +11,8 @@ var rewardPoints = new Schema({
     // player name, could be player that does not exist
     playerName: {type: String},
     // player level
-    playerLevel: {type: Number},
+    // playerLevel: {type: Number},
+    playerLevel: {type: Schema.ObjectId, ref: 'playerLevel', index: true},
 
     createTime: {type: Date, default: Date.now},
 
