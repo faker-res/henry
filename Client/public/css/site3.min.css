@@ -1049,6 +1049,15 @@ tbody td.tbodyNoWrap {
     word-wrap: normal;
     white-space: nowrap;
 }
+
+#topupTable tbody td {
+    padding: 5px 4px;
+}
+
+#paymentMonitorTable tbody td{
+    padding: 5px 4px;
+    font-size: smaller;
+}
 /*
     css variables, to be refactored after new chrome version is released with support for css variable
 */
@@ -3795,6 +3804,14 @@ input[type='number'].leftALignNumber {
     cursor: pointer;
 }
 #modalReapplyLostOrder .nav-tabs>li.active>a {
+    border: 1px solid #337AB7;
+    border-bottom: none;
+}
+
+#modalPlayerRewardPointAdjustment .nav-tabs>li {
+    cursor: pointer;
+}
+#modalPlayerRewardPointAdjustment .nav-tabs>li.active>a {
     border: 1px solid #337AB7;
     border-bottom: none;
 }

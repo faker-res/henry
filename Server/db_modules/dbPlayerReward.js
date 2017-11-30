@@ -1274,6 +1274,14 @@ let dbPlayerReward = {
         let platformData = null;
         var playerData = null;
         var promoListData = null;
+
+        if(!playerId){
+            return Q.reject({
+                status: constServerCode.INVALID_API_USER,
+                name: "DataError",
+                message:"用户未登录!"
+            })
+        }
         return dbConfig.collection_platform.findOne({platformId: platformId}).exec()
             .then(
                 platformRecord => {
@@ -1409,8 +1417,8 @@ let dbPlayerReward = {
                                 if (data.bannerText) {
                                     bannerText = data.bannerText;
                                 }
-                                let bonusNum = proposal.data.rewardAmount - proposal.data.applyAmount;
-                                let accountNo = dbUtility.encodeBankAcc(proposal.data.playerName);
+                                let bonusNum = proposal.data.rewardAmount;
+                                let accountNo = dbPlayerReward.customAccountMask(proposal.data.playerName);
                                 let record = {
                                     "accountNo": accountNo,
                                     "bonus": bonusNum,
@@ -1437,7 +1445,17 @@ let dbPlayerReward = {
             )
 
     },
+    customAccountMask: (str)=> {
+        str = str || '';
+        let strLength = str.length;
+        let subtractNo = - (strLength - 6);
+        if(strLength <= 6){
+            return str.substring(0, 3) + "***"
+        }else{
+            return str.substring(0, 3) + "***" + str.slice(subtractNo);
+        }
 
+    },
     getPromoCodesHistory: (searchQuery) => {
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
@@ -1471,7 +1489,10 @@ let dbPlayerReward = {
                 return dbConfig.collection_promoCode.find(query)
                     .populate({path: "playerObjId", model: dbConfig.collection_players})
                     .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
-                    .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider})
+                    .populate({
+                        path: "allowedProviders",
+                        model: searchQuery.isProviderGroup ? dbConfig.collection_gameProviderGroup : dbConfig.collection_gameProvider
+                    })
                     .sort(searchQuery.sortCol).lean();
             }
         ).then(
@@ -1585,7 +1606,7 @@ let dbPlayerReward = {
         }).then(
             playerData => {
                 playerObj = playerData;
-                platformObjId = playerObj.platform
+                platformObjId = playerObj.platform;
                 return dbConfig.collection_promoCode.find({
                     platformObjId: playerData.platform,
                     playerObjId: playerObj._id,
@@ -1607,7 +1628,7 @@ let dbPlayerReward = {
                         return Q.reject({
                             status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                             name: "ConditionError",
-                            message: "您输入了错误的优惠代码，请确认您的短信内容。"
+                            message: "Wrong promo code has entered"
                         })
                     }
 
@@ -1634,7 +1655,7 @@ let dbPlayerReward = {
                     return Q.reject({
                         status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                         name: "ConditionError",
-                        message: "您目前尚无可领取优惠，谢谢。"
+                        message: "No available promo code at the moment"
                     })
                 }
             }
@@ -1651,7 +1672,7 @@ let dbPlayerReward = {
                         return Q.reject({
                             status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                             name: "ConditionError",
-                            message: "您的最新存款已经申请其他优惠，请在重新存款后、投注前申请！"
+                            message: "Topup has been used for other reward"
                         })
                     }
 
@@ -1679,26 +1700,33 @@ let dbPlayerReward = {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_MINTOPUP,
                         name: "ConditionError",
-                        message: "您需要有新的存款 '" + promoCodeObj.minTopUpAmount + "元' 才可以领取此优惠，千万别错过了！"
+                        message: "Topup amount '$" + promoCodeObj.minTopUpAmount + "' is needed for this reward"
                     })
                 }
             }
         ).then(
             consumptionSumm => {
                 if (isType2Promo || consumptionSumm.length == 0) {
-                    return dbConfig.collection_proposalType.findOne({
-                        platformId: platformObjId,
-                        name: constProposalType.PLAYER_PROMO_CODE_REWARD
-                    }).lean();
+                    // Try deduct player credit first if it is type-C promo code
+                    if (promoCodeObj.isProviderGroup && promoCodeObj.promoCodeTypeObjId.type == 3 && topUpProp && topUpProp.data && topUpProp.data.amount) {
+                        return dbPlayerUtil.tryToDeductCreditFromPlayer(playerObj._id, platformObjId, topUpProp.data.amount, promoCodeObj.promoCodeTypeObjId.name + ":Deduction", topUpProp.data)
+                    } else {
+                        return Promise.resolve();
+                    }
                 } else {
                     return Q.reject({
                         status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                         name: "ConditionError",
-                        message: "您在最近一笔的存款后已经投注，请在重新存款后、投注前申请！"
+                        message: "There is consumption after topup"
                     })
                 }
             }
-        ).then(
+        ).then(() => {
+            return dbConfig.collection_proposalType.findOne({
+                platformId: platformObjId,
+                name: constProposalType.PLAYER_PROMO_CODE_REWARD
+            }).lean();
+        }).then(
             proposalTypeData => {
                 // create reward proposal
                 let proposalData = {
@@ -1719,14 +1747,22 @@ let dbPlayerReward = {
                         spendingAmount: promoCodeObj.requiredConsumption,
                         promoCode: promoCodeObj.code,
                         PROMO_CODE_TYPE: promoCodeObj.promoCodeTypeObjId.name,
+                        promoCodeTypeValue: promoCodeObj.promoCodeTypeObjId.type,
                         applyAmount: topUpProp && topUpProp.data.amount ? topUpProp.data.amount : 0,
                         topUpProposal: topUpProp && topUpProp.proposalId ? topUpProp.proposalId : null,
                         useLockedCredit: false,
-                        useConsumption: false
+                        useConsumption: !promoCodeObj.isSharedWithXIMA
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
                 };
+
+                if (promoCodeObj.isProviderGroup) {
+                    proposalData.data.providerGroup = promoCodeObj.allowedProviders;
+                } else {
+                    proposalData.data.providers = promoCodeObj.allowedProviders;
+                }
+
                 return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
             }
         ).then(
@@ -3450,12 +3486,16 @@ let dbPlayerReward = {
 };
 
 function checkInterfaceRewardPermission(eventData, rewardData) {
-    // Check registration interface condition
-    if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0) {
-        let registrationInterface = rewardData && rewardData.selectedTopup && rewardData.selectedTopup.userAgent ? rewardData.selectedTopup.userAgent : 0;
+    let isForbidInterface = false;
 
-        return eventData.condition.userAgent.indexOf(registrationInterface) < 0;
+    // Check registration interface condition
+    if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0 && rewardData && rewardData.selectedTopup) {
+        let registrationInterface = rewardData.selectedTopup.userAgent ? rewardData.selectedTopup.userAgent : 0;
+
+        isForbidInterface = eventData.condition.userAgent.indexOf(registrationInterface) < 0;
     }
+
+    return isForbidInterface;
 }
 
 function checkTopupRecordIsDirtyForReward(eventData, rewardData) {

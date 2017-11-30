@@ -75,21 +75,7 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.PLAYER_CONSUMPTION_RETURN_FIX, data], actionName, isValidData);
         },
 
-        /**
-         * Create new Proposal to update player reward point
-         * @param {json} data - proposal data
-         */
-        createUpdatePlayerRewardPointProposal: function createUpdatePlayerRewardPointProposal(data) {
-            var actionName = arguments.callee.name;
-            var isValidData = Boolean(
-                data && data.platformId && data.data &&
-                data.data.playerObjId && data.data.hasOwnProperty("updateAmount") &&
-                data.data.hasOwnProperty("curAmount") && data.data.hasOwnProperty("realName")
-            );
-            socketUtil.emitter(self.socket, dbProposal.checkUpdateRewardPointProposal, [data.platformId, constProposalType.UPDATE_PLAYER_REWARD_POINT, data], actionName, isValidData);
-        },
-
-        /**
+         /**
          * Create new Proposal to update player email
          * @param {json} data - proposal data
          */
@@ -371,7 +357,7 @@ function socketActionProposal(socketIO, socket) {
             var index = -1;
             var size = -1;
             var sortCol = data.sortCol || {"createTime": -1};
-            socketUtil.emitter(self.socket, dbProposal.getPlayerRegistrationIntentRecordByStatus, [data.platformId, data.type, data.status, data.name, data.phoneNumber, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.attemptNo], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getPlayerRegistrationIntentRecordByStatus, [data.platformId, data.type, data.status, data.name, data.phoneNumber, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.proposalId, data.attemptNo], actionName, isValidData);
         },
 
 

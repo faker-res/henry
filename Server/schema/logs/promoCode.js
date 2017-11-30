@@ -20,6 +20,8 @@ let promoCodeSchema = new Schema({
     disableWithdraw: {type: Boolean, default: false, index: true},
     // Allowed Game Providers, empty if all providers
     allowedProviders: [{type: Schema.ObjectId}],
+    // Is platform using provider group
+    isProviderGroup: {type: Boolean},
     // Banner Text
     bannerText: {type: String},
     // Promo Code
@@ -43,7 +45,9 @@ let promoCodeSchema = new Schema({
     // Promo Code Accepted Amount
     acceptedAmount: {type: Number},
     // Promo Code Top Up Amount
-    topUpAmount: {type: Number, default: 0}
+    topUpAmount: {type: Number, default: 0},
+    // Reward amount shared with XIMA
+    isSharedWithXIMA: {type: Boolean, default: true}
 });
 
 module.exports = promoCodeSchema;

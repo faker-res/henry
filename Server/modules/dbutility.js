@@ -106,6 +106,10 @@ var dbUtility = {
         };
     },
 
+    getSGTimeOf: function (time) {
+        return time ? moment(time).tz('Asia/Singapore').toDate() : null;
+    },
+
     getTargetSGTime: function (targetDate) {
         var startTime = moment(targetDate).tz('Asia/Singapore').startOf('day').toDate();
         var endTime = moment(startTime).add(1, 'days').toDate();
@@ -166,6 +170,15 @@ var dbUtility = {
     getCurrentMonthSGTIme: function () {
         var startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
         var endTime = moment().tz('Asia/Singapore').endOf('month').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getCurrentYearSGTime: function () {
+        var startTime = moment().tz('Asia/Singapore').startOf('year').toDate();
+        var endTime = moment().tz('Asia/Singapore').endOf('year').toDate();
         return {
             startTime: startTime,
             endTime: endTime

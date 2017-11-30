@@ -279,3 +279,12 @@ tbody td.tbodyNoWrap {
     word-wrap: normal;
     white-space: nowrap;
 }
+
+#topupTable tbody td {
+    padding: 5px 4px;
+}
+
+#paymentMonitorTable tbody td{
+    padding: 5px 4px;
+    font-size: smaller;
+}

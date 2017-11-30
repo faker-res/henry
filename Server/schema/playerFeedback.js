@@ -17,6 +17,7 @@ var playerFeedbackSchema = new Schema({
     content: String,
     //result ( Normal, Missed call, PlayerBusy)
     result: String,
+    resultName: String,
     topic: String
 });
 

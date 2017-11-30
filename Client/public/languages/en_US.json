@@ -888,19 +888,19 @@
 
   "PlayerFreeTrialRewardGroup": "Player Free Trial Reward (Group)",
 
-  "REWARD_POINT_ADJUSTMENT": "Modify Reward Point",
-  "VALID_REWARD_POINT": "Valid Reward Point",
-  "CURRENT_REWARD_POINT": "Before Update",
-  "CHANGE_REWARD_POINT": "Change Reward Point",
-  "UPDATED_REWARD_POINT": "After Update",
+  "REWARD_POINTS_ADJUSTMENT": "Modify Reward Points",
+  "VALID_REWARD_POINTS": "Valid Reward Points",
+  "CURRENT_REWARD_POINTS": "Before Update",
+  "CHANGE_REWARD_POINTS": "Change Reward Points",
+  "UPDATED_REWARD_POINTS": "After Update",
 
-  "ADVANCE_REWARD_POINT_EXCHANGE": "Advance Reward Point Exchange",
-  "BEFORE_REWARD_POINT_EXCHANGE": "Before Exchange",
-  "REWARD_POINT_EXCHANGE_AMOUNT": "Reward Point Exchange",
-  "REWARD_POINT_EXCHANGE_DAILY_LIMIT": "Daily limit",
-  "AFTER_REWARD_POINT_EXCHANGE": "After Exchange",
+  "ADVANCE_REWARD_POINTS_EXCHANGE": "Advance Reward Points Exchange",
+  "BEFORE_REWARD_POINTS_EXCHANGE": "Before Exchange",
+  "REWARD_POINTS_EXCHANGE_AMOUNT": "Reward Points Exchange",
+  "REWARD_POINTS_EXCHANGE_DAILY_LIMIT": "Daily limit",
+  "AFTER_REWARD_POINTS_EXCHANGE": "After Exchange",
 
-  "rewardPointTask": "Reward Point Task",
+  "rewardPointsTask": "Reward Points Task",
 
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
@@ -1142,6 +1142,26 @@
   "pointToCreditManualMaxPoints": "Point To Credit Manual Max Points",
   "pointToCreditAutoRate (N points : 1 credit)": "Point To Credit Auto Rate (N points : 1 credit)",
   "pointToCreditAutoMaxPoints": "Point To Credit Auto Max Points",
-  "spendingAmountOnReward": "Spending Amount On Reward"
+  "spendingAmountOnReward": "Spending Amount On Reward",
+  "rewardPointsCategory": "Reward Points Category",
+  "loginRewardPoints": "Login Reward Points",
+  "displayOrder": "Display Order",
+  "targetDestination": "Target Destination",
+  "consecutiveCount": "Consecutive Count",
+  "rewardPoints": "Reward Points",
+  "rewardTitle": "Reward Title",
+  "rewardContent": "Reward Content",
+  "Custom": "Custom",
+  "OPEN": "Open",
+  "DELETE_REWARD_POINTS": "Delete Reward Points",
+  "Are you sure you want to delete reward points event": "Are you sure you want to delete reward points event",
+  "refreshPeriod": "Refresh Period",
+  "gameRewardPoints": "Game Reward Points",
+  "gameType": "Game Type",
+  "betType": "Bet Type",
+  "dailyConsumptionCount": "Daily Consumption Count",
+  "singleConsumptionAmountGreaterThan": "Single Consumption Amount Greater Than",
+  "dailyValidConsumptionAmount": "Daily Valid Consumption Amount",
+  "dailyWinGameCount": "Daily Win Game Count"
 
 }

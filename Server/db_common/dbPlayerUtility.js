@@ -10,6 +10,7 @@ const constServerCode = require('../const/constServerCode');
 
 const dbconfig = require('./../modules/dbproperties');
 const dbLogger = require("./../modules/dbLogger");
+const errorUtils = require("./../modules/errorUtils.js");
 
 const dbPlayerUtility = {
     getPlayerCreditByObjId: function (playerObjId) {
@@ -103,10 +104,12 @@ const dbPlayerUtility = {
     },
 
     tryToDeductCreditFromPlayer: (playerObjId, platformObjId, updateAmount, reasonType, data) => {
+        let playerCreditBeforeDeduct = 0;
+
         return Q.resolve().then(
             () => {
                 if (updateAmount < 0) {
-                    return Q.reject({
+                    return Promise.reject({
                         name: "DataError",
                         message: "tryToDeductCreditFromPlayer expects a positive value to deduct",
                         updateAmount: updateAmount
@@ -117,11 +120,21 @@ const dbPlayerUtility = {
             () => dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).select('validCredit')
         ).then(
             player => {
-                if (player.validCredit < updateAmount) {
+                if (player) {
+                    if (player.validCredit < updateAmount) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                            name: "DataError",
+                            message: "Player does not have enough credit."
+                        });
+                    } else {
+                        return playerCreditBeforeDeduct = player.validCredit;
+                    }
+                } else {
                     return Q.reject({
-                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                        status: constServerCode.DOCUMENT_NOT_FOUND,
                         name: "DataError",
-                        message: "Player does not have enough credit."
+                        message: "Can't update player credit: player not found."
                     });
                 }
             }
@@ -141,11 +154,23 @@ const dbPlayerUtility = {
                             data: '(detected after withdrawl)'
                         })
                     );
+                } else if (playerCreditBeforeDeduct - updateAmount != player.validCredit) {
+                    // First reset the deduction, then report the problem
+                    return Q.resolve().then(
+                        () => dbPlayerUtility.refundPlayerCredit(playerObjId, platformObjId, +updateAmount, constPlayerCreditChangeType.DEDUCT_BELOW_ZERO_REFUND, data)
+                    ).then(
+                        () => Q.reject({
+                            status: constServerCode.ABNORMAL_CREDIT_DEDUCTION,
+                            name: "DataError",
+                            message: "Abnormal credit deduction",
+                            data: '(detected after deduct credit)'
+                        })
+                    );
+                } else {
+                    return true;
                 }
             }
-        ).then(
-            () => true
-        );
+        )
     },
 
     changePlayerCredit: function changePlayerCredit(playerObjId, platformObjId, updateAmount, reasonType, data) {
