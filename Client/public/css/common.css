@@ -2748,10 +2748,10 @@ input[type='number'].leftALignNumber {
     border-bottom: none;
 }
 
-#modalPlayerRewardPointAdjustment .nav-tabs>li {
+#modalPlayerRewardPointsAdjustment .nav-tabs>li {
     cursor: pointer;
 }
-#modalPlayerRewardPointAdjustment .nav-tabs>li.active>a {
+#modalPlayerRewardPointsAdjustment .nav-tabs>li.active>a {
     border: 1px solid #337AB7;
     border-bottom: none;
 }
