@@ -10,6 +10,7 @@ const constServerCode = require('../const/constServerCode');
 
 const dbconfig = require('./../modules/dbproperties');
 const dbLogger = require("./../modules/dbLogger");
+const errorUtils = require("./../modules/errorUtils.js");
 
 const dbPlayerUtility = {
     getPlayerCreditByObjId: function (playerObjId) {
@@ -103,6 +104,8 @@ const dbPlayerUtility = {
     },
 
     tryToDeductCreditFromPlayer: (playerObjId, platformObjId, updateAmount, reasonType, data) => {
+        let playerCreditBeforeDeduct = 0;
+
         return Q.resolve().then(
             () => {
                 if (updateAmount < 0) {
@@ -117,11 +120,21 @@ const dbPlayerUtility = {
             () => dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).select('validCredit')
         ).then(
             player => {
-                if (player.validCredit < updateAmount) {
+                if (player) {
+                    if (player.validCredit < updateAmount) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                            name: "DataError",
+                            message: "Player does not have enough credit."
+                        });
+                    } else {
+                        return playerCreditBeforeDeduct = player.validCredit;
+                    }
+                } else {
                     return Q.reject({
-                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                        status: constServerCode.DOCUMENT_NOT_FOUND,
                         name: "DataError",
-                        message: "Player does not have enough credit."
+                        message: "Can't update player credit: player not found."
                     });
                 }
             }
@@ -158,7 +171,7 @@ const dbPlayerUtility = {
                 if (!player) {
                     return Q.reject({name: "DataError", message: "Can't update player credit: player not found."});
                 }
-                dbLogger.createCreditChangeLog(playerObjId, platformObjId, updateAmount, reasonType, player.validCredit, null, data);
+                dbLogger.createCreditChangeLog(playerObjId, platformObjId, updateAmount, reasonType, player.validCredit, null, data).then().catch(errorUtils.reportError);
                 return player;
             },
             error => {
