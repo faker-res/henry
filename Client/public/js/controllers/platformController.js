@@ -11414,7 +11414,8 @@ define(['js/app'], function (myApp) {
                 vm.feedbackAdminQueryendDate = $('#feedbackqueryendtime').data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
 
                 vm.feedbackAdminQuery = {
-                    result: 'all'
+                    result: 'all',
+                    topic: 'all'
                 };
                 utilService.actionAfterLoaded("#feedbackAdminTablePage", function () {
                     vm.feedbackAdminQuery.pageObj = utilService.createPageForPagingTable("#feedbackAdminTablePage", {}, $translate, function (curP, pageSize) {
@@ -11452,6 +11453,9 @@ define(['js/app'], function (myApp) {
                 if (vm.feedbackAdminQuery.result && vm.feedbackAdminQuery.result != 'all') {
                     sendQuery.query.result = vm.feedbackAdminQuery.result
                 }
+                if (vm.feedbackAdminQuery.topic && vm.feedbackAdminQuery.topic != 'all') {
+                    sendQuery.query.topic = vm.feedbackAdminQuery.topic
+                }
                 console.log("feedbackQuery", sendQuery);
                 $('#loadPlayerFeedbackAdminIcon').show();
                 socketService.$socket($scope.AppSocket, 'getAllPlayerFeedbacks', sendQuery, function (data) {
@@ -11466,7 +11470,7 @@ define(['js/app'], function (myApp) {
                 var showData = [];
                 $.each(vm.feedbackAdmins, function (i, j) {
                     j.createTime$ = utilService.getFormatTime(j.createTime);
-                    j.result$ = $translate(j.result);
+                    j.result$ = j.resultName ? j.resultName : $translate(j.result);
                     j.topupTimes$ = j.topupTimes || 0;
                     j.amount$ = j.amount ? (j.amount).toFixed(2) : new Number(0).toFixed(2);
                     showData.push(j);
@@ -11497,6 +11501,12 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('FEEDBACK_RESULTS'), data: "result$",
+                            // render: function (data, type, row) {
+                            //     return $translate(data);
+                            // }
+                        },
+                        {
+                            title: $translate('FEEDBACK_TOPIC'), data: "topic",
                             // render: function (data, type, row) {
                             //     return $translate(data);
                             // }
