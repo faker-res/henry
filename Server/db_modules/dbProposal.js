@@ -1847,7 +1847,7 @@ var proposal = {
     getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo = 0) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
         //check proposal without process
-        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
+        let prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
 
         let playerProm = [];
         return Q.all([prom1]).then(//removed , prom2
@@ -1882,8 +1882,9 @@ var proposal = {
                         }
 
                         console.log("LH check getPlayerProposalsForPlatformId query", queryObj);
+                        let proposalProm = [];
                         if (size >= 0) {
-                            var a = dbconfig.collection_proposal.find(queryObj)
+                            proposalProm = dbconfig.collection_proposal.find(queryObj)
                             //.populate({path: 'data.playerId', model: dbconfig.collection_players})
                                 .sort(sortCol).skip(index).limit(size).lean()
                                 .then(
@@ -1915,7 +1916,7 @@ var proposal = {
                                     console.log("DBError : Error finding matching proposal", error);
                                 });
                         } else {
-                            a = dbconfig.collection_proposal.find(queryObj).lean()
+                            proposalProm = dbconfig.collection_proposal.find(queryObj).lean()
                                 .then(
                                     pdata => {
                                         pdata.map(item => {
@@ -1931,7 +1932,7 @@ var proposal = {
                                             }
 
                                             return item
-                                        })
+                                        });
 
                                         return pdata;
                                     })
@@ -1944,8 +1945,8 @@ var proposal = {
                                 });
                         }
 
-                        var b = dbconfig.collection_proposal.find(queryObj).lean().count();
-                        return Q.all([a, b])
+                        let proposalCount = dbconfig.collection_proposal.find(queryObj).lean().count();
+                        return Q.all([proposalCount, proposalProm])
                     }
                     else {
                         return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
