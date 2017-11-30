@@ -7,11 +7,11 @@ var rewardPoints = new Schema({
     // player, note that if it does not exist, it is not a real player, but an inserted record
     playerObjId: {type: Schema.ObjectId, ref: 'player', index: true},
     // amount of point that this record holding
-    points: {type: Number},
+    points: {type: Number, default: 0},
     // player name, could be player that does not exist
     playerName: {type: String},
     // player level
-    playerLevel: {type: Number},
+    playerLevel: {type: Schema.ObjectId, ref: 'playerLevel'},
 
     createTime: {type: Date, default: Date.now},
     // event details base on category

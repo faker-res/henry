@@ -7490,6 +7490,11 @@ define(['js/app'], function (myApp) {
                     console.log('getPlayerFeedback', data);
                     vm.playerFeedbackRecord.searching = false;
                     vm.playerFeedbackData = data.data;
+
+                    vm.playerFeedbackData.data.forEach(item => {
+                        item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                    });
+
                     $scope.safeApply();
                     vm.updateDataTableinModal(modalId, tableId, opt)
                 });
@@ -11078,6 +11083,11 @@ define(['js/app'], function (myApp) {
                     if (vm.curFeedbackPlayer._id) {
                         vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
                             vm.curPlayerFeedbackDetail = data;
+
+                            vm.curPlayerFeedbackDetail.forEach(item => {
+                                item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                            });
+
                             $scope.safeApply();
                         });
                         vm.getPlayerCredibilityComment(vm.curFeedbackPlayer._id);

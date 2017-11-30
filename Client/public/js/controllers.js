@@ -513,11 +513,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     };
 
     $scope.constRewardPointsIntervalPeriod = {
+        0: "No Interval",
         1: "Daily",
         2: "Weekly",
         3: "Biweekly",
         4: "Monthly",
-        5: "No Interval",
+        5: "Yearly",
         6: "Custom"
     };
 

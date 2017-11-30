@@ -7,13 +7,13 @@ var dbRewardPointsLvlConfig = {
     getRewardPointsLvlConfig: (platformObjId) => {
         return dbConfig.collection_rewardPointsLvlConfig.findOne({
             platformObjId: platformObjId
-        });
+        }).lean();
     },
 
     upsertRewardPointsLvlConfig: (rewardPointsLvlConfig) => {
         return dbConfig.collection_rewardPointsLvlConfig.findOneAndUpdate({platformObjId: ObjectId(rewardPointsLvlConfig.platformObjId)},
             {$set:rewardPointsLvlConfig},
-            {upsert: true, new: true});
+            {upsert: true, new: true}).lean();
     }
 
 };
