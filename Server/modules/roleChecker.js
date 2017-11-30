@@ -430,10 +430,11 @@ var roleChecker = {
                 FilterAllPlatform: []
             },
             "rewardPoints": {
-                Read: ['getRewardPointsLvlConfig', 'getRewardPointsEvent', 'getRewardPointsEventById', 'getRewardPointsEventByCategory'],
-                Create: ['createRewardPointsEvent'],
-                Delete: ['deleteRewardPointsEventById'],
-                Update: ['upsertRewardPointsLvlConfig', 'updateRewardPointsEvent'],
+                Read: ['getRewardPointsLvlConfig', 'getRewardPointsEvent', 'getRewardPointsEventById', 'getRewardPointsEventByCategory','getRewardPoints','getRewardPointsRandom'
+                    ,'getRewardPointsRandomDataConfig'],
+                Create: ['createRewardPointsEvent','insertRewardPointsRandom','upsertRewardPointsRandomDataConfig'],
+                Delete: ['deleteRewardPointsEventById','deleteRewardPointsRankingRandom'],
+                Update: ['upsertRewardPointsLvlConfig', 'updateRewardPointsEvent','updateRewardPointsRankingRandom'],
                 rewardPointsRule: [],
                 loginRewardPoints: [],
                 topupRewardPoints: [],

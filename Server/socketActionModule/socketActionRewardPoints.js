@@ -27,10 +27,30 @@ function socketActionRewardPoints(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardPoints.getRewardPointsRandom, [ObjectId(data.platformObjId),index, limit, data.sortCol], actionName, isValidData);
         },
 
-        updateRewardPointsRanking: function updateRewardPointsRanking (data) {
+        updateRewardPointsRankingRandom: function updateRewardPointsRankingRandom (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.playerObjId && data.points && data.playerName && data.playerLevel);
-            socketUtil.emitter(self.socket, dbRewardPoints.updateRewardPointsRanking, [data], actionName, isValidData);
+            let isValidData = Boolean(data && data._id && data.platformObjId && data.points && data.playerName && data.playerLevel && data.lastUpdate);
+            let query = {};
+            let updateData = {};
+            if (isValidData) {
+                query = {
+                    _id: ObjectId(data._id),
+                    platformObjId: ObjectId(data.platformObjId)
+                };
+                updateData = {
+                    points: data.points,
+                    playerName: data.playerName,
+                    playerLevel: data.playerLevel,
+                    lastUpdate: data.lastUpdate
+                }
+            }
+            socketUtil.emitter(self.socket, dbRewardPoints.updateRewardPointsRankingRandom, [query, updateData], actionName, isValidData);
+        },
+
+        deleteRewardPointsRankingRandom: function deleteRewardPointsRankingRandom (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id && data.platformObjId);
+            socketUtil.emitter(self.socket, dbRewardPoints.deleteRewardPointsRankingRandom, [data], actionName, isValidData);
         },
 
         getRewardPointsRandomDataConfig: function getRewardPointsRandomDataConfig (data) {
@@ -40,7 +60,6 @@ function socketActionRewardPoints(socketIO, socket) {
         },
 
         insertRewardPointsRandom: function insertRewardPointsRandom (data) {
-            console.log("wALAODATA",data)
             let actionName = arguments.callee.name;
             let isValidData = false;
             for (let i = 0; i < data.length; i++) {
@@ -63,7 +82,7 @@ function socketActionRewardPoints(socketIO, socket) {
                     if (data.condition && data.condition[i].prefix && data.condition[i].minAccountLength && data.condition[i].maxAccountLength
                         && (data.condition[i].isRandomAlphabet || data.condition[i].isRandomDigit) && data.condition[i].minRewardPoints
                         && data.condition[i].maxRewardPoints  && data.condition[i].lowestLevel
-                        && (data.condition[i].maxRewardPoints > data.condition[i].minRewardPoints) && (data.condition[i].maxAccountLength > data.condition[i].minAccountLength)) {
+                        && (data.condition[i].maxRewardPoints >= data.condition[i].minRewardPoints) && (data.condition[i].maxAccountLength >= data.condition[i].minAccountLength)) {
                         if (!data.condition[i].randomCount) {
                             data.condition[i].randomCount = 0;
                         }

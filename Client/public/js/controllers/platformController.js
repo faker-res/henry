@@ -14568,8 +14568,8 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getRewardPointsRandomDataConfig', {platformObjId: vm.selectedPlatform.id}, function (data) {
                     console.log('getRandomConfig', data.data);
                     if (data && data.data) {
-                        vm.playerRankingRandom = data.data[0].condition;
-                        vm.playerRankingRandomClone = JSON.parse(JSON.stringify(data.data[0].condition));
+                        vm.playerRankingRandom = data.data.condition;
+                        vm.playerRankingRandomClone = JSON.parse(JSON.stringify(data.data.condition));
                     }
                     $scope.safeApply();
                 }, function (err) {
@@ -14587,6 +14587,7 @@ define(['js/app'], function (myApp) {
                     // $('#promoCodeMonitorTableSpin').hide();
                     console.log('getRandomConfig', data);
                     vm.playerRankingRandom = data.data.condition;
+                    vm.playerRankingRandomClone = JSON.parse(JSON.stringify(data.data.condition));
                     $scope.safeApply();
                 }, function (err) {
                     vm.playerRankingRandom = JSON.parse(JSON.stringify(vm.playerRankingRandomClone));
@@ -14705,6 +14706,7 @@ define(['js/app'], function (myApp) {
                             } else {
                                 item.ranking = vm.playerRewardRankingRandom.totalCount - index - sendData.index;
                             }
+                            item.lastUpdate = vm.dateReformat(item.lastUpdate);
                             return item;
                         })
                         , vm.playerRewardRankingRandom.totalCount, {}, isNewSearch)
@@ -14724,14 +14726,96 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {title: $translate('REWARD_POINTS_RANKING'), data: "ranking"},
-                        {title: $translate('PLAYER_NAME'), data: "playerName"},
-                        {title: $translate('LEVEL'), data: "playerLevel.name"},
-                        {title: $translate('REWARD_POINTS_CURRENT'), data: "points"},
-                        {title: $translate('REWARD_POINTS_CURRENT'), data: "points"},
-                        {title: $translate('REWARD_POINTS_CURRENT'), data: "points"},
+                        {
+                            title: $translate('REWARD_POINTS_RANKING'),
+                            data: "ranking",
+                            render: function (data, type, row) {
+                                var link = $('<p>', {
+                                    'class': (row.playerObjId? "" : "text-danger")
+                                }).text(data);
+                                return link.prop('outerHTML');
+
+                            }
+                        },
+                        {
+                            title: $translate('PLAYER_NAME'),
+                            data: "playerName",
+                            render: function (data, type, row) {
+                                // let perm = (row && row.permission) ? row.permission : {};
+                                // var link = $('<a>', {
+                                //     'class': (perm.forbidPlayerFromLogin === true ? "text-danger" : "text-primary"),
+                                //     'ng-click': 'vm.showPlayerInfoModal("' + data + '")'
+                                // }).text(data);
+                                var link = $('<p>', {
+                                        'class': (row.playerObjId? "" : "text-danger")
+                                    }).text(data);
+                                return link.prop('outerHTML');
+
+                            }
+                        },
+                        {
+                            title: $translate('LEVEL'),
+                            data: "playerLevel.name",
+                            render: function (data, type, row) {
+                                var link = $('<p>', {
+                                    'class': (row.playerObjId? "" : "text-danger")
+                                }).text(data);
+                                return link.prop('outerHTML');
+
+                            }
+                        },
+                        {
+                            title: $translate('REWARD_POINTS_CURRENT'),
+                            data: "points",
+                            render: function (data, type, row) {
+                                var link = $('<p>', {
+                                    'class': (row.playerObjId? "" : "text-danger")
+                                }).text(data);
+                                return link.prop('outerHTML');
+
+                            }
+                        },
+                        {
+                            title: $translate('ACTION_BUTTON'),
+                            render: function (data, type, row) {
+                                if (!row.playerObjId) {
+                                    if ($scope.checkViewPermission('Platform', 'rewardPoints', 'Update')) {
+                                        var link = $('<a>', {
+                                            'ng-click': 'vm.showModalEditRanking(' + JSON.stringify(row) + ')',
+                                        }).text($translate('EDIT'));
+                                    }
+                                    if ($scope.checkViewPermission('Platform', 'rewardPoints', 'Delete')) {
+                                        let link2 = $('<a>', {
+                                            'ng-click': 'vm.showModalDeleteRanking(' + JSON.stringify(row) + ')',
+                                        }).text($translate('DELETE'));
+                                        if (link) {
+                                            link.append($('<span>').text(' / '));
+                                            link.append(link2);
+                                        } else {
+                                            var link =link2;
+                                        }
+                                    }
+                                } else {
+                                    var link = $('<a>').text('-');
+                                }
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('REMARK'),
+                            data: "lastUpdate",
+                            render: function (data, type, row) {
+                                if (!row.playerObjId) {
+                                    var link = $('<p>').text($translate(data));
+                                } else {
+                                    var link = $('<p>').text('-');
+                                }
+                                return link.prop('outerHTML');
+                            }
+                        },
                     ],
                     "paging": false,
+                    fnRowCallback: vm.rewardRankingRandomRecord
                 }
                 tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
                 vm.playerRewardRankingRandom.pageObj.init({maxCount: size}, newSearch);
@@ -14744,6 +14828,61 @@ define(['js/app'], function (myApp) {
                     vm.commonSortChangeHandler(a, 'playerRewardRankingRandom', vm.getPlayerRewardPointsRankingRandom);
                 });
                 $('#rewardRankingRandomTable').resize();
+            }
+
+
+            vm.rewardRankingRandomRecord = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                $compile(nRow)($scope);
+                // $(nRow).on('click', function () {
+                // });
+            }
+
+            vm.showModalDeleteRanking = function (rowData) {
+                vm.selectedRandomRanking = rowData;
+                $('#modalDeleteRewardPointsRandom').modal('show');
+                $('#modalDeleteRewardPointsRandom').on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                });
+            }
+
+            vm.deleteRandomRanking = function () {
+                let sendData = {
+                    _id: vm.selectedRandomRanking._id,
+                    platformObjId: vm.selectedRandomRanking.platformObjId
+                }
+                socketService.$socket($scope.AppSocket, 'deleteRewardPointsRankingRandom', sendData, function (data) {
+                    console.log('deleteRandomRanking', data);
+                    $scope.safeApply();
+                    vm.getPlayerRewardPointsRankingRandom(true);
+                }, function (err) {
+                    console.error(err);
+                }, true);
+            }
+
+            vm.showModalEditRanking = function (rowData) {
+                vm.selectedRandomRanking = rowData;
+                $('#modalEditRewardPointsRandom').modal('show');
+                $('#modalEditRewardPointsRandom').on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                });
+            }
+
+            vm.editRandomRanking = function () {
+                let sendData = {
+                    _id: vm.selectedRandomRanking._id,
+                    platformObjId: vm.selectedRandomRanking.platformObjId,
+                    points: vm.selectedRandomRanking.points,
+                    playerName: vm.selectedRandomRanking.playerName,
+                    lastUpdate: Date.now(),
+                    playerLevel: vm.selectedRandomRanking.playerLevel._id
+                }
+                socketService.$socket($scope.AppSocket, 'updateRewardPointsRankingRandom', sendData, function (data) {
+                    console.log('updateRandomRanking', data);
+                    $scope.safeApply();
+                    vm.getPlayerRewardPointsRankingRandom(true);
+                }, function (err) {
+                    console.error(err);
+                }, true);
             }
 
 

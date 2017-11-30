@@ -2814,5 +2814,8 @@
   "FAKE_ACC_WORD_COUNT": "假账号字数区间（含前坠）",
   "FAKE_ACC_COMBINATION": "假账号组成模式",
   "DIGIT": "数字",
-  "ENGLISH": "英"
+  "ENGLISH": "英",
+  "FAKE_ACCOUNT_GENERATE": "生成假积分账号",
+  "INCLUDE_FAKE_ACC": "(含假账号)",
+  "EDIT_REWARD_POINTS_RANKING": "编辑积分排名"
 }

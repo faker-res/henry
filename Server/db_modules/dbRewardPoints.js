@@ -34,14 +34,18 @@ var dbRewardPoints = {
         })
     },
 
-    updateRewardPointsRanking: (rewardPointsRanking) => {
-        return dbConfig.collection_rewardPoints.findOneAndUpdate({platformObjId: ObjectId(rewardPointsRanking.platformObjId), playerObjId: ObjectId(rewardPointsRanking.playerObjId)},
+    updateRewardPointsRankingRandom: (query, rewardPointsRanking) => {
+        return dbConfig.collection_rewardPoints.findOneAndUpdate(query,
             {$set:rewardPointsRanking},
             {new: true});
     },
 
+    deleteRewardPointsRankingRandom: (data) => {
+        return dbConfig.collection_rewardPoints.remove({_id: ObjectId(data._id)});
+    },
+
     getRewardPointsRandomDataConfig: (platformObjId) => {
-        return dbConfig.collection_rewardPointsRandomDataConfig.find({
+        return dbConfig.collection_rewardPointsRandomDataConfig.findOne({
             platformObjId: platformObjId
         }).lean();
     },
