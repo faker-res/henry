@@ -62,14 +62,8 @@
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="promoCode.code")
                                     text {{'No' | translate}}
                                 td
-                                    select.pull-left.form-control(
-                                    id="promoProviders1-{{$index}}",
-                                    multiple="multiple",
-                                    style='min-width:100px;height:34px;'
-                                    ng-if="!vm.selectedPlatform.data.useProviderGroup"
-                                    ng-model="promoCode.allowedProviders"
-                                    ng-options = "prov.name for prov in vm.allGameProvider",
-                                    ng-disabled="promoCode.code")
+                                    select.pull-left.form-control(id="promoProviders1-{{$index}}", multiple="multiple", style='min-width:100px;height:34px;' ng-if="!vm.selectedPlatform.data.useProviderGroup"
+                                    ng-model="promoCode.allowedProviders" ng-options = "prov.name for prov in vm.allGameProvider" ng-disabled="promoCode.code")
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='promoCode.code')
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                 td
@@ -130,7 +124,10 @@
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="promoCode.code")
                                     text {{'No' | translate}}
                                 td
-                                    select.pull-left.form-control(id="promoProviders2-{{$index}}", multiple="multiple", style='min-width:100px;height:34px;' ng-model="promoCode.allowedProviders" ng-options = "prov.name for prov in vm.allGameProvider", ng-disabled="promoCode.code")
+                                    select.pull-left.form-control(id="promoProviders2-{{$index}}", multiple="multiple", style='min-width:100px;height:34px;' ng-if="!vm.selectedPlatform.data.useProviderGroup"
+                                    ng-model="promoCode.allowedProviders" ng-options = "prov.name for prov in vm.allGameProvider" ng-disabled="promoCode.code")
+                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='promoCode.code')
+                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                 td
                                     input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code")
                                 td
@@ -193,7 +190,10 @@
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="promoCode.code")
                                     text {{'No' | translate}}
                                 td
-                                    select.pull-left.form-control(id="promoProviders3-{{$index}}", multiple="multiple", style='min-width:100px;height:34px;' ng-model="promoCode.allowedProviders" ng-options = "prov.name for prov in vm.allGameProvider", ng-disabled="promoCode.code")
+                                    select.pull-left.form-control(id="promoProviders3-{{$index}}", multiple="multiple", style='min-width:100px;height:34px;' ng-if="!vm.selectedPlatform.data.useProviderGroup"
+                                    ng-model="promoCode.allowedProviders" ng-options = "prov.name for prov in vm.allGameProvider" ng-disabled="promoCode.code")
+                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='promoCode.code')
+                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                 td
                                     input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code")
                                 td

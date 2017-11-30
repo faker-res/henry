@@ -29,7 +29,8 @@ const constPlayerCreditChangeType = {
     PLAYER_BONUS_RESET_CREDIT: "PlayerBonus:resetCredit",
 
     // REJECT
-    REJECT_PLAYER_TOP_UP_RETURN_GROUP: "rejectPlayerTopUpReturnGroup"
+    REJECT_PLAYER_TOP_UP_RETURN_GROUP: "rejectPlayerTopUpReturnGroup",
+    DUPLICATE_DEDUCTION_DETECTED: "duplicateDeductionDetected"
 
 
 
