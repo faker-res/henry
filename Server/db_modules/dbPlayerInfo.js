@@ -94,8 +94,7 @@ let dbPlayerInfo = {
             createTime: Date.now()
         };
         let record = new dbconfig.collection_rewardPoints(recordData);
-        record.save().then().catch(errorUtils.reportError);
-        return record;
+        return record.save();
     },
 
     /**
