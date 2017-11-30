@@ -39,7 +39,7 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionPlayerFeedbackResult'),
     require('./../socketActionModule/socketActionPlayerFeedbackTopic'),
     require('./../socketActionModule/socketActionRewardPointsLvlConfig'),
-    require('./../socketActionModule/socketActionRewardPoints'),
+    require('../socketActionModule/socketActionRewardPointsRanking'),
     require('./../socketActionModule/socketActionRewardPointsEvent'),
 ];
 

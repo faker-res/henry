@@ -1,9 +1,9 @@
 var socketUtil = require('./../modules/socketutility');
-var dbRewardPoints = require("./../db_modules/dbRewardPoints");
+var dbRewardPointsRanking = require("../db_modules/dbRewardPointsRanking");
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 
-function socketActionRewardPoints(socketIO, socket) {
+function socketActionRewardPointsRanking(socketIO, socket) {
 
     this.socketIO = socketIO;
     this.socket = socket;
@@ -16,7 +16,7 @@ function socketActionRewardPoints(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId);
             var limit = data.limit || 10;
             var index = data.index || 0;
-            socketUtil.emitter(self.socket, dbRewardPoints.getRewardPoints, [ObjectId(data.platformObjId),index, limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardPointsRanking.getRewardPoints, [ObjectId(data.platformObjId),index, limit, data.sortCol], actionName, isValidData);
         },
 
         getRewardPointsRandom: function getRewardPointsRandom (data) {
@@ -24,7 +24,7 @@ function socketActionRewardPoints(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId);
             var limit = data.limit || 10;
             var index = data.index || 0;
-            socketUtil.emitter(self.socket, dbRewardPoints.getRewardPointsRandom, [ObjectId(data.platformObjId),index, limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardPointsRanking.getRewardPointsRandom, [ObjectId(data.platformObjId),index, limit, data.sortCol], actionName, isValidData);
         },
 
         updateRewardPointsRankingRandom: function updateRewardPointsRankingRandom (data) {
@@ -44,19 +44,19 @@ function socketActionRewardPoints(socketIO, socket) {
                     lastUpdate: data.lastUpdate
                 }
             }
-            socketUtil.emitter(self.socket, dbRewardPoints.updateRewardPointsRankingRandom, [query, updateData], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardPointsRanking.updateRewardPointsRankingRandom, [query, updateData], actionName, isValidData);
         },
 
         deleteRewardPointsRankingRandom: function deleteRewardPointsRankingRandom (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data._id && data.platformObjId);
-            socketUtil.emitter(self.socket, dbRewardPoints.deleteRewardPointsRankingRandom, [data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardPointsRanking.deleteRewardPointsRankingRandom, [data], actionName, isValidData);
         },
 
         getRewardPointsRandomDataConfig: function getRewardPointsRandomDataConfig (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbRewardPoints.getRewardPointsRandomDataConfig, [ObjectId(data.platformObjId)], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardPointsRanking.getRewardPointsRandomDataConfig, [ObjectId(data.platformObjId)], actionName, isValidData);
         },
 
         insertRewardPointsRandom: function insertRewardPointsRandom (data) {
@@ -72,7 +72,7 @@ function socketActionRewardPoints(socketIO, socket) {
                     break;
                 }
             }
-            socketUtil.emitter(self.socket, dbRewardPoints.insertRewardPointsRandom, [data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardPointsRanking.insertRewardPointsRandom, [data], actionName, isValidData);
         },
 
         upsertRewardPointsRandomDataConfig: function upsertRewardPointsRandomDataConfig (data) {
@@ -98,11 +98,11 @@ function socketActionRewardPoints(socketIO, socket) {
                 isValidData = false;
             }
             let actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, dbRewardPoints.upsertRewardPointsRandomDataConfig, [data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardPointsRanking.upsertRewardPointsRandomDataConfig, [data], actionName, isValidData);
         }
     };
 
-    socketActionRewardPoints.actions = this.actions;
+    socketActionRewardPointsRanking.actions = this.actions;
 };
 
-module.exports = socketActionRewardPoints;
+module.exports = socketActionRewardPointsRanking;

@@ -2,7 +2,7 @@ var dbConfig = require('./../modules/dbproperties');
 var Q = require("q");
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
-var dbRewardPoints = {
+var dbRewardPointsRanking = {
 
     getRewardPoints: (platformObjId, index, limit, sortCol) => {
         var a = dbConfig.collection_rewardPoints.find({
@@ -68,4 +68,4 @@ var dbRewardPoints = {
 
 
 };
-module.exports = dbRewardPoints;
+module.exports = dbRewardPointsRanking;
