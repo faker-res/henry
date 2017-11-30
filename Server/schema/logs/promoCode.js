@@ -45,7 +45,9 @@ let promoCodeSchema = new Schema({
     // Promo Code Accepted Amount
     acceptedAmount: {type: Number},
     // Promo Code Top Up Amount
-    topUpAmount: {type: Number, default: 0}
+    topUpAmount: {type: Number, default: 0},
+    // Reward amount shared with XIMA
+    isSharedWithXIMA: {type: Boolean, default: true}
 });
 
 module.exports = promoCodeSchema;
