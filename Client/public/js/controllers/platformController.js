@@ -14783,7 +14783,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.promoCodeNewRow = function (collection, type, data) {
-                collection.push(data ? data : {disableWithdraw: false});
+                collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true});
                 collection.forEach((elem, index, arr) => {
                     let id = '#expDate' + type + '-' + index;
                     let provId = '#promoProviders' + type + '-' + index;
@@ -14945,6 +14945,7 @@ define(['js/app'], function (myApp) {
                             item.allowedProviders$ = item.allowedProviders.length == 0 ? $translate("ALL_PROVIDERS") : item.allowedProviders.map(e => item.isProviderGroup ? e.name : e.code);
                             item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
                             item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
+                            item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
 
                             return item;
                         }), vm.promoCodeQuery.totalCount, {}, isNewSearch
@@ -15131,9 +15132,9 @@ define(['js/app'], function (myApp) {
             vm.drawPromoCodeHistoryTable = function (data, size, summary, newSearch) {
                 let tableOptions = {
                     data: data,
-                    "order": vm.promoCodeQuery.aaSorting || [[10, 'desc']],
+                    "order": vm.promoCodeQuery.aaSorting || [[11, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [10]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [11]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
@@ -15162,6 +15163,10 @@ define(['js/app'], function (myApp) {
                             title: $translate('PROMO_CONSUMPTION'),
                             data: "requiredConsumption",
                             render: (data, index, row) => row.promoCodeTypeObjId.type == 3 ? "*" + data : data
+                        },
+                        {
+                            title: $translate('SHARE_WITH_XIMA'),
+                            data: "isSharedWithXIMA$"
                         },
                         {
                             title: $translate('PROMO_DUE_DATE'),
@@ -15281,6 +15286,10 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('requiredConsumption'),
                             data: "spendingAmount"
+                        },
+                        {
+                            title: $translate('SHARE_WITH_XIMA'),
+                            data: "isSharedWithXIMA$"
                         },
                         {
                             title: $translate('withdrawConsumption'),
