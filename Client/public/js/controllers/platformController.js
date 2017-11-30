@@ -7996,7 +7996,6 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'upsertPlayerInfoRewardPointsObjId', sendData, function () {
-                    vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
             };
