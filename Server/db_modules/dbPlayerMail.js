@@ -15,6 +15,7 @@ const constSMSPurpose = require('../const/constSMSPurpose');
 const queryPhoneLocation = require('query-mobile-phone-area');
 const constProposalStatus = require('../const/constProposalStatus');
 const constRegistrationIntentRecordStatus = require('../const/constRegistrationIntentRecordStatus');
+const dbUtility = require('./../modules/dbutility');
 
 const dbPlayerMail = {
 
@@ -187,7 +188,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, data) {
+    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, inputData) {
         let lastMin = moment().subtract(1, 'minutes');
         let channel = null;
         let platformObjId = null;
@@ -195,6 +196,16 @@ const dbPlayerMail = {
         let lastMinuteHistory = null;
         let platform;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
+
+        if(inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
+            dbUtility.getGeoIp(inputData.lastLoginIp).then(
+                ipData=>{
+                    if(inputData) {
+                        inputData.ipArea = ipData;
+                    }
+                })
+        }
+
         return getPlatform.then(
             function (platformData) {
                 if (platformData) {
@@ -273,25 +284,30 @@ const dbPlayerMail = {
             function (retData) {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
 
-                //if (purpose == constSMSPurpose.REGISTRATION) {
-                    data.smsCode = code
+                if(inputData.playerId){
+                    delete inputData.playerId;
+                }
 
-                    if( data.phoneNumber ){
-                        var queryRes = queryPhoneLocation(data.phoneNumber);
+                //if (purpose == constSMSPurpose.REGISTRATION) {
+                    inputData = inputData || {};
+                    inputData.smsCode = code;
+
+                    if (inputData.phoneNumber) {
+                        var queryRes = queryPhoneLocation(inputData.phoneNumber);
                         if (queryRes) {
-                            data.phoneProvince = queryRes.province;
-                            data.phoneCity = queryRes.city;
-                            data.phoneType = queryRes.type;
+                            inputData.phoneProvince = queryRes.province;
+                            inputData.phoneCity = queryRes.city;
+                            inputData.phoneType = queryRes.type;
                         }
 
-                        let proposal = {data: data};
+                        let proposal = {data: inputData};
                         dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, proposal, constProposalStatus.PENDING);
                     }
 
                     let newIntentData = {
-                        data: data,
+                        data: inputData,
                         status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
-                        name: data.name
+                        name: inputData.name
                     };
                     let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
                     return newRecord.save().then(data => {

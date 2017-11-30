@@ -266,13 +266,14 @@ var dbPlayerLoginRecord = {
         lastDay.setDate(lastDay.getDate() + 30 + days[days.length - 1]);
 
         for (var day = 0; day < 31; day++) {
+
             var temp = dbconfig.collection_players.aggregate(
                 [{
                     $match: {
                         platform: platform,
                         registrationTime: {
-                            $gte: time0,
-                            $lt: time1
+                            $gte: new Date(time0),
+                            $lt: new Date(time1)
                         }
                     },
                 }, {
@@ -283,7 +284,7 @@ var dbPlayerLoginRecord = {
                     }
                 }, {
                     $group: {
-                        _id: time0,
+                        _id: time0.toString(),
                         playerId: {
                             "$addToSet": "$_id.playerId"
                         }
@@ -305,7 +306,6 @@ var dbPlayerLoginRecord = {
                             .sort((a, b) => a < b ? -1 : 1);
                     }
                 }
-                // console.log('day0PlayerObj', day0PlayerObj);
                 var time0 = new Date(startTime);
                 var time1 = new Date(startTime);
                 time1.setHours(23, 59, 59, 999);
@@ -316,8 +316,8 @@ var dbPlayerLoginRecord = {
                             $match: {
                                 platform: platform,
                                 loginTime: {
-                                    $gte: time0,
-                                    $lt: time1
+                                    $gte: new Date(time0),
+                                    $lt: new Date(time1)
                                 }
                             },
                         }, {
@@ -328,7 +328,7 @@ var dbPlayerLoginRecord = {
                             }
                         }, {
                             $group: {
-                                _id: time0,
+                                _id: time0.toString(),
                                 playerId: {
                                     "$addToSet": "$_id.playerId"
                                 }
@@ -358,6 +358,7 @@ var dbPlayerLoginRecord = {
                             showDate.setDate(showDate.getDate() + i);
                             var row = {date: showDate};
                             var baseArr = [];
+
                             if (day0PlayerObj[date]) {
                                 row.day0 = day0PlayerObj[date].length;
                                 baseArr = day0PlayerObj[date];
