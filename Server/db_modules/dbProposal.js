@@ -1915,7 +1915,7 @@ var proposal = {
                                     console.log("DBError : Error finding matching proposal", error);
                                 });
                         } else {
-                            a = dbconfig.collection_proposal.find(queryObj)
+                            a = dbconfig.collection_proposal.find(queryObj).lean()
                                 .then(
                                     pdata => {
                                         pdata.map(item => {
@@ -1944,7 +1944,7 @@ var proposal = {
                                 });
                         }
 
-                        var b = dbconfig.collection_proposal.find(queryObj).count();
+                        var b = dbconfig.collection_proposal.find(queryObj).lean().count();
                         return Q.all([a, b])
                     }
                     else {
@@ -2067,7 +2067,7 @@ var proposal = {
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
             console.log("LH check getPlayerSelfRegistrationRecordList distinct phone number list", dataList);
             dataList.map(phoneNumber => {
-                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).sort({createTime: 1}));
+                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
                 totalHeadCount += 1;
             })
             return Q.all(prom);
@@ -2182,7 +2182,7 @@ var proposal = {
 
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
             dataList.map(phoneNumber => {
-                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).sort({createTime: 1}));
+                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
                 totalHeadCount += 1;
             })
             return Q.all(prom);
@@ -2271,7 +2271,7 @@ var proposal = {
 
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
             dataList.map(phoneNumber => {
-                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).sort({createTime: 1}));
+                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
             })
             return Q.all(prom);
         }).then(details => {
@@ -3759,7 +3759,6 @@ function insertPlayerRepeatCount(proposals, platformId) {
             let previousCountQuery = {};
             let futureCountQuery = {};
             let previousSuccessCreateTime;
-            let futureSuccessCreateTime;
             let futureFailCreateTime;
 
             allCountQuery = {
@@ -3792,7 +3791,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
             let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
 
             //check the count of success/manual proposal records before current record.
-            let previousCountProm = dbconfig.collection_proposal.find(previousCountQuery).then(previousRecords => {
+            let previousCountProm = dbconfig.collection_proposal.find(previousCountQuery).lean().then(previousRecords => {
                 if (previousRecords && previousRecords.length > 0) {
 
                     previousRecords.map(p => {
@@ -3806,15 +3805,15 @@ function insertPlayerRepeatCount(proposals, platformId) {
                 return;
             }).then(() =>{
                 if(previousSuccessCreateTime){
-                    return dbconfig.collection_proposal.find({createTime: {$lte: new Date(previousSuccessCreateTime)}, "data.phoneNumber": phoneNumber}).count();
+                    return dbconfig.collection_proposal.find({createTime: {$lte: new Date(previousSuccessCreateTime)}, "data.phoneNumber": phoneNumber}).lean().count();
                 }
             });
 
             //check the count of all proposal records after current record.
-            let futureAllCountProm = dbconfig.collection_proposal.find(futureCountQuery).count();
+            let futureAllCountProm = dbconfig.collection_proposal.find(futureCountQuery).lean().count();
 
             //check the count of success/manual proposal records after current record
-            let futureAfterSuccessCountProm = dbconfig.collection_proposal.find(futureCountQuery).sort({createTime: 1}).then(futureRecords => {
+            let futureAfterSuccessCountProm = dbconfig.collection_proposal.find(futureCountQuery).lean().sort({createTime: 1}).then(futureRecords => {
                 if (futureRecords && futureRecords.length > 0) {
 
                     futureRecords.map(f => {
@@ -3828,7 +3827,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
                 return;
             }).then(() =>{
                 if(futureFailCreateTime){
-                    return dbconfig.collection_proposal.find({createTime: {$gt: new Date(futureFailCreateTime)}, "data.phoneNumber": phoneNumber}).count();
+                    return dbconfig.collection_proposal.find({createTime: {$gt: new Date(futureFailCreateTime)}, "data.phoneNumber": phoneNumber}).lean().count();
                 }
             });
 
