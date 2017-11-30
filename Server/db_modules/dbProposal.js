@@ -1888,63 +1888,40 @@ var proposal = {
                         }
 
                         let proposalProm = [];
+                        proposalProm = dbconfig.collection_proposal.find(queryObj)
+
                         if (!unlockSizeLimit) {
-                            proposalProm = dbconfig.collection_proposal.find(queryObj)
-                                .sort(sortCol).skip(index).limit(size).lean()
-                                .then(
-                                    pdata => {
-                                        pdata.map(item => {
-                                            // only displayPhoneNum equal true, encode the phone num
-                                            if (item.data && item.data.phone && !displayPhoneNum) {
-                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                                            }
-                                            if (item.data && item.data.phoneNumber && !displayPhoneNum) {
-                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                            }
-                                            if (item.data && item.data.playerId) {
-                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId));
-                                            }
+                            proposalProm = proposalProm.sort(sortCol).skip(index).limit(size).lean();
 
-                                            return item
-                                        });
-
-                                        return pdata;
-                                    })
-                                .then(proposals => {
-                                    proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-                                    return proposals;
-                                })
                         } else {
-                            // return Q.reject({name: "DataError", message: "Invalid size"});
-                            // this part will use all memory if there are too many records. if there is no size data, return error
+                            proposalProm = proposalProm.limit(50).lean();
 
-                            //this query will run when user click on the number in attempt number list, the query will run by phone number
-                            proposalProm = dbconfig.collection_proposal.find(queryObj).limit(50).lean()
-                                .then(
-                                    pdata => {
-                                        pdata.map(item => {
-                                            // only displayPhoneNum equal true, encode the phone num
-                                            if (item.data && item.data.phone && !displayPhoneNum) {
-                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                                            }
-                                            if (item.data && item.data.phoneNumber && !displayPhoneNum) {
-                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                            }
-                                            if (item.data && item.data.playerId) {
-                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId));
-                                            }
-
-                                            return item;
-                                        });
-
-                                        return pdata;
-                                    })
-                                .then(proposals => {
-                                    proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-
-                                    return proposals
-                                });
                         }
+
+                        proposalProm = proposalProm.then(
+                            pdata => {
+                                pdata.map(item => {
+                                    // only displayPhoneNum equal true, encode the phone num
+                                    if (item.data && item.data.phone && !displayPhoneNum) {
+                                        item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                    }
+                                    if (item.data && item.data.phoneNumber && !displayPhoneNum) {
+                                        item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                    }
+                                    if (item.data && item.data.playerId) {
+                                        playerProm.push(proposal.getPlayerDetails(item.data.playerId));
+                                    }
+
+                                    return item;
+                                });
+
+                                return pdata;
+                            })
+                            .then(proposals => {
+                                proposals = insertPlayerRepeatCount(proposals, platformId[0]);
+
+                                return proposals
+                            });
 
                         let proposalCount = dbconfig.collection_proposal.find(queryObj).lean().count();
 
