@@ -1941,6 +1941,12 @@ var proposalExecutor = {
                     // Target providers or providerGroup
                     if (proposalData.data.providerGroup) {
                         taskData.providerGroup = proposalData.data.providerGroup;
+
+                        // Lock apply amount to reward if type-C promo code
+                        if (proposalData.data.promoCodeTypeValue == 3) {
+                            taskData.initAmount += proposalData.data.applyAmount;
+                            taskData.currentAmount += proposalData.data.applyAmount;
+                        }
                     }
                     else if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;
