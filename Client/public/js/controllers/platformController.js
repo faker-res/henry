@@ -22,8 +22,8 @@ define(['js/app'], function (myApp) {
             vm.districtList = [];
             vm.creditChange = {};
             vm.existPhone = false;
-            vm.rewardPointChange = {};
-            vm.rewardPointExchange = {};
+            vm.rewardPointsChange = {};
+            vm.rewardPointsExchange = {};
 
             // constants declaration
             vm.proposalStatusList = { // removed APPROVED and REJECTED
@@ -374,8 +374,8 @@ define(['js/app'], function (myApp) {
                 vm.selectedReapplyLostOrderTab = tabName == null ? "credit" : tabName;
             };
 
-            vm.showRewardPointAdjustmentTab = function (tabName) {
-                vm.selectedRewardPointAdjustmentTab = tabName == null ? "change" : tabName;
+            vm.showRewardPointsAdjustmentTab = function (tabName) {
+                vm.selectedRewardPointsAdjustmentTab = tabName == null ? "change" : tabName;
             };
 
             vm.showSmsTab = function (tabName) {
@@ -4600,17 +4600,17 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointExchange')) {
+                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsExchange')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
-                                        'src': "images/icon/rewardPointBlue.png",
+                                        'src': "images/icon/rewardPointsBlue.png",
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.showRewardPointAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
+                                        'ng-click': 'vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
-                                        'data-target': '#modalPlayerRewardPointAdjustment',
-                                        'title': $translate("REWARD_POINT_ADJUSTMENT"),
+                                        'data-target': '#modalPlayerRewardPointsAdjustment',
+                                        'title': $translate("REWARD_POINTS_ADJUSTMENT"),
                                         'data-placement': 'right',
                                     }));
                                 }
@@ -4628,7 +4628,7 @@ define(['js/app'], function (myApp) {
                                     'class': 'playerPermissionPopover',
                                     'ng-click': "vm.permissionPlayer = " + JSON.stringify(row)
                                     + "; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;"
-                                    + "; vm.permissionPlayer.permission.rewardPointTask = !vm.permissionPlayer.permission.rewardPointTask;"
+                                    + "; vm.permissionPlayer.permission.rewardPointsTask = !vm.permissionPlayer.permission.rewardPointsTask;"
                                     + "; vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
@@ -4711,7 +4711,7 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.rewardPointTask === false ? "rewardPointRed.png" : "rewardPointBlue.png"),
+                                    'src': "images/icon/" + (perm.rewardPointsTask === false ? "rewardPointsRed.png" : "rewardPointsBlue.png"),
                                     height: "14px",
                                     width: "14px",
                                 }));
@@ -5392,9 +5392,9 @@ define(['js/app'], function (myApp) {
                                         height: '26px'
                                     },
                                     banReward: {imgType: 'i', iconClass: "fa fa-gift"},
-                                    rewardPointTask: {
+                                    rewardPointsTask: {
                                         imgType: 'img',
-                                        src: "images/icon/rewardPointBlue.png",
+                                        src: "images/icon/rewardPointsBlue.png",
                                         width: "26px",
                                         height: '26px'
                                     },
@@ -5405,7 +5405,7 @@ define(['js/app'], function (myApp) {
 
                                 // Invert second render
                                 row.permission.banReward = !row.permission.banReward;
-                                row.permission.rewardPointTask = !row.permission.rewardPointTask;
+                                row.permission.rewardPointsTask = !row.permission.rewardPointsTask;
                                 row.permission.disableWechatPay = !row.permission.disableWechatPay;
                                 row.permission.forbidPlayerConsumptionReturn = !row.permission.forbidPlayerConsumptionReturn;
                                 row.permission.forbidPlayerConsumptionIncentive = !row.permission.forbidPlayerConsumptionIncentive;
@@ -5449,8 +5449,8 @@ define(['js/app'], function (myApp) {
                                         changeObj.banReward = !changeObj.banReward;
                                     }
 
-                                    if (changeObj.hasOwnProperty('rewardPointTask')) {
-                                        changeObj.rewardPointTask = !changeObj.rewardPointTask;
+                                    if (changeObj.hasOwnProperty('rewardPointsTask')) {
+                                        changeObj.rewardPointsTask = !changeObj.rewardPointsTask;
                                     }
 
                                     if (changeObj.hasOwnProperty('disableWechatPay')) {
@@ -7953,8 +7953,8 @@ define(['js/app'], function (myApp) {
 
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
                 vm.isOneSelectedPlayer().finalValidAmount = 0;
-                vm.rewardPointChange.remark = '';
-                vm.rewardPointChange.updateAmount = 0;
+                vm.rewardPointsChange.remark = '';
+                vm.rewardPointsChange.updateAmount = 0;
 
                 if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
                     vm.createPlayerRewardPointsRecord();
