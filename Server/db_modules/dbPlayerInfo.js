@@ -120,6 +120,20 @@ let dbPlayerInfo = {
     },
 
     /**
+     * Update player's reward points and create log
+     */
+    updatePlayerRewardPointsRecord: function (rewardPointsObjId, finalValidAmount) {
+        return dbconfig.collection_rewardPoints.findOneAndUpdate(
+            {
+                _id: rewardPointsObjId
+            },
+            {
+                points: finalValidAmount
+            }
+        );
+    },
+
+    /**
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
@@ -2081,6 +2095,8 @@ let dbPlayerInfo = {
      */
     playerTopUp: function (playerId, amount, paymentChannelName, topUpType, proposalData) {
         var deferred = Q.defer();
+        let playerData;
+
         dbUtility.findOneAndUpdateForShard(
             dbconfig.collection_players,
             {_id: playerId},
@@ -2099,6 +2115,8 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data) {
+                    playerData = data;
+
                     var recordData = {
                         playerId: data._id,
                         platformId: data.platform,
@@ -2215,7 +2233,13 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
-                deferred.resolve(data && data[0]);
+                if (data && data[0]) {
+                    let topupRecordData = data[0];
+                    topupRecordData.topUpRecordId = topupRecordData._id;
+                    // Async - Check reward group task to apply on player top up
+                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, topupRecordData).catch(errorUtils.reportError);
+                    deferred.resolve(data && data[0]);
+                }
             },
             function (error) {
                 deferred.reject({name: "DBError", message: "Error creating top up record", error: error});
@@ -9583,7 +9607,7 @@ let dbPlayerInfo = {
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
-                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData, data, userAgent);
+                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
                                     break;
                                 default:
                                     return Q.reject({
