@@ -120,6 +120,20 @@ let dbPlayerInfo = {
     },
 
     /**
+     * Update player's reward points and create log
+     */
+    updatePlayerRewardPointsRecord: function (rewardPointsObjId, finalValidAmount) {
+        return dbconfig.collection_rewardPoints.findOneAndUpdate(
+            {
+                _id: rewardPointsObjId
+            },
+            {
+                points: finalValidAmount
+            }
+        );
+    },
+
+    /**
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
