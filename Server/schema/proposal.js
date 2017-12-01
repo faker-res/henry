@@ -59,6 +59,9 @@ proposalSchema.index({mainType: 1, type: 1, status: 1});
 proposalSchema.index({noSteps: 1, type: 1, createTime: 1});
 proposalSchema.index({"data.merchantNo": 1});
 proposalSchema.index({"data.alipayAccount": 1});
+proposalSchema.index({"data.PROMO_CODE_TYPE": 1});
+proposalSchema.index({"data.name": 1});
+proposalSchema.index({"data.phoneNumber": 1});
 
 /*
  // Ensure that the caller does not accidentally save an ObjectId in proposal.data.playerId

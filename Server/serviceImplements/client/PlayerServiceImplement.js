@@ -69,6 +69,17 @@ let PlayerServiceImplement = function () {
                 console.log("Player registration reporoId:", reporoId);
                 data.domain = data.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
             }
+            if(data.lastLoginIp && data.lastLoginIp != "undefined"){
+                dbUtility.getGeoIp(data.lastLoginIp).then(
+                    ipData=>{
+                        if(data){
+                            data.ipArea = ipData;
+                        }else{
+                            data.ipArea = {'province':'', 'city':''};
+                        }
+                    })
+            }
+
             //set email to qq if there is only qq number and no email data
             if (data.qq && !data.email) {
                 data.email = data.qq + "@qq.com";
@@ -85,9 +96,9 @@ let PlayerServiceImplement = function () {
                     data.playerId = data.playerId ? data.playerId : playerData.playerId;
                     data.remarks = playerData.partnerId ? localization.translate("PARTNER", conn.lang) + ": " + playerData.partnerId : "";
 
-
                     console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
-                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                    //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                    dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     conn.isAuth = true;
                     conn.playerId = playerData.playerId;
                     conn.playerObjId = playerData._id;
@@ -128,7 +139,8 @@ let PlayerServiceImplement = function () {
                     }
                     console.log("createPlayerRegistrationIntentRecordAPI FAIL", data, err);
                     if (err && err.status != constServerCode.USERNAME_ALREADY_EXIST) {
-                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
+                        //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
+                        dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                     }
                 }
             ).catch(WebSocketUtil.errorHandler)
@@ -826,7 +838,7 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getCaptcha, [conn], true, false, false, true);
     };
 
-    this.getSMSCode.expectsData = 'phoneNumber: String';
+    this.getSMSCode.expectsData = 'phoneNumber: String, name: String, purpose: String';
     this.getSMSCode.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.phoneNumber && data.platformId);
         let randomCode = parseInt(Math.random() * 9000 + 1000);
@@ -836,7 +848,31 @@ let PlayerServiceImplement = function () {
         conn.captchaCode = null;
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
+        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
+        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            data.lastLoginIp = forwardedIp[0].trim();
+        }
+        data.loginIps = [data.lastLoginIp];
+        data.ipArea = {'province':'', 'city':''};
+
+        var uaString = conn.upgradeReq.headers['user-agent'];
+        var ua = uaParser(uaString);
+        data.userAgent = [{
+            browser: ua.browser.name || '',
+            device: ua.device.name || '',
+            os: ua.os.name || ''
+        }];
+        if(data.phoneNumber && data.phoneNumber.length == 11){
+            WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
+        }else {
+            conn.captchaCode = null;
+            wsFunc.response(conn, {
+                status: constServerCode.INVALID_PHONE_NUMBER,
+                errorMessage: localization.translate("Invalid phone number", conn.lang),
+                data: null
+            }, data);
+        }
     };
 
     this.sendSMSCodeToPlayer.expectsData = 'platformId: String';

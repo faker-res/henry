@@ -44,7 +44,8 @@ form(name="form_new_player", novalidate)
 		.form-group.col-md-6
 			label.control-label *{{"TELEPHONE" | translate}}
 			input.form-control(type="telephone", name="telephone", placeholder='{{"TELEPHONE" | translate}}',ng-pattern="vm.phonePattern", ng-model="vm.newPlayer.phoneNumber", required)
-			div(ng-click="vm.loadPhoneNumberRecord(vm.newPlayer.phoneNumber)") {{'DETAIL_INFO' | translate}}
+			div(ng-show="vm.existPhone", style='color:red;display:inline-block') {{"Phone Number Already Exists" | translate}}
+			div.btn.btn-primary.btn-sm(ng-show="vm.existPhone", ng-click="vm.loadPhoneNumberRecord(vm.newPlayer.phoneNumber)", style='display:inline-block;margin-left:10px;')  {{'DETAIL_INFO' | translate}}
 	.row.margin-left-5.margin-right-5
 		.form-group.col-md-6
 			label.control-label {{"REFERRAL" | translate}}

@@ -107,6 +107,7 @@ var playerSchema = new Schema({
         alipayTransaction: {type: Boolean, default: true},
         quickpayTransaction: {type: Boolean, default: true},
         banReward: {type: Boolean, default: false},
+        rewardPointsTask: {type: Boolean, default: true},
         disableWechatPay: {type: Boolean, default: false},
         forbidPlayerConsumptionReturn: {type: Boolean, default: false},
         forbidPlayerConsumptionIncentive: {type: Boolean, default: false},
@@ -138,7 +139,7 @@ var playerSchema = new Schema({
     //type
     phoneType: String,
 
-    /*Playe Credit*/
+    /*Player Credit*/
     //current credit balance
     creditBalance: {type: Number, min: 0, default: 0},
     //valid credit
@@ -265,6 +266,8 @@ var playerSchema = new Schema({
     accAdmin: {type: String},
     csOfficer: {type: Schema.ObjectId, ref: 'admin'},
     promoteWay: {type: String},
+    // reward point object
+    rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints'},
 });
 
 //record is unique by name and platform

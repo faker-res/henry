@@ -478,6 +478,14 @@ define([], function () {
                         } else if (i == 16) {
                             consumptionBonusAmount = pageValue;
                         }
+                        // Special handling for reportController.js drawFeedbackReport()
+                        if (i == 18) {
+                            totalConsumption = totalValue;
+                            validConsumptionAmount = pageValue;
+                        } else if (i == 19) {
+                            totalWinLoss = totalValue;
+                            consumptionBonusAmount = pageValue;
+                        }
                     }else if (classes.indexOf('playerReportProfit') > -1) {
                         if (sumData && sumData[i]) {
                             totalValue = sumData[i]
@@ -485,6 +493,16 @@ define([], function () {
                             totalValue = api.column(i).data().reduce(function (a, b) {
                                 return getFloat(a) + getFloat(b);
                             })
+                        }
+                        pageValue = (-consumptionBonusAmount) / validConsumptionAmount * 100;
+                        totalValue = getFloat(totalValue).toFixed(2);
+                        pageValue = getFloat(pageValue).toFixed(2);
+                        htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
+                    } else if(classes.indexOf('feedbackReportProfit') > -1) {
+                        if (sumData && sumData[i]) {
+                            totalValue = sumData[i]
+                        } else {
+                            totalValue = (-totalWinLoss) / totalConsumption * 100;
                         }
                         pageValue = (-consumptionBonusAmount) / validConsumptionAmount * 100;
                         totalValue = getFloat(totalValue).toFixed(2);
@@ -720,6 +738,7 @@ define([], function () {
                 case "UpdatePlayerPhone":
                 case "UpdatePlayerQQ":
                 case "UpdatePlayerWeChat":
+                case "PlayerLevelMigration":
                     groupName = "PLAYER_INFORMATION";
                     break;
                 case "UpdatePartnerInfo":
@@ -734,7 +753,6 @@ define([], function () {
                 case "FixPlayerCreditTransfer":
                 case "UpdatePartnerCredit":
                 case "ManualUnlockPlayerReward":
-                case "PlayerLevelMigration":
                 case "PlayerRegistrationIntention":
                 case "PlayerLimitedOfferIntention":
                 default:

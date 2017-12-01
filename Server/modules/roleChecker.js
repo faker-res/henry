@@ -158,6 +158,9 @@ var roleChecker = {
         "deleteGameProvider": true,
 
         "getGameTypeList": true,
+        "getAllGameTypes": true,
+        "getRewardEventsForPlatform": true,
+
 
         //todo::to be added to permission list
         "getCredibilityRemarks": true,
@@ -267,6 +270,8 @@ var roleChecker = {
                 applyBonus: ['applyBonusRequest'],
                 BonusHistory: [],
                 CreditAdjustment: ['createUpdatePlayerCreditProposal'],
+                RewardPointsChange: [],
+                RewardPointsExchange: [],
                 CreditChangeLog: ['getPlayerCreditChangeLogsByQuery', 'getPagedPlayerCreditChangeLogs'],
                 PlayerExpenses: ['getPlayerConsumptionRecords', 'getPlayerTotalConsumptionForTimeFrame', 'playerPurchase'],
                 AddRewardTask: ['createPlayerRewardTask'],
@@ -425,7 +430,17 @@ var roleChecker = {
                 FilterAllPlatform: []
             },
             "rewardPoints": {
-                Read: [],
+                Read: ['getRewardPointsLvlConfig', 'getRewardPointsEvent', 'getRewardPointsEventById', 'getRewardPointsEventByCategory'],
+                Create: ['createRewardPointsEvent'],
+                Delete: ['deleteRewardPointsEventById'],
+                Update: ['upsertRewardPointsLvlConfig', 'updateRewardPointsEvent'],
+                rewardPointsRule: [],
+                loginRewardPoints: [],
+                topupRewardPoints: [],
+                gameRewardPoints: [],
+                rewardPointsRanking: [],
+                rewardPointsLog: []
+
             }
         },
         Payment: {
@@ -540,7 +555,7 @@ var roleChecker = {
         },
         Report: {
             General: {
-                Read: ['getPlatform', 'getProposalTypeByPlatformId'],
+                Read: ['getPlatform', 'getProposalTypeByPlatformId', "getAllGameTypes", "getPlayerLevelByPlatformId", "getRewardEventsForPlatform", "getPromoCodeTypes"],
                 TOPUP_REPORT: ['topupReport', "getMerchantTypeList"],
                 PROPOSAL_REPORT: ['getProposalStaticsReport'],
                 PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],

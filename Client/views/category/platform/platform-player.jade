@@ -850,7 +850,7 @@ include modalGameCreditLog
                     tr
                         td {{group.providerGroup.name | translate}}
                         td {{group.rewardAmt}}
-                        td {{group.curConsumption - group.forbidXIMAAmt}} / {{group.targetConsumption}}
+                        td {{group.curConsumption}} / {{group.targetConsumption + group.forbidXIMAAmt}}
 
 //#modalPlayerFeedbackRecord.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
 //    .modal-dialog(style='width:60%;')
@@ -1364,7 +1364,7 @@ include modalGameCreditLog
                                     label {{"Total" | translate}} {{vm.phoneDuplicate.totalCount}} {{"records" | translate}}
                                     i.fa.fa-spin.fa-spinner(ng-show='vm.playerDailyExpenseLog.loading')
                                     table#samePhoneNumTable.common-table.display(style='width:100%')
-                                    #samePhoneNumTablePage
+                                    //#samePhoneNumTablePage
 
 
 
