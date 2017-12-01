@@ -95,6 +95,9 @@ let PlayerServiceImplement = function () {
                 (playerData) => {
                     data.playerId = data.playerId ? data.playerId : playerData.playerId;
                     data.remarks = playerData.partnerId ? localization.translate("PARTNER", conn.lang) + ": " + playerData.partnerId : "";
+                    if(playerData && playerData.partnerId){
+                        data.partnerId = playerData.partnerId;
+                    }
 
                     console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
                     if(data && data.partnerName && data.partnerName != ""){
