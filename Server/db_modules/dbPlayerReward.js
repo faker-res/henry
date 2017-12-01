@@ -3506,9 +3506,11 @@ let dbPlayerReward = {
             }
         ).then(
             rewardEvents => {
-                if (rewardEvents && rewardEvents.length > 0) {
+                if (rewardEvents && rewardEvents.length > 0 && playerObj && playerObj.playerId && data) {
                     rewardEvents.forEach(event => {
-                        dbPlayerInfo.applyRewardEvent(null, playerObj.playerId, event.code, data).catch(errorUtils.reportError);
+                        if (event.code) {
+                            dbPlayerInfo.applyRewardEvent(null, playerObj.playerId, event.code, data).catch(errorUtils.reportError);
+                        }
                     });
                 }
             }
