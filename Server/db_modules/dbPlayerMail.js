@@ -287,23 +287,26 @@ const dbPlayerMail = {
                     return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
                 }
             }
-        ).then(smsData => {
-                if(inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
+        ).then(
+            smsData => {
+                if (inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined") {
                     return dbUtility.getGeoIp(inputData.lastLoginIp).then(
-                        ipData=>{
-                            if(ipData) {
+                        ipData => {
+                            if (ipData) {
                                 inputData.ipArea = ipData;
                             }
                             return smsData;
-                        })
+                        },
+                        error => smsData
+                    );
                 }
                 return smsData;
             }
         ).then(
-            function (retData) {
+            retData => {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
                 if (retData) {
-                    if(inputData){
+                    if (inputData) {
                         if (inputData.playerId) {
                             delete inputData.playerId;
                         }
@@ -320,11 +323,11 @@ const dbPlayerMail = {
                                 inputData.phoneType = queryRes.type;
                             }
 
-                            if(inputData.password){
+                            if (inputData.password) {
                                 delete inputData.password;
                             }
 
-                            if(inputData.confirmPass){
+                            if (inputData.confirmPass) {
                                 delete inputData.confirmPass;
                             }
 
