@@ -2,6 +2,7 @@ let dbConfig = require('./../modules/dbproperties');
 let dbRewardPointsLvlConfig = require('./../db_modules/dbRewardPointsLvlConfig');
 let dbRewardPointsEvent = require('./../db_modules/dbRewardPointsEvent');
 let dbUtility = require('./../modules/dbutility');
+let errorUtils = require('./../modules/errorUtils');
 const constRewardPointsTaskCategory = require('../const/constRewardPointsTaskCategory');
 const constRewardPointsLogCategory = require('../const/constRewardPointsLogCategory');
 const constRewardPointsLogStatus = require('../const/constRewardPointsLogStatus');
@@ -118,7 +119,7 @@ let dbRewardPoints = {
                                 }
                             }
                             dbRewardPoints.applyRewardPoint(playerData._id, rewardPointToApply, eventData, playerRewardPoints).catch(err =>{
-                                console.error(err);
+                                errorUtils.reportError(err);
                             });
                         }
                     }
@@ -175,7 +176,7 @@ let dbRewardPoints = {
                     });
                 }
 
-                // todo :: check if the progress is from previous period, reject as expired if it does
+                // todo :: check if the progress is from previous period, reject as expired if
 
                 if (rewardPoints && rewardPoints.progress) {
                     progressList = rewardPoints.progress;
@@ -219,13 +220,23 @@ let dbRewardPoints = {
         ).then(
             data => {
                 if (!data) {
-                    data = [[], {}];
+                    data = [[], {}, {}];
                 }
 
                 let lastRewardPointLogArr = data[0];
                 let rewardPointConfig = data[1];
                 let playerLevel = data[2];
-                let playerLevelName = playerLevel && playerLevel.name ? playerLevel.name : "";
+                let playerLevelName;
+
+                if (playerLevel && playerLevel.name) {
+                    playerLevelName = playerLevel.name
+                }
+                else {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Player already applied max amount of points for today."
+                    });
+                }
 
                 let todayApplied = 0;
                 if (lastRewardPointLogArr && lastRewardPointLogArr[0]) {
@@ -290,7 +301,7 @@ let dbRewardPoints = {
                 let logDetailProm = Promise.resolve(logDetail);
 
                 // update player point value
-                let updatePointsProm = dbConfig.collection_rewardPoints.findOneAndUpdate({_id: rewardPoints._id}, {points: postUpdatePoint}, {new: true}).exec().lean();
+                let updatePointsProm = dbConfig.collection_rewardPoints.findOneAndUpdate({_id: rewardPoints._id}, {points: postUpdatePoint}, {new: true}).lean();
 
 
 
@@ -322,7 +333,7 @@ let dbRewardPoints = {
                     });
                 }
 
-                dbRewardPoints.createRewardPointsLog(logDetail).catch(err => {console.error(err)});
+                dbRewardPoints.createRewardPointsLog(logDetail).catch(err => {errorUtils.reportError(err);});
 
                 return updatePointProgress;
             }
@@ -451,7 +462,7 @@ function commonLoginProgressUpdate(progress, provider) {
 function getTodayLastRewardPointEventLog(pointObjId) {
     let todayStartTime = dbUtility.getTodaySGTime().startTime;
 
-    dbConfig.collection_rewardPointsLog.find({
+    return dbConfig.collection_rewardPointsLog.find({
         rewardPointsObjId: pointObjId,
         category: {$in: [
             constRewardPointsLogCategory.LOGIN_REWARD_POINTS,
