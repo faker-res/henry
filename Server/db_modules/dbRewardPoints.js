@@ -128,7 +128,7 @@ let dbRewardPoints = {
         )
     },
 
-    applyRewardPoint: (playerObjId, rewardPointsEventObjId, eventData, playerRewardPoints) => {
+    applyRewardPoint: (playerObjId, rewardPointsEventObjId, eventData, playerRewardPoints, rewardPointsConfig) => {
         // eventData and playerRewardPoints are optional parameter
         let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(playerObjId);
         let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointsEventObjId}).lean();
@@ -141,8 +141,65 @@ let dbRewardPoints = {
             getRewardPointsProm = Promise.resolve(playerRewardPoints);
         }
 
+        let pointEvent, rewardPoints, progress;
+
         return Promise.all([getRewardPointsProm, getRewardPointEventProm]).then(
-            // todo::TBC
+            data => {
+                if (!data) {
+                    data = [{}, {}];
+                }
+
+                rewardPoints = data[0];
+                pointEvent = data[1];
+                let progressList = [];
+
+                if (!pointEvent) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Reward point event not found."
+                    });
+                }
+
+                if (event.customPeriodEndTime && new Date(event.customPeriodEndTime) < new Date()) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Reward point event already expired."
+                    });
+                }
+
+                if (event.customPeriodStartTime && new Date(event.customPeriodStartTime) > new Date()) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Reward point event is not started."
+                    });
+                }
+
+                if (rewardPoints && rewardPoints.progress) {
+                    progressList = rewardPoints.progress;
+                }
+
+                progress = getEventProgress(progressList, pointEvent);
+
+                if (!progress.isApplicable) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Not applicable for reward point."
+                    });
+                }
+
+                if (progress.isApplied) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Player already applied for the reward point."
+                    });
+                }
+
+                // todo :: TBC
+
+
+
+            }
+
         )
 
     }
@@ -160,6 +217,10 @@ function isRelevantLoginEventByProvider(event, provider) {
 
     // customPeriodEndTime check
     if (event.customPeriodEndTime && new Date(event.customPeriodEndTime) < new Date()) {
+        return false;
+    }
+
+    if (event.customPeriodStartTime && new Date(event.customPeriodStartTime) > new Date()) {
         return false;
     }
 
