@@ -145,6 +145,10 @@ let dbRewardPoints = {
 
         return Promise.all([getRewardPointsProm, getRewardPointEventProm]).then(
             data => {
+                if (!data) {
+                    data = [{}, {}];
+                }
+
                 rewardPoints = data[0];
                 pointEvent = data[1];
                 let progressList = [];
