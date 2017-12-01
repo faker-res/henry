@@ -1093,7 +1093,7 @@ var dbPlatform = {
 
         return playerProm.then(
             data => {
-                if (data.permission && !data.permission.banReward) {
+                if (data && data.permission && !data.permission.banReward) {
                     //get player's platform reward event data
                     if (data && data.playerLevel) {
                         player = data;
