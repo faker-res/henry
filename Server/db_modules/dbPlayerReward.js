@@ -3508,7 +3508,7 @@ let dbPlayerReward = {
             rewardEvents => {
                 if (rewardEvents && rewardEvents.length > 0 && playerObj && playerObj.playerId && data) {
                     rewardEvents.forEach(event => {
-                        if (event.code) {
+                        if (event && event.code) {
                             dbPlayerInfo.applyRewardEvent(null, playerObj.playerId, event.code, data).catch(errorUtils.reportError);
                         }
                     });
