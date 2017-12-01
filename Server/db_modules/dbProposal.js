@@ -1629,7 +1629,8 @@ var proposal = {
                         'phoneProvince': item.phoneProvince ? item.phoneProvince : '',
                         'phoneCity': item.phoneCity ? item.phoneCity : '',
                         'ipArea': ipArea,
-                        'name': item.name ? item.name : ''
+                        'name': item.name ? item.name : '',
+                        'forbidPlayerFromLogin': item.permission ? item.permission.forbidPlayerFromLogin : false
                     }
                 };
                 return playerUnitData;
@@ -1667,7 +1668,8 @@ var proposal = {
                         'valueScore': item.valueScore ? item.valueScore : '',
                         'phoneProvince': item.phoneProvince ? item.phoneProvince : '',
                         'phoneCity': item.phoneCity ? item.phoneCity : '',
-                        'ipArea': ipArea
+                        'ipArea': ipArea,
+                        'forbidPlayerFromLogin': item.permission ? item.permission.forbidPlayerFromLogin : false
                     },
                 }
                 return partnerUnitData;

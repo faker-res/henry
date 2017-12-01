@@ -2795,7 +2795,7 @@ define(['js/app'], function (myApp) {
                                 return record.data.playerStatus == vm.allPlayersStatusString[item];
                             })[0];
                             record.playerStatusName = $translate("Enable");
-                            if (record.data.playerStatus == 3) {
+                            if (record.data.forbidPlayerFromLogin == true) {
                                 record.playerStatusName = $translate("Disable")
                             }
 
@@ -2826,7 +2826,7 @@ define(['js/app'], function (myApp) {
                                 title: $translate('STATUS'), data: "playerStatusName",
                                 render: function (data, type, row) {
                                     let color = "black";
-                                    if (row.data.playerStatus == '3' || row.data.playerStatus == 3) {
+                                    if (row.data.forbidPlayerFromLogin  == true) {
                                         color = "red";
                                     }
                                     return '<div style="color:' + color + '">' + data + '</div>';
