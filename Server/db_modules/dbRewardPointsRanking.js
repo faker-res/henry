@@ -57,13 +57,17 @@ var dbRewardPointsRanking = {
     },
 
     insertRewardPointsRandom: (data) => {
-        return dbConfig.collection_rewardPoints.insertMany(data, (err, docs) => {
-            if (err) {
-                return err;
-            } else {
-                return docs;
+        return dbConfig.collection_rewardPoints.insertMany(data).then(
+            data =>{
+                return Promise.resolve(data)
+            },
+            err => {
+                return Promise.reject({
+                    name: "DBError",
+                    message: "fail to insert random reward points"
+                })
             }
-        });
+        )
     },
 
 
