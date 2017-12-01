@@ -68,9 +68,9 @@ var dbPlayerRegistrationIntentRecord = {
     createPlayerRegistrationIntentRecord: function (data, status) {
         let proposalData = {
             creator: data.adminInfo || {
-                type: 'player',
-                name: data.name,
-                id: data.playerId
+                type: data.partnerName ? "partner" :'player',
+                name: data.partnerName ? data.partnerName : data.name,
+                id: data.partnerName ? data.partnerId : data.playerId
             }
         };
 
@@ -175,8 +175,16 @@ var dbPlayerRegistrationIntentRecord = {
         let proposalProm;
         let registrationIntentProm;
         let queryObj = {};
-        if(query && query.name){
-            query.playerName = query.name;
+        if(query){
+            if(query.name){
+                query.playerName = query.name;
+            }
+            if(query.password){
+                delete query.password;
+            }
+            if(query.confirmPass){
+                delete query.confirmPass;
+            }
         }
         let updateQuery = {
             status: updateData,
