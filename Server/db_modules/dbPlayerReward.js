@@ -3494,21 +3494,25 @@ let dbPlayerReward = {
     checkAvailableRewardGroupTaskToApply: (platformObjId, playerObj, data) => {
         return dbConfig.collection_rewardType.find({
             isGrouped: true
-        }).lean().then(rewardTypes => {
-            if (rewardTypes && rewardTypes.length > 0) {
-                return dbConfig.collection_rewardEvent.find({
-                    platform: platformObjId,
-                    type: {$in: rewardTypes.map(e => e._id)},
-                    "condition.applyType": constRewardApplyType.AUTO_APPLY,
-                }).lean();
+        }).lean().then(
+            rewardTypes => {
+                if (rewardTypes && rewardTypes.length > 0) {
+                    return dbConfig.collection_rewardEvent.find({
+                        platform: platformObjId,
+                        type: {$in: rewardTypes.map(e => e._id)},
+                        "condition.applyType": constRewardApplyType.AUTO_APPLY,
+                    }).lean();
+                }
             }
-        }).then(rewardEvents => {
-            if (rewardEvents && rewardEvents.length > 0) {
-                rewardEvents.forEach(event => {
-                    dbPlayerInfo.applyRewardEvent(null, playerObj.playerId, event.code, data).catch(errorUtils.reportError);
-                });
+        ).then(
+            rewardEvents => {
+                if (rewardEvents && rewardEvents.length > 0) {
+                    rewardEvents.forEach(event => {
+                        dbPlayerInfo.applyRewardEvent(null, playerObj.playerId, event.code, data).catch(errorUtils.reportError);
+                    });
+                }
             }
-        })
+        )
     }
 };
 
