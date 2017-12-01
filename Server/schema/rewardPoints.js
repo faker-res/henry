@@ -11,9 +11,11 @@ var rewardPoints = new Schema({
     // player name, could be player that does not exist
     playerName: {type: String},
     // player level
-    playerLevel: {type: Schema.ObjectId, ref: 'playerLevel'},
+    playerLevel: {type: Schema.ObjectId, ref: 'playerLevel', index: true},
 
     createTime: {type: Date, default: Date.now},
+
+    lastUpdate: {type: Date, default: Date.now},
     // event details base on category
     progress: {type: Array, default: []}
 });

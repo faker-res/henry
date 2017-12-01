@@ -268,10 +268,106 @@
 
                 // Tab - rewardPointsRanking
                 div(ng-if='vm.selectedRewardPointTab=="rewardPointsRanking" && checkViewPermission("Platform", "rewardPoints", "rewardPointsRanking")')
-
+                    table#rewardRankingTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                    #rewardRankingTablePage
+                    div.block-query.col-md-12.well(style="margin-top:25px !important;")
+                        label {{'FAKE_ACCOUNT_GENERATE' | translate}}
+                        table.simple-table(style="width:100%")
+                            thead
+                                tr
+                                    th {{'ACTION_BUTTON' | translate}}
+                                    th {{'INSERT_FAKE_ACCOUNT' | translate}}
+                                    th {{'FAKE_ACC_WORD_COUNT' | translate}}
+                                    th {{'FAKE_ACC_COMBINATION' | translate}}
+                                    th {{'INSERT_FAKE_REWARD_POINTS' | translate}}
+                                    th {{'INSERT_FAKE_REWARD_COUNT' | translate}}
+                                    th {{'LOWEST_RANDOM_LEVEL' | translate}}
+                            tbody
+                                //tr(ng-repeat='(idx,val) in vm.topupRewardPoints')
+                                tr(ng-repeat="v in vm.playerRankingRandom track by $index")
+                                    td
+                                        i.fa.fa-minus(ng-click='vm.deleteRankingRandomRow($index)' ng-show ='vm.isEditRandomData')
+                                    td
+                                        input.form-control(type='text' ng-disabled ='!vm.isEditRandomData' ng-model='v.prefix')
+                                    td
+                                        input.form-control(style='width:80px;display:inline-block' type='number' ng-disabled ='!vm.isEditRandomData' ng-model='v.minAccountLength')
+                                        div.text-center(style="width:15px;display:inline-block") ~
+                                        input.form-control(style='width:80px;display:inline-block' type='number' ng-disabled ='!vm.isEditRandomData' ng-model='v.maxAccountLength')
+                                    td
+                                        div(style='display:inline-block')
+                                            input.form-control(style='width:50px;display:inline-block' type='checkbox' ng-model='v.isRandomAlphabet' ng-disabled ='!vm.isEditRandomData')
+                                            text(style='display:inline-block') {{'ENGLISH' | translate}}
+                                        div(style='display:inline-block')
+                                            input.form-control(style='width:50px;display:inline-block' type='checkbox' ng-model='v.isRandomDigit' ng-disabled ='!vm.isEditRandomData')
+                                            text(style='display:inline-block') {{'DIGIT' | translate}}
+                                    td
+                                        input.form-control(style='width:40%;display:inline-block' type='number' ng-model='v.minRewardPoints' ng-disabled ='!vm.isEditRandomData')
+                                        div.text-center(style="width:15px;display:inline-block") ~
+                                        input.form-control(style='width:40%;display:inline-block' type='number' ng-model='v.maxRewardPoints' ng-disabled ='!vm.isEditRandomData' required)
+                                    td
+                                        input.form-control(type='number' style='width:80px;display:inline-block;text-align:center' ng-model='v.randomCount' ng-disabled ='!vm.isEditRandomData')
+                                    td
+                                        select.form-control(ng-model='v.lowestLevel', ng-options='v._id as v.name for (i,v) in vm.allPlayerLvl' ng-disabled ='!vm.isEditRandomData')
+                        .pull-right
+                            br
+                            label &nbsp;
+                            button.common-button.margin-right-5.btn.btn-primary(ng-click='vm.isEditRandomData = true' ng-if = "!vm.isEditRandomData && checkViewPermission('Platform', 'rewardPoints', 'Create')") {{'EDIT' | translate}}
+                            button.btn.btn-warning.margin-right-5(ng-click='vm.isEditRandomData = false; vm.playerRankingRandom = vm.playerRankingRandomClone' ng-if = 'vm.isEditRandomData') {{'CANCEL' | translate}}
+                            button.common-button.margin-right-5.btn.btn-primary(ng-click='vm.playerRankingRandom.push({})' ng-if = 'vm.isEditRandomData') {{'ADD' | translate}}
+                            button.btn.btn-success(ng-click='vm.isEditRandomData = false; vm.submitRankingRandomConfig()' ng-if = 'vm.isEditRandomData') {{'CONFIRM' | translate}}
+                            button.btn.btn-success(ng-click='vm.insertRandomData()' ng-if = "!vm.isEditRandomData && checkViewPermission('Platform', 'rewardPoints', 'Create')") {{'RANDOM_GENERATE' | translate}}
+                    br
+                    div(style="margin-top:25px;")
+                        //label {{'INCLUDE_FAKE_ACC' | translate}}
+                        table#rewardRankingRandomTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                        #rewardRankingRandomTablePage
 
                 // Tab - rewardPointsLog
                 div(ng-if='vm.selectedRewardPointTab=="rewardPointsLog" && checkViewPermission("Platform", "rewardPoints", "rewardPointsLog")')
+
+#modalDeleteRewardPointsRandom.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE_REWARD_POINTS" | translate}}  {{vm.selectedRandomRanking.playerName}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"Are you sure you want to delete reward points event"|translate}}
+                                    strong.text-danger &nbsp;{{vm.deletingRewardPointsEvent.rewardTitle}}
+                                    label ?
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click='vm.deleteRandomRanking()') {{"DELETE" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalEditRewardPointsRandom.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"EDIT_REWARD_POINTS_RANKING" | translate}}  {{vm.selectedRandomRanking.playerName}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .form-group.col-md-6
+                                    label.control-label {{"PLAYERNAME" | translate}}
+                                    input.form-control(type="text", ng-model="vm.selectedRandomRanking.playerName")
+                                .form-group.col-md-6
+                                    label.control-label {{"PLAYER_LEVEL" | translate}}
+                                    select.form-control(ng-model='vm.selectedRandomRanking.playerLevel._id', ng-options='v._id as v.name for (i,v) in vm.allPlayerLvl' )
+                            .col-md-12
+                                .form-group.col-md-6
+                                    label.control-label {{"REWARD_POINTS_CURRENT" | translate}}
+                                    input.form-control(type="Number", ng-model="vm.selectedRandomRanking.points")
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click='vm.editRandomRanking()') {{"UPDATE" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalDeleteRewardPointsEvent.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
