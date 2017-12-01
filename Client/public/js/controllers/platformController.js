@@ -7961,15 +7961,17 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
-                vm.isOneSelectedPlayer().finalValidAmount = 0;
-                vm.rewardPointsChange.remark = '';
-                vm.rewardPointsChange.updateAmount = 0;
-
                 if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
                     vm.createPlayerRewardPointsRecord();
-                } else {
+                }
+                if(vm.selectedSinglePlayer.currentPoints === undefined) {
                     vm.getPlayerRewardPointsRecord();
                 }
+
+                vm.rewardPointsChange.finalValidAmount = 0;
+                vm.rewardPointsChange.remark = '';
+                vm.rewardPointsChange.updateAmount = 0;
+                $scope.safeApply();
             };
 
             vm.createPlayerRewardPointsRecord = function () {
@@ -8016,6 +8018,19 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsRecord', sendData, function (data) {
                     vm.isOneSelectedPlayer().currentPoints = data.data.points;
+                    $scope.safeApply();
+                });
+            };
+
+            vm.updatePlayerRewardPointsRecord = function () {
+                let sendData = {
+                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId,
+                    finalValidAmount: vm.rewardPointsChange.finalValidAmount
+                };
+
+                socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function (data) {
+                    let newData = data.data;
+                    vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
             };
