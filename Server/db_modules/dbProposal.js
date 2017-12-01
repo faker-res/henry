@@ -1391,9 +1391,6 @@ var proposal = {
                                             if (item.data && item.data.phoneNumber && !displayPhoneNum) {
                                                 item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                             }
-                                            if (item.data && item.data.userAgent) {
-                                                item.inputDevice = dbutility.getInputDevice(item.data.userAgent, false);
-                                            }
                                             if (item.data && item.data.updateData) {
                                                 switch (Object.keys(item.data.updateData)[0]) {
                                                     case "phoneNumber":
@@ -1955,11 +1952,11 @@ var proposal = {
                                 if (d.topUpTimes) {
                                     returnData[0][i].data.topUpTimes = d.topUpTimes;
                                 }
-                                if (d.userAgent) {
-                                    for (var j = 0; j < d.userAgent.length; j++) {
-                                        returnData[0][i].data.device = dbutility.getInputDevice(d.userAgent, false);
-                                    }
-                                }
+                                // if (d.userAgent) {
+                                //     for (var j = 0; j < d.userAgent.length; j++) {
+                                //         returnData[0][i].data.device = dbutility.getInputDevice(d.userAgent, false);
+                                //     }
+                                // }
                                 if (d.playerLevel) {
                                     returnData[0][i].data.playerLevel = d.playerLevel;
                                 }
@@ -1999,12 +1996,8 @@ var proposal = {
 
                 if(dataArr && dataArr.length > 0){
                     for (var i = 0; i < dataArr.length; i++) {
-                        if (dataArr[i] && dataArr[i].data && dataArr[i].data.userAgent) {
-                            for (var j = 0; j < dataArr[i].data.userAgent.length; j++) {
-                                if (!dataArr[i].data.device) {
-                                    dataArr[i].data.device = dbutility.getInputDevice(dataArr[i].data.userAgent, false);
-                                }
-                            }
+                        if (dataArr[i] && dataArr[i].inputDevice) {
+                            dataArr[i].device = dataArr[i].inputDevice;
                         }
                     }
                 }

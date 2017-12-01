@@ -68,9 +68,9 @@ var dbPlayerRegistrationIntentRecord = {
     createPlayerRegistrationIntentRecord: function (data, status) {
         let proposalData = {
             creator: data.adminInfo || {
-                type: 'player',
-                name: data.name,
-                id: data.playerId
+                type: data.partnerName ? "partner" :'player',
+                name: data.partnerName ? data.partnerName : data.name,
+                id: data.partnerName ? data.partnerId : data.playerId
             }
         };
 
@@ -180,12 +180,30 @@ var dbPlayerRegistrationIntentRecord = {
         }
         let updateQuery = {
             status: updateData,
-            data: query
+            'data.lastLoginIp':  query.lastLoginIp ? query.lastLoginIp : "",
+            'data.playerName':  query.name ? query.name : "",
+            'data.phoneNumber':  query.phoneNumber ? query.phoneNumber : "",
+            'data.captcha':  query.captcha ? query.captcha : "",
+            'data.wechat':  query.wechat ? query.wechat : "",
+            'data.referral':  query.referral ? query.referral : "",
+            'data.qq':  query.name ? query.name : "",
+            'data.realName':  query.name ? query.name : "",
+            'data.name': query.name ? query.name : "",
+            'data.playerName':  query.name ? query.name : "",
         };
         let intentUpdateData = {
             name: query.name,
             status: "",
-            data: query
+            'data.lastLoginIp':  query.lastLoginIp ? query.lastLoginIp : "",
+            'data.playerName':  query.name ? query.name : "",
+            'data.phoneNumber':  query.phoneNumber ? query.phoneNumber : "",
+            'data.captcha':  query.captcha ? query.captcha : "",
+            'data.wechat':  query.wechat ? query.wechat : "",
+            'data.referral':  query.referral ? query.referral : "",
+            'data.qq':  query.name ? query.name : "",
+            'data.realName':  query.name ? query.name : "",
+            'data.name': query.name ? query.name : "",
+            'data.playerName':  query.name ? query.name : "",
         };
 
         queryObj['data.phoneNumber'] = query.phoneNumber ? query.phoneNumber : "";
