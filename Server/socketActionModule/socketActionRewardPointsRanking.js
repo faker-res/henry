@@ -79,7 +79,7 @@ function socketActionRewardPointsRanking(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId);
             if (data && data.condition) {
                 for (let i = 0; i < data.condition.length; i++) {
-                    if (data.condition && data.condition[i].prefix && data.condition[i].minAccountLength && data.condition[i].maxAccountLength
+                    if (data.condition[i] && data.condition[i].prefix && data.condition[i].minAccountLength && data.condition[i].maxAccountLength
                         && (data.condition[i].isRandomAlphabet || data.condition[i].isRandomDigit) && data.condition[i].minRewardPoints
                         && data.condition[i].maxRewardPoints  && data.condition[i].lowestLevel
                         && (data.condition[i].maxRewardPoints >= data.condition[i].minRewardPoints) && (data.condition[i].maxAccountLength >= data.condition[i].minAccountLength)) {
