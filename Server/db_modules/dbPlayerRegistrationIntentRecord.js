@@ -175,35 +175,25 @@ var dbPlayerRegistrationIntentRecord = {
         let proposalProm;
         let registrationIntentProm;
         let queryObj = {};
-        if(query && query.name){
-            query.playerName = query.name;
+        if(query){
+            if(query.name){
+                query.playerName = query.name;
+            }
+            if(query.password){
+                delete query.password;
+            }
+            if(query.confirmPass){
+                delete query.confirmPass;
+            }
         }
         let updateQuery = {
             status: updateData,
-            'data.lastLoginIp':  query.lastLoginIp ? query.lastLoginIp : "",
-            'data.playerName':  query.name ? query.name : "",
-            'data.phoneNumber':  query.phoneNumber ? query.phoneNumber : "",
-            'data.captcha':  query.captcha ? query.captcha : "",
-            'data.wechat':  query.wechat ? query.wechat : "",
-            'data.referral':  query.referral ? query.referral : "",
-            'data.qq':  query.name ? query.name : "",
-            'data.realName':  query.name ? query.name : "",
-            'data.name': query.name ? query.name : "",
-            'data.playerName':  query.name ? query.name : "",
+            data: query
         };
         let intentUpdateData = {
             name: query.name,
             status: "",
-            'data.lastLoginIp':  query.lastLoginIp ? query.lastLoginIp : "",
-            'data.playerName':  query.name ? query.name : "",
-            'data.phoneNumber':  query.phoneNumber ? query.phoneNumber : "",
-            'data.captcha':  query.captcha ? query.captcha : "",
-            'data.wechat':  query.wechat ? query.wechat : "",
-            'data.referral':  query.referral ? query.referral : "",
-            'data.qq':  query.name ? query.name : "",
-            'data.realName':  query.name ? query.name : "",
-            'data.name': query.name ? query.name : "",
-            'data.playerName':  query.name ? query.name : "",
+            data: query
         };
 
         queryObj['data.phoneNumber'] = query.phoneNumber ? query.phoneNumber : "";
