@@ -82,22 +82,134 @@ let dbRewardPoints = {
 
                 let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
 
+                let rewardProgressListChanged = false;
                 for (let i = 0; i < relevantEvents.length; i++) {
                     let event = relevantEvents[i];
                     eventProgress = getEventProgress(rewardProgressList, event);
-                    updateLoginProgressCount(eventProgress, event, provider);
+                    let progressChanged = updateLoginProgressCount(eventProgress, event, provider);
+                    rewardProgressListChanged = rewardProgressListChanged || progressChanged;
                 }
 
+                if (rewardProgressListChanged) {
+                    return dbConfig.collection_rewardPoints.findOneAndUpdate({
+                        platformObjId: playerRewardPoints.platformObjId,
+                        playerObjId: playerRewardPoints.playerObjId
+                    }, {
+                        progress: rewardProgressList
+                    }, {new: true}).lean();
+                }
+                else {
+                    return Promise.resolve(playerRewardPoints);
+                }
+            }
+        ).then(
+            playerRewardPoints => {
                 if (rewardPointsConfig && rewardPointsConfig.applyMethod == 2) {
                     // send to apply
+                    let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
+                    for (let i = 0; i < rewardProgressList.length; i++) {
+                        if (rewardProgressList[i].isApplicable && !rewardProgressList[i].isApplied) {
+                            let eventData;
+                            let rewardPointToApply = rewardProgressList[i].rewardPointsEventObjId || "";
+                            for (let j = 0; j < relevantEvents.length; j++) {
+                                if (relevantEvents[j]._id.toString() === rewardPointToApply.toString()) {
+                                    eventData = relevantEvents[j];
+                                }
+                            }
+                            dbRewardPoints.applyRewardPoint(playerData._id, rewardPointToApply, eventData, playerRewardPoints).catch(err =>{
+                                console.error(err);
+                            });
+                        }
+                    }
                 }
 
+                return playerRewardPoints;
             }
         )
+    },
+
+    applyRewardPoint: (playerObjId, rewardPointsEventObjId, eventData, playerRewardPoints, rewardPointsConfig) => {
+        // eventData and playerRewardPoints are optional parameter
+        let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(playerObjId);
+        let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointsEventObjId}).lean();
+
+        if (eventData) {
+            getRewardPointEventProm = Promise.resolve(eventData);
+        }
+
+        if (playerRewardPoints) {
+            getRewardPointsProm = Promise.resolve(playerRewardPoints);
+        }
+
+        let pointEvent, rewardPoints, progress;
+
+        return Promise.all([getRewardPointsProm, getRewardPointEventProm]).then(
+            data => {
+                if (!data) {
+                    data = [{}, {}];
+                }
+
+                rewardPoints = data[0];
+                pointEvent = data[1];
+                let progressList = [];
+
+                if (!pointEvent) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Reward point event not found."
+                    });
+                }
+
+                if (event.customPeriodEndTime && new Date(event.customPeriodEndTime) < new Date()) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Reward point event already expired."
+                    });
+                }
+
+                if (event.customPeriodStartTime && new Date(event.customPeriodStartTime) > new Date()) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Reward point event is not started."
+                    });
+                }
+
+                if (rewardPoints && rewardPoints.progress) {
+                    progressList = rewardPoints.progress;
+                }
+
+                progress = getEventProgress(progressList, pointEvent);
+
+                if (!progress.isApplicable) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Not applicable for reward point."
+                    });
+                }
+
+                if (progress.isApplied) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Player already applied for the reward point."
+                    });
+                }
+
+                // todo :: TBC
+
+
+
+            }
+
+        )
+
     }
 };
 
 module.exports = dbRewardPoints;
+
+// If any of the function below is more general than I thought, it might need to move to dbCommon or dbUtility,
+// else, it will act as private function of this model
+
 
 function isRelevantLoginEventByProvider(event, provider) {
     // if 'OR' flag added in, this part of the code need some adjustment
@@ -105,6 +217,10 @@ function isRelevantLoginEventByProvider(event, provider) {
 
     // customPeriodEndTime check
     if (event.customPeriodEndTime && new Date(event.customPeriodEndTime) < new Date()) {
+        return false;
+    }
+
+    if (event.customPeriodStartTime && new Date(event.customPeriodStartTime) > new Date()) {
         return false;
     }
 
@@ -140,6 +256,7 @@ function getEventProgress(rewardProgressList, event) {
 
 function updateLoginProgressCount (progress, event, provider) {
     progress = progress || {rewardPointsEventObjId: event._id};
+    let progressUpdated = false;
 
     let eventPeriodStartTime = getEventPeriodStartTime(event);
 
@@ -149,6 +266,7 @@ function updateLoginProgressCount (progress, event, provider) {
         progress.isApplied = false;
         progress.isApplicable = false;
         commonLoginProgressUpdate(progress, provider);
+        progressUpdated = true;
     }
     else {
         let today = dbUtility.getTodaySGTime();
@@ -156,6 +274,7 @@ function updateLoginProgressCount (progress, event, provider) {
             // add progress if necessary
             progress.count++;
             commonLoginProgressUpdate(progress, provider);
+            progressUpdated = true;
         }
         // do nothing otherwise
     }
@@ -163,6 +282,7 @@ function updateLoginProgressCount (progress, event, provider) {
     if (progress.count >= event.consecutiveNumber) {
         progress.isApplicable = true;
     }
+    return progressUpdated;
 }
 
 
