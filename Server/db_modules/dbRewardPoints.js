@@ -1,6 +1,4 @@
 let dbConfig = require('./../modules/dbproperties');
-let mongoose = require('mongoose');
-let ObjectId = mongoose.Types.ObjectId;
 let dbRewardPointsLvlConfig = require('./../db_modules/dbRewardPointsLvlConfig');
 let dbRewardPointsEvent = require('./../db_modules/dbRewardPointsEvent');
 let dbUtility = require('./../modules/dbutility');
@@ -15,10 +13,10 @@ let dbRewardPoints = {
         return dbConfig.collection_rewardPoints.findOne({playerObjId}).lean().then(
             rewardPointsData => {
                 if (!rewardPointsData) {
-                    return createRewardPoints(playerObjId, playerData);
+                    return dbRewardPoints.createRewardPoints(playerObjId, playerData);
                 }
                 else if (playerData && rewardPointsData.playerLevel.toString() !== playerData.playerLevel.toString()) {
-                    return updateRewardPointsPlayerLevel(rewardPointsData._id, playerObjId);
+                    return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, playerObjId);
                 }
 
                 return rewardPointsData;
@@ -62,6 +60,7 @@ let dbRewardPoints = {
 
     updateLoginRewardPointProgress: (playerData, provider) => {
         let relevantEvents = [];
+        let rewardPointsConfig;
 
         let getRewardPointEventsProm = dbRewardPointsEvent.getRewardPointsEventByCategory(playerData.platform, constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);
         let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(playerData._id, playerData);
@@ -71,7 +70,7 @@ let dbRewardPoints = {
             data => {
                 let events = data[0];
                 let playerRewardPoints = data[1];
-                let rewardPointsConfig = data[2];
+                rewardPointsConfig = data[2];
 
                 relevantEvents = events.filter(event => isRelevantLoginEventByProvider(event, provider));
 
@@ -87,7 +86,7 @@ let dbRewardPoints = {
                 let rewardProgressListChanged = false;
                 for (let i = 0; i < relevantEvents.length; i++) {
                     let event = relevantEvents[i];
-                    eventProgress = getEventProgress(rewardProgressList, event);
+                    let eventProgress = getEventProgress(rewardProgressList, event);
                     let progressChanged = updateLoginProgressCount(eventProgress, event, provider);
                     rewardProgressListChanged = rewardProgressListChanged || progressChanged;
                 }
@@ -106,7 +105,7 @@ let dbRewardPoints = {
             }
         ).then(
             playerRewardPoints => {
-                if (rewardPointsConfig && rewardPointsConfig.applyMethod == 2) {
+                if (rewardPointsConfig && Number(rewardPointsConfig.applyMethod) === 2) {
                     // send to apply
                     let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
                     for (let i = 0; i < rewardProgressList.length; i++) {
@@ -176,7 +175,7 @@ let dbRewardPoints = {
                     });
                 }
 
-                // todo :: check if the progress is from previous period
+                // todo :: check if the progress is from previous period, reject as expired if it does
 
                 if (rewardPoints && rewardPoints.progress) {
                     progressList = rewardPoints.progress;
@@ -207,9 +206,9 @@ let dbRewardPoints = {
 
                 let getLastRewardPointLogProm = getTodayLastRewardPointEventLog(rewardPoints._id);
 
-                let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(playerData.platform);
+                let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(rewardPoints.platformObjId);
 
-                let playerLevelProm = dbConfig.collection_playerLevel.findOne({_id: playerData.playerLevel}, {name: 1}).lean();
+                let playerLevelProm = dbConfig.collection_playerLevel.findOne({_id: rewardPoints.playerLevel}, {name: 1}).lean();
 
                 if (rewardPointsConfig) {
                     getRewardPointsLvlConfigProm = Promise.resolve(rewardPointsConfig);
@@ -240,8 +239,8 @@ let dbRewardPoints = {
                     let params = rewardPointConfig.params;
                     for (let i = 0; i < params.length; i++) {
                         let param = params[i];
-                        if (param && param.levelObjId && playerData.playerLevel) {
-                            if (param.levelObjId.toString() === playerData.playerLevel.toString()) {
+                        if (param && param.levelObjId && rewardPoints.playerLevel) {
+                            if (param.levelObjId.toString() === rewardPoints.playerLevel.toString()) {
                                 configLevelParam = param;
                                 break;
                             }
