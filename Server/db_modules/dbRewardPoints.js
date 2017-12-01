@@ -76,10 +76,11 @@ let dbRewardPoints = {
                 relevantEvents = events.filter(event => isRelevantLoginEventByProvider(event, provider));
 
                 if (!relevantEvents || relevantEvents.length < 1) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "No relevant valid event."
-                    });
+                    // return Promise.reject({
+                    //     name: "DataError",
+                    //     message: "No relevant valid event."
+                    // });
+                    relevantEvents = [];
                 }
 
                 let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
@@ -118,9 +119,7 @@ let dbRewardPoints = {
                                     eventData = relevantEvents[j];
                                 }
                             }
-                            dbRewardPoints.applyRewardPoint(playerData._id, rewardPointToApply, eventData, playerRewardPoints).catch(err =>{
-                                errorUtils.reportError(err);
-                            });
+                            dbRewardPoints.applyRewardPoint(playerData._id, rewardPointToApply, eventData, playerRewardPoints).catch(errorUtils.reportError);
                         }
                     }
                 }
@@ -162,14 +161,14 @@ let dbRewardPoints = {
                     });
                 }
 
-                if (event.customPeriodEndTime && new Date(event.customPeriodEndTime) < new Date()) {
+                if (pointEvent.customPeriodEndTime && new Date(pointEvent.customPeriodEndTime) < new Date()) {
                     return Promise.reject({
                         name: "DataError",
                         message: "Reward point event already expired."
                     });
                 }
 
-                if (event.customPeriodStartTime && new Date(event.customPeriodStartTime) > new Date()) {
+                if (pointEvent.customPeriodStartTime && new Date(pointEvent.customPeriodStartTime) > new Date()) {
                     return Promise.reject({
                         name: "DataError",
                         message: "Reward point event is not started."
@@ -333,7 +332,7 @@ let dbRewardPoints = {
                     });
                 }
 
-                dbRewardPoints.createRewardPointsLog(logDetail).catch(err => {errorUtils.reportError(err);});
+                dbRewardPoints.createRewardPointsLog(logDetail).catch(errorUtils.reportError);
 
                 return updatePointProgress;
             }
@@ -411,7 +410,7 @@ function updateLoginProgressCount (progress, event, provider) {
     }
     else {
         let today = dbUtility.getTodaySGTime();
-        if (!progress.isApplicable && progress.lastUpdateTime < today.startTime && progress.count < event.consecutiveNumber) {
+        if (!progress.isApplicable && progress.lastUpdateTime < today.startTime && progress.count < event.consecutiveCount) {
             // add progress if necessary
             progress.count++;
             commonLoginProgressUpdate(progress, provider);
@@ -420,7 +419,7 @@ function updateLoginProgressCount (progress, event, provider) {
         // do nothing otherwise
     }
 
-    if (progress.count >= event.consecutiveNumber) {
+    if (progress.count >= event.consecutiveCount) {
         progress.isApplicable = true;
     }
     return progressUpdated;
