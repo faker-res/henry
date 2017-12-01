@@ -2954,7 +2954,7 @@ define(['js/app'], function (myApp) {
                             record.topUpTimes = (record.data && record.data.topUpTimes) ? record.data.topUpTimes : 0;
                             record.smsCode = (record.data && record.data.smsCode) ? record.data.smsCode : "";
                             record.remarks = (record.data && record.data.remarks) ? record.data.remarks : "";
-                            record.inputDevice = (record.inputDevice != "undefined" && record.inputDevice != "null") ? $translate($scope.constPlayerRegistrationInterface[record.inputDevice]) : "";
+                            record.device = (record.inputDevice != "undefined" && record.inputDevice != "null") ? $translate($scope.constPlayerRegistrationInterface[record.inputDevice]) : "";
                             record.promoteWay = (record.data && record.data.promoteWay) ? record.data.promoteWay : "";
                             record.csOfficer = (record.data && record.data.csOfficer) ? record.data.csOfficer : "";
                             record.registrationTime = (record.data && record.data.registrationTime) ? vm.dateReformat(record.data.registrationTime) : "";
@@ -2977,7 +2977,7 @@ define(['js/app'], function (myApp) {
                             {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
                             {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
                             {'sortCol': 'remarks', bSortable: true, 'aTargets': [9]},
-                            {'sortCol': 'inputDevice', bSortable: true, 'aTargets': [10]},
+                            {'sortCol': 'device', bSortable: true, 'aTargets': [10]},
                             {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [12]},
                             {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
                         ],
@@ -3003,7 +3003,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
                             {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
                             {title: $translate('REMARKS'), data: "remarks"},
-                            {title: $translate('DEVICE'), data: "inputDevice"},
+                            {title: $translate('DEVICE'), data: "device"},
                             {
                                 title: $translate('Function'),
                                 data: "data.phoneNumber",
@@ -3695,7 +3695,7 @@ define(['js/app'], function (myApp) {
                                 record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
                                 record.smsCode = record.data.smsCode ? record.data.smsCode : "";
                                 record.remarks = record.data.remarks ? record.data.remarks : "";
-                                record.inputDevice = (record.inputDevice != "undefined" && record.inputDevice != "null") ? $translate($scope.constPlayerRegistrationInterface[record.inputDevice]) : "";
+                                record.device = (record.inputDevice != "undefined" && record.inputDevice != "null") ? $translate($scope.constPlayerRegistrationInterface[record.inputDevice]) : "";
                                 record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
                                 record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
                                 record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
@@ -3747,7 +3747,7 @@ define(['js/app'], function (myApp) {
                             {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
                             {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
                             {'sortCol': 'remarks', bSortable: true, 'aTargets': [9]},
-                            {'sortCol': 'inputDevice', bSortable: true, 'aTargets': [10]},
+                            {'sortCol': 'device', bSortable: true, 'aTargets': [10]},
                             {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [12]},
                             {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
                         ],
@@ -3774,7 +3774,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
                             {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
                             {title: $translate('REMARKS'), data: "remarks"},
-                            {title: $translate('DEVICE'), data: "inputDevice"},
+                            {title: $translate('DEVICE'), data: "device"},
                             {
                                 title: $translate('Function'),
                                 data: "data.phoneNumber",
