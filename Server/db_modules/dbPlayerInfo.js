@@ -8574,7 +8574,7 @@ let dbPlayerInfo = {
         return Q.all([playerProm, recordProm]).then(
             function (data) {
                 // Check player permission to apply this reward
-                if (data && data[0] && data[0].permission.banReward) {
+                if (data && data[0] && data[0].permission && data[0].permission.banReward) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
                         name: "DataError",
@@ -10122,7 +10122,7 @@ let dbPlayerInfo = {
         return Q.all([playerProm, recordProm]).then(
             data => {
                 // Check player permission to apply this reward
-                if (data && data[0] && data[0].permission.banReward) {
+                if (data && data[0] && data[0].permission && data[0].permission.banReward) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
                         name: "DataError",

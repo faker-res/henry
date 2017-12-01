@@ -228,7 +228,7 @@ var dbPlayerConsumptionWeekSummary = {
                     var proms = [];
                     players.forEach(
                         function (playerData) {
-                            if (playerData && !(playerData.permission.banReward)) {
+                            if (playerData && playerData.permission && !(playerData.permission.banReward)) {
                                 //check if platform only allow new system users
                                 if( platformData && platformData.onlyNewCanLogin && !playerData.isNewSystem ){
                                     return;
