@@ -176,6 +176,15 @@ var dbUtility = {
         };
     },
 
+    getCurrentYearSGTime: function () {
+        var startTime = moment().tz('Asia/Singapore').startOf('year').toDate();
+        var endTime = moment().tz('Asia/Singapore').endOf('year').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getCurrentBiWeekSGTIme: function () {
         let startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
         let endTime = moment(startTime).add(14, 'days').toDate();

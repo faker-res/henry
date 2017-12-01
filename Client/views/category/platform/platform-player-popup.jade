@@ -841,7 +841,7 @@
                         tbody(ng-if='vm.playerFeedbackData.data.length>0')
                             tr(ng-repeat='(i,v) in vm.playerFeedbackData.data')
                                 td(style='min-width:150px;') {{vm.dateReformat(v.createTime)}}
-                                td {{(v.resultName || v.result) | translate}}
+                                td {{v.result$}}
                                 td(style='white-space: normal;word-wrap: break-word;max-width: 300px;') {{v.content}}
                                 td {{v.adminId.adminName}}
                                 td {{v.topic}}
