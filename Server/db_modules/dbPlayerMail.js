@@ -16,6 +16,8 @@ const queryPhoneLocation = require('query-mobile-phone-area');
 const constProposalStatus = require('../const/constProposalStatus');
 const constRegistrationIntentRecordStatus = require('../const/constRegistrationIntentRecordStatus');
 const dbUtility = require('./../modules/dbutility');
+const constProposalEntryType = require('../const/constProposalEntryType');
+const constProposalUserType = require('../const/constProposalUserType');
 
 const dbPlayerMail = {
 
@@ -197,14 +199,15 @@ const dbPlayerMail = {
         let platform;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
 
-        if (inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined") {
-            dbUtility.getGeoIp(inputData.lastLoginIp).then(
-                ipData => {
-                    if (inputData) {
-                        inputData.ipArea = ipData;
-                    }
-                })
-        }
+
+        // if(inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
+        //     dbUtility.getGeoIp(inputData.lastLoginIp).then(
+        //         ipData=>{
+        //             if(inputData) {
+        //                 inputData.ipArea = ipData;
+        //             }
+        //         })
+        // }
 
         return getPlatform.then(
             function (platformData) {
@@ -285,37 +288,81 @@ const dbPlayerMail = {
                 }
             }
         ).then(
-            function (retData) {
+            smsData => {
+                if (inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined") {
+                    return dbUtility.getGeoIp(inputData.lastLoginIp).then(
+                        ipData => {
+                            if (ipData) {
+                                inputData.ipArea = ipData;
+                            }
+                            return smsData;
+                        },
+                        error => smsData
+                    );
+                }
+                return smsData;
+            }
+        ).then(
+            retData => {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
                 if (retData) {
-                    if (inputData && inputData.playerId) {
-                        delete inputData.playerId;
-                    }
-
-                    //if (purpose == constSMSPurpose.REGISTRATION) {
-                    inputData = inputData || {};
-                    inputData.smsCode = code;
-
-                    if (inputData.phoneNumber) {
-                        var queryRes = queryPhoneLocation(inputData.phoneNumber);
-                        if (queryRes) {
-                            inputData.phoneProvince = queryRes.province;
-                            inputData.phoneCity = queryRes.city;
-                            inputData.phoneType = queryRes.type;
+                    if (inputData) {
+                        if (inputData.playerId) {
+                            delete inputData.playerId;
                         }
 
-                        let proposal = {data: inputData};
-                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, proposal, constProposalStatus.PENDING);
-                    }
+                        //if (purpose == constSMSPurpose.REGISTRATION) {
+                        //inputData = inputData || {};
+                        inputData.smsCode = code;
 
-                    let newIntentData = {
-                        data: inputData,
-                        status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
-                        name: inputData.name
-                    };
-                    let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                    return newRecord.save();
+                        if (inputData.phoneNumber) {
+                            var queryRes = queryPhoneLocation(inputData.phoneNumber);
+                            if (queryRes) {
+                                inputData.phoneProvince = queryRes.province;
+                                inputData.phoneCity = queryRes.city;
+                                inputData.phoneType = queryRes.type;
+                            }
+
+                            if (inputData.password) {
+                                delete inputData.password;
+                            }
+
+                            if (inputData.confirmPass) {
+                                delete inputData.confirmPass;
+                            }
+
+                            let proposalData = {
+                                creator: inputData.adminInfo || {
+                                    type: 'player',
+                                    name: inputData.name,
+                                    id: inputData.playerId ? inputData.playerId : ""
+                                }
+                            };
+
+                            let newProposal = {
+                                creator: proposalData.creator,
+                                data: inputData,
+                                entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                                inputDevice: inputDevice ? inputDevice : 0
+                            };
+
+                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
+                        }
+
+                        let newIntentData = {
+                            data: inputData,
+                            status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
+                            name: inputData.name
+                        };
+                        let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+                        return newRecord.save().then(data => {
+                            return true;
+                        });
+                    }
                 }
+
+                return true;
             }
         );
     },
