@@ -56,6 +56,7 @@ var constProposalEntryType = require('../const/constProposalEntryType');
 var errorUtils = require("../modules/errorUtils.js");
 var SMSSender = require('../modules/SMSSender');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
+var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
@@ -122,13 +123,26 @@ let dbPlayerInfo = {
     /**
      * Update player's reward points and create log
      */
-    updatePlayerRewardPointsRecord: function (rewardPointsObjId, finalValidAmount) {
+    updatePlayerRewardPointsRecord: function (rewardPointsObjId, finalValidAmount, data) {
         return dbconfig.collection_rewardPoints.findOneAndUpdate(
             {
                 _id: rewardPointsObjId
             },
             {
                 points: finalValidAmount
+            }
+        ).lean().then(
+            rewardPoints => {
+                if (!rewardPoints) {
+                    return Q.reject({name: "DataError", message: "Can't update player reward points: player not found."});
+                }
+                let category = constRewardPointsLogCategory.POINT_INCREMENT;
+                let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
+                dbLogger.createRewardPointsChangeLog(rewardPointsObjId, rewardPoints.playerName, rewardPoints.playerLevel, finalValidAmount, data, category, userAgent);
+                return rewardPoints;
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error updating player reward points record.", error: error});
             }
         );
     },

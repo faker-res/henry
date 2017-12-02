@@ -8030,7 +8030,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.upsertPlayerInfoRewardPointsObjId = function (playerId, platformId, rewardPointsObjId) {
-
                 let sendData = {
                     playerId: playerId,
                     platformId: platformId,
@@ -8056,11 +8055,17 @@ define(['js/app'], function (myApp) {
             vm.updatePlayerRewardPointsRecord = function () {
                 let sendData = {
                     rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId,
-                    finalValidAmount: vm.rewardPointsChange.finalValidAmount
+                    finalValidAmount: vm.rewardPointsChange.finalValidAmount,
+                    data: {
+                        oldPoints: vm.isOneSelectedPlayer().currentPoints,
+                        amount: vm.rewardPointsChange.updateAmount,
+                        creator: authService.adminName,
+                        remark: vm.rewardPointsChange.remark,
+                        status: 1
+                    }
                 };
 
                 socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function (data) {
-                    let newData = data.data;
                     vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
