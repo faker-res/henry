@@ -129,7 +129,8 @@ let dbPlayerInfo = {
                 _id: rewardPointsObjId
             },
             {
-                points: finalValidAmount
+                points: finalValidAmount,
+                lastUpdate: Date.now()
             }
         ).lean().then(
             rewardPoints => {

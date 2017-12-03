@@ -8012,7 +8012,7 @@ define(['js/app'], function (myApp) {
                         playerId: vm.isOneSelectedPlayer()._id,
                         points: 0,
                         playerName: vm.isOneSelectedPlayer().name,
-                        playerLevel: vm.isOneSelectedPlayer().playerLevel.value,
+                        playerLevel: vm.isOneSelectedPlayer().playerLevel._id,
                         progress: []
                     }
                 };
