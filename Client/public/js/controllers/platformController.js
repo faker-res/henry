@@ -17396,7 +17396,7 @@ define(['js/app'], function (myApp) {
             }
 
             function updateProviderGroup() {
-                let totalProviderCount = vm.allGameProvider.length;
+                let totalProviderCount = vm.platformProviderList.length;
                 let localProviderCount = vm.gameProviderGroup.reduce(
                     (a, b) => {
                         let legnthB = b.providers && b.providers.length || 0;
@@ -17404,7 +17404,7 @@ define(['js/app'], function (myApp) {
                     }, 0
                 );
 
-                if (totalProviderCount != localProviderCount) {
+                if (totalProviderCount > localProviderCount) {
                     vm.providerGroupConfig.showWarning = true;
                 }
                 else {
