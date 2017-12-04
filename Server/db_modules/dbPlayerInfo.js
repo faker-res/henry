@@ -337,7 +337,13 @@ let dbPlayerInfo = {
                             }).then(
                                 data => {
                                     if (data) {
-                                        inputData.partnerId = data.partnerId;
+                                        if(data.partnerId){
+                                            inputData.partnerId = data.partnerId;
+                                        }
+                                        if(data.partnerName){
+                                            inputData.partnerName = data.partnerName;
+                                        }
+
                                         return inputData;
                                     } else {
                                         delete inputData.partner;
@@ -360,7 +366,12 @@ let dbPlayerInfo = {
                                     data => {
                                         if (data) {
                                             inputData.partner = data._id;
-                                            inputData.partnerId = data.partnerId;
+                                            if(data.partnerId){
+                                                inputData.partnerId = data.partnerId;
+                                            }
+                                            if(data.partnerName){
+                                                inputData.partnerName = data.partnerName;
+                                            }
                                             return inputData;
                                         }
                                         else {
@@ -467,7 +478,8 @@ let dbPlayerInfo = {
                         pdata => {
                             pdata.name = pdata.name.replace(platformPrefix, "");
                             pdata.platformId = platformId;
-                            pdata.partnerId = inputData.partnerId
+                            pdata.partnerId = inputData.partnerId;
+                            pdata.partnerName = inputData.partnerName;
                             return pdata;
                         }
                     )
@@ -762,7 +774,7 @@ let dbPlayerInfo = {
 
         if (env.mode !== "local" && env.mode !== "qa") {
             // ignore for unit test
-            if (playerdata.name.length < 6 || playerdata.name.length > 20 || !playerdata.name.match(alphaNumRegex)) {
+            if (/*playerdata.name.length < 6 || playerdata.name.length > 20 ||*/ !playerdata.name.match(alphaNumRegex)) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
@@ -1783,6 +1795,13 @@ let dbPlayerInfo = {
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
 
+    updatePlayerForbidRewardPointsEvent: function (playerObjId, forbidRewardPointsEvent) {
+        let updateData = {};
+        if (forbidRewardPointsEvent) {
+            updateData.forbidRewardPointsEvent = forbidRewardPointsEvent;
+        }
+        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
+    },
     /**
      * Delete playerInfo by object _id of the playerInfo schema
      * @param {array}  playerObjIds - The object _ids of the players
@@ -5617,7 +5636,7 @@ let dbPlayerInfo = {
      * @param {String|ObjectId} playerObjId
      * @returns {Promise.<*>}
      */
-    manualPlayerLevelUp: function (playerObjId, platformObjId) {
+    manualPlayerLevelUp: function (playerObjId, platformObjId, userAgent) {
 
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
@@ -5640,7 +5659,7 @@ let dbPlayerInfo = {
                                 if (!player) {
                                     return Q.reject({name: "DataError", message: "Cannot find player"});
                                 }
-                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true);
+                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true, userAgent);
                             },
                             function () {
                                 return Q.reject({name: "DataError", message: "Cannot find player"});
@@ -5716,7 +5735,7 @@ let dbPlayerInfo = {
      * #param {String} [checkPeriod] - For level down only. We will only consider weekly conditions if checkPeriod is 'WEEK'.
      * @returns {Promise.<*>}
      */
-    checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod, showReject) {
+    checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod, showReject, userAgent) {
         if (!player) {
             throw Error("player was not provided!");
         }
@@ -5941,7 +5960,9 @@ let dbPlayerInfo = {
                                         platformObjId: playerObj.platform
                                     };
 
-                                    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {data: proposalData}).then(
+                                    let inputDevice = dbUtility.getInputDevice(userAgent,false);
+
+                                    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {data: proposalData, inputDevice: inputDevice}).then(
                                         createdMigrationProposal => {
                                             return dbconfig.collection_proposalType.findOne({
                                                 platformId: playerObj.platform,
@@ -11561,6 +11582,39 @@ let dbPlayerInfo = {
                 return {data: logs, size: count};
             }
         )
+    },
+
+    getForbidRewardPointsEventLog: function (playerId, startTime, endTime, index, limit) {
+        let logProm = dbconfig.collection_playerForbidRewardPointsEventLog.find({
+            player: playerId,
+            createTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            }
+        }).skip(index).limit(limit).sort({createTime: -1}).populate(
+            {path: "admin", select: 'adminName', model: dbconfig.collection_admin}
+        ).lean();
+        let countProm = dbconfig.collection_playerForbidRewardPointsEventLog.find({player: playerId}).count();
+
+        return Promise.all([logProm, countProm]).then(
+            data => {
+                let logs = data[0];
+                let count = data[1];
+
+                return {data: logs, size: count};
+            }
+        )
+    },
+
+    createForbidRewardPointsEventLog: function (playerId, adminId, forbidRewardPointsEventNames, remark) {
+        remark = remark || "";
+        let logDetails = {
+            player: playerId,
+            admin: adminId,
+            forbidRewardPointsEventNames: forbidRewardPointsEventNames,
+            remark: remark
+        };
+        return dbconfig.collection_playerForbidRewardPointsEventLog(logDetails).save().then().catch(errorUtils.reportError);
     },
 
     createForbidGameLog: function (playerId, adminId, forbidGameNames, remark) {

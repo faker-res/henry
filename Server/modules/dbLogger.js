@@ -328,7 +328,7 @@ var dbLogger = {
                     dbconfig.collection_smsLog.update({_id: smsLog._id}, {used: true}).exec();
                 }
             }
-        )
+        ).catch(errorUtils.reportError);
     },
 
     updateSmsLogProposalId: (tel, message, proposalId) => {

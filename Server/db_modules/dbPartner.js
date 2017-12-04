@@ -132,7 +132,7 @@ let dbPartner = {
         partnerdata.isNewSystem = true;
         // Player name should be alphanumeric and max 15 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
-        if (partnerdata.partnerName.length > 20 || !partnerdata.partnerName.match(alphaNumRegex)) {
+        if (/*partnerdata.partnerName.length > 20 ||*/ !partnerdata.partnerName.match(alphaNumRegex)) {
             // ignore for unit test
             if (env.mode !== "local" && env.mode !== "qa") {
                 return Q.reject({
@@ -151,6 +151,14 @@ let dbPartner = {
                     // attach platform prefix to player name if available
                     if (platform.partnerPrefix) {
                         partnerdata.partnerName = platform.partnerPrefix + partnerdata.partnerName;
+                    }
+
+                    if ((platformData.partnerNameMaxLength > 0 && partnerdata.partnerName.length > platformData.partnerNameMaxLength) || (platformData.partnerNameMinLength > 0 && partnerdata.partnerName.length < platformData.partnerNameMinLength)) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Partner Name length is not valid"
+                        });
+                        return Promise.reject(new Error());
                     }
 
                     if (platformData.allowSamePhoneNumberToRegister === true) {

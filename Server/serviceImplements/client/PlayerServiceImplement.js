@@ -94,7 +94,7 @@ let PlayerServiceImplement = function () {
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode], isValidData, true, true, true).then(
                 (playerData) => {
                     data.playerId = data.playerId ? data.playerId : playerData.playerId;
-                    data.remarks = playerData.partnerId ? localization.translate("PARTNER", conn.lang) + ": " + playerData.partnerId : "";
+                    data.remarks = playerData.partnerName ? localization.translate("PARTNER", conn.lang) + ": " + playerData.partnerName : "";
                     if(playerData && playerData.partnerId){
                         data.partnerId = playerData.partnerId;
                     }
@@ -898,6 +898,12 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData);
     };
 
+    this.verifyPhoneNumberBySMSCode.expectsData = 'smsCode: String';
+    this.verifyPhoneNumberBySMSCode.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.smsCode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.verifyPhoneNumberBySMSCode, [conn.playerId, data.smsCode], isValidData);
+    };
+
     this.authenticate.expectsData = 'playerId: String, token: String';
     this.authenticate.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.playerId && data.token);
@@ -1024,8 +1030,9 @@ let PlayerServiceImplement = function () {
 
 
     this.manualPlayerLevelUp.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
         var isValidData = Boolean(data.playerObjId && data.platformObjId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [data.playerObjId, data.platformObjId], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [data.playerObjId, data.platformObjId, userAgent], isValidData, false, false, true);
     };
 
     this.getWithdrawalInfo.onRequest = function (wsFunc, conn, data) {
