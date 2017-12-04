@@ -898,6 +898,13 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData);
     };
 
+    this.verifyPhoneNumberBySMSCode.expectsData = 'smsCode: String';
+    this.verifyPhoneNumberBySMSCode.onRequest = function (wsFunc, conn, data) {
+        console.log('here')
+        let isValidData = Boolean(data && data.smsCode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.verifyPhoneNumberBySMSCode, [conn.playerId, data.smsCode], isValidData);
+    };
+
     this.authenticate.expectsData = 'playerId: String, token: String';
     this.authenticate.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.playerId && data.token);
