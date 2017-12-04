@@ -75,6 +75,7 @@ let dbRewardTask = require('./../db_modules/dbRewardTask');
 let dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
 let dbPlayerCredibility = require('./../db_modules/dbPlayerCredibility');
 let dbPartner = require('../db_modules/dbPartner');
+let dbRewardPoints = require('../db_modules/dbRewardPoints');
 
 let PLATFORM_PREFIX_SEPARATOR = '';
 
@@ -3554,6 +3555,12 @@ let dbPlayerInfo = {
                                 clientDomain: playerData.clientDomain ? playerData.clientDomain : "",
                                 userAgent: uaObj
                             };
+
+                            // add a check if to
+                            if (platformObj.usePointSystem) {
+                                dbRewardPoints.updateLoginRewardPointProgress(playerObj).catch(errorUtils.reportError);
+                            }
+
                             Object.assign(recordData, geoInfo);
                             var record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
@@ -8033,6 +8040,10 @@ let dbPlayerInfo = {
                 bTransferIn = (data && ((parseFloat(data.playerCredit) + parseFloat(data.rewardCredit)) >= 1)) ? true : false;
                 //console.log("bTransferIn:", bTransferIn, data);
                 if (data && gameData && gameData.provider) {
+                    if (gameData.provider._id && playerData && playerData.platform && playerData.platform.usePointSystem) {
+                        dbRewardPoints.updateLoginRewardPointProgress(playerData, gameData.provider._id).catch(errorUtils.reportError);
+                    }
+
                     providerData = gameData.provider;
                     //transfer in to current provider
                     if (bTransferIn) {
