@@ -336,7 +336,13 @@ let dbPlayerInfo = {
                             }).then(
                                 data => {
                                     if (data) {
-                                        inputData.partnerId = data.partnerId;
+                                        if(data.partnerId){
+                                            inputData.partnerId = data.partnerId;
+                                        }
+                                        if(data.partnerName){
+                                            inputData.partnerName = data.partnerName;
+                                        }
+
                                         return inputData;
                                     } else {
                                         delete inputData.partner;
@@ -359,7 +365,12 @@ let dbPlayerInfo = {
                                     data => {
                                         if (data) {
                                             inputData.partner = data._id;
-                                            inputData.partnerId = data.partnerId;
+                                            if(data.partnerId){
+                                                inputData.partnerId = data.partnerId;
+                                            }
+                                            if(data.partnerName){
+                                                inputData.partnerName = data.partnerName;
+                                            }
                                             return inputData;
                                         }
                                         else {
@@ -466,7 +477,8 @@ let dbPlayerInfo = {
                         pdata => {
                             pdata.name = pdata.name.replace(platformPrefix, "");
                             pdata.platformId = platformId;
-                            pdata.partnerId = inputData.partnerId
+                            pdata.partnerId = inputData.partnerId;
+                            pdata.partnerName = inputData.partnerName;
                             return pdata;
                         }
                     )
@@ -5621,7 +5633,7 @@ let dbPlayerInfo = {
      * @param {String|ObjectId} playerObjId
      * @returns {Promise.<*>}
      */
-    manualPlayerLevelUp: function (playerObjId, platformObjId) {
+    manualPlayerLevelUp: function (playerObjId, platformObjId, userAgent) {
 
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
@@ -5644,7 +5656,7 @@ let dbPlayerInfo = {
                                 if (!player) {
                                     return Q.reject({name: "DataError", message: "Cannot find player"});
                                 }
-                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true);
+                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true, userAgent);
                             },
                             function () {
                                 return Q.reject({name: "DataError", message: "Cannot find player"});
@@ -5720,7 +5732,7 @@ let dbPlayerInfo = {
      * #param {String} [checkPeriod] - For level down only. We will only consider weekly conditions if checkPeriod is 'WEEK'.
      * @returns {Promise.<*>}
      */
-    checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod, showReject) {
+    checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod, showReject, userAgent) {
         if (!player) {
             throw Error("player was not provided!");
         }
@@ -5945,7 +5957,9 @@ let dbPlayerInfo = {
                                         platformObjId: playerObj.platform
                                     };
 
-                                    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {data: proposalData}).then(
+                                    let inputDevice = dbUtility.getInputDevice(userAgent,false);
+
+                                    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {data: proposalData, inputDevice: inputDevice}).then(
                                         createdMigrationProposal => {
                                             return dbconfig.collection_proposalType.findOne({
                                                 platformId: playerObj.platform,

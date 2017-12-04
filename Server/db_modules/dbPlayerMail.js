@@ -19,6 +19,8 @@ const dbUtility = require('./../modules/dbutility');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constServerCode = require('../const/constServerCode');
+const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+const rsaCrypto = require('./../modules/rsaCrypto');
 
 const dbPlayerMail = {
 
@@ -236,7 +238,26 @@ const dbPlayerMail = {
                         format: "sms"
                     }).lean();
 
-                    return Promise.all([smsChannelProm, smsVerificationLogProm, messageTemplateProm]);
+                    let validPhoneNumberProm = Promise.resolve({isPhoneNumberValid: true});
+                    if (purpose === constSMSPurpose.REGISTRATION) {
+                        if (!(platform.whiteListingPhoneNumbers
+                            && platform.whiteListingPhoneNumbers.length > 0
+                            && platform.whiteListingPhoneNumbers.indexOf(telNum) > -1)) {
+                            if (platform.allowSamePhoneNumberToRegister === true) {
+                                validPhoneNumberProm =  dbPlayerInfo.isExceedPhoneNumberValidToRegister({
+                                    phoneNumber: rsaCrypto.encrypt(telNum),
+                                    platform: platformObjId
+                                }, platform.samePhoneNumberRegisterCount);
+                            } else {
+                                validPhoneNumberProm = dbPlayerInfo.isPhoneNumberValidToRegister({
+                                    phoneNumber: rsaCrypto.encrypt(telNum),
+                                    platform: platformObjId
+                                });
+                            }
+                        }
+                    }
+
+                    return Promise.all([smsChannelProm, smsVerificationLogProm, messageTemplateProm, validPhoneNumberProm]);
                 } else {
                     return Q.reject({
                         name: "DataError",
@@ -250,6 +271,11 @@ const dbPlayerMail = {
                     channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : 2;
                     lastMinuteHistory = data[1];
                     template = data[2];
+                    phoneValidation = data[3];
+
+                    if (!phoneValidation || !phoneValidation.isPhoneNumberValid) {
+                        return Promise.reject({message: "This phone number is already used. Please insert other phone number."});
+                    }
 
                     if (!template) {
                         return Q.reject({message: 'Template not set for current platform'});
@@ -307,59 +333,59 @@ const dbPlayerMail = {
             retData => {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
                 if (retData) {
-                    if (inputData) {
-                        if (inputData.playerId) {
-                            delete inputData.playerId;
-                        }
-
-                        //if (purpose == constSMSPurpose.REGISTRATION) {
-                        //inputData = inputData || {};
-                        inputData.smsCode = code;
-
-                        if (inputData.phoneNumber) {
-                            var queryRes = queryPhoneLocation(inputData.phoneNumber);
-                            if (queryRes) {
-                                inputData.phoneProvince = queryRes.province;
-                                inputData.phoneCity = queryRes.city;
-                                inputData.phoneType = queryRes.type;
+                    if (purpose && purpose == constSMSPurpose.REGISTRATION) {
+                        if (inputData) {
+                            if (inputData.playerId) {
+                                delete inputData.playerId;
                             }
+                            //inputData = inputData || {};
+                            inputData.smsCode = code;
 
-                            if (inputData.password) {
-                                delete inputData.password;
-                            }
-
-                            if (inputData.confirmPass) {
-                                delete inputData.confirmPass;
-                            }
-
-                            let proposalData = {
-                                creator: inputData.adminInfo || {
-                                    type: 'player',
-                                    name: inputData.name,
-                                    id: inputData.playerId ? inputData.playerId : ""
+                            if (inputData.phoneNumber) {
+                                var queryRes = queryPhoneLocation(inputData.phoneNumber);
+                                if (queryRes) {
+                                    inputData.phoneProvince = queryRes.province;
+                                    inputData.phoneCity = queryRes.city;
+                                    inputData.phoneType = queryRes.type;
                                 }
-                            };
 
-                            let newProposal = {
-                                creator: proposalData.creator,
+                                if (inputData.password) {
+                                    delete inputData.password;
+                                }
+
+                                if (inputData.confirmPass) {
+                                    delete inputData.confirmPass;
+                                }
+
+                                let proposalData = {
+                                    creator: inputData.adminInfo || {
+                                        type: 'player',
+                                        name: inputData.name,
+                                        id: inputData.playerId ? inputData.playerId : ""
+                                    }
+                                };
+
+                                let newProposal = {
+                                    creator: proposalData.creator,
+                                    data: inputData,
+                                    entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                    userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                                    inputDevice: inputDevice ? inputDevice : 0
+                                };
+
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
+                            }
+
+                            let newIntentData = {
                                 data: inputData,
-                                entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-                                userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                                inputDevice: inputDevice ? inputDevice : 0
+                                status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
+                                name: inputData.name
                             };
-
-                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
+                            let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+                            return newRecord.save().then(data => {
+                                return true;
+                            });
                         }
-
-                        let newIntentData = {
-                            data: inputData,
-                            status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
-                            name: inputData.name
-                        };
-                        let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                        return newRecord.save().then(data => {
-                            return true;
-                        });
                     }
                 }
 

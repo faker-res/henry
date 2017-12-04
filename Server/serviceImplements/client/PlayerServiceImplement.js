@@ -94,7 +94,7 @@ let PlayerServiceImplement = function () {
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode], isValidData, true, true, true).then(
                 (playerData) => {
                     data.playerId = data.playerId ? data.playerId : playerData.playerId;
-                    data.remarks = playerData.partnerId ? localization.translate("PARTNER", conn.lang) + ": " + playerData.partnerId : "";
+                    data.remarks = playerData.partnerName ? localization.translate("PARTNER", conn.lang) + ": " + playerData.partnerName : "";
                     if(playerData && playerData.partnerId){
                         data.partnerId = playerData.partnerId;
                     }
@@ -1031,8 +1031,9 @@ let PlayerServiceImplement = function () {
 
 
     this.manualPlayerLevelUp.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
         var isValidData = Boolean(data.playerObjId && data.platformObjId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [data.playerObjId, data.platformObjId], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [data.playerObjId, data.platformObjId, userAgent], isValidData, false, false, true);
     };
 
     this.getWithdrawalInfo.onRequest = function (wsFunc, conn, data) {
