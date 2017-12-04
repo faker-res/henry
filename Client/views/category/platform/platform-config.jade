@@ -18,6 +18,8 @@
                         span {{"VALID_ACTIVE" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerCommission"}', ng-click='vm.configTabClicked("partnerCommission")')
                         span {{"Partner Commission" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerBasic"}', ng-click='vm.configTabClicked("partnerBasic")')
+                        span {{"Partner Basic" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "platformBasic"}', ng-click='vm.configTabClicked("platformBasic")')
                         span {{"Platform Basic" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "bonusBasic"}', ng-click='vm.configTabClicked("bonusBasic")')
@@ -676,6 +678,30 @@
                         button.btn.btn-primary.common-button(ng-if='vm.delayDurationGroupEdit', ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit;vm.saveDelayDurationGroup()') {{"CONFIRM" | translate}}
 
                 /// end of 投注记录收录报告
+                div(ng-if='vm.selectedConfigTab=="partnerBasic"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'NAME' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'partnerNameMaxLength' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerNameMaxLength}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerNameMaxLength')
+                            tr
+                                td {{'partnerNameMinLength' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerNameMinLength}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerNameMinLength')
+                            br
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("partnerBasic")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("partnerBasic")') {{"CONFIRM" | translate}}
+
 
                 div(ng-if='vm.selectedConfigTab=="bonusBasic"')
                     //bonus basic

@@ -760,7 +760,7 @@ let dbPlayerInfo = {
 
         if (env.mode !== "local" && env.mode !== "qa") {
             // ignore for unit test
-            if (playerdata.name.length < 6 || playerdata.name.length > 20 || !playerdata.name.match(alphaNumRegex)) {
+            if (/*playerdata.name.length < 6 || playerdata.name.length > 20 ||*/ !playerdata.name.match(alphaNumRegex)) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",

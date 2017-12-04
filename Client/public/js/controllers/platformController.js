@@ -14394,6 +14394,9 @@ define(['js/app'], function (myApp) {
                     case 'announcement':
                         vm.getAllPlatformAnnouncements();
                         break;
+                    case 'partnerBasic':
+                        vm.getPartnerBasic();
+                        break;
                     case 'platformBasic':
                         vm.getPlatformBasic();
                         vm.getDelayDurationGroup();
@@ -16753,6 +16756,13 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.getPartnerBasic = function () {
+                vm.partnerBasic = vm.partnerBasic || {};
+                vm.partnerBasic.partnerNameMaxLength = vm.selectedPlatform.data.partnerNameMaxLength;
+                vm.partnerBasic.partnerNameMinLength = vm.selectedPlatform.data.partnerNameMinLength;
+                $scope.safeApply();
+            }
+
             vm.getBonusBasic = () => {
 
                 vm.getAllPlayerLevels().done(
@@ -17043,6 +17053,9 @@ define(['js/app'], function (myApp) {
                     case 'platformBasic':
                         updatePlatformBasic(vm.platformBasic);
                         break;
+                    case 'partnerBasic':
+                        updatePartnerBasic(vm.partnerBasic);
+                        break;
                     case 'bonusBasic':
                         updatePlatformBasic(vm.bonusBasic);
                         break;
@@ -17207,6 +17220,19 @@ define(['js/app'], function (myApp) {
                         whiteListingPhoneNumbers: whiteListingPhoneNumbers,
                         usePointSystem: srcData.usePointSystem,
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification
+                    }
+                };
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    vm.loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updatePartnerBasic(srcData) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        partnerNameMaxLength: srcData.partnerNameMaxLength,
+                        partnerNameMinLength: srcData.partnerNameMinLength,
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
