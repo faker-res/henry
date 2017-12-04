@@ -2712,6 +2712,37 @@ define(['js/app'], function (myApp) {
 
                 });
             }
+            vm.existNumberDetector = function(newSearch){
+
+                if(!vm.newPlayer.phoneNumber){
+                    return
+                }
+                //var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
+                var selectedStatus = [vm.constProposalStatus.PENDING, vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS];
+                var sendData = {
+                    adminId: authService.adminId,
+                    platformId: vm.selectedPlatform.id,
+                    type: ["PlayerRegistrationIntention"],
+                    phoneNumber: vm.newPlayer.phoneNumber,
+                    size: newSearch ? 10 : (vm.phoneDuplicate.limit || 10),
+                    index: newSearch ? 0 : (vm.phoneDuplicate.index || 0),
+                    // sortCol: vm.newPlayerRecords.sortCol || null,
+                    displayPhoneNum: true
+                }
+                sendData.status = selectedStatus;
+                socketService.$socket($scope.AppSocket, 'getDuplicatePlayerPhoneNumber', sendData, function (data) {
+                    let phoneDuplicateCount = data.data.size;
+                    vm.phoneDuplicateCount = phoneDuplicateCount
+                    if(data.data.size == 0){
+                        vm.existPhone = false;
+                    }else{
+                        vm.existPhone = true;
+                    }
+                    $scope.safeApply();
+
+                });
+            }
+
         vm.loadPhoneNumberRecord = function (newSearch) {
                 if(!vm.newPlayer.phoneNumber){
                     return
@@ -2795,7 +2826,7 @@ define(['js/app'], function (myApp) {
                                 return record.data.playerStatus == vm.allPlayersStatusString[item];
                             })[0];
                             record.playerStatusName = $translate("Enable");
-                            if (record.data.playerStatus == 3) {
+                            if (record.data.forbidPlayerFromLogin == true) {
                                 record.playerStatusName = $translate("Disable")
                             }
 
@@ -2826,7 +2857,7 @@ define(['js/app'], function (myApp) {
                                 title: $translate('STATUS'), data: "playerStatusName",
                                 render: function (data, type, row) {
                                     let color = "black";
-                                    if (row.data.playerStatus == '3' || row.data.playerStatus == 3) {
+                                    if (row.data.forbidPlayerFromLogin  == true) {
                                         color = "red";
                                     }
                                     return '<div style="color:' + color + '">' + data + '</div>';
@@ -2954,8 +2985,7 @@ define(['js/app'], function (myApp) {
                             record.topUpTimes = (record.data && record.data.topUpTimes) ? record.data.topUpTimes : 0;
                             record.smsCode = (record.data && record.data.smsCode) ? record.data.smsCode : "";
                             record.remarks = (record.data && record.data.remarks) ? record.data.remarks : "";
-
-                            record.device = (record.data && record.data.device) ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
+                            record.device = (record.inputDevice != "undefined" && record.inputDevice != "null") ? $translate($scope.constPlayerRegistrationInterface[record.inputDevice]) : "";
                             record.promoteWay = (record.data && record.data.promoteWay) ? record.data.promoteWay : "";
                             record.csOfficer = (record.data && record.data.csOfficer) ? record.data.csOfficer : "";
                             record.registrationTime = (record.data && record.data.registrationTime) ? vm.dateReformat(record.data.registrationTime) : "";
@@ -3666,6 +3696,7 @@ define(['js/app'], function (myApp) {
                 vm.queryData.size = newSearch ? 10 : (vm.playerRegistrationRecords.limit || 10);
                 vm.queryData.index = newSearch ? 0 : (vm.playerRegistrationRecords.index || 0);
                 vm.queryData.sortCol = vm.playerRegistrationRecords.sortCol;
+                vm.queryData.unlockSizeLimit = true;
                 socketService.$socket($scope.AppSocket, 'getPlayerRegistrationIntentRecordByStatus', vm.queryData, function (data) {
                     vm.newPlayerListRecords = data.data;
 
@@ -3695,7 +3726,7 @@ define(['js/app'], function (myApp) {
                                 record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
                                 record.smsCode = record.data.smsCode ? record.data.smsCode : "";
                                 record.remarks = record.data.remarks ? record.data.remarks : "";
-                                record.device = record.data.device ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
+                                record.device = (record.inputDevice != "undefined" && record.inputDevice != "null") ? $translate($scope.constPlayerRegistrationInterface[record.inputDevice]) : "";
                                 record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
                                 record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
                                 record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
@@ -7961,15 +7992,17 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
-                vm.isOneSelectedPlayer().finalValidAmount = 0;
-                vm.rewardPointsChange.remark = '';
-                vm.rewardPointsChange.updateAmount = 0;
-
                 if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
                     vm.createPlayerRewardPointsRecord();
-                } else {
+                }
+                if(vm.selectedSinglePlayer.currentPoints === undefined) {
                     vm.getPlayerRewardPointsRecord();
                 }
+
+                vm.rewardPointsChange.finalValidAmount = 0;
+                vm.rewardPointsChange.remark = '';
+                vm.rewardPointsChange.updateAmount = 0;
+                $scope.safeApply();
             };
 
             vm.createPlayerRewardPointsRecord = function () {
@@ -8016,6 +8049,19 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsRecord', sendData, function (data) {
                     vm.isOneSelectedPlayer().currentPoints = data.data.points;
+                    $scope.safeApply();
+                });
+            };
+
+            vm.updatePlayerRewardPointsRecord = function () {
+                let sendData = {
+                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId,
+                    finalValidAmount: vm.rewardPointsChange.finalValidAmount
+                };
+
+                socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function (data) {
+                    let newData = data.data;
+                    vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
             };
