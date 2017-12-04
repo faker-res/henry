@@ -1034,6 +1034,8 @@ let dbPlayerCreditTransfer = {
                 player = res[0];
                 gameProviderGroup = res[1];
 
+                console.log('gameProviderGroup', gameProviderGroup);
+
                 // Check if player exist
                 if (!player) {
                     return Q.reject({name: "DataError", message: "Can't find player information."});
