@@ -1947,6 +1947,12 @@ var proposalExecutor = {
                     // Target providers or providerGroup
                     if (proposalData.data.providerGroup) {
                         taskData.providerGroup = proposalData.data.providerGroup;
+
+                        // Lock apply amount to reward if type-C promo code
+                        if (proposalData.data.promoCodeTypeValue == 3) {
+                            taskData.initAmount += proposalData.data.applyAmount;
+                            taskData.currentAmount += proposalData.data.applyAmount;
+                        }
                     }
                     else if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;
@@ -3116,7 +3122,7 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
         gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: proposalData.data.providerGroup}).lean();
     }
 
-    let playerRewardPointProm = dbRewardPoints.getRewardPointsByPlayerObjId(taskData.playerId);
+    let playerRewardPointProm = dbRewardPoints.getPlayerRewardPoints(taskData.playerId);
 
     Promise.all([gameProviderGroupProm, playerRewardPointProm]).then(
         res => {

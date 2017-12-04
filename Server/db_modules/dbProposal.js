@@ -149,6 +149,7 @@ var proposal = {
                     }
                 )
         }
+
         return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
             data => {
                 if (smsLogInfo && data && data.proposalId)
@@ -390,10 +391,10 @@ var proposal = {
             .populate({path: "data.allowedProviders", model: dbconfig.collection_gameProvider})
             .then(
                 proposalData => {
-                    if(proposalData && proposalData.data && proposalData.data.phone){
+                    if (proposalData && proposalData.data && proposalData.data.phone) {
                         proposalData.data.phone = dbutility.encodePhoneNum(proposalData.data.phone);
                     }
-                    if(proposalData && proposalData.data && proposalData.data.phoneNumber){
+                    if (proposalData && proposalData.data && proposalData.data.phoneNumber) {
                         proposalData.data.phoneNumber = dbutility.encodePhoneNum(proposalData.data.phoneNumber);
                     }
 
@@ -443,8 +444,8 @@ var proposal = {
                     type = constPlayerTopUpType.WECHAT;
                 }
                 if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PREPENDING ||
-                    proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING
-                    || proposalData.status == constProposalStatus.EXPIRED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data &&
+                        proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING
+                        || proposalData.status == constProposalStatus.EXPIRED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data &&
                     (proposalData.data.requestId == requestId || !proposalData.data.requestId)) {
                     return proposalData;
                 }
@@ -519,7 +520,7 @@ var proposal = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.AUTOAUDIT
-                    || proposalData.status == constProposalStatus.PROCESSING || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data && proposalData.data.bonusId == bonusId) {
+                        || proposalData.status == constProposalStatus.PROCESSING || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data && proposalData.data.bonusId == bonusId) {
                     return proposalData;
                 }
                 else {
@@ -709,7 +710,7 @@ var proposal = {
                                 )
                             ).then(
                                 () => {
-                                    let updateData = { status: status, isLocked:null};
+                                    let updateData = {status: status, isLocked: null};
                                     return dbconfig.collection_proposal.findOneAndUpdate(
                                         {_id: proposalData._id, createTime: proposalData.createTime},
                                         updateData,
@@ -815,20 +816,20 @@ var proposal = {
                         path: 'process',
                         model: dbconfig.collection_proposalProcess
                     }).sort({createTime: -1}).limit(constSystemParam.MAX_RECORD_NUM * 10).lean()
-                    .then(
-                        data => {
-                            data.map(item => function(item){
-                                if(item.data && item.data.phone){
-                                    item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                                }
-                                if(item.data && item.data.phoneNumber){
-                                    item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                }
+                        .then(
+                            data => {
+                                data.map(item => function (item) {
+                                    if (item.data && item.data.phone) {
+                                        item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                    }
+                                    if (item.data && item.data.phoneNumber) {
+                                        item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                    }
 
-                                return item;
-                            });
-                        }
-                    )
+                                    return item;
+                                });
+                            }
+                        )
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
@@ -922,10 +923,10 @@ var proposal = {
                 var proms = [];
                 data.forEach(
                     record => {
-                        if(record.data && record.data.phone){
+                        if (record.data && record.data.phone) {
                             record.data.phone = dbutility.encodePhoneNum(record.data.phone);
                         }
-                        if(record.data && record.data.phoneNumber){
+                        if (record.data && record.data.phoneNumber) {
                             record.data.phoneNumber = dbutility.encodePhoneNum(record.data.phoneNumber);
                         }
 
@@ -1082,7 +1083,7 @@ var proposal = {
         var finalSummary = [];
         size = Math.min(size, constSystemParam.REPORT_MAX_RECORD_NUM);
 
-        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in:platformId}}).exec();
+        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).exec();
         var prom2 = dbconfig.collection_admin.findOne({_id: adminId}).exec();
         return Q.all([prom1, prom2]).then(
             function (data) {
@@ -1175,15 +1176,16 @@ var proposal = {
                                     return info;
                                 })
                             }
-                            function encodePhoneNum(item){
-                                 if(item.data && item.data.phone){
-                                     item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                                 }
-                                 if(item.data && item.data.phoneNumber){
-                                     item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                 }
-                                 return item;
-                             }
+
+                            function encodePhoneNum(item) {
+                                if (item.data && item.data.phone) {
+                                    item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                }
+                                if (item.data && item.data.phoneNumber) {
+                                    item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                }
+                                return item;
+                            }
 
                             var result = data.map(item => getPlayerLevel(item));
                             result = data.map(item => encodePhoneNum(item));
@@ -1258,10 +1260,10 @@ var proposal = {
     },
 
     getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName, inputDevice) {//need
-        platformId = Array.isArray(platformId) ?platformId :[platformId];
+        platformId = Array.isArray(platformId) ? platformId : [platformId];
 
         //check proposal without process
-        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in:platformId}}).lean();
+        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
 
         //check proposal with process
         // var prom2 = dbconfig.collection_proposalTypeProcess.find({platformId: platformId}).lean().then(
@@ -1307,7 +1309,7 @@ var proposal = {
                             },
                             status: {$in: statusArr}
                         };
-                        if (userName){
+                        if (userName) {
                             queryObj['data.name'] = userName;
                         }
                         if (relateUser) {
@@ -1339,15 +1341,15 @@ var proposal = {
 
                         if (eventName) {
                             queryObj["$and"] = queryObj["$and"] || [];
-                            let dataCheck = {"data.eventName":{$in: eventName}};
+                            let dataCheck = {"data.eventName": {$in: eventName}};
                             let existCheck = {"data.eventName": {$exists: false}};
                             let orQuery = [dataCheck, existCheck];
                             queryObj["$and"].push({$or: orQuery});
                         }
 
-                        if(promoTypeName){
+                        if (promoTypeName) {
                             queryObj["$and"] = queryObj["$and"] || [];
-                            let dataCheck = {"data.PROMO_CODE_TYPE":{$in: promoTypeName}};
+                            let dataCheck = {"data.PROMO_CODE_TYPE": {$in: promoTypeName}};
                             let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
                             let orQuery = [dataCheck, existCheck];
                             queryObj["$and"].push({$or: orQuery});
@@ -1380,52 +1382,49 @@ var proposal = {
                                 //.populate({path: 'data.playerObjId.csOfficer', model: dbconfig.collection_csOfficerUrl})
                                 .sort(sortCol).skip(index).limit(size).lean()
                                 .then(
-                                     pdata => {
-                                         pdata.map(item=> {
-                                             // only displayPhoneNum equal true, encode the phone num
-                                             if(item.data && item.data.phone && !displayPhoneNum){
-                                                 item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                                             }
-                                             if(item.data && item.data.phoneNumber && !displayPhoneNum){
-                                                 item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                             }
-                                             if(item.data && item.data.userAgent){
-                                                 item.inputDevice = dbutility.getInputDevice(item.data.userAgent, false);
-                                             }
-                                             if (item.data && item.data.updateData) {
-                                                 switch (Object.keys(item.data.updateData)[0]) {
-                                                     case "phoneNumber":
-                                                         item.data.updateData.phoneNumber = dbutility.encodePhoneNum(item.data.updateData.phoneNumber);
-                                                         break;
-                                                     case "email":
-                                                         let startIndex = Math.max(Math.floor((item.data.updateData.email.length - 4) / 2), 0);
-                                                         item.data.updateData.email = item.data.updateData.email.substr(0, startIndex) + "****" + item.data.updateData.email.substr(startIndex + 4);
-                                                         break;
-                                                     case "qq":
-                                                         let qqNumber = item.data.updateData.qq.substr(0, item.data.updateData.qq.indexOf("@"));
-                                                         let qqIndex = Math.max(Math.floor((qqNumber.length - 4) / 2), 0);
-                                                         let qqNumberEncoded = qqNumber.substr(0, qqIndex) + "****" + qqNumber.substr(qqIndex + 4);
-                                                         item.data.updateData.qq = qqNumberEncoded + "@qq.com";
-                                                         break;
-                                                     case "weChat":
-                                                         let weChatIndex = Math.max(Math.floor((item.data.updateData.weChat.length - 4) / 2), 0);
-                                                         item.data.updateData.weChat = item.data.updateData.weChat.substr(0, weChatIndex) + "****" + item.data.updateData.weChat.substr(weChatIndex + 4);
-                                                         break;
-                                                     case "wechat":
-                                                         let wechatIndex = Math.max(Math.floor((item.data.updateData.wechat.length - 4) / 2), 0);
-                                                         item.data.updateData.wechat = item.data.updateData.wechat.substr(0, wechatIndex) + "****" + item.data.updateData.wechat.substr(wechatIndex + 4);
-                                                         break;
-                                                     case "bankAccount":
-                                                         item.data.updateData.bankAccount = dbutility.encodeBankAcc(item.data.updateData.bankAccount);
-                                                         break;
-                                                 }
-                                             }
-                                             return item
-                                         })
+                                    pdata => {
+                                        pdata.map(item => {
+                                            // only displayPhoneNum equal true, encode the phone num
+                                            if (item.data && item.data.phone && !displayPhoneNum) {
+                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                            }
+                                            if (item.data && item.data.phoneNumber && !displayPhoneNum) {
+                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                            }
+                                            if (item.data && item.data.updateData) {
+                                                switch (Object.keys(item.data.updateData)[0]) {
+                                                    case "phoneNumber":
+                                                        item.data.updateData.phoneNumber = dbutility.encodePhoneNum(item.data.updateData.phoneNumber);
+                                                        break;
+                                                    case "email":
+                                                        let startIndex = Math.max(Math.floor((item.data.updateData.email.length - 4) / 2), 0);
+                                                        item.data.updateData.email = item.data.updateData.email.substr(0, startIndex) + "****" + item.data.updateData.email.substr(startIndex + 4);
+                                                        break;
+                                                    case "qq":
+                                                        let qqNumber = item.data.updateData.qq.substr(0, item.data.updateData.qq.indexOf("@"));
+                                                        let qqIndex = Math.max(Math.floor((qqNumber.length - 4) / 2), 0);
+                                                        let qqNumberEncoded = qqNumber.substr(0, qqIndex) + "****" + qqNumber.substr(qqIndex + 4);
+                                                        item.data.updateData.qq = qqNumberEncoded + "@qq.com";
+                                                        break;
+                                                    case "weChat":
+                                                        let weChatIndex = Math.max(Math.floor((item.data.updateData.weChat.length - 4) / 2), 0);
+                                                        item.data.updateData.weChat = item.data.updateData.weChat.substr(0, weChatIndex) + "****" + item.data.updateData.weChat.substr(weChatIndex + 4);
+                                                        break;
+                                                    case "wechat":
+                                                        let wechatIndex = Math.max(Math.floor((item.data.updateData.wechat.length - 4) / 2), 0);
+                                                        item.data.updateData.wechat = item.data.updateData.wechat.substr(0, wechatIndex) + "****" + item.data.updateData.wechat.substr(wechatIndex + 4);
+                                                        break;
+                                                    case "bankAccount":
+                                                        item.data.updateData.bankAccount = dbutility.encodeBankAcc(item.data.updateData.bankAccount);
+                                                        break;
+                                                }
+                                            }
+                                            return item
+                                        })
 
-                                         return pdata;
-                                 })
-                                :
+                                        return pdata;
+                                    })
+                            :
                             dbconfig.collection_proposal.aggregate(
                                 {$match: queryObj},
                                 {
@@ -1449,13 +1448,13 @@ var proposal = {
                                     for (var index in aggr) {
                                         var prom = getDoc(aggr[index].docId);
                                         // only displayPhoneNum equal true, encode the phone num
-                                        if(prom.data && prom.data.phone && !displayPhoneNum){
+                                        if (prom.data && prom.data.phone && !displayPhoneNum) {
                                             prom.data.phone = dbutility.encodePhoneNum(prom.data.phone);
                                         }
-                                        if(prom.data && prom.data.phoneNumber && !displayPhoneNum){
+                                        if (prom.data && prom.data.phoneNumber && !displayPhoneNum) {
                                             prom.data.phoneNumber = dbutility.encodePhoneNum(prom.data.phoneNumber);
                                         }
-                                        if(prom.data && prom.data.userAgent){
+                                        if (prom.data && prom.data.userAgent) {
                                             prom.inputDevice = dbutility.getInputDevice(prom.data.userAgent, false);
                                         }
                                         retData.push(prom);
@@ -1471,9 +1470,13 @@ var proposal = {
                                 $group: {
                                     _id: null,
                                     totalAmount: {$sum: "$data.amount"},
-                                    totalRewardAmount: {$sum: {$cond:[
-                                        {$eq: ["$data.rewardAmount", NaN]}, 0, "$data.rewardAmount"
-                                    ]}},
+                                    totalRewardAmount: {
+                                        $sum: {
+                                            $cond: [
+                                                {$eq: ["$data.rewardAmount", NaN]}, 0, "$data.rewardAmount"
+                                            ]
+                                        }
+                                    },
                                     // totalRewardAmount: {$sum: "$data.rewardAmount"},
                                     totalTopUpAmount: {$sum: "$data.topUpAmount"},
                                     totalUpdateAmount: {$sum: "$data.updateAmount"},
@@ -1576,7 +1579,7 @@ var proposal = {
 
         })
     },
-    getPlayerRegistrationIPArea: function(platformId, id, type){
+    getPlayerRegistrationIPArea: function (platformId, id, type) {
         let query = {};
         if (type == 'playerId') {
             query = {'data.playerId': id}
@@ -1595,7 +1598,7 @@ var proposal = {
                 }
             })
     },
-    getPlayerIpAreaFromRecord: function(platformId, playersData){
+    getPlayerIpAreaFromRecord: function (platformId, playersData) {
         let result = [];
         playersData.forEach(item => {
             let prom = proposal.getPlayerRegistrationIPArea(platformId, item.playerId, 'playerId').then(data => {
@@ -1623,7 +1626,8 @@ var proposal = {
                         'phoneProvince': item.phoneProvince ? item.phoneProvince : '',
                         'phoneCity': item.phoneCity ? item.phoneCity : '',
                         'ipArea': ipArea,
-                        'name': item.name ? item.name : ''
+                        'name': item.name ? item.name : '',
+                        'forbidPlayerFromLogin': item.permission ? item.permission.forbidPlayerFromLogin : false
                     }
                 };
                 return playerUnitData;
@@ -1632,7 +1636,7 @@ var proposal = {
         });
         return Promise.all(result);
     },
-    getPartnerIpAreaFromRecord:function(platformId, partnerData){
+    getPartnerIpAreaFromRecord: function (platformId, partnerData) {
 
         let result = [];
         partnerData.forEach(item => {
@@ -1661,7 +1665,8 @@ var proposal = {
                         'valueScore': item.valueScore ? item.valueScore : '',
                         'phoneProvince': item.phoneProvince ? item.phoneProvince : '',
                         'phoneCity': item.phoneCity ? item.phoneCity : '',
-                        'ipArea': ipArea
+                        'ipArea': ipArea,
+                        'forbidPlayerFromLogin': item.permission ? item.permission.forbidPlayerFromLogin : false
                     },
                 }
                 return partnerUnitData;
@@ -1844,10 +1849,10 @@ var proposal = {
     //     });
     // },
 
-    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo) {//need
+    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo = 0, unlockSizeLimit = false) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
         //check proposal without process
-        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
+        let prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
 
         let playerProm = [];
         return Q.all([prom1]).then(//removed , prom2
@@ -1864,8 +1869,9 @@ var proposal = {
                         }
 
                         var queryObj = {
+                            type: {$in: proposalTypesId},
                             status: {$in: statusArr},
-                            data:  { $exists: true, $ne: null }
+                            data: {$exists: true, $ne: null}
                         };
                         if (startTime && endTime) {
                             queryObj['createTime'] = {
@@ -1880,64 +1886,45 @@ var proposal = {
                             queryObj['data.phoneNumber'] = phoneNumber;
                         }
 
-                        if (size >= 0) {
-                            var a = dbconfig.collection_proposal.find(queryObj)
-                            //.populate({path: 'data.playerId', model: dbconfig.collection_players})
-                                .sort(sortCol).skip(index).limit(size).lean()
-                                .then(
-                                    pdata => {
-                                        pdata.map(item => {
-                                            // only displayPhoneNum equal true, encode the phone num
-                                            if (item.data && item.data.phone && !displayPhoneNum) {
-                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                                            }
-                                            if (item.data && item.data.phoneNumber && !displayPhoneNum) {
-                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                            }
-                                            if (item.data && item.data.playerId) {
-                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId));
-                                            }
+                        let proposalProm = [];
+                        proposalProm = dbconfig.collection_proposal.find(queryObj)
 
-                                            return item
-                                        })
+                        if (!unlockSizeLimit) {
+                            proposalProm = proposalProm.sort(sortCol).skip(index).limit(size).lean();
 
-                                        return pdata;
-                                    })
-                                .then(proposals => {
-                                    proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-
-                                    return proposals
-                                })
                         } else {
-                            a = dbconfig.collection_proposal.find(queryObj)
-                                .then(
-                                    pdata => {
-                                        pdata.map(item => {
-                                            // only displayPhoneNum equal true, encode the phone num
-                                            if (item.data && item.data.phone && !displayPhoneNum) {
-                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                                            }
-                                            if (item.data && item.data.phoneNumber && !displayPhoneNum) {
-                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                            }
-                                            if (item.data && item.data.playerId) {
-                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId));
-                                            }
+                            proposalProm = proposalProm.limit(50).lean();
 
-                                            return item
-                                        })
-
-                                        return pdata;
-                                    })
-                                .then(proposals => {
-                                    proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-
-                                    return proposals
-                                })
                         }
 
-                        var b = dbconfig.collection_proposal.find(queryObj).count();
-                        return Q.all([a, b])
+                        proposalProm = proposalProm.then(
+                            pdata => {
+                                pdata.map(item => {
+                                    // only displayPhoneNum equal true, encode the phone num
+                                    if (item.data && item.data.phone && !displayPhoneNum) {
+                                        item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                    }
+                                    if (item.data && item.data.phoneNumber && !displayPhoneNum) {
+                                        item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                    }
+                                    if (item.data && item.data.playerId) {
+                                        playerProm.push(proposal.getPlayerDetails(item.data.playerId));
+                                    }
+
+                                    return item;
+                                });
+
+                                return pdata;
+                            })
+                            .then(proposals => {
+                                proposals = insertPlayerRepeatCount(proposals, platformId[0]);
+
+                                return proposals
+                            });
+
+                        let proposalCount = dbconfig.collection_proposal.find(queryObj).lean().count();
+
+                        return Q.all([proposalProm, proposalCount])
                     }
                     else {
                         return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
@@ -1967,11 +1954,11 @@ var proposal = {
                                 if (d.topUpTimes) {
                                     returnData[0][i].data.topUpTimes = d.topUpTimes;
                                 }
-                                if (d.userAgent) {
-                                    for (var j = 0; j < d.userAgent.length; j++) {
-                                        returnData[0][i].data.device = dbutility.getInputDevice(d.userAgent, false);
-                                    }
-                                }
+                                // if (d.userAgent) {
+                                //     for (var j = 0; j < d.userAgent.length; j++) {
+                                //         returnData[0][i].data.device = dbutility.getInputDevice(d.userAgent, false);
+                                //     }
+                                // }
                                 if (d.playerLevel) {
                                     returnData[0][i].data.playerLevel = d.playerLevel;
                                 }
@@ -1987,10 +1974,10 @@ var proposal = {
                                 if (d.status) {
                                     returnData[0][i].data.playerStatus = d.status;
                                 }
-                                if(d.smsSetting){
+                                if (d.smsSetting) {
                                     returnData[0][i].data.smsSetting = d.smsSetting
                                 }
-                                if(d.receiveSMS){
+                                if (d.receiveSMS) {
                                     returnData[0][i].data.receiveSMS = d.receiveSMS
                                 }
                             }
@@ -1999,22 +1986,20 @@ var proposal = {
                 })
 
                 let dataArr = [];
-                if(attemptNo && attemptNo != 0 && attemptNo != -1){
-                    returnData[0].map(r =>{
-                        if(r.$playerAllCount == attemptNo){
+                if (attemptNo && attemptNo != 0 && attemptNo != -1) {
+                    returnData[0].map(r => {
+                        if (r.$playerAllCount == attemptNo) {
                             dataArr.push(r);
                         }
                     })
-                }else{
+                } else {
                     dataArr = returnData[0];
                 }
 
-                for (var i = 0; i < dataArr.length; i++) {
-                    if(dataArr[i].data.userAgent){
-                        for (var j = 0; j < dataArr[i].data.userAgent.length; j++) {
-                            if(!dataArr[i].data.device){
-                                dataArr[i].data.device = dbutility.getInputDevice(dataArr[i].data.userAgent, false);
-                            }
+                if(dataArr && dataArr.length > 0){
+                    for (var i = 0; i < dataArr.length; i++) {
+                        if (dataArr[i] && dataArr[i].inputDevice) {
+                            dataArr[i].device = dataArr[i].inputDevice;
                         }
                     }
                 }
@@ -2050,10 +2035,9 @@ var proposal = {
         var prom = [];
 
         var totalHeadCount = 0;
-
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
             dataList.map(phoneNumber => {
-                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).sort({createTime: 1}));
+                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
                 totalHeadCount += 1;
             })
             return Q.all(prom);
@@ -2066,46 +2050,75 @@ var proposal = {
                         currentArrNo = 1;
                     } else {
                         var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber && r.arrNo == currentArrNo);
-                        if(recordArr[indexNo].status == constProposalStatus.SUCCESS){
-                            recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1, arrNo: currentArrNo + 1});
+                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS) {
+                            recordArr.push({
+                                phoneNumber: d.data.phoneNumber,
+                                status: d.status,
+                                attemptNo: 1,
+                                arrNo: currentArrNo + 1
+                            });
                             currentArrNo = currentArrNo + 1;
-                        }else{
+                        } else {
                             recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
-                            recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
+                            recordArr[indexNo].attemptNo = recordArr[indexNo].attemptNo + 1;
                         }
                     }
                 })
             })
 
             return recordArr;
-        }).then(playerAttemptNumber =>{
-            var firstFail = playerAttemptNumber.filter(function(event){return (event.status == constProposalStatus.PENDING) && event.attemptNo == 1}).length;
-            var secondFail = playerAttemptNumber.filter(function(event){return (event.status == constProposalStatus.PENDING) && event.attemptNo == 2}).length;
-            var thirdFail = playerAttemptNumber.filter(function(event){return (event.status == constProposalStatus.PENDING) && event.attemptNo == 3}).length;
-            var fouthFail = playerAttemptNumber.filter(function(event){return (event.status == constProposalStatus.PENDING) && event.attemptNo == 4}).length;
-            var fifthFail = playerAttemptNumber.filter(function(event){return (event.status == constProposalStatus.PENDING) && event.attemptNo == 5}).length;
-            var fifthUpFail = playerAttemptNumber.filter(function(event){return (event.status == constProposalStatus.PENDING) && event.attemptNo > 5}).length;
+        }).then(playerAttemptNumber => {
+            var firstFail = playerAttemptNumber.filter(function (event) {
+                return (event.status == constProposalStatus.PENDING) && event.attemptNo == 1
+            }).length;
+            var secondFail = playerAttemptNumber.filter(function (event) {
+                return (event.status == constProposalStatus.PENDING) && event.attemptNo == 2
+            }).length;
+            var thirdFail = playerAttemptNumber.filter(function (event) {
+                return (event.status == constProposalStatus.PENDING) && event.attemptNo == 3
+            }).length;
+            var fouthFail = playerAttemptNumber.filter(function (event) {
+                return (event.status == constProposalStatus.PENDING) && event.attemptNo == 4
+            }).length;
+            var fifthFail = playerAttemptNumber.filter(function (event) {
+                return (event.status == constProposalStatus.PENDING) && event.attemptNo == 5
+            }).length;
+            var fifthUpFail = playerAttemptNumber.filter(function (event) {
+                return (event.status == constProposalStatus.PENDING) && event.attemptNo > 5
+            }).length;
 
-            var firstSuccess = playerAttemptNumber.filter(function(event){return event.status == constProposalStatus.SUCCESS && event.attemptNo == 1}).length;
-            var secondSuccess = playerAttemptNumber.filter(function(event){return event.status == constProposalStatus.SUCCESS && event.attemptNo == 2}).length;
-            var thirdSuccess = playerAttemptNumber.filter(function(event){return event.status == constProposalStatus.SUCCESS && event.attemptNo == 3}).length;
-            var fouthSuccess = playerAttemptNumber.filter(function(event){return event.status == constProposalStatus.SUCCESS && event.attemptNo == 4}).length;
-            var fifthSuccess = playerAttemptNumber.filter(function(event){return event.status == constProposalStatus.SUCCESS && event.attemptNo == 5}).length;
-            var fifthUpSuccess = playerAttemptNumber.filter(function(event){return event.status == constProposalStatus.SUCCESS && event.attemptNo > 5}).length;
+            var firstSuccess = playerAttemptNumber.filter(function (event) {
+                return event.status == constProposalStatus.SUCCESS && event.attemptNo == 1
+            }).length;
+            var secondSuccess = playerAttemptNumber.filter(function (event) {
+                return event.status == constProposalStatus.SUCCESS && event.attemptNo == 2
+            }).length;
+            var thirdSuccess = playerAttemptNumber.filter(function (event) {
+                return event.status == constProposalStatus.SUCCESS && event.attemptNo == 3
+            }).length;
+            var fouthSuccess = playerAttemptNumber.filter(function (event) {
+                return event.status == constProposalStatus.SUCCESS && event.attemptNo == 4
+            }).length;
+            var fifthSuccess = playerAttemptNumber.filter(function (event) {
+                return event.status == constProposalStatus.SUCCESS && event.attemptNo == 5
+            }).length;
+            var fifthUpSuccess = playerAttemptNumber.filter(function (event) {
+                return event.status == constProposalStatus.SUCCESS && event.attemptNo > 5
+            }).length;
 
-            var firstFailPercent = totalHeadCount ? (firstFail/ totalHeadCount * 100).toFixed(2) : 0;
-            var secondFailPercent = totalHeadCount ? (secondFail/ totalHeadCount * 100).toFixed(2) : 0;
-            var thirdFailPercent = totalHeadCount ? (thirdFail/ totalHeadCount * 100).toFixed(2) : 0;
-            var fouthFailPercent = totalHeadCount ? (fouthFail/ totalHeadCount * 100).toFixed(2) : 0;
-            var fifthFailPercent = totalHeadCount ? (fifthFail/ totalHeadCount * 100).toFixed(2) : 0;
-            var fifthUpFailPercent = totalHeadCount ? (fifthUpFail/ totalHeadCount * 100).toFixed(2) : 0;
+            var firstFailPercent = totalHeadCount ? (firstFail / totalHeadCount * 100).toFixed(2) : 0;
+            var secondFailPercent = totalHeadCount ? (secondFail / totalHeadCount * 100).toFixed(2) : 0;
+            var thirdFailPercent = totalHeadCount ? (thirdFail / totalHeadCount * 100).toFixed(2) : 0;
+            var fouthFailPercent = totalHeadCount ? (fouthFail / totalHeadCount * 100).toFixed(2) : 0;
+            var fifthFailPercent = totalHeadCount ? (fifthFail / totalHeadCount * 100).toFixed(2) : 0;
+            var fifthUpFailPercent = totalHeadCount ? (fifthUpFail / totalHeadCount * 100).toFixed(2) : 0;
 
-            var firstSuccessPercent = totalHeadCount ? (firstSuccess/ totalHeadCount * 100).toFixed(2) : 0;
-            var secondSuccessPercent = totalHeadCount ? (secondSuccess/ totalHeadCount * 100).toFixed(2) : 0;
-            var thirdSuccessPercent = totalHeadCount ? (thirdSuccess/ totalHeadCount * 100).toFixed(2) : 0;
-            var fouthSuccessPercent = totalHeadCount ? (fouthSuccess/ totalHeadCount * 100).toFixed(2) : 0;
-            var fifthSuccessPercent = totalHeadCount ? (fifthSuccess/ totalHeadCount * 100).toFixed(2) : 0;
-            var fifthUpSuccessPercent = totalHeadCount ? (fifthUpSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var firstSuccessPercent = totalHeadCount ? (firstSuccess / totalHeadCount * 100).toFixed(2) : 0;
+            var secondSuccessPercent = totalHeadCount ? (secondSuccess / totalHeadCount * 100).toFixed(2) : 0;
+            var thirdSuccessPercent = totalHeadCount ? (thirdSuccess / totalHeadCount * 100).toFixed(2) : 0;
+            var fouthSuccessPercent = totalHeadCount ? (fouthSuccess / totalHeadCount * 100).toFixed(2) : 0;
+            var fifthSuccessPercent = totalHeadCount ? (fifthSuccess / totalHeadCount * 100).toFixed(2) : 0;
+            var fifthUpSuccessPercent = totalHeadCount ? (fifthUpSuccess / totalHeadCount * 100).toFixed(2) : 0;
 
             var arr = [];
 
@@ -2165,7 +2178,7 @@ var proposal = {
 
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
             dataList.map(phoneNumber => {
-                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).sort({createTime: 1}));
+                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
                 totalHeadCount += 1;
             })
             return Q.all(prom);
@@ -2178,33 +2191,52 @@ var proposal = {
                         currentArrNo = 1;
                     } else {
                         var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber && r.arrNo == currentArrNo);
-                        if(recordArr[indexNo].status == constProposalStatus.SUCCESS){
-                            recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1, arrNo: currentArrNo + 1});
+                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS) {
+                            recordArr.push({
+                                phoneNumber: d.data.phoneNumber,
+                                status: d.status,
+                                attemptNo: 1,
+                                arrNo: currentArrNo + 1
+                            });
                             currentArrNo = currentArrNo + 1;
-                        }else{
+                        } else {
                             recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
-                            recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
+                            recordArr[indexNo].attemptNo = recordArr[indexNo].attemptNo + 1;
                         }
                     }
                 })
             })
             return recordArr;
-        }).then(playerAttemptNumber =>{
-            var manualSuccess = playerAttemptNumber.filter(function(event){return event.status == constProposalStatus.MANUAL}).length;
-            var firstSuccess = playerAttemptNumber.filter(function(event){return event.status == constProposalStatus.SUCCESS && event.attemptNo == 1}).length;
-            var secondSuccess = playerAttemptNumber.filter(function(event){return event.status == constProposalStatus.SUCCESS && event.attemptNo == 2}).length;
-            var thirdSuccess = playerAttemptNumber.filter(function(event){return event.status == constProposalStatus.SUCCESS && event.attemptNo == 3}).length;
-            var fouthSuccess = playerAttemptNumber.filter(function(event){return event.status == constProposalStatus.SUCCESS && event.attemptNo == 4}).length;
-            var fifthSuccess = playerAttemptNumber.filter(function(event){return event.status == constProposalStatus.SUCCESS && event.attemptNo == 5}).length;
-            var fifthUpSuccess = playerAttemptNumber.filter(function(event){return event.status == constProposalStatus.SUCCESS && event.attemptNo > 5}).length;
+        }).then(playerAttemptNumber => {
+            var manualSuccess = playerAttemptNumber.filter(function (event) {
+                return event.status == constProposalStatus.MANUAL
+            }).length;
+            var firstSuccess = playerAttemptNumber.filter(function (event) {
+                return event.status == constProposalStatus.SUCCESS && event.attemptNo == 1
+            }).length;
+            var secondSuccess = playerAttemptNumber.filter(function (event) {
+                return event.status == constProposalStatus.SUCCESS && event.attemptNo == 2
+            }).length;
+            var thirdSuccess = playerAttemptNumber.filter(function (event) {
+                return event.status == constProposalStatus.SUCCESS && event.attemptNo == 3
+            }).length;
+            var fouthSuccess = playerAttemptNumber.filter(function (event) {
+                return event.status == constProposalStatus.SUCCESS && event.attemptNo == 4
+            }).length;
+            var fifthSuccess = playerAttemptNumber.filter(function (event) {
+                return event.status == constProposalStatus.SUCCESS && event.attemptNo == 5
+            }).length;
+            var fifthUpSuccess = playerAttemptNumber.filter(function (event) {
+                return event.status == constProposalStatus.SUCCESS && event.attemptNo > 5
+            }).length;
 
-            var manualSuccessPercent = totalHeadCount ? (manualSuccess/ totalHeadCount * 100).toFixed(2) : 0;
-            var firstSuccessPercent = totalHeadCount ? (firstSuccess/ totalHeadCount * 100).toFixed(2) : 0;
-            var secondSuccessPercent = totalHeadCount ? (secondSuccess/ totalHeadCount * 100).toFixed(2) : 0;
-            var thirdSuccessPercent = totalHeadCount ? (thirdSuccess/ totalHeadCount * 100).toFixed(2) : 0;
-            var fouthSuccessPercent = totalHeadCount ? (fouthSuccess/ totalHeadCount * 100).toFixed(2) : 0;
-            var fifthSuccessPercent = totalHeadCount ? (fifthSuccess/ totalHeadCount * 100).toFixed(2) : 0;
-            var fifthUpSuccessPercent = totalHeadCount ? (fifthUpSuccess/ totalHeadCount * 100).toFixed(2) : 0;
+            var manualSuccessPercent = totalHeadCount ? (manualSuccess / totalHeadCount * 100).toFixed(2) : 0;
+            var firstSuccessPercent = totalHeadCount ? (firstSuccess / totalHeadCount * 100).toFixed(2) : 0;
+            var secondSuccessPercent = totalHeadCount ? (secondSuccess / totalHeadCount * 100).toFixed(2) : 0;
+            var thirdSuccessPercent = totalHeadCount ? (thirdSuccess / totalHeadCount * 100).toFixed(2) : 0;
+            var fouthSuccessPercent = totalHeadCount ? (fouthSuccess / totalHeadCount * 100).toFixed(2) : 0;
+            var fifthSuccessPercent = totalHeadCount ? (fifthSuccess / totalHeadCount * 100).toFixed(2) : 0;
+            var fifthUpSuccessPercent = totalHeadCount ? (fifthUpSuccess / totalHeadCount * 100).toFixed(2) : 0;
 
             var returnArr = [];
 
@@ -2236,7 +2268,7 @@ var proposal = {
         });
     },
 
-    getPlayerRegistrationIntentRecordByStatus: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo) {
+    getPlayerRegistrationIntentRecordByStatus: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo, unlockSizeLimit) {
         var queryObj = {
             createTime: {
                 $gte: new Date(startTime),
@@ -2254,7 +2286,7 @@ var proposal = {
 
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
             dataList.map(phoneNumber => {
-                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).sort({createTime: 1}));
+                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
             })
             return Q.all(prom);
         }).then(details => {
@@ -2266,30 +2298,48 @@ var proposal = {
                         currentArrNo = 1;
                     } else {
                         var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber && r.arrNo == currentArrNo);
-                        if(recordArr[indexNo].status == constProposalStatus.SUCCESS){
-                            recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1, arrNo: currentArrNo + 1});
+                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS) {
+                            recordArr.push({
+                                phoneNumber: d.data.phoneNumber,
+                                status: d.status,
+                                attemptNo: 1,
+                                arrNo: currentArrNo + 1
+                            });
                             currentArrNo = currentArrNo + 1;
-                        }else{
+                        } else {
                             recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
-                            recordArr[indexNo].attemptNo =  recordArr[indexNo].attemptNo + 1;
+                            recordArr[indexNo].attemptNo = recordArr[indexNo].attemptNo + 1;
                         }
                     }
                 })
             })
             return recordArr;
-        }).then(playerAttemptNumber =>{
-            if(attemptNo == 0){
-                return playerAttemptNumber.filter(function(event){return statusArr.includes(event.status) && event.attemptNo > 5});
-            }else if(attemptNo < 0){
-                return playerAttemptNumber.filter(function(event){return statusArr.includes(event.status)});
-            }else {
-                return playerAttemptNumber.filter(function(event){return statusArr.includes(event.status) && event.attemptNo == attemptNo});
+        }).then(playerAttemptNumber => {
+            if (attemptNo == 0) {
+                return playerAttemptNumber.filter(function (event) {
+                    return statusArr.includes(event.status) && event.attemptNo > 5
+                });
+            } else if (attemptNo < 0) {
+                return playerAttemptNumber.filter(function (event) {
+                    return statusArr.includes(event.status)
+                });
+            } else {
+                return playerAttemptNumber.filter(function (event) {
+                    return statusArr.includes(event.status) && event.attemptNo == attemptNo
+                });
             }
+        }).then( data => {
+            // to filter out the duplicate phonenumber generated when getting proposal of different player account with same phone number.
+            return data.filter((data, index, self) =>
+                index === self.findIndex((t) => (
+                    t.phoneNumber === data.phoneNumber
+                ))
+            );
         }).then(data => {
             data.map(d => {
                 userName = d.name;
                 phoneNumber = d.phoneNumber
-                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo);
+                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo, unlockSizeLimit);
                 returnArr.push(p);
             })
         }).then(data => {
@@ -2373,11 +2423,15 @@ var proposal = {
                             $group: {
                                 _id: null,
                                 totalAmount: {$sum: "$data.amount"},
-                                totalRewardAmount: {$sum: {$cond:[
-                                    {$eq: ["$data.rewardAmount", NaN]},
-                                    0,
-                                    "$data.rewardAmount"
-                                ]}},
+                                totalRewardAmount: {
+                                    $sum: {
+                                        $cond: [
+                                            {$eq: ["$data.rewardAmount", NaN]},
+                                            0,
+                                            "$data.rewardAmount"
+                                        ]
+                                    }
+                                },
                                 // totalRewardAmount: {$sum: "$data.rewardAmount"},
                                 totalTopUpAmount: {$sum: "$data.topUpAmount"},
                                 totalUpdateAmount: {$sum: "$data.updateAmount"},
@@ -2426,7 +2480,7 @@ var proposal = {
             }
 
             if (reqData["data.eventName"]) {
-                let dataCheck = {"data.eventName":{$in: reqData["data.eventName"]}};
+                let dataCheck = {"data.eventName": {$in: reqData["data.eventName"]}};
                 let existCheck = {"data.eventName": {$exists: false}};
                 let orQuery = [dataCheck, existCheck];
                 reqData["$and"].push({$or: orQuery});
@@ -2434,15 +2488,15 @@ var proposal = {
             }
 
             if (reqData["data.PROMO_CODE_TYPE"]) {
-                let dataCheck = {"data.PROMO_CODE_TYPE":{$in: reqData["data.PROMO_CODE_TYPE"]}};
+                let dataCheck = {"data.PROMO_CODE_TYPE": {$in: reqData["data.PROMO_CODE_TYPE"]}};
                 let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
                 let orQuery = [dataCheck, existCheck];
                 reqData["$and"].push({$or: orQuery});
                 delete reqData["data.PROMO_CODE_TYPE"];
             }
             if (reqData["data.playerName"] || reqData["data.partnerName"]) {
-                let playerNameCheck = {"data.playerName":reqData["data.playerName"]};
-                let partnerNameCheck = {"data.partnerName":reqData["data.partnerName"]};
+                let playerNameCheck = {"data.playerName": reqData["data.playerName"]};
+                let partnerNameCheck = {"data.partnerName": reqData["data.partnerName"]};
                 let orQuery = [playerNameCheck, partnerNameCheck];
                 reqData["$and"].push({$or: orQuery});
                 delete reqData["data.playerName"];
@@ -2461,11 +2515,15 @@ var proposal = {
                     $group: {
                         _id: null,
                         totalAmount: {$sum: "$data.amount"},
-                        totalRewardAmount: {$sum: {$cond:[
-                            {$eq: ["$data.rewardAmount", NaN]},
-                            0,
-                            "$data.rewardAmount"
-                        ]}},
+                        totalRewardAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.rewardAmount", NaN]},
+                                    0,
+                                    "$data.rewardAmount"
+                                ]
+                            }
+                        },
                         totalTopUpAmount: {$sum: "$data.topUpAmount"},
                         totalUpdateAmount: {$sum: "$data.updateAmount"},
                         totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
@@ -2946,9 +3004,9 @@ var proposal = {
             ]
         };
 
-        if(status){
+        if (status) {
             if (status === 'Fail_or_Rejected') {
-                query.status = {$in: ['Fail','Rejected']};
+                query.status = {$in: ['Fail', 'Rejected']};
             } else {
                 query.status = status;
             }
@@ -3155,41 +3213,44 @@ var proposal = {
             }
         ).then(
             data => {
-                if( data && orderStatus == 2 ){
-                    return dbconfig.collection_proposal.findOneAndUpdate( {_id: proposalObj._id, createTime: proposalObj.createTime}, {status: constProposalStatus.APPROVED} )
+                if (data && orderStatus == 2) {
+                    return dbconfig.collection_proposal.findOneAndUpdate({
+                        _id: proposalObj._id,
+                        createTime: proposalObj.createTime
+                    }, {status: constProposalStatus.APPROVED})
                 }
             }
         );
     },
     getProposalAmountSum: (data, index, limit) => {
 
-      let queryObj = {}
-      queryObj['data.platformId'] = ObjectId(data.platformId);
-      if(data.type){
-          queryObj['type'] = ObjectId(data.typeId);
-      }
-      queryObj.mainType = 'TopUp'
-      if(data.cardField){
-          let cardField = 'data.'+data.cardField;
-          queryObj[cardField]= data.card;
-      }
-      queryObj["data.validTime"] = {};
-      queryObj["data.validTime"]["$gte"] = data.startDate ? new Date(data.startDate) : null;
-      queryObj["data.validTime"]["$lt"] = data.endDate ? new Date(data.endDate) : null;
+        let queryObj = {}
+        queryObj['data.platformId'] = ObjectId(data.platformId);
+        if (data.type) {
+            queryObj['type'] = ObjectId(data.typeId);
+        }
+        queryObj.mainType = 'TopUp'
+        if (data.cardField) {
+            let cardField = 'data.' + data.cardField;
+            queryObj[cardField] = data.card;
+        }
+        queryObj["data.validTime"] = {};
+        queryObj["data.validTime"]["$gte"] = data.startDate ? new Date(data.startDate) : null;
+        queryObj["data.validTime"]["$lt"] = data.endDate ? new Date(data.endDate) : null;
 
-      if(data.status){
-        queryObj["status"] = {$in: data.status};
-      }
-      return dbconfig.collection_proposal.aggregate(
-         {
-             $match: queryObj
-         }, {
-             $group: {
-                 _id: null,
-                 totalAmount: {$sum: "$data.amount"},
-             }
-         }
-     );
+        if (data.status) {
+            queryObj["status"] = {$in: data.status};
+        }
+        return dbconfig.collection_proposal.aggregate(
+            {
+                $match: queryObj
+            }, {
+                $group: {
+                    _id: null,
+                    totalAmount: {$sum: "$data.amount"},
+                }
+            }
+        );
     },
 
     getPaymentMonitorResult: (data, index, limit) => {
@@ -3237,9 +3298,9 @@ var proposal = {
                         mGroupD.push(sItem)
                     });
                 });
-                if(data.merchantNo.length > 0){
+                if (data.merchantNo.length > 0) {
                     query['data.merchantNo'] = {$in: convertStringNumber(mGroupC)};
-                }else if(data.merchantGroup.length > 0 && data.merchantNo.length == 0){
+                } else if (data.merchantGroup.length > 0 && data.merchantNo.length == 0) {
                     query['data.merchantNo'] = {$in: convertStringNumber(mGroupD)}
                 }
             }
@@ -3314,13 +3375,12 @@ var proposal = {
                 let proposalsProm = dbconfig.collection_proposal.find(query).sort(sort).skip(index).limit(limit)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
                     .populate({path: "data.playerObjId", model: dbconfig.collection_players});
-                return Promise.all([proposalCountProm,proposalsProm]);
+                return Promise.all([proposalCountProm, proposalsProm]);
             }
         ).then(
             proposalData => {
                 proposalCount = proposalData[0];
                 proposals = proposalData[1];
-
 
 
                 return insertRepeatCount(proposals, data.platformId);
@@ -3490,13 +3550,13 @@ function insertRepeatCount(proposals, platformId) {
             let prevSuccessQuery = {
                 type: {$in: relevantTypeIds},
                 createTime: {$lte: new Date(proposal.createTime)},
-                status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             };
 
             let nextSuccessQuery = {
                 type: {$in: relevantTypeIds},
                 createTime: {$gte: new Date(proposal.createTime)},
-                status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             };
 
             if (merchantNo) {
@@ -3609,7 +3669,6 @@ function insertRepeatCount(proposals, platformId) {
                     }
                     return proposal;
                 }
-
             );
         }
 
@@ -3620,13 +3679,13 @@ function insertRepeatCount(proposals, platformId) {
                 type: {$in: typeIds},
                 createTime: {$lte: proposal.createTime},
                 "data.playerName": playerName,
-                status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             }).sort({createTime: -1}).limit(1);
             let nextSuccessProm = dbconfig.collection_proposal.find({
                 type: {$in: typeIds},
                 createTime: {$gte: proposal.createTime},
                 "data.playerName": playerName,
-                status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             }).sort({createTime: 1}).limit(1);
 
             return Promise.all([prevSuccessProm, nextSuccessProm]).then(
@@ -3732,7 +3791,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
             () => {
                 resolve(insertedProposals);
             }
-        )
+        );
 
         function handlePlayer(proposal) {
             let phoneNumber = proposal.data ? proposal.data.phoneNumber : "";
@@ -3742,7 +3801,6 @@ function insertPlayerRepeatCount(proposals, platformId) {
             let previousCountQuery = {};
             let futureCountQuery = {};
             let previousSuccessCreateTime;
-            let futureSuccessCreateTime;
             let futureFailCreateTime;
 
             allCountQuery = {
@@ -3771,11 +3829,11 @@ function insertPlayerRepeatCount(proposals, platformId) {
             };
 
 
-            let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
-            let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
+            let allCountProm = dbconfig.collection_proposal.find(allCountQuery).lean().count();
+            let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).lean().count();
 
             //check the count of success/manual proposal records before current record.
-            let previousCountProm = dbconfig.collection_proposal.find(previousCountQuery).then(previousRecords => {
+            let previousCountProm = dbconfig.collection_proposal.find(previousCountQuery).lean().then(previousRecords => {
                 if (previousRecords && previousRecords.length > 0) {
 
                     previousRecords.map(p => {
@@ -3787,17 +3845,20 @@ function insertPlayerRepeatCount(proposals, platformId) {
                 }
 
                 return;
-            }).then(() =>{
-                if(previousSuccessCreateTime){
-                    return dbconfig.collection_proposal.find({createTime: {$lte: new Date(previousSuccessCreateTime)}, "data.phoneNumber": phoneNumber}).count();
+            }).then(() => {
+                if (previousSuccessCreateTime) {
+                    return dbconfig.collection_proposal.find({
+                        createTime: {$lte: new Date(previousSuccessCreateTime)},
+                        "data.phoneNumber": phoneNumber
+                    }).lean().count();
                 }
             });
 
             //check the count of all proposal records after current record.
-            let futureAllCountProm = dbconfig.collection_proposal.find(futureCountQuery).count();
+            let futureAllCountProm = dbconfig.collection_proposal.find(futureCountQuery).lean().count();
 
             //check the count of success/manual proposal records after current record
-            let futureAfterSuccessCountProm = dbconfig.collection_proposal.find(futureCountQuery).sort({createTime: 1}).then(futureRecords => {
+            let futureAfterSuccessCountProm = dbconfig.collection_proposal.find(futureCountQuery).lean().sort({createTime: 1}).then(futureRecords => {
                 if (futureRecords && futureRecords.length > 0) {
 
                     futureRecords.map(f => {
@@ -3809,9 +3870,12 @@ function insertPlayerRepeatCount(proposals, platformId) {
                 }
 
                 return;
-            }).then(() =>{
-                if(futureFailCreateTime){
-                    return dbconfig.collection_proposal.find({createTime: {$gt: new Date(futureFailCreateTime)}, "data.phoneNumber": phoneNumber}).count();
+            }).then(() => {
+                if (futureFailCreateTime) {
+                    return dbconfig.collection_proposal.find({
+                        createTime: {$gt: new Date(futureFailCreateTime)},
+                        "data.phoneNumber": phoneNumber
+                    }).lean().count();
                 }
             });
 
@@ -3823,20 +3887,20 @@ function insertPlayerRepeatCount(proposals, platformId) {
                     let futureSuccessCount = countData[3] ? countData[3] : 0;
                     let futureFailCount = countData[4] ? countData[4] : 0;
 
-                    if(previousCount){
+                    if (previousCount) {
                         proposal.$playerAllCount = allCount - previousCount;
                         proposal.$playerCurrentCount = currentCount - previousCount;
-                    }else{
+                    } else {
                         proposal.$playerAllCount = allCount;
                         proposal.$playerCurrentCount = currentCount;
                     }
 
-                    if(status == constProposalStatus.PENDING){
-                        if(futureFailCount){
+                    if (status == constProposalStatus.PENDING) {
+                        if (futureFailCount) {
                             proposal.$playerAllCount = proposal.$playerAllCount - futureFailCount;
                         }
-                    }else {
-                        if(futureSuccessCount){
+                    } else {
+                        if (futureSuccessCount) {
                             proposal.$playerAllCount = proposal.$playerAllCount - futureSuccessCount;
                         }
                     }

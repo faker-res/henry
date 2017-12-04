@@ -90,7 +90,7 @@ let dbPlayerRewardPoints = {
                                 message: "Can not match player level with reward points level config"
                             });
                         }
-                        return dbRewardPoints.getRewardPointsByPlayerObjId(ObjectId(playerInfo._id));
+                        return dbRewardPoints.getPlayerRewardPoints(ObjectId(playerInfo._id));
                     }
                     else {
                         return Q.reject({
@@ -209,7 +209,7 @@ let dbPlayerRewardPoints = {
                             message: "Can't update player reward points: player not found."
                         });
                     }
-                    return dbRewardPoints.getRewardPointsByPlayerObjId(ObjectId(player._id));
+                    return dbRewardPoints.getPlayerRewardPoints(ObjectId(player._id));
                 },
                 error => {
                     return Q.reject({name: "DBError", message: "Error updating player.", error: error});

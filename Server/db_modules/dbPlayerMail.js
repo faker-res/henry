@@ -16,6 +16,8 @@ const queryPhoneLocation = require('query-mobile-phone-area');
 const constProposalStatus = require('../const/constProposalStatus');
 const constRegistrationIntentRecordStatus = require('../const/constRegistrationIntentRecordStatus');
 const dbUtility = require('./../modules/dbutility');
+const constProposalEntryType = require('../const/constProposalEntryType');
+const constProposalUserType = require('../const/constProposalUserType');
 
 const dbPlayerMail = {
 
@@ -197,14 +199,15 @@ const dbPlayerMail = {
         let platform;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
 
-        if(data.lastLoginIp && data.lastLoginIp != "undefined"){
-            dbUtility.getGeoIp(data.lastLoginIp).then(
-                ipData=>{
-                    if(data) {
-                        data.ipArea = ipData;
-                    }
-                })
-        }
+
+        // if(inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
+        //     dbUtility.getGeoIp(inputData.lastLoginIp).then(
+        //         ipData=>{
+        //             if(inputData) {
+        //                 inputData.ipArea = ipData;
+        //             }
+        //         })
+        // }
 
         return getPlatform.then(
             function (platformData) {
@@ -222,7 +225,10 @@ const dbPlayerMail = {
                     }
 
                     let smsChannelProm = smsAPI.channel_getChannelList({});
-                    let smsVerificationLogProm = dbconfig.collection_smsVerificationLog.findOne({tel: telNum, createTime: {$gt: lastMin}}).lean();
+                    let smsVerificationLogProm = dbconfig.collection_smsVerificationLog.findOne({
+                        tel: telNum,
+                        createTime: {$gt: lastMin}
+                    }).lean();
                     let messageTemplateProm = dbconfig.collection_messageTemplate.findOne({
                         platform: platformObjId,
                         type: constMessageType.SMS_VERIFICATION,
@@ -239,83 +245,122 @@ const dbPlayerMail = {
             }
         ).then(
             function (data) {
-                channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : 2;
-                lastMinuteHistory = data[1];
-                template = data[2];
+                if (data) {
+                    channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : 2;
+                    lastMinuteHistory = data[1];
+                    template = data[2];
 
-                if (!template) {
-                    return Q.reject({message: 'Template not set for current platform'});
-                }
-
-                template.content = template.content.replace('smsCode', code);
-
-                if (channel === null || platformId === null) {
-                    return Q.reject({message: "cannot find platform or sms channel."});
-                }
-
-                // Check whether verification sms sent in last minute
-                if (lastMinuteHistory && lastMinuteHistory.tel) {
-                    return Q.reject({message: "Verification SMS already sent within last minute"});
-                }
-
-
-                let saveObj = {
-                    tel: telNum,
-                    channel: channel,
-                    platformObjId: platformObjId,
-                    platformId: platformId,
-                    code: code,
-                    delay: 0
-                };
-
-                let sendObj = {
-                    tel: telNum,
-                    channel: channel,
-                    platformId: platformId,
-                    message: template.content,
-                    delay: 0
-                };
-                // Log the verification SMS before send
-                new dbconfig.collection_smsVerificationLog(saveObj).save();
-                return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
-   
-            }
-        ).then(
-            function (retData) {
-                console.log('[smsAPI] Sent verification code to: ', telNum);
-
-                if(data.playerId){
-                    delete data.playerId;
-                }
-
-                //if (purpose == constSMSPurpose.REGISTRATION) {
-                    inputData = inputData || {};
-                    inputData.smsCode = code;
-
-                    if (inputData.phoneNumber) {
-                        var queryRes = queryPhoneLocation(inputData.phoneNumber);
-                        if (queryRes) {
-                            inputData.phoneProvince = queryRes.province;
-                            inputData.phoneCity = queryRes.city;
-                            inputData.phoneType = queryRes.type;
-                        }
-
-                        let proposal = {data: inputData};
-                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, proposal, constProposalStatus.PENDING);
+                    if (!template) {
+                        return Q.reject({message: 'Template not set for current platform'});
                     }
 
-                    let newIntentData = {
-                        data: inputData,
-                        status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
-                        name: inputData.name
+                    template.content = template.content.replace('smsCode', code);
+
+                    if (channel === null || platformId === null) {
+                        return Q.reject({message: "cannot find platform or sms channel."});
+                    }
+
+                    // Check whether verification sms sent in last minute
+                    if (lastMinuteHistory && lastMinuteHistory.tel) {
+                        return Q.reject({message: "Verification SMS already sent within last minute"});
+                    }
+
+
+                    let saveObj = {
+                        tel: telNum,
+                        channel: channel,
+                        platformObjId: platformObjId,
+                        platformId: platformId,
+                        code: code,
+                        delay: 0
                     };
-                    let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                    return newRecord.save().then(data => {
-                        if(data){
-                            return true;
+
+                    let sendObj = {
+                        tel: telNum,
+                        channel: channel,
+                        platformId: platformId,
+                        message: template.content,
+                        delay: 0
+                    };
+                    // Log the verification SMS before send
+                    new dbconfig.collection_smsVerificationLog(saveObj).save();
+                    return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
+                }
+            }
+        ).then(
+            smsData => {
+                if (inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined") {
+                    return dbUtility.getGeoIp(inputData.lastLoginIp).then(
+                        ipData => {
+                            if (ipData) {
+                                inputData.ipArea = ipData;
+                            }
+                            return smsData;
+                        },
+                        error => smsData
+                    );
+                }
+                return smsData;
+            }
+        ).then(
+            retData => {
+                console.log('[smsAPI] Sent verification code to: ', telNum);
+                if (retData) {
+                    if (inputData) {
+                        if (inputData.playerId) {
+                            delete inputData.playerId;
                         }
-                    });
-                //}
+
+                        //if (purpose == constSMSPurpose.REGISTRATION) {
+                        //inputData = inputData || {};
+                        inputData.smsCode = code;
+
+                        if (inputData.phoneNumber) {
+                            var queryRes = queryPhoneLocation(inputData.phoneNumber);
+                            if (queryRes) {
+                                inputData.phoneProvince = queryRes.province;
+                                inputData.phoneCity = queryRes.city;
+                                inputData.phoneType = queryRes.type;
+                            }
+
+                            if (inputData.password) {
+                                delete inputData.password;
+                            }
+
+                            if (inputData.confirmPass) {
+                                delete inputData.confirmPass;
+                            }
+
+                            let proposalData = {
+                                creator: inputData.adminInfo || {
+                                    type: 'player',
+                                    name: inputData.name,
+                                    id: inputData.playerId ? inputData.playerId : ""
+                                }
+                            };
+
+                            let newProposal = {
+                                creator: proposalData.creator,
+                                data: inputData,
+                                entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                                inputDevice: inputDevice ? inputDevice : 0
+                            };
+
+                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
+                        }
+
+                        let newIntentData = {
+                            data: inputData,
+                            status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
+                            name: inputData.name
+                        };
+                        let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+                        return newRecord.save().then(data => {
+                            return true;
+                        });
+                    }
+                }
 
                 return true;
             }
