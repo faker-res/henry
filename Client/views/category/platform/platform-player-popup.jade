@@ -1474,5 +1474,5 @@
                     button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointChange.updateAmount || vm.rewardPointChange.finalValidAmount<0', ng-click="vm.updatePlayerRewardPoint();") {{"UPDATE" | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
                 div(ng-show="vm.selectedRewardPointAdjustmentTab == 'exchange'")
-                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointExchange.updateAmount || vm.rewardPointExchange.finalValidAmount<0', ng-click="vm.updatePlayerRewardPoint();") {{"UPDATE" | translate}}
+                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointExchange.updateAmount || vm.rewardPointExchange.finalValidAmount<0', ng-click="vm.convertPlayerRewardPoint();") {{"UPDATE" | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}

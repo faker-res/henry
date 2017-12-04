@@ -34,6 +34,10 @@ var dbPartner = require("../db_modules/dbPartner");
 var constProposalEntryType = require("../const/constProposalEntryType");
 var constProposalUserType = require("../const/constProposalUserType");
 var SMSSender = require('./SMSSender');
+//Reward Points
+let dbRewardPointsTask = require('./../db_modules/dbRewardPointsTask');
+let dbRewardPoints = require("../db_modules/dbRewardPoints.js");
+let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
 const moment = require('moment-timezone');
 
 /**
@@ -161,6 +165,7 @@ var proposalExecutor = {
             this.executions.executePlayerLoseReturnRewardGroup.des = "Player Lose Return Group Reward";
             this.executions.executePlayerConsumptionRewardGroup.des = "Player Consumption Group Reward";
             this.executions.executePlayerFreeTrialRewardGroup.des = "Player Free Trial Reward Group";
+            this.executions.executePlayerConvertRewardPoints.des = "Player Convert Reward Points";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -217,6 +222,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerLoseReturnRewardGroup.des = "Reject Player Lose Return Group Reward";
             this.rejections.rejectPlayerConsumptionRewardGroup.des = "Reject Player Consumption Group Reward";
             this.rejections.rejectPlayerFreeTrialRewardGroup.des = "Reject Player Free Trial Reward Group";
+            this.rejections.rejectPlayerConvertRewardPoints.des = "Player Convert Reward Points";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -2224,7 +2230,10 @@ var proposalExecutor = {
                     );
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Incorrect player consumption return group proposal data"});
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Incorrect player consumption return group proposal data"
+                    });
                 }
             },
 
@@ -2268,6 +2277,28 @@ var proposalExecutor = {
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect player free trial reward group proposal data"});
+                }
+            },
+
+            executePlayerConvertRewardPoints: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.convertCredit && proposalData.data.spendingAmount) {
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constProposalType.PLAYER_CONVERT_REWARD_POINTS,
+                        rewardType: constProposalType.PLAYER_CONVERT_REWARD_POINTS,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        currentAmount: proposalData.data.convertCredit,
+                        initAmount: proposalData.data.convertCredit,
+                        applyAmount: 0,
+                        providerGroup: proposalData.data.providerGroup
+                    };
+                    
+                    let deferred1 = Q.defer();
+                    createRewardPointsTaskForProposal(proposalData, taskData, deferred1, constProposalType.PLAYER_CONVERT_REWARD_POINTS, proposalData);
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect player convert reward points proposal data"});
                 }
             },
         },
@@ -2859,6 +2890,10 @@ var proposalExecutor = {
             rejectPlayerFreeTrialRewardGroup: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
+
+            rejectPlayerConvertRewardPoints: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
         }
     }
 ;
@@ -3055,6 +3090,70 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
                 });
             } else {
                 return Q.reject(error);
+            }
+        }
+    );
+}
+
+/**
+ * @param proposalData
+ * @param taskData
+ * @param deferred
+ * @param rewardType
+ * @param [resolveValue] - Optional.  Without this, resolves with the newly created reward task.
+ */
+function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rewardPointsType, resolveValue) {
+    let rewardPointsTask, gameProviderGroup, playerRewardPoint;
+    if (!(proposalData && proposalData.data && proposalData.data.playerObjId)) {
+        deferred.reject({name: "DBError", message: "Invalid reward points proposal data"});
+        return;
+    }
+    // Add proposalId in reward data
+    taskData.proposalId = proposalData.proposalId;
+    let gameProviderGroupProm = Promise.resolve(false);
+    // Check whether game provider group exist
+    if (proposalData.data.providerGroup) {
+        gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: proposalData.data.providerGroup}).lean();
+    }
+
+    let playerRewardPointProm = dbRewardPoints.getRewardPointsByPlayerObjId(taskData.playerId);
+
+    Promise.all([gameProviderGroupProm, playerRewardPointProm]).then(
+        res => {
+            gameProviderGroup = res[0];
+            playerRewardPoint = res[1];
+            // Create different process flow for lock provider group reward
+            if (proposalData.data.providerGroup && gameProviderGroup) {
+                //Todo reward points task with providerGroup
+                // dbRewardPointsTask.createRewardPointsTaskWithProviderGroup(taskData, proposalData).then(
+                //     data => deferred.resolve(resolveValue || data),
+                //     error => deferred.reject(error)
+                // )
+            } else {
+                dbRewardPointsTask.createRewardPointsTask(taskData, proposalData, playerRewardPoint).then(
+                    data => rewardPointsTask = data
+                ).catch(
+                    error => Q.reject({
+                        name: "DBError",
+                        message: "Error creating reward points task for " + rewardPointsType,
+                        error: error
+                    })
+                ).then(
+                    () => {
+                        return dbconfig.collection_rewardPoints.findOne({_id: proposalData.data.playerRewardPointsObjId}).lean().then(
+                            playerRewardPoints => {
+                                dbPlayerRewardPoints.changePlayerRewardPoint(playerRewardPoints.playerObjId, playerRewardPoints.platformObjId, proposalData.data.rewardAmount);
+                            }
+                        );
+                    }
+                ).then(
+                    function () {
+                        deferred.resolve(resolveValue || rewardPointsTask);
+                    },
+                    function (error) {
+                        deferred.reject(error);
+                    }
+                );
             }
         }
     );

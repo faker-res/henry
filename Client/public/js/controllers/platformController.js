@@ -14680,6 +14680,18 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.convertPlayerRewardPoint = () => {
+                var sendData = {
+                    playerId: vm.isOneSelectedPlayer().playerId,
+                    convertRewardPointsAmount: vm.rewardPointExchange.updateAmount
+                };
+                socketService.$socket($scope.AppSocket, 'convertRewardPointToCredit', sendData, function (data) {
+                    console.log('convertRewardPointToCredit', data.data);
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                });
+            };
+
             function loadPromoCodeTypes() {
                 socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
                     console.log('getPromoCodeTypes', data);

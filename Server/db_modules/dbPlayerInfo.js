@@ -75,6 +75,8 @@ let dbRewardTask = require('./../db_modules/dbRewardTask');
 let dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
 let dbPlayerCredibility = require('./../db_modules/dbPlayerCredibility');
 let dbPartner = require('../db_modules/dbPartner');
+let dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
+let dbRewardPointsLvlConfig = require('../db_modules/dbRewardPointsLvlConfig');
 
 let PLATFORM_PREFIX_SEPARATOR = '';
 
@@ -11889,6 +11891,7 @@ let dbPlayerInfo = {
             return result;
         });
     },
+
 };
 
 
