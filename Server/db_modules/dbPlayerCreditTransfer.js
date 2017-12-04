@@ -1005,6 +1005,7 @@ let dbPlayerCreditTransfer = {
      * @param forSync
      */
     playerCreditTransferFromProviderWithProviderGroup: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync) {
+        console.log('playerCreditTransferFromProviderWithProviderGroup');
         let pCTFP = this;
         let providerPlayerObj = null;
         let lockedAmount = 0;
@@ -1174,6 +1175,7 @@ let dbPlayerCreditTransfer = {
         ).then(
             res => {
                 if (res) {
+                    console.log('transfer out res', res);
                     // CPMS Transfer out success
                     // Update reward task group if available
                     if (rewardGroupObj) {
