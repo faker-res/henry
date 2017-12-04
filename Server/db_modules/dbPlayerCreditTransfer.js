@@ -157,8 +157,6 @@ let dbPlayerCreditTransfer = {
                                     // Add up the reward tasks current amount
                                     let amountToAdd = Math.floor(reward.currentAmount);
 
-                                    console.log('amountToAdd', amountToAdd);
-
                                     gameAmount += amountToAdd;
                                     // Check whether need to trasnfer validAmount
                                     // let remainingAmount = validTransferAmount + reward.currentAmount - amountToAdd;
@@ -1005,7 +1003,6 @@ let dbPlayerCreditTransfer = {
      * @param forSync
      */
     playerCreditTransferFromProviderWithProviderGroup: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync) {
-        console.log('playerCreditTransferFromProviderWithProviderGroup');
         let pCTFP = this;
         let providerPlayerObj = null;
         let lockedAmount = 0;
@@ -1033,8 +1030,6 @@ let dbPlayerCreditTransfer = {
             res => {
                 player = res[0];
                 gameProviderGroup = res[1];
-
-                console.log('gameProviderGroup', gameProviderGroup);
 
                 // Check if player exist
                 if (!player) {
@@ -1074,9 +1069,6 @@ let dbPlayerCreditTransfer = {
                 if (res && res[0]) {
                     providerPlayerObj = {gameCredit: res[0].credit ? parseFloat(res[0].credit) : 0};
                     rewardGroupObj = res[1];
-
-                    console.log('providerPlayerObj', providerPlayerObj);
-                    console.log('rewardGroupObj', rewardGroupObj);
 
                     // Process transfer amount
                     amount = amount > 0 ? Math.floor(amount) : Math.floor(providerPlayerObj.gameCredit);
@@ -1180,7 +1172,6 @@ let dbPlayerCreditTransfer = {
         ).then(
             res => {
                 if (res) {
-                    console.log('transfer out res', res);
                     // CPMS Transfer out success
                     // Update reward task group if available
                     if (rewardGroupObj) {
