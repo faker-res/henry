@@ -354,7 +354,7 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(data && data.adminId && data.platformId);
             var startTime = data.startDate ? data.startDate : new Date(0);
             var endTime = data.endDate ? data.endDate : new Date();
-            var index = data.index || 0;
+            var index = 0;
             var size = data.size || 10;
             var sortCol = data.sortCol || {"createTime": -1};
             socketUtil.emitter(self.socket, dbProposal.getPlayerRegistrationIntentRecordByStatus, [data.platformId, data.type, data.status, data.name, data.phoneNumber, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.proposalId, data.attemptNo, data.unlockSizeLimit], actionName, isValidData);
