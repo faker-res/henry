@@ -19,6 +19,8 @@ const dbUtility = require('./../modules/dbutility');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constServerCode = require('../const/constServerCode');
+const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+const rsaCrypto = require('./../modules/rsaCrypto');
 
 const dbPlayerMail = {
 
@@ -236,7 +238,26 @@ const dbPlayerMail = {
                         format: "sms"
                     }).lean();
 
-                    return Promise.all([smsChannelProm, smsVerificationLogProm, messageTemplateProm]);
+                    let validPhoneNumberProm = Promise.resolve({isPhoneNumberValid: true});
+                    if (purpose === constSMSPurpose.REGISTRATION) {
+                        if (!(platform.whiteListingPhoneNumbers
+                            && platform.whiteListingPhoneNumbers.length > 0
+                            && platform.whiteListingPhoneNumbers.indexOf(telNum) > -1)) {
+                            if (platform.allowSamePhoneNumberToRegister === true) {
+                                validPhoneNumberProm =  dbPlayerInfo.isExceedPhoneNumberValidToRegister({
+                                    phoneNumber: rsaCrypto.encrypt(telNum),
+                                    platform: platformObjId
+                                }, platform.samePhoneNumberRegisterCount);
+                            } else {
+                                validPhoneNumberProm = dbPlayerInfo.isPhoneNumberValidToRegister({
+                                    phoneNumber: rsaCrypto.encrypt(telNum),
+                                    platform: platformObjId
+                                });
+                            }
+                        }
+                    }
+
+                    return Promise.all([smsChannelProm, smsVerificationLogProm, messageTemplateProm, validPhoneNumberProm]);
                 } else {
                     return Q.reject({
                         name: "DataError",
@@ -250,6 +271,11 @@ const dbPlayerMail = {
                     channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : 2;
                     lastMinuteHistory = data[1];
                     template = data[2];
+                    phoneValidation = data[3];
+
+                    if (!phoneValidation || !phoneValidation.isPhoneNumberValid) {
+                        return Promise.reject({message: "This phone number is already used. Please insert other phone number."});
+                    }
 
                     if (!template) {
                         return Q.reject({message: 'Template not set for current platform'});
