@@ -108,6 +108,15 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
+         * Get player reward points record based on player rewardPointsObjId
+         */
+        updatePlayerRewardPointsRecord: function updatePlayerRewardPointsRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.rewardPointsObjId && data.finalValidAmount);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.rewardPointsObjId, data.finalValidAmount], actionName, isValidData);
+        },
+
+        /**
          * Create a test player for platform
          * @param {json} data - It has to contain platform id
          */

@@ -7992,15 +7992,17 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
-                vm.isOneSelectedPlayer().finalValidAmount = 0;
-                vm.rewardPointsChange.remark = '';
-                vm.rewardPointsChange.updateAmount = 0;
-
                 if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
                     vm.createPlayerRewardPointsRecord();
-                } else {
+                }
+                if(vm.selectedSinglePlayer.currentPoints === undefined) {
                     vm.getPlayerRewardPointsRecord();
                 }
+
+                vm.rewardPointsChange.finalValidAmount = 0;
+                vm.rewardPointsChange.remark = '';
+                vm.rewardPointsChange.updateAmount = 0;
+                $scope.safeApply();
             };
 
             vm.createPlayerRewardPointsRecord = function () {
@@ -8047,6 +8049,19 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsRecord', sendData, function (data) {
                     vm.isOneSelectedPlayer().currentPoints = data.data.points;
+                    $scope.safeApply();
+                });
+            };
+
+            vm.updatePlayerRewardPointsRecord = function () {
+                let sendData = {
+                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId,
+                    finalValidAmount: vm.rewardPointsChange.finalValidAmount
+                };
+
+                socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function (data) {
+                    let newData = data.data;
+                    vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
             };
@@ -14379,6 +14394,9 @@ define(['js/app'], function (myApp) {
                     case 'announcement':
                         vm.getAllPlatformAnnouncements();
                         break;
+                    case 'partnerBasic':
+                        vm.getPartnerBasic();
+                        break;
                     case 'platformBasic':
                         vm.getPlatformBasic();
                         vm.getDelayDurationGroup();
@@ -16738,6 +16756,13 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.getPartnerBasic = function () {
+                vm.partnerBasic = vm.partnerBasic || {};
+                vm.partnerBasic.partnerNameMaxLength = vm.selectedPlatform.data.partnerNameMaxLength;
+                vm.partnerBasic.partnerNameMinLength = vm.selectedPlatform.data.partnerNameMinLength;
+                $scope.safeApply();
+            }
+
             vm.getBonusBasic = () => {
 
                 vm.getAllPlayerLevels().done(
@@ -17028,6 +17053,9 @@ define(['js/app'], function (myApp) {
                     case 'platformBasic':
                         updatePlatformBasic(vm.platformBasic);
                         break;
+                    case 'partnerBasic':
+                        updatePartnerBasic(vm.partnerBasic);
+                        break;
                     case 'bonusBasic':
                         updatePlatformBasic(vm.bonusBasic);
                         break;
@@ -17192,6 +17220,19 @@ define(['js/app'], function (myApp) {
                         whiteListingPhoneNumbers: whiteListingPhoneNumbers,
                         usePointSystem: srcData.usePointSystem,
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification
+                    }
+                };
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    vm.loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updatePartnerBasic(srcData) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        partnerNameMaxLength: srcData.partnerNameMaxLength,
+                        partnerNameMinLength: srcData.partnerNameMinLength,
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
