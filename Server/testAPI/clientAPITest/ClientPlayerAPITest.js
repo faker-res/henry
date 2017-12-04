@@ -89,6 +89,18 @@
         });
     };
 
+    proto.verifyPhoneNumberBySMSCode = function (callback, requestData) {
+        var data = requestData || {
+            smsCode: '123456'
+        };
+        this.playerService.verifyPhoneNumberBySMSCode.request(data);
+        this.playerService.verifyPhoneNumberBySMSCode.once(function (data) {
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.create = function (callback, requestData) {
         date = new Date().getTime();
         //console.log("data:platformId.....", platformId);

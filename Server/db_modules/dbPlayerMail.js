@@ -18,6 +18,7 @@ const constRegistrationIntentRecordStatus = require('../const/constRegistrationI
 const dbUtility = require('./../modules/dbutility');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
+const constServerCode = require('../const/constServerCode');
 
 const dbPlayerMail = {
 
@@ -385,6 +386,61 @@ const dbPlayerMail = {
             },
             error => {
                 return Q.reject({name: "DBError", message: "Error in getting player data", error: error});
+            }
+        );
+    },
+
+    verifyPhoneNumberBySMSCode: function (playerId, smsCode) {
+        let smsDetail = {};
+
+        return dbconfig.collection_players.findOne({playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .lean().then(
+            data => {
+                if (!data || !data.platform) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Error in getting player data"
+                    })
+                }
+                let playerData = data;
+                let platformData = data.platform;
+
+                platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
+                let smsExpiredDate = new Date();
+                smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
+
+                return dbconfig.collection_smsVerificationLog.findOne({
+                    platformObjId: platformData._id,
+                    tel: playerData.phoneNumber,
+                    createTime: {$gte: smsExpiredDate}
+                }).sort({createTime: -1})
+            }
+        ).then(
+            verificationSMS => {
+                // Check verification SMS code
+                if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
+                    verificationSMS = verificationSMS || {};
+                    smsDetail = verificationSMS;
+                    return dbconfig.collection_smsVerificationLog.remove(
+                        {_id: verificationSMS._id}
+                    );
+                }
+                else {
+                    let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
+                    return Promise.reject({
+                        status: constServerCode.VALIDATION_CODE_INVALID,
+                        name: "ValidationError",
+                        message: errorMessage
+                    });
+                }
+            }
+        ).then(
+            () => {
+                if (smsDetail && smsDetail.tel && smsDetail.code) {
+                    dbLogger.logUsedVerificationSMS(smsDetail.tel, smsDetail.code);
+                }
+                return Promise.resolve(true);
             }
         );
     }
