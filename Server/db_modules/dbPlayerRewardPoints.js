@@ -23,10 +23,11 @@ let dbPlayerRewardPoints = {
      * Convert reward points to credit
      * @param playerId
      * @param convertRewardPointsAmount
+     * @param remark
      * @param adminId
      * @param adminName
      */
-    convertRewardPointToCredit: (playerId, convertRewardPointsAmount, adminId, adminName) => {
+    convertRewardPointsToCredit: (playerId, convertRewardPointsAmount, remark, adminId, adminName) => {
         let playerInfo = null;
         let playerLvlRewardPointsConfig = null;
         let playerRewardPoints = null;
@@ -175,7 +176,8 @@ let dbPlayerRewardPoints = {
                                 convertedRewardPoints: convertRewardPointsAmount,
                                 convertCredit: convertCredit,
                                 spendingAmount: spendingAmount,
-                                providerGroup: playerLvlRewardPointsConfig.providerGroup
+                                providerGroup: playerLvlRewardPointsConfig.providerGroup,
+                                remark: remark
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS

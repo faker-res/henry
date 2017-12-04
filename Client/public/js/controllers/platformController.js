@@ -15189,10 +15189,11 @@ define(['js/app'], function (myApp) {
             vm.convertPlayerRewardPoint = () => {
                 var sendData = {
                     playerId: vm.isOneSelectedPlayer().playerId,
-                    convertRewardPointsAmount: vm.rewardPointExchange.updateAmount
+                    convertRewardPointsAmount: vm.rewardPointsExchange.updateAmount,
+                    remark: vm.rewardPointsExchange.remark
                 };
-                socketService.$socket($scope.AppSocket, 'convertRewardPointToCredit', sendData, function (data) {
-                    console.log('convertRewardPointToCredit', data.data);
+                socketService.$socket($scope.AppSocket, 'convertRewardPointsToCredit', sendData, function (data) {
+                    console.log('convertRewardPointsToCredit', data.data);
                     vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
