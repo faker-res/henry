@@ -75,6 +75,7 @@ let dbRewardTask = require('./../db_modules/dbRewardTask');
 let dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
 let dbPlayerCredibility = require('./../db_modules/dbPlayerCredibility');
 let dbPartner = require('../db_modules/dbPartner');
+let dbRewardPoints = require('../db_modules/dbRewardPoints');
 
 let PLATFORM_PREFIX_SEPARATOR = '';
 
@@ -3405,7 +3406,7 @@ let dbPlayerInfo = {
      * check the player exists and check password is matched against the password in DB using bcrypt
      *  @param include name and password of the player and some more additional info to log the player's login
      */
-    playerLogin: function (playerData, userAgent) {
+    playerLogin: function (playerData, userAgent, inputDevice) {
         let deferred = Q.defer();
         let db_password = null;
         let newAgentArray = [];
@@ -3573,6 +3574,11 @@ let dbPlayerInfo = {
                                 clientDomain: playerData.clientDomain ? playerData.clientDomain : "",
                                 userAgent: uaObj
                             };
+
+                            if (platformObj.usePointSystem) {
+                                dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
+                            }
+
                             Object.assign(recordData, geoInfo);
                             var record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
@@ -7923,7 +7929,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType) {
+    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice) {
         var platformData = null;
         var providerData = null;
         var playerData = null;
@@ -8054,6 +8060,10 @@ let dbPlayerInfo = {
                 bTransferIn = (data && ((parseFloat(data.playerCredit) + parseFloat(data.rewardCredit)) >= 1)) ? true : false;
                 //console.log("bTransferIn:", bTransferIn, data);
                 if (data && gameData && gameData.provider) {
+                    if (gameData.provider._id && playerData && playerData.platform && playerData.platform.usePointSystem) {
+                        dbRewardPoints.updateLoginRewardPointProgress(playerData, gameData.provider._id, inputDevice).catch(errorUtils.reportError);
+                    }
+
                     providerData = gameData.provider;
                     //transfer in to current provider
                     if (bTransferIn) {
