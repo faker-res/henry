@@ -1025,6 +1025,44 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.startPlatformRTGEventSettlement = function (event) {
+                vm.platformRTGEventSettlement = {
+                    result: false,
+                    status: 'ready'
+                };
+
+                let socketName;
+
+                switch (event.condition.interval) {
+                    case "1":
+                    case 1:
+                        socketName = "getYesterdaySGTime";
+                        break;
+                    case "2":
+                    case 2:
+                        socketName = "getLastWeekSGTime";
+                        break;
+                    case "3":
+                    case 3:
+                        socketName = "getLastBiWeekSGTime";
+                        break;
+                    case "4":
+                    case 4:
+                        socketName = "getLastMonthSGTime";
+                }
+
+                socketService.$socket($scope.AppSocket, socketName,
+                    {},
+                    ret => {
+                        vm.platformRTGEventSettlement.startTime = vm.dateReformat(ret.data.startTime);
+                        vm.platformRTGEventSettlement.endTime = vm.dateReformat(ret.data.endTime);
+                        $scope.safeApply();
+                    });
+
+                $('#platformRTGEventSettlementModal').modal('show');
+                $scope.safeApply();
+            };
+
             vm.performPlayerConsumptionReturnSettlement = function () {
                 vm.playerConsumptionReturnSettlement.status = 'processing';
                 socketService.$socket($scope.AppSocket, 'startPlatformPlayerConsumptionReturnSettlement',
@@ -13153,6 +13191,7 @@ define(['js/app'], function (myApp) {
                         return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1")
                     }).length > 0
                     vm.curContentRewardType = {};
+                    vm.settlementRewardGroupEvent = [];
                     $.each(vm.allRewardEvent, function (i, v) {
                         $.each(vm.allRewardTypes, function (a, b) {
                             if (b._id == v.type._id) {
@@ -13160,7 +13199,11 @@ define(['js/app'], function (myApp) {
                                 return true;
                             }
                         })
-                        //console.log(v);
+
+                        // Setup settlement reward group events entry
+                        if (v && v.condition && v.condition.applyType == "3" && v.condition.interval != "5") {
+                            vm.settlementRewardGroupEvent.push(v);
+                        }
                     });
                     console.log(vm.curContentRewardType);
                     $scope.safeApply();
