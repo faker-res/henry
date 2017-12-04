@@ -124,7 +124,12 @@ let dbPlayerInfo = {
     /**
      * Update player's reward points and create log
      */
-    updatePlayerRewardPointsRecord: function (rewardPointsObjId, finalValidAmount, data) {
+    updatePlayerRewardPointsRecord: function (rewardPointsObjId, data) {
+        let finalValidAmount = data.oldPoints + data.amount;
+        if(finalValidAmount < 0){
+            return Q.reject({name: "DataError", message: "Player reward points cannot be less than 0."});
+        }
+
         return dbconfig.collection_rewardPoints.findOneAndUpdate(
             {
                 _id: rewardPointsObjId
@@ -132,7 +137,8 @@ let dbPlayerInfo = {
             {
                 points: finalValidAmount,
                 lastUpdate: Date.now()
-            }
+            },
+            {new: true}
         ).lean().then(
             rewardPoints => {
                 if (!rewardPoints) {
@@ -140,7 +146,7 @@ let dbPlayerInfo = {
                 }
                 let category = constRewardPointsLogCategory.POINT_INCREMENT;
                 let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
-                dbLogger.createRewardPointsChangeLog(rewardPointsObjId, rewardPoints.playerName, rewardPoints.playerLevel, finalValidAmount, data, category, userAgent);
+                dbLogger.createRewardPointsChangeLog(rewardPointsObjId, rewardPoints.playerName, rewardPoints.playerLevel, rewardPoints.points, data, category, userAgent);
                 return rewardPoints;
             },
             error => {

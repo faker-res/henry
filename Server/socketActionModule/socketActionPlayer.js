@@ -112,8 +112,8 @@ function socketActionPlayer(socketIO, socket) {
          */
         updatePlayerRewardPointsRecord: function updatePlayerRewardPointsRecord(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.rewardPointsObjId && data.finalValidAmount);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.rewardPointsObjId, data.finalValidAmount, data.data], actionName, isValidData);
+            let isValidData = Boolean(data && data.rewardPointsObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.rewardPointsObjId, data.data], actionName, isValidData);
         },
 
         /**

@@ -32,7 +32,7 @@ var dbLogger = {
     /**
      * Create the log  of reward points update action to the player
      */
-    createRewardPointsChangeLog: function (rewardPointsObjId, playerName, playerLevel, finalValidAmount, data, category, userAgent) {
+    createRewardPointsChangeLog: function (rewardPointsObjId, playerName, playerLevel, newPoints, data, category, userAgent) {
         let logData = {
             rewardPointsObjId: rewardPointsObjId,
             playerName: playerName,
@@ -40,7 +40,7 @@ var dbLogger = {
             category: category,
             userAgent: userAgent,
             oldPoints: data.oldPoints,
-            newPoints: finalValidAmount,
+            newPoints: newPoints,
             amount: data.amount,
             creator: data.creator,
             remark: data.remark ? data.remark : null,
