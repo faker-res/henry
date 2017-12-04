@@ -52,6 +52,7 @@
                 "isLogin",
                 "getSMSCode",
                 "sendSMSCodeToPlayer",
+                "verifyPhoneNumberBySMSCode",
                 "updatePaymentInfo",
                 "updatePlayerPartnerPaymentInfo",
                 "updateSmsSetting",

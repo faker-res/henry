@@ -1410,7 +1410,7 @@
                 button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.creditChange.updateAmount || vm.creditChange.finalValidAmount<0', ng-click="vm.updatePlayerCredit();") {{"UPDATE" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
-#modalPlayerRewardPointsAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+#modalPlayerRewardPointsAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')
         .modal-content
             .modal-header
@@ -1435,15 +1435,15 @@
                                     tr
                                         td {{vm.isOneSelectedPlayer().currentPoints}}
                                         td
-                                            input.text-success(type='number', ng-model='vm.rewardPointsChange.updateAmount', ng-change="vm.isOneSelectedPlayer().finalValidAmount=vm.isOneSelectedPlayer().currentPoints+vm.rewardPointsChange.updateAmount")
+                                            input.text-success(type='number', ng-model='vm.rewardPointsChange.updateAmount', ng-change="vm.rewardPointsChange.finalValidAmount=vm.isOneSelectedPlayer().currentPoints+vm.rewardPointsChange.updateAmount")
                                         td
-                                            label.text-danger {{vm.isOneSelectedPlayer().finalValidAmount || 0 }}
-                                            .text-danger(ng-show='vm.isOneSelectedPlayer().finalValidAmount<0') {{'Player reward points cannot be less than 0' | translate}}
+                                            label.text-danger {{vm.rewardPointsChange.finalValidAmount || 0 }}
+                                            .text-danger(ng-show='vm.rewardPointsChange.finalValidAmount<0') {{'Player reward points cannot be less than 0' | translate}}
                             .row
                                 .col-md-6
                                     label.control-label {{'REMARKS' | translate}}
                                 .col-md-12.textareaDetail
-                                    textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.rewardPointsChange.remark")
+                                    textarea.form-control(name="Remarks", rows='5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.rewardPointsChange.remark")
                         // rewardPointsExchange
                         .well(ng-show="vm.selectedRewardPointsAdjustmentTab == 'exchange'")
                             table.col-md-12.paddingTbl.text-center.datatable-sm
@@ -1468,11 +1468,11 @@
                                 .col-md-6
                                     label.control-label {{'REMARKS' | translate}}
                                 .col-md-12.textareaDetail
-                                    textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.rewardPointsExchange.remark")
+                                    textarea.form-control(name="Remarks", rows='5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.rewardPointsExchange.remark")
             .modal-footer
                 div(ng-show="vm.selectedRewardPointsAdjustmentTab == 'change'")
-                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointsChange.updateAmount || vm.isOneSelectedPlayer().finalValidAmount<0', ng-click="vm.updatePlayerRewardPoints();") {{"UPDATE" | translate}}
+                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointsChange.updateAmount || vm.rewardPointsChange.finalValidAmount<0', ng-click="vm.updatePlayerRewardPointsRecord();") {{"UPDATE" | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
                 div(ng-show="vm.selectedRewardPointsAdjustmentTab == 'exchange'")
-                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointsExchange.updateAmount || vm.isOneSelectedPlayer().finalValidAmount<0', ng-click="vm.updatePlayerRewardPoints();") {{"UPDATE" | translate}}
+                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointsExchange.updateAmount || vm.isOneSelectedPlayer().finalValidAmount<0', ng-click="vm.updatePlayerRewardPointsRecord();") {{"UPDATE" | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
