@@ -18,6 +18,7 @@ const constRegistrationIntentRecordStatus = require('../const/constRegistrationI
 const dbUtility = require('./../modules/dbutility');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
+const constServerCode = require('../const/constServerCode');
 
 const dbPlayerMail = {
 
@@ -306,59 +307,59 @@ const dbPlayerMail = {
             retData => {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
                 if (retData) {
-                    if (inputData) {
-                        if (inputData.playerId) {
-                            delete inputData.playerId;
-                        }
-
-                        //if (purpose == constSMSPurpose.REGISTRATION) {
-                        //inputData = inputData || {};
-                        inputData.smsCode = code;
-
-                        if (inputData.phoneNumber) {
-                            var queryRes = queryPhoneLocation(inputData.phoneNumber);
-                            if (queryRes) {
-                                inputData.phoneProvince = queryRes.province;
-                                inputData.phoneCity = queryRes.city;
-                                inputData.phoneType = queryRes.type;
+                    if (purpose && purpose == constSMSPurpose.REGISTRATION) {
+                        if (inputData) {
+                            if (inputData.playerId) {
+                                delete inputData.playerId;
                             }
+                            //inputData = inputData || {};
+                            inputData.smsCode = code;
 
-                            if (inputData.password) {
-                                delete inputData.password;
-                            }
-
-                            if (inputData.confirmPass) {
-                                delete inputData.confirmPass;
-                            }
-
-                            let proposalData = {
-                                creator: inputData.adminInfo || {
-                                    type: 'player',
-                                    name: inputData.name,
-                                    id: inputData.playerId ? inputData.playerId : ""
+                            if (inputData.phoneNumber) {
+                                var queryRes = queryPhoneLocation(inputData.phoneNumber);
+                                if (queryRes) {
+                                    inputData.phoneProvince = queryRes.province;
+                                    inputData.phoneCity = queryRes.city;
+                                    inputData.phoneType = queryRes.type;
                                 }
-                            };
 
-                            let newProposal = {
-                                creator: proposalData.creator,
+                                if (inputData.password) {
+                                    delete inputData.password;
+                                }
+
+                                if (inputData.confirmPass) {
+                                    delete inputData.confirmPass;
+                                }
+
+                                let proposalData = {
+                                    creator: inputData.adminInfo || {
+                                        type: 'player',
+                                        name: inputData.name,
+                                        id: inputData.playerId ? inputData.playerId : ""
+                                    }
+                                };
+
+                                let newProposal = {
+                                    creator: proposalData.creator,
+                                    data: inputData,
+                                    entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                    userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                                    inputDevice: inputDevice ? inputDevice : 0
+                                };
+
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
+                            }
+
+                            let newIntentData = {
                                 data: inputData,
-                                entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-                                userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                                inputDevice: inputDevice ? inputDevice : 0
+                                status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
+                                name: inputData.name
                             };
-
-                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
+                            let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+                            return newRecord.save().then(data => {
+                                return true;
+                            });
                         }
-
-                        let newIntentData = {
-                            data: inputData,
-                            status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
-                            name: inputData.name
-                        };
-                        let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                        return newRecord.save().then(data => {
-                            return true;
-                        });
                     }
                 }
 
@@ -385,6 +386,61 @@ const dbPlayerMail = {
             },
             error => {
                 return Q.reject({name: "DBError", message: "Error in getting player data", error: error});
+            }
+        );
+    },
+
+    verifyPhoneNumberBySMSCode: function (playerId, smsCode) {
+        let smsDetail = {};
+
+        return dbconfig.collection_players.findOne({playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .lean().then(
+            data => {
+                if (!data || !data.platform) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Error in getting player data"
+                    })
+                }
+                let playerData = data;
+                let platformData = data.platform;
+
+                platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
+                let smsExpiredDate = new Date();
+                smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
+
+                return dbconfig.collection_smsVerificationLog.findOne({
+                    platformObjId: platformData._id,
+                    tel: playerData.phoneNumber,
+                    createTime: {$gte: smsExpiredDate}
+                }).sort({createTime: -1})
+            }
+        ).then(
+            verificationSMS => {
+                // Check verification SMS code
+                if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
+                    verificationSMS = verificationSMS || {};
+                    smsDetail = verificationSMS;
+                    return dbconfig.collection_smsVerificationLog.remove(
+                        {_id: verificationSMS._id}
+                    );
+                }
+                else {
+                    let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
+                    return Promise.reject({
+                        status: constServerCode.VALIDATION_CODE_INVALID,
+                        name: "ValidationError",
+                        message: errorMessage
+                    });
+                }
+            }
+        ).then(
+            () => {
+                if (smsDetail && smsDetail.tel && smsDetail.code) {
+                    dbLogger.logUsedVerificationSMS(smsDetail.tel, smsDetail.code);
+                }
+                return Promise.resolve(true);
             }
         );
     }

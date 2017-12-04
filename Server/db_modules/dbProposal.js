@@ -2337,14 +2337,19 @@ var proposal = {
             );
         }).then(data => {
             data.map(d => {
-                userName = d.name;
+                //userName = d.name;
                 phoneNumber = d.phoneNumber
+
+                if(statusArr && statusArr.includes("Pending")){
+                    unlockSizeLimit = false;
+                    size = 1;
+                }
                 let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo, unlockSizeLimit);
                 returnArr.push(p);
             })
         }).then(data => {
             return Promise.all(returnArr);
-        })
+        });
     },
 
     /**
