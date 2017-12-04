@@ -246,6 +246,9 @@
                     text {{"Partner Commission Settlement" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlatformPlayerConsumptionReturnSettlement($event);vm.setPlatformFooter(null)")
                     text {{"Player Consumption Return Settlement" | translate}}
+                div(ng-if="vm.selectedPlatformDetailTab == 'system-settlement'" ng-repeat="event in vm.settlementRewardGroupEvent")
+                    button.btn.btn-primary.common-button(data-dismiss='modal' ng-click="vm.startPlatformRTGEventSettlement(event);vm.setPlatformFooter(null)")
+                        text {{ "Settle" | translate }} {{ event.name | translate }}
 
 
 
@@ -450,3 +453,20 @@
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{'CLOSE' | translate}}
                 button.btn.btn-success.common-button(ng-if='vm.playerConsecutiveConsumptionSettlement.status=="ready"', ng-click="vm.performPlayerConsecutiveConsumptionSettlement()") {{'CONFIRM' | translate}}
                 i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.playerConsecutiveConsumptionSettlement.status=="processing"')
+
+#platformRTGEventSettlementModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:50%;margin-left:20%')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Player Consumption Return Settlement" | translate}} : {{vm.selectedPlatform.text}}
+            .modal-body
+                label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
+                br
+                label {{vm.platformRTGEventSettlement.startTime}} -> {{vm.platformRTGEventSettlement.endTime}}
+            .modal-footer
+                .form-control.inlineBlk(style='width:initial', ng-if='vm.platformRTGEventSettlement.status=="completed"')
+                    .text-danger {{vm.platformRTGEventSettlement.result | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{'CLOSE' | translate}}
+                button.btn.btn-success.common-button(ng-if='vm.platformRTGEventSettlement.status=="ready"', ng-click="vm.performPlayerConsumptionReturnSettlement()") {{'CONFIRM' | translate}}
+                i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.platformRTGEventSettlement.status=="processing"')
