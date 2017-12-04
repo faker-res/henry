@@ -2845,5 +2845,6 @@
   "REWARD_INTERVAL_DETAIL": "按照日历来定义周期（0点分界）",
   "REWARD_TOP_UP_DIRTY_FOR_REWARD_DETAIL": "勾选后将无视该存款已申请过其他优惠",
   "REWARD_REQUIRE_NON_BREAKING_COMBO_DETAIL": "不勾选则玩家可跨日累积签到天数",
-  "REWARD_RECLAIM_MISSED_DAY_DETAIL": "不勾选玩家需每日领取，隔日不计算"
+  "REWARD_RECLAIM_MISSED_DAY_DETAIL": "不勾选玩家需每日领取，隔日不计算",
+  "playerLevelUp": "玩家升级"
 }
