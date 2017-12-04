@@ -988,6 +988,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.getForbidGameLog, [data.playerId, data.startTime, data.endTime, index, limit], actionName, isValidData);
         },
 
+        /*createForbidRewardPointsEventLog: function createForbidRewardPointsEventLog(data){
+        var actionName = arguments.callee.name;
+        var isValidData = Boolean(data && data.playerId && data.adminId && data.forbidRewardPointsEventName);
+        socketUtil.emitter(self.socket, dbPlayerInfo.createForbidRewardPointsEventLog, [data.playerId, data.adminId, data.forbidRewardPointsEventName], actionName, isValidData);
+        },*/
+
         createForbidTopUpLog: function createForbidTopUpLog(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId && data.adminId && data.forbidTopUpNames);

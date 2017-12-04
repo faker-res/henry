@@ -13266,6 +13266,8 @@ define(['js/app'], function (myApp) {
                 vm.getPlatformProviderGroup();
             };
 
+
+
             vm.getRewardEventsByPlatform = function () {
                 socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
                     vm.allRewardEvent = data.data;
@@ -19356,6 +19358,20 @@ define(['js/app'], function (myApp) {
                     console.log('Forbid game log created', created);
                 });
             }
+
+            /*vm.updateForbidRewardPointsEventLog = function (playerId, forbidRewardPointsEvent) {
+                let queryData = {
+                    playerId: playerId,
+                    // remark: vm.forbidGameRemark,
+                    adminId: authService.adminId,
+                    forbidRewardPointsEventName: forbidRewardPointEvent
+                };
+
+                socketService.$socket($scope.AppSocket, 'createForbidRewardPointsEventLog', queryData, function (created) {
+                    //vm.forbidGameRemark = '';
+                    console.log('Forbid RewardPointsEvent log created', created);
+                });
+            }*/
 
             $("button.forbidGameConfirm").on('click', function () {
                 vm.getForbidGame();

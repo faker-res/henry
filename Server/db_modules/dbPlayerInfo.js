@@ -1800,7 +1800,6 @@ let dbPlayerInfo = {
         }
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
-
     /**
      * Delete playerInfo by object _id of the playerInfo schema
      * @param {array}  playerObjIds - The object _ids of the players
@@ -11646,6 +11645,15 @@ let dbPlayerInfo = {
             }
         )
     },
+
+    /*createForbidRewardPointsEventLog: function (playerId, adminId, forbidRewardPointsEventNames) {
+        let logDetails = {
+            player: playerId,
+            admin: adminId,
+            forbidRewardPointsEventNames: forbidRewardPointsEventNames
+        };
+        return dbconfig.collection_playerForbidRewardPointsEventLog(logDetails).save().then().catch(errorUtils.reportError);
+    },*/
 
     createForbidTopUpLog: function (playerId, adminId, forbidTopUpNames, remark) {
         remark = remark || "";
