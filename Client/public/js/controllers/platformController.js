@@ -7994,8 +7994,7 @@ define(['js/app'], function (myApp) {
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
                 if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
                     vm.createPlayerRewardPointsRecord();
-                }
-                if(vm.selectedSinglePlayer.currentPoints === undefined) {
+                } else if(vm.selectedSinglePlayer.currentPoints === undefined) {
                     vm.getPlayerRewardPointsRecord();
                 }
 
@@ -8036,7 +8035,8 @@ define(['js/app'], function (myApp) {
                     rewardPointsObjId: rewardPointsObjId,
                 };
 
-                socketService.$socket($scope.AppSocket, 'upsertPlayerInfoRewardPointsObjId', sendData, function () {
+                socketService.$socket($scope.AppSocket, 'upsertPlayerInfoRewardPointsObjId', sendData, function (data) {
+                    vm.isOneSelectedPlayer().rewardPointsObjId = data.data.rewardPointsObjId;
                     $scope.safeApply();
                 });
             };

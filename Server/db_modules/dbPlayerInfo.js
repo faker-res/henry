@@ -108,7 +108,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOneAndUpdate({
             _id: playerId,
             platform: platformId
-        }, saveObj, {upsert: true});
+        }, saveObj, {upsert: true, new: true});
     },
 
     /**
