@@ -11648,15 +11648,6 @@ let dbPlayerInfo = {
         )
     },
 
-    /*createForbidRewardPointsEventLog: function (playerId, adminId, forbidRewardPointsEventNames) {
-        let logDetails = {
-            player: playerId,
-            admin: adminId,
-            forbidRewardPointsEventNames: forbidRewardPointsEventNames
-        };
-        return dbconfig.collection_playerForbidRewardPointsEventLog(logDetails).save().then().catch(errorUtils.reportError);
-    },*/
-
     createForbidTopUpLog: function (playerId, adminId, forbidTopUpNames, remark) {
         remark = remark || "";
         let logDetails = {
