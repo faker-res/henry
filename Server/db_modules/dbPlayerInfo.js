@@ -1767,6 +1767,14 @@ let dbPlayerInfo = {
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
 
+    updatePlayerForbidRewardPointsEvent: function (playerObjId, forbidRewardPointsEvent) {
+        let updateData = {};
+        if (forbidRewardPointsEvent) {
+            updateData.forbidRewardPointsEvent = forbidRewardPointsEvent;
+        }
+        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
+    },
+
     /**
      * Delete playerInfo by object _id of the playerInfo schema
      * @param {array}  playerObjIds - The object _ids of the players
@@ -11535,6 +11543,39 @@ let dbPlayerInfo = {
                 return {data: logs, size: count};
             }
         )
+    },
+
+    getForbidRewardPointsEventLog: function (playerId, startTime, endTime, index, limit) {
+        let logProm = dbconfig.collection_playerForbidRewardPointsEventLog.find({
+            player: playerId,
+            createTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            }
+        }).skip(index).limit(limit).sort({createTime: -1}).populate(
+            {path: "admin", select: 'adminName', model: dbconfig.collection_admin}
+        ).lean();
+        let countProm = dbconfig.collection_playerForbidRewardPointsEventLog.find({player: playerId}).count();
+
+        return Promise.all([logProm, countProm]).then(
+            data => {
+                let logs = data[0];
+                let count = data[1];
+
+                return {data: logs, size: count};
+            }
+        )
+    },
+
+    createForbidRewardPointsEventLog: function (playerId, adminId, forbidRewardPointsEventNames, remark) {
+        remark = remark || "";
+        let logDetails = {
+            player: playerId,
+            admin: adminId,
+            forbidRewardPointsEventNames: forbidRewardPointsEventNames,
+            remark: remark
+        };
+        return dbconfig.collection_playerForbidRewardPointsEventLog(logDetails).save().then().catch(errorUtils.reportError);
     },
 
     createForbidGameLog: function (playerId, adminId, forbidGameNames, remark) {
