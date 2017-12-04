@@ -47,7 +47,7 @@ let dbPlayerRewardPoints = {
                 playerData => {
                     if (playerData) {
                         playerInfo = playerData;
-                        if (playerData.permission && playerData.permission.rewardPointTask === false) {
+                        if (playerData.permission && playerData.permission.rewardPointsTask === false) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_CONVERT_REWARD_POINTS_FAIL,
                                 name: "DataError",
