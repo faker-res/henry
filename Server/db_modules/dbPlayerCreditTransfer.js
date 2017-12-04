@@ -1073,6 +1073,9 @@ let dbPlayerCreditTransfer = {
                     providerPlayerObj = {gameCredit: res[0].credit ? parseFloat(res[0].credit) : 0};
                     rewardGroupObj = res[1];
 
+                    console.log('providerPlayerObj', providerPlayerObj);
+                    console.log('rewardGroupObj', rewardGroupObj);
+
                     // Process transfer amount
                     amount = amount > 0 ? Math.floor(amount) : Math.floor(providerPlayerObj.gameCredit);
 

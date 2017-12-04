@@ -4585,8 +4585,6 @@ let dbPlayerInfo = {
      * @param {Number} amount
      */
     transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
-        console.log('transferPlayerCreditFromProvider');
-
         var deferred = Q.defer();
         var playerObj = {};
         var prom0 = forSync
@@ -7178,8 +7176,6 @@ let dbPlayerInfo = {
      * Apply bonus
      */
     applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
-        console.log('DEBUG START applyBonus');
-
         if (amount < 100 && !adminInfo) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
         }
@@ -7289,8 +7285,6 @@ let dbPlayerInfo = {
 
                         let todayTime = dbUtility.getTodaySGTime();
                         let creditProm = Q.resolve();
-
-                        console.log('playerData.lastPlayedProvider', playerData.lastPlayedProvider);
 
                         if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
                             creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
