@@ -201,6 +201,25 @@ var dbUtility = {
         };
     },
 
+    getLastBiWeekSGTime: function () {
+        let startTime, endTime;
+        let todayDay = moment().tz('Asia/Singapore').date();
+
+        if (todayDay >= 15) {
+            startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
+            endTime = moment(startTime).add(14, 'days').toDate();
+        } else {
+            let lastMonthTime = dbUtility.getLastMonthSGTime();
+            startTime = moment(lastMonthTime.startTime).add(14, 'days').toDate();
+            endTime = lastMonthTime.endTime;
+        }
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getLastMonthSGTime: function () {
         var startTime = moment().tz('Asia/Singapore').subtract(1, 'months').startOf('month').toDate();
         let endTime = moment(startTime).add(1, 'months').toDate();

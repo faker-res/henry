@@ -687,6 +687,31 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-warning.forbidTopUpCancel {{'CANCEL' | translate}}
                 button.common-button.margin-right-5.btn.btn-primary.showForbidTopUp(data-toggle="modal", data-target="#modalForbidTopUpLog", ng-click="vm.getForbidTopUp();") {{'CHANGES_RECORD' | translate}}
 
+#forbidRewardPointsEventPopover.hide(style="width: 600px", ng-non-bindable)
+    table.simple-table
+        tr
+            td(style='text-align:left')
+                label {{"LOGIN_REWARD_POINTS" | translate}}
+                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS}")
+                    label {{v.rewardTitle}}
+                        input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
+                .textareaDetail.margin-top-bottom-small
+                label {{"TOPUP_REWARD_POINTS" | translate}}
+                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS}")
+                    label {{v.rewardTitle}}
+                        input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
+                .textareaDetail.margin-top-bottom-small
+                .textareaDetail.margin-top-bottom-small
+                label {{"GAME_REWARD_POINTS" | translate}}
+                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.GAME_REWARD_POINTS}")
+                    label {{v.rewardTitle}}
+                        input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
+                .textareaDetail.margin-top-bottom-small
+                    textarea.forbidRewardPointsEventRemark(ng-model='vm.forbidRewardPointsEventRemark', placeholder='{{"Please add remark." | translate}}')
+                button.common-button.margin-right-5.btn.btn-success.forbidRewardPointsEventConfirm(ng-disabled='vm.forbidRewardPointsEventDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning.forbidRewardPointsEventCancel {{'CANCEL' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidRewardPointsEvent(data-toggle="modal", data-target="#modalForbidRewardPointsEventLog", ng-click="vm.getForbidRewardPointsEvent();") {{'CHANGES_RECORD' | translate}}
+
 #partnerLevelPopover.hide
     //- label The level for {{vm.partnerLevelPopover.name}}
     //- .well
@@ -1185,6 +1210,27 @@ include modalGameCreditLog
                 label {{"Total" | translate}} {{vm.forbidGameLog.totalCount}} {{"records" | translate}}
                 table#forbidGameTbl.common-table(style='min-width:100%')
                 #forbidGameTblPage.height30
+#modalForbidRewardPointsEventLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Player' | translate}} : {{vm.forbidRewardPointsEventPopover.name}}
+            .modal-body
+                #forbidRewardPointsEventSearch.adminLogQueryDiv
+                    .inlineBlk
+                        label {{'START_DATE' | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{'END_DATE' | translate}}
+                        .endTime
+                    .inlineBlk
+                        button.btn.btn-primary(ng-click='vm.getForbidRewardPointsEventLog(true)') {{'SEARCH' | translate}}
+                    .inlineBlk(ng-show='vm.forbidRewardPointsEventLog.isSearching')
+                        i.fa.fa-spin.fa-spinner
+                label {{"Total" | translate}} {{vm.forbidRewardPointsEventLog.totalCount}} {{"records" | translate}}
+                table#forbidRewardPointsEventTbl.common-table(style='min-width:100%')
+                #forbidRewardPointsEventTblPage.height30
 #modalForbidTopUpLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
         .modal-content

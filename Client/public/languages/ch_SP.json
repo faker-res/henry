@@ -2641,6 +2641,7 @@
   "OPERATOR_ACTION": "操作内容",
   "CHANGES_RECORD": "更改记录",
   "FORBID_REWARD": "禁用优惠",
+  "FORBID_REWARDPOINTS": "禁用积分",
   "topUpCard": "点卡充值",
   "phoneCallFeedback": "电话回访",
   "SMSFeedBack": "短信回访",
