@@ -14,6 +14,7 @@ const constProposalEntryType = require("./../const/constProposalEntryType");
 const constProposalStatus = require("./../const/constProposalStatus");
 const constProposalType = require("./../const/constProposalType");
 const constProposalUserType = require("./../const/constProposalUserType");
+const constRewardApplyType = require("./../const/constRewardApplyType");
 const constRewardType = require("./../const/constRewardType");
 const constServerCode = require('../const/constServerCode');
 
@@ -30,6 +31,7 @@ const dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionReco
 
 const dbConfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
+const errorUtils = require("./../modules/errorUtils.js");
 const rewardUtility = require("../modules/rewardUtility");
 
 let rsaCrypto = require("../modules/rsaCrypto");
@@ -945,7 +947,7 @@ let dbPlayerReward = {
             {path: "platform", model: dbConfig.collection_platform}
         ).then(
             playerData => {
-                if (playerData && playerData.platform && playerData.permission.playerConsecutiveConsumptionReward) {
+                if (playerData && playerData.platform && playerData.permission && !playerData.permission.banReward) {
                     playerObj = playerData;
 
                     let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerObj, eventData._id);
@@ -1042,7 +1044,7 @@ let dbPlayerReward = {
             stateRec => {
                 if (stateRec) {
                     //check if player is valid for reward
-                    if (playerObj.permission.PlayerPacketRainReward === false) {
+                    if (playerObj.permission && playerObj.permission.banReward) {
                         return Q.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
@@ -2395,11 +2397,9 @@ let dbPlayerReward = {
      * @param eventData
      * @param adminInfo
      * @param rewardData
-     * @param inputData
-     * @param userAgent
      * @returns {Promise.<TResult>}
      */
-    applyGroupReward: (playerData, eventData, adminInfo, rewardData, inputData, userAgent) => {
+    applyGroupReward: (playerData, eventData, adminInfo, rewardData) => {
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
         let rewardAmount = 0, spendingAmount = 0, applyAmount = 0;
@@ -3483,6 +3483,39 @@ let dbPlayerReward = {
             }
         );
     },
+
+    /**
+     * Now cater for auto apply after each top up
+     * @param platformObjId
+     * @param playerObj
+     * @param data
+     * @returns {*|Promise<any>}
+     */
+    checkAvailableRewardGroupTaskToApply: (platformObjId, playerObj, data) => {
+        return dbConfig.collection_rewardType.find({
+            isGrouped: true
+        }).lean().then(
+            rewardTypes => {
+                if (rewardTypes && rewardTypes.length > 0) {
+                    return dbConfig.collection_rewardEvent.find({
+                        platform: platformObjId,
+                        type: {$in: rewardTypes.map(e => e._id)},
+                        "condition.applyType": constRewardApplyType.AUTO_APPLY,
+                    }).lean();
+                }
+            }
+        ).then(
+            rewardEvents => {
+                if (rewardEvents && rewardEvents.length > 0 && playerObj && playerObj.playerId && data) {
+                    rewardEvents.forEach(event => {
+                        if (event && event.code) {
+                            dbPlayerInfo.applyRewardEvent(null, playerObj.playerId, event.code, data).catch(errorUtils.reportError);
+                        }
+                    });
+                }
+            }
+        )
+    }
 };
 
 function checkInterfaceRewardPermission(eventData, rewardData) {

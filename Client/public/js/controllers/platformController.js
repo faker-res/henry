@@ -2713,6 +2713,37 @@ define(['js/app'], function (myApp) {
 
                 });
             }
+            vm.existNumberDetector = function(newSearch){
+
+                if(!vm.newPlayer.phoneNumber){
+                    return
+                }
+                //var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
+                var selectedStatus = [vm.constProposalStatus.PENDING, vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS];
+                var sendData = {
+                    adminId: authService.adminId,
+                    platformId: vm.selectedPlatform.id,
+                    type: ["PlayerRegistrationIntention"],
+                    phoneNumber: vm.newPlayer.phoneNumber,
+                    size: newSearch ? 10 : (vm.phoneDuplicate.limit || 10),
+                    index: newSearch ? 0 : (vm.phoneDuplicate.index || 0),
+                    // sortCol: vm.newPlayerRecords.sortCol || null,
+                    displayPhoneNum: true
+                }
+                sendData.status = selectedStatus;
+                socketService.$socket($scope.AppSocket, 'getDuplicatePlayerPhoneNumber', sendData, function (data) {
+                    let phoneDuplicateCount = data.data.size;
+                    vm.phoneDuplicateCount = phoneDuplicateCount
+                    if(data.data.size == 0){
+                        vm.existPhone = false;
+                    }else{
+                        vm.existPhone = true;
+                    }
+                    $scope.safeApply();
+
+                });
+            }
+
         vm.loadPhoneNumberRecord = function (newSearch) {
                 if(!vm.newPlayer.phoneNumber){
                     return
@@ -2796,7 +2827,7 @@ define(['js/app'], function (myApp) {
                                 return record.data.playerStatus == vm.allPlayersStatusString[item];
                             })[0];
                             record.playerStatusName = $translate("Enable");
-                            if (record.data.playerStatus == 3) {
+                            if (record.data.forbidPlayerFromLogin == true) {
                                 record.playerStatusName = $translate("Disable")
                             }
 
@@ -2827,7 +2858,7 @@ define(['js/app'], function (myApp) {
                                 title: $translate('STATUS'), data: "playerStatusName",
                                 render: function (data, type, row) {
                                     let color = "black";
-                                    if (row.data.playerStatus == '3' || row.data.playerStatus == 3) {
+                                    if (row.data.forbidPlayerFromLogin  == true) {
                                         color = "red";
                                     }
                                     return '<div style="color:' + color + '">' + data + '</div>';
@@ -2955,8 +2986,7 @@ define(['js/app'], function (myApp) {
                             record.topUpTimes = (record.data && record.data.topUpTimes) ? record.data.topUpTimes : 0;
                             record.smsCode = (record.data && record.data.smsCode) ? record.data.smsCode : "";
                             record.remarks = (record.data && record.data.remarks) ? record.data.remarks : "";
-
-                            record.device = (record.data && record.data.device) ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
+                            record.device = (record.inputDevice != "undefined" && record.inputDevice != "null") ? $translate($scope.constPlayerRegistrationInterface[record.inputDevice]) : "";
                             record.promoteWay = (record.data && record.data.promoteWay) ? record.data.promoteWay : "";
                             record.csOfficer = (record.data && record.data.csOfficer) ? record.data.csOfficer : "";
                             record.registrationTime = (record.data && record.data.registrationTime) ? vm.dateReformat(record.data.registrationTime) : "";
@@ -3667,6 +3697,7 @@ define(['js/app'], function (myApp) {
                 vm.queryData.size = newSearch ? 10 : (vm.playerRegistrationRecords.limit || 10);
                 vm.queryData.index = newSearch ? 0 : (vm.playerRegistrationRecords.index || 0);
                 vm.queryData.sortCol = vm.playerRegistrationRecords.sortCol;
+                vm.queryData.unlockSizeLimit = true;
                 socketService.$socket($scope.AppSocket, 'getPlayerRegistrationIntentRecordByStatus', vm.queryData, function (data) {
                     vm.newPlayerListRecords = data.data;
 
@@ -3696,7 +3727,7 @@ define(['js/app'], function (myApp) {
                                 record.topUpTimes = record.data.topUpTimes ? record.data.topUpTimes : 0;
                                 record.smsCode = record.data.smsCode ? record.data.smsCode : "";
                                 record.remarks = record.data.remarks ? record.data.remarks : "";
-                                record.device = record.data.device ? $translate($scope.merchantTargetDeviceJson[record.data.device]) : "";
+                                record.device = (record.inputDevice != "undefined" && record.inputDevice != "null") ? $translate($scope.constPlayerRegistrationInterface[record.inputDevice]) : "";
                                 record.promoteWay = record.data.promoteWay ? record.data.promoteWay : "";
                                 record.csOfficer = record.data.csOfficer ? record.data.csOfficer : "";
                                 record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
@@ -8037,15 +8068,17 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
-                vm.isOneSelectedPlayer().finalValidAmount = 0;
-                vm.rewardPointsChange.remark = '';
-                vm.rewardPointsChange.updateAmount = 0;
-
                 if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
                     vm.createPlayerRewardPointsRecord();
-                } else {
+                }
+                if(vm.selectedSinglePlayer.currentPoints === undefined) {
                     vm.getPlayerRewardPointsRecord();
                 }
+
+                vm.rewardPointsChange.finalValidAmount = 0;
+                vm.rewardPointsChange.remark = '';
+                vm.rewardPointsChange.updateAmount = 0;
+                $scope.safeApply();
             };
 
             vm.createPlayerRewardPointsRecord = function () {
@@ -8092,6 +8125,19 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsRecord', sendData, function (data) {
                     vm.isOneSelectedPlayer().currentPoints = data.data.points;
+                    $scope.safeApply();
+                });
+            };
+
+            vm.updatePlayerRewardPointsRecord = function () {
+                let sendData = {
+                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId,
+                    finalValidAmount: vm.rewardPointsChange.finalValidAmount
+                };
+
+                socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function (data) {
+                    let newData = data.data;
+                    vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
             };
@@ -14436,6 +14482,9 @@ define(['js/app'], function (myApp) {
                     case 'announcement':
                         vm.getAllPlatformAnnouncements();
                         break;
+                    case 'partnerBasic':
+                        vm.getPartnerBasic();
+                        break;
                     case 'platformBasic':
                         vm.getPlatformBasic();
                         vm.getDelayDurationGroup();
@@ -14645,11 +14694,403 @@ define(['js/app'], function (myApp) {
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS);
                         break;
                     case 'rewardPointsRanking':
+                        vm.playerRankingRandom = [{}];
+                        vm.playerRankingRandomClone = [{}];
+                        vm.isEditRandomData = false;
+                        vm.playerRewardRanking = {totalCount: 0};
+                        vm.playerRewardRankingRandom = {totalCount: 0};
+                        utilService.actionAfterLoaded("#rewardRankingRandomTablePage", function () {
+                            vm.playerRewardRanking.pageObj = utilService.createPageForPagingTable("#rewardRankingTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "playerRewardRanking", vm.getPlayerRewardPointsRanking)
+                            });
+                            vm.playerRewardRankingRandom.pageObj = utilService.createPageForPagingTable("#rewardRankingRandomTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "playerRewardRankingRandom", vm.getPlayerRewardPointsRankingRandom)
+                            });
+                            $scope.safeApply();
+                            vm.getRankingRandomConfig();
+                            vm.getPlayerRewardPointsRanking(true);
+                            vm.getPlayerRewardPointsRankingRandom(true);
+                        });
                         break;
                     case 'rewardPointsLog':
                         break;
                 }
             };
+
+            vm.getRandomInt = function (min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            vm.generateRandomName = function (length, isAlphabet, isDigit) {
+                var mask = '';
+                if (isAlphabet) mask += 'abcdefghijklmnopqrstuvwxyz';
+                if (isDigit) mask += '0123456789';
+                var result = '';
+                for (var i = length; i > 0; --i) result += mask[Math.round(Math.random() * (mask.length - 1))];
+                return result;
+            }
+
+            vm.generateRandomData = function (dataConfig) {
+                let result = {};
+                let minLvl;
+                let maxLvl = vm.allPlayerLvl.length - 1;
+                for (let i = 0; i < vm.allPlayerLvl.length; i++) {
+                    if (vm.allPlayerLvl[i]._id.toString() == dataConfig.lowestLevel.toString()){
+                        minLvl = i;
+                        break;
+                    }
+                }
+                let prefixLength = dataConfig.prefix.length;
+                result.playerName = dataConfig.prefix;
+                result.playerName += vm.generateRandomName(vm.getRandomInt(dataConfig.minAccountLength - prefixLength,dataConfig.maxAccountLength - prefixLength), dataConfig.isRandomAlphabet, dataConfig.isRandomDigit);
+                result.points = vm.getRandomInt(dataConfig.minRewardPoints, dataConfig.maxRewardPoints);
+                result.playerLevel = vm.allPlayerLvl[vm.getRandomInt(minLvl, maxLvl)]._id;
+                return result;
+            }
+
+            vm.insertRandomData = function () {
+                vm.randomRewardPointsData = [];
+                for (let i = 0; i < vm.playerRankingRandom.length; i++) {
+                    for (let j = 0; j < vm.playerRankingRandom[i].randomCount; j++) {
+                        vm.randomRewardPointsData.push(vm.generateRandomData(vm.playerRankingRandom[i]));
+                    }
+                }
+
+                vm.randomRewardPointsData.map (item => {
+                    item.platformObjId = vm.selectedPlatform.id;
+                    return item;
+                });
+
+                socketService.$socket($scope.AppSocket, 'insertRewardPointsRandom', vm.randomRewardPointsData, function (data) {
+                    console.log('insertRewardPointsRandom', data);
+                    $scope.safeApply();
+                    vm.getPlayerRewardPointsRankingRandom(true);
+                }, function (err) {
+                    console.error(err);
+                }, true);
+            }
+
+            vm.getRankingRandomConfig = function () {
+                socketService.$socket($scope.AppSocket, 'getRewardPointsRandomDataConfig', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                    console.log('getRandomConfig', data.data);
+                    if (data && data.data) {
+                        vm.playerRankingRandom = data.data.condition;
+                        vm.playerRankingRandomClone = JSON.parse(JSON.stringify(data.data.condition));
+                    }
+                    $scope.safeApply();
+                }, function (err) {
+                    console.error(err);
+                }, true);
+            }
+
+            vm.submitRankingRandomConfig = function () {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    condition: vm.playerRankingRandom
+                }
+
+                socketService.$socket($scope.AppSocket, 'upsertRewardPointsRandomDataConfig', sendData, function (data) {
+                    // $('#promoCodeMonitorTableSpin').hide();
+                    console.log('getRandomConfig', data);
+                    vm.playerRankingRandom = data.data.condition;
+                    vm.playerRankingRandomClone = JSON.parse(JSON.stringify(data.data.condition));
+                    $scope.safeApply();
+                }, function (err) {
+                    vm.playerRankingRandom = JSON.parse(JSON.stringify(vm.playerRankingRandomClone));
+                    console.error(err);
+                    $scope.safeApply();
+                }, true);
+            }
+
+            vm.deleteRankingRandomRow = function (idx) {
+                vm.playerRankingRandom.splice(idx,1);
+                if (vm.playerRankingRandom. length < 1) {
+                    vm.playerRankingRandom.push({});
+                }
+            }
+
+            vm.getPlayerRewardPointsRanking = function (isNewSearch) {
+                vm.playerRewardRanking.index = isNewSearch ? 0 : (vm.playerRewardRanking.index || 0);
+
+                if (!vm.playerRewardRanking.sortCol) {
+                    vm.playerRewardRanking.sortCol = {
+                        points: -1,
+                        lastUpdate: 1
+                    }
+                } else {
+                    vm.playerRewardRanking.sortCol.lastUpdate = 1;
+                }
+
+
+                // show
+                var sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    index: isNewSearch ? 0 : vm.playerRewardRanking.index,
+                    limit: vm.playerRewardRanking.limit || 10,
+                    sortCol: vm.playerRewardRanking.sortCol || {}
+                };
+
+                socketService.$socket($scope.AppSocket, 'getRewardPoints', sendData, function (data) {
+                    // $('#promoCodeMonitorTableSpin').hide();
+                    console.log('getRewardPoints', data);
+                    vm.playerRewardRanking.totalCount = data.data.size;
+                    vm.drawPlayerRewardPointsTable(
+                    data.data.data.map((item,index) => {
+                        if (sendData.sortCol.points == -1) {
+                            item.ranking = index + sendData.index + 1;
+                        } else {
+                            item.ranking = vm.playerRewardRanking.totalCount - index - sendData.index;
+                        }
+                        return item;
+                        })
+                        , vm.playerRewardRanking.totalCount, {}, isNewSearch)
+                    $scope.safeApply();
+                }, function (err) {
+                    console.error(err);
+                }, true);
+            }
+
+            vm.drawPlayerRewardPointsTable = function (data, size, summary, newSearch) {
+                var tableOptions = {
+                    data: data,
+                    "order": vm.playerRewardRanking.aaSorting || [[3, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'points', 'aTargets': [3], bSortable: true},
+                        // {'sortCol': 'playerName', 'aTargets': [1], bSortable: true},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('REWARD_POINTS_RANKING'), data: "ranking"},
+                        {title: $translate('PLAYER_NAME'), data: "playerName"},
+                        {title: $translate('LEVEL'), data: "playerLevel.name"},
+                        {title: $translate('REWARD_POINTS_CURRENT'), data: "points"},
+                    ],
+                    "paging": false,
+                }
+                tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
+                vm.playerRewardRanking.pageObj.init({maxCount: size}, newSearch);
+                var rankingTbl = utilService.createDatatableWithFooter('#rewardRankingTable', tableOptions, {});
+                // utilService.setDataTablePageInput('rewardRankingTable', rankingTbl, $translate);
+                
+                $('#rewardRankingTable').off('order.dt');
+                // $('#rewardRankingTable').off();
+                $('#rewardRankingTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'playerRewardRanking', vm.getPlayerRewardPointsRanking);
+                });
+                $('#rewardRankingTable').resize();
+            }
+
+            vm.getPlayerRewardPointsRankingRandom = function (isNewSearch) {
+                vm.playerRewardRankingRandom.index = isNewSearch ? 0 : (vm.playerRewardRankingRandom.index || 0);
+
+                if (!vm.playerRewardRankingRandom.sortCol) {
+                    vm.playerRewardRankingRandom.sortCol = {
+                        points: -1,
+                        lastUpdate: 1
+                    }
+                } else {
+                    vm.playerRewardRankingRandom.sortCol.lastUpdate = 1;
+                }
+
+
+                // show
+                var sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    index: isNewSearch ? 0 : vm.playerRewardRankingRandom.index,
+                    limit: vm.playerRewardRankingRandom.limit || 10,
+                    sortCol: vm.playerRewardRankingRandom.sortCol || {}
+                };
+
+                socketService.$socket($scope.AppSocket, 'getRewardPointsRandom', sendData, function (data) {
+                    // $('#promoCodeMonitorTableSpin').hide();
+                    console.log('getRewardPointsRandom', data);
+                    vm.playerRewardRankingRandom.totalCount = data.data.size;
+                    vm.drawPlayerRewardPointsRandomTable(
+                        data.data.data.map((item,index) => {
+                            if (sendData.sortCol.points == -1) {
+                                item.ranking = index + sendData.index + 1;
+                            } else {
+                                item.ranking = vm.playerRewardRankingRandom.totalCount - index - sendData.index;
+                            }
+                            item.lastUpdate = vm.dateReformat(item.lastUpdate);
+                            return item;
+                        })
+                        , vm.playerRewardRankingRandom.totalCount, {}, isNewSearch)
+                    $scope.safeApply();
+                }, function (err) {
+                    console.error(err);
+                }, true);
+            }
+
+            vm.drawPlayerRewardPointsRandomTable = function (data, size, summary, newSearch) {
+                var tableOptions = {
+                    data: data,
+                    "order": vm.playerRewardRankingRandom.aaSorting || [[3, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'points', 'aTargets': [3], bSortable: true},
+                        // {'sortCol': 'playerName', 'aTargets': [1], bSortable: true},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('REWARD_POINTS_RANKING'),
+                            data: "ranking",
+                            render: function (data, type, row) {
+                                var link = $('<p>', {
+                                    'class': (row.playerObjId? "" : "text-danger")
+                                }).text(data);
+                                return link.prop('outerHTML');
+
+                            }
+                        },
+                        {
+                            title: $translate('PLAYER_NAME'),
+                            data: "playerName",
+                            render: function (data, type, row) {
+                                // let perm = (row && row.permission) ? row.permission : {};
+                                // var link = $('<a>', {
+                                //     'class': (perm.forbidPlayerFromLogin === true ? "text-danger" : "text-primary"),
+                                //     'ng-click': 'vm.showPlayerInfoModal("' + data + '")'
+                                // }).text(data);
+                                var link = $('<p>', {
+                                        'class': (row.playerObjId? "" : "text-danger")
+                                    }).text(data);
+                                return link.prop('outerHTML');
+
+                            }
+                        },
+                        {
+                            title: $translate('LEVEL'),
+                            data: "playerLevel.name",
+                            render: function (data, type, row) {
+                                var link = $('<p>', {
+                                    'class': (row.playerObjId? "" : "text-danger")
+                                }).text(data);
+                                return link.prop('outerHTML');
+
+                            }
+                        },
+                        {
+                            title: $translate('REWARD_POINTS_CURRENT'),
+                            data: "points",
+                            render: function (data, type, row) {
+                                var link = $('<p>', {
+                                    'class': (row.playerObjId? "" : "text-danger")
+                                }).text(data);
+                                return link.prop('outerHTML');
+
+                            }
+                        },
+                        {
+                            title: $translate('ACTION_BUTTON'),
+                            render: function (data, type, row) {
+                                if (!row.playerObjId) {
+                                    if ($scope.checkViewPermission('Platform', 'rewardPoints', 'Update')) {
+                                        var link = $('<a>', {
+                                            'ng-click': 'vm.showModalEditRanking(' + JSON.stringify(row) + ')',
+                                        }).text($translate('EDIT'));
+                                    }
+                                    if ($scope.checkViewPermission('Platform', 'rewardPoints', 'Delete')) {
+                                        let link2 = $('<a>', {
+                                            'ng-click': 'vm.showModalDeleteRanking(' + JSON.stringify(row) + ')',
+                                        }).text($translate('DELETE'));
+                                        if (link) {
+                                            link.append($('<span>').text(' / '));
+                                            link.append(link2);
+                                        } else {
+                                            var link =link2;
+                                        }
+                                    }
+                                } else {
+                                    var link = $('<a>').text('-');
+                                }
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('REMARK'),
+                            data: "lastUpdate",
+                            render: function (data, type, row) {
+                                if (!row.playerObjId) {
+                                    var link = $('<p>').text($translate(data));
+                                } else {
+                                    var link = $('<p>').text('-');
+                                }
+                                return link.prop('outerHTML');
+                            }
+                        },
+                    ],
+                    "paging": false,
+                    fnRowCallback: vm.rewardRankingRandomRecord
+                }
+                tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
+                vm.playerRewardRankingRandom.pageObj.init({maxCount: size}, newSearch);
+                var rankingTbl = utilService.createDatatableWithFooter('#rewardRankingRandomTable', tableOptions, {});
+                // utilService.setDataTablePageInput('rewardRankingTable', rankingTbl, $translate);
+
+                $('#rewardRankingRandomTable').off('order.dt');
+                // $('#rewardRankingTable').off();
+                $('#rewardRankingRandomTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'playerRewardRankingRandom', vm.getPlayerRewardPointsRankingRandom);
+                });
+                $('#rewardRankingRandomTable').resize();
+            }
+
+
+            vm.rewardRankingRandomRecord = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                $compile(nRow)($scope);
+                // $(nRow).on('click', function () {
+                // });
+            }
+
+            vm.showModalDeleteRanking = function (rowData) {
+                vm.selectedRandomRanking = rowData;
+                $('#modalDeleteRewardPointsRandom').modal('show');
+                $('#modalDeleteRewardPointsRandom').on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                });
+            }
+
+            vm.deleteRandomRanking = function () {
+                let sendData = {
+                    _id: vm.selectedRandomRanking._id,
+                    platformObjId: vm.selectedRandomRanking.platformObjId
+                }
+                socketService.$socket($scope.AppSocket, 'deleteRewardPointsRankingRandom', sendData, function (data) {
+                    console.log('deleteRandomRanking', data);
+                    $scope.safeApply();
+                    vm.getPlayerRewardPointsRankingRandom(true);
+                }, function (err) {
+                    console.error(err);
+                }, true);
+            }
+
+            vm.showModalEditRanking = function (rowData) {
+                vm.selectedRandomRanking = rowData;
+                $('#modalEditRewardPointsRandom').modal('show');
+                $('#modalEditRewardPointsRandom').on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                });
+            }
+
+            vm.editRandomRanking = function () {
+                let sendData = {
+                    _id: vm.selectedRandomRanking._id,
+                    platformObjId: vm.selectedRandomRanking.platformObjId,
+                    points: vm.selectedRandomRanking.points,
+                    playerName: vm.selectedRandomRanking.playerName,
+                    lastUpdate: Date.now(),
+                    playerLevel: vm.selectedRandomRanking.playerLevel._id
+                }
+                socketService.$socket($scope.AppSocket, 'updateRewardPointsRankingRandom', sendData, function (data) {
+                    console.log('updateRandomRanking', data);
+                    $scope.safeApply();
+                    vm.getPlayerRewardPointsRankingRandom(true);
+                }, function (err) {
+                    console.error(err);
+                }, true);
+            }
+
 
             vm.getRewardPointsLvlConfig = () => {
                 return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: vm.selectedPlatform.id}).then((data) => {
@@ -16411,6 +16852,13 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.getPartnerBasic = function () {
+                vm.partnerBasic = vm.partnerBasic || {};
+                vm.partnerBasic.partnerNameMaxLength = vm.selectedPlatform.data.partnerNameMaxLength;
+                vm.partnerBasic.partnerNameMinLength = vm.selectedPlatform.data.partnerNameMinLength;
+                $scope.safeApply();
+            }
+
             vm.getBonusBasic = () => {
 
                 vm.getAllPlayerLevels().done(
@@ -16701,6 +17149,9 @@ define(['js/app'], function (myApp) {
                     case 'platformBasic':
                         updatePlatformBasic(vm.platformBasic);
                         break;
+                    case 'partnerBasic':
+                        updatePartnerBasic(vm.partnerBasic);
+                        break;
                     case 'bonusBasic':
                         updatePlatformBasic(vm.bonusBasic);
                         break;
@@ -16865,6 +17316,19 @@ define(['js/app'], function (myApp) {
                         whiteListingPhoneNumbers: whiteListingPhoneNumbers,
                         usePointSystem: srcData.usePointSystem,
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification
+                    }
+                };
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    vm.loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updatePartnerBasic(srcData) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        partnerNameMaxLength: srcData.partnerNameMaxLength,
+                        partnerNameMinLength: srcData.partnerNameMinLength,
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {

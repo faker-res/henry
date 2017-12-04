@@ -120,6 +120,20 @@ let dbPlayerInfo = {
     },
 
     /**
+     * Update player's reward points and create log
+     */
+    updatePlayerRewardPointsRecord: function (rewardPointsObjId, finalValidAmount) {
+        return dbconfig.collection_rewardPoints.findOneAndUpdate(
+            {
+                _id: rewardPointsObjId
+            },
+            {
+                points: finalValidAmount
+            }
+        );
+    },
+
+    /**
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
@@ -746,7 +760,7 @@ let dbPlayerInfo = {
 
         if (env.mode !== "local" && env.mode !== "qa") {
             // ignore for unit test
-            if (playerdata.name.length < 6 || playerdata.name.length > 20 || !playerdata.name.match(alphaNumRegex)) {
+            if (/*playerdata.name.length < 6 || playerdata.name.length > 20 ||*/ !playerdata.name.match(alphaNumRegex)) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
@@ -2089,6 +2103,8 @@ let dbPlayerInfo = {
      */
     playerTopUp: function (playerId, amount, paymentChannelName, topUpType, proposalData) {
         var deferred = Q.defer();
+        let playerData;
+
         dbUtility.findOneAndUpdateForShard(
             dbconfig.collection_players,
             {_id: playerId},
@@ -2107,6 +2123,8 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data) {
+                    playerData = data;
+
                     var recordData = {
                         playerId: data._id,
                         platformId: data.platform,
@@ -2223,7 +2241,13 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
-                deferred.resolve(data && data[0]);
+                if (data && data[0]) {
+                    let topupRecordData = data[0];
+                    topupRecordData.topUpRecordId = topupRecordData._id;
+                    // Async - Check reward group task to apply on player top up
+                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, topupRecordData).catch(errorUtils.reportError);
+                    deferred.resolve(data && data[0]);
+                }
             },
             function (error) {
                 deferred.reject({name: "DBError", message: "Error creating top up record", error: error});
@@ -3025,7 +3049,7 @@ let dbPlayerInfo = {
             function (data) {
                 if (data && data[0] && data[1] && data[2] && data[3]) {
                     let rewardEvents = data[0];
-                    if (!data[3].permission || !data[3].permission.transactionReward) {
+                    if (data[3].permission && data[3].permission.banReward) {
                         deferred.resolve("No permission!");
                     }
                     if (data[1] && data[1][0]) {
@@ -8582,7 +8606,7 @@ let dbPlayerInfo = {
         return Q.all([playerProm, recordProm]).then(
             function (data) {
                 // Check player permission to apply this reward
-                if (data && data[0] && data[0].permission.PlayerTopUpReturn === false) {
+                if (data && data[0] && data[0].permission && data[0].permission.banReward) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
                         name: "DataError",
@@ -9591,7 +9615,7 @@ let dbPlayerInfo = {
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
-                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData, data, userAgent);
+                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
                                     break;
                                 default:
                                     return Q.reject({
@@ -10130,7 +10154,7 @@ let dbPlayerInfo = {
         return Q.all([playerProm, recordProm]).then(
             data => {
                 // Check player permission to apply this reward
-                if (data && data[0] && data[0].permission.PlayerDoubleTopUpReturn === false) {
+                if (data && data[0] && data[0].permission && data[0].permission.banReward) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
                         name: "DataError",

@@ -13,8 +13,8 @@ let rewardPointsLog = new Schema({
     playerName: {type: String},
     // player level name
     playerLevelName: {type: String},
-    // category of reward, base on constRewardPointsTaskCategory
-    rewardPointEventCategory: {type: Number},
+    // category of reward, base on constRewardPointsLogCategory
+    category: {type: Number},
     // event title
     rewardTitle: {type: String},
     // event description

@@ -95,10 +95,18 @@ let PlayerServiceImplement = function () {
                 (playerData) => {
                     data.playerId = data.playerId ? data.playerId : playerData.playerId;
                     data.remarks = playerData.partnerId ? localization.translate("PARTNER", conn.lang) + ": " + playerData.partnerId : "";
+                    if(playerData && playerData.partnerId){
+                        data.partnerId = playerData.partnerId;
+                    }
 
                     console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
+                    if(data && data.partnerName && data.partnerName != ""){
+                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                    }else{
+                        dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                    }
                     //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
-                    dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                    //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     conn.isAuth = true;
                     conn.playerId = playerData.playerId;
                     conn.playerObjId = playerData._id;
@@ -139,8 +147,13 @@ let PlayerServiceImplement = function () {
                     }
                     console.log("createPlayerRegistrationIntentRecordAPI FAIL", data, err);
                     if (err && err.status != constServerCode.USERNAME_ALREADY_EXIST) {
+                        if(data && data.partnerName && data.partnerName != ""){
+                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                        }else{
+                            dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                        }
                         //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
-                        dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
+                        //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                     }
                 }
             ).catch(WebSocketUtil.errorHandler)
@@ -883,6 +896,12 @@ let PlayerServiceImplement = function () {
         conn.captchaCode = null;
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData);
+    };
+
+    this.verifyPhoneNumberBySMSCode.expectsData = 'smsCode: String';
+    this.verifyPhoneNumberBySMSCode.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.smsCode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.verifyPhoneNumberBySMSCode, [conn.playerId, data.smsCode], isValidData);
     };
 
     this.authenticate.expectsData = 'playerId: String, token: String';
