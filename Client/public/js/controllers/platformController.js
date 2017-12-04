@@ -6930,7 +6930,7 @@ define(['js/app'], function (myApp) {
                     partnerId: data.data.partnerId,
                     isOnline: data.data.isOnline,
                     playerId: data.data.playerId,
-                    remarks: data.data.partnerId ? $translate("PARTNER") + ": " + data.data.partnerId : "",
+                    remarks: data.data.partnerName ? $translate("PARTNER") + ": " + data.data.partnerName : "",
                     status: vm.constProposalStatus.MANUAL,
                     platform: data.data.platform
                 };

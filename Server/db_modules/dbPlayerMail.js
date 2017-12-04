@@ -306,59 +306,59 @@ const dbPlayerMail = {
             retData => {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
                 if (retData) {
-                    if (inputData) {
-                        if (inputData.playerId) {
-                            delete inputData.playerId;
-                        }
-
-                        //if (purpose == constSMSPurpose.REGISTRATION) {
-                        //inputData = inputData || {};
-                        inputData.smsCode = code;
-
-                        if (inputData.phoneNumber) {
-                            var queryRes = queryPhoneLocation(inputData.phoneNumber);
-                            if (queryRes) {
-                                inputData.phoneProvince = queryRes.province;
-                                inputData.phoneCity = queryRes.city;
-                                inputData.phoneType = queryRes.type;
+                    if (purpose && purpose == constSMSPurpose.REGISTRATION) {
+                        if (inputData) {
+                            if (inputData.playerId) {
+                                delete inputData.playerId;
                             }
+                            //inputData = inputData || {};
+                            inputData.smsCode = code;
 
-                            if (inputData.password) {
-                                delete inputData.password;
-                            }
-
-                            if (inputData.confirmPass) {
-                                delete inputData.confirmPass;
-                            }
-
-                            let proposalData = {
-                                creator: inputData.adminInfo || {
-                                    type: 'player',
-                                    name: inputData.name,
-                                    id: inputData.playerId ? inputData.playerId : ""
+                            if (inputData.phoneNumber) {
+                                var queryRes = queryPhoneLocation(inputData.phoneNumber);
+                                if (queryRes) {
+                                    inputData.phoneProvince = queryRes.province;
+                                    inputData.phoneCity = queryRes.city;
+                                    inputData.phoneType = queryRes.type;
                                 }
-                            };
 
-                            let newProposal = {
-                                creator: proposalData.creator,
+                                if (inputData.password) {
+                                    delete inputData.password;
+                                }
+
+                                if (inputData.confirmPass) {
+                                    delete inputData.confirmPass;
+                                }
+
+                                let proposalData = {
+                                    creator: inputData.adminInfo || {
+                                        type: 'player',
+                                        name: inputData.name,
+                                        id: inputData.playerId ? inputData.playerId : ""
+                                    }
+                                };
+
+                                let newProposal = {
+                                    creator: proposalData.creator,
+                                    data: inputData,
+                                    entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                    userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                                    inputDevice: inputDevice ? inputDevice : 0
+                                };
+
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
+                            }
+
+                            let newIntentData = {
                                 data: inputData,
-                                entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-                                userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                                inputDevice: inputDevice ? inputDevice : 0
+                                status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
+                                name: inputData.name
                             };
-
-                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
+                            let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+                            return newRecord.save().then(data => {
+                                return true;
+                            });
                         }
-
-                        let newIntentData = {
-                            data: inputData,
-                            status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
-                            name: inputData.name
-                        };
-                        let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                        return newRecord.save().then(data => {
-                            return true;
-                        });
                     }
                 }
 
