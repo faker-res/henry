@@ -59,7 +59,7 @@ let dbRewardPoints = {
         );
     },
 
-    updateLoginRewardPointProgress: (playerData, provider) => {
+    updateLoginRewardPointProgress: (playerData, provider, inputDevice) => {
         let relevantEvents = [];
         let rewardPointsConfig;
 
@@ -73,7 +73,7 @@ let dbRewardPoints = {
                 let playerRewardPoints = data[1];
                 rewardPointsConfig = data[2];
 
-                relevantEvents = events.filter(event => isRelevantLoginEventByProvider(event, provider));
+                relevantEvents = events.filter(event => isRelevantLoginEventByProvider(event, provider, inputDevice));
 
                 if (!relevantEvents || relevantEvents.length < 1) {
                     // return Promise.reject({
@@ -119,7 +119,7 @@ let dbRewardPoints = {
                                     eventData = relevantEvents[j];
                                 }
                             }
-                            dbRewardPoints.applyRewardPoint(playerData._id, rewardPointToApply, eventData, playerRewardPoints).catch(errorUtils.reportError);
+                            dbRewardPoints.applyRewardPoint(playerData._id, rewardPointToApply, inputDevice, eventData, playerRewardPoints).catch(errorUtils.reportError);
                         }
                     }
                 }
@@ -129,7 +129,7 @@ let dbRewardPoints = {
         )
     },
 
-    applyRewardPoint: (playerObjId, rewardPointsEventObjId, eventData, playerRewardPoints, rewardPointsConfig) => {
+    applyRewardPoint: (playerObjId, rewardPointsEventObjId, inputDevice, eventData, playerRewardPoints, rewardPointsConfig) => {
         // eventData and playerRewardPoints are optional parameter
         let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(playerObjId);
         let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointsEventObjId}).lean();
@@ -175,8 +175,6 @@ let dbRewardPoints = {
                     });
                 }
 
-                // todo :: check if the progress is from previous period, reject as expired if
-
                 if (rewardPoints && rewardPoints.progress) {
                     progressList = rewardPoints.progress;
                 } else {
@@ -202,7 +200,15 @@ let dbRewardPoints = {
                     });
                 }
 
+                let eventPeriodStartTime = getEventPeriodStartTime(pointEvent);
 
+                if (progress.lastUpdateTime < eventPeriodStartTime) {
+                    // the progress is inherited from last period
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Not applicable for reward point."
+                    });
+                }
 
                 let getLastRewardPointLogProm = getTodayLastRewardPointEventLog(rewardPoints._id);
 
@@ -284,7 +290,7 @@ let dbRewardPoints = {
                     rewardTitle: pointEvent.rewardTitle,
                     rewardContent: pointEvent.rewardContent,
                     rewardPeriod: pointEvent.rewardPeriod,
-                    userAgent: 1, // todo :: change it so it take real userAgent
+                    userAgent: inputDevice,
                     status: constRewardPointsLogStatus.PROCESSED,
                     playerName: rewardPoints.playerName,
                     oldPoints: preUpdatePoint,
@@ -351,7 +357,7 @@ module.exports = dbRewardPoints;
 // else, it will act as private function of this model
 
 
-function isRelevantLoginEventByProvider(event, provider) {
+function isRelevantLoginEventByProvider(event, provider, inputDevice) {
     // if 'OR' flag added in, this part of the code need some adjustment
     let eventTargetDestination = [];
 
@@ -364,11 +370,15 @@ function isRelevantLoginEventByProvider(event, provider) {
         return false;
     }
 
+    if (event.userAgent && Number(event.userAgent) !== Number(inputDevice)) {
+        return false;
+    }
+
     if(event && event.target && event.target.targetDestination && event.target.targetDestination.length > 0) {
         eventTargetDestination = event.target.targetDestination;
     }
 
-    return provider ? eventTargetDestination.indexOf(provider) !== -1 : eventTargetDestination.length === 0;
+    return provider ? eventTargetDestination.indexOf(provider.toString()) !== -1 : eventTargetDestination.length === 0;
 }
 
 function getEventProgress(rewardProgressList, event) {
