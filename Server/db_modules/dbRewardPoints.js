@@ -175,8 +175,6 @@ let dbRewardPoints = {
                     });
                 }
 
-                // todo :: check if the progress is from previous period, reject as expired if
-
                 if (rewardPoints && rewardPoints.progress) {
                     progressList = rewardPoints.progress;
                 } else {
@@ -202,7 +200,15 @@ let dbRewardPoints = {
                     });
                 }
 
+                let eventPeriodStartTime = getEventPeriodStartTime(pointEvent);
 
+                if (progress.lastUpdateTime < eventPeriodStartTime) {
+                    // the progress is inherited from last period
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Not applicable for reward point."
+                    });
+                }
 
                 let getLastRewardPointLogProm = getTodayLastRewardPointEventLog(rewardPoints._id);
 
