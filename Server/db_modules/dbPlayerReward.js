@@ -3021,7 +3021,7 @@ let dbPlayerReward = {
                     case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                         let loseAmount = rewardSpecificData[0];
 
-                        if (eventInPeriodProm.length > 0) {
+                        if (eventInPeriodData && eventInPeriodData.length > 0) {
                             // player already applied the reward within the period timeframe
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
