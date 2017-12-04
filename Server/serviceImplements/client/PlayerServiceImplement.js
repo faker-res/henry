@@ -900,7 +900,6 @@ let PlayerServiceImplement = function () {
 
     this.verifyPhoneNumberBySMSCode.expectsData = 'smsCode: String';
     this.verifyPhoneNumberBySMSCode.onRequest = function (wsFunc, conn, data) {
-        console.log('here')
         let isValidData = Boolean(data && data.smsCode);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.verifyPhoneNumberBySMSCode, [conn.playerId, data.smsCode], isValidData);
     };
