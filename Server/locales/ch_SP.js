@@ -200,6 +200,7 @@ var simplifiedChinese = {
     "Reached Min Level":"目前在起始等级",
     "Please enter bank account name or contact cs": "请填写收款人姓名或联系客服",
     "Invalid phone number": "无效手机号码",
+    "Partner Name length is not valid": "代理帐号长度无效",
     //todo::add missing messages here
 
     /*
