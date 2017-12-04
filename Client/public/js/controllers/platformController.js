@@ -15330,7 +15330,7 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.convertPlayerRewardPoint = () => {
+            vm.convertPlayerRewardPoints = () => {
                 var sendData = {
                     playerId: vm.isOneSelectedPlayer().playerId,
                     convertRewardPointsAmount: vm.rewardPointsExchange.updateAmount,
