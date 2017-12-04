@@ -106,6 +106,19 @@ let RewardServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getConsecutiveLoginRewardDay, [conn.playerId, data.code], isValidData);
     };
 
+    this.getSignInfo.expectsData = '';
+    this.getSignInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = true;
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getPlayerConsecutiveRewardDetail, [conn.playerId, data.code], isValidData);
+    };
+
+    this.getSignBonus.expectsData = '';
+    this.getSignBonus.onRequest = function (wsFunc, conn, data) {
+        let isValidData = true;
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerCheckInBonus, [userAgent, conn.playerId], isValidData);
+    };
+
     this.getTopUpPromoList.expectsData = 'clientType: Number';
     this.getTopUpPromoList.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.clientType && conn.playerId);
@@ -117,10 +130,10 @@ let RewardServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getEasterEggPlayerInfo, [data.platformId], isValidData, false, false, true);
     };
 
-    this.getPromoCode.expectsData = 'playerId: String, platformId: String';
+    this.getPromoCode.expectsData = 'platformId: String';
     this.getPromoCode.onRequest = function(wsFunc, conn, data){
         let isValidData = Boolean(data && data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getPromoCode, [data.playerId, data.platformId, data.status], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getPromoCode, [conn.playerId, data.platformId, data.status], isValidData, false, false, true);
     };
     this.applyPromoCode.expectsData = 'promoCode: Number|String';
     this.applyPromoCode.onRequest = function(wsFunc, conn, data){

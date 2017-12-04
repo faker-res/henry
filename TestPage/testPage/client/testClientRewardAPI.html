@@ -259,11 +259,6 @@
 <div class="test-container">
   <div>1 AVAILABLE 2 ACCEPTED 3 EXPIRED</div>
     <div>
-        <label>Player ID
-            <input name="playerId">
-        </label>
-    </div>
-    <div>
       <label>Platform ID
         <input name="platformId">
       </label>
@@ -362,6 +357,38 @@
     <div>
         <textarea></textarea>
     </div>
+</div>
+
+
+<h3>GET SIGN INFO (获取签到信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input id="platformId" type=text name="platformId">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getSignInfo" data-api-name="getSignInfo">Get Sign Info</button>
+    </div>
+</div>
+
+<h3>GET SIGN BONUS (获取签到奖励)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input id="platformId" type=text name="platformId">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getSignBonus" data-api-name="getSignBonus">Get Sign Bonus</button>
+    </div>
+</div>
 
     <script>
         require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],

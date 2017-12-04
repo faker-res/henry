@@ -332,7 +332,7 @@ var dbPlayerFeedback = {
                 // Output filter admin (which is CS officer)
                 outputResult = query.admins && query.admins.length > 0 ? outputResult.filter(e => query.admins.indexOf(e.feedback.adminId._id) >= 0) : outputResult;
 
-                return {size: result.length, data: outputResult};
+                return {size: outputResult.length, data: outputResult};
             }
         );
     },
@@ -431,7 +431,7 @@ var dbPlayerFeedback = {
 
     getSinglePlayerFeedbackQuery: function (query, index) {
         index = index || 0;
-        query.noMoreFeedback = {$ne: true};
+        // query.noMoreFeedback = {$ne: true};
         switch (query.playerType) {
             case 'Test Player':
                 query.isRealPlayer = false;
@@ -466,7 +466,7 @@ var dbPlayerFeedback = {
     getPlayerFeedbackQuery: function (query, index, limit, sortCol) {
         index = index || 0;
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
-        query.noMoreFeedback = {$ne: true};
+        // query.noMoreFeedback = {$ne: true};
         switch (query.playerType) {
             case 'Test Player':
                 query.isRealPlayer = false;

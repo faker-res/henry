@@ -15,12 +15,12 @@
 
                         li.padding-all-5(style='margin:5px 10px; margin-top:8px;')
                             //.text-success(ng-show='vm.selectedPlatform.data.settlementStatus=="Ready"' style='color:rgb(0,180,0)')
-                            a.text-success(class="providerListPopover" data-toggle="popover" data-container="body" data-placement="right" data-trigger="focus" type="button" data-html="true" href="#" ng-show='vm.selectedPlatform.data.settlementStatus=="Ready"' style='color:{{vm.longestDelayStatus}};z-index: auto' ng-click="vm.getProviderLatestTimeRecord();")
+                            a.text-success(class="providerListPopover" data-toggle="popover" data-container="body" data-placement="right" data-trigger="focus" type="button" data-html="true" href="#" style='color:{{vm.longestDelayStatus}};z-index: auto' ng-click="vm.getProviderLatestTimeRecord();")
                                 i.fa.fa-lg.fa-circle
-                            .text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="DailyError"')
-                                i.fa.fa-lg.fa-circle.margin-right-5
-                            .text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="WeeklyError"')
-                                i.fa.fa-lg.fa-circle.margin-right-5
+                            //.text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="DailyError"')
+                            //    i.fa.fa-lg.fa-circle.margin-right-5
+                            //.text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="WeeklyError"')
+                            //    i.fa.fa-lg.fa-circle.margin-right-5
 
                         #providerListPopover.hide(style="width: 400px", ng-non-bindable)
                             table.simple-table
@@ -128,6 +128,10 @@
                             a.common-tab(data-toggle="tab", href="#phoneNumFilter", ng-click="vm.platformPageName='phoneNumFilter';vm.updatePageTile();vm.initPhoneNumFilter();")
                                 .fa.fa-phone.margin-right-5
                                 text.span {{"phoneNumFilter" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'rewardPoints','Read')")
+                            a.common-tab(data-toggle="tab", href="#rewardPoint", ng-click="vm.platformPageName='rewardPoint';vm.updatePageTile();")
+                                .fa.fa-file.margin-right-5
+                                text.span {{"rewardPoint" | translate}}
                         //li
                             a.common-tab(ng-show="checkViewPermission('Platform', 'BankCardGroup', 'Read')",data-toggle="tab", href="#bankCardGroup", ng-click="vm.bankCardGroupTabClicked();vm.platformPageName='bankCardGroup';vm.updatePageTile();")
                                 .fa.fa-credit-card.margin-right-5
@@ -180,6 +184,8 @@
                             include platform-registrationUrl-config
                         #phoneNumFilter.tab-pane.fade
                             include ./platform-phone-num-filter
+                        #rewardPoint.tab-pane.fade
+                            include ./platform-reward-point
                             //ui-view
                         //#bankCardGroup.tab-pane.fade
                             include ./platform-bankCardGroup

@@ -26,7 +26,11 @@ const constPlayerCreditChangeType = {
     //
     EDIT_CREDIT_DEDUCTION: "editPlayerCredit:Deduction",
     DEDUCT_BELOW_ZERO_REFUND: "deductedBelowZeroRefund",
-    PLAYER_BONUS_RESET_CREDIT: "PlayerBonus:resetCredit"
+    PLAYER_BONUS_RESET_CREDIT: "PlayerBonus:resetCredit",
+
+    // REJECT
+    REJECT_PLAYER_TOP_UP_RETURN_GROUP: "rejectPlayerTopUpReturnGroup",
+    DUPLICATE_DEDUCTION_DETECTED: "duplicateDeductionDetected"
 
 
 

@@ -83,6 +83,91 @@ var dbPlayerTopUpRecord = {
         ).allowDiskUse(true).exec();
     },
 
+    assignTopUpRecordUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, byPassedEvent, usedProposal, rewardType) {
+        let topUpQuery = {
+            platformId: platformObjId,
+            playerId: playerObjId,
+        };
+
+        if (startTime) {
+            topUpQuery.createTime = {$gte: startTime};
+            if (endTime) {
+                topUpQuery.createTime.$lte = endTime;
+            }
+        }
+
+        let updateValue = {
+            bDirty: true,
+            $push: {usedEvent: eventObjId}
+        };
+
+        if (rewardType) {
+            updateValue.usedType = rewardType;
+        }
+
+        if (usedProposal) {
+            updateValue.usedProposal = usedProposal;
+        }
+
+        let recordIds = [];
+
+        let rewardEventQuery = {platform: platformObjId};
+
+        if (byPassedEvent && byPassedEvent.length > 0) {
+            byPassedEvent.forEach(byPassedEventId => {
+                byPassedEvent.push(ObjectId(byPassedEventId));
+            });
+            rewardEventQuery._id = {$nin: byPassedEvent};
+        }
+
+        return dbconfig.collection_rewardEvent.distinct("_id", rewardEventQuery).then(
+            rewardEventIds => {
+                topUpQuery.usedEvent = {$nin: rewardEventIds};
+                return dbconfig.collection_playerTopUpRecord.find(topUpQuery).lean()
+            }
+        ).then(
+            toUpRecords => {
+                let curAmount = 0;
+
+                for (var i = 0; i < toUpRecords.length; i++) {
+                    let record = toUpRecords[i];
+                    recordIds.push(record._id);
+                    curAmount += record.amount;
+                    if (curAmount >= spendingAmount) {
+                        break;
+                    }
+                }
+
+                dbconfig.collection_playerTopUpRecord.update(
+                    {_id: {$in: recordIds}},
+                    updateValue,
+                    {multi: true}
+                ).exec();
+
+                return recordIds;
+            }
+        );
+    },
+
+    /**
+     *  Add usedEvent to consumption record
+     */
+    unassignTopUpRecordUsedEvent: function (recordIds, eventObjId) {
+        dbconfig.collection_playerTopUpRecord.update(
+            {_id: {$in: recordIds}},
+            {bDirty: false, $pull: {usedEvent: eventObjId}},
+            {multi: true}
+        ).exec();
+    },
+
+    unassignTopUpRecordUsedEventByProposal: function (proposalId, eventObjId) {
+        dbconfig.collection_playerTopUpRecord.update(
+            {usedProposal: proposalId},
+            {bDirty: false, $pull: {usedEvent: eventObjId}},
+            {multi: true}
+        ).exec();
+    },
+
     /**
      * Get total top up amount in a certain period of time
      * @param {Date} startTime,endTime - The date info
@@ -265,8 +350,10 @@ var dbPlayerTopUpRecord = {
 
     /**
      * Top up success
-     * @param {Json} query
-     * @param {Json} update
+     * @param query
+     * @param queryData
+     * @param checkSteps
+     * @param skipVerify
      */
     playerTopUpSuccess: function (query, queryData, checkSteps, skipVerify) {
         var deferred = Q.defer();
@@ -274,6 +361,7 @@ var dbPlayerTopUpRecord = {
         var proposalObj = {};
         var player = {};
         var isValidForTransaction = false;
+
         dbconfig.collection_proposal.findOne(query)
             .then(
                 function (data) {
@@ -281,6 +369,10 @@ var dbPlayerTopUpRecord = {
                         topupIntentionObj = data.data;
                         proposalObj = data;
                         isValidForTransaction = topupIntentionObj.validForTransactionReward;
+
+                        // Check top up intention
+                        // Check proposal status
+                        // Check top up proposal has processing steps
                         if (!skipVerify && ((topupIntentionObj.topUpAmount != queryData.amount) || (topupIntentionObj.playerId != queryData.playerId))) {
                             deferred.reject({
                                 name: "DataError",
@@ -354,7 +446,8 @@ var dbPlayerTopUpRecord = {
                     //todo:: check top up payment channel type here
                     if (isValidForTransaction) {
                         return dbPlayerInfo.applyForPlatformTransactionReward(player.platform, player._id, topupIntentionObj.topUpAmount, player.playerLevel);
-                    } else {
+                    }
+                    else {
                         deferred.resolve(data);
                     }
                 }
@@ -970,7 +1063,7 @@ var dbPlayerTopUpRecord = {
                             break;
                         case 4:
                         case "4":
-                            depositMethod = "其他";
+                            depositMethod = "支付宝转账";
                             break;
                         default:
                             break;
@@ -1172,6 +1265,14 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            },
+            error => {
+                if(adminName){
+                    return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+                }
+                else{
+                    return Q.reject(error);
+                }
             }
         ).then(
             data => {
@@ -1209,6 +1310,14 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            },
+            error => {
+                if(adminName){
+                    return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+                }
+                else{
+                    return Q.reject(error);
+                }
             }
         ).then(
             data => {
@@ -1247,6 +1356,14 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            },
+            error => {
+                if(adminName){
+                    return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+                }
+                else{
+                    return Q.reject(error);
+                }
             }
         ).then(
             data => {

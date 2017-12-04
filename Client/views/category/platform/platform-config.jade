@@ -18,6 +18,8 @@
                         span {{"VALID_ACTIVE" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerCommission"}', ng-click='vm.configTabClicked("partnerCommission")')
                         span {{"Partner Commission" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerBasic"}', ng-click='vm.configTabClicked("partnerBasic")')
+                        span {{"Partner Basic" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "platformBasic"}', ng-click='vm.configTabClicked("platformBasic")')
                         span {{"Platform Basic" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "bonusBasic"}', ng-click='vm.configTabClicked("bonusBasic")')
@@ -584,8 +586,8 @@
                             tr
                                 td {{'SMS_EXPIRED_TIME' | translate}}
                                 td
-                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showMinTopupAmount}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showMinTopupAmount')
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.smsVerificationExpireTime}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.smsVerificationExpireTime')
                             tr
                                 td {{'CAPTCHA_VERIFICATION_FOR_LOGIN' | translate}}
                                 td
@@ -606,6 +608,14 @@
                                 td {{'Use Provider Group' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.useProviderGroup', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Use Point System' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.usePointSystem', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Use Phone Number Two Steps Verification' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.usePhoneNumberTwoStepsVerification', ng-disabled='!vm.configTableEdit')
 
                             br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
@@ -668,6 +678,30 @@
                         button.btn.btn-primary.common-button(ng-if='vm.delayDurationGroupEdit', ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit;vm.saveDelayDurationGroup()') {{"CONFIRM" | translate}}
 
                 /// end of 投注记录收录报告
+                div(ng-if='vm.selectedConfigTab=="partnerBasic"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'NAME' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'partnerNameMaxLength' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerNameMaxLength}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerNameMaxLength')
+                            tr
+                                td {{'partnerNameMinLength' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerNameMinLength}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerNameMinLength')
+                            br
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("partnerBasic")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("partnerBasic")') {{"CONFIRM" | translate}}
+
 
                 div(ng-if='vm.selectedConfigTab=="bonusBasic"')
                     //bonus basic
@@ -1047,7 +1081,7 @@
                                     input.form-control(disabled, ng-model='group.name')
                                 td
                                     select.spicker.form-control(disabled, ng-model='group.providers', multiple data-width="600px")
-                                        option(ng-repeat='(i,v) in vm.availableGameProviders', value='{{v._id}}' ng-init="$last && vm.endLoadWeekDay()" ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
+                                        option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}' ng-init="$last && vm.endLoadWeekDay()" ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
                                 td(ng-if='vm.configTableEdit')
                                     button.btn.btn-danger.common-button(ng-click='vm.deleteProviderGroup(group)') {{"Delete" | translate}}
                             tr(ng-if='vm.configTableEdit')
@@ -1055,7 +1089,7 @@
                                     input.form-control(ng-model='vm.newProviderGroup.name')
                                 td
                                     select.spicker.form-control(ng-model='vm.newProviderGroup.providers', multiple, data-actions-box='true' data-width="600px" ng-change="$scope.safeApply();" data-dropup-auto='false')
-                                        option(ng-repeat='(i,v) in vm.availableGameProviders', value='{{v._id}}' ng-init="$last && vm.endLoadWeekDay()" ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
+                                        option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}' ng-init="$last && vm.endLoadWeekDay()" ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
                                 td
                                     i.fa.fa-plus(ng-click='vm.gameProviderGroup.push(vm.newProviderGroup); vm.newProviderGroup={};')
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'providerGroup')", ng-click='vm.configTableEdit=!vm.configTableEdit')

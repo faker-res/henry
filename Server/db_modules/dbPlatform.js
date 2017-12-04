@@ -940,7 +940,7 @@ var dbPlatform = {
                 playerData => {
                     let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerData, eventObjId);
 
-                    if (playerData && playerData.playerLevel && !playerData.permission.forbidPlayerConsumptionIncentive && !playerIsForbiddenForThisReward) {
+                    if (playerData && playerData.playerLevel && playerData.permission && !playerData.permission.banReward && !playerIsForbiddenForThisReward) {
                         var minAmount = minAmountPerLevel[playerData.playerLevel.value];
                         return dbconfig.collection_playerTopUpRecord.aggregate(
                             {
@@ -1093,7 +1093,7 @@ var dbPlatform = {
 
         return playerProm.then(
             data => {
-                if (!data.permission.forbidPlayerConsumptionIncentive) {
+                if (data && data.permission && !data.permission.banReward) {
                     //get player's platform reward event data
                     if (data && data.playerLevel) {
                         player = data;
@@ -1581,10 +1581,11 @@ var dbPlatform = {
                     }
 
                     let nextSMSCountProm;
+                    let createTime = Date.parse(log.createTime);
 
                     if (isUsed)
                         nextSMSCountProm = Promise.resolve(-1);
-                    else if (nextUsedTime || log.createTime < smsVerificationExpireDate)
+                    else if (nextUsedTime || createTime < smsVerificationExpireDate)
                         nextSMSCountProm = Promise.resolve(1);
                     else
                         nextSMSCountProm = dbconfig.collection_smsLog.find({

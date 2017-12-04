@@ -81,6 +81,59 @@ let PLATFORM_PREFIX_SEPARATOR = '';
 let dbPlayerInfo = {
 
     /**
+     * Create a new reward points record based on player data
+     */
+    createPlayerRewardPointsRecord: function (platformId, playerId, points, playerName, playerLevel, progress) {
+        let recordData = {
+            platformObjId: platformId,
+            playerObjId: playerId,
+            points: points,
+            playerName: playerName,
+            playerLevel: playerLevel,
+            progress: progress,
+            createTime: Date.now()
+        };
+        let record = new dbconfig.collection_rewardPoints(recordData);
+        return record.save();
+    },
+
+    /**
+     * Update player info with reward points record based on player id and platform id
+     */
+    upsertPlayerInfoRewardPointsObjId: function (playerId, platformId, rewardPointsObjId) {
+        let saveObj = {
+            rewardPointsObjId: rewardPointsObjId
+        };
+        return dbconfig.collection_players.findOneAndUpdate({
+            _id: playerId,
+            platform: platformId
+        }, saveObj, {upsert: true});
+    },
+
+    /**
+     * Get player reward points record based on player rewardPointsObjId
+     */
+    getPlayerRewardPointsRecord: function (rewardPointsObjId) {
+        return dbconfig.collection_rewardPoints.findOne({
+            _id: rewardPointsObjId
+        }).select('points')
+    },
+
+    /**
+     * Update player's reward points and create log
+     */
+    updatePlayerRewardPointsRecord: function (rewardPointsObjId, finalValidAmount) {
+        return dbconfig.collection_rewardPoints.findOneAndUpdate(
+            {
+                _id: rewardPointsObjId
+            },
+            {
+                points: finalValidAmount
+            }
+        );
+    },
+
+    /**
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
@@ -260,6 +313,7 @@ let dbPlayerInfo = {
                                 data => {
                                     if (data) {
                                         inputData.partner = data._id;
+                                        inputData.partnerId = data.partnerId;
                                         return inputData;
                                     }
                                     else {
@@ -281,7 +335,13 @@ let dbPlayerInfo = {
                             }).then(
                                 data => {
                                     if (data) {
-                                        inputData.partnerId = data.partnerId;
+                                        if(data.partnerId){
+                                            inputData.partnerId = data.partnerId;
+                                        }
+                                        if(data.partnerName){
+                                            inputData.partnerName = data.partnerName;
+                                        }
+
                                         return inputData;
                                     } else {
                                         delete inputData.partner;
@@ -299,12 +359,17 @@ let dbPlayerInfo = {
                             }
                             inputData.domain = filteredDomain;
 
-                            if (inputData.partnerId) {
+                            if (!inputData.partnerId) {
                                 let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
                                     data => {
                                         if (data) {
                                             inputData.partner = data._id;
-                                            inputData.partnerId = data.partnerId;
+                                            if(data.partnerId){
+                                                inputData.partnerId = data.partnerId;
+                                            }
+                                            if(data.partnerName){
+                                                inputData.partnerName = data.partnerName;
+                                            }
                                             return inputData;
                                         }
                                         else {
@@ -392,7 +457,9 @@ let dbPlayerInfo = {
                     if (data) {
                         dbPlayerInfo.createPlayerLoginRecord(data);
                         //todo::temp disable similar player untill ip is correct
-                        dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
+                        if(data.lastLoginIp && data.lastLoginIp != "undefined"){
+                            dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
+                        }
                         // dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
                         return data;
                     }
@@ -409,7 +476,8 @@ let dbPlayerInfo = {
                         pdata => {
                             pdata.name = pdata.name.replace(platformPrefix, "");
                             pdata.platformId = platformId;
-                            pdata.partnerId = inputData.partnerId
+                            pdata.partnerId = inputData.partnerId;
+                            pdata.partnerName = inputData.partnerName;
                             return pdata;
                         }
                     )
@@ -704,7 +772,7 @@ let dbPlayerInfo = {
 
         if (env.mode !== "local" && env.mode !== "qa") {
             // ignore for unit test
-            if (playerdata.name.length < 6 || playerdata.name.length > 20 || !playerdata.name.match(alphaNumRegex)) {
+            if (/*playerdata.name.length < 6 || playerdata.name.length > 20 ||*/ !playerdata.name.match(alphaNumRegex)) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
@@ -801,6 +869,7 @@ let dbPlayerInfo = {
             },
             function (error) {
                 deferred.reject({
+                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
                     name: "DBError",
                     message: "Phone number already exists",
                     error: error
@@ -1572,6 +1641,14 @@ let dbPlayerInfo = {
                         else
                             updateData.realName = updateData.bankAccountName;
                     }
+                    if( !updateData.bankAccountName && !playerData.realName ){
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "Please enter bank account name or contact cs"
+                        });
+                    }
+
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
                     })
@@ -2030,6 +2107,8 @@ let dbPlayerInfo = {
      */
     playerTopUp: function (playerId, amount, paymentChannelName, topUpType, proposalData) {
         var deferred = Q.defer();
+        let playerData;
+
         dbUtility.findOneAndUpdateForShard(
             dbconfig.collection_players,
             {_id: playerId},
@@ -2048,6 +2127,8 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data) {
+                    playerData = data;
+
                     var recordData = {
                         playerId: data._id,
                         platformId: data.platform,
@@ -2066,6 +2147,7 @@ let dbPlayerInfo = {
                         }
                         logData = proposalData.data;
                         recordData.proposalId = proposalData.proposalId;
+                        recordData.userAgent = proposalData.data.userAgent;
                     }
                     var newRecord = new dbconfig.collection_playerTopUpRecord(recordData);
                     var recordProm = newRecord.save();
@@ -2163,7 +2245,13 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
-                deferred.resolve(data && data[0]);
+                if (data && data[0]) {
+                    let topupRecordData = data[0];
+                    topupRecordData.topUpRecordId = topupRecordData._id;
+                    // Async - Check reward group task to apply on player top up
+                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, topupRecordData).catch(errorUtils.reportError);
+                    deferred.resolve(data && data[0]);
+                }
             },
             function (error) {
                 deferred.reject({name: "DBError", message: "Error creating top up record", error: error});
@@ -2965,7 +3053,7 @@ let dbPlayerInfo = {
             function (data) {
                 if (data && data[0] && data[1] && data[2] && data[3]) {
                     let rewardEvents = data[0];
-                    if (!data[3].permission || !data[3].permission.transactionReward) {
+                    if (data[3].permission && data[3].permission.banReward) {
                         deferred.resolve("No permission!");
                     }
                     if (data[1] && data[1][0]) {
@@ -3201,6 +3289,7 @@ let dbPlayerInfo = {
                     .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
                     .populate({path: "partner", model: dbconfig.collection_partner})
                     .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
+                    .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints, select: 'points'})
                     .lean().then(
                         playerData => {
                             var players = [];
@@ -3211,6 +3300,11 @@ let dbPlayerInfo = {
                                     if (playerData[ind].referral) {
                                         playerData[ind].referralName$ = playerData[ind].referral.name;
                                         playerData[ind].referral = playerData[ind].referral._id;
+                                    }
+
+                                    if (playerData[ind].rewardPointsObjId) {
+                                        playerData[ind].point$ = playerData[ind].rewardPointsObjId.points;
+                                        playerData[ind].rewardPointsObjId = playerData[ind].rewardPointsObjId._id;
                                     }
 
                                     if (isProviderGroup) {
@@ -5495,8 +5589,6 @@ let dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     checkPlayerLevelUp: function (playerObjId, platformObjId) {
-        //todo::temp disable player auto level up
-
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
         }
@@ -5515,7 +5607,7 @@ let dbPlayerInfo = {
 
                         return Q.all([playerProm, levelsProm]).spread(
                             function (player, playerLevels) {
-                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, false );
                             }
                         );
                     }
@@ -5535,7 +5627,7 @@ let dbPlayerInfo = {
      * @param {String|ObjectId} playerObjId
      * @returns {Promise.<*>}
      */
-    manualPlayerLevelUp: function (playerObjId, platformObjId) {
+    manualPlayerLevelUp: function (playerObjId, platformObjId, userAgent) {
 
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
@@ -5558,7 +5650,7 @@ let dbPlayerInfo = {
                                 if (!player) {
                                     return Q.reject({name: "DataError", message: "Cannot find player"});
                                 }
-                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true, userAgent);
                             },
                             function () {
                                 return Q.reject({name: "DataError", message: "Cannot find player"});
@@ -5599,7 +5691,7 @@ let dbPlayerInfo = {
                         if (!player || !playerLevels)
                             return Q.reject({name: "DataError", message: "Data not found"});
 
-                        return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                        return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true);
                     },
                     function () {
                         return Q.reject({name: "DataError", message: "Data not found"});
@@ -5634,7 +5726,7 @@ let dbPlayerInfo = {
      * #param {String} [checkPeriod] - For level down only. We will only consider weekly conditions if checkPeriod is 'WEEK'.
      * @returns {Promise.<*>}
      */
-    checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod) {
+    checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod, showReject, userAgent) {
         if (!player) {
             throw Error("player was not provided!");
         }
@@ -5645,22 +5737,26 @@ let dbPlayerInfo = {
             throw Error("playerLevels was not provided!");
         }
 
+        let errorMsg = '';
+        let errorCode = '';
         var playerObj = null;
         var levelUpObj = null;
+        var levelErrorMsg = '';
+        // A flag to determine LevelUp Stop At Where.
+        var levelUpEnd = false;
+
         return Promise.resolve(player).then(
             function (player) {
                 if (player && player.playerLevel) {
                     // Optimization: No point in checking level up for players who have no topup or consumption
-                    if (checkLevelUp && !checkLevelDown
-                        && player.dailyTopUpSum === 0 && player.dailyConsumptionSum === 0
-                        && player.weeklyTopUpSum === 0 && player.weeklyConsumptionSum === 0
-                        && player.pastMonthTopUpSum === 0 && player.pastMonthConsumptionSum === 0
-                    ) {
-                        return {};
-                    }
-
+                    // if (checkLevelUp && !checkLevelDown
+                    //     && player.dailyTopUpSum === 0 && player.dailyConsumptionSum === 0
+                    //     && player.weeklyTopUpSum === 0 && player.weeklyConsumptionSum === 0
+                    //     && player.pastMonthTopUpSum === 0 && player.pastMonthConsumptionSum === 0
+                    // ) {
+                    //     return {};
+                    // }
                     playerObj = player;
-
                     //// Fetch other player levels
                     //var query = {platform: playerObj.platform};
                     //
@@ -5677,9 +5773,16 @@ let dbPlayerInfo = {
 
                     if (checkLevelUp && !checkLevelDown) {
                         playerLevels = playerLevels.filter(level => level.value > playerObj.playerLevel.value);
-                    }
-                    if (checkLevelDown && !checkLevelUp) {
+                        if (playerLevels.length == 0) {
+                            levelErrorMsg = 'Reached Max Level';
+                        }
+                    } else if (checkLevelDown && !checkLevelUp) {
                         playerLevels = playerLevels.filter(level => level.value <= playerObj.playerLevel.value);
+                        if (playerLevels.length == 0) {
+                            levelErrorMsg = 'Reached Min Level';
+                        }
+                    } else {
+                        levelErrorMsg = 'Player Level Not Found';
                     }
                     return Promise.resolve(playerLevels);
                 }
@@ -5789,6 +5892,27 @@ let dbPlayerInfo = {
                                     if (meetsEnoughConditions) {
                                         levelObjId = level._id;
                                         levelUpObj = level;
+                                    } else {
+
+                                        if (!levelUpEnd) {
+                                            if (!meetsEnoughConditions) {
+                                                errorCode = constServerCode.NO_REACH_TOPUP_CONSUMPTION;
+                                                errorMsg = 'NO_REACH_TOPUP_CONSUMPTION';
+                                            }
+                                            if (!meetsConsumptionCondition && meetsTopupCondition) {
+                                                errorCode = constServerCode.NO_REACH_CONSUMPTION;
+                                                errorMsg = 'NO_REACH_CONSUMPTION';
+                                            }
+                                            if (!meetsTopupCondition && meetsConsumptionCondition) {
+                                                errorCode = constServerCode.NO_REACH_TOPUP;
+                                                errorMsg = 'NO_REACH_TOPUP';
+                                            }
+
+                                        }
+                                        // because it will loop All the level, so i set a flag in here,
+                                        // to show what's the condition the player dont meet .
+                                        // otherwise, later state will override the prev state
+                                        levelUpEnd = true;
                                     }
                                 }
 
@@ -5820,14 +5944,16 @@ let dbPlayerInfo = {
                                         levelName: levelUpObj.name,
                                         levelObjId: levelObjId,
                                         levelOldName: playerObj.playerLevel.name,
-                                        upOrDown: "LEVEL_UP" ,
+                                        upOrDown: "LEVEL_UP",
                                         playerObjId: playerObj._id,
                                         playerName: playerObj.name,
                                         playerId: playerObj.playerId,
                                         platformObjId: playerObj.platform
                                     };
 
-                                    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {data: proposalData}).then(
+                                    let inputDevice = dbUtility.getInputDevice(userAgent,false);
+
+                                    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {data: proposalData, inputDevice: inputDevice}).then(
                                         createdMigrationProposal => {
                                             return dbconfig.collection_proposalType.findOne({
                                                 platformId: playerObj.platform,
@@ -5858,7 +5984,37 @@ let dbPlayerInfo = {
                                                 }
                                             }
                                         }
-                                    );
+                                    ).then(
+                                        proposalResult => {
+                                            console.log(proposalResult);
+
+                                            let rewardPrice = [];
+                                            let prevLevel = Number(playerObj.playerLevel.value) + 1;
+                                            let currentLevel = levelUpObj.value + 1;
+                                            let levelUpDistance = levelUpObj.value - playerObj.playerLevel.value;
+                                            let prevLevelName = playerObj.playerLevel.name || '';
+                                            let currentLevelName = levelUpObj.name || '';
+                                            for (var i = 0; i < levelUpDistance; i++) {
+                                                rewardPrice.push(levels[i].reward.bonusCredit);
+                                            }
+                                            let rewardPriceCount = rewardPrice.length;
+                                            let mainMessage = '恭喜您从 ' + prevLevelName + ' 升级到 ' + currentLevelName;
+                                            let subMessage = ',获得';
+                                            rewardPrice.forEach(
+                                                function (val, index) {
+                                                    let colon = '、';
+                                                    if (index == rewardPrice.length - 1) {
+                                                        colon = '';
+                                                    }
+                                                    subMessage += '' + val + '元' + colon;
+                                                }
+                                            )
+                                            subMessage += '共' + rewardPrice.length + '个礼包';
+                                            let message = mainMessage + subMessage;
+                                            return {message: message}
+
+                                        }
+                                    )
 
                                     // If there is a reward for this level, give it to the player
                                     // if (levelUpObj && levelUpObj.reward && levelUpObj.reward.bonusCredit) {
@@ -5881,7 +6037,15 @@ let dbPlayerInfo = {
                         );
                     }
                     else {
-                        return "No_Level_Change";
+                        if(showReject){
+                            return Q.reject({
+                                status: errorCode,
+                                name: "DataError",
+                                message: errorMsg
+                            })
+                        }else{
+                            Q.resolve(true);
+                        }
                     }
                 }
                 else {
@@ -5889,11 +6053,22 @@ let dbPlayerInfo = {
                     //console.warn("No player, playerLevel or platform found for playerObjId: " + playerObjId);
                     // Original code would sometimes expect the player or the playerLevels to be undefined,
                     // if the player had no consumption, or they were already on the highest level.
-                    return "No_Level_Change";
+                    //return "No_Level_Change";
+                    if(showReject){
+                        return Q.reject({
+                            name: "DataError",
+                            message: levelErrorMsg
+                        })
+                    }else{
+                        Q.resolve(true);
+                    }
                 }
             },
             function (error) {
-                return Q.reject({name: "DBError", message: "Error in finding player level", error: error});
+                return Q.reject({
+                    status: constServerCode.REWARD_EVENT_INVALID,
+                    name: "DBError", message: "Error in finding player level", error: error
+                });
             }
         );
     },
@@ -7086,14 +7261,14 @@ let dbPlayerInfo = {
                         //         errorMessage: "Player does not have this permission"
                         //     });
                         // }
-                        if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
-                            || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
-                                name: "DataError",
-                                errorMessage: "Player does not have valid payment information"
-                            });
-                        }
+                        // if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
+                        //     || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
+                        //     return Q.reject({
+                        //         status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+                        //         name: "DataError",
+                        //         errorMessage: "Player does not have valid payment information"
+                        //     });
+                        // }
 
                         let todayTime = dbUtility.getTodaySGTime();
                         let creditProm = Q.resolve();
@@ -8437,7 +8612,7 @@ let dbPlayerInfo = {
         return Q.all([playerProm, recordProm]).then(
             function (data) {
                 // Check player permission to apply this reward
-                if (data && data[0] && data[0].permission.PlayerTopUpReturn === false) {
+                if (data && data[0] && data[0].permission && data[0].permission.banReward) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
                         name: "DataError",
@@ -9244,6 +9419,7 @@ let dbPlayerInfo = {
     },
 
     applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName) {
+        data = data || {};
         let playerInfo = null;
         let adminInfo = '';
         if (adminId && adminName) {
@@ -9316,7 +9492,8 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD,
                         constRewardType.PLAYER_PACKET_RAIN_REWARD,
                         constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
-                        constRewardType.PLAYER_TOP_UP_RETURN_GROUP
+                        constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
+                        constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP
                     ];
 
                     // Check any consumption after topup upon apply reward
@@ -9337,8 +9514,10 @@ let dbPlayerInfo = {
                         timeCheckData => {
                             rewardData.selectedTopup = timeCheckData[0];
 
+                            //special handling for eu大爆炸 reward
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
-                                && rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN) {
+                                && (rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN || (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN
+                                && (rewardEvent.validStartTime || rewardEvent.validEndTime)))) {
                                 // There is consumption after top up
                                 if (rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) {
                                     // Bypass this checking
@@ -9351,7 +9530,7 @@ let dbPlayerInfo = {
                                 }
                             }
 
-                            // if that's one reward pending , then you cannot apply other reward
+                            // if there is a pending reward, then no other reward can be applied.
                             if (timeCheckData[2] && timeCheckData[2] > 0) {
                                 if (rewardTaskWithProposalList.indexOf(rewardEvent.type.name) != -1) {
                                     return Q.reject({
@@ -9435,8 +9614,10 @@ let dbPlayerInfo = {
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                                 case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
+                                case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
                                 case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
                                 case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
+                                case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
@@ -9462,6 +9643,48 @@ let dbPlayerInfo = {
                 }
             }
         );
+    },
+
+    getPlayerCheckInBonus: function (userAgent, playerId) {
+        let platformObjId;
+        let playersQuery = {
+            playerId: playerId
+        };
+        return dbconfig.collection_players.findOne(playersQuery).lean().then(
+            player => {
+                platformObjId = player.platform;
+                let rewardTypeQuery = {
+                    name: constProposalType.PLAYER_CONSECUTIVE_REWARD_GROUP
+                };
+                return dbconfig.collection_rewardType.findOne(rewardTypeQuery);
+            }
+        ).then(
+            rewardType => {
+                if(rewardType) {
+                    let rewardEventQuery = {
+                        platform: platformObjId,
+                        type: rewardType._id
+                    };
+                    return dbconfig.collection_rewardEvent.find(rewardEventQuery).lean().sort({validStartTime: -1});
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Cannot find reward type for type name"
+                    });
+                }
+            }
+        ).then(
+            rewardEvents => {
+                if(rewardEvents && rewardEvents.length > 0) {
+                    return dbPlayerInfo.applyRewardEvent(userAgent, playerId, rewardEvents[0].code);
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Cannot find reward event for platform and type name"
+                    });
+                }
+            }
+        )
     },
 
     getPlayerTransferErrorLog: function (playerObjId) {
@@ -9937,7 +10160,7 @@ let dbPlayerInfo = {
         return Q.all([playerProm, recordProm]).then(
             data => {
                 // Check player permission to apply this reward
-                if (data && data[0] && data[0].permission.PlayerDoubleTopUpReturn === false) {
+                if (data && data[0] && data[0].permission && data[0].permission.banReward) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
                         name: "DataError",

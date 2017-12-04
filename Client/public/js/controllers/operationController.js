@@ -41,7 +41,8 @@ define(['js/app'], function (myApp) {
             EXPIRED: "Expired",
             UNDETERMINED: "Undetermined",
             AUTOAUDIT: "AutoAudit",
-            RECOVER: "Recover"
+            RECOVER: "Recover",
+            MANUAL: "Manual"
         };
         vm.depositMethodList = {
             Online: 1,
@@ -877,6 +878,8 @@ define(['js/app'], function (myApp) {
                         v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
                     }
                     v.mainType$ = $translate(v.mainType);
+                    if (v.mainType === "PlayerBonus")
+                        v.mainType$ = $translate("Bonus");
                     v.priority$ = $translate(v.data.proposalPlayerLevel ? v.data.proposalPlayerLevel : "Normal");
                     v.playerStatus$ = v.data.playerStatus;
                     v.entryType$ = $translate(vm.proposalEntryTypeList[v.entryType]);
@@ -908,6 +911,9 @@ define(['js/app'], function (myApp) {
                     // v.remark$ = v.remark.map(item => {
                     //     return item ? item.content : '';
                     // });
+                    if (v.data && v.data.remark) {
+                        v.remark$ = v.data.remark;
+                    }
                     v.playerLevel$ = v.data.playerLevelName ? $translate(v.data.playerLevelName) : '';
                     v.merchantNo$ = v.data.merchantNo != null
                         ? v.data.merchantNo
@@ -965,6 +971,9 @@ define(['js/app'], function (myApp) {
                         "data": null,
                         render: function (data, type, row) {
                             if (data.hasOwnProperty('creator')) {
+                                if(data.creator && data.creator.type && data.creator.type == "partner"){
+                                    return $translate('PARTNER') + ": " + data.creator.id;
+                                }
                                 return data.creator.name;
                             } else {
                                 var creator = $translate('System');
@@ -1273,6 +1282,8 @@ define(['js/app'], function (myApp) {
                         v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
                     }
                     v.mainType$ = $translate(v.mainType);
+                    if (v.mainType === "PlayerBonus")
+                        v.mainType$ = $translate("Bonus");
                     v.priority$ = $translate(v.data.proposalPlayerLevel ? v.data.proposalPlayerLevel : "Normal");
                     v.playerStatus$ = v.data.playerStatus;
                     v.entryType$ = $translate(vm.proposalEntryTypeList[v.entryType]);
@@ -1304,6 +1315,9 @@ define(['js/app'], function (myApp) {
                     // v.remark$ = v.remark.map(item => {
                     //     return item ? item.content : '';
                     // });
+                    if (v.data && v.data.remark) {
+                        v.remark$ = v.data.remark;
+                    }
                     v.playerLevel$ = v.data.playerLevelName ? $translate(v.data.playerLevelName) : '';
                     v.merchantNo$ = v.data.merchantNo != null
                         ? v.data.merchantNo
@@ -1760,7 +1774,7 @@ define(['js/app'], function (myApp) {
             for (let i in proposalDetail) {
                 // Add provider group name
                 if (i == "providerGroup") {
-                    proposalDetail.providerGroup = vm.getProviderGroupNameById(proposalDetail[i]);
+                    proposalDetail.providerGroup = proposalDetail[i] ? vm.getProviderGroupNameById(proposalDetail[i]) : $translate("LOCAL_CREDIT");
                 }
 
                 //remove objectIDs

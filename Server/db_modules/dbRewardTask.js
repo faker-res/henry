@@ -126,6 +126,7 @@ var dbRewardTask = {
                     let updObj = {
                         $inc: {
                             rewardAmt: rewardData.initAmount,
+                            currentAmt: rewardData.initAmount,
                             targetConsumption: rewardData.requiredUnlockAmount,
                         }
                     };
@@ -147,7 +148,8 @@ var dbRewardTask = {
                         playerId: rewardData.playerId,
                         providerGroup: rewardData.providerGroup,
                         status: constRewardTaskStatus.STARTED,
-                        rewardAmt: rewardData.initAmount
+                        rewardAmt: rewardData.initAmount,
+                        currentAmt: rewardData.initAmount
                     };
 
                     if (rewardData.useConsumption) {
@@ -184,7 +186,7 @@ var dbRewardTask = {
             .exec();
     },
 
-    getPlayerRewardTask: function (playerId, from, to, index, limit, sortCol) {
+    getPlayerRewardTask: function (playerId, from, to, index, limit, sortCol, useProviderGroup) {
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'createTime': -1};
@@ -195,12 +197,22 @@ var dbRewardTask = {
                 $lt: new Date(to)
             }
         }
-        var a = dbconfig.collection_rewardTask.find(queryObj).count();
-        var b = dbconfig.collection_rewardTask.find(queryObj).sort(sortCol).skip(index).limit(limit)
+
+        let a,b,c,d;
+
+        a = dbconfig.collection_rewardTask.find(queryObj).count();
+        b = dbconfig.collection_rewardTask.find(queryObj).sort(sortCol).skip(index).limit(limit)
             .populate({path: "targetProviders", model: dbconfig.collection_gameProvider}).lean();
-        return Q.all([a, b]).then(
+
+        if(useProviderGroup) {
+            c = dbconfig.collection_rewardTaskGroup.find(queryObj).count();
+            d = dbconfig.collection_rewardTaskGroup.find(queryObj).sort(sortCol).skip(index).limit(limit)
+                .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
+        }
+
+        return Q.all([a, b, c, d]).then(
             data => {
-                return {size: data[0], data: data[1]}
+                return {size: data[0], data: data[1], rewardTaskGroupSize: data[2], rewardTaskGroupData: data[3]}
             }
         )
     },
@@ -458,7 +470,7 @@ var dbRewardTask = {
                                     {
                                         bDirty: true,
                                         usedType: taskData.rewardType,
-                                        usedEvent: taskData.eventId,
+                                        $push: {usedEvent: taskData.eventId},
                                         usedTaskId: taskData._id
                                     }
                                 ));
@@ -575,41 +587,45 @@ var dbRewardTask = {
                         rewardTaskGroup.unlockTime = createTime;
                     }
                     // Consumption reached
-                    else if (rewardTaskGroup.curConsumption >= rewardTaskGroup.targetConsumption) {
+                    else if (rewardTaskGroup.curConsumption >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
                         rewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
                         rewardTaskGroup.unlockTime = createTime;
                     }
 
                     let updObj = {
                         $inc: {
-                            currentAmt: consumptionRecord.bonusAmount
+                            currentAmt: consumptionRecord.bonusAmount,
+                            curConsumption: consumptionRecord.validAmount
                         },
                         status: rewardTaskGroup.status,
                         unlockTime: rewardTaskGroup.unlockTime
                     };
 
-                    // XIMA consumption handling
-                    if (rewardTaskGroup.forbidXIMAAmt && rewardTaskGroup.forbidXIMAAmt > 0) {
-                        let diffAmt = rewardTaskGroup.forbidXIMAAmt - consumptionRecord.validAmount;
-                        let leftOverAmt = consumptionRecord.validAmount - rewardTaskGroup.forbidXIMAAmt;
+                    // let forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt - rewardTaskGroup.curConsumption;
 
-                        if (diffAmt >= 0) {
-                            // The XIMA consumption is still sufficient
-                            updObj.$inc.forbidXIMAAmt = -consumptionRecord.validAmount;
-                            // Mark this consumption record as dirty
-                            bDirty = true;
-                        } else {
-                            // Insufficient XIMA consumption
-                            // Add consumption to normal consumption count
-                            updObj.$inc.forbidXIMAAmt = -rewardTaskGroup.forbidXIMAAmt;
-                            updObj.$inc.curConsumption = consumptionRecord.validAmount - rewardTaskGroup.forbidXIMAAmt;
-                            // Return left over amount for XIMA
-                            nonDirtyAmount = leftOverAmt;
-                        }
-                    }
-                    else {
-                        updObj.$inc.curConsumption = consumptionRecord.validAmount;
-                    }
+
+                    // // XIMA consumption handling
+                    // if (forbidXIMAAmt && forbidXIMAAmt > 0) {
+                    //     let diffAmt = forbidXIMAAmt - consumptionRecord.validAmount;
+                    //     let leftOverAmt = consumptionRecord.validAmount - forbidXIMAAmt;
+                    //
+                    //     if (diffAmt >= 0) {
+                    //         // The XIMA consumption is still sufficient
+                    //         updObj.$inc.forbidXIMAAmt = -consumptionRecord.validAmount;
+                    //         // Mark this consumption record as dirty
+                    //         bDirty = true;
+                    //     } else {
+                    //         // Insufficient XIMA consumption
+                    //         // Add consumption to normal consumption count
+                    //         updObj.$inc.forbidXIMAAmt = -rewardTaskGroup.forbidXIMAAmt;
+                    //         updObj.$inc.curConsumption = consumptionRecord.validAmount - rewardTaskGroup.forbidXIMAAmt;
+                    //         // Return left over amount for XIMA
+                    //         nonDirtyAmount = leftOverAmt;
+                    //     }
+                    // }
+                    // else {
+                    //     updObj.$inc.curConsumption = consumptionRecord.validAmount;
+                    // }
 
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                         {_id: rewardTaskGroup._id},

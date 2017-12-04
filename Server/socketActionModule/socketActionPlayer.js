@@ -81,6 +81,42 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
+         * Create a new reward points record based on player data
+         */
+        createPlayerRewardPointsRecord: function createPlayerRewardPointsRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerRewardPointsRecord, [data.platformId, data.data.playerId, data.data.points, data.data.playerName, data.data.playerLevel, data.data.progress], actionName, isValidData);
+        },
+
+        /**
+         * Update player info with reward points record based on player id and platform id
+         */
+        upsertPlayerInfoRewardPointsObjId: function upsertPlayerInfoRewardPointsObjId(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.platformId && data.rewardPointsObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.upsertPlayerInfoRewardPointsObjId, [data.playerId, data.platformId, data.rewardPointsObjId], actionName, isValidData);
+        },
+
+        /**
+         * Get player reward points record based on player rewardPointsObjId
+         */
+        getPlayerRewardPointsRecord: function getPlayerRewardPointsRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.rewardPointsObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerRewardPointsRecord, [data.rewardPointsObjId], actionName, isValidData);
+        },
+
+        /**
+         * Get player reward points record based on player rewardPointsObjId
+         */
+        updatePlayerRewardPointsRecord: function updatePlayerRewardPointsRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.rewardPointsObjId && data.finalValidAmount);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.rewardPointsObjId, data.finalValidAmount], actionName, isValidData);
+        },
+
+        /**
          * Create a test player for platform
          * @param {json} data - It has to contain platform id
          */

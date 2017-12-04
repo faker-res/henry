@@ -32,15 +32,7 @@
                 div(style='max-width:180px')
                     label {{'Online Topup Type' | translate}}
                     select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.topupType', multiple, static-bsp, data-actions-box='true')
-                        option(value='1') 网银支付(NetPay)
-                        option(value='2') 微信扫码(WechatQR)
-                        option(value='3') 支付宝扫码(AlipayQR)
-                        option(value='4') 微信App支付(WechatApp)
-                        option(value='5') 支付宝App支付(AlipayApp)
-                        option(value='6') 快捷支付(FASTPAY)
-                        option(value='7') QQ扫码(QQPAYQR)
-                        option(value='8') 银联扫码支付(UnPayQR)
-                        option(value='9') 京东钱包扫码支付(JdPayQR)
+                        option(ng-repeat='(i,v) in merchantTopupTypeJson', value='{{i}}') {{ v | translate}}({{v}})
                 div(style='max-width:125px')
                     label {{'3rd Party Platform' | translate}}
                     select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.merchantGroup',ng-options='mer as mer.name for mer in vm.merchantGroupCloneList', multiple, bsp, data-actions-box='true')
@@ -732,6 +724,7 @@
             .clearfix
             label {{"Total" | translate}} {{vm.feedbackQuery.totalCount}} {{"records" | translate}}
             table.common-table#feedbackReportTable.display(style="width:100% ;overflow-x: scroll")
+            #feedbackReportTablePage
 
         // rewards report
         div(ng-if='vm.currentRewardCode')

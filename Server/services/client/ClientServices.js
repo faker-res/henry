@@ -52,6 +52,7 @@
                 "isLogin",
                 "getSMSCode",
                 "sendSMSCodeToPlayer",
+                "verifyPhoneNumberBySMSCode",
                 "updatePaymentInfo",
                 "updatePlayerPartnerPaymentInfo",
                 "updateSmsSetting",
@@ -80,7 +81,8 @@
                 "deleteAllMail",
                 "deleteMail",
                 "manualPlayerLevelUp",
-                "getWithdrawalInfo"
+                "getWithdrawalInfo",
+                "getCardTypeList"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -262,7 +264,9 @@
                 "applyLimitedOffers",
                 "getLimitedOfferBonus",
                 "setLimitedOfferShowInfo",
-                "setBonusShowInfo"
+                "setBonusShowInfo",
+                "getSignInfo",
+                "getSignBonus"
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

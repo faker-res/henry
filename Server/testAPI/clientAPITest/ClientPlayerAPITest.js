@@ -89,6 +89,18 @@
         });
     };
 
+    proto.verifyPhoneNumberBySMSCode = function (callback, requestData) {
+        var data = requestData || {
+            smsCode: '123456'
+        };
+        this.playerService.verifyPhoneNumberBySMSCode.request(data);
+        this.playerService.verifyPhoneNumberBySMSCode.once(function (data) {
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.create = function (callback, requestData) {
         date = new Date().getTime();
         //console.log("data:platformId.....", platformId);
@@ -537,6 +549,18 @@
 
         thisObj.playerService.getWithdrawalInfo.request(data);
         thisObj.playerService.getWithdrawalInfo.once(function (data) {
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.getCardTypeList = function (callback, requestData) {
+        var thisObj = this;
+        var data = requestData || {};
+
+        thisObj.playerService.getCardTypeList.request(data);
+        thisObj.playerService.getCardTypeList.once(function (data) {
             if (typeof callback === "function") {
                 callback(data);
             }

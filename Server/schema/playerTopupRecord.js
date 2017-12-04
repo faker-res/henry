@@ -20,6 +20,8 @@ var playerTopUpRecordSchema = new Schema({
     usedType: {type: String},
     //used by which reward event
     usedEvent: [{type: Schema.ObjectId}],
+    // had been used for which proposal
+    usedProposal: {type: Schema.ObjectId},
     //merchant top up type
     merchantTopUpType: {type: String},
     //bank card type
@@ -29,7 +31,9 @@ var playerTopUpRecordSchema = new Schema({
     //bank account
     bankAccount: {type: String},
     //related proposal id
-    proposalId: {type: String, index:true}
+    proposalId: {type: String, index: true},
+    // Device interface
+    userAgent: {type: String}
 });
 
 //record is unique by playerId platformId and createTime

@@ -2748,6 +2748,14 @@ input[type='number'].leftALignNumber {
     border-bottom: none;
 }
 
+#modalPlayerRewardPointsAdjustment .nav-tabs>li {
+    cursor: pointer;
+}
+#modalPlayerRewardPointsAdjustment .nav-tabs>li.active>a {
+    border: 1px solid #337AB7;
+    border-bottom: none;
+}
+
 #modalPlayerAccountingDetail .nav-tabs>li {
     cursor: pointer;
 }
@@ -2924,4 +2932,8 @@ input[type='number'].leftALignNumber {
 .grid input[type="file"] {
     font-size: 14px;
     display: inline-block;
+}
+
+#newPlayerListTable_wrapper .dataTable {
+    font-size: 12px;
 }

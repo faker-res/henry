@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporter', 'ui.grid.resizeColumns', 'ui.grid.moveColumns', 'ngSanitize', 'ngCsv']).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter) {
+angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporter', 'ui.grid.resizeColumns', 'ui.grid.moveColumns', 'ngSanitize', 'ngCsv']).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter, $timeout) {
     //todo::disable console log for production
     // if(CONFIG.NODE_ENV != "local"){
     //     window.console = { log: function(){}, warn: function(){}, error: function(){}, info: function(){} };
@@ -347,11 +347,19 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         '1': 'MerchantUse_CreateAccount',
         '2': 'MerchantUse_Normal'
     };
+
+    // todo :: check if merchantTopupMainTypeJson actually got the index wrong
     $scope.merchantTopupMainTypeJson = {
         1: "Online",
         2: "Manual",
         3: "Alipay",
         4: "Wechatpay"
+    };
+    $scope.topUpTypeList = {
+        1: "TOPUPMANUAL",
+        2: "TOPUPONLINE",
+        3: "ALIPAY",
+        4: "WechatPay"
     };
     $scope.merchantTopupTypeJson = {
         '1': 'NetPay',
@@ -362,13 +370,24 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         '6': 'FASTPAY',
         '7': 'QQPAYQR',
         '8': 'UnPayQR',
-        '9': 'JdPayQR'
+        '9': 'JdPayQR',
+        '10': 'WXWAP',
+        '11': 'ALIWAP',
+        '12': 'QQWAP',
+        '13': 'PCard'
+    };
+    $scope.depositMethod = {
+        1: "网银转账(Online Transfer)",
+        2: "自动取款机(ATM)",
+        3: "银行柜台(Counter)",
+        4: "网银跨行(InterBank Transfer)",
+        5: "支付宝(AliPay)"
     };
     $scope.merchantTargetDeviceJson = {
         '1': "clientType_Web",
-        '2': "clientType_Application",
+        '2': 'clientType_H5',
         '3': 'clientType_Both',
-        '4': 'clientType_H5'
+        '4': "clientType_Application"
     };
     $scope.userAgentType = {
         '1': "WEB",
@@ -475,13 +494,44 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         1: "deposit - withdrawal",
         2: "consumption - reward",
         3: "consumtion sum"
-    }
+    };
 
-    $scope.consumptionRecordProviderName = {
-        1: "AGOTHS",
-        2: "PT",
-        3: "MG"
-    }
+    $scope.constRewardPointsTaskCategory = {
+        'LOGIN_REWARD_POINTS': 1,
+        'TOPUP_REWARD_POINTS': 2,
+        'GAME_REWARD_POINTS': 3
+    };
+
+    $scope.constPlayerRegistrationInterface = {
+        0: 'BACKSTAGE',
+        1: 'WEB_PLAYER',
+        2: 'WEB_AGENT',
+        3: 'H5_PLAYER',
+        4: 'H5_AGENT',
+        5: 'APP_PLAYER',
+        6: 'APP_AGENT'
+    };
+
+    $scope.constRewardPointsIntervalPeriod = {
+        0: "No Interval",
+        1: "Daily",
+        2: "Weekly",
+        3: "Biweekly",
+        4: "Monthly",
+        5: "Yearly",
+        6: "Custom"
+    };
+
+    $scope.constRewardPointsApplyMethod = {
+        1: "Manual Apply",
+        2: "Auto Apply"
+    };
+
+    // $scope.consumptionRecordProviderName = {
+    //     1: "AGOTHS",
+    //     2: "PT",
+    //     3: "MG"
+    // }
 
     //////// DOM initialisation operations ////////
 
@@ -1161,4 +1211,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         $scope.companyLogo = url;
     };
 
+    $scope.resetTableSize = function (divName, elem) {
+        utilService.actionAfterLoaded(divName, function () {
+            $timeout(()=>{
+                $(elem).resize();
+            },0)
+        });
+
+    };
 });
