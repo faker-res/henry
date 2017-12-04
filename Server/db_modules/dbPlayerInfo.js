@@ -3387,7 +3387,7 @@ let dbPlayerInfo = {
      * check the player exists and check password is matched against the password in DB using bcrypt
      *  @param include name and password of the player and some more additional info to log the player's login
      */
-    playerLogin: function (playerData, userAgent) {
+    playerLogin: function (playerData, userAgent, inputDevice) {
         let deferred = Q.defer();
         let db_password = null;
         let newAgentArray = [];
@@ -3556,9 +3556,8 @@ let dbPlayerInfo = {
                                 userAgent: uaObj
                             };
 
-                            // add a check if to
                             if (platformObj.usePointSystem) {
-                                dbRewardPoints.updateLoginRewardPointProgress(playerObj).catch(errorUtils.reportError);
+                                dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                             }
 
                             Object.assign(recordData, geoInfo);
@@ -7909,7 +7908,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType) {
+    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice) {
         var platformData = null;
         var providerData = null;
         var playerData = null;
@@ -8041,7 +8040,7 @@ let dbPlayerInfo = {
                 //console.log("bTransferIn:", bTransferIn, data);
                 if (data && gameData && gameData.provider) {
                     if (gameData.provider._id && playerData && playerData.platform && playerData.platform.usePointSystem) {
-                        dbRewardPoints.updateLoginRewardPointProgress(playerData, gameData.provider._id).catch(errorUtils.reportError);
+                        dbRewardPoints.updateLoginRewardPointProgress(playerData, gameData.provider._id, inputDevice).catch(errorUtils.reportError);
                     }
 
                     providerData = gameData.provider;
