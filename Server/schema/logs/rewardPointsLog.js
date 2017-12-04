@@ -39,7 +39,7 @@ let rewardPointsLog = new Schema({
     creator: {type: String},
 
     remark: {type: String},
-
+    //base on constRewardPointsLogStatus
     status: {type: Number},
 
     createTime: {type: Date, default: Date.now}

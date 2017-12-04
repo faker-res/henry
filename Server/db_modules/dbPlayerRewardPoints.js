@@ -8,6 +8,7 @@ const constServerCode = require('../const/constServerCode');
 const constProposalEntryType = require("./../const/constProposalEntryType");
 const constProposalUserType = require('../const/constProposalUserType');
 const constProposalType = require('../const/constProposalType');
+const constRewardPointsLogCategory = require('../const/constRewardPointsLogCategory');
 
 let dbUtility = require('./../modules/dbutility');
 let dbProposal = require('./../db_modules/dbProposal');
@@ -71,7 +72,6 @@ let dbPlayerRewardPoints = {
                 proposalType => {
                     if (proposalType) {
                         rewardPointsProposalType = proposalType;
-                        console.log(playerInfo);
                         return dbRewardPointsLvlConfig.getRewardPointsLvlConfig(playerInfo.platform._id).lean();
                     }
                     else {
@@ -151,7 +151,7 @@ let dbPlayerRewardPoints = {
                     if ((todayConvertedRewardPoints + convertRewardPointsAmount) > playerLvlRewardPointsConfig.pointToCreditManualMaxPoints) {
                         return Q.reject({
                             name: "DataError",
-                            message: "Player reach daily reward points convert limit"
+                            message: "Player convert amount reach daily reward points convert limit"
                         });
                     } else {
                         let convertCredit = Math.floor(convertRewardPointsAmount / playerLvlRewardPointsConfig.pointToCreditManualRate);
@@ -175,6 +175,7 @@ let dbPlayerRewardPoints = {
                                 afterRewardPoints: playerRewardPoints.points - convertRewardPointsAmount,
                                 convertedRewardPoints: convertRewardPointsAmount,
                                 convertCredit: convertCredit,
+                                rewardAmount: convertCredit,
                                 spendingAmount: spendingAmount,
                                 providerGroup: playerLvlRewardPointsConfig.providerGroup,
                                 remark: remark
@@ -197,8 +198,9 @@ let dbPlayerRewardPoints = {
      * @param {Number} updateAmount
      * @param {String} remark
      * @param {Number} status
+     * @param {ObjectId} rewardPointsTaskObjId  If create rewardPointsTask
      */
-    changePlayerRewardPoint: (playerObjId, platformObjId, updateAmount, remark = null, status = -1) => {
+    changePlayerRewardPoint: (playerObjId, platformObjId, updateAmount, remark, status, rewardPointsTaskObjId=null) => {
         let playerRewardPoints;
         let oldPoint;
         let afterChangedRewardPoints;
@@ -208,7 +210,7 @@ let dbPlayerRewardPoints = {
                     if (!player) {
                         return Q.reject({
                             name: "DataError",
-                            message: "Can't update player reward points: player not found."
+                            message: "Can not find player"
                         });
                     }
                     return dbRewardPoints.getPlayerRewardPoints(ObjectId(player._id));
@@ -218,16 +220,23 @@ let dbPlayerRewardPoints = {
                 }
             ).then(
                 rewardPoints => {
-                    if(rewardPoints){
+                    if (rewardPoints) {
                         playerRewardPoints = rewardPoints;
                         oldPoint = playerRewardPoints.points;
                         afterChangedRewardPoints = playerRewardPoints.points + updateAmount;
+
+                        if (afterChangedRewardPoints < 0) {
+                            return Q.reject({
+                                name: "DataError",
+                                message: "Player does not have enough reward points"
+                            });
+                        }
 
                         return dbConfig.collection_rewardPoints.update(
                             {_id: playerRewardPoints._id},
                             {$inc: {points: updateAmount}}
                         );
-                    }else{
+                    } else {
                         return Q.reject({
                             name: "DataError",
                             message: "Player does not have enough reward points"
@@ -235,7 +244,18 @@ let dbPlayerRewardPoints = {
                     }
                 }
             ).then(
-                () => dbLogger.createRewardPointsLog(playerRewardPoints._id, null, playerRewardPoints.points, afterChangedRewardPoints, remark, status)
+                () => {
+                    let logData = {
+                        rewardPointsObjId:playerRewardPoints._id,
+                        rewardPointsTaskObjId:rewardPointsTaskObjId,
+                        category: constRewardPointsLogCategory.EARLY_POINT_CONVERSION,
+                        oldPoints:playerRewardPoints.points,
+                        newPoints:afterChangedRewardPoints,
+                        remark:remark,
+                        status:status
+                    };
+                    dbLogger.createRewardPointsLog(logData);
+                }
             )
     },
 

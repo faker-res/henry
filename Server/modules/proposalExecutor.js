@@ -35,6 +35,8 @@ var constProposalEntryType = require("../const/constProposalEntryType");
 var constProposalUserType = require("../const/constProposalUserType");
 var SMSSender = require('./SMSSender');
 //Reward Points
+const constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
+const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus");
 let dbRewardPointsTask = require('./../db_modules/dbRewardPointsTask');
 let dbRewardPoints = require("../db_modules/dbRewardPoints.js");
 let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
@@ -2287,21 +2289,22 @@ var proposalExecutor = {
             },
 
             executePlayerConvertRewardPoints: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.convertCredit && proposalData.data.spendingAmount) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.playerRewardPointsObjId) {
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
-                        type: constProposalType.PLAYER_CONVERT_REWARD_POINTS,
-                        rewardType: constProposalType.PLAYER_CONVERT_REWARD_POINTS,
-                        platformId: proposalData.data.platformId,
+                        rewardPointsObjId: proposalData.data.playerRewardPointsObjId,
+                        rewardPoints : proposalData.data.convertedRewardPoints,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
-                        currentAmount: proposalData.data.convertCredit,
                         initAmount: proposalData.data.convertCredit,
-                        applyAmount: 0,
                         providerGroup: proposalData.data.providerGroup
                     };
-                    
+
                     let deferred1 = Q.defer();
                     createRewardPointsTaskForProposal(proposalData, taskData, deferred1, constProposalType.PLAYER_CONVERT_REWARD_POINTS, proposalData);
+                    deferred1.promise.then(
+                        data => deferred.resolve(data),
+                        () => deferred.reject
+                    );
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect player convert reward points proposal data"});
@@ -3105,7 +3108,7 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
  * @param proposalData
  * @param taskData
  * @param deferred
- * @param rewardType
+ * @param rewardPointsType
  * @param [resolveValue] - Optional.  Without this, resolves with the newly created reward task.
  */
 function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rewardPointsType, resolveValue) {
@@ -3114,8 +3117,10 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
         deferred.reject({name: "DBError", message: "Invalid reward points proposal data"});
         return;
     }
-    // Add proposalId in reward data
+    // Add proposalId in reward points data
     taskData.proposalId = proposalData.proposalId;
+    // Set reward points task category
+    taskData.category = constRewardPointsLogCategory.EARLY_POINT_CONVERSION;
     let gameProviderGroupProm = Promise.resolve(false);
     // Check whether game provider group exist
     if (proposalData.data.providerGroup) {
@@ -3136,7 +3141,7 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
                 //     error => deferred.reject(error)
                 // )
             } else {
-                dbRewardPointsTask.createRewardPointsTask(taskData, proposalData, playerRewardPoint).then(
+                dbRewardPointsTask.createRewardPointsTask(taskData).then(
                     data => rewardPointsTask = data
                 ).catch(
                     error => Q.reject({
@@ -3148,17 +3153,25 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
                     () => {
                         return dbconfig.collection_rewardPoints.findOne({_id: proposalData.data.playerRewardPointsObjId}).lean().then(
                             playerRewardPoints => {
-                                dbPlayerRewardPoints.changePlayerRewardPoint(playerRewardPoints.playerObjId, playerRewardPoints.platformObjId, proposalData.data.rewardAmount);
+                                let rewardPointsLogStatus;
+                                switch (proposalData.status) {
+                                    case constProposalStatus.APPROVED :
+                                        rewardPointsLogStatus = constRewardPointsLogStatus.PROCESSED;
+                                        break;
+                                    default :
+                                        rewardPointsLogStatus = constRewardPointsLogStatus.PENDING;
+                                }
+                                return dbPlayerRewardPoints.changePlayerRewardPoint(playerRewardPoints.playerObjId, playerRewardPoints.platformObjId, -Math.abs(proposalData.data.convertedRewardPoints), proposalData.data.remark, rewardPointsLogStatus, rewardPointsTask._id);
                             }
                         );
                     }
                 ).then(
-                    function () {
-                        deferred.resolve(resolveValue || rewardPointsTask);
-                    },
-                    function (error) {
-                        deferred.reject(error);
+                    () => {
+                        return dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.convertCredit, constProposalType.PLAYER_CONVERT_REWARD_POINTS, proposalData.data)
                     }
+                ).then(
+                    (data) => deferred.resolve(resolveValue || rewardPointsTask),
+                    (error) => deferred.reject(error)
                 );
             }
         }

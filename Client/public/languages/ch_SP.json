@@ -2842,5 +2842,16 @@
   "REWARD_INTERVAL_DETAIL": "按照日历来定义周期（0点分界）",
   "REWARD_TOP_UP_DIRTY_FOR_REWARD_DETAIL": "勾选后将无视该存款已申请过其他优惠",
   "REWARD_REQUIRE_NON_BREAKING_COMBO_DETAIL": "不勾选则玩家可跨日累积签到天数",
-  "REWARD_RECLAIM_MISSED_DAY_DETAIL": "不勾选玩家需每日领取，隔日不计算"
+  "REWARD_RECLAIM_MISSED_DAY_DETAIL": "不勾选玩家需每日领取，隔日不计算",
+  "Player do not have permission for convert reward points to credit": "您好， 您目前暂无兑换积分的权限，请联系客服。",
+  "Can not match player level with reward points level config": "没有与玩家等级匹配的积分配置",
+  "Can not find reward points config": "无法找到积分配置",
+  "Player does not have enough reward points": "玩家没有足够的积分",
+  "Player convert amount reach daily reward points convert limit": "玩家兑换积分超过每日积分兑换的上限",
+  "PlayerConvertRewardPoints": "玩家兑换积分",
+  "convertCredit": "兑换到的真钱",
+  "convertedRewardPoints": "兑换消耗的积分",
+  "afterRewardPoints": "兑换后积分",
+  "beforeRewardPoints": "兑换前积分",
+  "Reward Points": "积分"
 }

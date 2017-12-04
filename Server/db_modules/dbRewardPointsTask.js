@@ -1,25 +1,19 @@
-var Q = require('q');
-var errorUtils = require('../modules/errorUtils');
-var dbConfig = require('../modules/dbproperties');
-var dbLogger = require("./../modules/dbLogger");
-var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
+let Q = require('q');
+let errorUtils = require('../modules/errorUtils');
+let dbConfig = require('../modules/dbproperties');
+let dbLogger = require("./../modules/dbLogger");
+let constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 
-var dbRewardPointsTask = {
+let dbRewardPointsTask = {
 
-    createRewardPointsTask: (rewardPointsTaskData, proposalData, playerRewardPoint) => {
+    createRewardPointsTask: (rewardPointsTaskData) => {
         let deferred = Q.defer();
-        let rewardPointsTask = new dbConfig.collection_rewardTask(rewardPointsTaskData);
+        let rewardPointsTask = new dbConfig.collection_rewardPointsTask(rewardPointsTaskData);
         let taskProm = rewardPointsTask.save();
 
         taskProm.then(
             data => {
-                if (data && data[0]) {
-                    dbLogger.createRewardPointsLog(playerRewardPoint._id, data._id, proposalData.data.beforeRewardPoints, proposalData.data.afterRewardPoints);
-                    deferred.resolve(data[0]);
-                }
-                else {
-                    deferred.reject({name: "DataError", message: "Cannot create reward points task"});
-                }
+                    deferred.resolve(data);
             },
             error => {
                 deferred.reject({name: "DBError", message: "Error creating reward points task", error: error});

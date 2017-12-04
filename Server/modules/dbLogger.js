@@ -407,17 +407,8 @@ var dbLogger = {
         syncLog.save().then().catch(err => errorSavingLog(err, logData));
     },
 
-    createRewardPointsLog: function (rewardPointsObjId, rewardPointsTaskObjId, oldPoints, newPoints, remark, status) {
-        let logData = {
-            pointLogId:"",
-            rewardPointsObjId:rewardPointsObjId,
-            rewardPointsTaskObjId:rewardPointsTaskObjId,
-            oldPoints:oldPoints,
-            newPoints:newPoints,
-            remark:remark,
-            status:status
-        };
-        var syncLog = new dbconfig.collection_rewardPointsLog(logData);
+    createRewardPointsLog: function (logData) {
+        let syncLog = new dbconfig.collection_rewardPointsLog(logData);
         syncLog.save().then().catch(err => errorSavingLog(err, logData));
     },
 
