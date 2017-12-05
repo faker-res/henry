@@ -13352,7 +13352,7 @@ define(['js/app'], function (myApp) {
                 });
 
                 console.log('vm.rewardParams', vm.rewardParams);
-                $scope.safeApply();
+                //$scope.safeApply();
             };
 
             vm.platformRewardTypeChanged = function () {
@@ -13905,8 +13905,6 @@ define(['js/app'], function (myApp) {
 
                 delete vm.rewardMainParam.rewardParam;
             }
-
-            console.log('done changeRewardParamLayout');
         };
 
         vm.rewardPeriodNewRow = (valueCollection) => {
