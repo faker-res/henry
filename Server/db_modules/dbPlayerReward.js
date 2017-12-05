@@ -947,7 +947,7 @@ let dbPlayerReward = {
             {path: "platform", model: dbConfig.collection_platform}
         ).then(
             playerData => {
-                if (playerData && playerData.platform && playerData.permission.playerConsecutiveConsumptionReward) {
+                if (playerData && playerData.platform && playerData.permission && !playerData.permission.banReward) {
                     playerObj = playerData;
 
                     let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerObj, eventData._id);
@@ -1044,7 +1044,7 @@ let dbPlayerReward = {
             stateRec => {
                 if (stateRec) {
                     //check if player is valid for reward
-                    if (playerObj.permission.PlayerPacketRainReward === false) {
+                    if (playerObj.permission && playerObj.permission.banReward) {
                         return Q.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
@@ -3020,6 +3020,15 @@ let dbPlayerReward = {
                     // type 3
                     case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                         let loseAmount = rewardSpecificData[0];
+
+                        if (eventInPeriodData && eventInPeriodData.length > 0) {
+                            // player already applied the reward within the period timeframe
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "Cant apply this reward, contact cs"
+                            });
+                        }
 
                         let topUpinPeriod = 0;
 

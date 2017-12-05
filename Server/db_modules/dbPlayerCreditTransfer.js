@@ -157,8 +157,6 @@ let dbPlayerCreditTransfer = {
                                     // Add up the reward tasks current amount
                                     let amountToAdd = Math.floor(reward.currentAmount);
 
-                                    console.log('amountToAdd', amountToAdd);
-
                                     gameAmount += amountToAdd;
                                     // Check whether need to trasnfer validAmount
                                     // let remainingAmount = validTransferAmount + reward.currentAmount - amountToAdd;
@@ -790,7 +788,7 @@ let dbPlayerCreditTransfer = {
         let transferAmount = 0;
         let gameCredit = 0;
 
-        let player, gameProviderGroup;
+        let player, gameProviderGroup, rewardTaskGroupObjId;
 
         let playerProm = dbConfig.collection_players.findOne({_id: playerObjId}).populate(
             {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
@@ -848,7 +846,6 @@ let dbPlayerCreditTransfer = {
         ).then(
             res => {
                 let rewardTaskGroup = res[0];
-                let rewardTaskGroupObjId;
 
                 gameCredit = (res[1] && res[1].credit) ? parseFloat(res[1].credit) : 0;
 
@@ -883,13 +880,13 @@ let dbPlayerCreditTransfer = {
                     // FAILURE CHECK - Check player has negative valid amount after transfer
                     if (updatedPlayerData.validCredit < -0.02) {
                         // Player credit is less than expected after deduct, revert the decrement
-                        // return playerCreditChange(playerObjId, playerData.platform, validTransferAmount, lockedTransferAmount).then(
-                        //     () => Q.reject({
-                        //         status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                        //         name: "NumError",
-                        //         errorMessage: "Player does not have enough credit."
-                        //     })
-                        // );
+                        return playerCreditChangeWithRewardTaskGroup(player._id, player.platform, rewardTaskGroupObjId, validTransferAmount, lockedTransferAmount, providerId, true).then(
+                            () => Q.reject({
+                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                name: "NumError",
+                                errorMessage: "Player does not have enough credit."
+                            })
+                        );
                     }
 
                     playerCredit = updatedPlayerData.validCredit;
@@ -1307,15 +1304,16 @@ function playerCreditChange(playerObjId, platformObjId, incValidCredit, incLocke
  * @param platformObjId
  * @param rewardTaskGroupObjId
  * @param validCredit
+ * @param rewardCredit
  * @param targetProviderId
- * @param lastPlayedProviderObjId
+ * @param isRevert
  * @returns {Promise.<*[]>}
  */
-function playerCreditChangeWithRewardTaskGroup(playerObjId, platformObjId, rewardTaskGroupObjId, validCredit, rewardCredit, targetProviderId) {
+function playerCreditChangeWithRewardTaskGroup(playerObjId, platformObjId, rewardTaskGroupObjId, validCredit, rewardCredit, targetProviderId, isRevert) {
     let rewardTaskGroupProm = Promise.resolve(true);
-
+    let updateGroupObj = {};
     let updatePlayerObj = {
-        $inc: {validCredit: -validCredit}
+        $inc: {validCredit: isRevert ? validCredit : -validCredit}
     };
 
     if (targetProviderId) {
@@ -1330,11 +1328,11 @@ function playerCreditChangeWithRewardTaskGroup(playerObjId, platformObjId, rewar
     );
 
     if (rewardTaskGroupObjId) {
-        let updateGroupObj = {
+        updateGroupObj = {
             $inc: {
-                _inputFreeAmt: validCredit,
-                _inputRewardAmt: rewardCredit,
-                rewardAmt: -rewardCredit
+                _inputFreeAmt: isRevert ? -validCredit : validCredit,
+                _inputRewardAmt: isRevert ? -rewardCredit : rewardCredit,
+                rewardAmt: isRevert ? rewardCredit : -rewardCredit
             },
             inProvider: true,
             lastPlayedProvider: targetProviderId

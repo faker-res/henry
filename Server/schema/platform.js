@@ -137,6 +137,10 @@ var platformSchema = new Schema({
     playerNameMaxLength: {type: Number, default: 0},
     // minimum length for player name included platform prefix
     playerNameMinLength: {type: Number, default: 0},
+    // maximum length for partner name included platform prefix
+    partnerNameMaxLength: {type: Number, default: 0},
+    // minimum length for partner name included platform prefix
+    partnerNameMinLength: {type: Number, default: 0},
     // the count that trigger the failing alert in payment monitor for merchant
     monitorMerchantCount: {type: Number, default: 10},
     // the count that trigger the failing alert in payment monitor for player
