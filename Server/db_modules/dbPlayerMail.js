@@ -16,6 +16,11 @@ const queryPhoneLocation = require('query-mobile-phone-area');
 const constProposalStatus = require('../const/constProposalStatus');
 const constRegistrationIntentRecordStatus = require('../const/constRegistrationIntentRecordStatus');
 const dbUtility = require('./../modules/dbutility');
+const constProposalEntryType = require('../const/constProposalEntryType');
+const constProposalUserType = require('../const/constProposalUserType');
+const constServerCode = require('../const/constServerCode');
+const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+const rsaCrypto = require('./../modules/rsaCrypto');
 
 const dbPlayerMail = {
 
@@ -197,14 +202,15 @@ const dbPlayerMail = {
         let platform;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
 
-        if (inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined") {
-            dbUtility.getGeoIp(inputData.lastLoginIp).then(
-                ipData => {
-                    if (inputData) {
-                        inputData.ipArea = ipData;
-                    }
-                })
-        }
+
+        // if(inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
+        //     dbUtility.getGeoIp(inputData.lastLoginIp).then(
+        //         ipData=>{
+        //             if(inputData) {
+        //                 inputData.ipArea = ipData;
+        //             }
+        //         })
+        // }
 
         return getPlatform.then(
             function (platformData) {
@@ -232,7 +238,26 @@ const dbPlayerMail = {
                         format: "sms"
                     }).lean();
 
-                    return Promise.all([smsChannelProm, smsVerificationLogProm, messageTemplateProm]);
+                    let validPhoneNumberProm = Promise.resolve({isPhoneNumberValid: true});
+                    if (purpose === constSMSPurpose.REGISTRATION) {
+                        if (!(platform.whiteListingPhoneNumbers
+                            && platform.whiteListingPhoneNumbers.length > 0
+                            && platform.whiteListingPhoneNumbers.indexOf(telNum) > -1)) {
+                            if (platform.allowSamePhoneNumberToRegister === true) {
+                                validPhoneNumberProm =  dbPlayerInfo.isExceedPhoneNumberValidToRegister({
+                                    phoneNumber: rsaCrypto.encrypt(telNum),
+                                    platform: platformObjId
+                                }, platform.samePhoneNumberRegisterCount);
+                            } else {
+                                validPhoneNumberProm = dbPlayerInfo.isPhoneNumberValidToRegister({
+                                    phoneNumber: rsaCrypto.encrypt(telNum),
+                                    platform: platformObjId
+                                });
+                            }
+                        }
+                    }
+
+                    return Promise.all([smsChannelProm, smsVerificationLogProm, messageTemplateProm, validPhoneNumberProm]);
                 } else {
                     return Q.reject({
                         name: "DataError",
@@ -246,6 +271,11 @@ const dbPlayerMail = {
                     channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : 2;
                     lastMinuteHistory = data[1];
                     template = data[2];
+                    phoneValidation = data[3];
+
+                    if (!phoneValidation || !phoneValidation.isPhoneNumberValid) {
+                        return Promise.reject({message: "This phone number is already used. Please insert other phone number."});
+                    }
 
                     if (!template) {
                         return Q.reject({message: 'Template not set for current platform'});
@@ -285,37 +315,81 @@ const dbPlayerMail = {
                 }
             }
         ).then(
-            function (retData) {
+            smsData => {
+                if (inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined") {
+                    return dbUtility.getGeoIp(inputData.lastLoginIp).then(
+                        ipData => {
+                            if (ipData) {
+                                inputData.ipArea = ipData;
+                            }
+                            return smsData;
+                        },
+                        error => smsData
+                    );
+                }
+                return smsData;
+            }
+        ).then(
+            retData => {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
                 if (retData) {
-                    if (inputData && inputData.playerId) {
-                        delete inputData.playerId;
-                    }
+                    if (purpose && purpose == constSMSPurpose.REGISTRATION) {
+                        if (inputData) {
+                            if (inputData.playerId) {
+                                delete inputData.playerId;
+                            }
+                            //inputData = inputData || {};
+                            inputData.smsCode = code;
 
-                    //if (purpose == constSMSPurpose.REGISTRATION) {
-                    inputData = inputData || {};
-                    inputData.smsCode = code;
+                            if (inputData.phoneNumber) {
+                                var queryRes = queryPhoneLocation(inputData.phoneNumber);
+                                if (queryRes) {
+                                    inputData.phoneProvince = queryRes.province;
+                                    inputData.phoneCity = queryRes.city;
+                                    inputData.phoneType = queryRes.type;
+                                }
 
-                    if (inputData.phoneNumber) {
-                        var queryRes = queryPhoneLocation(inputData.phoneNumber);
-                        if (queryRes) {
-                            inputData.phoneProvince = queryRes.province;
-                            inputData.phoneCity = queryRes.city;
-                            inputData.phoneType = queryRes.type;
+                                if (inputData.password) {
+                                    delete inputData.password;
+                                }
+
+                                if (inputData.confirmPass) {
+                                    delete inputData.confirmPass;
+                                }
+
+                                let proposalData = {
+                                    creator: inputData.adminInfo || {
+                                        type: 'player',
+                                        name: inputData.name,
+                                        id: inputData.playerId ? inputData.playerId : ""
+                                    }
+                                };
+
+                                let newProposal = {
+                                    creator: proposalData.creator,
+                                    data: inputData,
+                                    entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                    userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                                    inputDevice: inputDevice ? inputDevice : 0
+                                };
+
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
+                            }
+
+                            let newIntentData = {
+                                data: inputData,
+                                status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
+                                name: inputData.name
+                            };
+                            let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+                            return newRecord.save().then(data => {
+                                return true;
+                            });
                         }
-
-                        let proposal = {data: inputData};
-                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, proposal, constProposalStatus.PENDING);
                     }
-
-                    let newIntentData = {
-                        data: inputData,
-                        status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
-                        name: inputData.name
-                    };
-                    let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                    return newRecord.save();
                 }
+
+                return true;
             }
         );
     },
@@ -338,6 +412,61 @@ const dbPlayerMail = {
             },
             error => {
                 return Q.reject({name: "DBError", message: "Error in getting player data", error: error});
+            }
+        );
+    },
+
+    verifyPhoneNumberBySMSCode: function (playerId, smsCode) {
+        let smsDetail = {};
+
+        return dbconfig.collection_players.findOne({playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .lean().then(
+            data => {
+                if (!data || !data.platform) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Error in getting player data"
+                    })
+                }
+                let playerData = data;
+                let platformData = data.platform;
+
+                platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
+                let smsExpiredDate = new Date();
+                smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
+
+                return dbconfig.collection_smsVerificationLog.findOne({
+                    platformObjId: platformData._id,
+                    tel: playerData.phoneNumber,
+                    createTime: {$gte: smsExpiredDate}
+                }).sort({createTime: -1})
+            }
+        ).then(
+            verificationSMS => {
+                // Check verification SMS code
+                if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
+                    verificationSMS = verificationSMS || {};
+                    smsDetail = verificationSMS;
+                    return dbconfig.collection_smsVerificationLog.remove(
+                        {_id: verificationSMS._id}
+                    );
+                }
+                else {
+                    let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
+                    return Promise.reject({
+                        status: constServerCode.VALIDATION_CODE_INVALID,
+                        name: "ValidationError",
+                        message: errorMessage
+                    });
+                }
+            }
+        ).then(
+            () => {
+                if (smsDetail && smsDetail.tel && smsDetail.code) {
+                    dbLogger.logUsedVerificationSMS(smsDetail.tel, smsDetail.code);
+                }
+                return Promise.resolve(true);
             }
         );
     }

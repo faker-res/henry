@@ -1391,9 +1391,6 @@ var proposal = {
                                             if (item.data && item.data.phoneNumber && !displayPhoneNum) {
                                                 item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                             }
-                                            if (item.data && item.data.userAgent) {
-                                                item.inputDevice = dbutility.getInputDevice(item.data.userAgent, false);
-                                            }
                                             if (item.data && item.data.updateData) {
                                                 switch (Object.keys(item.data.updateData)[0]) {
                                                     case "phoneNumber":
@@ -1629,7 +1626,8 @@ var proposal = {
                         'phoneProvince': item.phoneProvince ? item.phoneProvince : '',
                         'phoneCity': item.phoneCity ? item.phoneCity : '',
                         'ipArea': ipArea,
-                        'name': item.name ? item.name : ''
+                        'name': item.name ? item.name : '',
+                        'forbidPlayerFromLogin': item.permission ? item.permission.forbidPlayerFromLogin : false
                     }
                 };
                 return playerUnitData;
@@ -1667,7 +1665,8 @@ var proposal = {
                         'valueScore': item.valueScore ? item.valueScore : '',
                         'phoneProvince': item.phoneProvince ? item.phoneProvince : '',
                         'phoneCity': item.phoneCity ? item.phoneCity : '',
-                        'ipArea': ipArea
+                        'ipArea': ipArea,
+                        'forbidPlayerFromLogin': item.permission ? item.permission.forbidPlayerFromLogin : false
                     },
                 }
                 return partnerUnitData;
@@ -1850,7 +1849,7 @@ var proposal = {
     //     });
     // },
 
-    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo = 0) {//need
+    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo = 0, unlockSizeLimit = false) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
         //check proposal without process
         let prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
@@ -1887,72 +1886,44 @@ var proposal = {
                             queryObj['data.phoneNumber'] = phoneNumber;
                         }
 
-                        console.log("LH check getPlayerProposalsForPlatformId query", queryObj);
                         let proposalProm = [];
-                        if (size >= 0) {
-                            proposalProm = dbconfig.collection_proposal.find(queryObj)
-                                .sort(sortCol).skip(index).limit(size).lean()
-                                .then(
-                                    pdata => {
-                                        console.log("LH check getPlayerProposalsForPlatformId data without player info", pdata);
-                                        pdata.map(item => {
-                                            // only displayPhoneNum equal true, encode the phone num
-                                            if (item.data && item.data.phone && !displayPhoneNum) {
-                                                item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                                            }
-                                            if (item.data && item.data.phoneNumber && !displayPhoneNum) {
-                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                            }
-                                            if (item.data && item.data.playerId) {
-                                                playerProm.push(proposal.getPlayerDetails(item.data.playerId));
-                                            }
+                        proposalProm = dbconfig.collection_proposal.find(queryObj)
 
-                                            return item
-                                        });
+                        if (!unlockSizeLimit) {
+                            proposalProm = proposalProm.sort(sortCol).skip(index).limit(size).lean();
 
-                                        console.log("LH check getPlayerProposalsForPlatformId data without player info 2", pdata);
-                                        return pdata;
-                                    })
-                                .then(proposals => {
-                                    proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-                                    console.log("LH check getPlayerProposalsForPlatformId data after get repeating count", proposals);
-                                    return proposals;
-                                }).catch(err => {
-                                    console.log("DBError : Error finding matching proposal", error);
-                                });
                         } else {
-                            return Q.reject({name: "DataError", message: "Invalid size"});
-                            // this part will use all memory if there are too many records. if there is no size data, return error
-                            // proposalProm = dbconfig.collection_proposal.find(queryObj).lean()
-                            //     .then(
-                            //         pdata => {
-                            //             pdata.map(item => {
-                            //                 // only displayPhoneNum equal true, encode the phone num
-                            //                 if (item.data && item.data.phone && !displayPhoneNum) {
-                            //                     item.data.phone = dbutility.encodePhoneNum(item.data.phone);
-                            //                 }
-                            //                 if (item.data && item.data.phoneNumber && !displayPhoneNum) {
-                            //                     item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                            //                 }
-                            //                 if (item.data && item.data.playerId) {
-                            //                     playerProm.push(proposal.getPlayerDetails(item.data.playerId));
-                            //                 }
-                            //
-                            //                 return item
-                            //             });
-                            //
-                            //             return pdata;
-                            //         })
-                            //     .then(proposals => {
-                            //         proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-                            //
-                            //         return proposals
-                            //     }).catch(err => {
-                            //         console.log("DBError : Error finding matching proposal", error);
-                            //     });
+                            proposalProm = proposalProm.limit(50).lean();
+
                         }
 
+                        proposalProm = proposalProm.then(
+                            pdata => {
+                                pdata.map(item => {
+                                    // only displayPhoneNum equal true, encode the phone num
+                                    if (item.data && item.data.phone && !displayPhoneNum) {
+                                        item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                    }
+                                    if (item.data && item.data.phoneNumber && !displayPhoneNum) {
+                                        item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                    }
+                                    if (item.data && item.data.playerId) {
+                                        playerProm.push(proposal.getPlayerDetails(item.data.playerId));
+                                    }
+
+                                    return item;
+                                });
+
+                                return pdata;
+                            })
+                            .then(proposals => {
+                                proposals = insertPlayerRepeatCount(proposals, platformId[0]);
+
+                                return proposals
+                            });
+
                         let proposalCount = dbconfig.collection_proposal.find(queryObj).lean().count();
+
                         return Q.all([proposalProm, proposalCount])
                     }
                     else {
@@ -1964,9 +1935,7 @@ var proposal = {
                 }
             }
         ).then(returnData => {
-            console.log("LH check getPlayerProposalsForPlatformId data after promise.all", returnData[0]);
             return Q.all(playerProm).then(data => {
-                console.log("LH check getPlayerProposalsForPlatformId player details data", data);
                 data.map(d => {
                     if (d && d.playerId) {
                         for (var i = 0; i < returnData[0].length; i++) {
@@ -1985,11 +1954,11 @@ var proposal = {
                                 if (d.topUpTimes) {
                                     returnData[0][i].data.topUpTimes = d.topUpTimes;
                                 }
-                                if (d.userAgent) {
-                                    for (var j = 0; j < d.userAgent.length; j++) {
-                                        returnData[0][i].data.device = dbutility.getInputDevice(d.userAgent, false);
-                                    }
-                                }
+                                // if (d.userAgent) {
+                                //     for (var j = 0; j < d.userAgent.length; j++) {
+                                //         returnData[0][i].data.device = dbutility.getInputDevice(d.userAgent, false);
+                                //     }
+                                // }
                                 if (d.playerLevel) {
                                     returnData[0][i].data.playerLevel = d.playerLevel;
                                 }
@@ -2027,18 +1996,14 @@ var proposal = {
                     dataArr = returnData[0];
                 }
 
-                for (var i = 0; i < dataArr.length; i++) {
-                    if (dataArr[i].data.userAgent) {
-                        for (var j = 0; j < dataArr[i].data.userAgent.length; j++) {
-                            if (!dataArr[i].data.device) {
-                                dataArr[i].data.device = dbutility.getInputDevice(dataArr[i].data.userAgent, false);
-                            }
+                if(dataArr && dataArr.length > 0){
+                    for (var i = 0; i < dataArr.length; i++) {
+                        if (dataArr[i] && dataArr[i].inputDevice) {
+                            dataArr[i].device = dataArr[i].inputDevice;
                         }
                     }
                 }
 
-                console.log("LH check getPlayerProposalsForPlatformId final data 1", returnData[0]);
-                console.log("LH check getPlayerProposalsForPlatformId final data 2", dataArr);
                 return {data: dataArr, size: returnData[1]};
             })
 
@@ -2051,7 +2016,6 @@ var proposal = {
             .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
             .lean().then(
                 data => {
-                    console.log("LH check getPlayerProposalsForPlatformId get playerDetails", data ? data : "");
                     return data ? data : "";
                 }
             );
@@ -2071,16 +2035,13 @@ var proposal = {
         var prom = [];
 
         var totalHeadCount = 0;
-        console.log("LH check getPlayerSelfRegistrationRecordList query", queryObj);
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
-            console.log("LH check getPlayerSelfRegistrationRecordList distinct phone number list", dataList);
             dataList.map(phoneNumber => {
                 prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
-                totalHeadCount += 1;
+                //totalHeadCount += 1;
             })
             return Q.all(prom);
         }).then(details => {
-            console.log("LH check getPlayerSelfRegistrationRecordList proposal of each phone number", details);
             details.map(data => {
                 let currentArrNo = 1;
                 data.map(d => {
@@ -2105,7 +2066,6 @@ var proposal = {
                 })
             })
 
-            console.log("LH check getPlayerSelfRegistrationRecordList record array", recordArr);
             return recordArr;
         }).then(playerAttemptNumber => {
             var firstFail = playerAttemptNumber.filter(function (event) {
@@ -2145,6 +2105,9 @@ var proposal = {
             var fifthUpSuccess = playerAttemptNumber.filter(function (event) {
                 return event.status == constProposalStatus.SUCCESS && event.attemptNo > 5
             }).length;
+
+            totalHeadCount = firstFail + secondFail + thirdFail + fouthFail + fifthFail + fifthUpFail
+                            + firstSuccess + secondSuccess + thirdSuccess + fouthSuccess + fifthSuccess + fifthUpSuccess;
 
             var firstFailPercent = totalHeadCount ? (firstFail / totalHeadCount * 100).toFixed(2) : 0;
             var secondFailPercent = totalHeadCount ? (secondFail / totalHeadCount * 100).toFixed(2) : 0;
@@ -2196,7 +2159,6 @@ var proposal = {
                 fifthUpSuccess: fifthUpSuccessPercent
             })
 
-            console.log("LH check getPlayerSelfRegistrationRecordList array of final cases number", arr);
             return arr;
 
         });
@@ -2220,7 +2182,7 @@ var proposal = {
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
             dataList.map(phoneNumber => {
                 prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
-                totalHeadCount += 1;
+                //totalHeadCount += 1;
             })
             return Q.all(prom);
         }).then(details => {
@@ -2271,6 +2233,8 @@ var proposal = {
                 return event.status == constProposalStatus.SUCCESS && event.attemptNo > 5
             }).length;
 
+            totalHeadCount = manualSuccess + firstSuccess + secondSuccess + thirdSuccess + fouthSuccess + fifthSuccess + fifthUpSuccess;
+
             var manualSuccessPercent = totalHeadCount ? (manualSuccess / totalHeadCount * 100).toFixed(2) : 0;
             var firstSuccessPercent = totalHeadCount ? (firstSuccess / totalHeadCount * 100).toFixed(2) : 0;
             var secondSuccessPercent = totalHeadCount ? (secondSuccess / totalHeadCount * 100).toFixed(2) : 0;
@@ -2309,7 +2273,7 @@ var proposal = {
         });
     },
 
-    getPlayerRegistrationIntentRecordByStatus: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo) {
+    getPlayerRegistrationIntentRecordByStatus: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo, unlockSizeLimit) {
         var queryObj = {
             createTime: {
                 $gte: new Date(startTime),
@@ -2324,6 +2288,8 @@ var proposal = {
         var returnArr = [];
         var recordArr = [];
         var prom = [];
+        var finalArr = [];
+
 
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
             dataList.map(phoneNumber => {
@@ -2369,16 +2335,55 @@ var proposal = {
                     return statusArr.includes(event.status) && event.attemptNo == attemptNo
                 });
             }
+        // }).then( data => {
+        //     // to filter out the duplicate phonenumber generated when getting proposal of different player account with same phone number.
+        //     return data.filter((data, index, self) =>
+        //         index === self.findIndex((t) => (
+        //             t.phoneNumber === data.phoneNumber
+        //         ))
+        //     );
         }).then(data => {
             data.map(d => {
-                userName = d.name;
+                //userName = d.name;
                 phoneNumber = d.phoneNumber
-                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo);
+
+                // if(statusArr && statusArr.includes("Pending")){
+                //     unlockSizeLimit = false;
+                //     size = 1;
+                // }
+                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo, unlockSizeLimit);
                 returnArr.push(p);
             })
         }).then(data => {
             return Promise.all(returnArr);
-        })
+        }).then(finalData => {
+            finalData.map(final => {
+                final.data.map(f => {
+                        if (attemptNo == 0) {
+                            if(statusArr.includes(f.status) && f.$playerAllCount > 5 && f.$playerCurrentCount == f.$playerAllCount){
+                                if(!finalArr.find(r => r.data.phoneNumber == f.data.phoneNumber && r.data.name == f.data.name)){
+                                    finalArr.push(f);
+                                }
+                            }
+                        } else if (attemptNo < 0) {
+                            if(statusArr.includes(f.status) && f.$playerCurrentCount == f.$playerAllCount){
+                                if(!finalArr.find(r => r.data.phoneNumber == f.data.phoneNumber && r.data.name == f.data.name)){
+                                    finalArr.push(f);
+                                }
+                            }
+                        } else {
+                            if(statusArr.includes(f.status) && f.$playerAllCount == attemptNo && f.$playerCurrentCount == f.$playerAllCount){
+                                if(!finalArr.find(r => r.data.phoneNumber == f.data.phoneNumber && r.data.name == f.data.name)){
+                                    finalArr.push(f);
+                                }
+                            }
+                        }
+                    }
+                )
+            })
+
+            return finalArr;
+        });
     },
 
     /**
@@ -3863,8 +3868,8 @@ function insertPlayerRepeatCount(proposals, platformId) {
             };
 
 
-            let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
-            let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
+            let allCountProm = dbconfig.collection_proposal.find(allCountQuery).lean().count();
+            let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).lean().count();
 
             //check the count of success/manual proposal records before current record.
             let previousCountProm = dbconfig.collection_proposal.find(previousCountQuery).lean().then(previousRecords => {

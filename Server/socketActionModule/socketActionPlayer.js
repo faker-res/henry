@@ -108,6 +108,15 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
+         * Get player reward points record based on player rewardPointsObjId
+         */
+        updatePlayerRewardPointsRecord: function updatePlayerRewardPointsRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.rewardPointsObjId && data.finalValidAmount);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.rewardPointsObjId, data.finalValidAmount], actionName, isValidData);
+        },
+
+        /**
          * Create a test player for platform
          * @param {json} data - It has to contain platform id
          */
@@ -213,6 +222,12 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data._id && data.forbidRewardEvents);
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardEvents, [data._id, data.forbidRewardEvents], actionName, isValidData);
+        },
+
+        updatePlayerForbidRewardPointsEvent: function updatePlayerForbidRewardPointsEvent(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id && data.forbidRewardPointsEvent);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardPointsEvent, [data._id, data.forbidRewardPointsEvent], actionName, isValidData);
         },
 
         /**
@@ -943,6 +958,20 @@ function socketActionPlayer(socketIO, socket) {
             let index = data.index || 0;
             let limit = data.limit || 10;
             socketUtil.emitter(self.socket, dbPlayerInfo.getForbidRewardLog, [data.playerId, data.startTime, data.endTime, index, limit], actionName, isValidData);
+        },
+
+        getForbidRewardPointsEventLog: function getForbidRewardPointsEventLog(data) {
+        let actionName = arguments.callee.name;
+        let isValidData = Boolean(data && data.playerId && data.startTime && data.endTime);
+        let index = data.index || 0;
+        let limit = data.limit || 10;
+        socketUtil.emitter(self.socket, dbPlayerInfo.getForbidRewardPointsEventLog, [data.playerId, data.startTime, data.endTime, index, limit], actionName, isValidData);
+        },
+
+        createForbidRewardPointsEventLog: function createForbidRewardPointsEventLog(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId && data.adminId && data.forbidRewardPointsEventNames);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createForbidRewardPointsEventLog, [data.playerId, data.adminId, data.forbidRewardPointsEventNames, data.remark], actionName, isValidData);
         },
 
         createForbidGameLog: function createForbidGameLog(data){

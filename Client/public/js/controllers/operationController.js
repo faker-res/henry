@@ -971,6 +971,9 @@ define(['js/app'], function (myApp) {
                         "data": null,
                         render: function (data, type, row) {
                             if (data.hasOwnProperty('creator')) {
+                                if(data.creator && data.creator.type && data.creator.type == "partner"){
+                                    return $translate('PARTNER') + ": " + data.creator.id;
+                                }
                                 return data.creator.name;
                             } else {
                                 var creator = $translate('System');

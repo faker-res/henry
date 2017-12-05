@@ -228,7 +228,7 @@ var dbPlayerConsumptionWeekSummary = {
                     var proms = [];
                     players.forEach(
                         function (playerData) {
-                            if (playerData && !(playerData.permission.forbidPlayerConsumptionReturn)) {
+                            if (playerData && playerData.permission && !(playerData.permission.banReward)) {
                                 //check if platform only allow new system users
                                 if( platformData && platformData.onlyNewCanLogin && !playerData.isNewSystem ){
                                     return;
@@ -427,7 +427,7 @@ var dbPlayerConsumptionWeekSummary = {
             function (data) {
                 if (data && data.platform && data.playerLevel) {
                     playerData = data;
-                    if (!playerData.permission || !playerData.permission.advanceConsumptionReward || !playerData.playerLevel.canApplyConsumptionReturn) {
+                    if (playerData.permission && playerData.permission.banReward || !playerData.playerLevel.canApplyConsumptionReturn) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
@@ -436,14 +436,14 @@ var dbPlayerConsumptionWeekSummary = {
                         return;
                     }
 
-                    if (playerData.forbidRewardEvents && playerData.forbidRewardEvents.indexOf("advanceConsumptionReward") !== -1) {
-                        deferred.reject({
-                            status: constServerCode.PLAYER_NO_PERMISSION,
-                            name: "DataError",
-                            errorMessage: "Player does not have this permission"
-                        });
-                        return;
-                    }
+                    // if (playerData.forbidRewardEvents && playerData.forbidRewardEvents.indexOf("advanceConsumptionReward") !== -1) {
+                    //     deferred.reject({
+                    //         status: constServerCode.PLAYER_NO_PERMISSION,
+                    //         name: "DataError",
+                    //         errorMessage: "Player does not have this permission"
+                    //     });
+                    //     return;
+                    // }
 
                     platformData = data.platform;
                     return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);

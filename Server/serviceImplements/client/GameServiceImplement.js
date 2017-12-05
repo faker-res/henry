@@ -2,7 +2,7 @@
 
 var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var GameService = require("./../../services/client/ClientServices").GameService;
-
+let dbUtility = require("./../../modules/dbutility");
 var dbRewardEvent = require('./../../db_modules/dbRewardEvent');
 var dbGame = require('./../../db_modules/dbGame');
 var dbPlatformGameStatus = require('./../../db_modules/dbPlatformGameStatus');
@@ -182,10 +182,11 @@ var GameServiceImplement = function () {
         var isValidData = Boolean(conn.playerId && data && data.gameId && data.clientDomainName);
         var ip = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             ip = forwardedIp[0].trim();
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName, data.clientType], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName, data.clientType, inputDevice], isValidData);
     };
 
     this.getTestLoginURL.expectsData = 'gameId: String, clientDomainName: String';
