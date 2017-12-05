@@ -1240,6 +1240,8 @@
   "Config": "基础数据",
   "Report": "报表",
   "Settle": "结算",
+  "isGroupReward": "是否为锁大厅优惠",
+  "forbidWithdrawIfBalanceAfterUnlock": "投注额解锁后仍有一定馀额则禁提",
   "SETTLING": "正在结算",
   "NONE": "无",
   "NULL": "无",
