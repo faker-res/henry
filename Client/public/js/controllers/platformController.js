@@ -13345,14 +13345,17 @@ define(['js/app'], function (myApp) {
                 vm.rewardParams = Lodash.cloneDeep(v.param);
                 vm.rewardCondition = Lodash.cloneDeep(v.condition);
                 vm.rewardDisabledParam = [];
-                vm.platformRewardTypeChanged();
+
+                $scope.$evalAsync(() => {
+                    vm.platformRewardTypeChanged();
+                });
 
                 utilService.actionAfterLoaded("#rewardMainTasks", function () {
                     vm.disableAllRewardInput(true);
                 });
 
                 console.log('vm.rewardParams', vm.rewardParams);
-                $scope.safeApply();
+                //$scope.safeApply();
             };
 
             vm.platformRewardTypeChanged = function () {
@@ -13386,6 +13389,8 @@ define(['js/app'], function (myApp) {
                     vm.platformRewardIsEnabled = false;
                     vm.rewardMainParamTable = [];
                     let params = vm.showRewardTypeData.params;
+
+                    //$scope.safeApply();
 
                     // Set condition value
                     Object.keys(params.condition).forEach(el => {
