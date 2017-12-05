@@ -7285,6 +7285,7 @@ let dbPlayerInfo = {
 
                         let todayTime = dbUtility.getTodaySGTime();
                         let creditProm = Q.resolve();
+
                         if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
                             creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
                         }
@@ -7323,7 +7324,6 @@ let dbPlayerInfo = {
                             }
                         ).then(
                             todayBonusApply => {
-
                                 let changeCredit = -amount;
                                 let finalAmount = amount;
                                 let creditCharge = 0;
@@ -7344,8 +7344,6 @@ let dbPlayerInfo = {
                                     if (todayBonusApply.length >= bonusSetting.bonusCharges && bonusSetting.bonusPercentageCharges > 0) {
                                         creditCharge = (finalAmount * bonusSetting.bonusPercentageCharges) * 0.01;
                                         finalAmount = finalAmount - creditCharge;
-                                        console.log('finalAmount' + finalAmount);
-                                        console.log('creditCharge' + creditCharge);
                                     }
                                 }
 
