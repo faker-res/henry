@@ -4618,8 +4618,6 @@ let dbPlayerInfo = {
      * @param {Number} amount
      */
     transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
-        console.log('transferPlayerCreditFromProvider');
-
         var deferred = Q.defer();
         var playerObj = {};
         var prom0 = forSync
@@ -5789,6 +5787,7 @@ let dbPlayerInfo = {
         let errorCode = '';
         var playerObj = null;
         var levelUpObj = null;
+        var levelDownObj = null;
         var levelErrorMsg = '';
         // A flag to determine LevelUp Stop At Where.
         var levelUpEnd = false;
@@ -5900,6 +5899,7 @@ let dbPlayerInfo = {
                                 // const failsEnoughConditions = failsTopupRequirements || failsConsumptionRequirements;
                                 if (failsEnoughConditions) {
                                     levelObjId = previousLevel._id;
+                                    levelDownObj = previousLevel;
                                 }
                             }
                         }
@@ -5988,11 +5988,11 @@ let dbPlayerInfo = {
                                     //       up through, not just for the top one he reached.
 
                                     let proposalData = {
-                                        levelValue: levelUpObj.value,
-                                        levelName: levelUpObj.name,
+                                        levelValue: checkLevelUp?levelUpObj.value:levelDownObj.value,
+                                        levelName: checkLevelUp?levelUpObj.name: levelDownObj.name,
                                         levelObjId: levelObjId,
                                         levelOldName: playerObj.playerLevel.name,
-                                        upOrDown: "LEVEL_UP",
+                                        upOrDown: checkLevelUp?"LEVEL_UP":"LEVEL_DOWN",
                                         playerObjId: playerObj._id,
                                         playerName: playerObj.name,
                                         playerId: playerObj.playerId,
@@ -6003,6 +6003,10 @@ let dbPlayerInfo = {
 
                                     return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {data: proposalData, inputDevice: inputDevice}).then(
                                         createdMigrationProposal => {
+                                            if (!checkLevelUp) {
+                                                return Promise.resolve();
+                                            }
+
                                             return dbconfig.collection_proposalType.findOne({
                                                 platformId: playerObj.platform,
                                                 name: constProposalType.PLAYER_LEVEL_UP
@@ -6010,6 +6014,9 @@ let dbPlayerInfo = {
                                         }
                                     ).then(
                                         proposalTypeData => {
+                                            if (!checkLevelUp) {
+                                                return Promise.resolve();
+                                            }
                                             // check if player has level up to this level previously
                                             return dbconfig.collection_proposal.findOne({
                                                 'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
@@ -6021,6 +6028,9 @@ let dbPlayerInfo = {
                                         }
                                     ).then(
                                         rewardProp => {
+                                            if (!checkLevelUp) {
+                                                return Promise.resolve();
+                                            }
                                             if (!rewardProp) {
                                                 // if this is level up and player has not reach this level before
                                                 // create level up reward proposal
@@ -6034,6 +6044,9 @@ let dbPlayerInfo = {
                                         }
                                     ).then(
                                         proposalResult => {
+                                            if (!checkLevelUp) {
+                                                return Promise.resolve();
+                                            }
                                             console.log(proposalResult);
 
                                             let rewardPrice = [];
@@ -7211,8 +7224,6 @@ let dbPlayerInfo = {
      * Apply bonus
      */
     applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
-        console.log('DEBUG START applyBonus');
-
         if (amount < 100 && !adminInfo) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
         }
@@ -7322,8 +7333,6 @@ let dbPlayerInfo = {
 
                         let todayTime = dbUtility.getTodaySGTime();
                         let creditProm = Q.resolve();
-
-                        console.log('playerData.lastPlayedProvider', playerData.lastPlayedProvider);
 
                         if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
                             creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
@@ -12053,6 +12062,7 @@ let dbPlayerInfo = {
             return result;
         });
     },
+
 };
 
 

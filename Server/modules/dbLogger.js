@@ -311,7 +311,14 @@ var dbLogger = {
         }
 
         let playerQuery = {phoneNumber: phoneQuery};
-        if (playerName) playerQuery.name = playerName;
+        if (playerName) {
+            playerQuery = {
+                $or:[
+                    {name: playerName},
+                    {playerId: playerName}
+                ]
+            };
+        }
 
         dbconfig.collection_players.findOne(playerQuery, {name: 1, bankAccount: 1}).lean().then(
             playerData => {
@@ -330,7 +337,7 @@ var dbLogger = {
 
                 if (playerData) {
                     if (playerData.name)
-                        logData.recipientName = logData.recipientName || playerData.name;
+                        logData.recipientName = playerData.name || logData.recipientName;
 
                     if (purpose === constSMSPurpose.UPDATE_BANK_INFO && !playerData.bankAccount)
                         logData.purpose = constSMSPurpose.UPDATE_BANK_INFO_FIRST;
@@ -427,6 +434,11 @@ var dbLogger = {
             data: data
         };
         var syncLog = new dbconfig.collection_syncDataLog(logData);
+        syncLog.save().then().catch(err => errorSavingLog(err, logData));
+    },
+
+    createRewardPointsLog: function (logData) {
+        let syncLog = new dbconfig.collection_rewardPointsLog(logData);
         syncLog.save().then().catch(err => errorSavingLog(err, logData));
     },
 
