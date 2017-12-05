@@ -109,7 +109,7 @@ let RewardServiceImplement = function () {
     this.getSignInfo.expectsData = '';
     this.getSignInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = true;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getPlayerConsecutiveRewardDetail, [conn.playerId, data.code], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getPlayerConsecutiveRewardDetail, [conn.playerId, data.code, false, data.platformId], isValidData, false, false, Boolean(data.platformId));
     };
 
     this.getSignBonus.expectsData = '';
