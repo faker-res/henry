@@ -299,6 +299,12 @@
         this._service.getPlayerWechatPayStatus.once(callback);
     };
 
+    proto.getPlayerAliPayStatus = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.getPlayerAliPayStatus.request(data);
+        this._service.getPlayerAliPayStatus.once(callback);
+    };
+
     proto.getAlipaySingleLimit = function (callback, requestData) {
         let data = requestData || {};
         this._service.getAlipaySingleLimit.request(data);

@@ -13340,19 +13340,22 @@ define(['js/app'], function (myApp) {
                 vm.showReward = v;
                 vm.initRewardValidTimeDOM(vm.showReward.validStartTime, vm.showReward.validEndTime);
                 console.log('vm.showReward', vm.showReward);
-                vm.showRewardTypeData = v;   // This will probably be overwritten by vm.platformRewardTypeChanged() below
+                vm.showRewardTypeData = null;   // This will probably be overwritten by vm.platformRewardTypeChanged() below
                 vm.showRewardTypeId = v.type._id;
                 vm.rewardParams = Lodash.cloneDeep(v.param);
                 vm.rewardCondition = Lodash.cloneDeep(v.condition);
                 vm.rewardDisabledParam = [];
-                vm.platformRewardTypeChanged();
+
+                $scope.$evalAsync(() => {
+                    vm.platformRewardTypeChanged();
+                });
 
                 utilService.actionAfterLoaded("#rewardMainTasks", function () {
                     vm.disableAllRewardInput(true);
                 });
 
                 console.log('vm.rewardParams', vm.rewardParams);
-                $scope.safeApply();
+                //$scope.safeApply();
             };
 
             vm.platformRewardTypeChanged = function () {
@@ -13384,7 +13387,10 @@ define(['js/app'], function (myApp) {
                     vm.rewardDisabledParam = [];
                     vm.isRandomReward = false;
                     vm.platformRewardIsEnabled = false;
+                    vm.rewardMainParamTable = [];
                     let params = vm.showRewardTypeData.params;
+
+                    //$scope.safeApply();
 
                     // Set condition value
                     Object.keys(params.condition).forEach(el => {
@@ -13829,11 +13835,11 @@ define(['js/app'], function (myApp) {
                     vm.rewardCondition.partnerLevel = vm.allPartnerLevels[0].name;
                     $scope.safeApply();
                 }
-
-                console.log("vm.showRewardTypeData", vm.showRewardTypeData);
-                console.log('vm.showRewardTypeData.name', vm.showRewardTypeData.name);
-                console.log("vm.rewardCondition:", vm.rewardCondition);
-                console.log("vm.rewardParams:", vm.rewardParams);
+                //
+                // console.log("vm.showRewardTypeData", vm.showRewardTypeData);
+                // console.log('vm.showRewardTypeData.name', vm.showRewardTypeData.name);
+                // console.log("vm.rewardCondition:", vm.rewardCondition);
+                // console.log("vm.rewardParams:", vm.rewardParams);
                 vm.showRewardFormValid = true;
                 vm.endLoadWeekDay();
             };
