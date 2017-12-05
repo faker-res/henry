@@ -407,6 +407,11 @@ var dbLogger = {
         syncLog.save().then().catch(err => errorSavingLog(err, logData));
     },
 
+    createRewardPointsLog: function (logData) {
+        let syncLog = new dbconfig.collection_rewardPointsLog(logData);
+        syncLog.save().then().catch(err => errorSavingLog(err, logData));
+    },
+
 };
 
 function errorSavingLog(error, data) {

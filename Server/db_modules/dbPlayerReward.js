@@ -3395,7 +3395,9 @@ let dbPlayerReward = {
                             useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),
                             providerGroup: eventData.condition.providerGroup,
                             // Use this flag for auto apply reward
-                            isGroupReward: true
+                            isGroupReward: true,
+                            // If player credit is more than this number after unlock reward group, will ban bonus
+                            forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS
