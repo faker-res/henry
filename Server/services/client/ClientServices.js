@@ -172,7 +172,8 @@
                 "requestQuickpayTopup",
                 "cancelQuickpayTopup",
                 "getQuickpayTopupRequestList",
-                "isFirstTopUp"
+                "isFirstTopUp",
+                "getPlayerAliPayStatus",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

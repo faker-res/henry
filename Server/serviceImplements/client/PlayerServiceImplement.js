@@ -100,11 +100,12 @@ let PlayerServiceImplement = function () {
                     }
 
                     console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
-                    if(data && data.partnerName && data.partnerName != ""){
+                    if(data && data.realName && data.realName != "" && data.partnerName && data.partnerName != ""){
                         dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     }else{
                         dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     }
+
                     //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     conn.isAuth = true;
@@ -869,6 +870,9 @@ let PlayerServiceImplement = function () {
         }
         data.loginIps = [data.lastLoginIp];
         data.ipArea = {'province':'', 'city':''};
+        if (conn.isAuth && conn.playerId && !data.name) {
+            data.name = conn.playerId;
+        }
 
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);

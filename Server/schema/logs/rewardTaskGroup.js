@@ -42,7 +42,10 @@ let rewardTaskGroupSchema = new Schema({
     //if this reward task will use consumption record
     useConsumption: {type: Boolean, default: true},
     //related proposal id
-    proposalId: {type: String, index: true}
+    proposalId: {type: String, index: true},
+    // Ban reward if player credit reached this amount after unlock
+    // 0 amount will not trigger this
+    forbidWithdrawIfBalanceAfterUnlock: {type: Number, default: 0}
 });
 
 rewardTaskGroupSchema.index({targetProviders: 1});
