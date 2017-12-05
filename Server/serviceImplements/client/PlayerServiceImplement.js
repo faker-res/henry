@@ -870,6 +870,9 @@ let PlayerServiceImplement = function () {
         }
         data.loginIps = [data.lastLoginIp];
         data.ipArea = {'province':'', 'city':''};
+        if (conn.isAuth && conn.playerId && !data.name) {
+            data.name = conn.playerId;
+        }
 
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);

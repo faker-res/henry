@@ -8128,7 +8128,7 @@ define(['js/app'], function (myApp) {
                         playerId: vm.isOneSelectedPlayer()._id,
                         points: 0,
                         playerName: vm.isOneSelectedPlayer().name,
-                        playerLevel: vm.isOneSelectedPlayer().playerLevel.value,
+                        playerLevel: vm.isOneSelectedPlayer().playerLevel._id,
                         progress: []
                     }
                 };
@@ -13340,7 +13340,7 @@ define(['js/app'], function (myApp) {
                 vm.showReward = v;
                 vm.initRewardValidTimeDOM(vm.showReward.validStartTime, vm.showReward.validEndTime);
                 console.log('vm.showReward', vm.showReward);
-                vm.showRewardTypeData = v;   // This will probably be overwritten by vm.platformRewardTypeChanged() below
+                vm.showRewardTypeData = null;   // This will probably be overwritten by vm.platformRewardTypeChanged() below
                 vm.showRewardTypeId = v.type._id;
                 vm.rewardParams = Lodash.cloneDeep(v.param);
                 vm.rewardCondition = Lodash.cloneDeep(v.condition);
@@ -13384,7 +13384,10 @@ define(['js/app'], function (myApp) {
                     vm.rewardDisabledParam = [];
                     vm.isRandomReward = false;
                     vm.platformRewardIsEnabled = false;
+                    vm.rewardMainParamTable = [];
                     let params = vm.showRewardTypeData.params;
+
+                    $scope.safeApply();
 
                     // Set condition value
                     Object.keys(params.condition).forEach(el => {
@@ -13829,11 +13832,11 @@ define(['js/app'], function (myApp) {
                     vm.rewardCondition.partnerLevel = vm.allPartnerLevels[0].name;
                     $scope.safeApply();
                 }
-
-                console.log("vm.showRewardTypeData", vm.showRewardTypeData);
-                console.log('vm.showRewardTypeData.name', vm.showRewardTypeData.name);
-                console.log("vm.rewardCondition:", vm.rewardCondition);
-                console.log("vm.rewardParams:", vm.rewardParams);
+                //
+                // console.log("vm.showRewardTypeData", vm.showRewardTypeData);
+                // console.log('vm.showRewardTypeData.name', vm.showRewardTypeData.name);
+                // console.log("vm.rewardCondition:", vm.rewardCondition);
+                // console.log("vm.rewardParams:", vm.rewardParams);
                 vm.showRewardFormValid = true;
                 vm.endLoadWeekDay();
             };
@@ -13902,6 +13905,8 @@ define(['js/app'], function (myApp) {
 
                 delete vm.rewardMainParam.rewardParam;
             }
+
+            console.log('done changeRewardParamLayout');
         };
 
         vm.rewardPeriodNewRow = (valueCollection) => {
@@ -15329,6 +15334,19 @@ define(['js/app'], function (myApp) {
                     $(eleId+" :input").prop("disabled", isDisable);
                     //fix disable datetimepicker, calendar icon still clickable
                     $(eleId+" :input~*").toggle(!isDisable);
+                });
+            };
+
+            vm.convertPlayerRewardPoints = () => {
+                var sendData = {
+                    playerId: vm.isOneSelectedPlayer().playerId,
+                    convertRewardPointsAmount: vm.rewardPointsExchange.updateAmount,
+                    remark: vm.rewardPointsExchange.remark
+                };
+                socketService.$socket($scope.AppSocket, 'convertRewardPointsToCredit', sendData, function (data) {
+                    console.log('convertRewardPointsToCredit', data.data);
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
                 });
             };
 
