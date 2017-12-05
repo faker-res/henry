@@ -5741,6 +5741,7 @@ let dbPlayerInfo = {
         let errorCode = '';
         var playerObj = null;
         var levelUpObj = null;
+        var levelDownObj = null;
         var levelErrorMsg = '';
         // A flag to determine LevelUp Stop At Where.
         var levelUpEnd = false;
@@ -5852,6 +5853,7 @@ let dbPlayerInfo = {
                                 // const failsEnoughConditions = failsTopupRequirements || failsConsumptionRequirements;
                                 if (failsEnoughConditions) {
                                     levelObjId = previousLevel._id;
+                                    levelDownObj = previousLevel;
                                 }
                             }
                         }
@@ -5940,11 +5942,11 @@ let dbPlayerInfo = {
                                     //       up through, not just for the top one he reached.
 
                                     let proposalData = {
-                                        levelValue: levelUpObj.value,
-                                        levelName: levelUpObj.name,
+                                        levelValue: checkLevelUp?levelUpObj.value:levelDownObj.value,
+                                        levelName: checkLevelUp?levelUpObj.name: levelDownObj.name,
                                         levelObjId: levelObjId,
                                         levelOldName: playerObj.playerLevel.name,
-                                        upOrDown: "LEVEL_UP",
+                                        upOrDown: checkLevelUp?"LEVEL_UP":"LEVEL_DOWN",
                                         playerObjId: playerObj._id,
                                         playerName: playerObj.name,
                                         playerId: playerObj.playerId,
