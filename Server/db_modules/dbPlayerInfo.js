@@ -5970,6 +5970,10 @@ let dbPlayerInfo = {
 
                                     return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {data: proposalData, inputDevice: inputDevice}).then(
                                         createdMigrationProposal => {
+                                            if (!checkLevelUp) {
+                                                return Promise.resolve();
+                                            }
+
                                             return dbconfig.collection_proposalType.findOne({
                                                 platformId: playerObj.platform,
                                                 name: constProposalType.PLAYER_LEVEL_UP
@@ -5977,6 +5981,9 @@ let dbPlayerInfo = {
                                         }
                                     ).then(
                                         proposalTypeData => {
+                                            if (!checkLevelUp) {
+                                                return Promise.resolve();
+                                            }
                                             // check if player has level up to this level previously
                                             return dbconfig.collection_proposal.findOne({
                                                 'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
@@ -5988,6 +5995,9 @@ let dbPlayerInfo = {
                                         }
                                     ).then(
                                         rewardProp => {
+                                            if (!checkLevelUp) {
+                                                return Promise.resolve();
+                                            }
                                             if (!rewardProp) {
                                                 // if this is level up and player has not reach this level before
                                                 // create level up reward proposal
@@ -6001,6 +6011,9 @@ let dbPlayerInfo = {
                                         }
                                     ).then(
                                         proposalResult => {
+                                            if (!checkLevelUp) {
+                                                return Promise.resolve();
+                                            }
                                             console.log(proposalResult);
 
                                             let rewardPrice = [];
