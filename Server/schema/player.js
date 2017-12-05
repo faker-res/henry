@@ -120,7 +120,7 @@ var playerSchema = new Schema({
         playerConsecutiveConsumptionReward: {type: Boolean, default: true},
         PlayerPacketRainReward: {type: Boolean, default: true},
         PlayerLimitedOfferReward: {type: Boolean, default: true},
-        playerLevelUp: {type: Boolean, default: true}
+        levelChange: {type: Boolean, default: true}
     },
 
     //country
