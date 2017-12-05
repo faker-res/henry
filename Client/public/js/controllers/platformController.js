@@ -8128,7 +8128,7 @@ define(['js/app'], function (myApp) {
                         playerId: vm.isOneSelectedPlayer()._id,
                         points: 0,
                         playerName: vm.isOneSelectedPlayer().name,
-                        playerLevel: vm.isOneSelectedPlayer().playerLevel.value,
+                        playerLevel: vm.isOneSelectedPlayer().playerLevel._id,
                         progress: []
                     }
                 };
@@ -15329,6 +15329,19 @@ define(['js/app'], function (myApp) {
                     $(eleId+" :input").prop("disabled", isDisable);
                     //fix disable datetimepicker, calendar icon still clickable
                     $(eleId+" :input~*").toggle(!isDisable);
+                });
+            };
+
+            vm.convertPlayerRewardPoints = () => {
+                var sendData = {
+                    playerId: vm.isOneSelectedPlayer().playerId,
+                    convertRewardPointsAmount: vm.rewardPointsExchange.updateAmount,
+                    remark: vm.rewardPointsExchange.remark
+                };
+                socketService.$socket($scope.AppSocket, 'convertRewardPointsToCredit', sendData, function (data) {
+                    console.log('convertRewardPointsToCredit', data.data);
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
                 });
             };
 
