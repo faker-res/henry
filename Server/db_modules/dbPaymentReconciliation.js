@@ -239,7 +239,6 @@ const dbPaymentReconciliation = {
 
 function sliceTimeFrameToDaily(startTime, endTime) {
     const oneDayInMs = 1000*60*60*24;
-    const halfDayInMs = oneDayInMs/2;
     let timeFrames = [];
 
     if ((endTime - startTime) < oneDayInMs) {
@@ -248,12 +247,15 @@ function sliceTimeFrameToDaily(startTime, endTime) {
     else {
         let nextStartTime = startTime;
         // let nextEndTime = dbUtility.getDayEndTime(startTime); //this is one full day
-        let nextEndTime = dbUtility.getSGTimeOf(new Date(startTime + halfDayInMs));
+        let nextStartTimeDate = new Date(startTime);
+        let nextEndTimeDate = nextStartTimeDate.setHours(nextStartTimeDate.getHours()+12);
+        let nextEndTime = dbUtility.getSGTimeOf(nextEndTimeDate);
         while (nextEndTime < endTime) {
             timeFrames.push({startTime: nextStartTime, endTime: nextEndTime});
             nextStartTime = nextEndTime;
-            // nextEndTime = dbUtility.getDayEndTime(nextStartTime);
-            nextEndTime = dbUtility.getSGTimeOf(new Date(nextEndTime + halfDayInMs));
+            let currentNextEndTime = new Date(nextEndTime);
+            nextEndTimeDate = currentNextEndTime.setHours(currentNextEndTime.getHours()+12);
+            nextEndTime = dbUtility.getSGTimeOf(nextEndTimeDate);
         }
         timeFrames.push({startTime: nextStartTime, endTime: endTime});
     }
