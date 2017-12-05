@@ -2038,11 +2038,12 @@ var proposal = {
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
             dataList.map(phoneNumber => {
                 prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
-                totalHeadCount += 1;
+                //totalHeadCount += 1;
             })
             return Q.all(prom);
         }).then(details => {
             details.map(data => {
+                console.log("LH Check 尝试次数分布 - 成功次数, before filter and put into array",data);
                 let currentArrNo = 1;
                 data.map(d => {
                     if (!recordArr.find(r => r.phoneNumber == d.data.phoneNumber)) {
@@ -2059,15 +2060,16 @@ var proposal = {
                             });
                             currentArrNo = currentArrNo + 1;
                         } else {
-                            recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
+                            recordArr[indexNo].status = d.status;
                             recordArr[indexNo].attemptNo = recordArr[indexNo].attemptNo + 1;
                         }
                     }
                 })
             })
-
+            console.log("LH Check 尝试次数分布 - 成功次数, the filtered array",recordArr);
             return recordArr;
         }).then(playerAttemptNumber => {
+            console.log("LH Check 尝试次数分布 - 成功次数, the filtered array 2",recordArr);
             var firstFail = playerAttemptNumber.filter(function (event) {
                 return (event.status == constProposalStatus.PENDING) && event.attemptNo == 1
             }).length;
@@ -2090,21 +2092,30 @@ var proposal = {
             var firstSuccess = playerAttemptNumber.filter(function (event) {
                 return event.status == constProposalStatus.SUCCESS && event.attemptNo == 1
             }).length;
+            console.log("LH Check 尝试次数分布 - 成功次数, first success number",firstSuccess);
             var secondSuccess = playerAttemptNumber.filter(function (event) {
                 return event.status == constProposalStatus.SUCCESS && event.attemptNo == 2
             }).length;
+            console.log("LH Check 尝试次数分布 - 成功次数, second success number",secondSuccess);
             var thirdSuccess = playerAttemptNumber.filter(function (event) {
                 return event.status == constProposalStatus.SUCCESS && event.attemptNo == 3
             }).length;
+            console.log("LH Check 尝试次数分布 - 成功次数, third success number",thirdSuccess);
             var fouthSuccess = playerAttemptNumber.filter(function (event) {
                 return event.status == constProposalStatus.SUCCESS && event.attemptNo == 4
             }).length;
+            console.log("LH Check 尝试次数分布 - 成功次数, fouth success number",fouthSuccess);
             var fifthSuccess = playerAttemptNumber.filter(function (event) {
                 return event.status == constProposalStatus.SUCCESS && event.attemptNo == 5
             }).length;
+            console.log("LH Check 尝试次数分布 - 成功次数, fifth success number",fifthSuccess);
             var fifthUpSuccess = playerAttemptNumber.filter(function (event) {
                 return event.status == constProposalStatus.SUCCESS && event.attemptNo > 5
             }).length;
+            console.log("LH Check 尝试次数分布 - 成功次数, fifth up success number",fifthUpSuccess);
+
+            totalHeadCount = firstFail + secondFail + thirdFail + fouthFail + fifthFail + fifthUpFail
+                            + firstSuccess + secondSuccess + thirdSuccess + fouthSuccess + fifthSuccess + fifthUpSuccess;
 
             var firstFailPercent = totalHeadCount ? (firstFail / totalHeadCount * 100).toFixed(2) : 0;
             var secondFailPercent = totalHeadCount ? (secondFail / totalHeadCount * 100).toFixed(2) : 0;
@@ -2179,7 +2190,7 @@ var proposal = {
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
             dataList.map(phoneNumber => {
                 prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
-                totalHeadCount += 1;
+                //totalHeadCount += 1;
             })
             return Q.all(prom);
         }).then(details => {
@@ -2200,7 +2211,8 @@ var proposal = {
                             });
                             currentArrNo = currentArrNo + 1;
                         } else {
-                            recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
+                            //recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
+                            recordArr[indexNo].status = d.status;
                             recordArr[indexNo].attemptNo = recordArr[indexNo].attemptNo + 1;
                         }
                     }
@@ -2229,6 +2241,8 @@ var proposal = {
             var fifthUpSuccess = playerAttemptNumber.filter(function (event) {
                 return event.status == constProposalStatus.SUCCESS && event.attemptNo > 5
             }).length;
+
+            totalHeadCount = manualSuccess + firstSuccess + secondSuccess + thirdSuccess + fouthSuccess + fifthSuccess + fifthUpSuccess;
 
             var manualSuccessPercent = totalHeadCount ? (manualSuccess / totalHeadCount * 100).toFixed(2) : 0;
             var firstSuccessPercent = totalHeadCount ? (firstSuccess / totalHeadCount * 100).toFixed(2) : 0;
@@ -2269,6 +2283,7 @@ var proposal = {
     },
 
     getPlayerRegistrationIntentRecordByStatus: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo, unlockSizeLimit) {
+        console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
         var queryObj = {
             createTime: {
                 $gte: new Date(startTime),
@@ -2283,6 +2298,8 @@ var proposal = {
         var returnArr = [];
         var recordArr = [];
         var prom = [];
+        var finalArr = [];
+
 
         return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
             dataList.map(phoneNumber => {
@@ -2307,7 +2324,7 @@ var proposal = {
                             });
                             currentArrNo = currentArrNo + 1;
                         } else {
-                            recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
+                            recordArr[indexNo].status = d.status;
                             recordArr[indexNo].attemptNo = recordArr[indexNo].attemptNo + 1;
                         }
                     }
@@ -2328,27 +2345,56 @@ var proposal = {
                     return statusArr.includes(event.status) && event.attemptNo == attemptNo
                 });
             }
-        }).then( data => {
-            // to filter out the duplicate phonenumber generated when getting proposal of different player account with same phone number.
-            return data.filter((data, index, self) =>
-                index === self.findIndex((t) => (
-                    t.phoneNumber === data.phoneNumber
-                ))
-            );
+        // }).then( data => {
+        //     // to filter out the duplicate phonenumber generated when getting proposal of different player account with same phone number.
+        //     return data.filter((data, index, self) =>
+        //         index === self.findIndex((t) => (
+        //             t.phoneNumber === data.phoneNumber
+        //         ))
+        //     );
         }).then(data => {
             data.map(d => {
                 //userName = d.name;
                 phoneNumber = d.phoneNumber
-
-                if(statusArr && statusArr.includes("Pending")){
-                    unlockSizeLimit = false;
-                    size = 1;
-                }
+                console.log("LH Check 尝试次数分布 - 成功次数, total records after filtered by status and attempt No",d);
+                // if(statusArr && statusArr.includes("Pending")){
+                //     unlockSizeLimit = false;
+                //     size = 1;
+                // }
                 let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo, unlockSizeLimit);
                 returnArr.push(p);
             })
         }).then(data => {
             return Promise.all(returnArr);
+        }).then(finalData => {
+
+            finalData.map(final => {
+                console.log("LH Check 尝试次数分布 - 成功次数, final data",final.data);
+                final.data.map(f => {
+                        if (attemptNo == 0) {
+                            if(statusArr.includes(f.status) && f.$playerAllCount > 5 && f.$playerCurrentCount == f.$playerAllCount){
+                                if(!finalArr.find(r => r.data.phoneNumber == f.data.phoneNumber && r.data.name == f.data.name)){
+                                    finalArr.push(f);
+                                }
+                            }
+                        } else if (attemptNo < 0) {
+                            if(statusArr.includes(f.status) && f.$playerCurrentCount == f.$playerAllCount){
+                                if(!finalArr.find(r => r.data.phoneNumber == f.data.phoneNumber && r.data.name == f.data.name)){
+                                    finalArr.push(f);
+                                }
+                            }
+                        } else {
+                            if(statusArr.includes(f.status) && f.$playerAllCount == attemptNo && f.$playerCurrentCount == f.$playerAllCount){
+                                if(!finalArr.find(r => r.data.phoneNumber == f.data.phoneNumber && r.data.name == f.data.name)){
+                                    finalArr.push(f);
+                                }
+                            }
+                        }
+                    }
+                )
+            })
+
+            return finalArr;
         });
     },
 

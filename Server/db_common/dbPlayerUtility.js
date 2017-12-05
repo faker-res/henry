@@ -191,6 +191,31 @@ const dbPlayerUtility = {
             }
         );
     },
+
+    /**
+     *
+     * @param platformObjId
+     * @param playerObjId
+     * @param permissionArr - Permission in player.permission, [[name in string, on/off]. ...[,]]
+     */
+    setPlayerPermission: (platformObjId, playerObjId, permissionArr) => {
+        let permissionString;
+        let updateData = {
+            $set: {}
+        };
+
+        if (permissionArr && permissionArr.length > 0) {
+            permissionArr.forEach(e => {
+                permissionString = "permission." + e[0];
+                updateData.$set[permissionString] = e[1];
+            })
+        }
+
+        return dbconfig.collection_players.findOneAndUpdate(
+            {_id: playerObjId, platform: platformObjId},
+            updateData
+        );
+    }
 };
 
 module.exports = dbPlayerUtility;

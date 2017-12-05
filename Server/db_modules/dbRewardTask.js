@@ -27,9 +27,11 @@ var dbProposal = require('../db_modules/dbProposal');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var dbGameProvider = require('../db_modules/dbGameProvider');
 
+const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+
 const dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
 
-var dbRewardTask = {
+const dbRewardTask = {
 
     /**
      * Create a new reward
@@ -113,7 +115,7 @@ var dbRewardTask = {
         return deferred.promise;
     },
 
-    createRewardTaskWithProviderGroup: (rewardData) => {
+    createRewardTaskWithProviderGroup: (rewardData, proposalData) => {
         // Search available reward task group for this reward & this player
         return dbconfig.collection_rewardTaskGroup.findOne({
             platformId: rewardData.platformId,
@@ -127,7 +129,10 @@ var dbRewardTask = {
                         $inc: {
                             rewardAmt: rewardData.initAmount,
                             currentAmt: rewardData.initAmount,
-                            targetConsumption: rewardData.requiredUnlockAmount,
+                            forbidWithdrawIfBalanceAfterUnlock:
+                                proposalData && proposalData.data && proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                                    ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                                    : 0
                         }
                     };
 
@@ -149,7 +154,11 @@ var dbRewardTask = {
                         providerGroup: rewardData.providerGroup,
                         status: constRewardTaskStatus.STARTED,
                         rewardAmt: rewardData.initAmount,
-                        currentAmt: rewardData.initAmount
+                        currentAmt: rewardData.initAmount,
+                        forbidWithdrawIfBalanceAfterUnlock:
+                            proposalData && proposalData.data && proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                                ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                                : 0
                     };
 
                     if (rewardData.useConsumption) {
@@ -629,7 +638,8 @@ var dbRewardTask = {
 
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                         {_id: rewardTaskGroup._id},
-                        updObj
+                        updObj,
+                        {new: true}
                     );
                 }
             }
@@ -866,6 +876,11 @@ var dbRewardTask = {
                 data => {
                     if (data) {
                         dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardGroupData.type + ":unlock", data.validCredit, 0, -rewardAmount, null, rewardGroupData);
+
+                        // Set player bonus permission to off if there's still credit available after unlock reward
+                        if (rewardGroupData && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock > 0) {
+                            dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).catch(errorUtils.reportError);
+                        }
                     }
                     else {
                         return Q.reject({name: "DataError", message: "Can't update reward task and player credit"});

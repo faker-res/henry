@@ -57,7 +57,8 @@ const constProposalType = {
     PLAYER_TOP_UP_RETURN_GROUP: "PlayerTopUpReturnGroup",
     PLAYER_RANDOM_REWARD_GROUP: "PlayerRandomRewardGroup",
     PLAYER_CONSUMPTION_REWARD_GROUP: "PlayerConsumptionRewardGroup",
-    PLAYER_FREE_TRIAL_REWARD_GROUP: "PlayerFreeTrialRewardGroup"
+    PLAYER_FREE_TRIAL_REWARD_GROUP: "PlayerFreeTrialRewardGroup",
+    PLAYER_CONVERT_REWARD_POINTS: "PlayerConvertRewardPoints"
 };
 
 module.exports = constProposalType;
