@@ -1267,7 +1267,7 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             },
             error => {
-                if(adminName){
+                if(adminName && error.code == 408){
                     return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
                 }
                 else{
@@ -1312,7 +1312,7 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             },
             error => {
-                if(adminName){
+                if(adminName && error.code == 408){
                     return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
                 }
                 else{
@@ -1358,7 +1358,7 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             },
             error => {
-                if(adminName){
+                if(adminName && error.code == 408){
                     return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
                 }
                 else{

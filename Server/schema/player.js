@@ -70,6 +70,8 @@ var playerSchema = new Schema({
     lastPlayedProvider: {type: Schema.ObjectId, ref: 'gameProvider'},
     //forbid game providers
     forbidProviders: [{type: Schema.ObjectId, ref: 'gameProvider'}],
+    //forbid rewardPoint Events
+    forbidRewardPointsEvent: [{type: Schema.ObjectId, ref: 'rewardPointsEvent'}],
     //player level (vip, regular etc)
     playerLevel: {type: Schema.ObjectId, ref: 'playerLevel', index: true},
     //experience???
