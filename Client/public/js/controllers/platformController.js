@@ -13384,6 +13384,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardDisabledParam = [];
                     vm.isRandomReward = false;
                     vm.platformRewardIsEnabled = false;
+                    vm.rewardMainParamTable = [];
                     let params = vm.showRewardTypeData.params;
 
                     // Set condition value
