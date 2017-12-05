@@ -7,7 +7,7 @@ let rewardPointsLog = new Schema({
     pointLogId: {type: String, index: true},
     // reward point Id
     rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints', index: true},
-
+    // only available for point-to-credit transition
     rewardPointsTaskObjId: {type: Schema.ObjectId},
 
     playerName: {type: String},
