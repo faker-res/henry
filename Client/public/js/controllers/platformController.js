@@ -13390,8 +13390,6 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainParamTable = [];
                     let params = vm.showRewardTypeData.params;
 
-                    //$scope.safeApply();
-
                     // Set condition value
                     Object.keys(params.condition).forEach(el => {
                         let mainCond = params.condition[el];
@@ -13549,23 +13547,29 @@ define(['js/app'], function (myApp) {
 
                     vm.changeRewardParamLayout(null, true);
 
-                    // Set param table value
-                    Object.keys(paramType.rewardParam).forEach(el => {
-                        if (vm.isPlayerLevelDiff) {
-                            if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
-                                vm.showReward.param.rewardParam.forEach((el, idx) => {
-                                    vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
+                    utilService.actionAfterLoaded("#rewardMainParamTable", function () {
+                        // Set param table value
+                        Object.keys(paramType.rewardParam).forEach(el => {
+                            if (vm.isPlayerLevelDiff) {
+                                if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
+                                    vm.showReward.param.rewardParam.forEach((el, idx) => {
+                                        vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
 
-                                })
+                                    })
+                                }
+                            } else {
+                                if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
+                                    vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
                             }
-                        } else {
-                            if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
-                                vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
-                        }
-                        if (el == "rewardPercentageAmount") {
-                            vm.isRandomReward = true;
-                            vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !=="undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{percentage: "", amount: ""}];
-                        }
+                            if (el == "rewardPercentageAmount") {
+                                vm.isRandomReward = true;
+                                vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !=="undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{percentage: "", amount: ""}];
+                            }
+                        });
+
+                        $scope.safeApply();
+
+                        vm.disableAllRewardInput(true);
                     });
                 }
 
