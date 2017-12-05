@@ -13387,6 +13387,8 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainParamTable = [];
                     let params = vm.showRewardTypeData.params;
 
+                    $scope.safeApply();
+
                     // Set condition value
                     Object.keys(params.condition).forEach(el => {
                         let mainCond = params.condition[el];
