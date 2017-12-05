@@ -6,6 +6,8 @@ var dbGame = require('./../db_modules/dbGame');
 var cpmsAPI = require("./../externalAPI/cpmsAPI");
 var Q = require("q");
 
+let SettlementBalancer = require('../settlementModule/settlementBalancer');
+
 var dbGameProvider = {
 
     /**
@@ -368,7 +370,60 @@ var dbGameProvider = {
         });
 
         return Promise.all(promArr);
-    }
+    },
+
+    batchCreditTransferOut: (providerObjId, providerId, startDate, endDate) => {
+        let query = {
+            providerId: providerId,
+            createTime: {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate)
+            }
+        };
+        let result = {
+            providerObjId: providerObjId,
+            processing: true,
+            processedAmount: 43,
+            totalAmount: 1563,
+        };
+        let stream = dbconfig.collection_playerCreditTransferLog.aggregate([
+            {
+                $match: query
+            },
+            {
+                $group: {
+                    _id: "$playerId",
+                }
+            }]
+        ).cursor({batchSize: 100}).allowDiskUse(true).exec();
+        let balancer = new SettlementBalancer();
+
+        return balancer.initConns().then(
+            () => {
+                // System log to make sure balancer is working
+                console.log('[batch credit transfer out] Settlement Server initialized');
+                // transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
+                return Q(
+                    balancer.processStream(
+                        {
+                            stream: stream,
+                            batchSize: 1,
+                            makeRequest: function (playerIdList, request) {
+                                request("player", "batchCreditTransferOut", {
+                                    providerId: providerId,
+                                    playerId: playerIdList.map(playerId => {console.log(playerId); return playerId._id;})
+                                });
+                            }
+                        }
+                    ).then(
+                        data => console.log("batchCreditTransferOut settle success:", data),
+                        error => console.log("batchCreditTransferOut settle failed:", error)
+                    )
+                );
+            },
+            error => console.log('[batch credit transfer out] Settlement Server initialization error:', error)
+        );
+    },
 };
 
 module.exports = dbGameProvider;

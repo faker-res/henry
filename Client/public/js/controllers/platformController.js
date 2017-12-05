@@ -2141,6 +2141,8 @@ define(['js/app'], function (myApp) {
                 vm.SelectedProvider = null;
                 vm.showGameCate = "include";
                 vm.curGame = null;
+                vm.batchCreditTransferOutQuery = {};
+                vm.batchCreditTransferOut = null;
             }
             //get all platform data from server
             vm.getPlatformGameData = function () {
@@ -2508,7 +2510,36 @@ define(['js/app'], function (myApp) {
                 var gameProviderNickNameData = getPlatformsNickNameDataForProvider(platformData, gameProviderData);
                 return gameProviderNickNameData && gameProviderNickNameData.localPrefix
                     || gameProviderData.prefix;
-            }
+            };
+
+        vm.initBatchCreditTransferOut = function (platformData, gameProviderData) {
+            utilService.actionAfterLoaded('#modalBatchCreditTransferOut .endTime', function () {
+                vm.batchCreditTransferOutQuery.startTime = utilService.createDatePicker('#modalBatchCreditTransferOut .startTime');
+                vm.batchCreditTransferOutQuery.endTime = utilService.createDatePicker('#modalBatchCreditTransferOut .endTime');
+                vm.batchCreditTransferOutQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.batchCreditTransferOutQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                vm.selectedProviderNickName = vm.getPlatformsNickNameForProvider(platformData, gameProviderData);
+            });
+        };
+
+        vm.submitBatchCreditTransferOut = function() {
+            let sendQuery = {
+                startDate: vm.batchCreditTransferOutQuery.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.batchCreditTransferOutQuery.endTime.data('datetimepicker').getLocalDate(),
+                providerId: vm.SelectedProvider.providerId,
+                providerObjId: vm.SelectedProvider._id
+            };
+            console.log("batchCreditTransferOut",sendQuery);
+            socketService.$socket($scope.AppSocket, "batchCreditTransferOut", sendQuery, function (data) {
+                console.log("batchCreditTransferOut_ret",data.data);
+                vm.batchCreditTransferOut = data.data;
+                vm.platformProviderList.forEach(item => {
+                    if(item._id==data.data.providerObjId) {
+                        item.batchCreditTransferOut = vm.batchCreditTransferOut;
+                    }
+                });
+            });
+        };
 
             /////////////////////////////////Mark::player functions//////////////////
 

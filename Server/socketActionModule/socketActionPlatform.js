@@ -375,6 +375,12 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbGameProvider.updatePlatformProviderGroup, [data.platformObjId, data.gameProviderGroup], actionName, isValidData);
         },
 
+        batchCreditTransferOut: function batchCreditTransferOut(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.providerObjId && data.providerId && data.startDate && data.endDate);
+            socketUtil.emitter(self.socket, dbGameProvider.batchCreditTransferOut, [data.providerObjId, data.providerId, data.startDate, data.endDate], actionName, isValidData);
+        },
+
         deletePlatformProviderGroup: function deletePlatformProviderGroup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.gameProviderGroupObjId);
