@@ -1,21 +1,31 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
+var constRewardTaskStatus = require("./../const/constRewardTaskStatus");
 
 var rewardPointsTask = new Schema({
-    // a number counter ID for point change log
-    pointLogId: {type: String, index: true},
-    // reward point Id
-    rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints', index: true},
 
-    rewardPointsEventObjId: {type: Schema.ObjectId, ref: 'rewardPointsEvent'},
+    // reward point Id
+    rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints'},
 
     rewardPoints: {type: Number},
-    // category of reward, base on constRewardPointsTaskCategory
+    // category of reward, base on constRewardPointsLogCategory
     category: {type: Number},
+    //required amount to amount
+    requiredUnlockAmount: {type: Number, default: 0},
+    //current unlocked amount, if current unlock amount is >= requiredUnlockAmount, reward points task is unlocked
+    unlockedAmount: {type: Number, default: 0},
+    //if reward task is unlocked
+    isUnlock: {type: Boolean, default: false},
+    //task unlock time
+    unlockTime: {type: Date},
+    //related proposal id
+    proposalId: {type: String, index: true},
+    //reward task status
+    status: {type: String, default: constRewardTaskStatus.STARTED},
 
     remark: {type: String},
 
-    status: {type: Number},
+    providerGroup: {type: Schema.ObjectId, ref: 'gameProviderGroup'},
 
     createTime: {type: Date, default: Date.now}
 });
