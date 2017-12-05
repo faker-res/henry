@@ -1914,7 +1914,7 @@ var dbPlayerTopUpRecord = {
     getPlayerWechatPayStatus: playerId => {
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).then(
+            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean().then(
                 playerData => {
                     if (playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) {
                         return pmsAPI.weChat_getWechatList({
@@ -1929,6 +1929,42 @@ var dbPlayerTopUpRecord = {
                                             playerData.wechatPayGroup.wechats.forEach(
                                                 pWechat => {
                                                     if (pWechat == wechat.accountNumber && wechat.state == "NORMAL") {
+                                                        bValid = true;
+                                                    }
+                                                }
+                                            );
+                                        }
+                                    );
+                                }
+                                return bValid;
+                            }
+                        );
+                    }
+                    else {
+                        return false;
+                    }
+                }
+            )
+    },
+
+    getPlayerAliPayStatus: playerId => {
+        return dbconfig.collection_players.findOne({playerId: playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .populate({path: "aliPayGroup", model: dbconfig.collection_platformAliPayGroup}).then(
+                playerData => {
+                    if (playerData && playerData.platform && playerData.aliPayGroup && playerData.aliPayGroup.alipays && playerData.aliPayGroup.alipays.length > 0) {
+                        return pmsAPI.alipay_getAlipayList({
+                            platformId: playerData.platform.platformId,
+                            queryId: serverInstance.getQueryId()
+                        }).then(
+                            alipays => {
+                                let bValid = false;
+                                if (alipays.data && alipays.data.length > 0) {
+                                    alipays.data.forEach(
+                                        alipay => {
+                                            playerData.aliPayGroup.alipays.forEach(
+                                                pAlipay => {
+                                                    if (pAlipay == alipay.accountNumber && alipay.state == "NORMAL") {
                                                         bValid = true;
                                                     }
                                                 }
