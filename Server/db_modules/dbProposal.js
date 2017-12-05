@@ -2043,7 +2043,8 @@ var proposal = {
                             $gte: new Date(startTime),
                             $lt: new Date(endTime)
                         },
-                        type: {$in: proposalTypesId}
+                        type: {$in: proposalTypesId},
+                        data: {$exists: true, $ne: null}
                     };
 
                     if (statusArr) {
@@ -2207,7 +2208,8 @@ var proposal = {
                             $gte: new Date(startTime),
                             $lt: new Date(endTime)
                         },
-                        type: {$in: proposalTypesId}
+                        type: {$in: proposalTypesId},
+                        data: {$exists: true, $ne: null}
                     };
 
                     if (statusArr) {
@@ -2339,7 +2341,8 @@ var proposal = {
                             $gte: new Date(startTime),
                             $lt: new Date(endTime)
                         },
-                        type: {$in: proposalTypesId}
+                        type: {$in: proposalTypesId},
+                        data: {$exists: true, $ne: null}
                     };
 
                     if (statusArr) {
