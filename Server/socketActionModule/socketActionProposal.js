@@ -338,7 +338,7 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(data && data.status);
             var startTime = data.startDate ? data.startDate : new Date(0);
             var endTime = data.endDate ? data.endDate : new Date();
-            socketUtil.emitter(self.socket, dbProposal.getPlayerSelfRegistrationRecordList, [startTime, endTime, data.status], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getPlayerSelfRegistrationRecordList, [startTime, endTime, data.status, data.platformId, data.type], actionName, isValidData);
         },
 
         getPlayerManualRegistrationRecordList: function getPlayerManualRegistrationRecordList(data) {
@@ -346,7 +346,7 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(data && data.status);
             var startTime = data.startDate ? data.startDate : new Date(0);
             var endTime = data.endDate ? data.endDate : new Date();
-            socketUtil.emitter(self.socket, dbProposal.getPlayerManualRegistrationRecordList, [startTime, endTime, data.status], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getPlayerManualRegistrationRecordList, [startTime, endTime, data.status, data.platformId, data.type], actionName, isValidData);
         },
 
         getPlayerRegistrationIntentRecordByStatus: function getPlayerRegistrationIntentRecordByStatus(data) {
