@@ -4792,6 +4792,13 @@ define(['js/app'], function (myApp) {
                                     width: "14px",
                                 }));
 
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.playerLevelUp === false ? "levelRed.png" : "levelBlue.png"),
+                                    height: "14px",
+                                    width: "14px",
+                                }));
+
 
                                 // link.append($('<i>', {
                                 //     'class': 'fa fa-share-square margin-right-5 ' + (perm.transactionReward === true ? "text-primary" : "text-danger"),
@@ -5546,6 +5553,12 @@ define(['js/app'], function (myApp) {
                                     rewardPointsTask: {
                                         imgType: 'img',
                                         src: "images/icon/rewardPointsBlue.png",
+                                        width: "26px",
+                                        height: '26px'
+                                    },
+                                    playerLevelUp: {
+                                        imgType: 'img',
+                                        src: "images/icon/levelBlue.png",
                                         width: "26px",
                                         height: '26px'
                                     },
