@@ -64,7 +64,7 @@
                                     input.form-control(type='number' ng-model='val.spendingAmountOnReward' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
                                 td
                                     select.form-control(ng-model="val.providerGroup" ng-options="v._id as v.name | translate for (i,v) in vm.gameProviderGroup" ng-disabled='!vm.isRewardPointsLvlConfigEditing')
-
+                                        option(value='')
                     br
                     .pull-right
                         button.btn.btn-danger.common-button(ng-if='vm.isRewardPointsLvlConfigEditing' ng-click='vm.rewardPointsLvlConfigSetDisable(true);vm.rewardPointsTabClicked("rewardPointsRule")') {{'CANCEL' | translate}}

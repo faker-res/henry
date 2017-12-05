@@ -100,11 +100,12 @@ let PlayerServiceImplement = function () {
                     }
 
                     console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
-                    if(data && data.partnerName && data.partnerName != ""){
+                    if(data && data.realName && data.realName != "" && data.partnerName && data.partnerName != ""){
                         dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     }else{
                         dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     }
+
                     //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     conn.isAuth = true;
@@ -332,7 +333,8 @@ let PlayerServiceImplement = function () {
         }
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua], isValidData, true, true, true).then(
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua, inputDevice], isValidData, true, true, true).then(
             function (playerData) {
                 if (conn.noOfAttempt >= constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
                     if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
@@ -868,6 +870,9 @@ let PlayerServiceImplement = function () {
         }
         data.loginIps = [data.lastLoginIp];
         data.ipArea = {'province':'', 'city':''};
+        if (conn.isAuth && conn.playerId && !data.name) {
+            data.name = conn.playerId;
+        }
 
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);

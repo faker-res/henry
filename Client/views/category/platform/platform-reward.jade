@@ -162,7 +162,7 @@
                             input.form-control(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-change="vm.changeRewardParamLayout(i);" ng-model="vm.rewardMainParam[i].value")
                         table.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTable track by $index")
                             thead
-                                th(ng-if="!vm.isPlayerLevelDiff && vm.isMultiStepReward && !vm.platformRewardShowEdit() || !vm.isPlayerLevelDiff")
+                                th(ng-if="!vm.isPlayerLevelDiff && vm.isMultiStepReward")
                                 th(style="width:70px" ng-if="vm.isPlayerLevelDiff") {{vm.allPlayerLvl[$index].name}}
                                 th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                             tbody(ng-repeat="entry in cond.value track by $index")

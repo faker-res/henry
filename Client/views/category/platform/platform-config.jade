@@ -1081,7 +1081,7 @@
                                     input.form-control(disabled, ng-model='group.name')
                                 td
                                     select.spicker.form-control(disabled, ng-model='group.providers', multiple data-width="600px")
-                                        option(ng-repeat='(i,v) in vm.availableGameProviders', value='{{v._id}}' ng-init="$last && vm.endLoadWeekDay()" ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
+                                        option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}' ng-init="$last && vm.endLoadWeekDay()" ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
                                 td(ng-if='vm.configTableEdit')
                                     button.btn.btn-danger.common-button(ng-click='vm.deleteProviderGroup(group)') {{"Delete" | translate}}
                             tr(ng-if='vm.configTableEdit')
@@ -1089,7 +1089,7 @@
                                     input.form-control(ng-model='vm.newProviderGroup.name')
                                 td
                                     select.spicker.form-control(ng-model='vm.newProviderGroup.providers', multiple, data-actions-box='true' data-width="600px" ng-change="$scope.safeApply();" data-dropup-auto='false')
-                                        option(ng-repeat='(i,v) in vm.availableGameProviders', value='{{v._id}}' ng-init="$last && vm.endLoadWeekDay()" ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
+                                        option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}' ng-init="$last && vm.endLoadWeekDay()" ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
                                 td
                                     i.fa.fa-plus(ng-click='vm.gameProviderGroup.push(vm.newProviderGroup); vm.newProviderGroup={};')
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'providerGroup')", ng-click='vm.configTableEdit=!vm.configTableEdit')

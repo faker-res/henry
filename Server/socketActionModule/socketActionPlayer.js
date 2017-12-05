@@ -9,6 +9,7 @@ var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionReco
 let dbPlayerConsumptionDaySummary = require('./../db_modules/dbPlayerConsumptionDaySummary');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbGameProviderPlayerDaySummary = require('./../db_modules/dbGameProviderPlayerDaySummary');
+let dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
 let dbApiLog = require('./../db_modules/dbApiLog');
 var socketUtil = require('./../modules/socketutility');
 var utility = require('./../modules/encrypt');
@@ -222,6 +223,12 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data._id && data.forbidRewardEvents);
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardEvents, [data._id, data.forbidRewardEvents], actionName, isValidData);
+        },
+
+        updatePlayerForbidRewardPointsEvent: function updatePlayerForbidRewardPointsEvent(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id && data.forbidRewardPointsEvent);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardPointsEvent, [data._id, data.forbidRewardPointsEvent], actionName, isValidData);
         },
 
         /**
@@ -954,6 +961,20 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.getForbidRewardLog, [data.playerId, data.startTime, data.endTime, index, limit], actionName, isValidData);
         },
 
+        getForbidRewardPointsEventLog: function getForbidRewardPointsEventLog(data) {
+        let actionName = arguments.callee.name;
+        let isValidData = Boolean(data && data.playerId && data.startTime && data.endTime);
+        let index = data.index || 0;
+        let limit = data.limit || 10;
+        socketUtil.emitter(self.socket, dbPlayerInfo.getForbidRewardPointsEventLog, [data.playerId, data.startTime, data.endTime, index, limit], actionName, isValidData);
+        },
+
+        createForbidRewardPointsEventLog: function createForbidRewardPointsEventLog(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId && data.adminId && data.forbidRewardPointsEventNames);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createForbidRewardPointsEventLog, [data.playerId, data.adminId, data.forbidRewardPointsEventNames, data.remark], actionName, isValidData);
+        },
+
         createForbidGameLog: function createForbidGameLog(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId && data.adminId && data.forbidGameNames);
@@ -1004,6 +1025,13 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && typeof(data.filterAllPlatform) === "boolean" && data.platformObjId && data.arrayPhoneXLS);
             socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileXLS, [data.filterAllPlatform, data.platformObjId, data.arrayPhoneXLS], actionName, isValidData);
+        },
+
+        convertRewardPointsToCredit: function convertRewardPointsToCredit(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.convertRewardPointsAmount);
+            let userAgent = '';
+            socketUtil.emitter(self.socket, dbPlayerRewardPoints.convertRewardPointsToCredit, [data.playerId, data.convertRewardPointsAmount, data.remark , getAdminId(), getAdminName()], actionName, isValidData);
         },
 
     };

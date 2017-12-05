@@ -114,13 +114,20 @@ let dbPlayerReward = {
         )
     },
 
-    getPlayerConsecutiveRewardDetail: (playerId, code, isApply) => {
+    getPlayerConsecutiveRewardDetail: (playerId, code, isApply, platform) => {
         // reward event code is an optional value, getting the latest relevant event by default
         let platformId = null;
         let player, event, selectedParam, intervalTime, paramOfLevel;
         let outputList = [];
         let playerProm = dbConfig.collection_players.findOne({playerId: playerId})
             .populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
+        let platformProm = dbConfig.collection_platform.findOne({platformId: platform}).lean();
+        let firstProm;
+        if (playerId) {
+            firstProm = playerProm;
+        } else {
+            firstProm = platformProm;
+        }
         let requiredDeposit = 0;
         let numberOfParam = 1;
         let consecutiveNumber = 1;
@@ -150,11 +157,19 @@ let dbPlayerReward = {
             outputList.push(listItem);
         }
 
-        return playerProm.then(data => {
+        return firstProm.then(data => {
             //get player's platform reward event data
-            if (data && data.playerLevel) {
-                player = data;
-                platformId = player.platform;
+            if (data) {
+                if (data.playerLevel) {
+                    // when first prom is player
+                    player = data;
+                    platformId = player.platform;
+                }
+
+                if (data.platformId) {
+                    // when first prom is platform
+                    platformId = data._id
+                }
 
                 //get reward event data
                 return dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP, code);
@@ -196,7 +211,11 @@ let dbPlayerReward = {
                 }
             }
 
-            let similarRewardProposalProm;
+            let similarRewardProposalProm = Promise.resolve([]);
+
+            if (!player) {
+                return similarRewardProposalProm;
+            }
 
             let rewardProposalQuery = {
                 "data.platformObjId": player.platform,
@@ -222,7 +241,7 @@ let dbPlayerReward = {
             let startCheckTime, latestRewardProposal;
             paramOfLevel = event.param.rewardParam[0].value;
 
-            if (event.condition.isPlayerLevelDiff) {
+            if (event.condition.isPlayerLevelDiff && player) {
                 let rewardParam = event.param.rewardParam.filter(e => e.levelId == String(player.playerLevel._id));
                 if (rewardParam && rewardParam[0] && rewardParam[0].value) {
                     paramOfLevel = rewardParam[0].value;
@@ -258,7 +277,7 @@ let dbPlayerReward = {
 
             let today = dbUtility.getTodaySGTime();
             let currentDay = dbUtility.getTargetSGTime(startCheckTime);
-            while (currentDay.startTime <= today.startTime) {
+            while (currentDay.startTime <= today.startTime && player) {
                 checkRequirementMeetProms.push(isDayMeetRequirement(event, player, currentDay, requiredBet, requiredDeposit, requireBoth));
                 currentDay = dbUtility.getTargetSGTime(currentDay.endTime);
             }
@@ -3021,6 +3040,15 @@ let dbPlayerReward = {
                     case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                         let loseAmount = rewardSpecificData[0];
 
+                        if (eventInPeriodData && eventInPeriodData.length > 0) {
+                            // player already applied the reward within the period timeframe
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "Cant apply this reward, contact cs"
+                            });
+                        }
+
                         let topUpinPeriod = 0;
 
                         for (let i = 0; i < topupInPeriodData.length; i++) {
@@ -3386,7 +3414,9 @@ let dbPlayerReward = {
                             useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),
                             providerGroup: eventData.condition.providerGroup,
                             // Use this flag for auto apply reward
-                            isGroupReward: true
+                            isGroupReward: true,
+                            // If player credit is more than this number after unlock reward group, will ban bonus
+                            forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS
