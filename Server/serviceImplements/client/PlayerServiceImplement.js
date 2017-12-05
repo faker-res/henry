@@ -882,9 +882,7 @@ let PlayerServiceImplement = function () {
             os: ua.os.name || ''
         }];
 
-        if(data.partnerName){
-            data.remarks = data.partnerName ? localization.translate("PARTNER", conn.lang) + ": " + data.partnerName : "";
-        }
+        data.remarks = data.partnerName ? localization.translate("PARTNER", conn.lang) + ": " + data.partnerName : "";
 
         if(data.phoneNumber && data.phoneNumber.length == 11){
             WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
