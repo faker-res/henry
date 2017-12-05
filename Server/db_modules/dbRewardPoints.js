@@ -285,6 +285,7 @@ let dbRewardPoints = {
                 let postUpdatePoint = rewardPoints.points + pointIncreased;
 
                 let logDetail = {
+                    rewardPointsObjId: rewardPoints._id,
                     creator: rewardPoints.playerName,
                     category: pointEvent.category,
                     rewardTitle: pointEvent.rewardTitle,
