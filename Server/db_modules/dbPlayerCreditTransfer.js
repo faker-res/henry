@@ -157,8 +157,6 @@ let dbPlayerCreditTransfer = {
                                     // Add up the reward tasks current amount
                                     let amountToAdd = Math.floor(reward.currentAmount);
 
-                                    console.log('amountToAdd', amountToAdd);
-
                                     gameAmount += amountToAdd;
                                     // Check whether need to trasnfer validAmount
                                     // let remainingAmount = validTransferAmount + reward.currentAmount - amountToAdd;
