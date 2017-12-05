@@ -269,7 +269,7 @@ function getMismatchFromProposalGroup(proposals, option) {
         pmsProposals = proposals[0].onlineCashinList || [];
     }
     else {
-        pmsProposals = proposals[0].cashinList || [];
+        pmsProposals = proposals[0].cashinList || proposals[0].cashoutList || [];
     }
 
     let localProposals = proposals[1];

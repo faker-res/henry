@@ -296,6 +296,7 @@ var proposal = {
                                 && data[0].name != constProposalType.PLAYER_REGISTRATION_INTENTION
                                 && data[0].name != constProposalType.PLAYER_CONSECUTIVE_REWARD_GROUP
                                 && data[0].name != constProposalType.PLAYER_LEVEL_MIGRATION
+                                && data[0].name != constProposalType.PLAYER_LEVEL_UP
                             ) {
                                 deferred.reject({
                                     name: "DBError",
