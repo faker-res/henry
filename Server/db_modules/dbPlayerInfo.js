@@ -125,22 +125,34 @@ let dbPlayerInfo = {
      * Update player's reward points and create log
      */
     updatePlayerRewardPointsRecord: function (rewardPointsObjId, data) {
-        let finalValidAmount = data.oldPoints + data.amount;
-        if(finalValidAmount < 0){
-            return Q.reject({name: "DataError", message: "Player reward points cannot be less than 0."});
-        }
-
         return dbconfig.collection_rewardPoints.findOneAndUpdate(
             {
                 _id: rewardPointsObjId
             },
             {
-                points: finalValidAmount,
-                lastUpdate: Date.now()
+                $set: {lastUpdate: Date.now()},
+                $inc: {points: data.amount}
             },
             {new: true}
         ).lean().then(
             rewardPoints => {
+                if (rewardPoints.points < 0) {
+                    // if points become negative, change back to original points
+                    return dbconfig.collection_rewardPoints.findOneAndUpdate(
+                        {
+                            _id: rewardPointsObjId
+                        },
+                        {
+                            $set: {lastUpdate: Date.now()},
+                            $inc: {points: Math.abs(data.amount)}
+                        },
+                        {new: true}
+                    ).lean().then(
+                        negative => {
+                            return Q.reject({name: "DataError", message: "Player reward points cannot be less than 0."});
+                        }
+                    );
+                }
                 if (!rewardPoints) {
                     return Q.reject({name: "DataError", message: "Can't update player reward points: player not found."});
                 }
