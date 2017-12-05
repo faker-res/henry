@@ -887,7 +887,7 @@ let PlayerServiceImplement = function () {
         }
 
         if(data.phoneNumber && data.phoneNumber.length == 11){
-            WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data.partnerName, data], isValidData, false, false, true);
+            WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
         }else {
             conn.captchaCode = null;
             wsFunc.response(conn, {
