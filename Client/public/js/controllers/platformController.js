@@ -4849,6 +4849,13 @@ define(['js/app'], function (myApp) {
                                     width: "14px",
                                 }));
 
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.levelChange === false ? "levelRed.png" : "levelBlue.png"),
+                                    height: "14px",
+                                    width: "14px",
+                                }));
+
 
                                 // link.append($('<i>', {
                                 //     'class': 'fa fa-share-square margin-right-5 ' + (perm.transactionReward === true ? "text-primary" : "text-danger"),
@@ -5603,6 +5610,12 @@ define(['js/app'], function (myApp) {
                                     rewardPointsTask: {
                                         imgType: 'img',
                                         src: "images/icon/rewardPointsBlue.png",
+                                        width: "26px",
+                                        height: '26px'
+                                    },
+                                    levelChange: {
+                                        imgType: 'img',
+                                        src: "images/icon/levelBlue.png",
                                         width: "26px",
                                         height: '26px'
                                     },
@@ -6574,7 +6587,7 @@ define(['js/app'], function (myApp) {
                             platformQuickPayGroupList: vm.platformQuickPayGroupList,
                             allPlayerTrustLvl: vm.allPlayerTrustLvl,
                             updateEditedPlayer: function () {
-                                sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark);
+                                sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark, selectedPlayer.permission);
                             },
                             checkPlayerNameValidity: function (a, b, c) {
                                 vm.checkPlayerNameValidity(a, b, c);
@@ -6871,7 +6884,10 @@ define(['js/app'], function (myApp) {
                 return bankGroup;
             }
 
-            function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData, topUpGroupRemark) {
+            function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData, topUpGroupRemark, playerPermission) {
+                if (playerPermission.levelChange === false) {
+                    newPlayerData.playerLevel = oldPlayerData.playerLevel
+                }
                 oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 var updateData = newAndModifiedFields(oldPlayerData, newPlayerData);
                 var updateSMS = {
@@ -13397,19 +13413,22 @@ define(['js/app'], function (myApp) {
                 vm.showReward = v;
                 vm.initRewardValidTimeDOM(vm.showReward.validStartTime, vm.showReward.validEndTime);
                 console.log('vm.showReward', vm.showReward);
-                vm.showRewardTypeData = v;   // This will probably be overwritten by vm.platformRewardTypeChanged() below
+                vm.showRewardTypeData = null;   // This will probably be overwritten by vm.platformRewardTypeChanged() below
                 vm.showRewardTypeId = v.type._id;
                 vm.rewardParams = Lodash.cloneDeep(v.param);
                 vm.rewardCondition = Lodash.cloneDeep(v.condition);
                 vm.rewardDisabledParam = [];
-                vm.platformRewardTypeChanged();
+
+                $scope.$evalAsync(() => {
+                    vm.platformRewardTypeChanged();
+                });
 
                 utilService.actionAfterLoaded("#rewardMainTasks", function () {
                     vm.disableAllRewardInput(true);
                 });
 
                 console.log('vm.rewardParams', vm.rewardParams);
-                $scope.safeApply();
+                //$scope.safeApply();
             };
 
             vm.platformRewardTypeChanged = function () {
@@ -13441,6 +13460,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardDisabledParam = [];
                     vm.isRandomReward = false;
                     vm.platformRewardIsEnabled = false;
+                    vm.rewardMainParamTable = [];
                     let params = vm.showRewardTypeData.params;
 
                     // Set condition value
@@ -13600,23 +13620,29 @@ define(['js/app'], function (myApp) {
 
                     vm.changeRewardParamLayout(null, true);
 
-                    // Set param table value
-                    Object.keys(paramType.rewardParam).forEach(el => {
-                        if (vm.isPlayerLevelDiff) {
-                            if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
-                                vm.showReward.param.rewardParam.forEach((el, idx) => {
-                                    vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
+                    utilService.actionAfterLoaded("#rewardMainParamTable", function () {
+                        // Set param table value
+                        Object.keys(paramType.rewardParam).forEach(el => {
+                            if (vm.isPlayerLevelDiff) {
+                                if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
+                                    vm.showReward.param.rewardParam.forEach((el, idx) => {
+                                        vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
 
-                                })
+                                    })
+                                }
+                            } else {
+                                if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
+                                    vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
                             }
-                        } else {
-                            if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
-                                vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
-                        }
-                        if (el == "rewardPercentageAmount") {
-                            vm.isRandomReward = true;
-                            vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !=="undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{percentage: "", amount: ""}];
-                        }
+                            if (el == "rewardPercentageAmount") {
+                                vm.isRandomReward = true;
+                                vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !=="undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{percentage: "", amount: ""}];
+                            }
+                        });
+
+                        $scope.safeApply();
+
+                        vm.disableAllRewardInput(true);
                     });
                 }
 
@@ -13886,11 +13912,11 @@ define(['js/app'], function (myApp) {
                     vm.rewardCondition.partnerLevel = vm.allPartnerLevels[0].name;
                     $scope.safeApply();
                 }
-
-                console.log("vm.showRewardTypeData", vm.showRewardTypeData);
-                console.log('vm.showRewardTypeData.name', vm.showRewardTypeData.name);
-                console.log("vm.rewardCondition:", vm.rewardCondition);
-                console.log("vm.rewardParams:", vm.rewardParams);
+                //
+                // console.log("vm.showRewardTypeData", vm.showRewardTypeData);
+                // console.log('vm.showRewardTypeData.name', vm.showRewardTypeData.name);
+                // console.log("vm.rewardCondition:", vm.rewardCondition);
+                // console.log("vm.rewardParams:", vm.rewardParams);
                 vm.showRewardFormValid = true;
                 vm.endLoadWeekDay();
             };

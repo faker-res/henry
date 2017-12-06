@@ -5661,7 +5661,6 @@ let dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     manualPlayerLevelUp: function (playerObjId, platformObjId, userAgent) {
-
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
         }
@@ -5804,6 +5803,9 @@ let dbPlayerInfo = {
                     //}
                     //
                     //return dbconfig.collection_playerLevel.find(query).sort({value: 1}).lean();
+                    if (playerObj.permission && playerObj.permission.levelChange === false) {
+                        return Q.reject({name: "DBError", message: "player do not have level permission"});
+                    }
 
                     if (checkLevelUp && !checkLevelDown) {
                         playerLevels = playerLevels.filter(level => level.value > playerObj.playerLevel.value);
@@ -12025,7 +12027,15 @@ let dbPlayerInfo = {
                                 }
                                 let lockListArr = [];
                                 rewardDetails.map(r =>{
-                                    lockListArr.push({name: r.providerGroup.name, lockAmount: r.targetConsumption, currentLockAmount: r.curConsumption});
+                                    if(r){
+                                        let providerGroupName = r.providerGroup.name ? r.providerGroup.name : "";
+                                        let targetCon = r.targetConsumption ? r.targetConsumption : 0;
+                                        let ximaAmt = r.forbidXIMAAmt ? r.forbidXIMAAmt : 0;
+                                        let curCon = r.curConsumption ? r.curConsumption : 0;
+
+                                        lockListArr.push({name: providerGroupName, lockAmount: targetCon + ximaAmt, currentLockAmount: curCon});
+                                    }
+
                                 })
 
                                 return lockListArr;
