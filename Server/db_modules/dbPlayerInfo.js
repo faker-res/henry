@@ -5641,8 +5641,6 @@ let dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     manualPlayerLevelUp: function (playerObjId, platformObjId, userAgent) {
-        console.log("walaohere")
-
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
         }
