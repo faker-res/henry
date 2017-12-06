@@ -2064,7 +2064,8 @@ var proposal = {
                         currentArrNo = 1;
                     } else {
                         var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber && r.arrNo == currentArrNo);
-                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS) {
+                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS || recordArr[indexNo].status == constProposalStatus.MANUAL
+                        || d.data.status == constProposalStatus.MANUAL) {
                             recordArr.push({
                                 phoneNumber: d.data.phoneNumber,
                                 status: d.status,
@@ -2219,7 +2220,8 @@ var proposal = {
                         currentArrNo = 1;
                     } else {
                         var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber && r.arrNo == currentArrNo);
-                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS) {
+                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS || recordArr[indexNo].status == constProposalStatus.MANUAL
+                            || d.data.status == constProposalStatus.MANUAL) {
                             recordArr.push({
                                 phoneNumber: d.data.phoneNumber,
                                 status: d.status,
@@ -2340,7 +2342,8 @@ var proposal = {
                         currentArrNo = 1;
                     } else {
                         var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber && r.arrNo == currentArrNo);
-                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS) {
+                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS || recordArr[indexNo].status == constProposalStatus.MANUAL
+                            || d.data.status == constProposalStatus.MANUAL) {
                             recordArr.push({
                                 phoneNumber: d.data.phoneNumber,
                                 status: d.status,
@@ -3874,6 +3877,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
             let currentCountQuery = {};
             let previousCountQuery = {};
             let futureCountQuery = {};
+            let futureManualCountQuery = {};
             let previousSuccessCreateTime;
             let futureFailCreateTime;
 
@@ -3900,6 +3904,14 @@ function insertPlayerRepeatCount(proposals, platformId) {
                     $gt: new Date(proposal.createTime)
                 },
                 "data.phoneNumber": phoneNumber
+            };
+
+            futureManualCountQuery = {
+                createTime: {
+                    $gt: new Date(proposal.createTime)
+                },
+                "data.phoneNumber": phoneNumber,
+                status: "Manual"
             };
 
 
@@ -3931,6 +3943,9 @@ function insertPlayerRepeatCount(proposals, platformId) {
             //check the count of all proposal records after current record.
             let futureAllCountProm = dbconfig.collection_proposal.find(futureCountQuery).lean().count();
 
+            //check the count of manual records after current record.
+            let futureManualAllCountProm = dbconfig.collection_proposal.find(futureManualCountQuery).lean().count();
+
             //check the count of success/manual proposal records after current record
             let futureAfterSuccessCountProm = dbconfig.collection_proposal.find(futureCountQuery).lean().sort({createTime: 1}).then(futureRecords => {
                 if (futureRecords && futureRecords.length > 0) {
@@ -3953,13 +3968,14 @@ function insertPlayerRepeatCount(proposals, platformId) {
                 }
             });
 
-            return Promise.all([allCountProm, currentCountProm, previousCountProm, futureAllCountProm, futureAfterSuccessCountProm]).then(
+            return Promise.all([allCountProm, currentCountProm, previousCountProm, futureAllCountProm, futureAfterSuccessCountProm, futureManualAllCountProm]).then(
                 countData => {
                     let allCount = countData[0];
                     let currentCount = countData[1];
                     let previousCount = countData[2] ? countData[2] : 0;
                     let futureSuccessCount = countData[3] ? countData[3] : 0;
                     let futureFailCount = countData[4] ? countData[4] : 0;
+                    let futureManualCount = countData[5] ? countData[5] : 0;
 
                     if (previousCount) {
                         proposal.$playerAllCount = allCount - previousCount;
@@ -3973,6 +3989,12 @@ function insertPlayerRepeatCount(proposals, platformId) {
                         if (futureFailCount) {
                             proposal.$playerAllCount = proposal.$playerAllCount - futureFailCount;
                         }
+                        if(futureManualCount){
+                            proposal.$playerAllCount = proposal.$playerAllCount - futureManualCount;
+                        }
+                    } else if(status == constProposalStatus.MANUAL) {
+                        proposal.$playerAllCount = 1;
+                        proposal.$playerCurrentCount = 1;
                     } else {
                         if (futureSuccessCount) {
                             proposal.$playerAllCount = proposal.$playerAllCount - futureSuccessCount;
