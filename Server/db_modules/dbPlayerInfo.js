@@ -56,6 +56,7 @@ var constProposalEntryType = require('../const/constProposalEntryType');
 var errorUtils = require("../modules/errorUtils.js");
 var SMSSender = require('../modules/SMSSender');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
+var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
@@ -108,7 +109,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOneAndUpdate({
             _id: playerId,
             platform: platformId
-        }, saveObj, {upsert: true});
+        }, saveObj, {upsert: true, new: true});
     },
 
     /**
@@ -123,13 +124,45 @@ let dbPlayerInfo = {
     /**
      * Update player's reward points and create log
      */
-    updatePlayerRewardPointsRecord: function (rewardPointsObjId, finalValidAmount) {
+    updatePlayerRewardPointsRecord: function (rewardPointsObjId, data) {
         return dbconfig.collection_rewardPoints.findOneAndUpdate(
             {
                 _id: rewardPointsObjId
             },
             {
-                points: finalValidAmount
+                $set: {lastUpdate: Date.now()},
+                $inc: {points: data.amount}
+            },
+            {new: true}
+        ).lean().then(
+            rewardPoints => {
+                if (rewardPoints.points < 0) {
+                    // if points become negative, change back to original points
+                    return dbconfig.collection_rewardPoints.findOneAndUpdate(
+                        {
+                            _id: rewardPointsObjId
+                        },
+                        {
+                            $set: {lastUpdate: Date.now()},
+                            $inc: {points: Math.abs(data.amount)}
+                        },
+                        {new: true}
+                    ).lean().then(
+                        negative => {
+                            return Q.reject({name: "DataError", message: "Player reward points cannot be less than 0."});
+                        }
+                    );
+                }
+                if (!rewardPoints) {
+                    return Q.reject({name: "DataError", message: "Can't update player reward points: player not found."});
+                }
+                let category = constRewardPointsLogCategory.POINT_INCREMENT;
+                let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
+                dbLogger.createRewardPointsChangeLog(rewardPointsObjId, rewardPoints.playerName, rewardPoints.playerLevel, rewardPoints.points, data, category, userAgent);
+                return rewardPoints;
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error updating player reward points record.", error: error});
             }
         );
     },
@@ -5641,7 +5674,6 @@ let dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     manualPlayerLevelUp: function (playerObjId, platformObjId, userAgent) {
-
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
         }
@@ -5784,6 +5816,9 @@ let dbPlayerInfo = {
                     //}
                     //
                     //return dbconfig.collection_playerLevel.find(query).sort({value: 1}).lean();
+                    if (playerObj.permission && playerObj.permission.levelChange === false) {
+                        return Q.reject({name: "DBError", message: "player do not have level permission"});
+                    }
 
                     if (checkLevelUp && !checkLevelDown) {
                         playerLevels = playerLevels.filter(level => level.value > playerObj.playerLevel.value);

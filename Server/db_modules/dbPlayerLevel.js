@@ -68,10 +68,10 @@ let dbPlayerLevelInfo = {
                     period = dbUtil.getLastMonthSGTime();
                 }
 
-                if (!upOrDown) {
-                    period.startTime = moment(period.startTime).add(12, 'hours').toDate();
-                    period.endTime = moment(period.endTime).add(12, 'hours').toDate();
-                }
+                // if (!upOrDown) {
+                //     period.startTime = moment(period.startTime).add(12, 'hours').toDate();
+                //     period.endTime = moment(period.endTime).add(12, 'hours').toDate();
+                // }
                 console.log('check level time', period);
 
                 return dbconfig.collection_playerLevel.find({platform: platformObjId}).sort({value: 1}).lean().then(
@@ -203,6 +203,11 @@ let dbPlayerLevelInfo = {
                 // filter levels
                 let checkingUpLevels = levels.filter(level => level.value > playerData.playerLevel.value);
                 let checkingDownLevels = levels.filter(level => level.value <= playerData.playerLevel.value);
+
+                
+                if (playerData.permission && playerData.permission.levelChange === false) {
+                    return Promise.reject({name: "DBError", message: "player do not have level permission"});
+                }
 
                 // Check level up
                 // Only player with top up or consumption last month worth checking

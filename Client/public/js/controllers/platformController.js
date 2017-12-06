@@ -1126,8 +1126,8 @@ define(['js/app'], function (myApp) {
                     ret => {
                         let dateStart = new Date(ret.data.startTime);
                         let dateEnd = new Date(ret.data.endTime);
-                        dateStart.setHours(dateStart.getHours() + 12);
-                        dateEnd.setHours(dateEnd.getHours() + 12);
+                        // dateStart.setHours(dateStart.getHours() + 12);
+                        // dateEnd.setHours(dateEnd.getHours() + 12);
                         vm.playerLevelSettlement.lvlDownStartTime = vm.dateReformat(dateStart);
                         vm.playerLevelSettlement.lvlDownEndTime = vm.dateReformat(dateEnd);
                         $scope.safeApply();
@@ -4792,6 +4792,13 @@ define(['js/app'], function (myApp) {
                                     width: "14px",
                                 }));
 
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.levelChange === false ? "levelRed.png" : "levelBlue.png"),
+                                    height: "14px",
+                                    width: "14px",
+                                }));
+
 
                                 // link.append($('<i>', {
                                 //     'class': 'fa fa-share-square margin-right-5 ' + (perm.transactionReward === true ? "text-primary" : "text-danger"),
@@ -5546,6 +5553,12 @@ define(['js/app'], function (myApp) {
                                     rewardPointsTask: {
                                         imgType: 'img',
                                         src: "images/icon/rewardPointsBlue.png",
+                                        width: "26px",
+                                        height: '26px'
+                                    },
+                                    levelChange: {
+                                        imgType: 'img',
+                                        src: "images/icon/levelBlue.png",
                                         width: "26px",
                                         height: '26px'
                                     },
@@ -6517,7 +6530,7 @@ define(['js/app'], function (myApp) {
                             platformQuickPayGroupList: vm.platformQuickPayGroupList,
                             allPlayerTrustLvl: vm.allPlayerTrustLvl,
                             updateEditedPlayer: function () {
-                                sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark);
+                                sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark, selectedPlayer.permission);
                             },
                             checkPlayerNameValidity: function (a, b, c) {
                                 vm.checkPlayerNameValidity(a, b, c);
@@ -6814,7 +6827,10 @@ define(['js/app'], function (myApp) {
                 return bankGroup;
             }
 
-            function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData, topUpGroupRemark) {
+            function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData, topUpGroupRemark, playerPermission) {
+                if (playerPermission.levelChange === false) {
+                    newPlayerData.playerLevel = oldPlayerData.playerLevel
+                }
                 oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 var updateData = newAndModifiedFields(oldPlayerData, newPlayerData);
                 var updateSMS = {
@@ -8110,8 +8126,7 @@ define(['js/app'], function (myApp) {
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
                 if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
                     vm.createPlayerRewardPointsRecord();
-                }
-                if(vm.selectedSinglePlayer.currentPoints === undefined) {
+                } else if(vm.selectedSinglePlayer.currentPoints === undefined) {
                     vm.getPlayerRewardPointsRecord();
                 }
 
@@ -8146,14 +8161,14 @@ define(['js/app'], function (myApp) {
             };
 
             vm.upsertPlayerInfoRewardPointsObjId = function (playerId, platformId, rewardPointsObjId) {
-
                 let sendData = {
                     playerId: playerId,
                     platformId: platformId,
                     rewardPointsObjId: rewardPointsObjId,
                 };
 
-                socketService.$socket($scope.AppSocket, 'upsertPlayerInfoRewardPointsObjId', sendData, function () {
+                socketService.$socket($scope.AppSocket, 'upsertPlayerInfoRewardPointsObjId', sendData, function (data) {
+                    vm.isOneSelectedPlayer().rewardPointsObjId = data.data.rewardPointsObjId;
                     $scope.safeApply();
                 });
             };
@@ -8172,11 +8187,16 @@ define(['js/app'], function (myApp) {
             vm.updatePlayerRewardPointsRecord = function () {
                 let sendData = {
                     rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId,
-                    finalValidAmount: vm.rewardPointsChange.finalValidAmount
+                    data: {
+                        oldPoints: vm.isOneSelectedPlayer().currentPoints,
+                        amount: vm.rewardPointsChange.updateAmount,
+                        creator: authService.adminName,
+                        remark: vm.rewardPointsChange.remark,
+                        status: 1
+                    }
                 };
 
-                socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function (data) {
-                    let newData = data.data;
+                socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function () {
                     vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
