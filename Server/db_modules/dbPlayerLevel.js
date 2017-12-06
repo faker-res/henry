@@ -204,6 +204,11 @@ let dbPlayerLevelInfo = {
                 let checkingUpLevels = levels.filter(level => level.value > playerData.playerLevel.value);
                 let checkingDownLevels = levels.filter(level => level.value <= playerData.playerLevel.value);
 
+                
+                if (playerData.permission && playerData.permission.levelChange === false) {
+                    return Promise.reject({name: "DBError", message: "player do not have level permission"});
+                }
+
                 // Check level up
                 // Only player with top up or consumption last month worth checking
                 if (playersTopupForPeriod > 0 || playersConsumptionForPeriod > 0) {
