@@ -5641,6 +5641,7 @@ let dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     manualPlayerLevelUp: function (playerObjId, platformObjId, userAgent) {
+        console.log("walaohere")
 
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
@@ -5784,6 +5785,9 @@ let dbPlayerInfo = {
                     //}
                     //
                     //return dbconfig.collection_playerLevel.find(query).sort({value: 1}).lean();
+                    if (playerObj.permission && playerObj.permission.levelChange === false) {
+                        return Q.reject({name: "DBError", message: "player do not have level permission"});
+                    }
 
                     if (checkLevelUp && !checkLevelDown) {
                         playerLevels = playerLevels.filter(level => level.value > playerObj.playerLevel.value);

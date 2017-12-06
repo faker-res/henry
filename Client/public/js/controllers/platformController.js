@@ -6530,7 +6530,7 @@ define(['js/app'], function (myApp) {
                             platformQuickPayGroupList: vm.platformQuickPayGroupList,
                             allPlayerTrustLvl: vm.allPlayerTrustLvl,
                             updateEditedPlayer: function () {
-                                sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark);
+                                sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark, selectedPlayer.permission);
                             },
                             checkPlayerNameValidity: function (a, b, c) {
                                 vm.checkPlayerNameValidity(a, b, c);
@@ -6827,7 +6827,12 @@ define(['js/app'], function (myApp) {
                 return bankGroup;
             }
 
-            function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData, topUpGroupRemark) {
+            function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData, topUpGroupRemark, playerPermission) {
+                console.log("walaoold",oldPlayerData)
+                console.log("walaonew",newPlayerData)
+                if (playerPermission.levelChange === false) {
+                    newPlayerData.playerLevel = oldPlayerData.playerLevel
+                }
                 oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 var updateData = newAndModifiedFields(oldPlayerData, newPlayerData);
                 var updateSMS = {
