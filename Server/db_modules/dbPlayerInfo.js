@@ -76,7 +76,7 @@ let dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
 let dbPlayerCredibility = require('./../db_modules/dbPlayerCredibility');
 let dbPartner = require('../db_modules/dbPartner');
 let dbRewardPoints = require('../db_modules/dbRewardPoints');
-
+let dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
 let PLATFORM_PREFIX_SEPARATOR = '';
 
 let dbPlayerInfo = {
@@ -123,15 +123,8 @@ let dbPlayerInfo = {
     /**
      * Update player's reward points and create log
      */
-    updatePlayerRewardPointsRecord: function (rewardPointsObjId, finalValidAmount) {
-        return dbconfig.collection_rewardPoints.findOneAndUpdate(
-            {
-                _id: rewardPointsObjId
-            },
-            {
-                points: finalValidAmount
-            }
-        );
+    updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark) {
+        return dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, remark);
     },
 
     /**

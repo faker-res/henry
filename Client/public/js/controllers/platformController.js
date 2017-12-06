@@ -8171,8 +8171,10 @@ define(['js/app'], function (myApp) {
 
             vm.updatePlayerRewardPointsRecord = function () {
                 let sendData = {
-                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId,
-                    finalValidAmount: vm.rewardPointsChange.finalValidAmount
+                    playerObjId: vm.isOneSelectedPlayer()._id,
+                    platformObjId: vm.isOneSelectedPlayer().platform,
+                    updateAmount: vm.rewardPointsChange.updateAmount,
+                    remark: vm.rewardPointsChange.remark
                 };
 
                 socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function (data) {

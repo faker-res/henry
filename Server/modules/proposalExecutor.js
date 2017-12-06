@@ -2295,7 +2295,7 @@ var proposalExecutor = {
                         rewardPointsObjId: proposalData.data.playerRewardPointsObjId,
                         rewardPoints: proposalData.data.convertedRewardPoints,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
-                        initAmount: proposalData.data.convertCredit,
+                        creditAmount: proposalData.data.convertCredit,
                         providerGroup: proposalData.data.providerGroup,
                         category: constRewardPointsLogCategory.EARLY_POINT_CONVERSION
                     };
