@@ -7,6 +7,8 @@ var rewardPointsTask = new Schema({
     // reward point Id
     rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints'},
 
+    playerObjId: {type: Schema.ObjectId, ref: 'player'},
+
     rewardPoints: {type: Number},
     // category of reward, base on constRewardPointsLogCategory
     category: {type: Number},
