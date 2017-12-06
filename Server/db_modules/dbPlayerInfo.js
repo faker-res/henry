@@ -5651,6 +5651,7 @@ let dbPlayerInfo = {
         var levelErrorMsg = '';
         // A flag to determine LevelUp Stop At Where.
         var levelUpEnd = false;
+        let isRewardAssign = false;
 
         return Promise.resolve(player).then(
             function (player) {
@@ -5885,13 +5886,16 @@ let dbPlayerInfo = {
                                                     proposalData.rewardAmount = levelUpObj.reward.bonusCredit;
                                                     proposalData.isRewardTask = levelUpObj.reward.isRewardTask;
 
-                                                    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
                                                 }
+                                                return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
+
+                                            } else {
+                                                isRewardAssign = true;
+                                                return {}
                                             }
                                         }
                                     ).then(
                                         proposalResult => {
-                                            console.log(proposalResult);
 
                                             let rewardPrice = [];
                                             let prevLevel = Number(playerObj.playerLevel.value) + 1;
@@ -5904,17 +5908,20 @@ let dbPlayerInfo = {
                                             }
                                             let rewardPriceCount = rewardPrice.length;
                                             let mainMessage = '恭喜您从 ' + prevLevelName + ' 升级到 ' + currentLevelName;
-                                            let subMessage = ',获得';
-                                            rewardPrice.forEach(
-                                                function (val, index) {
-                                                    let colon = '、';
-                                                    if (index == rewardPrice.length - 1) {
-                                                        colon = '';
+                                            let subMessage = '';
+                                            if (!isRewardAssign) {
+                                                subMessage = ',获得';
+                                                rewardPrice.forEach(
+                                                    function (val, index) {
+                                                        let colon = '、';
+                                                        if (index == rewardPrice.length - 1) {
+                                                            colon = '';
+                                                        }
+                                                        subMessage += '' + val + '元' + colon;
                                                     }
-                                                    subMessage += '' + val + '元' + colon;
-                                                }
-                                            )
-                                            subMessage += '共' + rewardPrice.length + '个礼包';
+                                                )
+                                                subMessage += '共' + rewardPrice.length + '个礼包';
+                                            }
                                             let message = mainMessage + subMessage;
                                             return {message: message}
 
