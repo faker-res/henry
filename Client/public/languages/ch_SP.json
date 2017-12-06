@@ -1116,6 +1116,7 @@
   "Transfer All from Providers": "从全部提供商转出",
   "Transfer Credit of All Player from Provider": "从提供商转出所有玩家游戏额度",
   "Transfer Out All Players Credit From Providers": "转出所有玩家游戏额度",
+  "BATCH_CREDIT_TRANSFER_OUT" :"批量转出额度",
   "Show All": "显示全部",
   "Search Result": "查询结果",
   "Within Search Period": "指定时间内",

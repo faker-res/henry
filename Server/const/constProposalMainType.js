@@ -55,6 +55,7 @@ const constProposalMainType = {
     "PlayerFreeTrialRewardGroup": constMainType.REWARD,
     "PlayerRandomRewardGroup": constMainType.REWARD,
     "PlayerLoseReturnRewardGroup": constMainType.REWARD,
+    "PlayerConsumptionRewardGroup": constMainType.REWARD,
     "PlayerConsecutiveRewardGroup": constMainType.REWARD,
 
     //REWARD POINTS
