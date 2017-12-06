@@ -71,6 +71,11 @@ let playerFeedbackResultSchema = require('./../schema/playerFeedbackResult');
 let playerFeedbackTopicSchema = require('./../schema/playerFeedbackTopic');
 
 let rewardPointsLvlConfigSchema = require('./../schema/rewardPointsLvlConfig');
+let rewardPointsSchema = require('./../schema/rewardPoints');
+let rewardPointsRandomDataConfigSchema = require('./../schema/rewardPointsRandomDataConfig');
+let rewardPointsEventSchema = require('./../schema/rewardPointsEvent');
+let rewardPointsTaskSchema = require('./../schema/rewardPointsTask');
+
 
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
@@ -89,6 +94,7 @@ var rewardTypeModel = db_admin.model('rewardType', rewardTypeSchema, 'rewardType
 var rewardRuleModel = db_admin.model('rewardRule', rewardRuleSchema, 'rewardRule');
 var rewardParamModel = db_admin.model('rewardParam', rewardParamSchema, 'rewardParam');
 var rewardConditionModel = db_admin.model('rewardCondition', rewardConditionSchema, 'rewardCondition');
+let rewardPointsEventModel = db_admin.model('rewardPointsEvent', rewardPointsEventSchema, 'rewardPointsEvent');
 
 var apiUserModel = db_admin.model('apiUser', apiUserSchema, 'apiUser');
 var platformModel = db_admin.model('platform', platformSchema, 'platform');
@@ -170,6 +176,9 @@ var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema
 var partnerModel = db_player.model('partner', partnerSchema, 'partner');
 
 var rewardTaskModel = db_player.model('rewardTask', rewardTaskSchema, 'rewardTask');
+let rewardPointsModel = db_player.model('rewardPoints', rewardPointsSchema, 'rewardPoints');
+let rewardPointsRandomDataConfigModel = db_admin.model('rewardPointsRandomDataConfig', rewardPointsRandomDataConfigSchema, 'rewardPointsRandomDataConfig');
+let rewardPointsTaskModel = db_player.model('rewardPointsTask', rewardPointsTaskSchema, 'rewardPointsTask');
 
 //----------------------------------------logs db properties-----------------------------------------------------------
 var playerMailModel = dbLogs.model('playerMail', playerMailSchema, 'playerMail');
@@ -300,11 +309,17 @@ let playerTopUpGroupUpdateLogModel = dbLogs.model('playerTopUpGroupUpdateLog', p
 let playerForbidRewardLogSchema = require('./../schema/logs/playerForbidRewardLog');
 let playerForbidRewardLogModel = dbLogs.model('playerForbidRewardLog', playerForbidRewardLogSchema, 'playerForbidRewardLog');
 
+let playerForbidRewardPointsEventLogSchema = require('./../schema/logs/playerForbidRewardPointsEventLog');
+let playerForbidRewardPointsEventLogModel = dbLogs.model('playerForbidRewardPointsEventLog', playerForbidRewardPointsEventLogSchema, 'playerForbidRewardPointsEventLog');
+
 let playerForbidGameLogSchema = require('./../schema/logs/playerForbidGameLog');
 let playerForbidGameLogModel = dbLogs.model('playerForbidGameLog', playerForbidGameLogSchema, 'playerForbidGameLog');
 
 let playerForbidTopUpLogSchema = require('./../schema/logs/playerForbidTopUpLog');
 let playerForbidTopUpLogModel = dbLogs.model('playerForbidTopUpLog', playerForbidTopUpLogSchema, 'playerForbidTopUpLog');
+
+let rewardPointsLogSchema = require('./../schema/logs/rewardPointsLog');
+let rewardPointsLogModel = dbLogs.model('rewardPointsLog', rewardPointsLogSchema, 'rewardPointsLog');
 
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
@@ -353,6 +368,10 @@ var dbProperties = {
     collection_rewardCondition: rewardConditionModel,
     collection_rewardTask: rewardTaskModel,
     collection_rewardPointsLvlConfig: rewardPointsLvlConfigModel,
+    collection_rewardPointsEvent: rewardPointsEventModel,
+    collection_rewardPoints: rewardPointsModel,
+    collection_rewardPointsRandomDataConfig: rewardPointsRandomDataConfigModel,
+    collection_rewardPointsTask: rewardPointsTaskModel,
 
     collection_players: playerModel,
     collection_playerLevel: playerLevelModel,
@@ -446,9 +465,11 @@ var dbProperties = {
     collection_playerState: playerStateModel,
     collection_playerCredibilityUpdateLog: playerCredibilityUpdateLogModel,
     collection_playerTopUpGroupUpdateLog: playerTopUpGroupUpdateLogModel,
+    collection_playerForbidRewardPointsEventLog: playerForbidRewardPointsEventLogModel,
     collection_playerForbidRewardLog: playerForbidRewardLogModel,
     collection_playerForbidGameLog: playerForbidGameLogModel,
     collection_playerForbidTopUpLog: playerForbidTopUpLogModel,
+    collection_rewardPointsLog: rewardPointsLogModel,
     collection_rewardTaskGroup: rewardTaskGroupModel,
 
     //unique

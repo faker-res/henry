@@ -385,15 +385,15 @@ db.rewardType.insert({"name": type23, params: param23._id, des: "Player Limited 
 /* Reward restructured */
 var generalCond = {
     // Reward Name
-    name: {index: 0, type: "text", des: "Reward name"},
+    name: {index: 0, type: "text", des: "Reward name", detail: "REWARD_NAME_DETAIL"},
     // Reward system code
-    code: {index: 1, type: "text", des: "Reward code"},
+    code: {index: 1, type: "text", des: "Reward code", detail: "REWARD_CODE_DETAIL"},
     // Reward apply type
-    applyType: {index: 2, type: "select", des: "Reward apply type", options: "rewardApplyType"},
+    applyType: {index: 2, type: "select", des: "Reward apply type", options: "rewardApplyType", detail: "REWARD_APPLY_TYPE_DETAIL"},
     // Is player manually applicable
-    canApplyFromClient: {index: 3, type: "checkbox", des: "Is player manually applicable"},
+    canApplyFromClient: {index: 3, type: "checkbox", des: "Is player manually applicable", detail: "REWARD_CLIENT_APPLY_DETAIL"},
     // Is ignore audit
-    isIgnoreAudit: {index: 4, type: "checkbox", des: "Is ignore audit"},
+    isIgnoreAudit: {index: 4, type: "checkbox", des: "Is ignore audit", detail: "REWARD_IGNORE_AUDIT_DETAIL"},
     // Reward start time
     validStartTime: {index: 5, type: "date", des: "Reward start time"},
     // Reward end time
@@ -404,18 +404,18 @@ var generalCond = {
 
 var topUpCond = {
     // User device to top up
-    userAgent: {index: 10, type: "multiSelect", des: "Top up agent", options: "userAgentType"},
+    userAgent: {index: 10, type: "multiSelect", des: "Top up agent", options: "constPlayerRegistrationInterface", detail: "REWARD_TOP_UP_TYPE_DETAIL"},
     // Top up type
-    topupType: {index: 11, type: "multiSelect", des: "Top up type", options: "merchantTopupMainTypeJson"},
+    topupType: {index: 11, type: "multiSelect", des: "Top up type", options: "topUpTypeList", detail: "REWARD_TOP_UP_TYPE_DETAIL"},
     // Online top up type
-    onlineTopUpType: {index: 12, type: "multiSelect", des: "Online top up type", options: "merchantTopupTypeJson"},
+    onlineTopUpType: {index: 12, type: "multiSelect", des: "Online top up type", options: "merchantTopupTypeJson", detail: "REWARD_TOP_UP_TYPE_DETAIL"},
     // Bank card type
-    bankCardType: {index: 13, type: "multiSelect", des: "Bank card type", options: "bankType"}
+    bankCardType: {index: 13, type: "multiSelect", des: "Bank card type", options: "bankType", detail: "REWARD_TOP_UP_TYPE_DETAIL"}
 };
 
 var periodCond = {
     // Reward apply interval
-    interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval"},
+    interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval", detail: "REWARD_INTERVAL_DETAIL"},
     // Top up count between interval check type
     topUpCountType: {index: 21, type: "interval", des: "Top up count between interval type", options: "intervalType"}
 };
@@ -448,7 +448,7 @@ var latestTopUpCond = {
         des: "Allow to apply if there is consumption after top up"
     },
     // Allow to apply if there is withdrawal after top up
-    allowApplyAfterWithdrawal: {index: 31, type: "checkbox", des: "Allow to apply if there is withdrawal after top up"},
+    allowApplyAfterWithdrawal: {index: 31, type: "checkbox", des: "Allow to apply if there is withdrawal after top up", detail: "REWARD_APPLY_AFTER_WITHDRAWAL_DETAIL"},
     // Ignore checks for certain rewards that applied with this top up
     ignoreTopUpDirtyCheckForReward: {
         index: 32,
@@ -551,7 +551,7 @@ db.rewardParam.update({
             generalCond: generalCond,
             topUpCond: topUpCond,
             periodCond: {
-                interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval"},
+                interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval", detail: "REWARD_INTERVAL_DETAIL"},
             },
             consumptionCond: consumptionCond,
             consumptionProviderCond: consumptionProviderCond,
@@ -560,31 +560,34 @@ db.rewardParam.update({
                     index: 32,
                     type: "multiSelect",
                     des: "Ignore the following rewards that applied with all top up",
-                    options: "allRewardEvent"
+                    options: "allRewardEvent",
+                    detail: "REWARD_TOP_UP_DIRTY_FOR_REWARD_DETAIL"
                 }
             },
             customCond: {
                 requireNonBreakingCombo: {
                     index: 21,
                     type: "checkbox",
-                    des: "Player does not need to earn reward consecutively in order for it to accumulate"
+                    des: "Player does not need to earn reward consecutively in order for it to accumulate",
+                    detail: "REWARD_REQUIRE_NON_BREAKING_COMBO_DETAIL"
                 },
                 allowReclaimMissedRewardDay: {
                     index: 21.1,
                     type: "checkbox",
-                    des: "Player can delay apply for reward within period"
+                    des: "Player can delay apply for reward within period",
+                    detail: "REWARD_RECLAIM_MISSED_DAY_DETAIL"
                 },
             },
         },
         param: {
             tblOptFixed: {
                 isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
-                requiredTopUpAmount: {type: "number", des: "Required top up amount"},
-                requiredConsumptionAmount: {type: "number", des: "Required consumption amount"},
+                requiredTopUpAmount: {type: "number", des: "Required top up amount daily"},
+                requiredConsumptionAmount: {type: "number", des: "Required consumption amount daily"},
                 operatorOption: {type: "checkbox", des: "Required both"},
                 rewardParam: {
                     rewardAmount: {type: "number", des: "Reward amount"},
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    spendingTimes: {type: "number", des: "Spending times needed"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "number",
@@ -756,8 +759,8 @@ db.rewardParam.update({
         param: {
             tblOptFixed: {
                 rewardParam: {
-                    rewardAmount: {type: "number", des: "Reward amount"},
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    rewardAmount: {type: "number", des: "FREE_TRIAL_REWARD_AMOUNT"},
+                    spendingTimes: {type: "number", des: "FREE_TRIAL_SPENDING_TIMES"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "number",
@@ -813,7 +816,7 @@ db.rewardParam.update({
                 ignoreTopUpDirtyCheckForReward: {
                     index: 32,
                     type: "multiSelect",
-                    des: "Ignore the following rewards that applied with top up",
+                    des: "Ignore the following rewards that applied with all top up",
                     options: "allRewardEvent"
                 }
             },

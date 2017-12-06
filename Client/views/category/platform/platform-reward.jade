@@ -112,6 +112,7 @@
                     div(ng-repeat="(i,v) in vm.rewardMainCondition")
                         .full-width-input-block(ng-hide="vm.rewardDisabledParam.indexOf(vm.rewardMainCondition[i].name) > -1")
                             label.control-label {{v.des | translate}}
+                                i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{v.detail | translate}}' ng-if="v.detail")
 
                             input.form-control(ng-if="v.type == 'text' || v.type == 'checkbox'" type="{{v.type}}" ng-change="vm.changeRewardParamLayout(vm.rewardMainCondition[i]);" ng-model="vm.rewardMainCondition[i].value" data-cond-name="{{v.name}}" ng-disabled="v.disabled")
                             select.form-control(ng-if="v.type == 'select'" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v | translate for (i,v) in v.options" ng-change="vm.rewardSelectOnChange(vm.rewardMainCondition[i])" data-cond-name="{{v.name}}" ng-disabled="v.disabled")
@@ -157,16 +158,18 @@
                     .col-md-12.well.scrollRecord
                         div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
                             label {{v.des | translate}}
+                                i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{v.detail | translate}}' ng-if="v.detail")
                             input.form-control(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-change="vm.changeRewardParamLayout(i);" ng-model="vm.rewardMainParam[i].value")
-                        table.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTable track by $index")
+                        table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTable track by $index" ng-cloak)
                             thead
-                                th(ng-if="!vm.isPlayerLevelDiff && vm.isMultiStepReward && !vm.platformRewardShowEdit()")
+                                th(ng-if="!vm.isPlayerLevelDiff && vm.isMultiStepReward")
                                 th(style="width:70px" ng-if="vm.isPlayerLevelDiff") {{vm.allPlayerLvl[$index].name}}
                                 th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                             tbody(ng-repeat="entry in cond.value track by $index")
                                 td(ng-if="vm.isPlayerLevelDiff || vm.isMultiStepReward")
                                     i.fa.fa-plus(ng-click='cond.value.push({})' ng-if='!cond.header.hasOwnProperty("rewardPercentageAmount") && vm.isMultiStepReward && !vm.platformRewardShowEdit()')
                                     i.fa.fa-plus(ng-click='cond.value.push({"rewardPercentageAmount":[{percentage: "", amount: ""}]})' ng-if='cond.header.hasOwnProperty("rewardPercentageAmount") && vm.isMultiStepReward && !vm.platformRewardShowEdit()')
+                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
                                     span.percentage(ng-if="v.type == 'percentage'")

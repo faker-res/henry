@@ -89,6 +89,18 @@
         });
     };
 
+    proto.verifyPhoneNumberBySMSCode = function (callback, requestData) {
+        var data = requestData || {
+            smsCode: '123456'
+        };
+        this.playerService.verifyPhoneNumberBySMSCode.request(data);
+        this.playerService.verifyPhoneNumberBySMSCode.once(function (data) {
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.create = function (callback, requestData) {
         date = new Date().getTime();
         //console.log("data:platformId.....", platformId);
@@ -549,30 +561,6 @@
 
         thisObj.playerService.getCardTypeList.request(data);
         thisObj.playerService.getCardTypeList.once(function (data) {
-            if (typeof callback === "function") {
-                callback(data);
-            }
-        });
-    };
-
-    proto.getSignInfo = function (callback, requestData) {
-        var thisObj = this;
-        var data = requestData || {};
-
-        thisObj.playerService.getSignInfo.request(data);
-        thisObj.playerService.getSignInfo.once(function (data) {
-            if (typeof callback === "function") {
-                callback(data);
-            }
-        });
-    };
-
-    proto.getSignBonus = function (callback, requestData) {
-        var thisObj = this;
-        var data = requestData || {};
-
-        thisObj.playerService.getSignBonus.request(data);
-        thisObj.playerService.getSignBonus.once(function (data) {
             if (typeof callback === "function") {
                 callback(data);
             }

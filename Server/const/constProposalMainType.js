@@ -6,6 +6,7 @@ const constMainType = {
     TOP_UP: "TopUp",
     BONUS: "PlayerBonus",
     REWARD: "Reward",
+    REWARD_POINTS: "Reward Points",
     UPDATE_PLAYER: "UpdatePlayer",
     UPDATE_PARTNER: "UpdatePartner",
     INTENTION: "Intention",
@@ -55,6 +56,9 @@ const constProposalMainType = {
     "PlayerRandomRewardGroup": constMainType.REWARD,
     "PlayerLoseReturnRewardGroup": constMainType.REWARD,
     "PlayerConsecutiveRewardGroup": constMainType.REWARD,
+
+    //REWARD POINTS
+    "PlayerConvertRewardPoints": constMainType.REWARD_POINTS,
 
     //UPDATE_PLAYER
     "UpdatePlayerInfo" : constMainType.UPDATE_PLAYER,

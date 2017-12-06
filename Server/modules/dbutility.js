@@ -106,6 +106,10 @@ var dbUtility = {
         };
     },
 
+    getSGTimeOf: function (time) {
+        return time ? moment(time).tz('Asia/Singapore').toDate() : null;
+    },
+
     getTargetSGTime: function (targetDate) {
         var startTime = moment(targetDate).tz('Asia/Singapore').startOf('day').toDate();
         var endTime = moment(startTime).add(1, 'days').toDate();
@@ -172,6 +176,15 @@ var dbUtility = {
         };
     },
 
+    getCurrentYearSGTime: function () {
+        var startTime = moment().tz('Asia/Singapore').startOf('year').toDate();
+        var endTime = moment().tz('Asia/Singapore').endOf('year').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getCurrentBiWeekSGTIme: function () {
         let startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
         let endTime = moment(startTime).add(14, 'days').toDate();
@@ -180,6 +193,25 @@ var dbUtility = {
         if (todayDay >= 15) {
             startTime = endTime;
             endTime = moment().tz('Asia/Singapore').endOf('month').toDate();
+        }
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getLastBiWeekSGTime: function () {
+        let startTime, endTime;
+        let todayDay = moment().tz('Asia/Singapore').date();
+
+        if (todayDay >= 15) {
+            startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
+            endTime = moment(startTime).add(14, 'days').toDate();
+        } else {
+            let lastMonthTime = dbUtility.getLastMonthSGTime();
+            startTime = moment(lastMonthTime.startTime).add(14, 'days').toDate();
+            endTime = lastMonthTime.endTime;
         }
 
         return {

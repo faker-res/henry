@@ -114,20 +114,23 @@ var dbPlayerTopUpRecord = {
         let rewardEventQuery = {platform: platformObjId};
 
         if (byPassedEvent && byPassedEvent.length > 0) {
+            byPassedEvent.forEach(byPassedEventId => {
+                byPassedEvent.push(ObjectId(byPassedEventId));
+            });
             rewardEventQuery._id = {$nin: byPassedEvent};
         }
 
         return dbconfig.collection_rewardEvent.distinct("_id", rewardEventQuery).then(
             rewardEventIds => {
-                topUpQuery.usedProposal = {$nin: rewardEventIds};
-                dbconfig.collection_playerTopUpRecord.find(topUpQuery).lean()
+                topUpQuery.usedEvent = {$nin: rewardEventIds};
+                return dbconfig.collection_playerTopUpRecord.find(topUpQuery).lean()
             }
         ).then(
-            consumptionRecords => {
+            toUpRecords => {
                 let curAmount = 0;
 
-                for (var i = 0; i < consumptionRecords.length; i++) {
-                    let record = consumptionRecords[i];
+                for (var i = 0; i < toUpRecords.length; i++) {
+                    let record = toUpRecords[i];
                     recordIds.push(record._id);
                     curAmount += record.amount;
                     if (curAmount >= spendingAmount) {
@@ -347,8 +350,10 @@ var dbPlayerTopUpRecord = {
 
     /**
      * Top up success
-     * @param {Json} query
-     * @param {Json} update
+     * @param query
+     * @param queryData
+     * @param checkSteps
+     * @param skipVerify
      */
     playerTopUpSuccess: function (query, queryData, checkSteps, skipVerify) {
         var deferred = Q.defer();
@@ -356,6 +361,7 @@ var dbPlayerTopUpRecord = {
         var proposalObj = {};
         var player = {};
         var isValidForTransaction = false;
+
         dbconfig.collection_proposal.findOne(query)
             .then(
                 function (data) {
@@ -363,6 +369,10 @@ var dbPlayerTopUpRecord = {
                         topupIntentionObj = data.data;
                         proposalObj = data;
                         isValidForTransaction = topupIntentionObj.validForTransactionReward;
+
+                        // Check top up intention
+                        // Check proposal status
+                        // Check top up proposal has processing steps
                         if (!skipVerify && ((topupIntentionObj.topUpAmount != queryData.amount) || (topupIntentionObj.playerId != queryData.playerId))) {
                             deferred.reject({
                                 name: "DataError",
@@ -436,7 +446,8 @@ var dbPlayerTopUpRecord = {
                     //todo:: check top up payment channel type here
                     if (isValidForTransaction) {
                         return dbPlayerInfo.applyForPlatformTransactionReward(player.platform, player._id, topupIntentionObj.topUpAmount, player.playerLevel);
-                    } else {
+                    }
+                    else {
                         deferred.resolve(data);
                     }
                 }
@@ -1052,7 +1063,7 @@ var dbPlayerTopUpRecord = {
                             break;
                         case 4:
                         case "4":
-                            depositMethod = "其他";
+                            depositMethod = "支付宝转账";
                             break;
                         default:
                             break;
@@ -1256,7 +1267,7 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             },
             error => {
-                if(adminName){
+                if(adminName && error.code == 408){
                     return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
                 }
                 else{
@@ -1301,7 +1312,7 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             },
             error => {
-                if(adminName){
+                if(adminName && error.code == 408){
                     return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
                 }
                 else{
@@ -1347,7 +1358,7 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             },
             error => {
-                if(adminName){
+                if(adminName && error.code == 408){
                     return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
                 }
                 else{
@@ -1903,7 +1914,7 @@ var dbPlayerTopUpRecord = {
     getPlayerWechatPayStatus: playerId => {
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).then(
+            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean().then(
                 playerData => {
                     if (playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) {
                         return pmsAPI.weChat_getWechatList({
@@ -1918,6 +1929,42 @@ var dbPlayerTopUpRecord = {
                                             playerData.wechatPayGroup.wechats.forEach(
                                                 pWechat => {
                                                     if (pWechat == wechat.accountNumber && wechat.state == "NORMAL") {
+                                                        bValid = true;
+                                                    }
+                                                }
+                                            );
+                                        }
+                                    );
+                                }
+                                return bValid;
+                            }
+                        );
+                    }
+                    else {
+                        return false;
+                    }
+                }
+            )
+    },
+
+    getPlayerAliPayStatus: playerId => {
+        return dbconfig.collection_players.findOne({playerId: playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .populate({path: "aliPayGroup", model: dbconfig.collection_platformAliPayGroup}).then(
+                playerData => {
+                    if (playerData && playerData.platform && playerData.aliPayGroup && playerData.aliPayGroup.alipays && playerData.aliPayGroup.alipays.length > 0) {
+                        return pmsAPI.alipay_getAlipayList({
+                            platformId: playerData.platform.platformId,
+                            queryId: serverInstance.getQueryId()
+                        }).then(
+                            alipays => {
+                                let bValid = false;
+                                if (alipays.data && alipays.data.length > 0) {
+                                    alipays.data.forEach(
+                                        alipay => {
+                                            playerData.aliPayGroup.alipays.forEach(
+                                                pAlipay => {
+                                                    if (pAlipay == alipay.accountNumber && alipay.state == "NORMAL") {
                                                         bValid = true;
                                                     }
                                                 }

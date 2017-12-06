@@ -17,7 +17,6 @@ const dbPaymentReconciliation = {
                 let allProm = [];
 
                 for (let t = 0, tLength = timeFrames.length; t < tLength; t++) {
-                    let promises = [];
                     let start = timeFrames[t].startTime;
                     let end = timeFrames[t].endTime;
 
@@ -223,34 +222,27 @@ const dbPaymentReconciliation = {
 
         );
     },
-
-    // debug purpose only
-    testCashoutAPI: function (platformId, startTime, endTime) {
-        let pmsProm = pmsAPI.reconciliation_getCashoutList({
-            platformId: platformId,
-            starttime: getPMSTimeFormat(startTime),
-            endtime: getPMSTimeFormat(endTime)
-        });
-
-        return pmsProm;
-    }
-
 };
 
 function sliceTimeFrameToDaily(startTime, endTime) {
     const oneDayInMs = 1000*60*60*24;
     let timeFrames = [];
 
-    if ((endTime - startTime) <= oneDayInMs) {
+    if ((endTime - startTime) < oneDayInMs) {
         timeFrames.push({startTime: startTime, endTime: endTime});
     }
     else {
         let nextStartTime = startTime;
-        let nextEndTime = dbUtility.getDayEndTime(startTime);
+        // let nextEndTime = dbUtility.getDayEndTime(startTime); //this is one full day
+        let nextStartTimeDate = new Date(startTime);
+        let nextEndTimeDate = nextStartTimeDate.setHours(nextStartTimeDate.getHours()+12);
+        let nextEndTime = dbUtility.getSGTimeOf(nextEndTimeDate);
         while (nextEndTime < endTime) {
             timeFrames.push({startTime: nextStartTime, endTime: nextEndTime});
             nextStartTime = nextEndTime;
-            nextEndTime = dbUtility.getDayEndTime(nextStartTime);
+            let currentNextEndTime = new Date(nextEndTime);
+            nextEndTimeDate = currentNextEndTime.setHours(currentNextEndTime.getHours()+12);
+            nextEndTime = dbUtility.getSGTimeOf(nextEndTimeDate);
         }
         timeFrames.push({startTime: nextStartTime, endTime: endTime});
     }
@@ -260,15 +252,19 @@ function sliceTimeFrameToDaily(startTime, endTime) {
 
 function getMismatchFromProposalGroup(proposals, option) {
     let pmsProposals;
+    if (!proposals || !proposals[0]) {
+        return {};
+    }
+
     if (option === 'online') {
         pmsProposals = proposals[0].onlineCashinList || [];
     }
     else {
-        pmsProposals = proposals[0].cashinList || [];
+        pmsProposals = proposals[0].cashinList || proposals[0].cashoutList || [];
     }
 
-    let localProposals = proposals[1];
-    let pmsOnlineProposals = option === 'manual' ? proposals[2].onlineCashinList : [];
+    let localProposals = proposals[1] || [];
+    let pmsOnlineProposals = option === 'manual' && proposals[2] ? proposals[2].onlineCashinList : [];
 
     if (option === 'manual') {
         pmsOnlineProposals = pmsOnlineProposals || [];
@@ -310,10 +306,6 @@ function getMismatchFromProposalGroup(proposals, option) {
             mismatches.push({proposalId: pmsProposal.proposalId, missing: "FPMS", createTime: pmsProposal.createTime, amount: pmsProposal.amount});
             pmsMismatchCount++;
             pmsMismatchAmount += pmsProposal.amount;
-        }
-        if (i === 0) {
-            // todo :: debugging console.log, remove later
-            console.log(JSON.stringify(pmsProposal, null, 4));
         }
         pmsCount++;
         pmsAmount += pmsProposal.amount;

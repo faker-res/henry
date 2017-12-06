@@ -270,7 +270,8 @@ var roleChecker = {
                 applyBonus: ['applyBonusRequest'],
                 BonusHistory: [],
                 CreditAdjustment: ['createUpdatePlayerCreditProposal'],
-                RewardPointAdjustment: [],
+                RewardPointsChange: [],
+                RewardPointsExchange: [],
                 CreditChangeLog: ['getPlayerCreditChangeLogsByQuery', 'getPagedPlayerCreditChangeLogs'],
                 PlayerExpenses: ['getPlayerConsumptionRecords', 'getPlayerTotalConsumptionForTimeFrame', 'playerPurchase'],
                 AddRewardTask: ['createPlayerRewardTask'],
@@ -377,6 +378,7 @@ var roleChecker = {
                 ValidActiveUpdate: ['updatePartnerLevelConfig'],
                 PartnerCommission: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig'],
                 platformBasic: [],
+                bonusBasic:['bonusBasic'],
                 autoApproval: ['updateAutoApprovalConfig'],
                 Monitor: [],
                 PlayerValue: ['updatePlayerValueConfig','updatePlayerLevelScores'],
@@ -429,8 +431,18 @@ var roleChecker = {
                 FilterAllPlatform: []
             },
             "rewardPoints": {
-                Read: ['getRewardPointsLvlConfig'],
-                Update: ['upsertRewardPointsLvlConfig']
+                Read: ['getRewardPointsLvlConfig', 'getRewardPointsEvent', 'getRewardPointsEventById', 'getRewardPointsEventByCategory','getRewardPoints','getRewardPointsRandom'
+                    ,'getRewardPointsRandomDataConfig'],
+                Create: ['createRewardPointsEvent','insertRewardPointsRandom','upsertRewardPointsRandomDataConfig'],
+                Delete: ['deleteRewardPointsEventById','deleteRewardPointsRankingRandom'],
+                Update: ['upsertRewardPointsLvlConfig', 'updateRewardPointsEvent','updateRewardPointsRankingRandom'],
+                rewardPointsRule: [],
+                loginRewardPoints: [],
+                topupRewardPoints: [],
+                gameRewardPoints: [],
+                rewardPointsRanking: [],
+                rewardPointsLog: []
+
             }
         },
         Payment: {

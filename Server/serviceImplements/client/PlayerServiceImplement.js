@@ -69,7 +69,7 @@ let PlayerServiceImplement = function () {
                 console.log("Player registration reporoId:", reporoId);
                 data.domain = data.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
             }
-            if(data.lastLoginIp){
+            if(data.lastLoginIp && data.lastLoginIp != "undefined"){
                 dbUtility.getGeoIp(data.lastLoginIp).then(
                     ipData=>{
                         if(data){
@@ -94,11 +94,20 @@ let PlayerServiceImplement = function () {
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode], isValidData, true, true, true).then(
                 (playerData) => {
                     data.playerId = data.playerId ? data.playerId : playerData.playerId;
-                    data.remarks = playerData.partnerId ? localization.translate("PARTNER", conn.lang) + ": " + playerData.partnerId : "";
-
+                    data.remarks = playerData.partnerName ? localization.translate("PARTNER", conn.lang) + ": " + playerData.partnerName : "";
+                    if(playerData && playerData.partnerId){
+                        data.partnerId = playerData.partnerId;
+                    }
 
                     console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
-                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                    if(data && data.realName && data.realName != "" && data.partnerName && data.partnerName != ""){
+                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                    }else{
+                        dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                    }
+
+                    //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                    //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     conn.isAuth = true;
                     conn.playerId = playerData.playerId;
                     conn.playerObjId = playerData._id;
@@ -139,7 +148,13 @@ let PlayerServiceImplement = function () {
                     }
                     console.log("createPlayerRegistrationIntentRecordAPI FAIL", data, err);
                     if (err && err.status != constServerCode.USERNAME_ALREADY_EXIST) {
-                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
+                        if(data && data.partnerName && data.partnerName != ""){
+                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                        }else{
+                            dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                        }
+                        //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
+                        //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                     }
                 }
             ).catch(WebSocketUtil.errorHandler)
@@ -318,7 +333,8 @@ let PlayerServiceImplement = function () {
         }
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua], isValidData, true, true, true).then(
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua, inputDevice], isValidData, true, true, true).then(
             function (playerData) {
                 if (conn.noOfAttempt >= constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
                     if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
@@ -837,7 +853,7 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getCaptcha, [conn], true, false, false, true);
     };
 
-    this.getSMSCode.expectsData = 'phoneNumber: String';
+    this.getSMSCode.expectsData = 'phoneNumber: String, name: String, purpose: String, partnerName: String';
     this.getSMSCode.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.phoneNumber && data.platformId);
         let randomCode = parseInt(Math.random() * 9000 + 1000);
@@ -847,7 +863,37 @@ let PlayerServiceImplement = function () {
         conn.captchaCode = null;
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
+        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
+        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            data.lastLoginIp = forwardedIp[0].trim();
+        }
+        data.loginIps = [data.lastLoginIp];
+        data.ipArea = {'province':'', 'city':''};
+        if (conn.isAuth && conn.playerId && !data.name) {
+            data.name = conn.playerId;
+        }
+
+        var uaString = conn.upgradeReq.headers['user-agent'];
+        var ua = uaParser(uaString);
+        data.userAgent = [{
+            browser: ua.browser.name || '',
+            device: ua.device.name || '',
+            os: ua.os.name || ''
+        }];
+
+        data.remarks = data.partnerName ? localization.translate("PARTNER", conn.lang) + ": " + data.partnerName : "";
+
+        if(data.phoneNumber && data.phoneNumber.length == 11){
+            WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
+        }else {
+            conn.captchaCode = null;
+            wsFunc.response(conn, {
+                status: constServerCode.INVALID_PHONE_NUMBER,
+                errorMessage: localization.translate("Invalid phone number", conn.lang),
+                data: null
+            }, data);
+        }
     };
 
     this.sendSMSCodeToPlayer.expectsData = 'platformId: String';
@@ -858,6 +904,12 @@ let PlayerServiceImplement = function () {
         conn.captchaCode = null;
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData);
+    };
+
+    this.verifyPhoneNumberBySMSCode.expectsData = 'smsCode: String';
+    this.verifyPhoneNumberBySMSCode.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.smsCode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.verifyPhoneNumberBySMSCode, [conn.playerId, data.smsCode], isValidData);
     };
 
     this.authenticate.expectsData = 'playerId: String, token: String';
@@ -986,8 +1038,9 @@ let PlayerServiceImplement = function () {
 
 
     this.manualPlayerLevelUp.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
         var isValidData = Boolean(data.playerObjId && data.platformObjId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [data.playerObjId, data.platformObjId], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [data.playerObjId, data.platformObjId, userAgent], isValidData, false, false, true);
     };
 
     this.getWithdrawalInfo.onRequest = function (wsFunc, conn, data) {

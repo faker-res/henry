@@ -31,7 +31,7 @@ let rewardTaskGroupSchema = new Schema({
     curConsumption: {type: Number, default: 0},
     // Target Consumption
     targetConsumption: {type: Number, default: 0},
-    // Current credit
+    // Running reward amount based on consumption, used to unlock reward before credit is transfer out, may be delayed
     currentAmt: {type: Number, default: 0},
     // Forbidden XIMA amount
     forbidXIMAAmt: {type: Number, default: 0},
@@ -42,7 +42,10 @@ let rewardTaskGroupSchema = new Schema({
     //if this reward task will use consumption record
     useConsumption: {type: Boolean, default: true},
     //related proposal id
-    proposalId: {type: String, index: true}
+    proposalId: {type: String, index: true},
+    // Ban reward if player credit reached this amount after unlock
+    // 0 amount will not trigger this
+    forbidWithdrawIfBalanceAfterUnlock: {type: Number, default: 0}
 });
 
 rewardTaskGroupSchema.index({targetProviders: 1});

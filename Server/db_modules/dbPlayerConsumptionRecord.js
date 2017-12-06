@@ -11,6 +11,7 @@ const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 const constRewardType = require('./../const/constRewardType');
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 const dbRewardTask = require('../db_modules/dbRewardTask');
+const dbRewardPointsTask = require('../db_modules/dbRewardPointsTask');
 const constShardKeys = require('../const/constShardKeys');
 const constSystemParam = require('../const/constSystemParam');
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
@@ -358,7 +359,14 @@ var dbPlayerConsumptionRecord = {
                 record = data;
                 if (record && !record.bDirty) {
                     //check player's reward task
-                    return dbRewardTask.checkPlayerRewardTaskForConsumption(record);
+                    return dbRewardTask.checkPlayerRewardTaskForConsumption(record).then(
+                        bDirty =>  {
+                            if (!bDirty) {
+                                return dbRewardPointsTask.checkPlayerRewardPointsTaskForConsumption(record);
+                            }
+                            return bDirty;
+                        }
+                    );
                 }
                 else {
                     return true;
@@ -542,11 +550,11 @@ var dbPlayerConsumptionRecord = {
                         summaryDay: summaryDay,
                         bDirty: false
                     };
-
-                    // Handle left over amount from partial XIMA
-                    if (checkRes && checkRes.nonDirtyAmount > 0) {
-                        consumptionAmount = checkRes.nonDirtyAmount;
-                    }
+                    //
+                    // // Handle left over amount from partial XIMA
+                    // if (checkRes && checkRes.nonDirtyAmount > 0) {
+                    //     consumptionAmount = checkRes.nonDirtyAmount;
+                    // }
 
                     let updateData = {
                         $inc: {amount: consumptionAmount, validAmount: consumptionAmount}
@@ -593,7 +601,7 @@ var dbPlayerConsumptionRecord = {
                 });
             }
         ).then(
-            data => data,
+            data => record,
             error => {
                 return Q.reject({name: "DBError", message: "Error in checking player level", error: error});
             }
@@ -1318,10 +1326,12 @@ var dbPlayerConsumptionRecord = {
     /**
      *  Add usedEvent to consumption record
      */
-    assignConsumptionUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, usedProposal, rewardType) {
+    assignConsumptionUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, providers, usedProposal, rewardType) {
+        // providers have to be an array
         let consumptionQuery = {
             platformId: platformObjId,
             playerId: playerObjId,
+            bDirty: false
         };
 
         if (startTime) {
@@ -1329,6 +1339,10 @@ var dbPlayerConsumptionRecord = {
             if (endTime) {
                 consumptionQuery.createTime.$lte = endTime;
             }
+        }
+
+        if (providers && providers.length > 0) {
+            consumptionQuery.providerId = {$in: providers};
         }
 
         let updateValue = {

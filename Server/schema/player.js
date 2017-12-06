@@ -70,6 +70,8 @@ var playerSchema = new Schema({
     lastPlayedProvider: {type: Schema.ObjectId, ref: 'gameProvider'},
     //forbid game providers
     forbidProviders: [{type: Schema.ObjectId, ref: 'gameProvider'}],
+    //forbid rewardPoint Events
+    forbidRewardPointsEvent: [{type: Schema.ObjectId, ref: 'rewardPointsEvent'}],
     //player level (vip, regular etc)
     playerLevel: {type: Schema.ObjectId, ref: 'playerLevel', index: true},
     //experience???
@@ -107,7 +109,7 @@ var playerSchema = new Schema({
         alipayTransaction: {type: Boolean, default: true},
         quickpayTransaction: {type: Boolean, default: true},
         banReward: {type: Boolean, default: false},
-        rewardPointTask: {type: Boolean, default: true},
+        rewardPointsTask: {type: Boolean, default: true},
         disableWechatPay: {type: Boolean, default: false},
         forbidPlayerConsumptionReturn: {type: Boolean, default: false},
         forbidPlayerConsumptionIncentive: {type: Boolean, default: false},
@@ -117,7 +119,8 @@ var playerSchema = new Schema({
         forbidPlayerFromEnteringGame: {type: Boolean, default: false},
         playerConsecutiveConsumptionReward: {type: Boolean, default: true},
         PlayerPacketRainReward: {type: Boolean, default: true},
-        PlayerLimitedOfferReward: {type: Boolean, default: true}
+        PlayerLimitedOfferReward: {type: Boolean, default: true},
+        levelChange: {type: Boolean, default: true}
     },
 
     //country
@@ -139,7 +142,7 @@ var playerSchema = new Schema({
     //type
     phoneType: String,
 
-    /*Playe Credit*/
+    /*Player Credit*/
     //current credit balance
     creditBalance: {type: Number, min: 0, default: 0},
     //valid credit
@@ -266,6 +269,8 @@ var playerSchema = new Schema({
     accAdmin: {type: String},
     csOfficer: {type: Schema.ObjectId, ref: 'admin'},
     promoteWay: {type: String},
+    // reward point object
+    rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints'},
 });
 
 //record is unique by name and platform

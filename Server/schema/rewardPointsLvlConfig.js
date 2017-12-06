@@ -8,6 +8,10 @@ var rewardPointsLvlConfigSchema = new Schema({
     intervalPeriod: {type: Number, required: true},
     //reward points apply method
     applyMethod: {type: Number, required: true},
+    // start time - only use when intervalPeriod is 'custom'
+    customPeriodStartTime: {type: Date},
+    // end time - only use when intervalPeriod is 'custom'
+    customPeriodEndTime: {type: Date},
     //reward points params
     params: [{
         levelObjId: {type: Schema.ObjectId, ref: 'playerLevel', required: true},
