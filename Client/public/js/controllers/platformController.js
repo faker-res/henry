@@ -15473,7 +15473,7 @@ define(['js/app'], function (myApp) {
                         status: 1
                     };
 
-                    return $scope.$socketPromise('getPromoCodesHistory', searchQ).then(ret => {
+                    return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
                         if (ret && ret.data && ret.data.length > 0) {
                             if (!data.skipCheck) {
                                 data.hasMoreThanOne = true;
