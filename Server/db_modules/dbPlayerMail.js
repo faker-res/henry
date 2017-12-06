@@ -21,6 +21,7 @@ const constProposalUserType = require('../const/constProposalUserType');
 const constServerCode = require('../const/constServerCode');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const rsaCrypto = require('./../modules/rsaCrypto');
+const errorUtils = require('../modules/errorUtils');
 
 const dbPlayerMail = {
 
@@ -310,7 +311,7 @@ const dbPlayerMail = {
                         delay: 0
                     };
                     // Log the verification SMS before send
-                    new dbconfig.collection_smsVerificationLog(saveObj).save();
+                    new dbconfig.collection_smsVerificationLog(saveObj).save().catch(errorUtils.reportError);
                     return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
                 }
             }

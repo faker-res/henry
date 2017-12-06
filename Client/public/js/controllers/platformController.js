@@ -3573,7 +3573,7 @@ define(['js/app'], function (myApp) {
                                     var link = $('<div>', {});
                                     if (data != "" && data != "0.00") {
                                         link.append($('<a>', {
-                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"1","' + vm.constProposalStatus.MANUAL + '");',
+                                            'ng-click': 'vm.setPreparePlayerRegistrationIntentRecordsByStatusParam(' + JSON.stringify(queryData) + ',"-1","' + vm.constProposalStatus.MANUAL + '");',
                                         }).text(data ? data : 0));
                                     }
                                     else {
@@ -15420,47 +15420,31 @@ define(['js/app'], function (myApp) {
             };
 
             vm.promoCodeNewRow = function (collection, type, data) {
-                collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true});
-                collection.forEach((elem, index, arr) => {
-                    let id = '#expDate' + type + '-' + index;
-                    let provId = '#promoProviders' + type + '-' + index;
-                    let tableId = "#createPromoCodeTable" + type;
+                let tableId = "#createPromoCodeTable" + type;
 
-                    if (!$(id).data("datetimepicker")) {
-                        utilService.actionAfterLoaded(id, function () {
-                            collection[index].expirationTime = utilService.createDatePicker(id, {
-                                language: 'en',
-                                format: 'yyyy/MM/dd hh:mm:ss',
-                                startDate: utilService.setLocalDayStartTime(new Date())
+                let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true}));
+
+                return p.then(
+                    () => {
+                        collection.forEach((elem, index, arr) => {
+                            let id = '#expDate' + type + '-' + index;
+
+
+                            utilService.actionAfterLoaded(id, function () {
+                                collection[index].expirationTime = utilService.createDatePicker(id, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss',
+                                    startDate: utilService.setLocalDayStartTime(new Date())
+                                });
+                                collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             });
-                            collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                            vm.checkPlayerName(elem, tableId);
                         });
+
+                        return collection;
                     }
-
-                    if (!$(provId).data("multipleSelect")) {
-                        utilService.actionAfterLoaded(provId, function () {
-                            $(provId).multipleSelect({
-                                allSelected: $translate("All Selected"),
-                                selectAllText: $translate("Select All"),
-                                countSelected: $translate('# of % selected'),
-                                onClick: function () {
-                                    //vm.proposalStatusUpdated();
-                                },
-                                onCheckAll: function () {
-                                    //vm.proposalStatusUpdated();
-                                },
-                                onUncheckAll: function () {
-                                    //vm.proposalStatusUpdated();
-                                }
-                            });
-                            $(provId).multipleSelect("checkAll");
-                        });
-                    }
-
-                    vm.checkPlayerName(elem, tableId);
-                });
-
-                return collection;
+                );
             };
 
             vm.generatePromoCode = function (col, index, data, type) {
@@ -15493,7 +15477,7 @@ define(['js/app'], function (myApp) {
                         status: 1
                     };
 
-                    return $scope.$socketPromise('getPromoCodesHistory', searchQ).then(ret => {
+                    return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
                         if (ret && ret.data && ret.data.length > 0) {
                             if (!data.skipCheck) {
                                 data.hasMoreThanOne = true;
@@ -16117,19 +16101,23 @@ define(['js/app'], function (myApp) {
                                 },
                                 {
                                     title: $translate('sendCount'),
-                                    data: "sendCount"
+                                    data: "sendCount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('acceptedCount'),
-                                    data: "acceptedCount"
+                                    data: "acceptedCount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('acceptedRate'),
-                                    render: (data, index, row) => String(parseFloat(row.acceptedCount / row.sendCount * 100).toFixed(2)) + "%"
+                                    render: (data, index, row) => String(parseFloat(row.acceptedCount / row.sendCount * 100).toFixed(2)) + "%",
+                                    sClass: "promoCodeAcceptanceRate"
                                 },
                                 {
                                     title: $translate('acceptedAmount'),
-                                    data: "acceptedAmount"
+                                    data: "acceptedAmount",
+                                    sClass: 'sumInt'
                                 }
                             ],
                             "paging": false
@@ -16148,23 +16136,28 @@ define(['js/app'], function (myApp) {
                                 },
                                 {
                                     title: $translate('sendCount'),
-                                    data: "sendCount"
+                                    data: "sendCount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('acceptedCount'),
-                                    data: "acceptedCount"
+                                    data: "acceptedCount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('acceptedRate'),
-                                    render: (data, index, row) => String(parseFloat(row.acceptedCount / row.sendCount * 100).toFixed(2)) + "%"
+                                    render: (data, index, row) => String(parseFloat(row.acceptedCount / row.sendCount * 100).toFixed(2)) + "%",
+                                    sClass: "promoCodeAcceptanceRate"
                                 },
                                 {
                                     title: $translate('acceptedAmount'),
-                                    data: "acceptedAmount"
+                                    data: "acceptedAmount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('relatedTopUpAmount'),
-                                    data: "topUpAmount"
+                                    data: "topUpAmount",
+                                    sClass: 'sumInt'
                                 }
                             ],
                             "paging": false
