@@ -1285,7 +1285,7 @@
   "PROMO_CONSUMPTION": "所需流水(Y)",
   "PROMO_DUE_DATE": "期限(Z)",
   "DISABLE_WITHDRAWAL_AFTER_PROMO": "領取后禁用提款",
-  "ALLOWED_PROVIDER": "大廳限制",
+  "ALLOWED_PROVIDER": "大廳限制(P)",
   "BANNER_TEXT": "展示",
   "PROMO_CODE": "优惠代碼(Q)",
   "SMS_INTERMAIL": "短信/站内信",
