@@ -149,9 +149,9 @@ let PlayerServiceImplement = function () {
                     console.log("createPlayerRegistrationIntentRecordAPI FAIL", data, err);
                     if (err && err.status != constServerCode.USERNAME_ALREADY_EXIST) {
                         if(data && data.partnerName && data.partnerName != ""){
-                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                         }else{
-                            dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                            dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                         }
                         //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                         //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
@@ -298,7 +298,8 @@ let PlayerServiceImplement = function () {
     this.updatePhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         data.userAgent = userAgent;
-        let isValidData = Boolean(data && data.platformId && data.playerId && (data.playerId == conn.playerId) && data.phoneNumber && data.smsCode);
+        let isValidData = Boolean(data && data.platformId && data.playerId && (data.playerId == conn.playerId) && data.smsCode);
+        data.phoneNumber = data.phoneNumber || "";
         let queryRes = queryPhoneLocation(data.phoneNumber);
         if (queryRes) {
             data.phoneProvince = queryRes.province;
@@ -853,7 +854,7 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getCaptcha, [conn], true, false, false, true);
     };
 
-    this.getSMSCode.expectsData = 'phoneNumber: String, name: String, purpose: String';
+    this.getSMSCode.expectsData = 'phoneNumber: String, name: String, purpose: String, partnerName: String';
     this.getSMSCode.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.phoneNumber && data.platformId);
         let randomCode = parseInt(Math.random() * 9000 + 1000);
@@ -881,6 +882,9 @@ let PlayerServiceImplement = function () {
             device: ua.device.name || '',
             os: ua.os.name || ''
         }];
+
+        data.remarks = data.partnerName ? localization.translate("PARTNER", conn.lang) + ": " + data.partnerName : "";
+
         if(data.phoneNumber && data.phoneNumber.length == 11){
             WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
         }else {

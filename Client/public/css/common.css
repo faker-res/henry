@@ -2937,3 +2937,6 @@ input[type='number'].leftALignNumber {
 #newPlayerListTable_wrapper .dataTable {
     font-size: 12px;
 }
+#Game .processing-transfer-out{
+    background-color: rgba(210,50,130,1);
+}

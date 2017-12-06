@@ -56,6 +56,7 @@ var constProposalEntryType = require('../const/constProposalEntryType');
 var errorUtils = require("../modules/errorUtils.js");
 var SMSSender = require('../modules/SMSSender');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
+var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
@@ -108,7 +109,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOneAndUpdate({
             _id: playerId,
             platform: platformId
-        }, saveObj, {upsert: true});
+        }, saveObj, {upsert: true, new: true});
     },
 
     /**
@@ -126,7 +127,6 @@ let dbPlayerInfo = {
     updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark) {
         return dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, remark);
     },
-
     /**
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
@@ -4577,9 +4577,26 @@ let dbPlayerInfo = {
      * @param {objectId} providerId
      * @param {Number} amount
      */
-    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
+    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync, isBatch) {
+        isBatch = isBatch === true;
+        let updateBatchStatus = function (isBatch) {    //uses platform parameter to pass in platformObjId
+            if(isBatch) {
+                let incrementObj = {};
+                if(playerObj) {
+                    incrementObj["batchCreditTransferOutStatus." + playerObj.platform._id + ".processedAmount"] = 1;
+                } else {
+                    incrementObj["batchCreditTransferOutStatus." + platform + ".processedAmount"] = 1;
+                }
+                if(gameProvider) {
+                    dbconfig.collection_gameProvider.findOneAndUpdate({_id: gameProvider._id}, {$inc: incrementObj}).exec();
+                } else {
+                    dbconfig.collection_gameProvider.findOneAndUpdate({providerId: providerId}, {$inc: incrementObj}).exec();
+                }
+            }
+        };
         var deferred = Q.defer();
-        var playerObj = {};
+        let playerObj;
+        let gameProvider;
         var prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform})
@@ -4590,6 +4607,7 @@ let dbPlayerInfo = {
             function (data) {
                 if (data && data[0] && data[1]) {
                     playerObj = data[0];
+                    gameProvider = data[1];
 
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
@@ -4615,6 +4633,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
+                updateBatchStatus(isBatch);
                 deferred.resolve(data);
             },
             function (err) {
@@ -4624,6 +4643,7 @@ let dbPlayerInfo = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, err, constPlayerCreditTransferStatus.FAIL);
                 }
+                updateBatchStatus(isBatch);
                 deferred.reject(err);
             }
         );
@@ -5634,7 +5654,6 @@ let dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     manualPlayerLevelUp: function (playerObjId, platformObjId, userAgent) {
-
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
         }
@@ -5751,6 +5770,7 @@ let dbPlayerInfo = {
         var levelErrorMsg = '';
         // A flag to determine LevelUp Stop At Where.
         var levelUpEnd = false;
+        let isRewardAssign = false;
 
         return Promise.resolve(player).then(
             function (player) {
@@ -5777,6 +5797,9 @@ let dbPlayerInfo = {
                     //}
                     //
                     //return dbconfig.collection_playerLevel.find(query).sort({value: 1}).lean();
+                    if (playerObj.permission && playerObj.permission.levelChange === false) {
+                        return Q.reject({name: "DBError", message: "player do not have level permission"});
+                    }
 
                     if (checkLevelUp && !checkLevelDown) {
                         playerLevels = playerLevels.filter(level => level.value > playerObj.playerLevel.value);
@@ -5998,12 +6021,17 @@ let dbPlayerInfo = {
                                                     proposalData.rewardAmount = levelUpObj.reward.bonusCredit;
                                                     proposalData.isRewardTask = levelUpObj.reward.isRewardTask;
 
-                                                    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
                                                 }
+                                                return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
+
+                                            } else {
+                                                isRewardAssign = true;
+                                                return {}
                                             }
                                         }
                                     ).then(
                                         proposalResult => {
+
                                             if (!checkLevelUp) {
                                                 return Promise.resolve();
                                             }
@@ -6020,17 +6048,20 @@ let dbPlayerInfo = {
                                             }
                                             let rewardPriceCount = rewardPrice.length;
                                             let mainMessage = '恭喜您从 ' + prevLevelName + ' 升级到 ' + currentLevelName;
-                                            let subMessage = ',获得';
-                                            rewardPrice.forEach(
-                                                function (val, index) {
-                                                    let colon = '、';
-                                                    if (index == rewardPrice.length - 1) {
-                                                        colon = '';
+                                            let subMessage = '';
+                                            if (!isRewardAssign) {
+                                                subMessage = ',获得';
+                                                rewardPrice.forEach(
+                                                    function (val, index) {
+                                                        let colon = '、';
+                                                        if (index == rewardPrice.length - 1) {
+                                                            colon = '';
+                                                        }
+                                                        subMessage += '' + val + '元' + colon;
                                                     }
-                                                    subMessage += '' + val + '元' + colon;
-                                                }
-                                            )
-                                            subMessage += '共' + rewardPrice.length + '个礼包';
+                                                )
+                                                subMessage += '共' + rewardPrice.length + '个礼包';
+                                            }
                                             let message = mainMessage + subMessage;
                                             return {message: message}
 
@@ -11998,7 +12029,15 @@ let dbPlayerInfo = {
                                 }
                                 let lockListArr = [];
                                 rewardDetails.map(r =>{
-                                    lockListArr.push({name: r.providerGroup.name, lockAmount: r.targetConsumption, currentLockAmount: r.curConsumption});
+                                    if(r){
+                                        let providerGroupName = r.providerGroup.name ? r.providerGroup.name : "";
+                                        let targetCon = r.targetConsumption ? r.targetConsumption : 0;
+                                        let ximaAmt = r.forbidXIMAAmt ? r.forbidXIMAAmt : 0;
+                                        let curCon = r.curConsumption ? r.curConsumption : 0;
+
+                                        lockListArr.push({name: providerGroupName, lockAmount: targetCon + ximaAmt, currentLockAmount: curCon});
+                                    }
+
                                 })
 
                                 return lockListArr;
