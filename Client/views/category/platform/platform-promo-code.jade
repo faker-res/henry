@@ -583,10 +583,12 @@
                     .clearfix
                     label(ng-if="vm.promoCodeAnalysis.totalCount") {{"Promo Anaysis" | translate}} : {{"Total" | translate}} {{vm.promoCodeAnalysis.totalCount}} {{"records" | translate}}
                     table#promoCodeAnalysisTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                    #promoCodeAnalysisTablePage.col-md-12
 
                     .clearfix
                     label(ng-if="vm.promoCodeAnalysis2.totalCount") {{"Player Anaysis" | translate}} : {{"Total" | translate}} {{vm.promoCodeAnalysis2.totalCount}} {{"records" | translate}}
                     table#promoCodeAnalysis2Table.common-table.display(style="min-width:100% ;overflow: scroll")
+                    #promoCodeAnalysis2TablePage.col-md-12
 
 #modalDeletePromoCodeUserGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')

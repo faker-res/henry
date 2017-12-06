@@ -16097,19 +16097,23 @@ define(['js/app'], function (myApp) {
                                 },
                                 {
                                     title: $translate('sendCount'),
-                                    data: "sendCount"
+                                    data: "sendCount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('acceptedCount'),
-                                    data: "acceptedCount"
+                                    data: "acceptedCount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('acceptedRate'),
-                                    render: (data, index, row) => String(parseFloat(row.acceptedCount / row.sendCount * 100).toFixed(2)) + "%"
+                                    render: (data, index, row) => String(parseFloat(row.acceptedCount / row.sendCount * 100).toFixed(2)) + "%",
+                                    sClass: "promoCodeAcceptanceRate"
                                 },
                                 {
                                     title: $translate('acceptedAmount'),
-                                    data: "acceptedAmount"
+                                    data: "acceptedAmount",
+                                    sClass: 'sumInt'
                                 }
                             ],
                             "paging": false
@@ -16128,23 +16132,28 @@ define(['js/app'], function (myApp) {
                                 },
                                 {
                                     title: $translate('sendCount'),
-                                    data: "sendCount"
+                                    data: "sendCount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('acceptedCount'),
-                                    data: "acceptedCount"
+                                    data: "acceptedCount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('acceptedRate'),
-                                    render: (data, index, row) => String(parseFloat(row.acceptedCount / row.sendCount * 100).toFixed(2)) + "%"
+                                    render: (data, index, row) => String(parseFloat(row.acceptedCount / row.sendCount * 100).toFixed(2)) + "%",
+                                    sClass: "promoCodeAcceptanceRate"
                                 },
                                 {
                                     title: $translate('acceptedAmount'),
-                                    data: "acceptedAmount"
+                                    data: "acceptedAmount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('relatedTopUpAmount'),
-                                    data: "topUpAmount"
+                                    data: "topUpAmount",
+                                    sClass: 'sumInt'
                                 }
                             ],
                             "paging": false
