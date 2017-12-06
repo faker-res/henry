@@ -1377,6 +1377,8 @@
   "Check if this IP address has received free trial": "（领优惠前）检查该IP是否曾经领过",
   "Check if this phone number has received free trial": "（领优惠前）检查该电话是否曾经领过",
   "Need SMS verification": "（领优惠中）是否需要短信验证",
+  "FREE_TRIAL_REWARD_AMOUNT": "固定优惠金额",
+  "FREE_TRIAL_SPENDING_TIMES": "解锁流水（优）X倍",
 
   "REWARD_POINTS_ADJUSTMENT": "修改积分",
   "VALID_REWARD_POINTS": "有效积分",
@@ -2849,6 +2851,7 @@
   "REWARD_TOP_UP_DIRTY_FOR_REWARD_DETAIL": "勾选后将无视该存款已申请过其他优惠",
   "REWARD_REQUIRE_NON_BREAKING_COMBO_DETAIL": "不勾选则玩家可跨日累积签到天数",
   "REWARD_RECLAIM_MISSED_DAY_DETAIL": "不勾选玩家需每日领取，隔日不计算",
+  "levelChange": "等级变动",
   "Player do not have permission for convert reward points to credit": "您好， 您目前暂无兑换积分的权限，请联系客服。",
   "Can not match player level with reward points level config": "没有与玩家等级匹配的积分配置",
   "Can not find reward points config": "无法找到积分配置",

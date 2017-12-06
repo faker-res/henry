@@ -2810,65 +2810,91 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
-            // check IP address
-            if (eventData.condition.checkIPFreeTrialReward) {
-                // find matching IP address
-                let matchIPAddress = dbConfig.collection_players.aggregate(
-                    {
-                        $match: {
-                            "lastLoginIp": playerData.lastLoginIp
-                        }
-                    },
-                    {
-                        $project: {
-                            name: 1,
-                            lastLoginIp: 1,
-                            _id: 0
-                        }
-                    }
-                ).then(
-                    lastLoginIP => {
-                        // including this player, check if got another same IP address
-                        if (lastLoginIP.length >= 2) {
-                            return 0;
-                        }
-                        else {
-                            return lastLoginIP[0];
-                        }
-                    }
-                );
-                promArr.push(matchIPAddress);
+            let freeTrialQuery = {
+                platformId: playerData.platform._id,
+                playerId: playerData._id,
+                createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime}
+            };
+
+            // check during this period interval
+            if (intervalTime) {
+                freeTrialQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
             }
 
-            // check phone number
-            if (eventData.condition.checkPhoneFreeTrialReward) {
-                // find matching phone number
-                let matchPhoneNum = dbConfig.collection_players.aggregate(
-                    {
-                        $match: {
-                            "phoneNumber": rsaCrypto.encrypt(playerData.phoneNumber)
-                        }
-                    },
-                    {
-                        $project: {
-                            name: 1,
-                            phoneNumber: 1,
-                            _id: 0
-                        }
+            // check reward apply limit in period
+            let countInRewardInterval = dbConfig.collection_proposal.aggregate(
+                {
+                    $match: {
+                        "createTime": freeTrialQuery.createTime,
+                        "data.eventId": eventData._id,
+                        "status": 'Approved'
                     }
-                ).then(
-                    phone => {
-                        // including this player, check if got another same phone number
-                        if (phone.length >= 2) {
-                            return 0;
-                        }
-                        else {
-                            return phone[0];
-                        }
+                },
+                {
+                    $project: {
+                        createTime: 1,
+                        status: 1,
+                        'data.playerObjId': 1,
+                        'data.eventId': 1,
+                        'data.lastLoginIp': 1,
+                        'data.phoneNumber': 1,
+                        _id: 0
                     }
-                );
-                promArr.push(matchPhoneNum);
-            }
+                }
+            ).then(
+                countReward => { // display approved proposal data during this event period
+                    let resultArr = [];
+                    let sameIPAddressResult;
+                    let samePhoneNumResult;
+                    let sameIPAddress = 0;
+                    let samePhoneNum = 0;
+
+                    // check IP address
+                    if (playerData.lastLoginIp !== '' && eventData.condition.checkIPFreeTrialReward) {
+                        // execute if IP is not empty
+                        for (let i = 0; i < countReward.length; i++) {
+                            // check if same IP address  has already received this reward
+                            if (playerData.lastLoginIp === countReward[i].data.lastLoginIp) {
+                                sameIPAddress++;
+                            }
+                        }
+
+                        if (sameIPAddress >= 1) {
+                            sameIPAddressResult = 0;
+                        } else {
+                            sameIPAddressResult = 1;
+                        }
+                        resultArr.push(sameIPAddressResult);
+                    } else {
+                        // if IP is empty, skip IP checking, player register from backend
+                        sameIPAddressResult = 1;
+                        resultArr.push(sameIPAddressResult);
+                    }
+
+                    // check phone number
+                    if (eventData.condition.checkPhoneFreeTrialReward) {
+                        for (let i = 0; i < countReward.length; i++) {
+                            // check if same phone number has already received this reward
+                            if (playerData.phoneNumber === countReward[i].data.phoneNumber) {
+                                samePhoneNum++;
+                            }
+                        }
+
+                        if (samePhoneNum >= 1) {
+                            samePhoneNumResult = 0;
+                        } else {
+                            samePhoneNumResult = 1;
+                        }
+                        resultArr.push(samePhoneNumResult);
+                    } else {
+                        samePhoneNumResult = 1;
+                        resultArr.push(samePhoneNumResult);
+                    }
+
+                    return resultArr;
+                }
+            );
+            promArr.push(countInRewardInterval);
         }
 
         return Promise.all([todayTopupProm, todayPropsProm, topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
@@ -3156,14 +3182,14 @@ let dbPlayerReward = {
                         selectedRewardParam = selectedRewardParam[0];
 
                         if (selectedRewardParam.rewardAmount && selectedRewardParam.spendingTimes) {
-                            let matchIPAddress = rewardSpecificData[0];
-                            let matchPhoneNum = rewardSpecificData[1];
+                            let matchIPAddress = rewardSpecificData[0][0];
+                            let matchPhoneNum = rewardSpecificData[0][1];
 
                             if (!matchIPAddress) {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "Another player found using the same IP Address"
+                                    message: "This IP address has applied for max reward times in event period"
                                 });
                             }
 
@@ -3171,7 +3197,7 @@ let dbPlayerReward = {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "Another player found using the same phone number"
+                                    message: "This phone number has applied for max reward times in event period"
                                 });
                             }
                         }
@@ -3445,6 +3471,11 @@ let dbPlayerReward = {
 
                     if (selectedTopUp && selectedTopUp._id) {
                         proposalData.data.topUpRecordId = selectedTopUp._id;
+                    }
+
+                    if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
+                        proposalData.data.lastLoginIp = playerData.lastLoginIp;
+                        proposalData.data.phoneNumber = playerData.phoneNumber;
                     }
 
                     return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
