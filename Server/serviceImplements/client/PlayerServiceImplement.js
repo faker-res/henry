@@ -298,7 +298,8 @@ let PlayerServiceImplement = function () {
     this.updatePhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         data.userAgent = userAgent;
-        let isValidData = Boolean(data && data.platformId && data.playerId && (data.playerId == conn.playerId) && data.phoneNumber && data.smsCode);
+        let isValidData = Boolean(data && data.platformId && data.playerId && (data.playerId == conn.playerId) && data.smsCode);
+        data.phoneNumber = data.phoneNumber || "";
         let queryRes = queryPhoneLocation(data.phoneNumber);
         if (queryRes) {
             data.phoneProvince = queryRes.province;
