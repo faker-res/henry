@@ -2849,6 +2849,7 @@
   "REWARD_TOP_UP_DIRTY_FOR_REWARD_DETAIL": "勾选后将无视该存款已申请过其他优惠",
   "REWARD_REQUIRE_NON_BREAKING_COMBO_DETAIL": "不勾选则玩家可跨日累积签到天数",
   "REWARD_RECLAIM_MISSED_DAY_DETAIL": "不勾选玩家需每日领取，隔日不计算",
+  "levelChange": "等级变动",
   "Player do not have permission for convert reward points to credit": "您好， 您目前暂无兑换积分的权限，请联系客服。",
   "Can not match player level with reward points level config": "没有与玩家等级匹配的积分配置",
   "Can not find reward points config": "无法找到积分配置",
