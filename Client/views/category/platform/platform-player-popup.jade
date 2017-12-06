@@ -1124,12 +1124,12 @@
                 i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.playerBonus.showSubmit && !vm.playerBonus.resMsg')
 
 #modalPlayerAddRewardTask.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:50%;')
-        .modal-content
+    .modal-dialog(style='width:90%')
+        .modal-content(style='max-height: 90vh')
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{"REWARD_ACTION" | translate}} : {{vm.selectedSinglePlayer.name}}
-            .modal-body
+            .modal-body(style='height: 80vh;overflow-y:auto;')
                 ul.nav.nav-tabs.common-nav-tabs
                     li(ng-class="vm.selectedRewardSettingsTab == 'manual-reward' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'AddRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('manual-reward');vm.initPlayerAddRewardTask();") {{"Add Reward Task" | translate}}
@@ -1473,6 +1473,7 @@
                 div(ng-show="vm.selectedRewardPointsAdjustmentTab == 'change'")
                     button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointsChange.updateAmount || vm.rewardPointsChange.finalValidAmount<0', ng-click="vm.updatePlayerRewardPointsRecord();") {{"UPDATE" | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+
                 div(ng-show="vm.selectedRewardPointsAdjustmentTab == 'exchange'")
-                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointsExchange.updateAmount || vm.isOneSelectedPlayer().finalValidAmount<0', ng-click="vm.updatePlayerRewardPointsRecord();") {{"UPDATE" | translate}}
+                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointsExchange.updateAmount || vm.rewardPointsExchange.finalValidAmount<0', ng-click="vm.convertPlayerRewardPoints();") {{"UPDATE" | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}

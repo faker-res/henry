@@ -295,6 +295,8 @@ var proposal = {
                                 && data[0].name != constProposalType.PLAYER_CONSUMPTION_RETURN
                                 && data[0].name != constProposalType.PLAYER_REGISTRATION_INTENTION
                                 && data[0].name != constProposalType.PLAYER_CONSECUTIVE_REWARD_GROUP
+                                && data[0].name != constProposalType.PLAYER_LEVEL_MIGRATION
+                                && data[0].name != constProposalType.PLAYER_LEVEL_UP
                             ) {
                                 deferred.reject({
                                     name: "DBError",
@@ -2021,36 +2023,49 @@ var proposal = {
             );
     },
 
-    getPlayerSelfRegistrationRecordList: function (startTime, endTime, statusArr) {
-        var queryObj = {
-            createTime: {
-                $gte: new Date(startTime),
-                $lt: new Date(endTime)
-            },
-            status: {$in: statusArr}
-        };
-
+    getPlayerSelfRegistrationRecordList: function (startTime, endTime, statusArr, platformObjId) {
+        var totalHeadCount = 0;
         var returnArr = [];
         var recordArr = [];
         var prom = [];
+        return dbconfig.collection_proposalType.findOne({platformId : {$in: platformObjId}, name: "PlayerRegistrationIntention"}).then(proposalType =>{
+            if(proposalType && proposalType._id){
+                let proposalTypesId = proposalType._id;
+                var queryObj = {
+                    createTime: {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    },
+                    type: proposalType._id,
+                    data: {$exists: true, $ne: null}
+                };
 
-        var totalHeadCount = 0;
-        return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
-            dataList.map(phoneNumber => {
-                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
-                //totalHeadCount += 1;
-            })
-            return Q.all(prom);
+                if (statusArr) {
+                    queryObj.status = {$in: statusArr};
+                }
+
+                return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
+                    dataList.map(phoneNumber => {
+                        prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: proposalTypesId, data: {$exists: true, $ne: null}}).lean().sort({createTime: 1}));
+                        //totalHeadCount += 1;
+                    })
+                    return Q.all(prom);
+                })
+            }else {
+                return Q.reject({name: "DataError", message: "Can not find platform proposal related data"});
+            }
         }).then(details => {
             details.map(data => {
                 let currentArrNo = 1;
                 data.map(d => {
+                    console.log("LH Check 尝试次数分布 SELF - data before filtered into array",d);
                     if (!recordArr.find(r => r.phoneNumber == d.data.phoneNumber)) {
                         recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1, arrNo: 1});
                         currentArrNo = 1;
                     } else {
                         var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber && r.arrNo == currentArrNo);
-                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS) {
+                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS || recordArr[indexNo].status == constProposalStatus.MANUAL
+                        || d.data.status == constProposalStatus.MANUAL) {
                             recordArr.push({
                                 phoneNumber: d.data.phoneNumber,
                                 status: d.status,
@@ -2059,13 +2074,13 @@ var proposal = {
                             });
                             currentArrNo = currentArrNo + 1;
                         } else {
-                            recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
+                            recordArr[indexNo].status = d.status;
                             recordArr[indexNo].attemptNo = recordArr[indexNo].attemptNo + 1;
                         }
                     }
                 })
             })
-
+            console.log("LH Check 尝试次数分布 SELF - record array",recordArr);
             return recordArr;
         }).then(playerAttemptNumber => {
             var firstFail = playerAttemptNumber.filter(function (event) {
@@ -2164,27 +2179,38 @@ var proposal = {
         });
     },
 
-    getPlayerManualRegistrationRecordList: function (startTime, endTime, statusArr) {
-        var queryObj = {
-            createTime: {
-                $gte: new Date(startTime),
-                $lt: new Date(endTime)
-            },
-            status: {$in: statusArr}
-        };
-
-
+    getPlayerManualRegistrationRecordList: function (startTime, endTime, statusArr, platformObjId) {
+        var totalHeadCount = 0;
+        var returnArr = [];
         var recordArr = [];
         var prom = [];
 
-        var totalHeadCount = 0;
+        return dbconfig.collection_proposalType.findOne({platformId : {$in: platformObjId}, name: "PlayerRegistrationIntention"}).then(proposalType =>{
+            if(proposalType && proposalType._id){
+                let proposalTypesId = proposalType._id;
+                var queryObj = {
+                    createTime: {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    },
+                    type: proposalType._id,
+                    data: {$exists: true, $ne: null}
+                };
 
-        return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
-            dataList.map(phoneNumber => {
-                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
-                //totalHeadCount += 1;
-            })
-            return Q.all(prom);
+                if (statusArr) {
+                    queryObj.status = {$in: statusArr};
+                }
+
+                return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
+                    dataList.map(phoneNumber => {
+                        prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: proposalTypesId, data: {$exists: true, $ne: null}}).lean().sort({createTime: 1}));
+                        //totalHeadCount += 1;
+                    })
+                    return Q.all(prom);
+                })
+            }else {
+                return Q.reject({name: "DataError", message: "Can not find platform proposal related data"});
+            }
         }).then(details => {
             details.map(data => {
                 let currentArrNo = 1;
@@ -2194,7 +2220,8 @@ var proposal = {
                         currentArrNo = 1;
                     } else {
                         var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber && r.arrNo == currentArrNo);
-                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS) {
+                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS || recordArr[indexNo].status == constProposalStatus.MANUAL
+                            || d.data.status == constProposalStatus.MANUAL) {
                             recordArr.push({
                                 phoneNumber: d.data.phoneNumber,
                                 status: d.status,
@@ -2203,7 +2230,8 @@ var proposal = {
                             });
                             currentArrNo = currentArrNo + 1;
                         } else {
-                            recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
+                            //recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
+                            recordArr[indexNo].status = d.status;
                             recordArr[indexNo].attemptNo = recordArr[indexNo].attemptNo + 1;
                         }
                     }
@@ -2274,28 +2302,37 @@ var proposal = {
     },
 
     getPlayerRegistrationIntentRecordByStatus: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo, unlockSizeLimit) {
-        var queryObj = {
-            createTime: {
-                $gte: new Date(startTime),
-                $lt: new Date(endTime)
-            },
-        };
-
-        if (statusArr) {
-            queryObj.status = {$in: statusArr};
-        }
-
         var returnArr = [];
         var recordArr = [];
         var prom = [];
         var finalArr = [];
 
+        return dbconfig.collection_proposalType.findOne({platformId : {$in: platformId}, name: "PlayerRegistrationIntention"}).then(proposalType =>{
+            if(proposalType && proposalType._id){
+                let proposalTypesId = proposalType._id;
+                var queryObj = {
+                    createTime: {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    },
+                    type: proposalType._id,
+                    data: {$exists: true, $ne: null}
+                };
 
-        return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
-            dataList.map(phoneNumber => {
-                prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
-            })
-            return Q.all(prom);
+                if (statusArr) {
+                    queryObj.status = {$in: statusArr};
+                }
+
+                return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
+                    dataList.map(phoneNumber => {
+                        prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: proposalTypesId, data: {$exists: true, $ne: null}}).lean().sort({createTime: 1}));
+                        //totalHeadCount += 1;
+                    })
+                    return Q.all(prom);
+                })
+            }else {
+                return Q.reject({name: "DataError", message: "Can not find platform proposal related data"});
+            }
         }).then(details => {
             details.map(data => {
                 let currentArrNo = 1;
@@ -2305,7 +2342,8 @@ var proposal = {
                         currentArrNo = 1;
                     } else {
                         var indexNo = recordArr.findIndex(r => r.phoneNumber == d.data.phoneNumber && r.arrNo == currentArrNo);
-                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS) {
+                        if (recordArr[indexNo].status == constProposalStatus.SUCCESS || recordArr[indexNo].status == constProposalStatus.MANUAL
+                            || d.data.status == constProposalStatus.MANUAL) {
                             recordArr.push({
                                 phoneNumber: d.data.phoneNumber,
                                 status: d.status,
@@ -2314,7 +2352,7 @@ var proposal = {
                             });
                             currentArrNo = currentArrNo + 1;
                         } else {
-                            recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
+                            recordArr[indexNo].status = d.status;
                             recordArr[indexNo].attemptNo = recordArr[indexNo].attemptNo + 1;
                         }
                     }
@@ -2346,7 +2384,6 @@ var proposal = {
             data.map(d => {
                 //userName = d.name;
                 phoneNumber = d.phoneNumber
-
                 // if(statusArr && statusArr.includes("Pending")){
                 //     unlockSizeLimit = false;
                 //     size = 1;
@@ -2357,6 +2394,7 @@ var proposal = {
         }).then(data => {
             return Promise.all(returnArr);
         }).then(finalData => {
+
             finalData.map(final => {
                 final.data.map(f => {
                         if (attemptNo == 0) {
@@ -3839,6 +3877,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
             let currentCountQuery = {};
             let previousCountQuery = {};
             let futureCountQuery = {};
+            let futureManualCountQuery = {};
             let previousSuccessCreateTime;
             let futureFailCreateTime;
 
@@ -3865,6 +3904,14 @@ function insertPlayerRepeatCount(proposals, platformId) {
                     $gt: new Date(proposal.createTime)
                 },
                 "data.phoneNumber": phoneNumber
+            };
+
+            futureManualCountQuery = {
+                createTime: {
+                    $gt: new Date(proposal.createTime)
+                },
+                "data.phoneNumber": phoneNumber,
+                status: "Manual"
             };
 
 
@@ -3896,6 +3943,9 @@ function insertPlayerRepeatCount(proposals, platformId) {
             //check the count of all proposal records after current record.
             let futureAllCountProm = dbconfig.collection_proposal.find(futureCountQuery).lean().count();
 
+            //check the count of manual records after current record.
+            let futureManualAllCountProm = dbconfig.collection_proposal.find(futureManualCountQuery).lean().count();
+
             //check the count of success/manual proposal records after current record
             let futureAfterSuccessCountProm = dbconfig.collection_proposal.find(futureCountQuery).lean().sort({createTime: 1}).then(futureRecords => {
                 if (futureRecords && futureRecords.length > 0) {
@@ -3918,13 +3968,14 @@ function insertPlayerRepeatCount(proposals, platformId) {
                 }
             });
 
-            return Promise.all([allCountProm, currentCountProm, previousCountProm, futureAllCountProm, futureAfterSuccessCountProm]).then(
+            return Promise.all([allCountProm, currentCountProm, previousCountProm, futureAllCountProm, futureAfterSuccessCountProm, futureManualAllCountProm]).then(
                 countData => {
                     let allCount = countData[0];
                     let currentCount = countData[1];
                     let previousCount = countData[2] ? countData[2] : 0;
                     let futureSuccessCount = countData[3] ? countData[3] : 0;
                     let futureFailCount = countData[4] ? countData[4] : 0;
+                    let futureManualCount = countData[5] ? countData[5] : 0;
 
                     if (previousCount) {
                         proposal.$playerAllCount = allCount - previousCount;
@@ -3938,6 +3989,12 @@ function insertPlayerRepeatCount(proposals, platformId) {
                         if (futureFailCount) {
                             proposal.$playerAllCount = proposal.$playerAllCount - futureFailCount;
                         }
+                        if(futureManualCount){
+                            proposal.$playerAllCount = proposal.$playerAllCount - futureManualCount;
+                        }
+                    } else if(status == constProposalStatus.MANUAL) {
+                        proposal.$playerAllCount = 1;
+                        proposal.$playerCurrentCount = 1;
                     } else {
                         if (futureSuccessCount) {
                             proposal.$playerAllCount = proposal.$playerAllCount - futureSuccessCount;

@@ -51,7 +51,8 @@
                 "performPlatformPlayerLevelSettlement",
                 "getConsumptionDetailOfPlayers",
                 "calculatePlatformConsecutiveConsumptionForPlayers",
-                "getDXNewPlayerDetail"
+                "getDXNewPlayerDetail",
+                "batchCreditTransferOut"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

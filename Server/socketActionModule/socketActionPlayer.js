@@ -9,6 +9,7 @@ var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionReco
 let dbPlayerConsumptionDaySummary = require('./../db_modules/dbPlayerConsumptionDaySummary');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbGameProviderPlayerDaySummary = require('./../db_modules/dbGameProviderPlayerDaySummary');
+let dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
 let dbApiLog = require('./../db_modules/dbApiLog');
 var socketUtil = require('./../modules/socketutility');
 var utility = require('./../modules/encrypt');
@@ -112,8 +113,8 @@ function socketActionPlayer(socketIO, socket) {
          */
         updatePlayerRewardPointsRecord: function updatePlayerRewardPointsRecord(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.rewardPointsObjId && data.finalValidAmount);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.rewardPointsObjId, data.finalValidAmount], actionName, isValidData);
+            let isValidData = Boolean(data && data.rewardPointsObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.rewardPointsObjId, data.data], actionName, isValidData);
         },
 
         /**
@@ -1024,6 +1025,13 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && typeof(data.filterAllPlatform) === "boolean" && data.platformObjId && data.arrayPhoneXLS);
             socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileXLS, [data.filterAllPlatform, data.platformObjId, data.arrayPhoneXLS], actionName, isValidData);
+        },
+
+        convertRewardPointsToCredit: function convertRewardPointsToCredit(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.convertRewardPointsAmount);
+            let userAgent = '';
+            socketUtil.emitter(self.socket, dbPlayerRewardPoints.convertRewardPointsToCredit, [data.playerId, data.convertRewardPointsAmount, data.remark , getAdminId(), getAdminName()], actionName, isValidData);
         },
 
     };
