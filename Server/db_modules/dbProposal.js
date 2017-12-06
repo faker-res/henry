@@ -2055,7 +2055,7 @@ var proposal = {
 
                     return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
                         dataList.map(phoneNumber => {
-                            prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
+                            prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: {$in: proposalTypesId}}).lean().sort({createTime: 1}));
                             //totalHeadCount += 1;
                         })
                         return Q.all(prom);
@@ -2222,7 +2222,7 @@ var proposal = {
 
                     return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
                         dataList.map(phoneNumber => {
-                            prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
+                            prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: {$in: proposalTypesId}}).lean().sort({createTime: 1}));
                             //totalHeadCount += 1;
                         })
                         return Q.all(prom);
@@ -2355,7 +2355,7 @@ var proposal = {
 
                     return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
                         dataList.map(phoneNumber => {
-                            prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber}).lean().sort({createTime: 1}));
+                            prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: {$in: proposalTypesId}}).lean().sort({createTime: 1}));
                             //totalHeadCount += 1;
                         })
                         return Q.all(prom);

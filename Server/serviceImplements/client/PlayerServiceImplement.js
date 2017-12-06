@@ -853,7 +853,7 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getCaptcha, [conn], true, false, false, true);
     };
 
-    this.getSMSCode.expectsData = 'phoneNumber: String, name: String, purpose: String';
+    this.getSMSCode.expectsData = 'phoneNumber: String, name: String, purpose: String, partnerName: String';
     this.getSMSCode.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.phoneNumber && data.platformId);
         let randomCode = parseInt(Math.random() * 9000 + 1000);
@@ -881,6 +881,9 @@ let PlayerServiceImplement = function () {
             device: ua.device.name || '',
             os: ua.os.name || ''
         }];
+
+        data.remarks = data.partnerName ? localization.translate("PARTNER", conn.lang) + ": " + data.partnerName : "";
+
         if(data.phoneNumber && data.phoneNumber.length == 11){
             WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
         }else {
