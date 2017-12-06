@@ -295,6 +295,8 @@ var proposal = {
                                 && data[0].name != constProposalType.PLAYER_CONSUMPTION_RETURN
                                 && data[0].name != constProposalType.PLAYER_REGISTRATION_INTENTION
                                 && data[0].name != constProposalType.PLAYER_CONSECUTIVE_REWARD_GROUP
+                                && data[0].name != constProposalType.PLAYER_LEVEL_MIGRATION
+                                && data[0].name != constProposalType.PLAYER_LEVEL_UP
                             ) {
                                 deferred.reject({
                                     name: "DBError",
@@ -2026,7 +2028,7 @@ var proposal = {
         var returnArr = [];
         var recordArr = [];
         var prom = [];
-
+        console.log("LH Check 尝试次数分布 - Type Array",typeArr);
         return dbconfig.collection_proposalType.find({platformId : {$in: platformObjId}, name: {$in: typeArr}}).then(proposalType =>{
             if(proposalType){
                 var types = proposalType;
@@ -2043,7 +2045,8 @@ var proposal = {
                             $gte: new Date(startTime),
                             $lt: new Date(endTime)
                         },
-                        type: {$in: proposalTypesId}
+                        type: {$in: proposalTypesId},
+                        data: {$exists: true, $ne: null}
                     };
 
                     if (statusArr) {
@@ -2067,6 +2070,7 @@ var proposal = {
             details.map(data => {
                 let currentArrNo = 1;
                 data.map(d => {
+                    console.log("LH Check 尝试次数分布 - data before filtered into array",d);
                     if (!recordArr.find(r => r.phoneNumber == d.data.phoneNumber)) {
                         recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1, arrNo: 1});
                         currentArrNo = 1;
@@ -2087,6 +2091,7 @@ var proposal = {
                     }
                 })
             })
+            console.log("LH Check 尝试次数分布 - record array",recordArr);
             return recordArr;
         }).then(playerAttemptNumber => {
             var firstFail = playerAttemptNumber.filter(function (event) {
@@ -2207,7 +2212,8 @@ var proposal = {
                             $gte: new Date(startTime),
                             $lt: new Date(endTime)
                         },
-                        type: {$in: proposalTypesId}
+                        type: {$in: proposalTypesId},
+                        data: {$exists: true, $ne: null}
                     };
 
                     if (statusArr) {
@@ -2339,7 +2345,8 @@ var proposal = {
                             $gte: new Date(startTime),
                             $lt: new Date(endTime)
                         },
-                        type: {$in: proposalTypesId}
+                        type: {$in: proposalTypesId},
+                        data: {$exists: true, $ne: null}
                     };
 
                     if (statusArr) {
