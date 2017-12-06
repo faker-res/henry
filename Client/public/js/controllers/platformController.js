@@ -1126,8 +1126,8 @@ define(['js/app'], function (myApp) {
                     ret => {
                         let dateStart = new Date(ret.data.startTime);
                         let dateEnd = new Date(ret.data.endTime);
-                        dateStart.setHours(dateStart.getHours() + 12);
-                        dateEnd.setHours(dateEnd.getHours() + 12);
+                        // dateStart.setHours(dateStart.getHours() + 12);
+                        // dateEnd.setHours(dateEnd.getHours() + 12);
                         vm.playerLevelSettlement.lvlDownStartTime = vm.dateReformat(dateStart);
                         vm.playerLevelSettlement.lvlDownEndTime = vm.dateReformat(dateEnd);
                         $scope.safeApply();
