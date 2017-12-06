@@ -15400,47 +15400,31 @@ define(['js/app'], function (myApp) {
             };
 
             vm.promoCodeNewRow = function (collection, type, data) {
-                collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true});
-                collection.forEach((elem, index, arr) => {
-                    let id = '#expDate' + type + '-' + index;
-                    let provId = '#promoProviders' + type + '-' + index;
-                    let tableId = "#createPromoCodeTable" + type;
+                let tableId = "#createPromoCodeTable" + type;
 
-                    if (!$(id).data("datetimepicker")) {
-                        utilService.actionAfterLoaded(id, function () {
-                            collection[index].expirationTime = utilService.createDatePicker(id, {
-                                language: 'en',
-                                format: 'yyyy/MM/dd hh:mm:ss',
-                                startDate: utilService.setLocalDayStartTime(new Date())
+                let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true}));
+
+                return p.then(
+                    () => {
+                        collection.forEach((elem, index, arr) => {
+                            let id = '#expDate' + type + '-' + index;
+
+
+                            utilService.actionAfterLoaded(id, function () {
+                                collection[index].expirationTime = utilService.createDatePicker(id, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss',
+                                    startDate: utilService.setLocalDayStartTime(new Date())
+                                });
+                                collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             });
-                            collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                            vm.checkPlayerName(elem, tableId);
                         });
+
+                        return collection;
                     }
-
-                    if (!$(provId).data("multipleSelect")) {
-                        utilService.actionAfterLoaded(provId, function () {
-                            $(provId).multipleSelect({
-                                allSelected: $translate("All Selected"),
-                                selectAllText: $translate("Select All"),
-                                countSelected: $translate('# of % selected'),
-                                onClick: function () {
-                                    //vm.proposalStatusUpdated();
-                                },
-                                onCheckAll: function () {
-                                    //vm.proposalStatusUpdated();
-                                },
-                                onUncheckAll: function () {
-                                    //vm.proposalStatusUpdated();
-                                }
-                            });
-                            $(provId).multipleSelect("checkAll");
-                        });
-                    }
-
-                    vm.checkPlayerName(elem, tableId);
-                });
-
-                return collection;
+                );
             };
 
             vm.generatePromoCode = function (col, index, data, type) {
