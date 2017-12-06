@@ -2023,46 +2023,34 @@ var proposal = {
             );
     },
 
-    getPlayerSelfRegistrationRecordList: function (startTime, endTime, statusArr, platformObjId, typeArr) {
+    getPlayerSelfRegistrationRecordList: function (startTime, endTime, statusArr, platformObjId) {
         var totalHeadCount = 0;
         var returnArr = [];
         var recordArr = [];
         var prom = [];
-        console.log("LH Check 尝试次数分布 - Type Array",typeArr);
-        return dbconfig.collection_proposalType.find({platformId : {$in: platformObjId}, name: {$in: typeArr}}).then(proposalType =>{
-            if(proposalType){
-                var types = proposalType;
-                if(types.length > 0){
-                    var proposalTypesId = [];
-                    for (var i = 0; i < types.length; i++) {
-                        if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
-                            proposalTypesId.push(types[i]._id);
-                        }
-                    }
+        return dbconfig.collection_proposalType.findOne({platformId : {$in: platformObjId}, name: "PlayerRegistrationIntention"}).then(proposalType =>{
+            if(proposalType && proposalType._id){
+                let proposalTypesId = proposalType._id;
+                var queryObj = {
+                    createTime: {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    },
+                    type: proposalType._id,
+                    data: {$exists: true, $ne: null}
+                };
 
-                    var queryObj = {
-                        createTime: {
-                            $gte: new Date(startTime),
-                            $lt: new Date(endTime)
-                        },
-                        type: {$in: proposalTypesId},
-                        data: {$exists: true, $ne: null}
-                    };
-
-                    if (statusArr) {
-                        queryObj.status = {$in: statusArr};
-                    }
-
-                    return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
-                        dataList.map(phoneNumber => {
-                            prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: {$in: proposalTypesId}}).lean().sort({createTime: 1}));
-                            //totalHeadCount += 1;
-                        })
-                        return Q.all(prom);
-                    })
-                }else {
-                    return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
+                if (statusArr) {
+                    queryObj.status = {$in: statusArr};
                 }
+
+                return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
+                    dataList.map(phoneNumber => {
+                        prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: proposalTypesId, data: {$exists: true, $ne: null}}).lean().sort({createTime: 1}));
+                        //totalHeadCount += 1;
+                    })
+                    return Q.all(prom);
+                })
             }else {
                 return Q.reject({name: "DataError", message: "Can not find platform proposal related data"});
             }
@@ -2070,7 +2058,7 @@ var proposal = {
             details.map(data => {
                 let currentArrNo = 1;
                 data.map(d => {
-                    console.log("LH Check 尝试次数分布 - data before filtered into array",d);
+                    console.log("LH Check 尝试次数分布 SELF - data before filtered into array",d);
                     if (!recordArr.find(r => r.phoneNumber == d.data.phoneNumber)) {
                         recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1, arrNo: 1});
                         currentArrNo = 1;
@@ -2091,7 +2079,7 @@ var proposal = {
                     }
                 })
             })
-            console.log("LH Check 尝试次数分布 - record array",recordArr);
+            console.log("LH Check 尝试次数分布 SELF - record array",recordArr);
             return recordArr;
         }).then(playerAttemptNumber => {
             var firstFail = playerAttemptNumber.filter(function (event) {
@@ -2190,46 +2178,35 @@ var proposal = {
         });
     },
 
-    getPlayerManualRegistrationRecordList: function (startTime, endTime, statusArr, platformObjId, typeArr) {
+    getPlayerManualRegistrationRecordList: function (startTime, endTime, statusArr, platformObjId) {
         var totalHeadCount = 0;
         var returnArr = [];
         var recordArr = [];
         var prom = [];
 
-        return dbconfig.collection_proposalType.find({platformId : {$in: platformObjId}, name: {$in: typeArr}}).then(proposalType =>{
-            if(proposalType){
-                var types = proposalType;
-                if(types.length > 0){
-                    var proposalTypesId = [];
-                    for (var i = 0; i < types.length; i++) {
-                        if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
-                            proposalTypesId.push(types[i]._id);
-                        }
-                    }
+        return dbconfig.collection_proposalType.findOne({platformId : {$in: platformObjId}, name: "PlayerRegistrationIntention"}).then(proposalType =>{
+            if(proposalType && proposalType._id){
+                let proposalTypesId = proposalType._id;
+                var queryObj = {
+                    createTime: {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    },
+                    type: proposalType._id,
+                    data: {$exists: true, $ne: null}
+                };
 
-                    var queryObj = {
-                        createTime: {
-                            $gte: new Date(startTime),
-                            $lt: new Date(endTime)
-                        },
-                        type: {$in: proposalTypesId},
-                        data: {$exists: true, $ne: null}
-                    };
-
-                    if (statusArr) {
-                        queryObj.status = {$in: statusArr};
-                    }
-
-                    return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
-                        dataList.map(phoneNumber => {
-                            prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: {$in: proposalTypesId}}).lean().sort({createTime: 1}));
-                            //totalHeadCount += 1;
-                        })
-                        return Q.all(prom);
-                    })
-                }else {
-                    return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
+                if (statusArr) {
+                    queryObj.status = {$in: statusArr};
                 }
+
+                return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
+                    dataList.map(phoneNumber => {
+                        prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: proposalTypesId, data: {$exists: true, $ne: null}}).lean().sort({createTime: 1}));
+                        //totalHeadCount += 1;
+                    })
+                    return Q.all(prom);
+                })
             }else {
                 return Q.reject({name: "DataError", message: "Can not find platform proposal related data"});
             }
@@ -2328,41 +2305,29 @@ var proposal = {
         var prom = [];
         var finalArr = [];
 
+        return dbconfig.collection_proposalType.findOne({platformId : {$in: platformId}, name: "PlayerRegistrationIntention"}).then(proposalType =>{
+            if(proposalType && proposalType._id){
+                let proposalTypesId = proposalType._id;
+                var queryObj = {
+                    createTime: {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    },
+                    type: proposalType._id,
+                    data: {$exists: true, $ne: null}
+                };
 
-        return dbconfig.collection_proposalType.find({platformId : {$in: platformId}, name: {$in: typeArr}}).then(proposalType =>{
-            if(proposalType){
-                var types = proposalType;
-                if(types.length > 0){
-                    var proposalTypesId = [];
-                    for (var i = 0; i < types.length; i++) {
-                        if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
-                            proposalTypesId.push(types[i]._id);
-                        }
-                    }
-
-                    var queryObj = {
-                        createTime: {
-                            $gte: new Date(startTime),
-                            $lt: new Date(endTime)
-                        },
-                        type: {$in: proposalTypesId},
-                        data: {$exists: true, $ne: null}
-                    };
-
-                    if (statusArr) {
-                        queryObj.status = {$in: statusArr};
-                    }
-
-                    return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
-                        dataList.map(phoneNumber => {
-                            prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: {$in: proposalTypesId}}).lean().sort({createTime: 1}));
-                            //totalHeadCount += 1;
-                        })
-                        return Q.all(prom);
-                    })
-                }else {
-                    return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
+                if (statusArr) {
+                    queryObj.status = {$in: statusArr};
                 }
+
+                return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
+                    dataList.map(phoneNumber => {
+                        prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: proposalTypesId, data: {$exists: true, $ne: null}}).lean().sort({createTime: 1}));
+                        //totalHeadCount += 1;
+                    })
+                    return Q.all(prom);
+                })
             }else {
                 return Q.reject({name: "DataError", message: "Can not find platform proposal related data"});
             }
