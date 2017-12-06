@@ -6828,8 +6828,6 @@ define(['js/app'], function (myApp) {
             }
 
             function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData, topUpGroupRemark, playerPermission) {
-                console.log("walaoold",oldPlayerData)
-                console.log("walaonew",newPlayerData)
                 if (playerPermission.levelChange === false) {
                     newPlayerData.playerLevel = oldPlayerData.playerLevel
                 }
