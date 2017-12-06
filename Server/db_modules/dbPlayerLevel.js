@@ -5,6 +5,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const dbconfig = require('./../modules/dbproperties');
 const dbProposal = require('./../db_modules/dbProposal');
 const dbUtil = require('./../modules/dbutility');
+const errorUtils = require('../modules/errorUtils');
 
 const constProposalStatus = require('../const/constProposalStatus');
 const constProposalType = require('../const/constProposalType');
@@ -123,7 +124,7 @@ let dbPlayerLevelInfo = {
     performPlatformPlayerLevelSettlement: (playerObjIds, platformObjId, levels, startTime, endTime, upOrDown) => {
         let promsArr = [];
         playerObjIds.map(player => {
-            promsArr.push(dbPlayerLevelInfo.processPlayerLevelMigration(player, platformObjId, levels, startTime, endTime, upOrDown));
+            promsArr.push(dbPlayerLevelInfo.processPlayerLevelMigration(player, platformObjId, levels, startTime, endTime, upOrDown).catch(errorUtils.reportError));
         });
 
         return Promise.all(promsArr);
