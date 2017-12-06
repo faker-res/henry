@@ -2198,6 +2198,11 @@ define(['js/app'], function (myApp) {
                     console.log('getPlatform', data.data);
                     //provider list init
                     vm.platformProviderList = data.data.gameProviders;
+                    vm.platformProviderList.forEach(item => {
+                        if(item.batchCreditTransferOutStatus && item.batchCreditTransferOutStatus[vm.selectedPlatform.id]) {
+                            item.batchCreditTransferOut = item.batchCreditTransferOutStatus[vm.selectedPlatform.id];
+                        }
+                    });
                     vm.providerListCheck = {};
                     $.each(vm.platformProviderList, function (i, v) {
                         vm.providerListCheck[v._id] = true;
@@ -2326,6 +2331,7 @@ define(['js/app'], function (myApp) {
                     provider: data._id
                 }
                 vm.includedGames = '';
+                vm.getBatchCreditTransferOutStatus(vm.SelectedProvider._id);
                 socketService.$socket($scope.AppSocket, 'getGamesByPlatformAndProvider', query, function (data2) {
                     console.log("attached", data2.data);
                     vm.includedGames = [];
@@ -2551,6 +2557,23 @@ define(['js/app'], function (myApp) {
                     || gameProviderData.prefix;
             };
 
+        // getBatchCreditTransferOutStatus by game provider object ID
+        vm.getBatchCreditTransferOutStatus = function (providerObjId) {
+            let query = {
+                _id: providerObjId
+            };
+            socketService.$socket($scope.AppSocket, 'getGameProvider', query, function (data) {
+                if(data.data && data.data.batchCreditTransferOutStatus && data.data.batchCreditTransferOutStatus[vm.selectedPlatform.id]) {
+                    vm.platformProviderList.forEach((provider) => {
+                        if(provider._id == data.data._id) {
+                            provider.batchCreditTransferOut = data.data.batchCreditTransferOutStatus[vm.selectedPlatform.id];
+                        }
+                    });
+                }
+                $scope.safeApply();
+            });
+        };
+
         vm.initBatchCreditTransferOut = function (platformData, gameProviderData) {
             utilService.actionAfterLoaded('#modalBatchCreditTransferOut .endTime', function () {
                 vm.batchCreditTransferOutQuery.startTime = utilService.createDatePicker('#modalBatchCreditTransferOut .startTime');
@@ -2566,7 +2589,9 @@ define(['js/app'], function (myApp) {
                 startDate: vm.batchCreditTransferOutQuery.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.batchCreditTransferOutQuery.endTime.data('datetimepicker').getLocalDate(),
                 providerId: vm.SelectedProvider.providerId,
-                providerObjId: vm.SelectedProvider._id
+                providerObjId: vm.SelectedProvider._id,
+                platformObjId: vm.selectedPlatform.id,
+                adminName: authService.adminName
             };
             console.log("batchCreditTransferOut",sendQuery);
             socketService.$socket($scope.AppSocket, "batchCreditTransferOut", sendQuery, function (data) {
@@ -2577,6 +2602,7 @@ define(['js/app'], function (myApp) {
                         item.batchCreditTransferOut = vm.batchCreditTransferOut;
                     }
                 });
+                $scope.safeApply();
             });
         };
 

@@ -10,11 +10,11 @@
                 div(ng-if='!vm.platformProviderList || vm.platformProviderList.length==0', style="height: 430px; overflow-y: auto;")
                     label.text-danger {{"NO_PROVIDER" | translate}}
                 ul.list-group.treeview(ng-if='vm.platformProviderList.length > 0', style="height: 430px; overflow-y: auto;")
-                    li.list-group-item(ng-repeat='(i,provider) in vm.platformProviderList', ng-click='vm.providerClicked(i,provider)', ng-class='{active: vm.SelectedProvider === provider}' class='{{vm.getGameStatusClass(provider.status)}}')
+                    li.list-group-item(ng-repeat='(i,provider) in vm.platformProviderList', ng-click='vm.providerClicked(i,provider)', ng-class='{active: vm.SelectedProvider === provider, "processing-transfer-out": provider.batchCreditTransferOut.processedAmount != provider.batchCreditTransferOut.totalAmount && provider.batchCreditTransferOut}', class='{{vm.getGameStatusClass(provider.status)}}')
                         .fa.fa-circle.colorRed(ng-if='vm.getPlatformsProviderEnable(provider)=="ENABLE"')
                         .fa.fa-circle.colorGreen(ng-if='vm.getPlatformsProviderEnable(provider)=="DISABLE"')
                         text {{provider.name}} ({{'PROVIDER_NICKNAME' | translate}} : {{vm.getPlatformsNickNameForProvider(vm.selectedPlatform.data, provider)}} )
-                        text(ng-show="provider.batchCreditTransferOut.processing && provider.batchCreditTransferOut.providerObjId==provider._id") [{{'TRANSFER_OUT' | translate}} {{provider.batchCreditTransferOut.processedAmount}}/{{provider.batchCreditTransferOut.totalAmount}}]
+                        text(ng-show="provider.batchCreditTransferOut.processedAmount != provider.batchCreditTransferOut.totalAmount && provider.batchCreditTransferOut") [{{'TRANSFER_OUT' | translate}} {{provider.batchCreditTransferOut.processedAmount}}/{{provider.batchCreditTransferOut.totalAmount}}]
                 .btn-group.text-center(style="border-radius:9px",role="group")
                     //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'AttachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("attach");vm.linkProviderType="ATTACH"')
                     //    text {{"ATTACH" | translate}}
