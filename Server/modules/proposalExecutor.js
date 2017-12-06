@@ -2257,7 +2257,9 @@ var proposalExecutor = {
                         initAmount: proposalData.data.rewardAmount,
                         useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
-                        providerGroup: proposalData.data.providerGroup
+                        providerGroup: proposalData.data.providerGroup,
+                        lastLoginIp: proposalData.data.lastLoginIp,
+                        phoneNumber: proposalData.data.phoneNumber
                     };
 
                     let deferred1 = Q.defer();
