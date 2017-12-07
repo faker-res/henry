@@ -446,6 +446,9 @@ define([], function () {
                 //special variable for playerReport
                 let consumptionBonusAmount = 0;
                 let validConsumptionAmount = 0;
+                // Special variable for promo code
+                let totalPromoCode = 0;
+                let totalAcceptedPromoCode = 0;
 
                 api.columns().every(function (i, v) {
                     var classes = (this.nodes() && this.nodes()[0]) ? this.nodes()[0].className : '';
@@ -486,7 +489,7 @@ define([], function () {
                             totalWinLoss = totalValue;
                             consumptionBonusAmount = pageValue;
                         }
-                    }else if (classes.indexOf('playerReportProfit') > -1) {
+                    } else if (classes.indexOf('playerReportProfit') > -1) {
                         if (sumData && sumData[i]) {
                             totalValue = sumData[i]
                         } else {
@@ -498,13 +501,25 @@ define([], function () {
                         totalValue = getFloat(totalValue).toFixed(2);
                         pageValue = getFloat(pageValue).toFixed(2);
                         htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
-                    } else if(classes.indexOf('feedbackReportProfit') > -1) {
+                    } else if (classes.indexOf('feedbackReportProfit') > -1) {
                         if (sumData && sumData[i]) {
                             totalValue = sumData[i]
                         } else {
                             totalValue = (-totalWinLoss) / totalConsumption * 100;
                         }
                         pageValue = (-consumptionBonusAmount) / validConsumptionAmount * 100;
+                        totalValue = getFloat(totalValue).toFixed(2);
+                        pageValue = getFloat(pageValue).toFixed(2);
+                        htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
+                    } else if (classes.indexOf('promoCodeAcceptanceRate') > -1) {
+                        if (sumData && sumData[i]) {
+                            totalValue = sumData[i]
+                        } else {
+                            totalValue = api.column(i).data().reduce(function (a, b) {
+                                return getFloat(a) + getFloat(b);
+                            })
+                        }
+                        pageValue = (totalAcceptedPromoCode / totalPromoCode) * 100;
                         totalValue = getFloat(totalValue).toFixed(2);
                         pageValue = getFloat(pageValue).toFixed(2);
                         htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
@@ -518,8 +533,15 @@ define([], function () {
                         }
                         pageValue = api.column(i, {page: 'current'}).data().reduce(function (a, b) {
                             return getInt(a) + getInt(b);
-                        })
+                        });
                         htmlStr = gethtmlStr(pageValue, totalValue);
+
+                        // Special handling for promo code analysis
+                        if (i == 1) {
+                            totalPromoCode = pageValue;
+                        } else if (i == 2) {
+                            totalAcceptedPromoCode = pageValue;
+                        }
                     } else if (classes.indexOf('sumText') > -1) {
                         htmlStr = gethtmlStr($trans('Page Total'), $trans('All Pages'));
                     } else if (classes.indexOf('sumProfit') > -1) {

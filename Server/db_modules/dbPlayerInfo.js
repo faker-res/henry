@@ -5693,43 +5693,42 @@ let dbPlayerInfo = {
      * @param {String|ObjectId} playerObjId
      * @returns {Promise.<*>}
      */
-    manualPlayerLevelUp: function (playerObjId, platformObjId, userAgent) {
-        if (!platformObjId) {
-            throw Error("platformObjId was not provided!");
-        }
-        else {
-            return dbconfig.collection_platform.findOne({"_id": platformObjId}).then(
-                (platformData) => {
-                    if (platformData.manualPlayerLevelUp) {
-                        const playerProm = dbconfig.collection_players.findOne({_id: playerObjId}).populate({
-                            path: "playerLevel",
-                            model: dbconfig.collection_playerLevel
-                        }).lean().exec();
+    manualPlayerLevelUp: function (playerObjId, userAgent) {
+        return dbconfig.collection_players.findOne({_id: playerObjId}, {platform:1, _id:0}).lean().then(
+            (playerData) => {
+                return dbconfig.collection_platform.findOne({"_id": playerData.platform}).then(
+                    (platformData) => {
+                        if (platformData.manualPlayerLevelUp) {
+                            const playerProm = dbconfig.collection_players.findOne({_id: playerObjId}).populate({
+                                path: "playerLevel",
+                                model: dbconfig.collection_playerLevel
+                            }).lean().exec();
 
-                        const levelsProm = dbconfig.collection_playerLevel.find({
-                            platform: platformObjId
-                        }).sort({value: 1}).lean().exec();
+                            const levelsProm = dbconfig.collection_playerLevel.find({
+                                platform: playerData.platform
+                            }).sort({value: 1}).lean().exec();
 
-                        return Q.all([playerProm, levelsProm]).spread(
-                            function (player, playerLevels) {
-                                if (!player) {
+                            return Q.all([playerProm, levelsProm]).spread(
+                                function (player, playerLevels) {
+                                    if (!player) {
+                                        return Q.reject({name: "DataError", message: "Cannot find player"});
+                                    }
+                                    return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true, userAgent);
+                                },
+                                function () {
                                     return Q.reject({name: "DataError", message: "Cannot find player"});
                                 }
-                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true, userAgent);
-                            },
-                            function () {
-                                return Q.reject({name: "DataError", message: "Cannot find player"});
-                            }
-                        );
+                            );
+                        }
+                        else {
+                            return Q.resolve(true);
+                        }
+                    }, (error) => {
+                        return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
-                    else {
-                        return Q.resolve(true);
-                    }
-                }, (error) => {
-                    return Q.reject({name: "DataError", message: "Cannot find platform"});
-                }
-            );
-        }
+                );
+            }
+        );
     },
 
     getPlayerLevelUpgrade: function (playerId) {
@@ -5810,6 +5809,7 @@ let dbPlayerInfo = {
         var levelErrorMsg = '';
         // A flag to determine LevelUp Stop At Where.
         var levelUpEnd = false;
+        let isRewardAssign = false;
 
         return Promise.resolve(player).then(
             function (player) {
@@ -6060,12 +6060,17 @@ let dbPlayerInfo = {
                                                     proposalData.rewardAmount = levelUpObj.reward.bonusCredit;
                                                     proposalData.isRewardTask = levelUpObj.reward.isRewardTask;
 
-                                                    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
                                                 }
+                                                return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
+
+                                            } else {
+                                                isRewardAssign = true;
+                                                return {}
                                             }
                                         }
                                     ).then(
                                         proposalResult => {
+
                                             if (!checkLevelUp) {
                                                 return Promise.resolve();
                                             }
@@ -6082,17 +6087,20 @@ let dbPlayerInfo = {
                                             }
                                             let rewardPriceCount = rewardPrice.length;
                                             let mainMessage = '恭喜您从 ' + prevLevelName + ' 升级到 ' + currentLevelName;
-                                            let subMessage = ',获得';
-                                            rewardPrice.forEach(
-                                                function (val, index) {
-                                                    let colon = '、';
-                                                    if (index == rewardPrice.length - 1) {
-                                                        colon = '';
+                                            let subMessage = '';
+                                            if (!isRewardAssign) {
+                                                subMessage = ',获得';
+                                                rewardPrice.forEach(
+                                                    function (val, index) {
+                                                        let colon = '、';
+                                                        if (index == rewardPrice.length - 1) {
+                                                            colon = '';
+                                                        }
+                                                        subMessage += '' + val + '元' + colon;
                                                     }
-                                                    subMessage += '' + val + '元' + colon;
-                                                }
-                                            )
-                                            subMessage += '共' + rewardPrice.length + '个礼包';
+                                                )
+                                                subMessage += '共' + rewardPrice.length + '个礼包';
+                                            }
                                             let message = mainMessage + subMessage;
                                             return {message: message}
 

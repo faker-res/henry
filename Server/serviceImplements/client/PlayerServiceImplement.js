@@ -149,9 +149,9 @@ let PlayerServiceImplement = function () {
                     console.log("createPlayerRegistrationIntentRecordAPI FAIL", data, err);
                     if (err && err.status != constServerCode.USERNAME_ALREADY_EXIST) {
                         if(data && data.partnerName && data.partnerName != ""){
-                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                         }else{
-                            dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                            dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                         }
                         //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                         //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
@@ -298,7 +298,8 @@ let PlayerServiceImplement = function () {
     this.updatePhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         data.userAgent = userAgent;
-        let isValidData = Boolean(data && data.platformId && data.playerId && (data.playerId == conn.playerId) && data.phoneNumber && data.smsCode);
+        let isValidData = Boolean(data && data.platformId && data.playerId && (data.playerId == conn.playerId) && data.smsCode);
+        data.phoneNumber = data.phoneNumber || "";
         let queryRes = queryPhoneLocation(data.phoneNumber);
         if (queryRes) {
             data.phoneProvince = queryRes.province;
@@ -613,8 +614,8 @@ let PlayerServiceImplement = function () {
     //player logout api handler
     this.logout.expectsData = 'playerId: String';
     this.logout.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId));
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogout, [data], isValidData, true, false, true).then(
+        let isValidData = Boolean(conn.playerId);
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogout, [{playerId: conn.playerId}], isValidData, true, false, true).then(
             function (res) {
                 conn.isAuth = false;
                 conn.playerId = null;
@@ -1039,8 +1040,8 @@ let PlayerServiceImplement = function () {
 
     this.manualPlayerLevelUp.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        var isValidData = Boolean(data.playerObjId && data.platformObjId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [data.playerObjId, data.platformObjId, userAgent], isValidData, false, false, true);
+        var isValidData = Boolean(conn.playerObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [conn.playerObjId, userAgent], isValidData, false, false, true);
     };
 
     this.getWithdrawalInfo.onRequest = function (wsFunc, conn, data) {

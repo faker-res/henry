@@ -408,7 +408,7 @@ var roleChecker = {
             },
             "promoCode": {
                 Read: ['getPromoCodeTypes', 'getPromoCodeUserGroup'],
-                createPromoCode: ['generatePromoCode'],
+                createPromoCode: ['generatePromoCode', 'checkPlayerHasPromoCode'],
                 promoCodeHistory: ['getPromoCodesHistory'],
                 sendSMS: [],
                 monitor: [],

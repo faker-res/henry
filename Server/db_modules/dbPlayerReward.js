@@ -1477,6 +1477,34 @@ let dbPlayerReward = {
         }
 
     },
+
+    checkPlayerHasPromoCode: (searchQuery) => {
+        return expirePromoCode().then(res => {
+            return dbConfig.collection_players.findOne({
+                platform: searchQuery.platformObjId,
+                name: searchQuery.playerName
+            }).lean();
+        }).then(
+            playerData => {
+                let query = {
+                    platformObjId: searchQuery.platformObjId
+                };
+
+                if (playerData) {
+                    query.playerObjId = playerData._id;
+                } else if (searchQuery.playerName) {
+                    return [];
+                }
+
+                if (searchQuery.status) {
+                    query.status = searchQuery.status
+                }
+
+                return dbConfig.collection_promoCode.find(query).lean();
+            }
+        )
+    },
+
     getPromoCodesHistory: (searchQuery) => {
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
