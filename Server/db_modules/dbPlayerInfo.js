@@ -5693,43 +5693,42 @@ let dbPlayerInfo = {
      * @param {String|ObjectId} playerObjId
      * @returns {Promise.<*>}
      */
-    manualPlayerLevelUp: function (playerObjId, platformObjId, userAgent) {
-        if (!platformObjId) {
-            throw Error("platformObjId was not provided!");
-        }
-        else {
-            return dbconfig.collection_platform.findOne({"_id": platformObjId}).then(
-                (platformData) => {
-                    if (platformData.manualPlayerLevelUp) {
-                        const playerProm = dbconfig.collection_players.findOne({_id: playerObjId}).populate({
-                            path: "playerLevel",
-                            model: dbconfig.collection_playerLevel
-                        }).lean().exec();
+    manualPlayerLevelUp: function (playerObjId, userAgent) {
+        return dbconfig.collection_players.findOne({_id: playerObjId}, {platform:1, _id:0}).lean().then(
+            (playerData) => {
+                return dbconfig.collection_platform.findOne({"_id": playerData.platform}).then(
+                    (platformData) => {
+                        if (platformData.manualPlayerLevelUp) {
+                            const playerProm = dbconfig.collection_players.findOne({_id: playerObjId}).populate({
+                                path: "playerLevel",
+                                model: dbconfig.collection_playerLevel
+                            }).lean().exec();
 
-                        const levelsProm = dbconfig.collection_playerLevel.find({
-                            platform: platformObjId
-                        }).sort({value: 1}).lean().exec();
+                            const levelsProm = dbconfig.collection_playerLevel.find({
+                                platform: playerData.platform
+                            }).sort({value: 1}).lean().exec();
 
-                        return Q.all([playerProm, levelsProm]).spread(
-                            function (player, playerLevels) {
-                                if (!player) {
+                            return Q.all([playerProm, levelsProm]).spread(
+                                function (player, playerLevels) {
+                                    if (!player) {
+                                        return Q.reject({name: "DataError", message: "Cannot find player"});
+                                    }
+                                    return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true, userAgent);
+                                },
+                                function () {
                                     return Q.reject({name: "DataError", message: "Cannot find player"});
                                 }
-                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true, userAgent);
-                            },
-                            function () {
-                                return Q.reject({name: "DataError", message: "Cannot find player"});
-                            }
-                        );
+                            );
+                        }
+                        else {
+                            return Q.resolve(true);
+                        }
+                    }, (error) => {
+                        return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
-                    else {
-                        return Q.resolve(true);
-                    }
-                }, (error) => {
-                    return Q.reject({name: "DataError", message: "Cannot find platform"});
-                }
-            );
-        }
+                );
+            }
+        );
     },
 
     getPlayerLevelUpgrade: function (playerId) {

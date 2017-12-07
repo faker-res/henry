@@ -1140,7 +1140,10 @@ let dbPartner = {
                     partnerData.prefixName = platformData.partnerPrefix + partnerData.name;
                     requireLogInCaptcha = platformData.requireLogInCaptcha || false;
 
-                    return dbconfig.collection_partner.findOne({partnerName: partnerData.prefixName.toLowerCase()}).lean();
+                    return dbconfig.collection_partner.findOne({
+                        partnerName: partnerData.prefixName.toLowerCase(),
+                        platform: platformObjId
+                    }).lean();
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
