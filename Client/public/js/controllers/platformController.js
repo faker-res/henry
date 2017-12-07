@@ -15643,7 +15643,44 @@ define(['js/app'], function (myApp) {
             };
 
             vm.sendSMSByPromoCode = function (promoCode) {
-                let item = promoCode ? promoCode : vm.selectedPromoCode
+                let item = promoCode ? promoCode : vm.selectedPromoCode;
+
+                // Translate sms content
+                Object.keys($scope.constPromoCodeLegend).forEach(e => {
+                    let indexCode = $scope.constPromoCodeLegend[e];
+                    let codePositionIndex = item.smsContent.indexOf("(" + indexCode + ")");
+                    let contentToReplace = "";
+
+                    switch (indexCode) {
+                        case "X":
+                            contentToReplace = item.amount;
+                            break;
+                        case "D":
+                            contentToReplace = item.minTopUpAmount;
+                            break;
+                        case "Y":
+                            contentToReplace = item.requiredConsumption;
+                            break;
+                        case "Z":
+                            contentToReplace = vm.dateReformat(item.expirationTime);
+                            break;
+                        case "P":
+                            contentToReplace = "";
+                            break;
+                        case "Q":
+                            contentToReplace = item.code;
+                            break;
+                        case "M":
+                            contentToReplace = item.maxTopUpAmount;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    if (codePositionIndex > -1) {
+                        item.smsContent = item.smsContent.substr(0, codePositionIndex) + contentToReplace + item.smsContent.substr(codePositionIndex + 3);
+                    }
+                })
 
                 let sendObj = {
                     platformId: item.platformObjId,
@@ -16071,7 +16108,12 @@ define(['js/app'], function (myApp) {
                     console.log('getPromoCodesMonitor', data);
                     vm.promoCodeMonitor.totalCount = data.data.length;
                     $scope.safeApply();
-                    vm.drawPromoCodeMonitorTable(data.data, data.data.length, {}, isNewSearch);
+                    vm.drawPromoCodeMonitorTable(data.data.map(
+                        item => {
+                            item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
+                            return item;
+                        }
+                    ), data.data.length, {}, isNewSearch);
                 }, function (err) {
                     console.error(err);
                 }, true);
