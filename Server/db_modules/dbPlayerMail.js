@@ -222,6 +222,7 @@ const dbPlayerMail = {
                     if (platform.requireCaptchaInSMS) {
                         if (!captchaValidation) {
                             return Q.reject({
+                                status: constServerCode.INVALID_CAPTCHA,
                                 name: "DataError",
                                 message: "Invalid image captcha"
                             });
@@ -275,7 +276,10 @@ const dbPlayerMail = {
                     phoneValidation = data[3];
 
                     if (!phoneValidation || !phoneValidation.isPhoneNumberValid) {
-                        return Promise.reject({message: "This phone number is already used. Please insert other phone number."});
+                        return Promise.reject({
+                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                            message: "This phone number is already used. Please insert other phone number."
+                        });
                     }
 
                     if (!template) {
@@ -290,7 +294,10 @@ const dbPlayerMail = {
 
                     // Check whether verification sms sent in last minute
                     if (lastMinuteHistory && lastMinuteHistory.tel) {
-                        return Q.reject({message: "Verification SMS already sent within last minute"});
+                        return Q.reject({
+                            status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
+                            message: "Verification SMS already sent within last minute"
+                        });
                     }
 
 
