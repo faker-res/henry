@@ -54,6 +54,7 @@ proposalSchema.index({"data.playerId": 1});
 proposalSchema.index({"data.playerObjId": 1});
 proposalSchema.index({"data.partnerName": 1});
 proposalSchema.index({"data.eventCode": 1});
+proposalSchema.index({"data.eventName": 1});
 proposalSchema.index({"data.validTime": 1});
 proposalSchema.index({mainType: 1, type: 1, status: 1});
 proposalSchema.index({noSteps: 1, type: 1, createTime: 1});
