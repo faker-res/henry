@@ -60,6 +60,7 @@ var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategor
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
+const localization = require("../modules/localization").localization;
 
 // db_modules
 let dbGeoIp = require('./../db_modules/dbGeoIp');
@@ -5593,7 +5594,7 @@ let dbPlayerInfo = {
                                 createTime: proposals[i].createTime,
                                 rewardType: proposals[i].type ? proposals[i].type.name : "",
                                 rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
-                                eventName: proposals[i].data.eventName || (proposals[i].type ? proposals[i].type.name : ""),
+                                eventName: proposals[i].data.eventName || localization.translate(proposals[i].type ? proposals[i].type.name : ""),
                                 eventCode: proposals[i].data.eventCode,
                                 status: status
                             }
