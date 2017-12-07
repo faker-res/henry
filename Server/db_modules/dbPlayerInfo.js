@@ -7933,6 +7933,7 @@ let dbPlayerInfo = {
                             if (playerData.lastLoginIp == playerIp) {
                                 conn.isAuth = true;
                                 conn.playerId = playerId;
+                                conn.playerObjId = playerData._id;
                                 deferred.resolve(true);
                             }
                             else {
