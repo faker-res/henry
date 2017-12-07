@@ -3180,7 +3180,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "Player has applied for the reward within event period"
+                                message: "This player has applied for max reward times in event period"
                             });
                         }
 
