@@ -230,6 +230,7 @@ define(['js/app'], function (myApp) {
                 UPDATE_PASSWORD: 'updatePassword',
                 UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
                 UPDATE_BANK_INFO: 'updateBankInfo',
+                FREE_TRIAL_REWARD: 'freeTrialReward',
                 // RESET_PASSWORD: 'resetPassword'
             };
 
