@@ -326,6 +326,7 @@ var roleChecker = {
                 Read: ['getAllGameProviders', 'getGamesByPlatformAndProvider', 'getGamesNotAttachedToPlatform'],
                 // AttachProvider: ['addProviderToPlatformById'],
                 EditAttachedProvider: ['renameProviderInPlatformById', 'updateProviderFromPlatformById'],
+                BatchCreditTransferOut: ['batchCreditTransferOut'],
                 // DetachProvider: ['removeProviderFromPlatformById'],
                 AttachGame: ['attachGameToPlatform', 'attachGamesToPlatform'],
                 DetachGame: ['detachGameFromPlatform', 'updateGameStatusToPlatform', 'detachGamesFromPlatform'],

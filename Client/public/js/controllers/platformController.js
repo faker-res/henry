@@ -230,6 +230,7 @@ define(['js/app'], function (myApp) {
                 UPDATE_PASSWORD: 'updatePassword',
                 UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
                 UPDATE_BANK_INFO: 'updateBankInfo',
+                FREE_TRIAL_REWARD: 'freeTrialReward',
                 // RESET_PASSWORD: 'resetPassword'
             };
 
@@ -2180,6 +2181,8 @@ define(['js/app'], function (myApp) {
                 vm.SelectedProvider = null;
                 vm.showGameCate = "include";
                 vm.curGame = null;
+                vm.batchCreditTransferOutQuery = {};
+                vm.batchCreditTransferOut = null;
             }
             //get all platform data from server
             vm.getPlatformGameData = function () {
@@ -2196,6 +2199,11 @@ define(['js/app'], function (myApp) {
                     console.log('getPlatform', data.data);
                     //provider list init
                     vm.platformProviderList = data.data.gameProviders;
+                    vm.platformProviderList.forEach(item => {
+                        if(item.batchCreditTransferOutStatus && item.batchCreditTransferOutStatus[vm.selectedPlatform.id]) {
+                            item.batchCreditTransferOut = item.batchCreditTransferOutStatus[vm.selectedPlatform.id];
+                        }
+                    });
                     vm.providerListCheck = {};
                     $.each(vm.platformProviderList, function (i, v) {
                         vm.providerListCheck[v._id] = true;
@@ -2324,6 +2332,7 @@ define(['js/app'], function (myApp) {
                     provider: data._id
                 }
                 vm.includedGames = '';
+                vm.getBatchCreditTransferOutStatus(vm.SelectedProvider._id);
                 socketService.$socket($scope.AppSocket, 'getGamesByPlatformAndProvider', query, function (data2) {
                     console.log("attached", data2.data);
                     vm.includedGames = [];
@@ -2547,7 +2556,56 @@ define(['js/app'], function (myApp) {
                 var gameProviderNickNameData = getPlatformsNickNameDataForProvider(platformData, gameProviderData);
                 return gameProviderNickNameData && gameProviderNickNameData.localPrefix
                     || gameProviderData.prefix;
-            }
+            };
+
+        // getBatchCreditTransferOutStatus by game provider object ID
+        vm.getBatchCreditTransferOutStatus = function (providerObjId) {
+            let query = {
+                _id: providerObjId
+            };
+            socketService.$socket($scope.AppSocket, 'getGameProvider', query, function (data) {
+                if(data.data && data.data.batchCreditTransferOutStatus && data.data.batchCreditTransferOutStatus[vm.selectedPlatform.id]) {
+                    vm.platformProviderList.forEach((provider) => {
+                        if(provider._id == data.data._id) {
+                            provider.batchCreditTransferOut = data.data.batchCreditTransferOutStatus[vm.selectedPlatform.id];
+                        }
+                    });
+                }
+                $scope.safeApply();
+            });
+        };
+
+        vm.initBatchCreditTransferOut = function (platformData, gameProviderData) {
+            utilService.actionAfterLoaded('#modalBatchCreditTransferOut .endTime', function () {
+                vm.batchCreditTransferOutQuery.startTime = utilService.createDatePicker('#modalBatchCreditTransferOut .startTime');
+                vm.batchCreditTransferOutQuery.endTime = utilService.createDatePicker('#modalBatchCreditTransferOut .endTime');
+                vm.batchCreditTransferOutQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.batchCreditTransferOutQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                vm.selectedProviderNickName = vm.getPlatformsNickNameForProvider(platformData, gameProviderData);
+            });
+        };
+
+        vm.submitBatchCreditTransferOut = function() {
+            let sendQuery = {
+                startDate: vm.batchCreditTransferOutQuery.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.batchCreditTransferOutQuery.endTime.data('datetimepicker').getLocalDate(),
+                providerId: vm.SelectedProvider.providerId,
+                providerObjId: vm.SelectedProvider._id,
+                platformObjId: vm.selectedPlatform.id,
+                adminName: authService.adminName
+            };
+            console.log("batchCreditTransferOut",sendQuery);
+            socketService.$socket($scope.AppSocket, "batchCreditTransferOut", sendQuery, function (data) {
+                console.log("batchCreditTransferOut_ret",data.data);
+                vm.batchCreditTransferOut = data.data;
+                vm.platformProviderList.forEach(item => {
+                    if(item._id==data.data.providerObjId) {
+                        item.batchCreditTransferOut = vm.batchCreditTransferOut;
+                    }
+                });
+                $scope.safeApply();
+            });
+        };
 
             /////////////////////////////////Mark::player functions//////////////////
 
@@ -13549,48 +13607,55 @@ define(['js/app'], function (myApp) {
                         })
                     });
 
-                    let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+                    $scope.safeApply();
 
-                    // Set param value
-                    Object.keys(paramType).forEach(el => {
-                        // Get value
-                        if (vm.showReward && vm.showReward.param && vm.showReward.param.hasOwnProperty(el) && el != "rewardParam") {
-                            vm.rewardMainParam[el] = paramType[el];
-                            vm.rewardMainParam[el].value = vm.showReward.param[el];
-                        }
+                    setTimeout(function() {
+                        let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
 
-                        // Get multi step reward flag
-                        if (el == "isMultiStepReward" && vm.showReward && vm.showReward.param && vm.showReward.param[el] === true) {
-                            vm.isMultiStepReward = true;
-                        }
-                    });
-
-                    vm.changeRewardParamLayout(null, true);
-
-                    utilService.actionAfterLoaded("#rewardMainParamTable", function () {
-                        // Set param table value
-                        Object.keys(paramType.rewardParam).forEach(el => {
-                            if (vm.isPlayerLevelDiff) {
-                                if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
-                                    vm.showReward.param.rewardParam.forEach((el, idx) => {
-                                        vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
-
-                                    })
-                                }
-                            } else {
-                                if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
-                                    vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
+                        // Set param value
+                        Object.keys(paramType).forEach(el => {
+                            // Get value
+                            if (vm.showReward && vm.showReward.param && vm.showReward.param.hasOwnProperty(el) && el != "rewardParam") {
+                                vm.rewardMainParam[el] = paramType[el];
+                                vm.rewardMainParam[el].value = vm.showReward.param[el];
                             }
-                            if (el == "rewardPercentageAmount") {
-                                vm.isRandomReward = true;
-                                vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !=="undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{percentage: "", amount: ""}];
+
+                            // Get multi step reward flag
+                            if (el == "isMultiStepReward" && vm.showReward && vm.showReward.param && vm.showReward.param[el] === true) {
+                                vm.isMultiStepReward = true;
                             }
                         });
 
-                        $scope.safeApply();
+                        vm.changeRewardParamLayout(null, true);
 
-                        vm.disableAllRewardInput(true);
-                    });
+                        utilService.actionAfterLoaded("#rewardMainParamTable", function () {
+                            // Set param table value
+                            Object.keys(paramType.rewardParam).forEach(el => {
+                                if (vm.isPlayerLevelDiff) {
+                                    if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
+                                        vm.showReward.param.rewardParam.forEach((el, idx) => {
+                                            vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
+
+                                        })
+                                    }
+                                } else {
+                                    if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
+                                        vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
+                                }
+                                if (el == "rewardPercentageAmount") {
+                                    vm.isRandomReward = true;
+                                    vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !== "undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{
+                                        percentage: "",
+                                        amount: ""
+                                    }];
+                                }
+                            });
+
+                            $scope.safeApply();
+
+                            vm.disableAllRewardInput(true);
+                        });
+                    }, 0);
                 }
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
@@ -13994,7 +14059,7 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            $scope.safeApply();
+            // $scope.safeApply();
         };
 
             /**

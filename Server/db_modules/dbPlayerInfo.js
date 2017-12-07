@@ -4617,9 +4617,26 @@ let dbPlayerInfo = {
      * @param {objectId} providerId
      * @param {Number} amount
      */
-    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
+    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync, isBatch) {
+        isBatch = isBatch === true;
+        let updateBatchStatus = function (isBatch) {    //uses platform parameter to pass in platformObjId
+            if(isBatch) {
+                let incrementObj = {};
+                if(playerObj) {
+                    incrementObj["batchCreditTransferOutStatus." + playerObj.platform._id + ".processedAmount"] = 1;
+                } else {
+                    incrementObj["batchCreditTransferOutStatus." + platform + ".processedAmount"] = 1;
+                }
+                if(gameProvider) {
+                    dbconfig.collection_gameProvider.findOneAndUpdate({_id: gameProvider._id}, {$inc: incrementObj}).exec();
+                } else {
+                    dbconfig.collection_gameProvider.findOneAndUpdate({providerId: providerId}, {$inc: incrementObj}).exec();
+                }
+            }
+        };
         var deferred = Q.defer();
-        var playerObj = {};
+        let playerObj;
+        let gameProvider;
         var prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform})
@@ -4630,6 +4647,7 @@ let dbPlayerInfo = {
             function (data) {
                 if (data && data[0] && data[1]) {
                     playerObj = data[0];
+                    gameProvider = data[1];
 
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
@@ -4655,6 +4673,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
+                updateBatchStatus(isBatch);
                 deferred.resolve(data);
             },
             function (err) {
@@ -4664,6 +4683,7 @@ let dbPlayerInfo = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, err, constPlayerCreditTransferStatus.FAIL);
                 }
+                updateBatchStatus(isBatch);
                 deferred.reject(err);
             }
         );
@@ -5673,43 +5693,42 @@ let dbPlayerInfo = {
      * @param {String|ObjectId} playerObjId
      * @returns {Promise.<*>}
      */
-    manualPlayerLevelUp: function (playerObjId, platformObjId, userAgent) {
-        if (!platformObjId) {
-            throw Error("platformObjId was not provided!");
-        }
-        else {
-            return dbconfig.collection_platform.findOne({"_id": platformObjId}).then(
-                (platformData) => {
-                    if (platformData.manualPlayerLevelUp) {
-                        const playerProm = dbconfig.collection_players.findOne({_id: playerObjId}).populate({
-                            path: "playerLevel",
-                            model: dbconfig.collection_playerLevel
-                        }).lean().exec();
+    manualPlayerLevelUp: function (playerObjId, userAgent) {
+        return dbconfig.collection_players.findOne({_id: playerObjId}, {platform:1, _id:0}).lean().then(
+            (playerData) => {
+                return dbconfig.collection_platform.findOne({"_id": playerData.platform}).then(
+                    (platformData) => {
+                        if (platformData.manualPlayerLevelUp) {
+                            const playerProm = dbconfig.collection_players.findOne({_id: playerObjId}).populate({
+                                path: "playerLevel",
+                                model: dbconfig.collection_playerLevel
+                            }).lean().exec();
 
-                        const levelsProm = dbconfig.collection_playerLevel.find({
-                            platform: platformObjId
-                        }).sort({value: 1}).lean().exec();
+                            const levelsProm = dbconfig.collection_playerLevel.find({
+                                platform: playerData.platform
+                            }).sort({value: 1}).lean().exec();
 
-                        return Q.all([playerProm, levelsProm]).spread(
-                            function (player, playerLevels) {
-                                if (!player) {
+                            return Q.all([playerProm, levelsProm]).spread(
+                                function (player, playerLevels) {
+                                    if (!player) {
+                                        return Q.reject({name: "DataError", message: "Cannot find player"});
+                                    }
+                                    return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true, userAgent);
+                                },
+                                function () {
                                     return Q.reject({name: "DataError", message: "Cannot find player"});
                                 }
-                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false, false, true, userAgent);
-                            },
-                            function () {
-                                return Q.reject({name: "DataError", message: "Cannot find player"});
-                            }
-                        );
+                            );
+                        }
+                        else {
+                            return Q.resolve(true);
+                        }
+                    }, (error) => {
+                        return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
-                    else {
-                        return Q.resolve(true);
-                    }
-                }, (error) => {
-                    return Q.reject({name: "DataError", message: "Cannot find platform"});
-                }
-            );
-        }
+                );
+            }
+        );
     },
 
     getPlayerLevelUpgrade: function (playerId) {

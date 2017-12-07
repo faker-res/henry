@@ -1040,8 +1040,8 @@ let PlayerServiceImplement = function () {
 
     this.manualPlayerLevelUp.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        var isValidData = Boolean(data.playerObjId && data.platformObjId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [data.playerObjId, data.platformObjId, userAgent], isValidData, false, false, true);
+        var isValidData = Boolean(conn.playerObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [conn.playerObjId, userAgent], isValidData, false, false, true);
     };
 
     this.getWithdrawalInfo.onRequest = function (wsFunc, conn, data) {

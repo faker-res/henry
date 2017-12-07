@@ -1116,6 +1116,7 @@
   "Transfer All from Providers": "从全部提供商转出",
   "Transfer Credit of All Player from Provider": "从提供商转出所有玩家游戏额度",
   "Transfer Out All Players Credit From Providers": "转出所有玩家游戏额度",
+  "BATCH_CREDIT_TRANSFER_OUT" :"批量转出额度",
   "Show All": "显示全部",
   "Search Result": "查询结果",
   "Within Search Period": "指定时间内",
@@ -1379,6 +1380,7 @@
   "Need SMS verification": "（领优惠中）是否需要短信验证",
   "FREE_TRIAL_REWARD_AMOUNT": "固定优惠金额",
   "FREE_TRIAL_SPENDING_TIMES": "解锁流水（优）X倍",
+  "freeTrialReward": "免费体验金",
 
   "REWARD_POINTS_ADJUSTMENT": "修改积分",
   "VALID_REWARD_POINTS": "有效积分",
