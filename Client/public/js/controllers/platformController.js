@@ -13549,48 +13549,55 @@ define(['js/app'], function (myApp) {
                         })
                     });
 
-                    let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+                    $scope.safeApply();
 
-                    // Set param value
-                    Object.keys(paramType).forEach(el => {
-                        // Get value
-                        if (vm.showReward && vm.showReward.param && vm.showReward.param.hasOwnProperty(el) && el != "rewardParam") {
-                            vm.rewardMainParam[el] = paramType[el];
-                            vm.rewardMainParam[el].value = vm.showReward.param[el];
-                        }
+                    setTimeout(function() {
+                        let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
 
-                        // Get multi step reward flag
-                        if (el == "isMultiStepReward" && vm.showReward && vm.showReward.param && vm.showReward.param[el] === true) {
-                            vm.isMultiStepReward = true;
-                        }
-                    });
-
-                    vm.changeRewardParamLayout(null, true);
-
-                    utilService.actionAfterLoaded("#rewardMainParamTable", function () {
-                        // Set param table value
-                        Object.keys(paramType.rewardParam).forEach(el => {
-                            if (vm.isPlayerLevelDiff) {
-                                if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
-                                    vm.showReward.param.rewardParam.forEach((el, idx) => {
-                                        vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
-
-                                    })
-                                }
-                            } else {
-                                if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
-                                    vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
+                        // Set param value
+                        Object.keys(paramType).forEach(el => {
+                            // Get value
+                            if (vm.showReward && vm.showReward.param && vm.showReward.param.hasOwnProperty(el) && el != "rewardParam") {
+                                vm.rewardMainParam[el] = paramType[el];
+                                vm.rewardMainParam[el].value = vm.showReward.param[el];
                             }
-                            if (el == "rewardPercentageAmount") {
-                                vm.isRandomReward = true;
-                                vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !=="undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{percentage: "", amount: ""}];
+
+                            // Get multi step reward flag
+                            if (el == "isMultiStepReward" && vm.showReward && vm.showReward.param && vm.showReward.param[el] === true) {
+                                vm.isMultiStepReward = true;
                             }
                         });
 
-                        $scope.safeApply();
+                        vm.changeRewardParamLayout(null, true);
 
-                        vm.disableAllRewardInput(true);
-                    });
+                        utilService.actionAfterLoaded("#rewardMainParamTable", function () {
+                            // Set param table value
+                            Object.keys(paramType.rewardParam).forEach(el => {
+                                if (vm.isPlayerLevelDiff) {
+                                    if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
+                                        vm.showReward.param.rewardParam.forEach((el, idx) => {
+                                            vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
+
+                                        })
+                                    }
+                                } else {
+                                    if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
+                                        vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
+                                }
+                                if (el == "rewardPercentageAmount") {
+                                    vm.isRandomReward = true;
+                                    vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !== "undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{
+                                        percentage: "",
+                                        amount: ""
+                                    }];
+                                }
+                            });
+
+                            $scope.safeApply();
+
+                            vm.disableAllRewardInput(true);
+                        });
+                    }, 0);
                 }
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
@@ -13994,7 +14001,7 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            $scope.safeApply();
+            // $scope.safeApply();
         };
 
             /**
