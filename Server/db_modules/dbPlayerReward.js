@@ -1365,7 +1365,8 @@ let dbPlayerReward = {
                                             "expireTime": promocode.expirationTime,
                                             "bonusCode": promocode.code,
                                             "tag": promocode.bannerText,
-                                        }
+                                            "isSharedWithXIMA": promocode.isSharedWithXIMA
+                                        };
                                         if (promocode.maxTopUpAmount) {
                                             promo.bonusLimit = promocode.maxTopUpAmount;
                                         }
