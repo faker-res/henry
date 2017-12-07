@@ -60,7 +60,6 @@ var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategor
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
-const localization = require("../modules/localization").localization;
 
 // db_modules
 let dbGeoIp = require('./../db_modules/dbGeoIp');
