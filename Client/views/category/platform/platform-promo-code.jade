@@ -399,6 +399,16 @@
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.promoCodeSMSContentEdit', ng-click='vm.promoCodeSMSContentEdit=false') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.promoCodeSMSContentEdit', ng-click='vm.promoCodeSMSContentEdit=!vm.promoCodeSMSContentEdit;vm.configSubmitUpdate("promoSMSContent")') {{"CONFIRM" | translate}}
+                    br
+                    table.playerLvlTable(style="width:10%")
+                        thead
+                            tr
+                                th(colspan=2) {{"PROMO_CODE_LEGEND" | translate}}
+                        tbody
+                            tr(ng-repeat="(i, v) in constPromoCodeLegend")
+                                td(style="text-align:center;") {{ i | translate }}
+                                td(style="text-align:center;") {{ v }}
+
 
                 // Tab - Promo Code User Group
                 div(ng-if='vm.selectedPromoCodeTab=="userGroupConfig" && checkViewPermission("Platform", "promoCode", "userGroupConfig")')

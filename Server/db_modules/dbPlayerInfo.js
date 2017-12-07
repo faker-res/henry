@@ -220,13 +220,38 @@ let dbPlayerInfo = {
                                 );
                             }
                             else {
-                                let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
-                                // Verification code is invalid
-                                return Q.reject({
-                                    status: constServerCode.VALIDATION_CODE_INVALID,
-                                    name: "ValidationError",
-                                    message: errorMessage
-                                });
+                                // Not verified
+                                if (!verificationSMS) {
+                                    return Q.reject({
+                                        status: constServerCode.VALIDATION_CODE_EXPIRED,
+                                        name: "ValidationError",
+                                        message: "Invalid SMS Validation Code"
+                                    });
+                                }
+                                else if (verificationSMS.loginAttempts >= 3) {
+                                    // Safety - remove sms verification code after 10 attempts to prevent brute force attack
+                                    return dbConfig.collection_smsVerificationLog.remove(
+                                        {_id: verificationSMS._id}
+                                    ).then(() => {
+                                        return Q.reject({
+                                            status: constServerCode.VALIDATION_CODE_EXCEED_ATTEMPT,
+                                            name: "ValidationError",
+                                            message: "Incorrect SMS Validation Code"
+                                        });
+                                    });
+                                }
+                                else {
+                                    return dbConfig.collection_smsVerificationLog.findOneAndUpdate(
+                                        {_id: verificationSMS._id},
+                                        {$inc: {loginAttempts: 1}}
+                                    ).then(() => {
+                                        return Q.reject({
+                                            status: constServerCode.VALIDATION_CODE_INVALID,
+                                            name: "ValidationError",
+                                            message: "Incorrect SMS Validation Code"
+                                        });
+                                    });
+                                }
                             }
                         }
                     );

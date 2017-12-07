@@ -19,6 +19,7 @@ const constRewardType = require("./../const/constRewardType");
 const constServerCode = require('../const/constServerCode');
 
 const dbPlayerUtil = require('../db_common/dbPlayerUtility');
+const dbProposalUtil = require('../db_common/dbProposalUtility');
 var constProposalMainType = require('../const/constProposalMainType');
 
 const dbGameProvider = require('../db_modules/dbGameProvider');
@@ -1364,7 +1365,8 @@ let dbPlayerReward = {
                                             "expireTime": promocode.expirationTime,
                                             "bonusCode": promocode.code,
                                             "tag": promocode.bannerText,
-                                        }
+                                            "isSharedWithXIMA": promocode.isSharedWithXIMA
+                                        };
                                         if (promocode.maxTopUpAmount) {
                                             promo.bonusLimit = promocode.maxTopUpAmount;
                                         }
@@ -1830,22 +1832,16 @@ let dbPlayerReward = {
     },
 
     getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime) => {
-        let promoCodeObjs;
         let monitorObjs;
+        let promoCodeQuery = {
+            'data.platformId': platformObjId,
+            settleTime: {$gte: startAcceptedTime, $lt: endAcceptedTime},
+            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+            // We only want type 3 promo code
+            "data.promoCodeTypeValue": 3
+        };
 
-        return dbConfig.collection_proposalType.findOne({
-            platformId: platformObjId,
-            name: constProposalType.PLAYER_PROMO_CODE_REWARD
-        }).lean().then(
-            proposalType => {
-                return dbConfig.collection_proposal.find({
-                    'data.platformId': platformObjId,
-                    type: proposalType._id,
-                    settleTime: {$gte: startAcceptedTime, $lt: endAcceptedTime},
-                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                })
-            }
-        ).then(
+        return dbProposalUtil.getProposalDataOfType(platformObjId, constProposalType.PLAYER_PROMO_CODE_REWARD, promoCodeQuery).then(
             promoCodeData => {
                 let delProm = [];
 
@@ -1859,44 +1855,41 @@ let dbPlayerReward = {
                         rewardAmount: p.data.rewardAmount,
                         promoCodeType: p.data.PROMO_CODE_TYPE,
                         spendingAmount: p.data.spendingAmount,
-                        acceptedTime: p.settleTime
+                        acceptedTime: p.settleTime,
+                        isSharedWithXIMA: !p.data.useConsumption
                     }
                 });
 
-                monitorObjs.forEach((elem, index, arr) => {
-                    delProm.push(dbConfig.collection_proposalType.findOne({
-                        platformId: elem.platformObjId,
-                        name: constProposalType.PLAYER_BONUS
-                    }).then(
-                        propType => {
-                            return dbConfig.collection_proposal.findOne({
-                                'data.platformId': elem.platformObjId,
-                                'data.playerObjId': elem.playerObjId,
-                                type: propType._id,
-                                settleTime: {$gt: elem.acceptedTime},
-                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
-                            })
-                        }
-                    ).then(
-                        withdrawProp => {
-                            if (withdrawProp) {
-                                monitorObjs[index].nextWithdrawProposalId = withdrawProp.proposalId;
-                                monitorObjs[index].nextWithdrawAmount = withdrawProp.data.amount;
-                                monitorObjs[index].nextWithdrawTime = withdrawProp.settleTime;
+                monitorObjs.forEach((elem, index) => {
+                    let withdrawPropQuery = {
+                        'data.platformId': elem.platformObjId,
+                        'data.playerObjId': elem.playerObjId,
+                        settleTime: {$gt: elem.acceptedTime},
+                        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                    };
+
+                    delProm.push(
+                        dbProposalUtil.getOneProposalDataOfType(elem.platformObjId, constProposalType.PLAYER_BONUS, withdrawPropQuery).then(
+                            withdrawProp => {
+                                if (withdrawProp) {
+                                    monitorObjs[index].nextWithdrawProposalId = withdrawProp.proposalId;
+                                    monitorObjs[index].nextWithdrawAmount = withdrawProp.data.amount;
+                                    monitorObjs[index].nextWithdrawTime = withdrawProp.settleTime;
+                                }
                             }
-                        }
-                    ));
+                        )
+                    );
                 });
 
                 return Promise.all(delProm);
             }
         ).then(
-            data => {
+            () => {
                 let proms = [];
 
                 monitorObjs = monitorObjs.filter(e => e.nextWithdrawProposalId);
 
-                monitorObjs.forEach((elem, index, arr) => {
+                monitorObjs.forEach((elem, index) => {
                     proms.push(
                         getPlayerConsumptionSummary(elem.platformObjId, elem.playerObjId, elem.acceptedTime, elem.nextWithdrawTime).then(
                             res => {
@@ -1927,7 +1920,7 @@ let dbPlayerReward = {
                 return Promise.all(proms);
             }
         ).then(
-            res => monitorObjs
+            () => monitorObjs
         )
     },
 
