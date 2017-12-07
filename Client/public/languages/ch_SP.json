@@ -1294,6 +1294,7 @@
   "smsContentConfig": "短信内容",
   "GENERATE": "生成",
   "GENERATE_ALL": "生成全部",
+  "PROMO_CODE_LEGEND": "代码对照表",
   "PROMO_CODE_HISTORY": "优惠代码记录",
   "promoCodeHistory": "优惠代码记录",
   "START_CREATE_TIME": "开始生成时间",
