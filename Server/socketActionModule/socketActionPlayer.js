@@ -1030,7 +1030,6 @@ function socketActionPlayer(socketIO, socket) {
         convertRewardPointsToCredit: function convertRewardPointsToCredit(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.convertRewardPointsAmount);
-            let userAgent = '';
             socketUtil.emitter(self.socket, dbPlayerRewardPoints.convertRewardPointsToCredit, [data.playerId, data.convertRewardPointsAmount, data.remark , getAdminId(), getAdminName()], actionName, isValidData);
         },
 

@@ -2863,5 +2863,9 @@
   "convertedRewardPoints": "兑换消耗的积分",
   "afterRewardPoints": "兑换后积分",
   "beforeRewardPoints": "兑换前积分",
-  "Reward Points": "积分"
+  "Reward Points": "积分",
+  "PlayerPeriodPointConversion": "玩家到期兑换积分",
+  "PlayerEarlyPointConversion": "玩家提前兑换积分",
+  "PlayerEarlyConvertRewardPoints": "玩家提前兑换积分",
+  "PlayerPeriodConvertRewardPoints": "玩家到期兑换积分"
 }
