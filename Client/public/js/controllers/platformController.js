@@ -15986,7 +15986,12 @@ define(['js/app'], function (myApp) {
                     console.log('getPromoCodesMonitor', data);
                     vm.promoCodeMonitor.totalCount = data.data.length;
                     $scope.safeApply();
-                    vm.drawPromoCodeMonitorTable(data.data, data.data.length, {}, isNewSearch);
+                    vm.drawPromoCodeMonitorTable(data.data.map(
+                        item => {
+                            item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
+                            return item;
+                        }
+                    ), data.data.length, {}, isNewSearch);
                 }, function (err) {
                     console.error(err);
                 }, true);
