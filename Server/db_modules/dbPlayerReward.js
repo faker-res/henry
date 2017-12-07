@@ -3166,12 +3166,17 @@ let dbPlayerReward = {
                         spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
                         break;
 
-
-
-
                     // type 4
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
                         // （领优惠前）检查投注额来源游戏厅
+                        if (eventInPeriodCount && eventInPeriodCount > 0) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This player has applied for max reward times in event period"
+                            });
+                        }
+
                         let consumptions = rewardSpecificData[0];
                         let totalConsumption = 0;
                         for (let x in consumptions) {

@@ -15665,7 +15665,16 @@ define(['js/app'], function (myApp) {
                             contentToReplace = vm.dateReformat(item.expirationTime);
                             break;
                         case "P":
-                            contentToReplace = "";
+                            if (vm.selectedPlatform.data.useProviderGroup) {
+                                contentToReplace = [];
+                                item.allowedProviders[0].providers.map(e => {
+                                    if (vm.platformProviderList.find(g => String(g._id) == String(e))) {
+                                        contentToReplace.push(vm.platformProviderList.find(g => String(g._id) == String(e)).name)
+                                    }
+                                })
+                            } else {
+                                contentToReplace = item.allowedProviders.map(f => f.name);
+                            }
                             break;
                         case "Q":
                             contentToReplace = item.code;
