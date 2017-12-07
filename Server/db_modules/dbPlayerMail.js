@@ -21,6 +21,7 @@ const constProposalUserType = require('../const/constProposalUserType');
 const constServerCode = require('../const/constServerCode');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const rsaCrypto = require('./../modules/rsaCrypto');
+const errorUtils = require('../modules/errorUtils');
 
 const dbPlayerMail = {
 
@@ -221,6 +222,7 @@ const dbPlayerMail = {
                     if (platform.requireCaptchaInSMS) {
                         if (!captchaValidation) {
                             return Q.reject({
+                                status: constServerCode.INVALID_CAPTCHA,
                                 name: "DataError",
                                 message: "Invalid image captcha"
                             });
@@ -239,7 +241,7 @@ const dbPlayerMail = {
                     }).lean();
 
                     let validPhoneNumberProm = Promise.resolve({isPhoneNumberValid: true});
-                    if (purpose === constSMSPurpose.REGISTRATION) {
+                    if (purpose === constSMSPurpose.REGISTRATION || purpose === constSMSPurpose.NEW_PHONE_NUMBER) {
                         if (!(platform.whiteListingPhoneNumbers
                             && platform.whiteListingPhoneNumbers.length > 0
                             && platform.whiteListingPhoneNumbers.indexOf(telNum) > -1)) {
@@ -274,7 +276,10 @@ const dbPlayerMail = {
                     phoneValidation = data[3];
 
                     if (!phoneValidation || !phoneValidation.isPhoneNumberValid) {
-                        return Promise.reject({message: "This phone number is already used. Please insert other phone number."});
+                        return Promise.reject({
+                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                            message: "This phone number is already used. Please insert other phone number."
+                        });
                     }
 
                     if (!template) {
@@ -289,7 +294,10 @@ const dbPlayerMail = {
 
                     // Check whether verification sms sent in last minute
                     if (lastMinuteHistory && lastMinuteHistory.tel) {
-                        return Q.reject({message: "Verification SMS already sent within last minute"});
+                        return Q.reject({
+                            status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
+                            message: "Verification SMS already sent within last minute"
+                        });
                     }
 
 
@@ -310,7 +318,7 @@ const dbPlayerMail = {
                         delay: 0
                     };
                     // Log the verification SMS before send
-                    new dbconfig.collection_smsVerificationLog(saveObj).save();
+                    new dbconfig.collection_smsVerificationLog(saveObj).save().catch(errorUtils.reportError);
                     return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
                 }
             }

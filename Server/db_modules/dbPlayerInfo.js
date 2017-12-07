@@ -220,13 +220,38 @@ let dbPlayerInfo = {
                                 );
                             }
                             else {
-                                let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
-                                // Verification code is invalid
-                                return Q.reject({
-                                    status: constServerCode.VALIDATION_CODE_INVALID,
-                                    name: "ValidationError",
-                                    message: errorMessage
-                                });
+                                // Not verified
+                                if (!verificationSMS) {
+                                    return Q.reject({
+                                        status: constServerCode.VALIDATION_CODE_EXPIRED,
+                                        name: "ValidationError",
+                                        message: "Invalid SMS Validation Code"
+                                    });
+                                }
+                                else if (verificationSMS.loginAttempts >= 3) {
+                                    // Safety - remove sms verification code after 10 attempts to prevent brute force attack
+                                    return dbConfig.collection_smsVerificationLog.remove(
+                                        {_id: verificationSMS._id}
+                                    ).then(() => {
+                                        return Q.reject({
+                                            status: constServerCode.VALIDATION_CODE_EXCEED_ATTEMPT,
+                                            name: "ValidationError",
+                                            message: "Incorrect SMS Validation Code"
+                                        });
+                                    });
+                                }
+                                else {
+                                    return dbConfig.collection_smsVerificationLog.findOneAndUpdate(
+                                        {_id: verificationSMS._id},
+                                        {$inc: {loginAttempts: 1}}
+                                    ).then(() => {
+                                        return Q.reject({
+                                            status: constServerCode.VALIDATION_CODE_INVALID,
+                                            name: "ValidationError",
+                                            message: "Incorrect SMS Validation Code"
+                                        });
+                                    });
+                                }
                             }
                         }
                     );
@@ -4617,9 +4642,26 @@ let dbPlayerInfo = {
      * @param {objectId} providerId
      * @param {Number} amount
      */
-    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
+    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync, isBatch) {
+        isBatch = isBatch === true;
+        let updateBatchStatus = function (isBatch) {    //uses platform parameter to pass in platformObjId
+            if(isBatch) {
+                let incrementObj = {};
+                if(playerObj) {
+                    incrementObj["batchCreditTransferOutStatus." + playerObj.platform._id + ".processedAmount"] = 1;
+                } else {
+                    incrementObj["batchCreditTransferOutStatus." + platform + ".processedAmount"] = 1;
+                }
+                if(gameProvider) {
+                    dbconfig.collection_gameProvider.findOneAndUpdate({_id: gameProvider._id}, {$inc: incrementObj}).exec();
+                } else {
+                    dbconfig.collection_gameProvider.findOneAndUpdate({providerId: providerId}, {$inc: incrementObj}).exec();
+                }
+            }
+        };
         var deferred = Q.defer();
-        var playerObj = {};
+        let playerObj;
+        let gameProvider;
         var prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform})
@@ -4630,6 +4672,7 @@ let dbPlayerInfo = {
             function (data) {
                 if (data && data[0] && data[1]) {
                     playerObj = data[0];
+                    gameProvider = data[1];
 
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
@@ -4655,6 +4698,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
+                updateBatchStatus(isBatch);
                 deferred.resolve(data);
             },
             function (err) {
@@ -4664,6 +4708,7 @@ let dbPlayerInfo = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, err, constPlayerCreditTransferStatus.FAIL);
                 }
+                updateBatchStatus(isBatch);
                 deferred.reject(err);
             }
         );
@@ -5548,7 +5593,7 @@ let dbPlayerInfo = {
                                 createTime: proposals[i].createTime,
                                 rewardType: proposals[i].type ? proposals[i].type.name : "",
                                 rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
-                                eventName: proposals[i].data.eventName || proposals[i].data.type,
+                                eventName: proposals[i].data.eventName || (proposals[i].type ? proposals[i].type.name : ""),
                                 eventCode: proposals[i].data.eventCode,
                                 status: status
                             }
@@ -5789,6 +5834,7 @@ let dbPlayerInfo = {
         var levelErrorMsg = '';
         // A flag to determine LevelUp Stop At Where.
         var levelUpEnd = false;
+        let isRewardAssign = false;
 
         return Promise.resolve(player).then(
             function (player) {
@@ -6039,12 +6085,17 @@ let dbPlayerInfo = {
                                                     proposalData.rewardAmount = levelUpObj.reward.bonusCredit;
                                                     proposalData.isRewardTask = levelUpObj.reward.isRewardTask;
 
-                                                    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
                                                 }
+                                                return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
+
+                                            } else {
+                                                isRewardAssign = true;
+                                                return {}
                                             }
                                         }
                                     ).then(
                                         proposalResult => {
+
                                             if (!checkLevelUp) {
                                                 return Promise.resolve();
                                             }
@@ -6061,17 +6112,20 @@ let dbPlayerInfo = {
                                             }
                                             let rewardPriceCount = rewardPrice.length;
                                             let mainMessage = '恭喜您从 ' + prevLevelName + ' 升级到 ' + currentLevelName;
-                                            let subMessage = ',获得';
-                                            rewardPrice.forEach(
-                                                function (val, index) {
-                                                    let colon = '、';
-                                                    if (index == rewardPrice.length - 1) {
-                                                        colon = '';
+                                            let subMessage = '';
+                                            if (!isRewardAssign) {
+                                                subMessage = ',获得';
+                                                rewardPrice.forEach(
+                                                    function (val, index) {
+                                                        let colon = '、';
+                                                        if (index == rewardPrice.length - 1) {
+                                                            colon = '';
+                                                        }
+                                                        subMessage += '' + val + '元' + colon;
                                                     }
-                                                    subMessage += '' + val + '元' + colon;
-                                                }
-                                            )
-                                            subMessage += '共' + rewardPrice.length + '个礼包';
+                                                )
+                                                subMessage += '共' + rewardPrice.length + '个礼包';
+                                            }
                                             let message = mainMessage + subMessage;
                                             return {message: message}
 
@@ -7879,6 +7933,7 @@ let dbPlayerInfo = {
                             if (playerData.lastLoginIp == playerIp) {
                                 conn.isAuth = true;
                                 conn.playerId = playerId;
+                                conn.playerObjId = playerData._id;
                                 deferred.resolve(true);
                             }
                             else {
