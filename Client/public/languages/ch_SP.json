@@ -2867,5 +2867,9 @@
   "PlayerPeriodPointConversion": "玩家到期兑换积分",
   "PlayerEarlyPointConversion": "玩家提前兑换积分",
   "PlayerEarlyConvertRewardPoints": "玩家提前兑换积分",
-  "PlayerPeriodConvertRewardPoints": "玩家到期兑换积分"
+  "PlayerPeriodConvertRewardPoints": "玩家到期兑换积分",
+  "rewardPointsConvertCategory": "积分兑换类别 (6-提前兑换 / 7-到期兑换)",
+  "exchangeRatio": "兑换比例",
+  "maxDayApplyAmount": "单日最高兑换积分上限",
+  "currentDayAppliedAmount": "单日已兑换积分（不包括此笔）"
 }

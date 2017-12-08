@@ -16,6 +16,7 @@ var utility = require('./../modules/encrypt');
 var constPlayerStatus = require('./../const/constPlayerStatus');
 var constPlayerTrustLevel = require('./../const/constPlayerTrustLevel');
 var constPlayerPermission = require('./../const/constPlayerPermissions');
+var constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
 var constSystemParam = require('../const/constSystemParam');
 var constDepositMethod = require('../const/constDepositMethod');
 var mongoose = require('mongoose');
@@ -1030,7 +1031,8 @@ function socketActionPlayer(socketIO, socket) {
         convertRewardPointsToCredit: function convertRewardPointsToCredit(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.convertRewardPointsAmount);
-            socketUtil.emitter(self.socket, dbPlayerRewardPoints.convertRewardPointsToCredit, [data.playerId, data.convertRewardPointsAmount, data.remark , getAdminId(), getAdminName()], actionName, isValidData);
+            let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
+            socketUtil.emitter(self.socket, dbPlayerRewardPoints.convertRewardPointsToCredit, [data.playerId, data.convertRewardPointsAmount, data.remark, userAgent, getAdminId(), getAdminName()], actionName, isValidData);
         },
 
     };

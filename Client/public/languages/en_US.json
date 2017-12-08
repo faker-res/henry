@@ -1164,6 +1164,20 @@
   "dailyConsumptionCount": "Daily Consumption Count",
   "singleConsumptionAmountGreaterThan": "Single Consumption Amount Greater Than",
   "dailyValidConsumptionAmount": "Daily Valid Consumption Amount",
-  "dailyWinGameCount": "Daily Win Game Count"
+  "dailyWinGameCount": "Daily Win Game Count",
+  "PlayerConvertRewardPoints": "Player Convert Reward Points",
+  "convertCredit": "Convert Credit",
+  "convertedRewardPoints": "Converted Reward Points",
+  "afterRewardPoints": "After Reward Points",
+  "beforeRewardPoints": "Before Reward Points",
+  "Reward Points": "Reward Points",
+  "PlayerPeriodPointConversion": "Player Period Reward Points Conversion",
+  "PlayerEarlyPointConversion": "Player Early Reward Points Conversion",
+  "PlayerEarlyConvertRewardPoints": "Player Early Convert Reward Points",
+  "PlayerPeriodConvertRewardPoints": "Player Period Convert Reward Points",
+  "rewardPointsConvertCategory": "Reward Points Convert Category (6 - Early Convert / 7 - Period Convert)",
+  "exchangeRatio": "Exchange Ratio",
+  "maxDayApplyAmount": "Max Day Apply Amount",
+  "currentDayAppliedAmount": "Current Day Applied Amount (No Include Current)"
 
 }

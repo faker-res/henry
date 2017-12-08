@@ -126,7 +126,7 @@ let dbPlayerInfo = {
      */
     updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark) {
         let category = updateAmount >= 0 ? constRewardPointsLogCategory.POINT_INCREMENT : constRewardPointsLogCategory.POINT_REDUCTION;
-        return dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark);
+        return dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, constPlayerRegistrationInterface.BACKSTAGE);
     },
     /**
      * Create a new player user

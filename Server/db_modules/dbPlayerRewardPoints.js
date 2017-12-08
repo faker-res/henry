@@ -12,6 +12,7 @@ const constRewardPointsLogCategory = require('../const/constRewardPointsLogCateg
 const constRewardPointsLogStatus = require('../const/constRewardPointsLogStatus');
 const constRewardPointsPeriod = require('../const/constRewardPointsPeriod');
 const constSystemParam = require('../const/constSystemParam');
+const constPlayerRegistrationInterface = require('../const/constPlayerRegistrationInterface');
 
 let dbUtility = require('./../modules/dbutility');
 let dbProposal = require('./../db_modules/dbProposal');
@@ -30,10 +31,11 @@ let dbPlayerRewardPoints = {
      * @param playerId
      * @param convertRewardPointsAmount
      * @param remark
+     * @param {Number} userAgent based on constPlayerRegistrationInterface
      * @param adminId
      * @param adminName
      */
-    convertRewardPointsToCredit: (playerId, convertRewardPointsAmount, remark, adminId, adminName) => {
+    convertRewardPointsToCredit: (playerId, convertRewardPointsAmount, remark, userAgent, adminId, adminName) => {
         let playerInfo = null;
         let playerLvlRewardPointsConfig = null;
         let playerRewardPoints = null;
@@ -185,10 +187,14 @@ let dbPlayerRewardPoints = {
                                 spendingAmount: spendingAmount,
                                 providerGroup: playerLvlRewardPointsConfig.providerGroup,
                                 remark: remark,
-                                category: constRewardPointsLogCategory.EARLY_POINT_CONVERSION
+                                rewardPointsConvertCategory: constRewardPointsLogCategory.EARLY_POINT_CONVERSION,
+                                exchangeRatio: playerLvlRewardPointsConfig.pointToCreditManualRate + ":1",
+                                currentDayAppliedAmount: todayConvertedRewardPoints,
+                                maxDayApplyAmount: playerLvlRewardPointsConfig.pointToCreditManualMaxPoints
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-                            userType: constProposalUserType.PLAYERS
+                            userType: constProposalUserType.PLAYERS,
+                            inputDevice: userAgent
                         };
                         return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData);
                     }
@@ -205,15 +211,19 @@ let dbPlayerRewardPoints = {
      * @param {Number} updateAmount
      * @param {Number} category
      * @param {String} remark
+     * @param {Number} userAgent based on constPlayerRegistrationInterface
      * @param {Number} status
-     * @param {ObjectId} rewardPointsTaskObjId  If create rewardPointsTask
+     * @param {Number}  [currentDayAppliedAmount]  RP(reward point) to credit: daily pointToCredit Points / Apply RP event: daily get Points
+     * @param {Number} [maxDayApplyAmount]        RP(reward point) to credit: pointToCreditMaxPoints / Apply RP event: dailyMaxPoints
+     * @param {ObjectId} [rewardPointsTaskObjId]  If create rewardPointsTask
      */
-    changePlayerRewardPoint: (playerObjId, platformObjId, updateAmount, category, remark, status = constRewardPointsLogStatus.PROCESSED, rewardPointsTaskObjId = null) => {
+    changePlayerRewardPoint: (playerObjId, platformObjId, updateAmount, category, remark, userAgent, status = constRewardPointsLogStatus.PROCESSED, currentDayAppliedAmount = null, maxDayApplyAmount = null, rewardPointsTaskObjId = null) => {
         let playerRewardPoints;
         let oldPoint;
         let afterChangedRewardPoints;
         let playerInfo;
-        return dbConfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean()
+        return dbConfig.collection_players.findOne({_id: playerObjId, platform: platformObjId})
+            .populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean()
             .then(
                 player => {
                     if (!player) {
@@ -262,10 +272,13 @@ let dbPlayerRewardPoints = {
                         oldPoints: playerRewardPoints.points,
                         newPoints: afterChangedRewardPoints,
                         playerName: playerInfo.name,
-                        playerLevelName: playerInfo.playerLevel,
+                        playerLevelName: playerInfo.playerLevel.name,
                         amount: updateAmount,
                         remark: remark,
-                        status: status
+                        status: status,
+                        userAgent: userAgent,
+                        currentDayAppliedAmount: currentDayAppliedAmount,
+                        maxDayApplyAmount: maxDayApplyAmount
                     };
                     dbLogger.createRewardPointsLog(logData);
                 }
@@ -277,7 +290,7 @@ let dbPlayerRewardPoints = {
         let queryTime = dbUtil.getYesterdaySGTime();
         let queryObj = {
             $or: [
-                {$and: [{"intervalPeriod": constRewardPointsPeriod.Custom}, {"customPeriodEndTime": {$lt: queryTime.endTime}}, {"lastRunAutoPeriodTime": null}]},
+                {$and: [{"intervalPeriod": constRewardPointsPeriod.Custom}, {"customPeriodEndTime": {$lte: queryTime.endTime}}, {"lastRunAutoPeriodTime": null}]},
                 {"intervalPeriod": constRewardPointsPeriod.Daily}
             ]
         };
@@ -364,7 +377,6 @@ let dbPlayerRewardPoints = {
     autoConvertPlayerRewardPoints: (playerObjIds) => {
         let proms = [];
 
-
         playerObjIds.forEach(
             playerObjId => {
                 let playerInfo, platformData, playerLvlRewardPointsConfig, playerRewardPoints, rewardPointsProposalType,
@@ -414,7 +426,7 @@ let dbPlayerRewardPoints = {
                                 let spendingAmount = convertCredit * playerLvlRewardPointsConfig.spendingAmountOnReward;
                                 let proposalData = {
                                     type: rewardPointsProposalType._id,
-                                    creator: {type: 'system'},
+                                    creator: {type: 'system', name : "system"},
                                     data: {
                                         playerObjId: playerInfo._id,
                                         playerId: playerInfo.playerId,
@@ -429,8 +441,12 @@ let dbPlayerRewardPoints = {
                                         rewardAmount: convertCredit,
                                         spendingAmount: spendingAmount,
                                         providerGroup: playerLvlRewardPointsConfig.providerGroup,
-                                        category: constRewardPointsLogCategory.PERIOD_POINT_CONVERSION
-                                    }
+                                        rewardPointsConvertCategory: constRewardPointsLogCategory.PERIOD_POINT_CONVERSION,
+                                        exchangeRatio: playerLvlRewardPointsConfig.pointToCreditAutoRate + ":1",
+                                        currentDayAppliedAmount: 0,
+                                        maxDayApplyAmount: playerLvlRewardPointsConfig.pointToCreditAutoMaxPoints
+                                    },
+                                    inputDevice: constPlayerRegistrationInterface.BACKSTAGE,
                                 };
                                 return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData);
                             }
