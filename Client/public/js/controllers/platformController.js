@@ -2687,7 +2687,7 @@ define(['js/app'], function (myApp) {
                     vm.platformCreditTransferLogData = data.data.data;
                     vm.platformCreditTransferLog.totalCount = data.data.total || 0;
                     vm.platformCreditTransferLog.loading = false;
-                    vm.drawPagedPlatformCreditTransferQueryTable(vm.platformCreditTransferLogData, vm.platformCreditTransferLog.totalCount, newSearch, isPopup);
+                    vm.drawPagedPlatformCreditTransferQueryTable(vm.platformCreditTransferLogData, vm.platformCreditTransferLog.totalCount, true, isPopup);
                 });
 
                 // function getAllPlayerCreditTransferStatus() {
