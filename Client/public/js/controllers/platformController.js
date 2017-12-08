@@ -15505,8 +15505,10 @@ define(['js/app'], function (myApp) {
                 vm.getDelayDurationGroup();
             }
 
-            vm.checkPlayerName = function (el, id) {
+            vm.checkPlayerName = function (el, id, index) {
                 let bgColor;
+                let cssPointer = id;
+                let rowNumber = index + 1;
 
                 vm.userGroupConfig.map(e => {
                     if (e.playerNames.indexOf(el.playerName) > -1) {
@@ -15514,7 +15516,11 @@ define(['js/app'], function (myApp) {
                     }
                 });
 
-                $(id).css("background-color", bgColor ? bgColor : "");
+                if (rowNumber) {
+                    cssPointer = id + " > tbody > tr:nth-child(" + rowNumber +")";
+                }
+
+                $(cssPointer).css("background-color", bgColor ? bgColor : "");
             };
 
             vm.promoCodeNewRow = function (collection, type, data) {
