@@ -2654,6 +2654,7 @@ define(['js/app'], function (myApp) {
                     remark: ''
                 };
                 vm.platformCreditTransferLog = {};
+                vm.platformCreditTransferLogPopup = vm.platformCreditTransferLog;
                 utilService.actionAfterLoaded(('#' + panelBody), function () {
                     vm.platformCreditTransferLog.startTime = utilService.createDatePicker('#' + panelBody + ' .startTime');
                     vm.platformCreditTransferLog.endTime = utilService.createDatePicker('#' + panelBody + ' .endTime');
