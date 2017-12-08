@@ -2869,5 +2869,6 @@
   "convertedRewardPoints": "兑换消耗的积分",
   "afterRewardPoints": "兑换后积分",
   "beforeRewardPoints": "兑换前积分",
-  "Reward Points": "积分"
+  "Reward Points": "积分",
+  "level change fail, please contact cs": "等级变更失效，请联系客服。"
 }

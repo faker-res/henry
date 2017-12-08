@@ -2654,6 +2654,7 @@ define(['js/app'], function (myApp) {
                     remark: ''
                 };
                 vm.platformCreditTransferLog = {};
+                vm.platformCreditTransferLogPopup = vm.platformCreditTransferLog;
                 utilService.actionAfterLoaded(('#' + panelBody), function () {
                     vm.platformCreditTransferLog.startTime = utilService.createDatePicker('#' + panelBody + ' .startTime');
                     vm.platformCreditTransferLog.endTime = utilService.createDatePicker('#' + panelBody + ' .endTime');
@@ -2686,7 +2687,7 @@ define(['js/app'], function (myApp) {
                     vm.platformCreditTransferLogData = data.data.data;
                     vm.platformCreditTransferLog.totalCount = data.data.total || 0;
                     vm.platformCreditTransferLog.loading = false;
-                    vm.drawPagedPlatformCreditTransferQueryTable(vm.platformCreditTransferLogData, vm.platformCreditTransferLog.totalCount, newSearch, isPopup);
+                    vm.drawPagedPlatformCreditTransferQueryTable(vm.platformCreditTransferLogData, vm.platformCreditTransferLog.totalCount, true, isPopup);
                 });
 
                 // function getAllPlayerCreditTransferStatus() {
@@ -6880,8 +6881,9 @@ define(['js/app'], function (myApp) {
             }
 
             function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData, topUpGroupRemark, playerPermission) {
-                if (playerPermission.levelChange === false) {
-                    newPlayerData.playerLevel = oldPlayerData.playerLevel
+                if (playerPermission.levelChange === false && newPlayerData.playerLevel != oldPlayerData.playerLevel) {
+                    newPlayerData.playerLevel = oldPlayerData.playerLevel;
+                    socketService.showErrorMessage($translate("level change fail, please contact cs"));
                 }
                 oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 var updateData = newAndModifiedFields(oldPlayerData, newPlayerData);
@@ -14286,15 +14288,48 @@ define(['js/app'], function (myApp) {
 
 
                 } else if (type == 'remove') {
+
                     let sendData = {
                         platformObjId: vm.selectedPlatform.id,
-                        promoCodeSMSContent: collection.splice(data, 1),
-                        isDelete: true
-                    };
+                    }
 
-                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                        vm.loadPlatformData({loadAll: false});
-                    });
+                    // delete immediately the constructed promoCodeType before saving into dB
+                    if (collection[data]._id == null){
+
+                        sendData.promoCodeSMSContent = collection.splice(data, 1);
+                        sendData.isDelete = true;
+
+                        socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                            vm.loadPlatformData({loadAll: false});
+                        });
+                    }
+                    else{
+                        sendData.promoCodeTypeObjId = collection[data]._id;
+
+                        // check the availability of the promocode type, can only remove if it is expired
+                        socketService.$socket($scope.AppSocket, 'checkPromoCodeTypeAvailability', sendData, function (result) {
+                            if (result){
+                                if (!result.data) {
+                                    socketService.showErrorMessage('The promoCode Type is still valid');
+                                }
+                                else {
+                                    let sendData = {
+                                        platformObjId: vm.selectedPlatform.id,
+                                        promoCodeSMSContent: collection.splice(data, 1),
+                                        isDelete: true
+                                    };
+
+                                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                                        vm.loadPlatformData({loadAll: false});
+                                    });
+                                }
+                            }
+                            else{
+                                return Q.reject("data was empty: " + result);
+                            }
+
+                        });
+                    }
                 }
             };
 
@@ -15466,16 +15501,25 @@ define(['js/app'], function (myApp) {
                 vm.getDelayDurationGroup();
             }
 
-            vm.checkPlayerName = function (el, id) {
+            vm.checkPlayerName = function (el, id, index) {
                 let bgColor;
+                let cssPointer = id;
+                let rowNumber = index + 1;
+                let playerNameList = el.playerName ? el.playerName.split("\n") : el.playerName;
 
                 vm.userGroupConfig.map(e => {
-                    if (e.playerNames.indexOf(el.playerName) > -1) {
-                        bgColor = e.color;
-                    }
+                    playerNameList.map(playerName => {
+                        if (e.playerNames.indexOf(playerName.trim()) > -1) {
+                            bgColor = e.color;
+                        }
+                    });
                 });
 
-                $(id).css("background-color", bgColor ? bgColor : "");
+                if (rowNumber) {
+                    cssPointer = id + " > tbody > tr:nth-child(" + rowNumber + ")";
+                }
+
+                $(cssPointer).css("background-color", bgColor ? bgColor : "");
             };
 
             vm.promoCodeNewRow = function (collection, type, data) {
@@ -15488,7 +15532,6 @@ define(['js/app'], function (myApp) {
                         collection.forEach((elem, index, arr) => {
                             let id = '#expDate' + type + '-' + index;
 
-
                             utilService.actionAfterLoaded(id, function () {
                                 collection[index].expirationTime = utilService.createDatePicker(id, {
                                     language: 'en',
@@ -15498,7 +15541,9 @@ define(['js/app'], function (myApp) {
                                 collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             });
 
-                            vm.checkPlayerName(elem, tableId);
+                            $scope.safeApply();
+
+                            vm.checkPlayerName(elem, tableId, index);
                         });
 
                         return collection;
@@ -18659,11 +18704,11 @@ define(['js/app'], function (myApp) {
 
             vm.commonPageChangeHandler = function (curP, pageSize, objKey, serchFunc) {
                 var isChange = false;
-                if (pageSize != vm[objKey].limit) {
+                if (vm[objKey] && pageSize != vm[objKey].limit) {
                     isChange = true;
                     vm[objKey].limit = pageSize;
                 }
-                if ((curP - 1) * pageSize != vm[objKey].index) {
+                if ( vm[objKey] && (curP - 1) * pageSize != vm[objKey].index) {
                     isChange = true;
                     vm[objKey].index = (curP - 1) * pageSize;
                 }

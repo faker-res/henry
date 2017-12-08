@@ -1348,6 +1348,11 @@ let dbPlayerReward = {
                                     let bonusListArr = [];
 
                                     promocodes.forEach(promocode => {
+
+                                        if (promocode.promoCodeTypeObjId == null) {
+                                            return;
+                                        }
+
                                         let providers = [];
                                         let status = promocode.status;
                                         let condition = promoCondition(promocode);
@@ -1604,6 +1609,33 @@ let dbPlayerReward = {
                 return newPromoCode.code;
             }
         )
+    },
+
+    // check the availability of promoCodeType
+    checkPromoCodeTypeAvailability:  (platformObjId, promoCodeTypeObjId) => {
+        return expirePromoCode().then( (res) => {
+            return dbConfig.collection_promoCode.findOne({
+                platformObjId: platformObjId,
+                promoCodeTypeObjId: promoCodeTypeObjId
+            }).sort({expirationTime: -1}).lean();
+        }).then(data => {
+            if (data){
+                if (data && data.status) {
+                    if (data.status == constPromoCodeStatus.EXPIRED) {
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Invalid data"});
+                }
+            }
+            else{
+                return true;
+            }
+        });
     },
 
     savePromoCodeUserGroup: (platformObjId, data, isDelete) => {
