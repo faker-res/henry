@@ -46,7 +46,7 @@
                         tbody
                             tr(ng-repeat='promoCode in vm.newPromoCode1')
                                 td
-                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable1')", ng-disabled="promoCode.code")
+                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable1', $index)", ng-disabled="promoCode.code")
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType1', ng-disabled="promoCode.code")
                                 td
@@ -118,7 +118,7 @@
                         tbody
                             tr(ng-repeat='promoCode in vm.newPromoCode2')
                                 td
-                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable2')", ng-disabled="promoCode.code")
+                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable2', $index)", ng-disabled="promoCode.code")
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType2', ng-disabled="promoCode.code")
                                 td
@@ -188,7 +188,7 @@
                         tbody
                             tr(ng-repeat='promoCode in vm.newPromoCode3')
                                 td
-                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable3')", ng-disabled="promoCode.code")
+                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable3', $index)", ng-disabled="promoCode.code")
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType3', ng-disabled="promoCode.code")
                                 td
