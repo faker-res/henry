@@ -91,7 +91,7 @@ let PlayerServiceImplement = function () {
             conn.captchaCode = null;
             data.isOnline = true;
             let inputData = Object.assign({}, data);
-            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode], isValidData, true, true, true).then(
+            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, false], isValidData, true, true, true).then(
                 (playerData) => {
                     data.playerId = data.playerId ? data.playerId : playerData.playerId;
                     data.remarks = playerData.partnerName ? localization.translate("PARTNER", conn.lang) + ": " + playerData.partnerName : "";

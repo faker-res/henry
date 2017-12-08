@@ -330,8 +330,10 @@
                             tr(ng-repeat='type in vm.promoCodeType1')
                                 td
                                     text {{type.name}}
-                                td
+                                td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                td(ng-if='vm.promoCodeSMSContentEdit')
+                                    input(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType1, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')

@@ -381,6 +381,9 @@ var dbGameProvider = {
             createTime: {
                 $gte: new Date(startDate),
                 $lte: new Date(endDate)
+            },
+            type: {
+                $in: ["TransferIn", "transferIn"]
             }
         };
         let result = {

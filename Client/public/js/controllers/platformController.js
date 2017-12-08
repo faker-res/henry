@@ -14292,15 +14292,48 @@ define(['js/app'], function (myApp) {
 
 
                 } else if (type == 'remove') {
+
                     let sendData = {
                         platformObjId: vm.selectedPlatform.id,
-                        promoCodeSMSContent: collection.splice(data, 1),
-                        isDelete: true
-                    };
+                    }
 
-                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                        vm.loadPlatformData({loadAll: false});
-                    });
+                    // delete immediately the constructed promoCodeType before saving into dB
+                    if (collection[data]._id == null){
+
+                        sendData.promoCodeSMSContent = collection.splice(data, 1);
+                        sendData.isDelete = true;
+
+                        socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                            vm.loadPlatformData({loadAll: false});
+                        });
+                    }
+                    else{
+                        sendData.promoCodeTypeObjId = collection[data]._id;
+
+                        // check the availability of the promocode type, can only remove if it is expired
+                        socketService.$socket($scope.AppSocket, 'checkPromoCodeTypeAvailability', sendData, function (result) {
+                            if (result){
+                                if (!result.data) {
+                                    socketService.showErrorMessage('The promoCode Type is still valid');
+                                }
+                                else {
+                                    let sendData = {
+                                        platformObjId: vm.selectedPlatform.id,
+                                        promoCodeSMSContent: collection.splice(data, 1),
+                                        isDelete: true
+                                    };
+
+                                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                                        vm.loadPlatformData({loadAll: false});
+                                    });
+                                }
+                            }
+                            else{
+                                return Q.reject("data was empty: " + result);
+                            }
+
+                        });
+                    }
                 }
             };
 
@@ -15665,7 +15698,16 @@ define(['js/app'], function (myApp) {
                             contentToReplace = vm.dateReformat(item.expirationTime);
                             break;
                         case "P":
-                            contentToReplace = "";
+                            if (vm.selectedPlatform.data.useProviderGroup) {
+                                contentToReplace = [];
+                                item.allowedProviders[0].providers.map(e => {
+                                    if (vm.platformProviderList.find(g => String(g._id) == String(e))) {
+                                        contentToReplace.push(vm.platformProviderList.find(g => String(g._id) == String(e)).name)
+                                    }
+                                })
+                            } else {
+                                contentToReplace = item.allowedProviders.map(f => f.name);
+                            }
                             break;
                         case "Q":
                             contentToReplace = item.code;

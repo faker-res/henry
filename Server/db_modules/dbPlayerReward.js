@@ -1348,6 +1348,11 @@ let dbPlayerReward = {
                                     let bonusListArr = [];
 
                                     promocodes.forEach(promocode => {
+
+                                        if (promocode.promoCodeTypeObjId == null) {
+                                            return;
+                                        }
+
                                         let providers = [];
                                         let status = promocode.status;
                                         let condition = promoCondition(promocode);
@@ -1604,6 +1609,33 @@ let dbPlayerReward = {
                 return newPromoCode.code;
             }
         )
+    },
+
+    // check the availability of promoCodeType
+    checkPromoCodeTypeAvailability:  (platformObjId, promoCodeTypeObjId) => {
+        return expirePromoCode().then( (res) => {
+            return dbConfig.collection_promoCode.findOne({
+                platformObjId: platformObjId,
+                promoCodeTypeObjId: promoCodeTypeObjId
+            }).sort({expirationTime: -1}).lean();
+        }).then(data => {
+            if (data){
+                if (data && data.status) {
+                    if (data.status == constPromoCodeStatus.EXPIRED) {
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Invalid data"});
+                }
+            }
+            else{
+                return true;
+            }
+        });
     },
 
     savePromoCodeUserGroup: (platformObjId, data, isDelete) => {
@@ -2848,6 +2880,7 @@ let dbPlayerReward = {
                     $match: {
                         "createTime": freeTrialQuery.createTime,
                         "data.eventId": eventData._id,
+                        "data.playerObjId": playerData._id,
                         "status": 'Approved'
                     }
                 },
@@ -2865,10 +2898,19 @@ let dbPlayerReward = {
             ).then(
                 countReward => { // display approved proposal data during this event period
                     let resultArr = [];
+                    let samePlayerObjIdResult;
                     let sameIPAddressResult;
                     let samePhoneNumResult;
                     let sameIPAddress = 0;
                     let samePhoneNum = 0;
+
+                    // if found record, same player has received this reward
+                    if (countReward.length >= 1) {
+                        samePlayerObjIdResult = 0; //fail
+                    } else {
+                        samePlayerObjIdResult = 1;
+                    }
+                    resultArr.push(samePlayerObjIdResult);
 
                     // check IP address
                     if (playerData.lastLoginIp !== '' && eventData.condition.checkIPFreeTrialReward) {
@@ -2881,13 +2923,13 @@ let dbPlayerReward = {
                         }
 
                         if (sameIPAddress >= 1) {
-                            sameIPAddressResult = 0;
+                            sameIPAddressResult = 0; //fail
                         } else {
                             sameIPAddressResult = 1;
                         }
                         resultArr.push(sameIPAddressResult);
                     } else {
-                        // if IP is empty, skip IP checking, player register from backend
+                        // if last login IP is empty, skip IP checking, player register from backend, new player never login
                         sameIPAddressResult = 1;
                         resultArr.push(sameIPAddressResult);
                     }
@@ -2902,7 +2944,7 @@ let dbPlayerReward = {
                         }
 
                         if (samePhoneNum >= 1) {
-                            samePhoneNumResult = 0;
+                            samePhoneNumResult = 0; //fail
                         } else {
                             samePhoneNumResult = 1;
                         }
@@ -3166,12 +3208,17 @@ let dbPlayerReward = {
                         spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
                         break;
 
-
-
-
                     // type 4
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
                         // （领优惠前）检查投注额来源游戏厅
+                        if (eventInPeriodCount && eventInPeriodCount > 0) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This player has applied for max reward times in event period"
+                            });
+                        }
+
                         let consumptions = rewardSpecificData[0];
                         let totalConsumption = 0;
                         for (let x in consumptions) {
@@ -3203,8 +3250,18 @@ let dbPlayerReward = {
                         selectedRewardParam = selectedRewardParam[0];
 
                         if (selectedRewardParam.rewardAmount && selectedRewardParam.spendingTimes) {
-                            let matchIPAddress = rewardSpecificData[0][0];
-                            let matchPhoneNum = rewardSpecificData[0][1];
+                            // console.log('rewardSpecificData[0]',rewardSpecificData[0]); --- check 3 test results, need [1, 1, 1] to pass checking
+                            let matchPlayerId = rewardSpecificData[0][0];
+                            let matchIPAddress = rewardSpecificData[0][1];
+                            let matchPhoneNum = rewardSpecificData[0][2];
+
+                            if (!matchPlayerId) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "This player has applied for max reward times in event period"
+                                });
+                            }
 
                             if (!matchIPAddress) {
                                 return Q.reject({
