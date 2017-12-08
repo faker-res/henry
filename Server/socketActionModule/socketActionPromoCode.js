@@ -53,6 +53,12 @@ function socketActionPromoCode(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeSMSContent, [ObjectId(data.platformObjId), data.promoCodeSMSContent, data.isDelete], actionName, isValidData);
         },
 
+        checkPromoCodeTypeAvailability: function checkPromoCodeTypeAvailability(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.promoCodeTypeObjId);
+            socketUtil.emitter(self.socket, dbPlayerReward.checkPromoCodeTypeAvailability, [data.platformObjId, data.promoCodeTypeObjId], actionName, isValidData);
+        },
+
         generatePromoCode: function generatePromoCode(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.newPromoCodeEntry);
