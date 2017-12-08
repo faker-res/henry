@@ -5898,6 +5898,7 @@ let dbPlayerInfo = {
 
                 function createProposal (proposal, inputDevice, index) {
                     return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {
+                        creator: {type: "player", name: playerObj.name, id: playerObj.playerId},
                         data: proposal,
                         inputDevice: inputDevice
                     }).then(
