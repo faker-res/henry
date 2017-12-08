@@ -15476,11 +15476,14 @@ define(['js/app'], function (myApp) {
                 let bgColor;
                 let cssPointer = id;
                 let rowNumber = index + 1;
+                let playerNameList = el.playerName.split("\n");
 
                 vm.userGroupConfig.map(e => {
-                    if (e.playerNames.indexOf(el.playerName) > -1) {
-                        bgColor = e.color;
-                    }
+                    playerNameList.map(playerName => {
+                        if (e.playerNames.indexOf(playerName.trim()) > -1) {
+                            bgColor = e.color;
+                        }
+                    });
                 });
 
                 if (rowNumber) {
