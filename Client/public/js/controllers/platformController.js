@@ -15511,7 +15511,7 @@ define(['js/app'], function (myApp) {
                 let bgColor;
                 let cssPointer = id;
                 let rowNumber = index + 1;
-                let playerNameList = el.playerName.split("\n");
+                let playerNameList = el.playerName ? el.playerName.split("\n") : el.playerName;
 
                 vm.userGroupConfig.map(e => {
                     playerNameList.map(playerName => {
@@ -15522,7 +15522,7 @@ define(['js/app'], function (myApp) {
                 });
 
                 if (rowNumber) {
-                    cssPointer = id + " > tbody > tr:nth-child(" + rowNumber +")";
+                    cssPointer = id + " > tbody > tr:nth-child(" + rowNumber + ")";
                 }
 
                 $(cssPointer).css("background-color", bgColor ? bgColor : "");
@@ -15538,7 +15538,6 @@ define(['js/app'], function (myApp) {
                         collection.forEach((elem, index, arr) => {
                             let id = '#expDate' + type + '-' + index;
 
-
                             utilService.actionAfterLoaded(id, function () {
                                 collection[index].expirationTime = utilService.createDatePicker(id, {
                                     language: 'en',
@@ -15548,7 +15547,9 @@ define(['js/app'], function (myApp) {
                                 collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             });
 
-                            vm.checkPlayerName(elem, tableId);
+                            $scope.safeApply();
+
+                            vm.checkPlayerName(elem, tableId, index);
                         });
 
                         return collection;
