@@ -356,8 +356,10 @@
                             tr(ng-repeat='type in vm.promoCodeType2')
                                 td
                                     text {{type.name}}
-                                td
+                                td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                td(ng-if='vm.promoCodeSMSContentEdit')
+                                    input(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType2, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')
@@ -380,8 +382,10 @@
                             tr(ng-repeat='type in vm.promoCodeType3')
                                 td
                                     text {{type.name}}
-                                td
+                                td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                td(ng-if='vm.promoCodeSMSContentEdit')
+                                    input(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType3, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')
