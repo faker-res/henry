@@ -4762,7 +4762,6 @@ define(['js/app'], function (myApp) {
                                     'class': 'playerPermissionPopover',
                                     'ng-click': "vm.permissionPlayer = " + JSON.stringify(row)
                                     + "; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;"
-                                    + "; vm.permissionPlayer.permission.rewardPointsTask = !vm.permissionPlayer.permission.rewardPointsTask;"
                                     + "; vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
@@ -5627,7 +5626,6 @@ define(['js/app'], function (myApp) {
 
                                 // Invert second render
                                 row.permission.banReward = !row.permission.banReward;
-                                row.permission.rewardPointsTask = !row.permission.rewardPointsTask;
                                 row.permission.disableWechatPay = !row.permission.disableWechatPay;
                                 row.permission.forbidPlayerConsumptionReturn = !row.permission.forbidPlayerConsumptionReturn;
                                 row.permission.forbidPlayerConsumptionIncentive = !row.permission.forbidPlayerConsumptionIncentive;
@@ -5669,10 +5667,6 @@ define(['js/app'], function (myApp) {
                                     // Invert faked permission display
                                     if (changeObj.hasOwnProperty('banReward')) {
                                         changeObj.banReward = !changeObj.banReward;
-                                    }
-
-                                    if (changeObj.hasOwnProperty('rewardPointsTask')) {
-                                        changeObj.rewardPointsTask = !changeObj.rewardPointsTask;
                                     }
 
                                     if (changeObj.hasOwnProperty('disableWechatPay')) {
