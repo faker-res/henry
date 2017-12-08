@@ -19,6 +19,7 @@ const constRewardType = require("./../const/constRewardType");
 const constServerCode = require('../const/constServerCode');
 
 const dbPlayerUtil = require('../db_common/dbPlayerUtility');
+const dbProposalUtil = require('../db_common/dbProposalUtility');
 var constProposalMainType = require('../const/constProposalMainType');
 
 const dbGameProvider = require('../db_modules/dbGameProvider');
@@ -1364,7 +1365,8 @@ let dbPlayerReward = {
                                             "expireTime": promocode.expirationTime,
                                             "bonusCode": promocode.code,
                                             "tag": promocode.bannerText,
-                                        }
+                                            "isSharedWithXIMA": promocode.isSharedWithXIMA
+                                        };
                                         if (promocode.maxTopUpAmount) {
                                             promo.bonusLimit = promocode.maxTopUpAmount;
                                         }
@@ -1830,22 +1832,16 @@ let dbPlayerReward = {
     },
 
     getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime) => {
-        let promoCodeObjs;
         let monitorObjs;
+        let promoCodeQuery = {
+            'data.platformId': platformObjId,
+            settleTime: {$gte: startAcceptedTime, $lt: endAcceptedTime},
+            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+            // We only want type 3 promo code
+            "data.promoCodeTypeValue": 3
+        };
 
-        return dbConfig.collection_proposalType.findOne({
-            platformId: platformObjId,
-            name: constProposalType.PLAYER_PROMO_CODE_REWARD
-        }).lean().then(
-            proposalType => {
-                return dbConfig.collection_proposal.find({
-                    'data.platformId': platformObjId,
-                    type: proposalType._id,
-                    settleTime: {$gte: startAcceptedTime, $lt: endAcceptedTime},
-                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                })
-            }
-        ).then(
+        return dbProposalUtil.getProposalDataOfType(platformObjId, constProposalType.PLAYER_PROMO_CODE_REWARD, promoCodeQuery).then(
             promoCodeData => {
                 let delProm = [];
 
@@ -1859,44 +1855,41 @@ let dbPlayerReward = {
                         rewardAmount: p.data.rewardAmount,
                         promoCodeType: p.data.PROMO_CODE_TYPE,
                         spendingAmount: p.data.spendingAmount,
-                        acceptedTime: p.settleTime
+                        acceptedTime: p.settleTime,
+                        isSharedWithXIMA: !p.data.useConsumption
                     }
                 });
 
-                monitorObjs.forEach((elem, index, arr) => {
-                    delProm.push(dbConfig.collection_proposalType.findOne({
-                        platformId: elem.platformObjId,
-                        name: constProposalType.PLAYER_BONUS
-                    }).then(
-                        propType => {
-                            return dbConfig.collection_proposal.findOne({
-                                'data.platformId': elem.platformObjId,
-                                'data.playerObjId': elem.playerObjId,
-                                type: propType._id,
-                                settleTime: {$gt: elem.acceptedTime},
-                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
-                            })
-                        }
-                    ).then(
-                        withdrawProp => {
-                            if (withdrawProp) {
-                                monitorObjs[index].nextWithdrawProposalId = withdrawProp.proposalId;
-                                monitorObjs[index].nextWithdrawAmount = withdrawProp.data.amount;
-                                monitorObjs[index].nextWithdrawTime = withdrawProp.settleTime;
+                monitorObjs.forEach((elem, index) => {
+                    let withdrawPropQuery = {
+                        'data.platformId': elem.platformObjId,
+                        'data.playerObjId': elem.playerObjId,
+                        settleTime: {$gt: elem.acceptedTime},
+                        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                    };
+
+                    delProm.push(
+                        dbProposalUtil.getOneProposalDataOfType(elem.platformObjId, constProposalType.PLAYER_BONUS, withdrawPropQuery).then(
+                            withdrawProp => {
+                                if (withdrawProp) {
+                                    monitorObjs[index].nextWithdrawProposalId = withdrawProp.proposalId;
+                                    monitorObjs[index].nextWithdrawAmount = withdrawProp.data.amount;
+                                    monitorObjs[index].nextWithdrawTime = withdrawProp.settleTime;
+                                }
                             }
-                        }
-                    ));
+                        )
+                    );
                 });
 
                 return Promise.all(delProm);
             }
         ).then(
-            data => {
+            () => {
                 let proms = [];
 
                 monitorObjs = monitorObjs.filter(e => e.nextWithdrawProposalId);
 
-                monitorObjs.forEach((elem, index, arr) => {
+                monitorObjs.forEach((elem, index) => {
                     proms.push(
                         getPlayerConsumptionSummary(elem.platformObjId, elem.playerObjId, elem.acceptedTime, elem.nextWithdrawTime).then(
                             res => {
@@ -1927,7 +1920,7 @@ let dbPlayerReward = {
                 return Promise.all(proms);
             }
         ).then(
-            res => monitorObjs
+            () => monitorObjs
         )
     },
 
@@ -2855,6 +2848,7 @@ let dbPlayerReward = {
                     $match: {
                         "createTime": freeTrialQuery.createTime,
                         "data.eventId": eventData._id,
+                        "data.playerObjId": playerData._id,
                         "status": 'Approved'
                     }
                 },
@@ -2872,10 +2866,19 @@ let dbPlayerReward = {
             ).then(
                 countReward => { // display approved proposal data during this event period
                     let resultArr = [];
+                    let samePlayerObjIdResult;
                     let sameIPAddressResult;
                     let samePhoneNumResult;
                     let sameIPAddress = 0;
                     let samePhoneNum = 0;
+
+                    // if found record, same player has received this reward
+                    if (countReward.length >= 1) {
+                        samePlayerObjIdResult = 0; //fail
+                    } else {
+                        samePlayerObjIdResult = 1;
+                    }
+                    resultArr.push(samePlayerObjIdResult);
 
                     // check IP address
                     if (playerData.lastLoginIp !== '' && eventData.condition.checkIPFreeTrialReward) {
@@ -2888,13 +2891,13 @@ let dbPlayerReward = {
                         }
 
                         if (sameIPAddress >= 1) {
-                            sameIPAddressResult = 0;
+                            sameIPAddressResult = 0; //fail
                         } else {
                             sameIPAddressResult = 1;
                         }
                         resultArr.push(sameIPAddressResult);
                     } else {
-                        // if IP is empty, skip IP checking, player register from backend
+                        // if last login IP is empty, skip IP checking, player register from backend, new player never login
                         sameIPAddressResult = 1;
                         resultArr.push(sameIPAddressResult);
                     }
@@ -2909,7 +2912,7 @@ let dbPlayerReward = {
                         }
 
                         if (samePhoneNum >= 1) {
-                            samePhoneNumResult = 0;
+                            samePhoneNumResult = 0; //fail
                         } else {
                             samePhoneNumResult = 1;
                         }
@@ -3173,12 +3176,17 @@ let dbPlayerReward = {
                         spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
                         break;
 
-
-
-
                     // type 4
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
                         // （领优惠前）检查投注额来源游戏厅
+                        if (eventInPeriodCount && eventInPeriodCount > 0) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This player has applied for max reward times in event period"
+                            });
+                        }
+
                         let consumptions = rewardSpecificData[0];
                         let totalConsumption = 0;
                         for (let x in consumptions) {
@@ -3210,8 +3218,18 @@ let dbPlayerReward = {
                         selectedRewardParam = selectedRewardParam[0];
 
                         if (selectedRewardParam.rewardAmount && selectedRewardParam.spendingTimes) {
-                            let matchIPAddress = rewardSpecificData[0][0];
-                            let matchPhoneNum = rewardSpecificData[0][1];
+                            // console.log('rewardSpecificData[0]',rewardSpecificData[0]); --- check 3 test results, need [1, 1, 1] to pass checking
+                            let matchPlayerId = rewardSpecificData[0][0];
+                            let matchIPAddress = rewardSpecificData[0][1];
+                            let matchPhoneNum = rewardSpecificData[0][2];
+
+                            if (!matchPlayerId) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "This player has applied for max reward times in event period"
+                                });
+                            }
 
                             if (!matchIPAddress) {
                                 return Q.reject({

@@ -13607,48 +13607,55 @@ define(['js/app'], function (myApp) {
                         })
                     });
 
-                    let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+                    $scope.safeApply();
 
-                    // Set param value
-                    Object.keys(paramType).forEach(el => {
-                        // Get value
-                        if (vm.showReward && vm.showReward.param && vm.showReward.param.hasOwnProperty(el) && el != "rewardParam") {
-                            vm.rewardMainParam[el] = paramType[el];
-                            vm.rewardMainParam[el].value = vm.showReward.param[el];
-                        }
+                    setTimeout(function() {
+                        let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
 
-                        // Get multi step reward flag
-                        if (el == "isMultiStepReward" && vm.showReward && vm.showReward.param && vm.showReward.param[el] === true) {
-                            vm.isMultiStepReward = true;
-                        }
-                    });
-
-                    vm.changeRewardParamLayout(null, true);
-
-                    utilService.actionAfterLoaded("#rewardMainParamTable", function () {
-                        // Set param table value
-                        Object.keys(paramType.rewardParam).forEach(el => {
-                            if (vm.isPlayerLevelDiff) {
-                                if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
-                                    vm.showReward.param.rewardParam.forEach((el, idx) => {
-                                        vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
-
-                                    })
-                                }
-                            } else {
-                                if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
-                                    vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
+                        // Set param value
+                        Object.keys(paramType).forEach(el => {
+                            // Get value
+                            if (vm.showReward && vm.showReward.param && vm.showReward.param.hasOwnProperty(el) && el != "rewardParam") {
+                                vm.rewardMainParam[el] = paramType[el];
+                                vm.rewardMainParam[el].value = vm.showReward.param[el];
                             }
-                            if (el == "rewardPercentageAmount") {
-                                vm.isRandomReward = true;
-                                vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !=="undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{percentage: "", amount: ""}];
+
+                            // Get multi step reward flag
+                            if (el == "isMultiStepReward" && vm.showReward && vm.showReward.param && vm.showReward.param[el] === true) {
+                                vm.isMultiStepReward = true;
                             }
                         });
 
-                        $scope.safeApply();
+                        vm.changeRewardParamLayout(null, true);
 
-                        vm.disableAllRewardInput(true);
-                    });
+                        utilService.actionAfterLoaded("#rewardMainParamTable", function () {
+                            // Set param table value
+                            Object.keys(paramType.rewardParam).forEach(el => {
+                                if (vm.isPlayerLevelDiff) {
+                                    if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
+                                        vm.showReward.param.rewardParam.forEach((el, idx) => {
+                                            vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
+
+                                        })
+                                    }
+                                } else {
+                                    if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
+                                        vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
+                                }
+                                if (el == "rewardPercentageAmount") {
+                                    vm.isRandomReward = true;
+                                    vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !== "undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{
+                                        percentage: "",
+                                        amount: ""
+                                    }];
+                                }
+                            });
+
+                            $scope.safeApply();
+
+                            vm.disableAllRewardInput(true);
+                        });
+                    }, 0);
                 }
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
@@ -14052,7 +14059,7 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            $scope.safeApply();
+            // $scope.safeApply();
         };
 
             /**
@@ -15636,7 +15643,53 @@ define(['js/app'], function (myApp) {
             };
 
             vm.sendSMSByPromoCode = function (promoCode) {
-                let item = promoCode ? promoCode : vm.selectedPromoCode
+                let item = promoCode ? promoCode : vm.selectedPromoCode;
+
+                // Translate sms content
+                Object.keys($scope.constPromoCodeLegend).forEach(e => {
+                    let indexCode = $scope.constPromoCodeLegend[e];
+                    let codePositionIndex = item.smsContent.indexOf("(" + indexCode + ")");
+                    let contentToReplace = "";
+
+                    switch (indexCode) {
+                        case "X":
+                            contentToReplace = item.amount;
+                            break;
+                        case "D":
+                            contentToReplace = item.minTopUpAmount;
+                            break;
+                        case "Y":
+                            contentToReplace = item.requiredConsumption;
+                            break;
+                        case "Z":
+                            contentToReplace = vm.dateReformat(item.expirationTime);
+                            break;
+                        case "P":
+                            if (vm.selectedPlatform.data.useProviderGroup) {
+                                contentToReplace = [];
+                                item.allowedProviders[0].providers.map(e => {
+                                    if (vm.platformProviderList.find(g => String(g._id) == String(e))) {
+                                        contentToReplace.push(vm.platformProviderList.find(g => String(g._id) == String(e)).name)
+                                    }
+                                })
+                            } else {
+                                contentToReplace = item.allowedProviders.map(f => f.name);
+                            }
+                            break;
+                        case "Q":
+                            contentToReplace = item.code;
+                            break;
+                        case "M":
+                            contentToReplace = item.maxTopUpAmount;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    if (codePositionIndex > -1) {
+                        item.smsContent = item.smsContent.substr(0, codePositionIndex) + contentToReplace + item.smsContent.substr(codePositionIndex + 3);
+                    }
+                })
 
                 let sendObj = {
                     platformId: item.platformObjId,
@@ -16064,7 +16117,12 @@ define(['js/app'], function (myApp) {
                     console.log('getPromoCodesMonitor', data);
                     vm.promoCodeMonitor.totalCount = data.data.length;
                     $scope.safeApply();
-                    vm.drawPromoCodeMonitorTable(data.data, data.data.length, {}, isNewSearch);
+                    vm.drawPromoCodeMonitorTable(data.data.map(
+                        item => {
+                            item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
+                            return item;
+                        }
+                    ), data.data.length, {}, isNewSearch);
                 }, function (err) {
                     console.error(err);
                 }, true);
