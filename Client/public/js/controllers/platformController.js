@@ -6886,8 +6886,9 @@ define(['js/app'], function (myApp) {
             }
 
             function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData, topUpGroupRemark, playerPermission) {
-                if (playerPermission.levelChange === false) {
-                    newPlayerData.playerLevel = oldPlayerData.playerLevel
+                if (playerPermission.levelChange === false && newPlayerData.playerLevel != oldPlayerData.playerLevel) {
+                    newPlayerData.playerLevel = oldPlayerData.playerLevel;
+                    socketService.showErrorMessage($translate("level change fail, please contact cs"));
                 }
                 oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 var updateData = newAndModifiedFields(oldPlayerData, newPlayerData);
@@ -15505,16 +15506,25 @@ define(['js/app'], function (myApp) {
                 vm.getDelayDurationGroup();
             }
 
-            vm.checkPlayerName = function (el, id) {
+            vm.checkPlayerName = function (el, id, index) {
                 let bgColor;
+                let cssPointer = id;
+                let rowNumber = index + 1;
+                let playerNameList = el.playerName.split("\n");
 
                 vm.userGroupConfig.map(e => {
-                    if (e.playerNames.indexOf(el.playerName) > -1) {
-                        bgColor = e.color;
-                    }
+                    playerNameList.map(playerName => {
+                        if (e.playerNames.indexOf(playerName.trim()) > -1) {
+                            bgColor = e.color;
+                        }
+                    });
                 });
 
-                $(id).css("background-color", bgColor ? bgColor : "");
+                if (rowNumber) {
+                    cssPointer = id + " > tbody > tr:nth-child(" + rowNumber +")";
+                }
+
+                $(cssPointer).css("background-color", bgColor ? bgColor : "");
             };
 
             vm.promoCodeNewRow = function (collection, type, data) {

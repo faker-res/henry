@@ -5863,7 +5863,7 @@ let dbPlayerInfo = {
                     //
                     //return dbconfig.collection_playerLevel.find(query).sort({value: 1}).lean();
                     if (playerObj.permission && playerObj.permission.levelChange === false) {
-                        return Q.reject({name: "DBError", message: "player do not have level permission"});
+                        return Q.reject({name: "DBError", message: "level change fail, please contact cs"});
                     }
 
                     if (checkLevelUp && !checkLevelDown) {
@@ -6218,10 +6218,18 @@ let dbPlayerInfo = {
                 }
             },
             function (error) {
-                return Q.reject({
-                    status: constServerCode.REWARD_EVENT_INVALID,
-                    name: "DBError", message: "Error in finding player level", error: error
-                });
+                if (playerObj.permission && playerObj.permission.levelChange === false) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DBError",
+                        message: "level change fail, please contact cs"
+                    });
+                } else {
+                    return Q.reject({
+                        status: constServerCode.REWARD_EVENT_INVALID,
+                        name: "DBError", message: "Error in finding player level", error: error
+                    });
+                }
             }
         );
     },
