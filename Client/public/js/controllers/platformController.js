@@ -4778,7 +4778,6 @@ define(['js/app'], function (myApp) {
                                     'class': 'playerPermissionPopover',
                                     'ng-click': "vm.permissionPlayer = " + JSON.stringify(row)
                                     + "; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;"
-                                    + "; vm.permissionPlayer.permission.rewardPointsTask = !vm.permissionPlayer.permission.rewardPointsTask;"
                                     + "; vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
@@ -5643,7 +5642,6 @@ define(['js/app'], function (myApp) {
 
                                 // Invert second render
                                 row.permission.banReward = !row.permission.banReward;
-                                row.permission.rewardPointsTask = !row.permission.rewardPointsTask;
                                 row.permission.disableWechatPay = !row.permission.disableWechatPay;
                                 row.permission.forbidPlayerConsumptionReturn = !row.permission.forbidPlayerConsumptionReturn;
                                 row.permission.forbidPlayerConsumptionIncentive = !row.permission.forbidPlayerConsumptionIncentive;
@@ -5685,10 +5683,6 @@ define(['js/app'], function (myApp) {
                                     // Invert faked permission display
                                     if (changeObj.hasOwnProperty('banReward')) {
                                         changeObj.banReward = !changeObj.banReward;
-                                    }
-
-                                    if (changeObj.hasOwnProperty('rewardPointsTask')) {
-                                        changeObj.rewardPointsTask = !changeObj.rewardPointsTask;
                                     }
 
                                     if (changeObj.hasOwnProperty('disableWechatPay')) {
@@ -15526,7 +15520,7 @@ define(['js/app'], function (myApp) {
                 let bgColor;
                 let cssPointer = id;
                 let rowNumber = index + 1;
-                let playerNameList = el.playerName.split("\n");
+                let playerNameList = el.playerName ? el.playerName.split("\n") : el.playerName;
 
                 vm.userGroupConfig.map(e => {
                     playerNameList.map(playerName => {
@@ -15537,7 +15531,7 @@ define(['js/app'], function (myApp) {
                 });
 
                 if (rowNumber) {
-                    cssPointer = id + " > tbody > tr:nth-child(" + rowNumber +")";
+                    cssPointer = id + " > tbody > tr:nth-child(" + rowNumber + ")";
                 }
 
                 $(cssPointer).css("background-color", bgColor ? bgColor : "");
@@ -15549,10 +15543,9 @@ define(['js/app'], function (myApp) {
                 let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true}));
 
                 return p.then(
-                    () => {
+                    () => {setTimeout( () => {
                         collection.forEach((elem, index, arr) => {
                             let id = '#expDate' + type + '-' + index;
-
 
                             utilService.actionAfterLoaded(id, function () {
                                 collection[index].expirationTime = utilService.createDatePicker(id, {
@@ -15563,10 +15556,12 @@ define(['js/app'], function (myApp) {
                                 collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             });
 
-                            vm.checkPlayerName(elem, tableId);
+                            $scope.safeApply();
+
+                            vm.checkPlayerName(elem, tableId, index);
                         });
 
-                        return collection;
+                        return collection;},0);
                     }
                 );
             };
