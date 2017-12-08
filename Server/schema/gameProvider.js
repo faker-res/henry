@@ -28,7 +28,9 @@ var gameProviderSchema = new Schema({
     //settlement status, daily settlement, weekly settlement or ready
     settlementStatus: {type: String, default: constPlatformStatus.READY},
     //last daily settlement time
-    lastDailySettlementTime : {type: Date}
+    lastDailySettlementTime : {type: Date},
+    //store based on platformObjId eg.: {platformObjId: {processedAmount: number, totalAmount: number}}
+    batchCreditTransferOutStatus: {type: JSON, default: {}}
 });
 
 //add game id before save

@@ -326,6 +326,7 @@ var roleChecker = {
                 Read: ['getAllGameProviders', 'getGamesByPlatformAndProvider', 'getGamesNotAttachedToPlatform'],
                 // AttachProvider: ['addProviderToPlatformById'],
                 EditAttachedProvider: ['renameProviderInPlatformById', 'updateProviderFromPlatformById'],
+                BatchCreditTransferOut: ['batchCreditTransferOut'],
                 // DetachProvider: ['removeProviderFromPlatformById'],
                 AttachGame: ['attachGameToPlatform', 'attachGamesToPlatform'],
                 DetachGame: ['detachGameFromPlatform', 'updateGameStatusToPlatform', 'detachGamesFromPlatform'],
@@ -407,7 +408,7 @@ var roleChecker = {
             },
             "promoCode": {
                 Read: ['getPromoCodeTypes', 'getPromoCodeUserGroup'],
-                createPromoCode: ['generatePromoCode'],
+                createPromoCode: ['generatePromoCode', 'checkPlayerHasPromoCode'],
                 promoCodeHistory: ['getPromoCodesHistory'],
                 sendSMS: [],
                 monitor: [],

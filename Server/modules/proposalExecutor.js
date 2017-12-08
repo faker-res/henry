@@ -1401,6 +1401,14 @@ var proposalExecutor = {
                             });
                         }
 
+                        if( proposalData.status == constProposalStatus.CANCEL || proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.FAIL ){
+                            return Q.reject({
+                                name: "DataError",
+                                message: "Invalid proposal status",
+                                data: {proposal: proposalData}
+                            });
+                        }
+
                         var decryptedPhoneNo = player.phoneNumber;
 
                         if (player.phoneNumber && player.phoneNumber.length > 20) {
@@ -2257,7 +2265,9 @@ var proposalExecutor = {
                         initAmount: proposalData.data.rewardAmount,
                         useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
-                        providerGroup: proposalData.data.providerGroup
+                        providerGroup: proposalData.data.providerGroup,
+                        lastLoginIp: proposalData.data.lastLoginIp,
+                        phoneNumber: proposalData.data.phoneNumber
                     };
 
                     let deferred1 = Q.defer();
@@ -2291,7 +2301,7 @@ var proposalExecutor = {
             executePlayerConvertRewardPoints: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.playerRewardPointsObjId) {
                     let taskData = {
-                        playerId: proposalData.data.playerObjId,
+                        playerObjId: proposalData.data.playerObjId,
                         rewardPointsObjId: proposalData.data.playerRewardPointsObjId,
                         rewardPoints: proposalData.data.convertedRewardPoints,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
@@ -3127,7 +3137,7 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
         gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: proposalData.data.providerGroup}).lean();
     }
 
-    let playerRewardPointProm = dbRewardPoints.getPlayerRewardPoints(taskData.playerId);
+    let playerRewardPointProm = dbRewardPoints.getPlayerRewardPoints(taskData.playerObjId);
 
     Promise.all([gameProviderGroupProm, playerRewardPointProm]).then(
         res => {

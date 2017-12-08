@@ -17,7 +17,6 @@ const dbPaymentReconciliation = {
                 let allProm = [];
 
                 for (let t = 0, tLength = timeFrames.length; t < tLength; t++) {
-                    let promises = [];
                     let start = timeFrames[t].startTime;
                     let end = timeFrames[t].endTime;
 
@@ -223,18 +222,6 @@ const dbPaymentReconciliation = {
 
         );
     },
-
-    // debug purpose only
-    testCashoutAPI: function (platformId, startTime, endTime) {
-        let pmsProm = pmsAPI.reconciliation_getCashoutList({
-            platformId: platformId,
-            starttime: getPMSTimeFormat(startTime),
-            endtime: getPMSTimeFormat(endTime)
-        });
-
-        return pmsProm;
-    }
-
 };
 
 function sliceTimeFrameToDaily(startTime, endTime) {
@@ -265,6 +252,10 @@ function sliceTimeFrameToDaily(startTime, endTime) {
 
 function getMismatchFromProposalGroup(proposals, option) {
     let pmsProposals;
+    if (!proposals || !proposals[0]) {
+        return {};
+    }
+
     if (option === 'online') {
         pmsProposals = proposals[0].onlineCashinList || [];
     }
@@ -272,8 +263,8 @@ function getMismatchFromProposalGroup(proposals, option) {
         pmsProposals = proposals[0].cashinList || proposals[0].cashoutList || [];
     }
 
-    let localProposals = proposals[1];
-    let pmsOnlineProposals = option === 'manual' ? proposals[2].onlineCashinList : [];
+    let localProposals = proposals[1] || [];
+    let pmsOnlineProposals = option === 'manual' && proposals[2] ? proposals[2].onlineCashinList : [];
 
     if (option === 'manual') {
         pmsOnlineProposals = pmsOnlineProposals || [];
@@ -315,10 +306,6 @@ function getMismatchFromProposalGroup(proposals, option) {
             mismatches.push({proposalId: pmsProposal.proposalId, missing: "FPMS", createTime: pmsProposal.createTime, amount: pmsProposal.amount});
             pmsMismatchCount++;
             pmsMismatchAmount += pmsProposal.amount;
-        }
-        if (i === 0) {
-            // todo :: debugging console.log, remove later
-            console.log(JSON.stringify(pmsProposal, null, 4));
         }
         pmsCount++;
         pmsAmount += pmsProposal.amount;

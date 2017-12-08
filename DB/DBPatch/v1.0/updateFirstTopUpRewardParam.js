@@ -759,8 +759,8 @@ db.rewardParam.update({
         param: {
             tblOptFixed: {
                 rewardParam: {
-                    rewardAmount: {type: "number", des: "Reward amount"},
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    rewardAmount: {type: "number", des: "FREE_TRIAL_REWARD_AMOUNT"},
+                    spendingTimes: {type: "number", des: "FREE_TRIAL_SPENDING_TIMES"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "number",

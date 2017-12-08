@@ -112,7 +112,13 @@ function socketActionPromoCode(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.startCreateTime && data.endCreateTime && data.flag);
             socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodesActive, [ObjectId(data.platformObjId), data], actionName, isValidData);
-        }
+        },
+
+        checkPlayerHasPromoCode: function checkPlayerHasPromoCode(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerName && data.status);
+            socketUtil.emitter(self.socket, dbPlayerReward.checkPlayerHasPromoCode, [data], actionName, isValidData);
+        },
     };
     socketActionPromoCode.actions = this.actions;
 }
