@@ -6886,8 +6886,9 @@ define(['js/app'], function (myApp) {
             }
 
             function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData, topUpGroupRemark, playerPermission) {
-                if (playerPermission.levelChange === false) {
-                    newPlayerData.playerLevel = oldPlayerData.playerLevel
+                if (playerPermission.levelChange === false && newPlayerData.playerLevel != oldPlayerData.playerLevel) {
+                    newPlayerData.playerLevel = oldPlayerData.playerLevel;
+                    socketService.showErrorMessage($translate("level change fail, please contact cs"));
                 }
                 oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 var updateData = newAndModifiedFields(oldPlayerData, newPlayerData);
