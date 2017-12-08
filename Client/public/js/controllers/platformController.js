@@ -18708,11 +18708,11 @@ define(['js/app'], function (myApp) {
 
             vm.commonPageChangeHandler = function (curP, pageSize, objKey, serchFunc) {
                 var isChange = false;
-                if (pageSize != vm[objKey].limit) {
+                if (vm[objKey] && pageSize != vm[objKey].limit) {
                     isChange = true;
                     vm[objKey].limit = pageSize;
                 }
-                if ((curP - 1) * pageSize != vm[objKey].index) {
+                if ( vm[objKey] && (curP - 1) * pageSize != vm[objKey].index) {
                     isChange = true;
                     vm[objKey].index = (curP - 1) * pageSize;
                 }
