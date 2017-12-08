@@ -1203,6 +1203,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
             .populate({path: "partner", model: dbconfig.collection_partner})
+            .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints})
             .then(data => {
                 if (data) {
                     playerData = data;
