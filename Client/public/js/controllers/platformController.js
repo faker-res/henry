@@ -15523,7 +15523,7 @@ define(['js/app'], function (myApp) {
                 let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true}));
 
                 return p.then(
-                    () => {
+                    () => {setTimeout( () => {
                         collection.forEach((elem, index, arr) => {
                             let id = '#expDate' + type + '-' + index;
 
@@ -15540,7 +15540,7 @@ define(['js/app'], function (myApp) {
                             vm.checkPlayerName(elem, tableId);
                         });
 
-                        return collection;
+                        return collection;},0);
                     }
                 );
             };
