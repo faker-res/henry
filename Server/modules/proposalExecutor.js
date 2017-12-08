@@ -1400,6 +1400,14 @@ var proposalExecutor = {
                             });
                         }
 
+                        if( proposalData.status == constProposalStatus.CANCEL || proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.FAIL ){
+                            return Q.reject({
+                                name: "DataError",
+                                message: "Invalid proposal status",
+                                data: {proposal: proposalData}
+                            });
+                        }
+
                         var decryptedPhoneNo = player.phoneNumber;
 
                         if (player.phoneNumber && player.phoneNumber.length > 20) {
