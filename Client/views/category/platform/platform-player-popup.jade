@@ -1124,12 +1124,12 @@
                 i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.playerBonus.showSubmit && !vm.playerBonus.resMsg')
 
 #modalPlayerAddRewardTask.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:50%;')
-        .modal-content
+    .modal-dialog(style='width:90%')
+        .modal-content(style='max-height: 90vh')
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{"REWARD_ACTION" | translate}} : {{vm.selectedSinglePlayer.name}}
-            .modal-body
+            .modal-body(style='height: 80vh;overflow-y:auto;')
                 ul.nav.nav-tabs.common-nav-tabs
                     li(ng-class="vm.selectedRewardSettingsTab == 'manual-reward' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'AddRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('manual-reward');vm.initPlayerAddRewardTask();") {{"Add Reward Task" | translate}}
@@ -1433,9 +1433,9 @@
                                         td.col-md-4.oblique {{'CHANGE_REWARD_POINTS' | translate}}
                                         td.col-md-4.oblique {{'UPDATED_REWARD_POINTS' | translate}}
                                     tr
-                                        td {{vm.isOneSelectedPlayer().currentPoints}}
+                                        td {{vm.isOneSelectedPlayer().rewardPointsObjId.points}}
                                         td
-                                            input.text-success(type='number', ng-model='vm.rewardPointsChange.updateAmount', ng-change="vm.rewardPointsChange.finalValidAmount=vm.isOneSelectedPlayer().currentPoints+vm.rewardPointsChange.updateAmount")
+                                            input.text-success(type='number', ng-model='vm.rewardPointsChange.updateAmount', ng-change="vm.rewardPointsChange.finalValidAmount=vm.isOneSelectedPlayer().rewardPointsObjId.points+vm.rewardPointsChange.updateAmount")
                                         td
                                             label.text-danger {{vm.rewardPointsChange.finalValidAmount || 0 }}
                                             .text-danger(ng-show='vm.rewardPointsChange.finalValidAmount<0') {{'Player reward points cannot be less than 0' | translate}}
@@ -1454,9 +1454,9 @@
                                         td.col-md-3.oblique.strong(style='color:red') {{'REWARD_POINTS_EXCHANGE_DAILY_LIMIT' | translate}}
                                         td.col-md-3.oblique {{'AFTER_REWARD_POINTS_EXCHANGE' | translate}}
                                     tr
-                                        td {{vm.isOneSelectedPlayer().currentPoints}}
+                                        td {{vm.isOneSelectedPlayer().rewardPointsObjId.points}}
                                         td
-                                            input.text-success(type='number', ng-model='vm.rewardPointsExchange.updateAmount', ng-change="vm.isOneSelectedPlayer().finalValidAmount=vm.isOneSelectedPlayer().currentPoints+vm.rewardPointsExchange.updateAmount")
+                                            input.text-success(type='number', ng-model='vm.rewardPointsExchange.updateAmount', ng-change="vm.isOneSelectedPlayer().finalValidAmount=vm.isOneSelectedPlayer().rewardPointsObjId.points+vm.rewardPointsExchange.updateAmount")
                                         td
                                             label(style='color:red;') {{xx}}
                                             label(style='color:red;') &nbsp;

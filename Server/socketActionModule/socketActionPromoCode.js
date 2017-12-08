@@ -53,6 +53,12 @@ function socketActionPromoCode(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeSMSContent, [ObjectId(data.platformObjId), data.promoCodeSMSContent, data.isDelete], actionName, isValidData);
         },
 
+        checkPromoCodeTypeAvailability: function checkPromoCodeTypeAvailability(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.promoCodeTypeObjId);
+            socketUtil.emitter(self.socket, dbPlayerReward.checkPromoCodeTypeAvailability, [data.platformObjId, data.promoCodeTypeObjId], actionName, isValidData);
+        },
+
         generatePromoCode: function generatePromoCode(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.newPromoCodeEntry);
@@ -106,7 +112,13 @@ function socketActionPromoCode(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.startCreateTime && data.endCreateTime && data.flag);
             socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodesActive, [ObjectId(data.platformObjId), data], actionName, isValidData);
-        }
+        },
+
+        checkPlayerHasPromoCode: function checkPlayerHasPromoCode(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerName && data.status);
+            socketUtil.emitter(self.socket, dbPlayerReward.checkPlayerHasPromoCode, [data], actionName, isValidData);
+        },
     };
     socketActionPromoCode.actions = this.actions;
 }

@@ -108,6 +108,7 @@ let dbRewardPoints = {
         ).then(
             playerRewardPoints => {
                 if (rewardPointsConfig && Number(rewardPointsConfig.applyMethod) === 2) {
+                    let promResolve = Promise.resolve();
                     // send to apply
                     let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
                     for (let i = 0; i < rewardProgressList.length; i++) {
@@ -119,28 +120,24 @@ let dbRewardPoints = {
                                     eventData = relevantEvents[j];
                                 }
                             }
-                            dbRewardPoints.applyRewardPoint(playerData._id, rewardPointToApply, inputDevice, eventData, playerRewardPoints).catch(errorUtils.reportError);
+                            let applyRewardProm = function () {
+                                return dbRewardPoints.applyRewardPoint(playerData._id, rewardPointToApply, inputDevice)
+                                    .catch(errorUtils.reportError);
+
+                            }
+                            promResolve = promResolve.then(applyRewardProm);
                         }
                     }
                 }
-
                 return playerRewardPoints;
             }
         )
     },
 
-    applyRewardPoint: (playerObjId, rewardPointsEventObjId, inputDevice, eventData, playerRewardPoints, rewardPointsConfig) => {
+    applyRewardPoint: (playerObjId, rewardPointsEventObjId, inputDevice, rewardPointsConfig) => {
         // eventData and playerRewardPoints are optional parameter
         let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(playerObjId);
         let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointsEventObjId}).lean();
-
-        if (eventData) {
-            getRewardPointEventProm = Promise.resolve(eventData);
-        }
-
-        if (playerRewardPoints) {
-            getRewardPointsProm = Promise.resolve(playerRewardPoints);
-        }
 
         let pointEvent, rewardPoints, progress;
 
@@ -307,7 +304,7 @@ let dbRewardPoints = {
                 let logDetailProm = Promise.resolve(logDetail);
 
                 // update player point value
-                let updatePointsProm = dbConfig.collection_rewardPoints.findOneAndUpdate({_id: rewardPoints._id}, {points: postUpdatePoint}, {new: true}).lean();
+                let updatePointsProm = dbConfig.collection_rewardPoints.findOneAndUpdate({_id: rewardPoints._id}, {$inc:{points: pointIncreased}}, {new: true}).lean();
 
 
 
