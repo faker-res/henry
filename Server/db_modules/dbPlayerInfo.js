@@ -112,28 +112,6 @@ let dbPlayerInfo = {
     },
 
     /**
-     * Update player info with reward points record based on player id and platform id
-     */
-    upsertPlayerInfoRewardPointsObjId: function (playerId, platformId, rewardPointsObjId) {
-        let saveObj = {
-            rewardPointsObjId: rewardPointsObjId
-        };
-        return dbconfig.collection_players.findOneAndUpdate({
-            _id: playerId,
-            platform: platformId
-        }, saveObj, {upsert: true, new: true});
-    },
-
-    /**
-     * Get player reward points record based on player rewardPointsObjId
-     */
-    getPlayerRewardPointsRecord: function (rewardPointsObjId) {
-        return dbconfig.collection_rewardPoints.findOne({
-            _id: rewardPointsObjId
-        }).select('points')
-    },
-
-    /**
      * Update player's reward points and create log
      */
     updatePlayerRewardPointsRecord: function (rewardPointsObjId, data) {

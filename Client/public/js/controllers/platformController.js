@@ -8221,30 +8221,6 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.upsertPlayerInfoRewardPointsObjId = function (playerId, platformId, rewardPointsObjId) {
-                let sendData = {
-                    playerId: playerId,
-                    platformId: platformId,
-                    rewardPointsObjId: rewardPointsObjId,
-                };
-
-                socketService.$socket($scope.AppSocket, 'upsertPlayerInfoRewardPointsObjId', sendData, function (data) {
-                    vm.isOneSelectedPlayer().rewardPointsObjId = data.data.rewardPointsObjId;
-                    $scope.safeApply();
-                });
-            };
-
-            vm.getPlayerRewardPointsRecord = function () {
-                let sendData = {
-                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId
-                };
-
-                socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsRecord', sendData, function (data) {
-                    vm.isOneSelectedPlayer().currentPoints = data.data.points;
-                    $scope.safeApply();
-                });
-            };
-
             vm.updatePlayerRewardPointsRecord = function () {
                 let sendData = {
                     rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId._id,
