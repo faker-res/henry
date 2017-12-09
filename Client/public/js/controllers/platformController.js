@@ -8666,6 +8666,7 @@ define(['js/app'], function (myApp) {
                     showSubmit: true
                 };
                 vm.showRewardSettingsTab(null);
+                // vm.selectedRewards = [];
                 // $('#modalPlayerAddRewardTask').modal();
             }
 
@@ -8727,8 +8728,45 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            // vm.submitManualUnlockRewardTask = function () {
+            //     console.log(vm.manualUnlockRewardTaskIndexList);
+            //     if (!vm.manualUnlockRewardTaskIndexList) {
+            //         vm.manualUnlockRewardTask.resMsg = "No reward tasks are selected to unlock.";
+            //         $scope.safeApply();
+            //         return;
+            //     }
+            //
+            //     let updateStatus = function updateStatus() {
+            //         vm.manualUnlockRewardTask.resMsg =
+            //             taskCount == vm.manualUnlockRewardTaskIndexList.length ?
+            //                 numberOfRewardUnlocked == vm.manualUnlockRewardTaskIndexList.length ?
+            //                     $translate('Submitted proposal for approval') :
+            //                     $translate('FAIL')
+            //                 : "";
+            //
+            //         $scope.safeApply();
+            //     };
+            //     let numberOfRewardUnlocked = 0, taskCount = 0;
+            //     vm.manualUnlockRewardTaskIndexList.forEach(function (index) {
+            //         taskCount++;
+            //         console.log(vm.curRewardTask)
+            //         socketService.$socket($scope.AppSocket, 'manualUnlockRewardTask', [vm.curRewardTask[index], vm.selectedSinglePlayer], function (data) {
+            //             console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " is submitted for approval.");
+            //             numberOfRewardUnlocked++;
+            //             updateStatus();
+            //         }, function (err) {
+            //             if (err.error.message) {
+            //                 console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " failed to submit, error: " + err.error.message);
+            //             } else {
+            //                 console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " failed to submit.");
+            //             }
+            //             updateStatus();
+            //         });
+            //     });
+            // };
             vm.submitManualUnlockRewardTask = function () {
-                if (!vm.manualUnlockRewardTaskIndexList) {
+                console.log(vm.selectedRewards);
+                if (!vm.selectedRewards) {
                     vm.manualUnlockRewardTask.resMsg = "No reward tasks are selected to unlock.";
                     $scope.safeApply();
                     return;
@@ -8745,23 +8783,25 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 };
                 let numberOfRewardUnlocked = 0, taskCount = 0;
-                vm.manualUnlockRewardTaskIndexList.forEach(function (index) {
+                vm.selectedRewards.forEach(function (index) {
                     taskCount++;
-                    socketService.$socket($scope.AppSocket, 'manualUnlockRewardTask', [vm.curRewardTask[index], vm.selectedSinglePlayer], function (data) {
-                        console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " is submitted for approval.");
+                    index = Number(index);
+                    delete vm.selectedSinglePlayer.$displayDomain;
+                    delete vm.selectedSinglePlayer.$displaySourceUrl;
+                    socketService.$socket($scope.AppSocket, 'manualUnlockRewardTask', [vm.curRewardTask.data[index], vm.selectedSinglePlayer], function (data) {
+                        console.log("Proposal to unlock reward " + vm.curRewardTask.data[index]._id + " is submitted for approval.");
                         numberOfRewardUnlocked++;
                         updateStatus();
                     }, function (err) {
                         if (err.error.message) {
-                            console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " failed to submit, error: " + err.error.message);
+                            console.log("Proposal to unlock reward " + vm.curRewardTask.data[index]._id + " failed to submit, error: " + err.error.message);
                         } else {
-                            console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " failed to submit.");
+                            console.log("Proposal to unlock reward " + vm.curRewardTask.data[index]._id + " failed to submit.");
                         }
                         updateStatus();
                     });
                 });
             };
-
             //region prepareShowProposal
             vm.prepareShowProposal = function () {
                 vm.playerProposal = {totalCount: 0};
@@ -10109,6 +10149,7 @@ define(['js/app'], function (myApp) {
                     });
                     vm.getRewardTaskLogData(true);
                 });
+                vm.getPlatformProviderGroup();
             }
 
             vm.getRewardTaskLogData = function (newSearch) {
@@ -10123,6 +10164,7 @@ define(['js/app'], function (myApp) {
                 };
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardTask', sendQuery, function (data) {
                     console.log('getPlayerRewardTask', data);
+                    vm.curRewardTask = data.data;
                     if(vm.selectedPlatform.data.useProviderGroup){
                         let tblData = data && data.data ? data.data.rewardTaskGroupData.map(item => {
                             item.createTime$ = vm.dateReformat(item.createTime);
@@ -10149,7 +10191,7 @@ define(['js/app'], function (myApp) {
                             item.rewardType = $translate(item.rewardType);
                         }
 
-                        item.isUnlock = $translate(item.isUnlock);
+                        // item.isUnlock = $translate(item.isUnlock);
 
                         return item;
                     }) : [];
@@ -10158,6 +10200,24 @@ define(['js/app'], function (myApp) {
                     vm.drawRewardTaskTable(newSearch, tblData, size);
                 });
             }
+            vm.selectReward = function($event){
+                $event.stopPropagation();
+
+                // console.log(item);
+                vm.selectedRewards = [];
+                $('.unlockList:checked').each(function(){
+                    vm.selectedRewards.push($(this).val())
+                })
+                // console.log($('.unlockList:checked').val());
+                // if(vm.selectedRewards.indexOf(item)> -1){
+                console.log(vm.selectedRewards);
+                //     vm.selectedRewards.splice(item);
+                // }else{
+                //     vm.selectedRewards.push(item);
+                // }
+                //
+                // console.log(vm.selectedRewards);
+            }
             vm.drawRewardTaskTable = function (newSearch, tblData, size) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
@@ -10165,22 +10225,117 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            "title": $translate('UnlockStatus'),data:"status",
+                            render: function (data, type, row, meta) {
+                                var text;
+                                var rowId = String(meta.row);
+                                console.log(data);
+                                if(data!='Started'){
+                                    text = '<a class="fa fa-check margin-right-5"></a><span>(' + row.creator.name +')</span>';
+                                }else{
+                                    text = '<input type="checkbox" class="unlockList" name="unlockList[]" value="'+rowId+'"  ng-click="vm.selectReward($event)"/>';
+                                }
+                                // ng-model="vm.selectedRewards"
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        // {title: $translate('RewardProposalId'), data: "proposalId"},
+                        {
+                            title: $translate('RewardProposalId'),
+                            data: "proposalId",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+
+                                    'ng-click': 'vm.showProposalModal("' + data + '",1)'
+
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            "title": $translate('Unlock Progress(Consumption)'),
+                            render: function (data, type, row) {
+                                var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+
+                        {title: $translate('SubRewardType'), data: "rewardType"},
                         {title: $translate('CREATETIME'), data: "createTime$"},
-                        {title: $translate('rewardType'), data: "rewardType"},
-                        {title: $translate('ISUNLOCK'), data: "isUnlock"},
-                        {title: $translate('applyAmount'), data: "applyAmount"},
-                        {title: $translate('initAMOUNT'), data: "initAmount"},
-                        {title: $translate('currentAMOUNT'), data: "currentAmount"},
-                        {title: $translate('bonusAmount'), data: "bonusAmount"},
-                        {title: $translate('requiredUnlockAmount'), data: "requiredUnlockAmount"},
-                        {title: $translate('unlockedAmount'), data: "unlockedAmount"},
-                        {title: $translate('requiredBonusAmount'), data: "requiredBonusAmount"},
-                        {title: $translate('unlockedBonusAmount'), data: "unlockedBonusAmount"},
-                        // {title: $translate('targetEnable'), data: "targetEnable"},
+                        //相關存款金額
+                        {title: $translate('Deposit Amount'), data: "topUpAmount"},
+                        // {title: $translate('Deposit ProposalId'), data: "topUpProposal"},
+                        {title: $translate('Deposit ProposalId'),
+                            data: "topUpProposal",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+
+                                    'ng-click': 'vm.showProposalModal("' + data + '",1)'
+
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        //相關存款提案號
+                        {title: $translate('REWARD_AMOUNT'), data: "bonusAmount"},
+                        {
+                            "title": $translate('Unlock Progress(Consumption)'),
+                            render: function (data, type, row) {
+                                var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        // 解鎖進度
+                        {
+                            "title": $translate('Unlock Progress(WinLose)'),
+                            render: function (data, type, row) {
+                                var text = -row.currentAmount + '/' + -(row.applyAmount + row.bonusAmount);
+                                return "<div>" + text + "</div>";
+                            }
+                        },
                         {title: $translate('targetProviders'), data: "provider$"},
-                        {title: $translate('useConsumption'), data: "useConsumption"},
+                        {
+                            "title": $translate('IsConsumption'),data: "useConsumption",
+                            render: function (data, type, row) {
+                                var text = $translate(data);
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        // ***
+                        // {title: $translate('applyAmount'), data: "applyAmount"},
+                        // {title: $translate('initAMOUNT'), data: "initAmount"},
+                        // {title: $translate('currentAMOUNT'), data: "currentAmount"},
+                        // {title: $translate('unlockedAmount'), data: "unlockedAmount"},
+                        // {title: $translate('unlockedBonusAmount'), data: "unlockedBonusAmount"},
+                        // // {title: $translate('targetEnable'), data: "targetEnable"},
+                        // {title: $translate('useConsumption'), data: "useConsumption"},
+                        //***
+
+                        // {title: $translate('CREATETIME'), data: "createTime$"},
+                        // {title: $translate('rewardType'), data: "rewardType"},
+                        // {title: $translate('ISUNLOCK'), data: "isUnlock"},
+                        // {title: $translate('applyAmount'), data: "applyAmount"},
+                        // {title: $translate('initAMOUNT'), data: "initAmount"},
+                        // {title: $translate('currentAMOUNT'), data: "currentAmount"},
+                        // {title: $translate('bonusAmount'), data: "bonusAmount"},
+                        // {title: $translate('requiredUnlockAmount'), data: "requiredUnlockAmount"},
+                        // {title: $translate('unlockedAmount'), data: "unlockedAmount"},
+                        // {title: $translate('requiredBonusAmount'), data: "requiredBonusAmount"},
+                        // {title: $translate('unlockedBonusAmount'), data: "unlockedBonusAmount"},
+                        // // {title: $translate('targetEnable'), data: "targetEnable"},
+                        // {title: $translate('targetProviders'), data: "provider$"},
+                        // {title: $translate('useConsumption'), data: "useConsumption"},
                     ],
                     "paging": false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                        // $(nRow).off('click');
+                        // $(nRow).find('a').on('click', function () {
+                        //     vm.showProposalModal(aData.proposalId, 1);
+                        // });
+                    }
+
                 });
                 var aTable = $("#rewardTaskLogTbl").DataTable(tableOptions);
                 aTable.columns.adjust().draw();

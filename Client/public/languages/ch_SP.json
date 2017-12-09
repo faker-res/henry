@@ -2863,5 +2863,14 @@
   "convertedRewardPoints": "兑换消耗的积分",
   "afterRewardPoints": "兑换后积分",
   "beforeRewardPoints": "兑换前积分",
-  "Reward Points": "积分"
+  "Reward Points": "积分",
+  "Unlock Progress(Consumption)":"解锁进度（投注额）",
+  "Unlock Progress(WinLose)":"解锁进度（输赢值）",
+  "Game Provider/Wallet Group":"游戏大厅/锁定组",
+  "IsConsumption": "可否洗码",
+  "UnlockStatus": "解锁状态",
+  "RewardProposalId": "优惠提案号",
+  "SubRewardType": "优惠子类型",
+  "Deposit Amount":"相关存款金额",
+  "Deposit ProposalId":"相关存款提案号"
 }

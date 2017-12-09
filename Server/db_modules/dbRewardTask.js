@@ -208,6 +208,9 @@ const dbRewardTask = {
         }
 
         let a,b,c,d;
+        let size;
+        let rewardTaskGroupSize;
+        let rewardTaskGroupData;
 
         a = dbconfig.collection_rewardTask.find(queryObj).count();
         b = dbconfig.collection_rewardTask.find(queryObj).sort(sortCol).skip(index).limit(limit)
@@ -219,13 +222,70 @@ const dbRewardTask = {
                 .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
         }
 
+
         return Q.all([a, b, c, d]).then(
             data => {
-                return {size: data[0], data: data[1], rewardTaskGroupSize: data[2], rewardTaskGroupData: data[3]}
+                size = data[0];
+                rewardTaskGroupSize = data[2];
+                rewardTaskGroupData = data[3];
+                let prom = dbRewardTask.getProposalInfo(data[1])
+                return Q.all([prom])
+                    .then(proposalData=>{
+                        console.log(proposalData);
+                        // return proposalData;
+
+                        return {size: size, data: proposalData[0] || [], rewardTaskGroupSize: rewardTaskGroupSize, rewardTaskGroupData: rewardTaskGroupData}
+
+                })
             }
         )
     },
 
+    getProposalInfo: function(data){
+        let prom = [];
+        data.forEach(item=>{
+            let rewardProposal = item;
+            let proposalId = item.proposalId;
+            console.log(proposalId);
+            let proposal =  dbconfig.collection_proposal.findOne({proposalId:proposalId}).then(
+                pdata=>{
+                    // console.log(pdata);
+                    if(pdata.creator.name){
+                        rewardProposal.creator = pdata.creator;
+                    }
+                    if(!pdata.data.topUpProposal){
+                        rewardProposal.topUpProposal = '';
+                        // Q.resolve(pdata);
+                        return rewardProposal;
+
+                    }else{
+                        return dbconfig.collection_proposal.findOne({proposalId:pdata.data.topUpProposal})
+                    }
+
+                },
+                error=>{
+                    console.log(error);
+                }
+            ).then(
+                topup=>{
+                    // console.log(topup)
+                    if(topup){
+                        if(topup.proposalId){
+                            rewardProposal.topUpProposal = topup.proposalId;
+                        }
+                        console.log(topup);
+                        if(topup.data){
+                            rewardProposal.topUpAmount = topup.data.amount
+                        }else{
+                            rewardProposal.topUpAmount = '';
+                        }
+                    }
+                    return rewardProposal;
+            })
+            prom.push(proposal);
+        });
+        return Promise.all(prom)
+    },
     /**
      * Get total count of specific user's pending proposal
      */
