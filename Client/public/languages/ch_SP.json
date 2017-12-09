@@ -1294,6 +1294,7 @@
   "smsContentConfig": "短信内容",
   "GENERATE": "生成",
   "GENERATE_ALL": "生成全部",
+  "PROMO_CODE_LEGEND": "代码对照表",
   "PROMO_CODE_HISTORY": "优惠代码记录",
   "promoCodeHistory": "优惠代码记录",
   "START_CREATE_TIME": "开始生成时间",
@@ -1381,6 +1382,10 @@
   "FREE_TRIAL_REWARD_AMOUNT": "固定优惠金额",
   "FREE_TRIAL_SPENDING_TIMES": "解锁流水（优）X倍",
   "freeTrialReward": "免费体验金",
+  "This player has applied for max reward times in event period": "此玩家已经达到了该优惠周期内的申请上限",
+  "This IP address has applied for max reward times in event period": "此IP地址已经达到了该优惠周期内的申请上限",
+  "This phone number has applied for max reward times in event period": "此电话号码已经达到了该优惠周期内的申请上限",
+  "Reward Amount and Spending Times cannot be empty. Please check reward condition.": "固定优惠金额和解锁流水不能为空。 请检查优惠条件",
 
   "REWARD_POINTS_ADJUSTMENT": "修改积分",
   "VALID_REWARD_POINTS": "有效积分",
@@ -2864,5 +2869,6 @@
   "convertedRewardPoints": "兑换消耗的积分",
   "afterRewardPoints": "兑换后积分",
   "beforeRewardPoints": "兑换前积分",
-  "Reward Points": "积分"
+  "Reward Points": "积分",
+  "level change fail, please contact cs": "等级变更失效，请联系客服。"
 }
