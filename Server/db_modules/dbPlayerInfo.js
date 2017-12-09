@@ -5941,7 +5941,7 @@ let dbPlayerInfo = {
                             if (!rewardProp) {
                                 // if this is level up and player has not reach this level before
                                 // create level up reward proposal
-                                if (levelUpObjArr[indexl] && levelUpObjArr[index].reward && levelUpObjArr[index].reward.bonusCredit) {
+                                if (levelUpObjArr[index] && levelUpObjArr[index].reward && levelUpObjArr[index].reward.bonusCredit) {
                                     proposal.rewardAmount = levelUpObjArr[index].reward.bonusCredit;
                                     proposal.isRewardTask = levelUpObjArr[index].reward.isRewardTask;
 
