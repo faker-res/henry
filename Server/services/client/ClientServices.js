@@ -261,6 +261,7 @@
                 "getTopUpPromoList",
                 "getPromoCode",
                 "applyPromoCode",
+                "markPromoCodeAsViewed",
                 "getLimitedOffers",
                 "applyLimitedOffers",
                 "getLimitedOfferBonus",
