@@ -1041,9 +1041,7 @@ let PlayerServiceImplement = function () {
     this.manualPlayerLevelUp.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         var isValidData = true;
-        // for ( let i = 0; i < 5; i++) {
-            WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [conn.playerObjId, userAgent], isValidData);
-        // }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [conn.playerObjId, userAgent], isValidData);
     };
 
     this.getWithdrawalInfo.onRequest = function (wsFunc, conn, data) {
