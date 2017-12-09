@@ -14299,26 +14299,26 @@ define(['js/app'], function (myApp) {
                         platformObjId: vm.selectedPlatform.id,
                     }
 
+                    let sendData2 = {
+                        platformObjId: vm.selectedPlatform.id,
+                    }
+
                     // delete immediately the constructed promoCodeType before saving into dB
                     if (collection[data]._id == null){
 
                         sendData.promoCodeSMSContent = collection.splice(data, 1);
-                        sendData.isDelete = true;
-
-                        socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                            vm.loadPlatformData({loadAll: false});
-                        });
                     }
                     else{
                         sendData.promoCodeTypeObjId = collection[data]._id;
-
+                        sendData2.promoCodeTypeObjId = collection[data]._id;
                         // check the availability of the promocode type, can only remove if it is expired
                         socketService.$socket($scope.AppSocket, 'checkPromoCodeTypeAvailability', sendData, function (result) {
                             if (result){
-                                if (!result.data) {
+                                if (!result.data.deleteFlag && !result.data.delete) {
                                     socketService.showErrorMessage('The promoCode Type is still valid');
                                 }
-                                else {
+                                else if (!result.data.deleteFlag && result.data.delete) {
+                                    // delete the PromoCodeType from the dB (generated promoCodeType but not using)
                                     let sendData = {
                                         platformObjId: vm.selectedPlatform.id,
                                         promoCodeSMSContent: collection.splice(data, 1),
@@ -14329,6 +14329,23 @@ define(['js/app'], function (myApp) {
                                         vm.loadPlatformData({loadAll: false});
                                     });
                                 }
+                                else if (result.data.deleteFlag && !result.data.delete) {
+                                    // change the deleteFlag status in dB (as it had been used before)
+                                    collection[data].deleteFlag=true;
+                                    let sendData = {
+                                        platformObjId: vm.selectedPlatform.id,
+                                        promoCodeSMSContent: collection.splice(data, 1),
+                                    };
+
+                                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                                        sendData2.isDeleted = true;
+                                        // update the isDelete flag of each promoCode inherited from the deleted promoCodeType
+                                        socketService.$socket($scope.AppSocket, 'updatePromoCodeIsDeletedFlag', sendData2, function (data) {
+                                            vm.loadPlatformData({loadAll: false});
+                                        });
+                                    });
+                                }
+                                else{}
                             }
                             else{
                                 return Q.reject("data was empty: " + result);
@@ -15476,7 +15493,7 @@ define(['js/app'], function (myApp) {
             };
 
             function loadPromoCodeTypes() {
-                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id, deleteFlag: false}, function (data) {
                     console.log('getPromoCodeTypes', data);
 
                     vm.promoCodeTypes = data.data;

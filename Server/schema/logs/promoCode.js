@@ -47,7 +47,9 @@ let promoCodeSchema = new Schema({
     // Promo Code Top Up Amount
     topUpAmount: {type: Number, default: 0},
     // Reward amount shared with XIMA
-    isSharedWithXIMA: {type: Boolean, default: true}
+    isSharedWithXIMA: {type: Boolean, default: true},
+    // set to true if the inherited promoCodeType is deleted
+    isDeleted: {type: Boolean, default: false}
 });
 
 module.exports = promoCodeSchema;
