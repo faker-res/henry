@@ -230,7 +230,7 @@ let dbPlayerInfo = {
                                 }
                                 else if (verificationSMS.loginAttempts >= 3) {
                                     // Safety - remove sms verification code after 10 attempts to prevent brute force attack
-                                    return dbConfig.collection_smsVerificationLog.remove(
+                                    return dbconfig.collection_smsVerificationLog.remove(
                                         {_id: verificationSMS._id}
                                     ).then(() => {
                                         return Q.reject({
@@ -241,7 +241,7 @@ let dbPlayerInfo = {
                                     });
                                 }
                                 else {
-                                    return dbConfig.collection_smsVerificationLog.findOneAndUpdate(
+                                    return dbconfig.collection_smsVerificationLog.findOneAndUpdate(
                                         {_id: verificationSMS._id},
                                         {$inc: {loginAttempts: 1}}
                                     ).then(() => {

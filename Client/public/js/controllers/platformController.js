@@ -2654,20 +2654,24 @@ define(['js/app'], function (myApp) {
                     remark: ''
                 };
                 vm.platformCreditTransferLog = {};
+                vm.platformCreditTransferLog.isPopup = isPopup===true;
+                vm.platformCreditTransferLog.index = 0;
+                vm.platformCreditTransferLog.limit = 10;
                 utilService.actionAfterLoaded(('#' + panelBody), function () {
                     vm.platformCreditTransferLog.startTime = utilService.createDatePicker('#' + panelBody + ' .startTime');
                     vm.platformCreditTransferLog.endTime = utilService.createDatePicker('#' + panelBody + ' .endTime');
                     vm.platformCreditTransferLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.platformCreditTransferLog.pageObj = utilService.createPageForPagingTable('#' + tablePage, {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, panelBody, vm.getPagedPlatformCreditTransferLog)
+                        vm.commonPageChangeHandler(curP, pageSize, 'platformCreditTransferLog', vm.getPagedPlatformCreditTransferLog)
                     });
                     vm.getPagedPlatformCreditTransferLog(true, isPopup);
                 });
             };
 
-            vm.getPagedPlatformCreditTransferLog = function (newSearch, isPopup) {
+            vm.getPagedPlatformCreditTransferLog = function (newSearch) {
                 vm.platformCreditTransferLog.loading = true;
+                $scope.safeApply();
                 let sendQuery = {
                     PlatformObjId: vm.selectedPlatform.id,
                     startTime: vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate(),
@@ -2686,7 +2690,7 @@ define(['js/app'], function (myApp) {
                     vm.platformCreditTransferLogData = data.data.data;
                     vm.platformCreditTransferLog.totalCount = data.data.total || 0;
                     vm.platformCreditTransferLog.loading = false;
-                    vm.drawPagedPlatformCreditTransferQueryTable(vm.platformCreditTransferLogData, vm.platformCreditTransferLog.totalCount, newSearch, isPopup);
+                    vm.drawPagedPlatformCreditTransferQueryTable(vm.platformCreditTransferLogData, vm.platformCreditTransferLog.totalCount, newSearch);
                 });
 
                 // function getAllPlayerCreditTransferStatus() {
@@ -2700,7 +2704,7 @@ define(['js/app'], function (myApp) {
                 //
                 // getAllPlayerCreditTransferStatus();
             };
-            vm.drawPagedPlatformCreditTransferQueryTable = function (data, size, newSearch, isPopup) {
+            vm.drawPagedPlatformCreditTransferQueryTable = function (data, size, newSearch) {
                 let tableData = data.map(item => {
                     item.createTime$ = vm.dateReformat(item.createTime);
                     item.typeText = $translate(item.type);
@@ -2710,6 +2714,18 @@ define(['js/app'], function (myApp) {
                 });
                 let option = $.extend({}, vm.generalDataTableOptions, {
                     data: tableData,
+                    "order": vm.platformCreditTransferLog.aaSorting || [[0, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'createTime', 'aTargets': [0], bSortable: true},
+                        {'sortCol': 'transferId', 'aTargets': [1], bSortable: true},
+                        {'sortCol': 'playerName', 'aTargets': [2], bSortable: true},
+                        {'sortCol': 'amount', 'aTargets': [3], bSortable: true},
+                        {'sortCol': 'providerId', 'aTargets': [4], bSortable: true},
+                        {'sortCol': 'amount', 'aTargets': [5], bSortable: true},
+                        {'sortCol': 'lockedAmount', 'aTargets': [6], bSortable: true},
+                        {'sortCol': 'type', 'aTargets': [7], bSortable: true},
+                        {'sortCol': 'status', 'aTargets': [8], bSortable: true}
+                    ],
                     columns: [
                         {title: $translate('CREATE_TIME'), data: 'createTime$'},
                         {title: $translate("TRANSFER") + " ID", data: 'transferId'},
@@ -2742,7 +2758,7 @@ define(['js/app'], function (myApp) {
                 });
 
 
-                let tableElem = isPopup ? '#platformCreditTransferLogPopupTable' : '#platformCreditTransferLogTable';
+                let tableElem = vm.platformCreditTransferLog.isPopup ? '#platformCreditTransferLogPopupTable' : '#platformCreditTransferLogTable';
                 console.log(tableElem);
                 let table = utilService.createDatatableWithFooter(tableElem, option, {});
                 vm.platformCreditTransferLog.pageObj.init({maxCount: size}, newSearch);
@@ -2791,7 +2807,7 @@ define(['js/app'], function (myApp) {
 
                 $(tableElem).off('order.dt');
                 $(tableElem).on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'playerCreditChangeLog', vm.getPagedPlayerCreditChangeLog);
+                    vm.commonSortChangeHandler(a, 'platformCreditTransferLog', vm.getPagedPlatformCreditTransferLog);
                 });
                 $(tableElem).resize();
                 $scope.safeApply();
@@ -4762,7 +4778,6 @@ define(['js/app'], function (myApp) {
                                     'class': 'playerPermissionPopover',
                                     'ng-click': "vm.permissionPlayer = " + JSON.stringify(row)
                                     + "; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;"
-                                    + "; vm.permissionPlayer.permission.rewardPointsTask = !vm.permissionPlayer.permission.rewardPointsTask;"
                                     + "; vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
@@ -5627,7 +5642,6 @@ define(['js/app'], function (myApp) {
 
                                 // Invert second render
                                 row.permission.banReward = !row.permission.banReward;
-                                row.permission.rewardPointsTask = !row.permission.rewardPointsTask;
                                 row.permission.disableWechatPay = !row.permission.disableWechatPay;
                                 row.permission.forbidPlayerConsumptionReturn = !row.permission.forbidPlayerConsumptionReturn;
                                 row.permission.forbidPlayerConsumptionIncentive = !row.permission.forbidPlayerConsumptionIncentive;
@@ -5669,10 +5683,6 @@ define(['js/app'], function (myApp) {
                                     // Invert faked permission display
                                     if (changeObj.hasOwnProperty('banReward')) {
                                         changeObj.banReward = !changeObj.banReward;
-                                    }
-
-                                    if (changeObj.hasOwnProperty('rewardPointsTask')) {
-                                        changeObj.rewardPointsTask = !changeObj.rewardPointsTask;
                                     }
 
                                     if (changeObj.hasOwnProperty('disableWechatPay')) {
@@ -15510,15 +15520,18 @@ define(['js/app'], function (myApp) {
                 let bgColor;
                 let cssPointer = id;
                 let rowNumber = index + 1;
+                let playerNameList = el.playerName ? el.playerName.split("\n") : el.playerName;
 
                 vm.userGroupConfig.map(e => {
-                    if (e.playerNames.indexOf(el.playerName) > -1) {
-                        bgColor = e.color;
-                    }
+                    playerNameList.map(playerName => {
+                        if (e.playerNames.indexOf(playerName.trim()) > -1) {
+                            bgColor = e.color;
+                        }
+                    });
                 });
 
                 if (rowNumber) {
-                    cssPointer = id + " > tbody > tr:nth-child(" + rowNumber +")";
+                    cssPointer = id + " > tbody > tr:nth-child(" + rowNumber + ")";
                 }
 
                 $(cssPointer).css("background-color", bgColor ? bgColor : "");
@@ -15530,10 +15543,9 @@ define(['js/app'], function (myApp) {
                 let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true}));
 
                 return p.then(
-                    () => {
+                    () => {setTimeout( () => {
                         collection.forEach((elem, index, arr) => {
                             let id = '#expDate' + type + '-' + index;
-
 
                             utilService.actionAfterLoaded(id, function () {
                                 collection[index].expirationTime = utilService.createDatePicker(id, {
@@ -15544,10 +15556,12 @@ define(['js/app'], function (myApp) {
                                 collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             });
 
-                            vm.checkPlayerName(elem, tableId);
+                            $scope.safeApply();
+
+                            vm.checkPlayerName(elem, tableId, index);
                         });
 
-                        return collection;
+                        return collection;},0);
                     }
                 );
             };
@@ -18705,11 +18719,11 @@ define(['js/app'], function (myApp) {
 
             vm.commonPageChangeHandler = function (curP, pageSize, objKey, serchFunc) {
                 var isChange = false;
-                if (pageSize != vm[objKey].limit) {
+                if (vm[objKey] && pageSize != vm[objKey].limit) {
                     isChange = true;
                     vm[objKey].limit = pageSize;
                 }
-                if ((curP - 1) * pageSize != vm[objKey].index) {
+                if ( vm[objKey] && (curP - 1) * pageSize != vm[objKey].index) {
                     isChange = true;
                     vm[objKey].index = (curP - 1) * pageSize;
                 }
