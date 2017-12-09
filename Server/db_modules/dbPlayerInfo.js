@@ -12172,6 +12172,106 @@ let dbPlayerInfo = {
         });
     },
 
+    getCreditDetail: function (playerObjId) {
+        let returnData = {
+            gameCreditList: [],
+            lockedCreditList: []
+        };
+        let playerDetails = {};
+        return dbconfig.collection_players.findOne({_id: playerObjId}, {platform: 1, validCredit: 1, name: 1, _id:0})
+            .populate({path: "platform", model: dbconfig.collection_platform, select: ['_id','platformId']}).lean().then(
+            (playerData) => {
+                playerDetails.name = playerData.name;
+                playerDetails.validCredit = playerData.validCredit;
+                playerDetails.platformId = playerData.platform.platformId;
+                playerDetails.platformObjId = playerData.platform._id;
+                returnData.credit = playerData.validCredit;
+                return dbconfig.collection_platform.findOne({_id: playerData.platform})
+                    .populate({path: "paymentChannels", model: dbconfig.collection_paymentChannel})
+                    .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean();
+            }).then(
+                platformData => {
+                    let providerCredit = {gameCreditList: []}
+
+                    if (platformData && platformData.gameProviders.length > 0) {
+                        for (let i = 0; i < platformData.gameProviders.length; i++) {
+                            providerCredit.gameCreditList[i] = {
+                                providerId: platformData.gameProviders[i].providerId,
+                                nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name
+                            };
+                        }
+                    }
+
+                    return providerCredit;
+                }
+        ).then(
+            providerList => {
+                if (providerList && providerList.gameCreditList && providerList.gameCreditList.length > 0) {
+                    let promArray = [];
+                    for (let i = 0; i < providerList.gameCreditList.length; i++) {
+                        let queryObj = {
+                            username: playerDetails.name,
+                            platformId: playerDetails.platformId,
+                            providerId: providerList.gameCreditList[i].providerId,
+                        };
+                        let gameCreditProm = cpmsAPI.player_queryCredit(queryObj).then(
+                            function (creditData) {
+                                return {
+                                    providerId: creditData.providerId,
+                                    gameCredit: parseFloat(creditData.credit).toFixed(2) || 0,
+                                    nickName: providerList.gameCreditList[i].nickName? providerList.gameCreditList[i].nickName: ""
+                                };
+                            },
+                            function (err) {
+                                //todo::for debug, to be removed
+                                return {
+                                    providerId: providerList.gameCreditList[i].providerId,
+                                    gameCredit: 'unknown',
+                                    nickName: providerList.gameCreditList[i].nickName? providerList.gameCreditList[i].nickName: "",
+                                    reason: err
+                                };
+                            }
+                        );
+                        promArray.push(gameCreditProm);
+                    }
+                    return Promise.all(promArray);
+                }
+            }
+        ).then(
+            gameCreditList => {
+                if (gameCreditList && gameCreditList.length > 0) {
+                    for (let i = 0; i < gameCreditList.length; i++) {
+                        returnData.gameCreditList[i] = {
+                            nickName: gameCreditList[i].nickName,
+                            validCredit: gameCreditList[i].gameCredit
+                        };
+                    }
+
+                    return dbconfig.collection_rewardTaskGroup.find({
+                        platformId: playerDetails.platformObjId,
+                        playerId: playerObjId,
+                        status: constRewardTaskStatus.STARTED
+                    }).populate({
+                        path: "providerGroup",
+                        model: dbconfig.collection_gameProviderGroup
+                    }).lean();
+                }
+            }
+        ).then(
+            rewardTaskGroup => {
+                if (rewardTaskGroup && rewardTaskGroup.length > 0) {
+                    for (let i = 0; i < rewardTaskGroup.length; i++) {
+                        returnData.lockedCreditList[i] = {
+                            nickName: rewardTaskGroup[i].providerGroup.name,
+                            validCredit: rewardTaskGroup[i].rewardAmt
+                        }
+                    }
+                }
+                return returnData;
+            }
+        );
+    },
+
 };
 
 

@@ -82,7 +82,8 @@
                 "deleteMail",
                 "manualPlayerLevelUp",
                 "getWithdrawalInfo",
-                "getCardTypeList"
+                "getCardTypeList",
+                "getCreditDetail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
