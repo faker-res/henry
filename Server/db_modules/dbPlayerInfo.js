@@ -96,7 +96,19 @@ let dbPlayerInfo = {
             createTime: Date.now()
         };
         let record = new dbconfig.collection_rewardPoints(recordData);
-        return record.save();
+        return record.save().then(
+            newData => {
+                let saveObj = {
+                    rewardPointsObjId: newData._id
+                };
+
+                // update player info with reward points record based on player id and platform id
+                return dbconfig.collection_players.findOneAndUpdate({
+                    _id: newData.playerObjId,
+                    platform: newData.platformObjId
+                }, saveObj, {upsert: true, new: true});
+            }
+        )
     },
 
     /**

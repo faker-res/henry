@@ -8180,8 +8180,7 @@ define(['js/app'], function (myApp) {
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
                 if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
                     vm.createPlayerRewardPointsRecord();
-                } else if(vm.selectedSinglePlayer.currentPoints === undefined) {
-                    vm.getPlayerRewardPointsRecord();
+                    vm.advancedPlayerQuery();
                 }
 
                 vm.rewardPointsChange.finalValidAmount = 0;
@@ -8203,13 +8202,6 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'createPlayerRewardPointsRecord', sendData, function (data) {
-                    vm.isOneSelectedPlayer().currentPoints = data.data.points;
-
-                    let playerId = data.data.playerObjId;
-                    let platformId = data.data.platformObjId;
-                    let rewardPointsObjId = data.data._id;
-
-                    vm.upsertPlayerInfoRewardPointsObjId(playerId, platformId, rewardPointsObjId);
                     $scope.safeApply();
                 });
             };
@@ -8240,9 +8232,9 @@ define(['js/app'], function (myApp) {
 
             vm.updatePlayerRewardPointsRecord = function () {
                 let sendData = {
-                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId,
+                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId._id,
                     data: {
-                        oldPoints: vm.isOneSelectedPlayer().currentPoints,
+                        oldPoints: vm.isOneSelectedPlayer().rewardPointsObjId.points,
                         amount: vm.rewardPointsChange.updateAmount,
                         creator: authService.adminName,
                         remark: vm.rewardPointsChange.remark,
