@@ -2213,7 +2213,7 @@ let dbPlayerReward = {
                 // Filter by status if any
                 if (status && status !== 0) {
                     rewards = rewards.filter(e => {
-                        return (e.status === status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                        return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
                     })
                 } else if (status === 0) {
                     rewards = rewards.filter(e => {
