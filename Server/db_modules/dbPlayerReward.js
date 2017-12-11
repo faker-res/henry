@@ -505,7 +505,13 @@ let dbPlayerReward = {
         }
     },
 
-    getPromoCodeTypes: (platformObjId, deleteFlag) => dbConfig.collection_promoCodeType.find({platformObjId: platformObjId, deleteFlag: deleteFlag}).lean(),
+    getPromoCodeTypes: (platformObjId, deleteFlag) => dbConfig.collection_promoCodeType.find({
+        platformObjId: platformObjId,
+        $or: [
+            {deleteFlag: {$exists: false}},
+            {deleteFlag: deleteFlag}
+        ]
+    }).lean(),
 
     getPromoCodeTypeByObjId: (promoCodeTypeObjId) => dbConfig.collection_promoCodeType.findOne({_id: promoCodeTypeObjId}).lean(),
 
@@ -1511,7 +1517,7 @@ let dbPlayerReward = {
     },
 
     getPromoCodesHistory: (searchQuery) => {
-        return expirePromoCode().then(res => {
+        return expirePromoCode().then(() => {
             return dbConfig.collection_players.findOne({
                 platform: searchQuery.platformObjId,
                 name: searchQuery.playerName
@@ -1541,11 +1547,14 @@ let dbPlayerReward = {
                 }
 
                 // get the promoCode not from deleted promoCodeType
-                query.isDeleted= false;
+                // query.isDeleted = false;
 
                 return dbConfig.collection_promoCode.find(query)
                     .populate({path: "playerObjId", model: dbConfig.collection_players})
-                    .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
+                    .populate({
+                        path: "promoCodeTypeObjId",
+                        model: dbConfig.collection_promoCodeType
+                    })
                     .populate({
                         path: "allowedProviders",
                         model: searchQuery.isProviderGroup ? dbConfig.collection_gameProviderGroup : dbConfig.collection_gameProvider
@@ -1643,7 +1652,7 @@ let dbPlayerReward = {
 
             if (data) {
                 if (data && data.status) {
-                    return result.deleteFlag = data.status == constPromoCodeStatus.EXPIRED;
+                    result.deleteFlag = data.status != constPromoCodeStatus.AVAILABLE;
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Invalid data"});
@@ -1651,8 +1660,9 @@ let dbPlayerReward = {
             }
             else {
                 result.delete = true;
-                return result;
             }
+
+            return result;
         });
     },
 
@@ -2212,7 +2222,6 @@ let dbPlayerReward = {
             }
         ).then(
             offerSumm => {
-
                 rewards.map(e => {
                     // Get time left when count down to start time
                     if (e.status == 0) {
@@ -2228,25 +2237,26 @@ let dbPlayerReward = {
                             e.status = 5;
                         }
                     }
-
-                    // Filter by status if any
-                    if (status && status !== 0) {
-                        rewards = rewards.filter(e => {
-                            return (e.status === status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
-                        })
-                    } else if (status === 0) {
-                        rewards = rewards.filter(e => {
-                            return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
-                        })
-                    } else {
-                        rewards = rewards.filter(e => {
-                            return (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
-                        })
-                    }
-
                     // Interpret providers
                     e.providers = e.providers && e.providers.length > 0 ? [...e.providers].join(",") : "所有平台"
                 });
+                // Filter by status if any
+                if (status && status !== 0) {
+                    rewards = rewards.filter(e => {
+                        return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                    })
+                } else if (status === 0) {
+                    rewards = rewards.filter(e => {
+                        return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                    })
+                } else {
+                    rewards = rewards.filter(e => {
+                        return (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                    })
+                }
+
+
+
                 return {
                     time: [...timeSet].join("/"),
                     showInfo: playerObj && playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
