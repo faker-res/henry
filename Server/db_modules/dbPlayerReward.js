@@ -1370,7 +1370,8 @@ let dbPlayerReward = {
                                             "expireTime": promocode.expirationTime,
                                             "bonusCode": promocode.code,
                                             "tag": promocode.bannerText,
-                                            "isSharedWithXIMA": promocode.isSharedWithXIMA
+                                            "isSharedWithXIMA": promocode.isSharedWithXIMA,
+                                            "isViewed": promocode.isViewed
                                         };
                                         if (promocode.maxTopUpAmount) {
                                             promo.bonusLimit = promocode.maxTopUpAmount;
@@ -1466,9 +1467,6 @@ let dbPlayerReward = {
                     let result = promoListData;
                     result.bonusList = data;
                     return result;
-                },
-                err => {
-                    console.log(err);
                 }
             )
 
@@ -3654,7 +3652,29 @@ let dbPlayerReward = {
                 }
             }
         )
-    }
+    },
+
+    markPromoCodeAsViewed: function (playerId, promoCode) {
+        return dbConfig.collection_players.findOne({playerId: playerId}, {platform: 1}).lean().then(
+            playerData => {
+                if (playerData) {
+                    let playerObjId = playerData._id;
+                    let platformObjId = playerData.platform;
+
+                    return dbConfig.collection_promoCode.findOneAndUpdate(
+                        {
+                            playerObjId: playerObjId,
+                            platformObjId: platformObjId,
+                            code: promoCode,
+                            isViewed: {$ne: true}
+                        },
+                        {$set: {isViewed: true}},
+                        {new: true}
+                    ).lean();
+                }
+            }
+        );
+    },
 };
 
 function checkInterfaceRewardPermission(eventData, rewardData) {
