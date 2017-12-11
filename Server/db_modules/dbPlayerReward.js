@@ -2222,7 +2222,6 @@ let dbPlayerReward = {
             }
         ).then(
             offerSumm => {
-
                 rewards.map(e => {
                     // Get time left when count down to start time
                     if (e.status == 0) {
@@ -2238,25 +2237,26 @@ let dbPlayerReward = {
                             e.status = 5;
                         }
                     }
-
-                    // Filter by status if any
-                    if (status && status !== 0) {
-                        rewards = rewards.filter(e => {
-                            return (e.status === status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
-                        })
-                    } else if (status === 0) {
-                        rewards = rewards.filter(e => {
-                            return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
-                        })
-                    } else {
-                        rewards = rewards.filter(e => {
-                            return (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
-                        })
-                    }
-
                     // Interpret providers
                     e.providers = e.providers && e.providers.length > 0 ? [...e.providers].join(",") : "所有平台"
                 });
+                // Filter by status if any
+                if (status && status !== 0) {
+                    rewards = rewards.filter(e => {
+                        return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                    })
+                } else if (status === 0) {
+                    rewards = rewards.filter(e => {
+                        return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                    })
+                } else {
+                    rewards = rewards.filter(e => {
+                        return (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                    })
+                }
+
+
+
                 return {
                     time: [...timeSet].join("/"),
                     showInfo: playerObj && playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
