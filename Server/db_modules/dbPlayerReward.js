@@ -505,7 +505,13 @@ let dbPlayerReward = {
         }
     },
 
-    getPromoCodeTypes: (platformObjId, deleteFlag) => dbConfig.collection_promoCodeType.find({platformObjId: platformObjId, deleteFlag: deleteFlag}).lean(),
+    getPromoCodeTypes: (platformObjId, deleteFlag) => dbConfig.collection_promoCodeType.find({
+        platformObjId: platformObjId,
+        $or: [
+            {deleteFlag: {$exists: false}},
+            {deleteFlag: deleteFlag}
+        ]
+    }).lean(),
 
     getPromoCodeTypeByObjId: (promoCodeTypeObjId) => dbConfig.collection_promoCodeType.findOne({_id: promoCodeTypeObjId}).lean(),
 
@@ -1511,7 +1517,7 @@ let dbPlayerReward = {
     },
 
     getPromoCodesHistory: (searchQuery) => {
-        return expirePromoCode().then(res => {
+        return expirePromoCode().then(() => {
             return dbConfig.collection_players.findOne({
                 platform: searchQuery.platformObjId,
                 name: searchQuery.playerName
@@ -1541,11 +1547,14 @@ let dbPlayerReward = {
                 }
 
                 // get the promoCode not from deleted promoCodeType
-                query.isDeleted= false;
+                // query.isDeleted = false;
 
                 return dbConfig.collection_promoCode.find(query)
                     .populate({path: "playerObjId", model: dbConfig.collection_players})
-                    .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
+                    .populate({
+                        path: "promoCodeTypeObjId",
+                        model: dbConfig.collection_promoCodeType
+                    })
                     .populate({
                         path: "allowedProviders",
                         model: searchQuery.isProviderGroup ? dbConfig.collection_gameProviderGroup : dbConfig.collection_gameProvider
@@ -1643,7 +1652,7 @@ let dbPlayerReward = {
 
             if (data) {
                 if (data && data.status) {
-                    return result.deleteFlag = data.status == constPromoCodeStatus.EXPIRED;
+                    result.deleteFlag = data.status != constPromoCodeStatus.AVAILABLE;
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Invalid data"});
@@ -1651,8 +1660,9 @@ let dbPlayerReward = {
             }
             else {
                 result.delete = true;
-                return result;
             }
+
+            return result;
         });
     },
 
