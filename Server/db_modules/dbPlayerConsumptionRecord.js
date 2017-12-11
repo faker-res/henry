@@ -11,7 +11,6 @@ const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 const constRewardType = require('./../const/constRewardType');
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 const dbRewardTask = require('../db_modules/dbRewardTask');
-const dbRewardPointsTask = require('../db_modules/dbRewardPointsTask');
 const constShardKeys = require('../const/constShardKeys');
 const constSystemParam = require('../const/constSystemParam');
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
@@ -359,14 +358,7 @@ var dbPlayerConsumptionRecord = {
                 record = data;
                 if (record && !record.bDirty) {
                     //check player's reward task
-                    return dbRewardTask.checkPlayerRewardTaskForConsumption(record).then(
-                        bDirty =>  {
-                            if (!bDirty) {
-                                return dbRewardPointsTask.checkPlayerRewardPointsTaskForConsumption(record);
-                            }
-                            return bDirty;
-                        }
-                    );
+                    return dbRewardTask.checkPlayerRewardTaskForConsumption(record);
                 }
                 else {
                     return true;
