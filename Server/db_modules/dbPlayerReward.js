@@ -1370,7 +1370,8 @@ let dbPlayerReward = {
                                             "expireTime": promocode.expirationTime,
                                             "bonusCode": promocode.code,
                                             "tag": promocode.bannerText,
-                                            "isSharedWithXIMA": promocode.isSharedWithXIMA
+                                            "isSharedWithXIMA": promocode.isSharedWithXIMA,
+                                            "isViewed": promocode.isViewed
                                         };
                                         if (promocode.maxTopUpAmount) {
                                             promo.bonusLimit = promocode.maxTopUpAmount;
@@ -1466,9 +1467,6 @@ let dbPlayerReward = {
                     let result = promoListData;
                     result.bonusList = data;
                     return result;
-                },
-                err => {
-                    console.log(err);
                 }
             )
 
@@ -2050,6 +2048,11 @@ let dbPlayerReward = {
         let rewards;
         let playerObj;
 
+        if (status) {
+            status = Number(status);
+        }
+
+
         return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (platformData) {
@@ -2094,7 +2097,6 @@ let dbPlayerReward = {
                     rewards = eventData.param.reward;
                     timeSet = new Set();
                     let promArr = [];
-
                     rewards.map(e => {
                         let status = 0;
                         timeSet.add(String(e.hrs + ":" + e.min));
@@ -2130,7 +2132,6 @@ let dbPlayerReward = {
                                 summ => {
                                     if (playerId) {
                                         let totalPromoCount = 0;
-
                                         summ.map(f => {
                                             if (String(f._id) == String(playerId)) {
                                                 status = 2;
@@ -2191,18 +2192,12 @@ let dbPlayerReward = {
             }
         ).then(
             offerSumm => {
-                // Filter by status if any
-                rewards = rewards.filter(e => (!status || status == e.status)
-                    && new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()
-                    && new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime());
-
 
                 rewards.map(e => {
                     // Get time left when count down to start time
                     if (e.status == 0) {
                         e.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(e.startTime).getTime()) / 1000));
                     }
-
                     // Get time left till expire
                     // set expiry status if no payment is made
                     if (e.status == 2) {
@@ -2214,10 +2209,24 @@ let dbPlayerReward = {
                         }
                     }
 
+                    // Filter by status if any
+                    if (status && status !== 0) {
+                        rewards = rewards.filter(e => {
+                            return (e.status === status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                        })
+                    } else if (status === 0) {
+                        rewards = rewards.filter(e => {
+                            return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                        })
+                    } else {
+                        rewards = rewards.filter(e => {
+                            return (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                        })
+                    }
+
                     // Interpret providers
                     e.providers = e.providers && e.providers.length > 0 ? [...e.providers].join(",") : "所有平台"
                 });
-
                 return {
                     time: [...timeSet].join("/"),
                     showInfo: playerObj && playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
@@ -3654,7 +3663,29 @@ let dbPlayerReward = {
                 }
             }
         )
-    }
+    },
+
+    markPromoCodeAsViewed: function (playerId, promoCode) {
+        return dbConfig.collection_players.findOne({playerId: playerId}, {platform: 1}).lean().then(
+            playerData => {
+                if (playerData) {
+                    let playerObjId = playerData._id;
+                    let platformObjId = playerData.platform;
+
+                    return dbConfig.collection_promoCode.findOneAndUpdate(
+                        {
+                            playerObjId: playerObjId,
+                            platformObjId: platformObjId,
+                            code: promoCode,
+                            isViewed: {$ne: true}
+                        },
+                        {$set: {isViewed: true}},
+                        {new: true}
+                    ).lean();
+                }
+            }
+        );
+    },
 };
 
 function checkInterfaceRewardPermission(eventData, rewardData) {
