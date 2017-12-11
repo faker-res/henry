@@ -6102,33 +6102,87 @@ let dbPlayerInfo = {
                         let inputDevice = dbUtility.getInputDevice(userAgent,false);
                         let promResolve = Promise.resolve();
 
-                        if (checkLevelUp) {
-                            for (let i = 0; i < levelUpCounter; i++) {
-                                let tempProposal = JSON.parse(JSON.stringify(proposalData));
-                                if (i > 0) {
-                                    tempProposal.levelOldName = levelUpObjArr[i - 1].name;
-                                }
-                                tempProposal.levelValue = levelUpObjArr[i].value;
-                                tempProposal.levelName = levelUpObjArr[i].name;
-                                tempProposal.levelObjId = levelUpObjId[i];
-                                let proposalProm = function () {
-                                    return createProposal(tempProposal, inputDevice, i);
-                                }
-                                promResolve = promResolve.then(proposalProm);
-                            }
+                        // if (checkLevelUp) {
+                        //     for (let i = 0; i < levelUpCounter; i++) {
+                        //         let tempProposal = JSON.parse(JSON.stringify(proposalData));
+                        //         if (i > 0) {
+                        //             tempProposal.levelOldName = levelUpObjArr[i - 1].name;
+                        //         }
+                        //         tempProposal.levelValue = levelUpObjArr[i].value;
+                        //         tempProposal.levelName = levelUpObjArr[i].name;
+                        //         tempProposal.levelObjId = levelUpObjId[i];
+                        //         let proposalProm = function () {
+                        //             return createProposal(tempProposal, inputDevice, i);
+                        //         }
+                        //         promResolve = promResolve.then(proposalProm);
+                        //     }
+                        //
+                        // } else {
+                        //     let tempProposal = JSON.parse(JSON.stringify(proposalData));
+                        //     tempProposal.levelValue = levelDownObj.value;
+                        //     tempProposal.levelName = levelDownObj.name;
+                        //     tempProposal.levelObjId = levelObjId;
+                        //     let proposalProm = function () {
+                        //         return createProposal(tempProposal, inputDevice);
+                        //     }
+                        //     promResolve = promResolve.then(proposalProm);
+                        // }
 
-                        } else {
-                            let tempProposal = JSON.parse(JSON.stringify(proposalData));
-                            tempProposal.levelValue = levelDownObj.value;
-                            tempProposal.levelName = levelDownObj.name;
-                            tempProposal.levelObjId = levelObjId;
-                            let proposalProm = function () {
-                                return createProposal(tempProposal, inputDevice);
+                        return dbconfig.collection_playerState.findOne({player: playerObj._id}).lean().then(
+                            stateRec => {
+                                if (!stateRec) {
+                                    return new dbconfig.collection_playerState({
+                                        player: playerObj._id,
+                                        lastApplyLevelUpReward: Date.now()
+                                    }).save();
+                                } else {
+                                    return dbconfig.collection_playerState.findOneAndUpdate({
+                                        player: playerObj._id,
+                                        lastApplyLevelUpReward: {$lt: new Date() - 1000}
+                                    }, {
+                                        $currentDate: {lastApplyLevelUpReward: true}
+                                    }, {
+                                        new: true
+                                    });
+                                }
                             }
-                            promResolve = promResolve.then(proposalProm);
-                        }
+                        ).then(
+                            playerState => {
+                                if (playerState) {
+                                    if (checkLevelUp) {
+                                        for (let i = 0; i < levelUpCounter; i++) {
+                                            let tempProposal = JSON.parse(JSON.stringify(proposalData));
+                                            if (i > 0) {
+                                                tempProposal.levelOldName = levelUpObjArr[i - 1].name;
+                                            }
+                                            tempProposal.levelValue = levelUpObjArr[i].value;
+                                            tempProposal.levelName = levelUpObjArr[i].name;
+                                            tempProposal.levelObjId = levelUpObjId[i];
+                                            let proposalProm = function () {
+                                                return createProposal(tempProposal, inputDevice, i);
+                                            }
+                                            promResolve = promResolve.then(proposalProm);
+                                        }
 
-                        return promResolve;
+                                    } else {
+                                        let tempProposal = JSON.parse(JSON.stringify(proposalData));
+                                        tempProposal.levelValue = levelDownObj.value;
+                                        tempProposal.levelName = levelDownObj.name;
+                                        tempProposal.levelObjId = levelObjId;
+                                        let proposalProm = function () {
+                                            return createProposal(tempProposal, inputDevice);
+                                        }
+                                        promResolve = promResolve.then(proposalProm);
+                                    }
+                                    return promResolve;
+                                } else {
+                                    return Promise.reject ({
+                                            name: "DBError",
+                                            message: "level change fail, please contact cs"
+                                    })
+                                }
+                            }
+                        );
 
 
                         // If there is a reward for this level, give it to the player
