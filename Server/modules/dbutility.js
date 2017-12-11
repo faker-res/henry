@@ -440,7 +440,6 @@ var dbUtility = {
      */
     isFirstDayOfMonthSG: function () {
         var day = moment().tz('Asia/Singapore').toDate().getDate();
-        console.log("isFirstDayOfMonthSG:", day);
         return day == 1;
     },
 
@@ -454,6 +453,11 @@ var dbUtility = {
     isHalfMonthDaySG: function () {
         var day = moment().tz('Asia/Singapore').toDate().getDate();
         return day == 1 || day == 16;
+    },
+
+    isFirstDayOfYearSG: function () {
+        var day = moment().tz('Asia/Singapore').dayOfYear();
+        return day == 1;
     },
 
     getPastHalfMonthPeriodSG: function () {

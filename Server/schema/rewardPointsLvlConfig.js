@@ -22,7 +22,9 @@ var rewardPointsLvlConfigSchema = new Schema({
         pointToCreditAutoMaxPoints: {type: Number, required: true},
         spendingAmountOnReward: {type: Number, required: true},
         providerGroup: {type: Schema.ObjectId, ref: 'gameProviderGroup'},
-    }]
+    }],
+    // last run auto convert player reward points time for custom period
+    lastRunAutoPeriodTime: {type: Date},
 });
 
 module.exports = rewardPointsLvlConfigSchema;
