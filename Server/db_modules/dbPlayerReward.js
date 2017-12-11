@@ -505,7 +505,7 @@ let dbPlayerReward = {
         }
     },
 
-    getPromoCodeTypes: (platformObjId) => dbConfig.collection_promoCodeType.find({platformObjId: platformObjId}).lean(),
+    getPromoCodeTypes: (platformObjId, deleteFlag) => dbConfig.collection_promoCodeType.find({platformObjId: platformObjId, deleteFlag: deleteFlag}).lean(),
 
     getPromoCodeTypeByObjId: (promoCodeTypeObjId) => dbConfig.collection_promoCodeType.findOne({_id: promoCodeTypeObjId}).lean(),
 
@@ -1540,6 +1540,9 @@ let dbPlayerReward = {
                     query.acceptedTime = {$gte: searchQuery.startAcceptedTime, $lt: searchQuery.endAcceptedTime}
                 }
 
+                // get the promoCode not from deleted promoCodeType
+                query.isDeleted= false;
+
                 return dbConfig.collection_promoCode.find(query)
                     .populate({path: "playerObjId", model: dbConfig.collection_players})
                     .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
@@ -1576,12 +1579,26 @@ let dbPlayerReward = {
                 upsertProm.push(dbConfig.collection_promoCodeType.findOneAndUpdate(
                     {platformObjId: platformObjId, name: entry.name, type: entry.type},
                     entry,
-                    {upsert: true}
+                    {upsert: true, setDefaultsOnInsert: true}
                 ));
             });
         }
 
         return Promise.all(upsertProm);
+    },
+
+    updatePromoCodeIsDeletedFlag: (platformObjId, promoCodeTypeObjId, isDeleted) => {
+        return dbConfig.collection_promoCode.update({
+            platformObjId: platformObjId,
+            promoCodeTypeObjId: promoCodeTypeObjId
+        }, {
+            $set: {
+                isDeleted: isDeleted
+            }
+        }, {
+            multi: true
+        }).exec();
+
     },
 
     generatePromoCode: (platformObjId, newPromoCodeEntry) => {
@@ -1617,21 +1634,31 @@ let dbPlayerReward = {
                 promoCodeTypeObjId: promoCodeTypeObjId
             }).sort({expirationTime: -1}).lean();
         }).then(data => {
+            let result = {
+                // for the promoCodeType that been used in generate promoCode, keep the record by set the deleteFlag
+                deleteFlag: false,
+                // for the promoCodeType that is not applied, delete from the dB
+                delete: false,
+            };
             if (data){
                 if (data && data.status) {
                     if (data.status == constPromoCodeStatus.EXPIRED) {
-                        return true;
+                        result.deleteFlag=true;
+
                     }
                     else {
-                        return false;
+
+                       result.deleteFlag=false;
                     }
+                    return result;
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Invalid data"});
                 }
             }
             else{
-                return true;
+                result.delete=true;
+                return result
             }
         });
     },
@@ -1986,7 +2013,7 @@ let dbPlayerReward = {
             }
 
             if (promoCodeTypeObjIds && promoCodeTypeObjIds.length > 0) {
-                matchObj.promoCodeTypeObjId = {$in: promoCodeTypeObjIds}
+                matchObj.promoCodeTypeObjId = {$in: promoCodeTypeObjIds};
             }
 
             let promByType = dbConfig.collection_promoCode.aggregate(
