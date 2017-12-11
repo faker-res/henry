@@ -2048,7 +2048,7 @@ let dbPlayerReward = {
         let rewards;
         let playerObj;
 
-        if(status){
+        if (status) {
             status = Number(status);
         }
 
@@ -2210,16 +2210,16 @@ let dbPlayerReward = {
                     }
 
                     // Filter by status if any
-                    if(status && status !==0){
-                        rewards = rewards.filter(e=>{
+                    if (status && status !== 0) {
+                        rewards = rewards.filter(e => {
                             return (e.status === status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
                         })
-                    }else if(status === 0){
-                        rewards = rewards.filter(e=>{
+                    } else if (status === 0) {
+                        rewards = rewards.filter(e => {
                             return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
                         })
-                    }else{
-                        rewards = rewards.filter(e=>{
+                    } else {
+                        rewards = rewards.filter(e => {
                             return (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
                         })
                     }
