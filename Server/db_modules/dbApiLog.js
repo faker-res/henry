@@ -50,7 +50,9 @@ let dbApiLog = {
         ipAddress = conn.upgradeReq.connection["remoteAddress"] || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            ipAddress = forwardedIp[0].trim();
+            if(forwardedIp[0].trim() != "undefined"){
+                ipAddress = forwardedIp[0].trim();
+            }
         }
 
         let logData = {

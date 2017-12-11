@@ -19,9 +19,9 @@ var socketUtility = {
     emitter: function (socket, dbCall, args, event, isValidData) {
         //check if admin user has the permission for this socket action
         roleChecker.isValid(socket, event).then(
-            function(isAllowed){
+            function (isAllowed) {
                 //if admin user has the permission for this socket action
-                if(isAllowed){
+                if (isAllowed) {
                     socketUtility.emitterWithoutRoleCheck(socket, dbCall, args, event, isValidData);
                 }
             }
@@ -37,7 +37,7 @@ var socketUtility = {
      * @param {Boolean} isValidData - flag for data validation
      */
     emitterWithoutRoleCheck: function (socket, dbCall, args, event, isValidData) {
-        var isValid = typeof isValidData === "undefined" ? true : isValidData;
+        let isValid = typeof isValidData === "undefined" ? true : isValidData;
 
         if (socket && dbCall && args && event) {
             if (isValid) {
@@ -49,6 +49,13 @@ var socketUtility = {
                 // So the client will always receive a response as expected (with `success: false` in this case).
 
                 // Handle synchronous errors the same as asynchronous errors
+                let logData = {
+                    adminName: socket.decoded_token.adminName,
+                    action: event,
+                    data: args,
+                    level: constSystemLogLevel.ACTION
+                };
+                console.log("action request: ", logData);
                 Q.resolve().then(
                     function () {
                         return dbCall.apply(null, args)
@@ -57,10 +64,6 @@ var socketUtility = {
                     function (result) {
                         socket.emit(("_" + event), {success: true, data: result});
 
-                        var logData = {
-                            adminName: socket.decoded_token.adminName,
-                            action: event,data: args,
-                            level: constSystemLogLevel.ACTION };
                         dblog.createSystemLog(logData);
                     }
                 ).catch(
@@ -69,8 +72,8 @@ var socketUtility = {
                         // don't need to log them on the server, as long as we pass the error back to the client.
                         // All other errors we should log!
                         // The advantage is that we keep the logs clean.  The disadvantage is that we won't see a stack trace for validation errors.
-                        var muteLog = err instanceof MongooseError.ValidationError || err.error instanceof MongooseError.ValidationError;
-                        var shouldLog = !muteLog;
+                        let muteLog = err instanceof MongooseError.ValidationError || err.error instanceof MongooseError.ValidationError;
+                        let shouldLog = !muteLog;
 
                         if (shouldLog) {
                             console.log(new Date() + " Error while handling socket request '" + event + "' with arguments:", args, err);
@@ -84,25 +87,26 @@ var socketUtility = {
                             // That means it doesn't have its name set, so we should give it a name here, before we emit it.
                             if (err instanceof MongooseError.ValidationError) {
                                 // Validation errors are not explained in err.message but they are explained in err.toString().
-                                err = {name: 'DataError', message: ''+err, error: err};
+                                err = {name: 'DataError', message: '' + err, error: err};
                             }
                             else if (err instanceof MongooseError) {
-                                err = {name: 'DBError', message: ''+err, error: err};
+                                err = {name: 'DBError', message: '' + err, error: err};
                             }
                             else {
                                 // If it wasn't the input data and it wasn't the database, then it must be some code that exploded!
-                                err = {name: 'SystemError', message: ''+err, error: err};
+                                err = {name: 'SystemError', message: '' + err, error: err};
                             }
                         }
 
                         socket.emit(("_" + event), {success: false, error: err});
 
-                        var logData = {
+                        let logData = {
                             adminName: socket.decoded_token.adminName,
                             action: event,
                             data: args,
                             error: "" + err,
-                            level: constSystemLogLevel.ERROR };
+                            level: constSystemLogLevel.ERROR
+                        };
                         dblog.createSystemLog(logData);
                     }
                 ).catch(
@@ -111,17 +115,22 @@ var socketUtility = {
                 );
             }
             else {
-                socket.emit(("_" + event), {success: false, error: {name: "DataError", message: "Incorrect data!"}});
+                socket.emit(("_" + event), {
+                    success: false,
+                    error: {name: "DataError", message: "Incorrect data!"}
+                });
                 var logData = {
                     adminName: socket.decoded_token.adminName,
                     action: event,
                     data: args,
                     error: "Incorrect data!",
-                    level: constSystemLogLevel.ERROR };
+                    level: constSystemLogLevel.ERROR
+                };
                 dblog.createSystemLog(logData);
             }
         }
-    },
+    }
+    ,
 
     /**
      * Common function to emit socket event after db operation
@@ -133,9 +142,10 @@ var socketUtility = {
             success: false,
             error: {name: "DataError", message: "Incorrect data!"}
         });
-    },
+    }
+    ,
 
-    notifyClientsPermissionUpdate: function(socketIO){
+    notifyClientsPermissionUpdate: function (socketIO) {
         socketIO.sockets.emit("PermissionUpdate");
     }
 };

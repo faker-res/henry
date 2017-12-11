@@ -554,7 +554,7 @@ let dbPlayerPartner = {
                 // data.data.playerObjId && data.data.playerName && data.data.curData &&
                 // data.data.updateData && data.data.updateData.phoneNumber
                 let player, partner, playerUpdateData, partnerUpdateData;
-                let updatePhoneNumber = dbUtility.encodePhoneNum(newPhoneNumber);
+                let updatePhoneNumber = newPhoneNumber;
                 let inputDevice = 0;
                 switch (targetType) {
                     case 0:

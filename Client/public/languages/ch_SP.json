@@ -1294,6 +1294,7 @@
   "smsContentConfig": "短信内容",
   "GENERATE": "生成",
   "GENERATE_ALL": "生成全部",
+  "PROMO_CODE_LEGEND": "代码对照表",
   "PROMO_CODE_HISTORY": "优惠代码记录",
   "promoCodeHistory": "优惠代码记录",
   "START_CREATE_TIME": "开始生成时间",
@@ -1380,6 +1381,11 @@
   "Need SMS verification": "（领优惠中）是否需要短信验证",
   "FREE_TRIAL_REWARD_AMOUNT": "固定优惠金额",
   "FREE_TRIAL_SPENDING_TIMES": "解锁流水（优）X倍",
+  "freeTrialReward": "免费体验金",
+  "This player has applied for max reward times in event period": "此玩家已经达到了该优惠周期内的申请上限",
+  "This IP address has applied for max reward times in event period": "此IP地址已经达到了该优惠周期内的申请上限",
+  "This phone number has applied for max reward times in event period": "此电话号码已经达到了该优惠周期内的申请上限",
+  "Reward Amount and Spending Times cannot be empty. Please check reward condition.": "固定优惠金额和解锁流水不能为空。 请检查优惠条件",
 
   "REWARD_POINTS_ADJUSTMENT": "修改积分",
   "VALID_REWARD_POINTS": "有效积分",
@@ -1388,11 +1394,11 @@
   "UPDATED_REWARD_POINTS": "更改后",
   "Player reward points cannot be less than 0": "玩家积分不能小于0",
 
-  "ADVANCE_REWARD_POINTS_EXCHANGE": "提前积分兑换",
-  "BEFORE_REWARD_POINTS_EXCHANGE": "兑换前",
-  "REWARD_POINTS_EXCHANGE_AMOUNT": "积分兑换",
-  "REWARD_POINTS_EXCHANGE_DAILY_LIMIT": "今日已兑换",
-  "AFTER_REWARD_POINTS_EXCHANGE": "兑换后",
+  "ADVANCE_REWARD_POINTS_CONVERT": "提前积分兑换",
+  "BEFORE_REWARD_POINTS_CONVERT": "兑换前",
+  "REWARD_POINTS_CONVERT_AMOUNT": "积分兑换",
+  "REWARD_POINTS_CONVERT_DAILY_LIMIT": "今日已兑换",
+  "AFTER_REWARD_POINTS_CONVERT": "兑换后",
 
   "rewardPointsTask": "积分任务",
 
@@ -2872,5 +2878,14 @@
   "RewardProposalId": "优惠提案号",
   "SubRewardType": "优惠子类型",
   "Deposit Amount":"相关存款金额",
-  "Deposit ProposalId":"相关存款提案号"
+  "Deposit ProposalId":"相关存款提案号",
+  "PlayerPeriodPointConversion": "玩家到期兑换积分",
+  "PlayerEarlyPointConversion": "玩家提前兑换积分",
+  "PlayerEarlyConvertRewardPoints": "玩家提前兑换积分",
+  "PlayerPeriodConvertRewardPoints": "玩家到期兑换积分",
+  "rewardPointsConvertCategory": "积分兑换类别 (6-提前兑换 / 7-到期兑换)",
+  "exchangeRatio": "兑换比例",
+  "maxDayApplyAmount": "单日最高兑换积分上限",
+  "currentDayAppliedAmount": "单日已兑换积分（不包括此笔）",
+  "level change fail, please contact cs": "等级变更失效，请联系客服。"
 }

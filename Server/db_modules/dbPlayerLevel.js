@@ -11,6 +11,7 @@ const constProposalStatus = require('../const/constProposalStatus');
 const constProposalType = require('../const/constProposalType');
 const constSystemParam = require('./../const/constSystemParam');
 const constPlayerLevelUpPeriod = require('./../const/constPlayerLevelUpPeriod');
+const constServerCode = require('../const/constServerCode');
 
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
 
@@ -207,7 +208,10 @@ let dbPlayerLevelInfo = {
 
                 
                 if (playerData.permission && playerData.permission.levelChange === false) {
-                    return Promise.reject({name: "DBError", message: "player do not have level permission"});
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DBError",
+                        message: "level change fail, please contact cs"});
                 }
 
                 // Check level up
