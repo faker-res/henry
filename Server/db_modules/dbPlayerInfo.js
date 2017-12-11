@@ -3543,7 +3543,7 @@ let dbPlayerInfo = {
                         newAgentArray.push(uaObj);
                     }
                     var bUpdateIp = false;
-                    if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp) {
+                    if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp && playerData.lastLoginIp != "undefined") {
                         bUpdateIp = true;
                     }
 
