@@ -49,9 +49,9 @@ let promoCodeSchema = new Schema({
     // Reward amount shared with XIMA
     isSharedWithXIMA: {type: Boolean, default: true},
     // set to true if the inherited promoCodeType is deleted
-    isDeleted: {type: Boolean, default: false}
+    isDeleted: {type: Boolean, default: false},
     // Mark as viewed
-    isViewed: {type: Boolean, default: false},
+    isViewed: {type: Boolean, default: false}
 
 });
 
