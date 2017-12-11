@@ -333,7 +333,7 @@
                                 td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
                                 td(ng-if='vm.promoCodeSMSContentEdit')
-                                    input(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
+                                    input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType1, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')
@@ -342,7 +342,7 @@
                                 td
                                     input(type='text' , ng-model='vm.newPromoCodeSMSContentType1.name')
                                 td
-                                    input(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsContent")
+                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsContent")
                                 td
                                     i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType1, {name: vm.newPromoCodeSMSContentType1.name, smsContent: vm.newPromoCodeSMSContentType1.smsContent}); vm.newPromoCodeSMSContentType1={}')
                     br
@@ -359,7 +359,7 @@
                                 td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
                                 td(ng-if='vm.promoCodeSMSContentEdit')
-                                    input(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
+                                    input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType2, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')
@@ -368,7 +368,7 @@
                                 td
                                     input(type='text' , ng-model='vm.newPromoCodeSMSContentType2.name')
                                 td
-                                    input(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsContent")
+                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsContent")
                                 td
                                     i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType2, {name: vm.newPromoCodeSMSContentType2.name, smsContent: vm.newPromoCodeSMSContentType2.smsContent}); vm.newPromoCodeSMSContentType2={}')
                     br
@@ -385,7 +385,7 @@
                                 td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
                                 td(ng-if='vm.promoCodeSMSContentEdit')
-                                    input(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
+                                    input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType3, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')
@@ -394,7 +394,7 @@
                                 td
                                     input(type='text' , ng-model='vm.newPromoCodeSMSContentType3.name')
                                 td
-                                    input(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsContent")
+                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsContent")
                                 td
                                     i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType3, {name: vm.newPromoCodeSMSContentType3.name, smsContent: vm.newPromoCodeSMSContentType3.smsContent}); vm.newPromoCodeSMSContentType3={}')
 
