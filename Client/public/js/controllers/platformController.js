@@ -14281,7 +14281,6 @@ define(['js/app'], function (myApp) {
 
                     // delete immediately the constructed promoCodeType before saving into dB
                     if (collection[data]._id == null){
-
                         sendData.promoCodeSMSContent = collection.splice(data, 1);
                     }
                     else{
@@ -15517,19 +15516,21 @@ define(['js/app'], function (myApp) {
                 let rowNumber = index + 1;
                 let playerNameList = el.playerName ? el.playerName.split("\n") : el.playerName;
 
-                vm.userGroupConfig.map(e => {
-                    playerNameList.map(playerName => {
-                        if (e.playerNames.indexOf(playerName.trim()) > -1) {
-                            bgColor = e.color;
-                        }
+                if (playerNameList && playerNameList.length > 0) {
+                    vm.userGroupConfig.map(e => {
+                        playerNameList.map(playerName => {
+                            if (e.playerNames.indexOf(playerName.trim()) > -1) {
+                                bgColor = e.color;
+                            }
+                        });
                     });
-                });
 
-                if (rowNumber) {
-                    cssPointer = id + " > tbody > tr:nth-child(" + rowNumber + ")";
+                    if (rowNumber) {
+                        cssPointer = id + " > tbody > tr:nth-child(" + rowNumber + ")";
+                    }
+
+                    $(cssPointer).css("background-color", bgColor ? bgColor : "");
                 }
-
-                $(cssPointer).css("background-color", bgColor ? bgColor : "");
             };
 
             vm.promoCodeNewRow = function (collection, type, data) {
