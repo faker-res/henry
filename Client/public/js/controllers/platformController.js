@@ -23,7 +23,7 @@ define(['js/app'], function (myApp) {
             vm.creditChange = {};
             vm.existPhone = false;
             vm.rewardPointsChange = {};
-            vm.rewardPointsExchange = {};
+            vm.rewardPointsConvert = {};
 
             // constants declaration
             vm.proposalStatusList = { // removed APPROVED and REJECTED
@@ -4750,7 +4750,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsExchange')) {
+                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': "images/icon/rewardPointsBlue.png",
@@ -8201,6 +8201,9 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsChange.finalValidAmount = 0;
                 vm.rewardPointsChange.remark = '';
                 vm.rewardPointsChange.updateAmount = 0;
+                vm.rewardPointsConvert.finalValidAmount = 0;
+                vm.rewardPointsConvert.remark = '';
+                vm.rewardPointsConvert.updateAmount = 0;
                 $scope.safeApply();
             };
 
@@ -15466,8 +15469,8 @@ define(['js/app'], function (myApp) {
             vm.convertPlayerRewardPoints = () => {
                 var sendData = {
                     playerId: vm.isOneSelectedPlayer().playerId,
-                    convertRewardPointsAmount: vm.rewardPointsExchange.updateAmount,
-                    remark: vm.rewardPointsExchange.remark
+                    convertRewardPointsAmount: vm.rewardPointsConvert.updateAmount,
+                    remark: vm.rewardPointsConvert.remark
                 };
                 socketService.$socket($scope.AppSocket, 'convertRewardPointsToCredit', sendData, function (data) {
                     console.log('convertRewardPointsToCredit', data.data);
