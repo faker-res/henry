@@ -2848,7 +2848,6 @@ let dbPlayerReward = {
                     $match: {
                         "createTime": freeTrialQuery.createTime,
                         "data.eventId": eventData._id,
-                        "data.playerObjId": playerData._id,
                         "status": 'Approved'
                     }
                 },
@@ -2869,16 +2868,29 @@ let dbPlayerReward = {
                     let samePlayerObjIdResult;
                     let sameIPAddressResult;
                     let samePhoneNumResult;
+                    let samePlayerId = 0;
                     let sameIPAddress = 0;
                     let samePhoneNum = 0;
 
-                    // if found record, same player has received this reward
-                    if (countReward.length >= 1) {
-                        samePlayerObjIdResult = 0; //fail
+                    // check playerId
+                    if (countReward) {
+                        for (let i = 0; i < countReward.length; i++) {
+                            // check if same player  has already received this reward
+                            if (playerData._id.toString() === countReward[i].data.playerObjId.toString()) {
+                                samePlayerId++;
+                            }
+                        }
+
+                        if (samePlayerId >= 1) {
+                            samePlayerObjIdResult = 0; //fail
+                        } else {
+                            samePlayerObjIdResult = 1;
+                        }
+                        resultArr.push(samePlayerObjIdResult);
                     } else {
-                        samePlayerObjIdResult = 1;
+                        samePlayerObjIdResult = 0;
+                        resultArr.push(samePlayerObjIdResult);
                     }
-                    resultArr.push(samePlayerObjIdResult);
 
                     // check IP address
                     if (playerData.lastLoginIp !== '' && eventData.condition.checkIPFreeTrialReward) {
