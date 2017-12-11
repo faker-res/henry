@@ -3964,9 +3964,9 @@ function promoCondition(promo) {
     if (promo.minTopUpAmount) {
         proMsg += "有新存款<span class=\"c_color\">(" + promo.minTopUpAmount + "以上)" + "</span>";
     }
-    if (promo.maxTopUpAmount) {
-        proMsg += ", 存款上限<span class=\"c_color\">(" + promo.maxTopUpAmount + ")" + "</span>";
-    }
+    // if (promo.maxTopUpAmount) {
+    //     proMsg += ", 存款上限<span class=\"c_color\">(" + promo.maxTopUpAmount + ")" + "</span>";
+    // }
     if (promo.disableWithdraw) {
         proMsg += ' 且尚未投注';
     }
