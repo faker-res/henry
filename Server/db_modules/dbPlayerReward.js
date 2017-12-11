@@ -1628,7 +1628,7 @@ let dbPlayerReward = {
 
     // check the availability of promoCodeType
     checkPromoCodeTypeAvailability:  (platformObjId, promoCodeTypeObjId) => {
-        return expirePromoCode().then( (res) => {
+        return expirePromoCode().then(() => {
             return dbConfig.collection_promoCode.findOne({
                 platformObjId: platformObjId,
                 promoCodeTypeObjId: promoCodeTypeObjId
@@ -1640,25 +1640,18 @@ let dbPlayerReward = {
                 // for the promoCodeType that is not applied, delete from the dB
                 delete: false,
             };
-            if (data){
+
+            if (data) {
                 if (data && data.status) {
-                    if (data.status == constPromoCodeStatus.EXPIRED) {
-                        result.deleteFlag=true;
-
-                    }
-                    else {
-
-                       result.deleteFlag=false;
-                    }
-                    return result;
+                    return result.deleteFlag = data.status == constPromoCodeStatus.EXPIRED;
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Invalid data"});
                 }
             }
-            else{
-                result.delete=true;
-                return result
+            else {
+                result.delete = true;
+                return result;
             }
         });
     },
