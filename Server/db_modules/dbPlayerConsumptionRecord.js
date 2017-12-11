@@ -827,6 +827,7 @@ var dbPlayerConsumptionRecord = {
         ).then(
             data => {
                 if (data && data[0] && data[1] && data[2]) {
+                    let providerId = recordData.providerId;
                     recordData.playerId = data[0]._id;
                     recordData.platformId = data[0].platform;
                     recordData.gameId = data[1]._id;
@@ -837,7 +838,14 @@ var dbPlayerConsumptionRecord = {
                     return dbconfig.collection_playerConsumptionRecord.findOneAndUpdate({
                         _id: oldData._id,
                         createTime: oldData.createTime
-                    }, recordData, {new: true});
+                    }, recordData, {new: true}).then(
+                        newRecord => {
+                            if(newRecord){
+                                newRecord.providerId = providerId;
+                            }
+                            return newRecord;
+                        }
+                    );
                 } else {
                     const missingList = [];
                     if (!data[0]) {
