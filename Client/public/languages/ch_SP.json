@@ -1394,11 +1394,11 @@
   "UPDATED_REWARD_POINTS": "更改后",
   "Player reward points cannot be less than 0": "玩家积分不能小于0",
 
-  "ADVANCE_REWARD_POINTS_EXCHANGE": "提前积分兑换",
-  "BEFORE_REWARD_POINTS_EXCHANGE": "兑换前",
-  "REWARD_POINTS_EXCHANGE_AMOUNT": "积分兑换",
-  "REWARD_POINTS_EXCHANGE_DAILY_LIMIT": "今日已兑换",
-  "AFTER_REWARD_POINTS_EXCHANGE": "兑换后",
+  "ADVANCE_REWARD_POINTS_CONVERT": "提前积分兑换",
+  "BEFORE_REWARD_POINTS_CONVERT": "兑换前",
+  "REWARD_POINTS_CONVERT_AMOUNT": "积分兑换",
+  "REWARD_POINTS_CONVERT_DAILY_LIMIT": "今日已兑换",
+  "AFTER_REWARD_POINTS_CONVERT": "兑换后",
 
   "rewardPointsTask": "积分任务",
 
@@ -2869,5 +2869,14 @@
   "convertedRewardPoints": "兑换消耗的积分",
   "afterRewardPoints": "兑换后积分",
   "beforeRewardPoints": "兑换前积分",
-  "Reward Points": "积分"
+  "Reward Points": "积分",
+  "PlayerPeriodPointConversion": "玩家到期兑换积分",
+  "PlayerEarlyPointConversion": "玩家提前兑换积分",
+  "PlayerEarlyConvertRewardPoints": "玩家提前兑换积分",
+  "PlayerPeriodConvertRewardPoints": "玩家到期兑换积分",
+  "rewardPointsConvertCategory": "积分兑换类别 (6-提前兑换 / 7-到期兑换)",
+  "exchangeRatio": "兑换比例",
+  "maxDayApplyAmount": "单日最高兑换积分上限",
+  "currentDayAppliedAmount": "单日已兑换积分（不包括此笔）",
+  "level change fail, please contact cs": "等级变更失效，请联系客服。"
 }

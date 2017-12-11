@@ -567,6 +567,20 @@
         });
     };
 
+    proto.getCreditDetail = function (callback, requestData) {
+        var thisObj = this;
+        var data = requestData || {};
+
+        thisObj.playerService.getCreditDetail.request(data);
+        thisObj.playerService.getCreditDetail.once(function (data) {
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+
+
+    };
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

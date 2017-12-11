@@ -52,6 +52,7 @@
                 "getConsumptionDetailOfPlayers",
                 "calculatePlatformConsecutiveConsumptionForPlayers",
                 "getDXNewPlayerDetail",
+                "autoConvertPlayerRewardPoints",
                 "batchCreditTransferOut"
             ];
             addServiceFunctions(sinonet, this, functionNames);

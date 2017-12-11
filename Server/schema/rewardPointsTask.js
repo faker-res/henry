@@ -12,6 +12,8 @@ var rewardPointsTask = new Schema({
     rewardPoints: {type: Number},
     // category of reward, base on constRewardPointsLogCategory
     category: {type: Number},
+    //credit amount
+    creditAmount: {type: Number},
     //required amount to amount
     requiredUnlockAmount: {type: Number, default: 0},
     //current unlocked amount, if current unlock amount is >= requiredUnlockAmount, reward points task is unlocked

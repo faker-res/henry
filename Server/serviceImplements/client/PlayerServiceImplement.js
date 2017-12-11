@@ -33,7 +33,9 @@ let PlayerServiceImplement = function () {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
             if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-                data.lastLoginIp = forwardedIp[0].trim();
+                if(forwardedIp[0].trim() != "undefined"){
+                    data.lastLoginIp = forwardedIp[0].trim();
+                }
             }
             data.loginIps = [data.lastLoginIp];
             var uaString = conn.upgradeReq.headers['user-agent'];
@@ -91,7 +93,7 @@ let PlayerServiceImplement = function () {
             conn.captchaCode = null;
             data.isOnline = true;
             let inputData = Object.assign({}, data);
-            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode], isValidData, true, true, true).then(
+            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, false], isValidData, true, true, true).then(
                 (playerData) => {
                     data.playerId = data.playerId ? data.playerId : playerData.playerId;
                     data.remarks = playerData.partnerName ? localization.translate("PARTNER", conn.lang) + ": " + playerData.partnerName : "";
@@ -194,7 +196,9 @@ let PlayerServiceImplement = function () {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
             if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-                data.lastLoginIp = forwardedIp[0].trim();
+                if(forwardedIp[0].trim() != "undefined"){
+                    data.lastLoginIp = forwardedIp[0].trim();
+                }
             }
             data.loginIps = [data.lastLoginIp];
             let uaString = conn.upgradeReq.headers['user-agent'];
@@ -330,7 +334,9 @@ let PlayerServiceImplement = function () {
         data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            data.lastLoginIp = forwardedIp[0].trim();
+            if(forwardedIp[0].trim() != "undefined"){
+                data.lastLoginIp = forwardedIp[0].trim();
+            }
         }
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);
@@ -427,7 +433,9 @@ let PlayerServiceImplement = function () {
         data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            data.lastLoginIp = forwardedIp[0].trim();
+            if(forwardedIp[0].trim() != "undefined"){
+                data.lastLoginIp = forwardedIp[0].trim();
+            }
         }
 
         let uaString = conn.upgradeReq.headers['user-agent'];
@@ -515,7 +523,9 @@ let PlayerServiceImplement = function () {
         data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            data.lastLoginIp = forwardedIp[0].trim();
+            if(forwardedIp[0].trim() != "undefined"){
+                data.lastLoginIp = forwardedIp[0].trim();
+            }
         }
 
         let uaString = conn.upgradeReq.headers['user-agent'];
@@ -757,7 +767,7 @@ let PlayerServiceImplement = function () {
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
         }
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePlayerPayment, [userAgent, {playerId: conn.playerId}, data], isValidData, true, false, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePlayerPayment, [userAgent, {playerId: conn.playerId}, data, null, true], isValidData, true, false, false).then(
             function (res) {
                 if (res) {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS}, data);
@@ -867,7 +877,9 @@ let PlayerServiceImplement = function () {
         data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            data.lastLoginIp = forwardedIp[0].trim();
+            if(forwardedIp[0].trim() != "undefined"){
+                data.lastLoginIp = forwardedIp[0].trim();
+            }
         }
         data.loginIps = [data.lastLoginIp];
         data.ipArea = {'province':'', 'city':''};
@@ -915,11 +927,13 @@ let PlayerServiceImplement = function () {
 
     this.authenticate.expectsData = 'playerId: String, token: String';
     this.authenticate.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.playerId && data.token);
-        var playerIp = conn.upgradeReq.connection.remoteAddress || '';
-        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        let isValidData = Boolean(data && data.playerId && data.token);
+        let playerIp = conn.upgradeReq.connection.remoteAddress || '';
+        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            playerIp = forwardedIp[0].trim();
+            if(forwardedIp[0].trim() != "undefined"){
+                playerIp = forwardedIp[0].trim();
+            }
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.authenticate, [data.playerId, data.token, playerIp, conn], true, false, false, true);
     };
@@ -929,7 +943,9 @@ let PlayerServiceImplement = function () {
         let playerIp = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            playerIp = forwardedIp[0].trim();
+            if(forwardedIp[0].trim() != "undefined"){
+                playerIp = forwardedIp[0].trim();
+            }
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.authenticatePlayerPartner, [data.playerId, data.partnerId, data.token, playerIp, conn], true, false, false, true);
     };
@@ -1047,6 +1063,11 @@ let PlayerServiceImplement = function () {
     this.getWithdrawalInfo.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId && data.platformId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWithdrawalInfo, [data.platformId, conn.playerId], isValidData, false, false, true);
+    };
+
+    this.getCreditDetail.onRequest = function (wsFunc, conn, data) {
+        var isValidData = true;
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getCreditDetail, [conn.playerObjId], isValidData);
     };
 
 };
