@@ -8195,8 +8195,7 @@ define(['js/app'], function (myApp) {
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
                 if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
                     vm.createPlayerRewardPointsRecord();
-                } else if(vm.selectedSinglePlayer.currentPoints === undefined) {
-                    vm.getPlayerRewardPointsRecord();
+                    vm.advancedPlayerQuery();
                 }
 
                 vm.rewardPointsChange.finalValidAmount = 0;
@@ -8218,37 +8217,6 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'createPlayerRewardPointsRecord', sendData, function (data) {
-                    vm.isOneSelectedPlayer().currentPoints = data.data.points;
-
-                    let playerId = data.data.playerObjId;
-                    let platformId = data.data.platformObjId;
-                    let rewardPointsObjId = data.data._id;
-
-                    vm.upsertPlayerInfoRewardPointsObjId(playerId, platformId, rewardPointsObjId);
-                    $scope.safeApply();
-                });
-            };
-
-            vm.upsertPlayerInfoRewardPointsObjId = function (playerId, platformId, rewardPointsObjId) {
-                let sendData = {
-                    playerId: playerId,
-                    platformId: platformId,
-                    rewardPointsObjId: rewardPointsObjId,
-                };
-
-                socketService.$socket($scope.AppSocket, 'upsertPlayerInfoRewardPointsObjId', sendData, function (data) {
-                    vm.isOneSelectedPlayer().rewardPointsObjId = data.data.rewardPointsObjId;
-                    $scope.safeApply();
-                });
-            };
-
-            vm.getPlayerRewardPointsRecord = function () {
-                let sendData = {
-                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId
-                };
-
-                socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsRecord', sendData, function (data) {
-                    vm.isOneSelectedPlayer().currentPoints = data.data.points;
                     $scope.safeApply();
                 });
             };
@@ -8259,6 +8227,14 @@ define(['js/app'], function (myApp) {
                     platformObjId: vm.isOneSelectedPlayer().platform,
                     updateAmount: vm.rewardPointsChange.updateAmount,
                     remark: vm.rewardPointsChange.remark
+                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId._id,
+                    data: {
+                        oldPoints: vm.isOneSelectedPlayer().rewardPointsObjId.points,
+                        amount: vm.rewardPointsChange.updateAmount,
+                        creator: authService.adminName,
+                        remark: vm.rewardPointsChange.remark,
+                        status: 1
+                    }
                 };
 
                 socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function () {
@@ -14304,26 +14280,26 @@ define(['js/app'], function (myApp) {
                         platformObjId: vm.selectedPlatform.id,
                     }
 
+                    let sendData2 = {
+                        platformObjId: vm.selectedPlatform.id,
+                    }
+
                     // delete immediately the constructed promoCodeType before saving into dB
                     if (collection[data]._id == null){
 
                         sendData.promoCodeSMSContent = collection.splice(data, 1);
-                        sendData.isDelete = true;
-
-                        socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                            vm.loadPlatformData({loadAll: false});
-                        });
                     }
                     else{
                         sendData.promoCodeTypeObjId = collection[data]._id;
-
+                        sendData2.promoCodeTypeObjId = collection[data]._id;
                         // check the availability of the promocode type, can only remove if it is expired
                         socketService.$socket($scope.AppSocket, 'checkPromoCodeTypeAvailability', sendData, function (result) {
                             if (result){
-                                if (!result.data) {
+                                if (!result.data.deleteFlag && !result.data.delete) {
                                     socketService.showErrorMessage('The promoCode Type is still valid');
                                 }
-                                else {
+                                else if (!result.data.deleteFlag && result.data.delete) {
+                                    // delete the PromoCodeType from the dB (generated promoCodeType but not using)
                                     let sendData = {
                                         platformObjId: vm.selectedPlatform.id,
                                         promoCodeSMSContent: collection.splice(data, 1),
@@ -14334,6 +14310,23 @@ define(['js/app'], function (myApp) {
                                         vm.loadPlatformData({loadAll: false});
                                     });
                                 }
+                                else if (result.data.deleteFlag && !result.data.delete) {
+                                    // change the deleteFlag status in dB (as it had been used before)
+                                    collection[data].deleteFlag=true;
+                                    let sendData = {
+                                        platformObjId: vm.selectedPlatform.id,
+                                        promoCodeSMSContent: collection.splice(data, 1),
+                                    };
+
+                                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                                        sendData2.isDeleted = true;
+                                        // update the isDelete flag of each promoCode inherited from the deleted promoCodeType
+                                        socketService.$socket($scope.AppSocket, 'updatePromoCodeIsDeletedFlag', sendData2, function (data) {
+                                            vm.loadPlatformData({loadAll: false});
+                                        });
+                                    });
+                                }
+                                else{}
                             }
                             else{
                                 return Q.reject("data was empty: " + result);
@@ -15492,7 +15485,7 @@ define(['js/app'], function (myApp) {
             };
 
             function loadPromoCodeTypes() {
-                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id, deleteFlag: false}, function (data) {
                     console.log('getPromoCodeTypes', data);
 
                     vm.promoCodeTypes = data.data;
