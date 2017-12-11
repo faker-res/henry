@@ -50,6 +50,9 @@ let promoCodeSchema = new Schema({
     isSharedWithXIMA: {type: Boolean, default: true},
     // set to true if the inherited promoCodeType is deleted
     isDeleted: {type: Boolean, default: false}
+    // Mark as viewed
+    isViewed: {type: Boolean, default: false},
+
 });
 
 module.exports = promoCodeSchema;

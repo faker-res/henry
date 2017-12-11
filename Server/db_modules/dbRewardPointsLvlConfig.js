@@ -12,9 +12,17 @@ var dbRewardPointsLvlConfig = {
 
     upsertRewardPointsLvlConfig: (rewardPointsLvlConfig) => {
         return dbConfig.collection_rewardPointsLvlConfig.findOneAndUpdate({platformObjId: ObjectId(rewardPointsLvlConfig.platformObjId)},
-            {$set:rewardPointsLvlConfig},
+            {$set: rewardPointsLvlConfig},
             {upsert: true, new: true}).lean();
-    }
+    },
+
+    updateRewardPointsLvlConfigLastRunTime: (rewardPointsLvlConfigIds) => {
+        return dbConfig.collection_rewardPointsLvlConfig.update(
+            {_id: {$in: rewardPointsLvlConfigIds}},
+            {lastRunAutoPeriodTime: new Date()},
+            {multi: true}
+        ).exec();
+    },
 
 };
 module.exports = dbRewardPointsLvlConfig;

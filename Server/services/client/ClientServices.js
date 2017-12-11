@@ -82,7 +82,8 @@
                 "deleteMail",
                 "manualPlayerLevelUp",
                 "getWithdrawalInfo",
-                "getCardTypeList"
+                "getCardTypeList",
+                "getCreditDetail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -261,6 +262,7 @@
                 "getTopUpPromoList",
                 "getPromoCode",
                 "applyPromoCode",
+                "markPromoCodeAsViewed",
                 "getLimitedOffers",
                 "applyLimitedOffers",
                 "getLimitedOfferBonus",

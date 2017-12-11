@@ -707,6 +707,7 @@ var dbPlayerConsumptionWeekSummary = {
 
                     // Check all game types and calculate return amount
                     var res = {};
+                    res.settleTime = settleTime;
                     res.totalConsumptionAmount = 0;
                     for (var type in allGameTypes) {
                         var playerLevel = playerData.playerLevel;
@@ -758,13 +759,14 @@ var dbPlayerConsumptionWeekSummary = {
                     //no consumption records
                     if (bDetail) {
                         return {
+                            settleTime: settleTime,
                             playerId: playerId,
                             playerName: playerData ? playerData.name : 'Player Not Found',
                             totalAmount: 0
                         };
                     }
                     else {
-                        return {totalAmount: 0};
+                        return {settleTime: settleTime, totalAmount: 0};
                     }
                 }
             },

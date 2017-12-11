@@ -27,10 +27,10 @@
                     .full-width-input-block
                         label {{"intervalPeriod" | translate}}
                         select.form-control(ng-model='vm.rewardPointsLvlConfig.intervalPeriod' ng-change='vm.rewardPointsLvlConfigPeriodChange()' ng-options="+(i) as v | translate for (i,v) in constRewardPointsIntervalPeriod" ng-disabled='!vm.isRewardPointsLvlConfigEditing', required)
-                    .full-width-input-block(style='margin-left:50%' ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
-                        div.dateTimePicker(id="rewardPointsLvlConfigStartDate" style="display: inline-block; width: 24%" ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
+                    .full-width-input-block(style='padding-left:50%' ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
+                        div.dateTimePicker(id="rewardPointsLvlConfigStartDate" style="display: inline-block; width: 48%" ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
                         span(ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6" style='font-size:23px') &nbsp;{{ 'to' | translate}}&nbsp;
-                        div.dateTimePicker(id="rewardPointsLvlConfigEndDate" style="display: inline-block; width: 24%" ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
+                        div.dateTimePicker(id="rewardPointsLvlConfigEndDate" style="display: inline-block; width: 48%" ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
                     .full-width-input-block
                         label {{"applyMethod" | translate}}
                         select.form-control(ng-model='vm.rewardPointsLvlConfig.applyMethod' ng-options="+(i) as v | translate for (i,v) in constRewardPointsApplyMethod" ng-disabled='!vm.isRewardPointsLvlConfigEditing', required)

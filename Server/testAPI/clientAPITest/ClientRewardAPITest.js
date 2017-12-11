@@ -189,6 +189,12 @@
         this.rewardService.applyPromoCode.once(callback);
     };
 
+    proto.markPromoCodeAsViewed = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.markPromoCodeAsViewed.request(data);
+        this.rewardService.markPromoCodeAsViewed.once(callback);
+    };
+
     proto.getLimitedOffers = function (callback, requestData) {
         let data = requestData || {};
         this.rewardService.getLimitedOffers.request(data);
