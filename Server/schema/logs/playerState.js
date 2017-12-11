@@ -7,7 +7,9 @@ let playerStateSchema = new Schema({
     // Last apply packet rain reward date
     lastApplyPacketRainReward: {type: Date, default: new Date()},
     // Last apply top up return date
-    lastApplyTopUpReturnReward: {type: Date, default: new Date()}
+    lastApplyTopUpReturnReward: {type: Date, default: new Date()},
+    // last apply levelup reward
+    lastApplyLevelUpReward: {type: Date, default: new Date()}
 });
 
 module.exports = playerStateSchema;
