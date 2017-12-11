@@ -1627,10 +1627,12 @@ let dbPlayerInfo = {
 
     /**
      * Update player payment info
+     * @param userAgent
      * @param {String}  query - The query string
      * @param {Object} updateData - The update data string
+     * @param skipSMSVerification
      */
-    updatePlayerPayment: function (userAgent, query, updateData, skipSMSVerification) {
+    updatePlayerPayment: function (userAgent, query, updateData, skipSMSVerification, skipProposal) {
         let playerObj = null;
         let platformObjId;
         let smsLogData;
@@ -1734,10 +1736,15 @@ let dbPlayerInfo = {
                 let inputDeviceData = dbUtility.getInputDevice(userAgent,false);
                 updateData.isPlayerInit = true;
                 updateData.playerName = playerObj.name;
-                dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {
-                    data: updateData,
-                    inputDevice: inputDeviceData
-                }, smsLogData);
+
+                // If user modified their own, no proposal needed
+                if (!skipProposal) {
+                    dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {
+                        data: updateData,
+                        inputDevice: inputDeviceData
+                    }, smsLogData);
+                }
+
                 return updatedData;
             }
         )
