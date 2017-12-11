@@ -897,11 +897,11 @@
   "CHANGE_REWARD_POINTS": "Change Reward Points",
   "UPDATED_REWARD_POINTS": "After Update",
 
-  "ADVANCE_REWARD_POINTS_EXCHANGE": "Advance Reward Points Exchange",
-  "BEFORE_REWARD_POINTS_EXCHANGE": "Before Exchange",
-  "REWARD_POINTS_EXCHANGE_AMOUNT": "Reward Points Exchange",
-  "REWARD_POINTS_EXCHANGE_DAILY_LIMIT": "Daily limit",
-  "AFTER_REWARD_POINTS_EXCHANGE": "After Exchange",
+  "ADVANCE_REWARD_POINTS_CONVERT": "Advance Reward Points Convert",
+  "BEFORE_REWARD_POINTS_CONVERT": "Before Convert",
+  "REWARD_POINTS_CONVERT_AMOUNT": "Reward Points Convert",
+  "REWARD_POINTS_CONVERT_DAILY_LIMIT": "Daily limit",
+  "AFTER_REWARD_POINTS_CONVERT": "After Convert",
 
   "rewardPointsTask": "Reward Points Task",
 
