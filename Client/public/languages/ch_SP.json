@@ -1394,11 +1394,11 @@
   "UPDATED_REWARD_POINTS": "更改后",
   "Player reward points cannot be less than 0": "玩家积分不能小于0",
 
-  "ADVANCE_REWARD_POINTS_EXCHANGE": "提前积分兑换",
-  "BEFORE_REWARD_POINTS_EXCHANGE": "兑换前",
-  "REWARD_POINTS_EXCHANGE_AMOUNT": "积分兑换",
-  "REWARD_POINTS_EXCHANGE_DAILY_LIMIT": "今日已兑换",
-  "AFTER_REWARD_POINTS_EXCHANGE": "兑换后",
+  "ADVANCE_REWARD_POINTS_CONVERT": "提前积分兑换",
+  "BEFORE_REWARD_POINTS_CONVERT": "兑换前",
+  "REWARD_POINTS_CONVERT_AMOUNT": "积分兑换",
+  "REWARD_POINTS_CONVERT_DAILY_LIMIT": "今日已兑换",
+  "AFTER_REWARD_POINTS_CONVERT": "兑换后",
 
   "rewardPointsTask": "积分任务",
 
