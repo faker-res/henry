@@ -1343,9 +1343,13 @@ let dbPlayerReward = {
                         }
                         playerData = playerRecord;
 
+                        let populateCond = platformData.useProviderGroup
+                            ? {path: "allowedProviders", model: dbConfig.collection_gameProviderGroup, populate: {path: "providers", model: dbConfig.collection_gameProvider}}
+                            : {path: "allowedProviders", model: dbConfig.collection_gameProvider};
+
                         return dbConfig.collection_promoCode.find(query)
                             .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
-                            .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean()
+                            .populate(populateCond).lean()
                             .then(
                                 promocodes => {
                                     let usedListArr = [];
@@ -1365,8 +1369,14 @@ let dbPlayerReward = {
                                         let title = getPromoTitle(promocode);
 
                                         promocode.allowedProviders.forEach(provider => {
-                                            providers.push(provider.name);
-                                        })
+                                            if (platformData.useProviderGroup) {
+                                                provider.providers.map(e => {
+                                                    providers.push(e.name);
+                                                })
+                                            } else {
+                                                providers.push(provider.name);
+                                            }
+                                        });
 
                                         let promo = {
                                             "title": title,
