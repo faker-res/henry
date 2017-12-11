@@ -8255,14 +8255,10 @@ define(['js/app'], function (myApp) {
 
             vm.updatePlayerRewardPointsRecord = function () {
                 let sendData = {
-                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId,
-                    data: {
-                        oldPoints: vm.isOneSelectedPlayer().currentPoints,
-                        amount: vm.rewardPointsChange.updateAmount,
-                        creator: authService.adminName,
-                        remark: vm.rewardPointsChange.remark,
-                        status: 1
-                    }
+                    playerObjId: vm.isOneSelectedPlayer()._id,
+                    platformObjId: vm.isOneSelectedPlayer().platform,
+                    updateAmount: vm.rewardPointsChange.updateAmount,
+                    remark: vm.rewardPointsChange.remark
                 };
 
                 socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function () {
@@ -14840,6 +14836,8 @@ define(['js/app'], function (myApp) {
                     case 'rewardPointsRule':
                         vm.isRewardPointsLvlConfigEditing = false;
                         vm.rewardPointsLvlConfig = {};
+                        vm.oldRewardPointsLvlConfigPeriod = null;
+                        vm.oldRewardPointsLvlConfigCustomPeriodEndTime = null;
                         Q.all([vm.getRewardPointsLvlConfig(),vm.getAllPlayerLevels(),vm.getPlatformProviderGroup()]).then(
                             (data) => {
                                 // Check is all player level already set rewardPointsLvlConfig
@@ -14856,6 +14854,8 @@ define(['js/app'], function (myApp) {
                                         vm.rewardPointsLvlConfig.params.push({'levelObjId' : playerLvl._id});
                                     }
                                 });
+                                vm.oldRewardPointsLvlConfigPeriod = vm.rewardPointsLvlConfig.intervalPeriod;
+                                vm.oldRewardPointsLvlConfigCustomPeriodEndTime = vm.rewardPointsLvlConfig.customPeriodEndTime;
                                 vm.rewardPointsLvlConfigPeriodChange();
                                 vm.rewardPointsLvlConfigSetDisable(true);
                                 $scope.safeApply();
@@ -15293,6 +15293,13 @@ define(['js/app'], function (myApp) {
                 }else{
                     vm.rewardPointsLvlConfig.customPeriodStartTime = null;
                     vm.rewardPointsLvlConfig.customPeriodEndTime = null;
+                }
+                //if make changes to customPeriodEndTime then set lastRunAutoPeriodTime null
+                // OR original rewardPointsLvlConfigPeriod is not custom(6) and changes interval Period to custom
+                // FOR auto scheduler determines is it need to run this custom interval period rewardPointsLvlConfig.
+                if (vm.oldRewardPointsLvlConfigCustomPeriodEndTime != vm.rewardPointsLvlConfig.customPeriodEndTime ||
+                    (vm.oldRewardPointsLvlConfigPeriod != 6 && vm.rewardPointsLvlConfig.intervalPeriod == 6)) {
+                    vm.rewardPointsLvlConfig.lastRunAutoPeriodTime = null;
                 }
                 $scope.$socketPromise('upsertRewardPointsLvlConfig', {rewardPointsLvlConfig: vm.rewardPointsLvlConfig}).then((data) => {
                     vm.rewardPointsLvlConfigPeriodChange();
