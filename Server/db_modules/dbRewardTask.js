@@ -873,14 +873,54 @@ const dbRewardTask = {
                 playerCreditChange,
                 {new: true}
             ).then(
-                data => {
-                    if (data) {
-                        dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardGroupData.type + ":unlock", data.validCredit, 0, -rewardAmount, null, rewardGroupData);
+                player => {
+                    if (player) {
+                        let validCredit = player.validCredit;
+                        let lockedCredit = player.lockedCredit;
+                        let providerCredit = 0, totalCredit = 0;
+                        let platformProm = dbconfig.collection_platform.findOne({_id: rewardGroupData.platformId});
+                        let providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rewardGroupData.providerGroup})
+                            .populate({path: "providers", model: dbconfig.collection_gameProvider});
 
-                        // Set player bonus permission to off if there's still credit available after unlock reward
-                        if (rewardGroupData && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock > 0) {
-                            dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).catch(errorUtils.reportError);
-                        }
+                        dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardGroupData.type + ":unlock", player.validCredit, 0, -rewardAmount, null, rewardGroupData);
+
+                        Promise.all([platformProm,providerGroupProm]).then(
+                            data => {
+                                let platform = data[0];
+                                let providerGroup = data[1];
+                                let promArr = [];
+                                providerGroup.providers.forEach(provider => {
+                                    promArr.push(
+                                        cpmsAPI.player_queryCredit(
+                                            {
+                                                username: player.name,
+                                                platformId: platform.platformId,
+                                                providerId: provider.providerId
+                                            }
+                                        ).then(
+                                            data => data,
+                                            error => {
+                                                return {credit: 0};
+                                            }
+                                        )
+                                    );
+                                });
+                                return Promise.all(promArr);
+                            }
+                        ).then(
+                            (queryResult) => {
+                                queryResult.forEach(provider => {
+                                    providerCredit += provider ? parseFloat(provider.credit) : 0;
+                                });
+                                totalCredit = validCredit + lockedCredit + providerCredit;
+
+                                // Set player bonus permission to off if there's still credit available after unlock reward
+                                if (rewardGroupData && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
+                                    dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).catch(errorUtils.reportError);
+                                }
+                            },
+                            error => {console.log(error);}
+                        );
                     }
                     else {
                         return Q.reject({name: "DataError", message: "Can't update reward task and player credit"});
