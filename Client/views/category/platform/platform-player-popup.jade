@@ -1420,8 +1420,8 @@
                 ul.nav.nav-tabs.common-nav-tabs
                     li(ng-class="vm.selectedRewardPointsAdjustmentTab == 'change' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RewardPointsChange')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardPointsAdjustmentTab('change');") {{"VALID_REWARD_POINTS" | translate}}
-                    li(ng-class="vm.selectedRewardPointsAdjustmentTab == 'exchange' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RewardPointExchange')")
-                        a.common-tab(data-toggle="tab", ng-click="vm.showRewardPointsAdjustmentTab('exchange');") {{"ADVANCE_REWARD_POINTS_EXCHANGE" | translate}}
+                    li(ng-class="vm.selectedRewardPointsAdjustmentTab == 'convert' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RewardPointsConvert')")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showRewardPointsAdjustmentTab('convert');") {{"ADVANCE_REWARD_POINTS_CONVERT" | translate}}
                 .panel.panel-primary(style="border-radius:0 !important;")
                     .panel-body
                         // rewardPointsChange
@@ -1433,9 +1433,9 @@
                                         td.col-md-4.oblique {{'CHANGE_REWARD_POINTS' | translate}}
                                         td.col-md-4.oblique {{'UPDATED_REWARD_POINTS' | translate}}
                                     tr
-                                        td {{vm.isOneSelectedPlayer().currentPoints}}
+                                        td {{vm.isOneSelectedPlayer().rewardPointsObjId.points}}
                                         td
-                                            input.text-success(type='number', ng-model='vm.rewardPointsChange.updateAmount', ng-change="vm.rewardPointsChange.finalValidAmount=vm.isOneSelectedPlayer().currentPoints+vm.rewardPointsChange.updateAmount")
+                                            input.text-success(type='number', ng-model='vm.rewardPointsChange.updateAmount', ng-change="vm.rewardPointsChange.finalValidAmount=vm.isOneSelectedPlayer().rewardPointsObjId.points+vm.rewardPointsChange.updateAmount")
                                         td
                                             label.text-danger {{vm.rewardPointsChange.finalValidAmount || 0 }}
                                             .text-danger(ng-show='vm.rewardPointsChange.finalValidAmount<0') {{'Player reward points cannot be less than 0' | translate}}
@@ -1444,19 +1444,19 @@
                                     label.control-label {{'REMARKS' | translate}}
                                 .col-md-12.textareaDetail
                                     textarea.form-control(name="Remarks", rows='5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.rewardPointsChange.remark")
-                        // rewardPointsExchange
-                        .well(ng-show="vm.selectedRewardPointsAdjustmentTab == 'exchange'")
+                        // rewardPointsConvert
+                        .well(ng-show="vm.selectedRewardPointsAdjustmentTab == 'convert'")
                             table.col-md-12.paddingTbl.text-center.datatable-sm
                                 tbody
                                     tr
-                                        td.col-md-3.oblique {{'BEFORE_REWARD_POINTS_EXCHANGE' | translate}}
-                                        td.col-md-3.oblique {{'REWARD_POINTS_EXCHANGE_AMOUNT' | translate}}
-                                        td.col-md-3.oblique.strong(style='color:red') {{'REWARD_POINTS_EXCHANGE_DAILY_LIMIT' | translate}}
-                                        td.col-md-3.oblique {{'AFTER_REWARD_POINTS_EXCHANGE' | translate}}
+                                        td.col-md-3.oblique {{'BEFORE_REWARD_POINTS_CONVERT' | translate}}
+                                        td.col-md-3.oblique {{'REWARD_POINTS_CONVERT_AMOUNT' | translate}}
+                                        td.col-md-3.oblique.strong(style='color:red') {{'REWARD_POINTS_CONVERT_DAILY_LIMIT' | translate}}
+                                        td.col-md-3.oblique {{'AFTER_REWARD_POINTS_CONVERT' | translate}}
                                     tr
-                                        td {{vm.isOneSelectedPlayer().currentPoints}}
+                                        td {{vm.isOneSelectedPlayer().rewardPointsObjId.points}}
                                         td
-                                            input.text-success(type='number', ng-model='vm.rewardPointsExchange.updateAmount', ng-change="vm.isOneSelectedPlayer().finalValidAmount=vm.isOneSelectedPlayer().currentPoints+vm.rewardPointsExchange.updateAmount")
+                                            input.text-success(type='number', ng-model='vm.rewardPointsConvert.updateAmount', ng-change="vm.isOneSelectedPlayer().finalValidAmount=vm.isOneSelectedPlayer().rewardPointsObjId.points+vm.rewardPointsConvert.updateAmount")
                                         td
                                             label(style='color:red;') {{xx}}
                                             label(style='color:red;') &nbsp;
@@ -1468,12 +1468,12 @@
                                 .col-md-6
                                     label.control-label {{'REMARKS' | translate}}
                                 .col-md-12.textareaDetail
-                                    textarea.form-control(name="Remarks", rows='5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.rewardPointsExchange.remark")
+                                    textarea.form-control(name="Remarks", rows='5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.rewardPointsConvert.remark")
             .modal-footer
                 div(ng-show="vm.selectedRewardPointsAdjustmentTab == 'change'")
                     button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointsChange.updateAmount || vm.rewardPointsChange.finalValidAmount<0', ng-click="vm.updatePlayerRewardPointsRecord();") {{"UPDATE" | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
-                div(ng-show="vm.selectedRewardPointsAdjustmentTab == 'exchange'")
-                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointsExchange.updateAmount || vm.rewardPointsExchange.finalValidAmount<0', ng-click="vm.convertPlayerRewardPoints();") {{"UPDATE" | translate}}
+                div(ng-show="vm.selectedRewardPointsAdjustmentTab == 'convert'")
+                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointsConvert.updateAmount || vm.rewardPointsConvert.finalValidAmount<0', ng-click="vm.convertPlayerRewardPoints();") {{"UPDATE" | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}

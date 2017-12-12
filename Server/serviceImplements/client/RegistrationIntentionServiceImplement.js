@@ -16,7 +16,9 @@ var RegistrationIntentionServiceImplement = function () {
         data.ipAddress = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            data.ipAddress = forwardedIp[0].trim();
+            if(forwardedIp[0].trim() != "undefined"){
+                data.ipAddress = forwardedIp[0].trim();
+            }
         }
         delete data.password;
         delete data.confirmPassword;
