@@ -820,7 +820,8 @@ var dbPlayerConsumptionRecord = {
                     console.error("updateExternalPlayerConsumptionRecordData", "Can't find platform");
                     return resolveError ? Q.resolve(null) : Q.reject({
                         name: "DataError",
-                        message: "Can't find platform"
+                        message: "Can't find platform",
+                        data: updateData
                     });
                 }
             }
@@ -861,7 +862,7 @@ var dbPlayerConsumptionRecord = {
                     return resolveError ? Q.resolve(null) : Q.reject({
                         name: "DataError",
                         message: "Could not find documents matching: " + missingList.join(', '),
-                        data: data
+                        data: updateData
                     });
                 }
             }
@@ -871,7 +872,8 @@ var dbPlayerConsumptionRecord = {
                 return resolveError ? Q.resolve(null) : Q.reject({
                     name: "DBError",
                     message: "Error in updating player consumption record",
-                    error: error
+                    error: error,
+                    data: updateData
                 });
             }
         );

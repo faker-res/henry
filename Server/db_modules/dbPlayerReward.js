@@ -1343,9 +1343,13 @@ let dbPlayerReward = {
                         }
                         playerData = playerRecord;
 
+                        let populateCond = platformData.useProviderGroup
+                            ? {path: "allowedProviders", model: dbConfig.collection_gameProviderGroup, populate: {path: "providers", model: dbConfig.collection_gameProvider}}
+                            : {path: "allowedProviders", model: dbConfig.collection_gameProvider};
+
                         return dbConfig.collection_promoCode.find(query)
                             .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
-                            .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean()
+                            .populate(populateCond).lean()
                             .then(
                                 promocodes => {
                                     let usedListArr = [];
@@ -1365,8 +1369,14 @@ let dbPlayerReward = {
                                         let title = getPromoTitle(promocode);
 
                                         promocode.allowedProviders.forEach(provider => {
-                                            providers.push(provider.name);
-                                        })
+                                            if (platformData.useProviderGroup) {
+                                                provider.providers.map(e => {
+                                                    providers.push(e.name);
+                                                })
+                                            } else {
+                                                providers.push(provider.name);
+                                            }
+                                        });
 
                                         let promo = {
                                             "title": title,
@@ -2919,7 +2929,6 @@ let dbPlayerReward = {
                     $match: {
                         "createTime": freeTrialQuery.createTime,
                         "data.eventId": eventData._id,
-                        "data.playerObjId": playerData._id,
                         "status": 'Approved'
                     }
                 },
@@ -2940,16 +2949,29 @@ let dbPlayerReward = {
                     let samePlayerObjIdResult;
                     let sameIPAddressResult;
                     let samePhoneNumResult;
+                    let samePlayerId = 0;
                     let sameIPAddress = 0;
                     let samePhoneNum = 0;
 
-                    // if found record, same player has received this reward
-                    if (countReward.length >= 1) {
-                        samePlayerObjIdResult = 0; //fail
+                    // check playerId
+                    if (countReward) {
+                        for (let i = 0; i < countReward.length; i++) {
+                            // check if same player  has already received this reward
+                            if (playerData._id.toString() === countReward[i].data.playerObjId.toString()) {
+                                samePlayerId++;
+                            }
+                        }
+
+                        if (samePlayerId >= 1) {
+                            samePlayerObjIdResult = 0; //fail
+                        } else {
+                            samePlayerObjIdResult = 1;
+                        }
+                        resultArr.push(samePlayerObjIdResult);
                     } else {
-                        samePlayerObjIdResult = 1;
+                        samePlayerObjIdResult = 0;
+                        resultArr.push(samePlayerObjIdResult);
                     }
-                    resultArr.push(samePlayerObjIdResult);
 
                     // check IP address
                     if (playerData.lastLoginIp !== '' && eventData.condition.checkIPFreeTrialReward) {
@@ -3954,9 +3976,9 @@ function promoCondition(promo) {
     if (promo.minTopUpAmount) {
         proMsg += "有新存款<span class=\"c_color\">(" + promo.minTopUpAmount + "以上)" + "</span>";
     }
-    if (promo.maxTopUpAmount) {
-        proMsg += ", 存款上限<span class=\"c_color\">(" + promo.maxTopUpAmount + ")" + "</span>";
-    }
+    // if (promo.maxTopUpAmount) {
+    //     proMsg += ", 存款上限<span class=\"c_color\">(" + promo.maxTopUpAmount + ")" + "</span>";
+    // }
     if (promo.disableWithdraw) {
         proMsg += ' 且尚未投注';
     }
