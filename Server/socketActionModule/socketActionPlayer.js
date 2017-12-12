@@ -1016,7 +1016,12 @@ function socketActionPlayer(socketIO, socket) {
             let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
             socketUtil.emitter(self.socket, dbPlayerRewardPoints.convertRewardPointsToCredit, [data.playerId, data.convertRewardPointsAmount, data.remark, userAgent, getAdminId(), getAdminName()], actionName, isValidData);
         },
-
+        getCreditDetail: function getCreditDetail(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
+            socketUtil.emitter(self.socket, dbPlayerInfo.getCreditDetail, [data.playerObjId, getAdminId(), getAdminName()], actionName, isValidData);
+        }
     };
     socketActionPlayer.actions = this.actions;
 }

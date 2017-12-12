@@ -10128,9 +10128,21 @@ define(['js/app'], function (myApp) {
                     });
                     vm.getRewardTaskLogData(true);
                 });
-                vm.getPlatformProviderGroup();
+                vm.displayProviderGroupCredit();
             }
-
+            vm.displayProviderGroupCredit = function(){
+                console.log('displayProviderGroupCredit')
+                console.log(vm.selectedSinglePlayer);
+                socketService.$socket($scope.AppSocket, 'getCreditDetail', {playerObjId: vm.selectedSinglePlayer._id}, function (data) {
+                    console.log('getCreditDetail', data);
+                    vm.playerCreditDetails = data.data.gameCreditList;
+                    vm.playerCreditDetails.map(d=>{
+                        if(d.validCredit == 'unknown'){
+                            d.validCredit = '';
+                        }
+                    })
+                })
+            }
             vm.getRewardTaskLogData = function (newSearch) {
                 var sendQuery = {
                     playerId: vm.selectedSinglePlayer._id,
@@ -10156,6 +10168,10 @@ define(['js/app'], function (myApp) {
 
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
+                        item.topUpAmount$ = item.topUpAmount.toFixed(2);
+                        item.bonusAmount$= item.bonusAmount.toFixed(2);
+                        item.requiredBonusAmount$ = item.requiredBonusAmount.toFixed(2);
+                        item.currentAmount$ = item.currentAmount.toFixed(2);
                         item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
                             return pro.name + ' ';
                         }) : $translate('all')) + ')';
@@ -10232,13 +10248,13 @@ define(['js/app'], function (myApp) {
                                 return link.prop('outerHTML');
                             }
                         },
-                        {
-                            "title": $translate('Unlock Progress(Consumption)'),
-                            render: function (data, type, row) {
-                                var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
-                                return "<div>" + text + "</div>";
-                            }
-                        },
+                        // {
+                        //     "title": $translate('Unlock Progress(Consumption)'),
+                        //     render: function (data, type, row) {
+                        //         var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
+                        //         return "<div>" + text + "</div>";
+                        //     }
+                        // },
 
                         {title: $translate('SubRewardType'), data: "rewardType"},
                         {title: $translate('CREATETIME'), data: "createTime$"},
@@ -10276,6 +10292,39 @@ define(['js/app'], function (myApp) {
                         {title: $translate('targetProviders'), data: "provider$"},
                         {
                             "title": $translate('IsConsumption'),data: "useConsumption",
+                            render: function (data, type, row) {
+                                var text = $translate(data);
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        {title: $translate('targetProviders'), data: "provider$", sClass: 'sumFloat textRight'},
+                        {
+                            data:"topUpAmount$",
+                            sClass: 'sumFloat textRight',
+                            render: function (data, type, row) {
+                                var text = $translate(data);
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        {
+                            data:"bonusAmount$",
+                            sClass: 'sumFloat textRight',
+                            render: function (data, type, row) {
+                                var text = $translate(data);
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        {
+                            data:"requiredBonusAmount$",
+                            sClass: 'sumFloat textRight',
+                            render: function (data, type, row) {
+                                var text = $translate(data);
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        {
+                            data:"currentAmount$",
+                            sClass: 'sumFloat textRight',
                             render: function (data, type, row) {
                                 var text = $translate(data);
                                 return "<div>" + text + "</div>";

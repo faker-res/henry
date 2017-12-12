@@ -2887,5 +2887,6 @@
   "exchangeRatio": "兑换比例",
   "maxDayApplyAmount": "单日最高兑换积分上限",
   "currentDayAppliedAmount": "单日已兑换积分（不包括此笔）",
-  "level change fail, please contact cs": "等级变更失效，请联系客服。"
+  "level change fail, please contact cs": "等级变更失效，请联系客服。",
+  "Valid Progress": "自由进度"
 }

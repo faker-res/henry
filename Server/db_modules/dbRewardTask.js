@@ -231,7 +231,6 @@ const dbRewardTask = {
                 let prom = dbRewardTask.getProposalInfo(data[1])
                 return Q.all([prom])
                     .then(proposalData=>{
-                        console.log(proposalData);
                         // return proposalData;
 
                         return {size: size, data: proposalData[0] || [], rewardTaskGroupSize: rewardTaskGroupSize, rewardTaskGroupData: rewardTaskGroupData}

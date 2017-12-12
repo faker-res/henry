@@ -1255,6 +1255,15 @@
                                 label {{"End date" | translate}}
                                 .endTime
                             button.btn.btn-primary.common-button(ng-click='vm.getRewardTaskLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
+
+                            div
+                                table.table
+                                    tr
+                                        td
+                                            div {{"Valid Progress" | translate }}
+                                            div
+                                        td(ng-repeat='(i,v) in vm.playerCreditDetails')
+                                            div(style='width:100px') {{v.nickName}} {{v.validCredit || ''}}
                             div
                                 label {{"Total" | translate}} {{vm.rewardTaskLog.totalCount}} {{"records" | translate}}
                                 table#rewardTaskLogTbl.common-table.display(style='min-width:100%')
