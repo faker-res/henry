@@ -1371,10 +1371,10 @@ let dbPlayerReward = {
                                         promocode.allowedProviders.forEach(provider => {
                                             if (platformData.useProviderGroup) {
                                                 provider.providers.map(e => {
-                                                    providers.push(e.name);
+                                                    providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
                                                 })
                                             } else {
-                                                providers.push(provider.name);
+                                                providers.push(platformData.gameProviderInfo[String(provider._id)].localNickName);
                                             }
                                         });
 
