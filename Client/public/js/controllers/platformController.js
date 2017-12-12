@@ -23,7 +23,7 @@ define(['js/app'], function (myApp) {
             vm.creditChange = {};
             vm.existPhone = false;
             vm.rewardPointsChange = {};
-            vm.rewardPointsExchange = {};
+            vm.rewardPointsConvert = {};
 
             // constants declaration
             vm.proposalStatusList = { // removed APPROVED and REJECTED
@@ -4750,7 +4750,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsExchange')) {
+                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': "images/icon/rewardPointsBlue.png",
@@ -8195,13 +8195,15 @@ define(['js/app'], function (myApp) {
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
                 if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
                     vm.createPlayerRewardPointsRecord();
-                } else if(vm.selectedSinglePlayer.currentPoints === undefined) {
-                    vm.getPlayerRewardPointsRecord();
+                    vm.advancedPlayerQuery();
                 }
 
                 vm.rewardPointsChange.finalValidAmount = 0;
                 vm.rewardPointsChange.remark = '';
                 vm.rewardPointsChange.updateAmount = 0;
+                vm.rewardPointsConvert.finalValidAmount = 0;
+                vm.rewardPointsConvert.remark = '';
+                vm.rewardPointsConvert.updateAmount = 0;
                 $scope.safeApply();
             };
 
@@ -8218,51 +8220,16 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'createPlayerRewardPointsRecord', sendData, function (data) {
-                    vm.isOneSelectedPlayer().currentPoints = data.data.points;
-
-                    let playerId = data.data.playerObjId;
-                    let platformId = data.data.platformObjId;
-                    let rewardPointsObjId = data.data._id;
-
-                    vm.upsertPlayerInfoRewardPointsObjId(playerId, platformId, rewardPointsObjId);
-                    $scope.safeApply();
-                });
-            };
-
-            vm.upsertPlayerInfoRewardPointsObjId = function (playerId, platformId, rewardPointsObjId) {
-                let sendData = {
-                    playerId: playerId,
-                    platformId: platformId,
-                    rewardPointsObjId: rewardPointsObjId,
-                };
-
-                socketService.$socket($scope.AppSocket, 'upsertPlayerInfoRewardPointsObjId', sendData, function (data) {
-                    vm.isOneSelectedPlayer().rewardPointsObjId = data.data.rewardPointsObjId;
-                    $scope.safeApply();
-                });
-            };
-
-            vm.getPlayerRewardPointsRecord = function () {
-                let sendData = {
-                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId
-                };
-
-                socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsRecord', sendData, function (data) {
-                    vm.isOneSelectedPlayer().currentPoints = data.data.points;
                     $scope.safeApply();
                 });
             };
 
             vm.updatePlayerRewardPointsRecord = function () {
                 let sendData = {
-                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId,
-                    data: {
-                        oldPoints: vm.isOneSelectedPlayer().currentPoints,
-                        amount: vm.rewardPointsChange.updateAmount,
-                        creator: authService.adminName,
-                        remark: vm.rewardPointsChange.remark,
-                        status: 1
-                    }
+                    playerObjId: vm.isOneSelectedPlayer()._id,
+                    platformObjId: vm.isOneSelectedPlayer().platform,
+                    updateAmount: vm.rewardPointsChange.updateAmount,
+                    remark: vm.rewardPointsChange.remark
                 };
 
                 socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function () {
@@ -14308,26 +14275,25 @@ define(['js/app'], function (myApp) {
                         platformObjId: vm.selectedPlatform.id,
                     }
 
+                    let sendData2 = {
+                        platformObjId: vm.selectedPlatform.id,
+                    }
+
                     // delete immediately the constructed promoCodeType before saving into dB
                     if (collection[data]._id == null){
-
                         sendData.promoCodeSMSContent = collection.splice(data, 1);
-                        sendData.isDelete = true;
-
-                        socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                            vm.loadPlatformData({loadAll: false});
-                        });
                     }
                     else{
                         sendData.promoCodeTypeObjId = collection[data]._id;
-
+                        sendData2.promoCodeTypeObjId = collection[data]._id;
                         // check the availability of the promocode type, can only remove if it is expired
                         socketService.$socket($scope.AppSocket, 'checkPromoCodeTypeAvailability', sendData, function (result) {
                             if (result){
-                                if (!result.data) {
+                                if (!result.data.deleteFlag && !result.data.delete) {
                                     socketService.showErrorMessage('The promoCode Type is still valid');
                                 }
-                                else {
+                                else if (!result.data.deleteFlag && result.data.delete) {
+                                    // delete the PromoCodeType from the dB (generated promoCodeType but not using)
                                     let sendData = {
                                         platformObjId: vm.selectedPlatform.id,
                                         promoCodeSMSContent: collection.splice(data, 1),
@@ -14338,6 +14304,23 @@ define(['js/app'], function (myApp) {
                                         vm.loadPlatformData({loadAll: false});
                                     });
                                 }
+                                else if (result.data.deleteFlag && !result.data.delete) {
+                                    // change the deleteFlag status in dB (as it had been used before)
+                                    collection[data].deleteFlag=true;
+                                    let sendData = {
+                                        platformObjId: vm.selectedPlatform.id,
+                                        promoCodeSMSContent: collection.splice(data, 1),
+                                    };
+
+                                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                                        sendData2.isDeleted = true;
+                                        // update the isDelete flag of each promoCode inherited from the deleted promoCodeType
+                                        socketService.$socket($scope.AppSocket, 'updatePromoCodeIsDeletedFlag', sendData2, function (data) {
+                                            vm.loadPlatformData({loadAll: false});
+                                        });
+                                    });
+                                }
+                                else{}
                             }
                             else{
                                 return Q.reject("data was empty: " + result);
@@ -14840,6 +14823,8 @@ define(['js/app'], function (myApp) {
                     case 'rewardPointsRule':
                         vm.isRewardPointsLvlConfigEditing = false;
                         vm.rewardPointsLvlConfig = {};
+                        vm.oldRewardPointsLvlConfigPeriod = null;
+                        vm.oldRewardPointsLvlConfigCustomPeriodEndTime = null;
                         Q.all([vm.getRewardPointsLvlConfig(),vm.getAllPlayerLevels(),vm.getPlatformProviderGroup()]).then(
                             (data) => {
                                 // Check is all player level already set rewardPointsLvlConfig
@@ -14856,6 +14841,8 @@ define(['js/app'], function (myApp) {
                                         vm.rewardPointsLvlConfig.params.push({'levelObjId' : playerLvl._id});
                                     }
                                 });
+                                vm.oldRewardPointsLvlConfigPeriod = vm.rewardPointsLvlConfig.intervalPeriod;
+                                vm.oldRewardPointsLvlConfigCustomPeriodEndTime = vm.rewardPointsLvlConfig.customPeriodEndTime;
                                 vm.rewardPointsLvlConfigPeriodChange();
                                 vm.rewardPointsLvlConfigSetDisable(true);
                                 $scope.safeApply();
@@ -15294,6 +15281,13 @@ define(['js/app'], function (myApp) {
                     vm.rewardPointsLvlConfig.customPeriodStartTime = null;
                     vm.rewardPointsLvlConfig.customPeriodEndTime = null;
                 }
+                //if make changes to customPeriodEndTime then set lastRunAutoPeriodTime null
+                // OR original rewardPointsLvlConfigPeriod is not custom(6) and changes interval Period to custom
+                // FOR auto scheduler determines is it need to run this custom interval period rewardPointsLvlConfig.
+                if (vm.oldRewardPointsLvlConfigCustomPeriodEndTime != vm.rewardPointsLvlConfig.customPeriodEndTime ||
+                    (vm.oldRewardPointsLvlConfigPeriod != 6 && vm.rewardPointsLvlConfig.intervalPeriod == 6)) {
+                    vm.rewardPointsLvlConfig.lastRunAutoPeriodTime = null;
+                }
                 $scope.$socketPromise('upsertRewardPointsLvlConfig', {rewardPointsLvlConfig: vm.rewardPointsLvlConfig}).then((data) => {
                     vm.rewardPointsLvlConfigPeriodChange();
                     vm.rewardPointsLvlConfigSetDisable(true);
@@ -15474,8 +15468,8 @@ define(['js/app'], function (myApp) {
             vm.convertPlayerRewardPoints = () => {
                 var sendData = {
                     playerId: vm.isOneSelectedPlayer().playerId,
-                    convertRewardPointsAmount: vm.rewardPointsExchange.updateAmount,
-                    remark: vm.rewardPointsExchange.remark
+                    convertRewardPointsAmount: vm.rewardPointsConvert.updateAmount,
+                    remark: vm.rewardPointsConvert.remark
                 };
                 socketService.$socket($scope.AppSocket, 'convertRewardPointsToCredit', sendData, function (data) {
                     console.log('convertRewardPointsToCredit', data.data);
@@ -15485,7 +15479,7 @@ define(['js/app'], function (myApp) {
             };
 
             function loadPromoCodeTypes() {
-                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id, deleteFlag: false}, function (data) {
                     console.log('getPromoCodeTypes', data);
 
                     vm.promoCodeTypes = data.data;
@@ -15522,19 +15516,21 @@ define(['js/app'], function (myApp) {
                 let rowNumber = index + 1;
                 let playerNameList = el.playerName ? el.playerName.split("\n") : el.playerName;
 
-                vm.userGroupConfig.map(e => {
-                    playerNameList.map(playerName => {
-                        if (e.playerNames.indexOf(playerName.trim()) > -1) {
-                            bgColor = e.color;
-                        }
+                if (playerNameList && playerNameList.length > 0) {
+                    vm.userGroupConfig.map(e => {
+                        playerNameList.map(playerName => {
+                            if (e.playerNames.indexOf(playerName.trim()) > -1) {
+                                bgColor = e.color;
+                            }
+                        });
                     });
-                });
 
-                if (rowNumber) {
-                    cssPointer = id + " > tbody > tr:nth-child(" + rowNumber + ")";
+                    if (rowNumber) {
+                        cssPointer = id + " > tbody > tr:nth-child(" + rowNumber + ")";
+                    }
+
+                    $(cssPointer).css("background-color", bgColor ? bgColor : "");
                 }
-
-                $(cssPointer).css("background-color", bgColor ? bgColor : "");
             };
 
             vm.promoCodeNewRow = function (collection, type, data) {

@@ -897,11 +897,11 @@
   "CHANGE_REWARD_POINTS": "Change Reward Points",
   "UPDATED_REWARD_POINTS": "After Update",
 
-  "ADVANCE_REWARD_POINTS_EXCHANGE": "Advance Reward Points Exchange",
-  "BEFORE_REWARD_POINTS_EXCHANGE": "Before Exchange",
-  "REWARD_POINTS_EXCHANGE_AMOUNT": "Reward Points Exchange",
-  "REWARD_POINTS_EXCHANGE_DAILY_LIMIT": "Daily limit",
-  "AFTER_REWARD_POINTS_EXCHANGE": "After Exchange",
+  "ADVANCE_REWARD_POINTS_CONVERT": "Advance Reward Points Convert",
+  "BEFORE_REWARD_POINTS_CONVERT": "Before Convert",
+  "REWARD_POINTS_CONVERT_AMOUNT": "Reward Points Convert",
+  "REWARD_POINTS_CONVERT_DAILY_LIMIT": "Daily limit",
+  "AFTER_REWARD_POINTS_CONVERT": "After Convert",
 
   "rewardPointsTask": "Reward Points Task",
 
@@ -1165,6 +1165,20 @@
   "dailyConsumptionCount": "Daily Consumption Count",
   "singleConsumptionAmountGreaterThan": "Single Consumption Amount Greater Than",
   "dailyValidConsumptionAmount": "Daily Valid Consumption Amount",
-  "dailyWinGameCount": "Daily Win Game Count"
+  "dailyWinGameCount": "Daily Win Game Count",
+  "PlayerConvertRewardPoints": "Player Convert Reward Points",
+  "convertCredit": "Convert Credit",
+  "convertedRewardPoints": "Converted Reward Points",
+  "afterRewardPoints": "After Reward Points",
+  "beforeRewardPoints": "Before Reward Points",
+  "Reward Points": "Reward Points",
+  "PlayerPeriodPointConversion": "Player Period Reward Points Conversion",
+  "PlayerEarlyPointConversion": "Player Early Reward Points Conversion",
+  "PlayerEarlyConvertRewardPoints": "Player Early Convert Reward Points",
+  "PlayerPeriodConvertRewardPoints": "Player Period Convert Reward Points",
+  "rewardPointsConvertCategory": "Reward Points Convert Category (6 - Early Convert / 7 - Period Convert)",
+  "exchangeRatio": "Exchange Ratio",
+  "maxDayApplyAmount": "Max Day Apply Amount",
+  "currentDayAppliedAmount": "Current Day Applied Amount (No Include Current)"
 
 }

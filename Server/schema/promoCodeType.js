@@ -9,7 +9,9 @@ let promoCodeTypeSchema = new Schema({
     // promo code type
     type: {type: Number, required: true},
     // sms content
-    smsContent: {type: String}
+    smsContent: {type: String},
+    // is deleted or not the the
+    deleteFlag: {type: Boolean, default: false}
 });
 
 module.exports = promoCodeTypeSchema;

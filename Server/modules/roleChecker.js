@@ -271,7 +271,7 @@ var roleChecker = {
                 BonusHistory: [],
                 CreditAdjustment: ['createUpdatePlayerCreditProposal'],
                 RewardPointsChange: [],
-                RewardPointsExchange: [],
+                RewardPointsConvert: [],
                 CreditChangeLog: ['getPlayerCreditChangeLogsByQuery', 'getPagedPlayerCreditChangeLogs'],
                 PlayerExpenses: ['getPlayerConsumptionRecords', 'getPlayerTotalConsumptionForTimeFrame', 'playerPurchase'],
                 AddRewardTask: ['createPlayerRewardTask'],
