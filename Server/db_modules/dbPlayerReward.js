@@ -1364,7 +1364,7 @@ let dbPlayerReward = {
                                         }
 
                                         let providers = [];
-                                        let providerString;
+                                        let providerGroupName;
                                         let status = promocode.status;
                                         let condition = promoCondition(promocode);
                                         let title = getPromoTitle(promocode);
@@ -1375,7 +1375,7 @@ let dbPlayerReward = {
                                                     providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
                                                 });
 
-                                                providerString = provider.name + " : " + [...providers];
+                                                providerGroupName = provider.name;
                                             } else {
                                                 providers.push(platformData.gameProviderInfo[String(provider._id)].localNickName);
                                             }
@@ -1384,7 +1384,8 @@ let dbPlayerReward = {
                                         let promo = {
                                             "title": title,
                                             "validBet": promocode.requiredConsumption,
-                                            "games": providerString ? providerString : providers,
+                                            "games": providers,
+                                            "groupName": providerGroupName,
                                             "condition": condition,
                                             "expireTime": promocode.expirationTime,
                                             "bonusCode": promocode.code,
