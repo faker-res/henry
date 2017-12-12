@@ -476,8 +476,10 @@ var dbPlayerConsumptionRecord = {
                         {_id: record.playerId, platform: record.platformId, creditBalance: {$lt: 0}},
                         {creditBalance: 0}
                     ).exec();
-                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId);
-
+                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
+                        data => data,
+                        error => console.error
+                    );
                     return Q.all([creditProm, levelProm]);
                 }
             },
@@ -583,7 +585,10 @@ var dbPlayerConsumptionRecord = {
         ).then(
             () => {
                 // Check auto player level up
-                return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId);
+                return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
+                    data => data,
+                    error => console.error
+                );
             },
             error => {
                 return Q.reject({
@@ -732,7 +737,8 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             newRecord => {
-                if (newRecord) {
+                if (newRecord && newRecord.toObject) {
+                    newRecord = newRecord.toObject();
                     newRecord.providerId = providerId;
                 }
                 return newRecord;
