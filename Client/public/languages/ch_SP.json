@@ -1393,6 +1393,7 @@
   "CHANGE_REWARD_POINTS": "积分变量",
   "UPDATED_REWARD_POINTS": "更改后",
   "Player reward points cannot be less than 0": "玩家积分不能小于0",
+  "Player does not have reward points task permission": "玩家无积分任务权限",
 
   "ADVANCE_REWARD_POINTS_CONVERT": "提前积分兑换",
   "BEFORE_REWARD_POINTS_CONVERT": "兑换前",
