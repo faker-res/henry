@@ -87,7 +87,7 @@
                                     button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.hasMoreThanOne = false;')
                                         text {{'No' | translate}}
                                 td
-                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{promoCode.promoCodeType.smsContent}}
+                                    div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                 td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode1, 1)')
 
@@ -157,7 +157,7 @@
                                     button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.hasMoreThanOne = false;')
                                         text {{'No' | translate}}
                                 td
-                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{promoCode.promoCodeType.smsContent}}
+                                    div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                 td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode2, 2)')
                     br
@@ -231,7 +231,7 @@
                                     button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.hasMoreThanOne = false;')
                                         text {{'No' | translate}}
                                 td
-                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{promoCode.promoCodeType.smsContent}}
+                                    div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                 td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode3, 3)')
                     br

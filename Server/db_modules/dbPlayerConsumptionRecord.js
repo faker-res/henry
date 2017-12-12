@@ -476,8 +476,10 @@ var dbPlayerConsumptionRecord = {
                         {_id: record.playerId, platform: record.platformId, creditBalance: {$lt: 0}},
                         {creditBalance: 0}
                     ).exec();
-                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId);
-
+                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
+                        data => data,
+                        error => console.error
+                    );
                     return Q.all([creditProm, levelProm]);
                 }
             },
@@ -583,7 +585,10 @@ var dbPlayerConsumptionRecord = {
         ).then(
             () => {
                 // Check auto player level up
-                return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId);
+                return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
+                    data => data,
+                    error => console.error
+                );
             },
             error => {
                 return Q.reject({
@@ -732,7 +737,8 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             newRecord => {
-                if (newRecord) {
+                if (newRecord && newRecord.toObject) {
+                    newRecord = newRecord.toObject();
                     newRecord.providerId = providerId;
                 }
                 return newRecord;
@@ -820,13 +826,15 @@ var dbPlayerConsumptionRecord = {
                     console.error("updateExternalPlayerConsumptionRecordData", "Can't find platform");
                     return resolveError ? Q.resolve(null) : Q.reject({
                         name: "DataError",
-                        message: "Can't find platform"
+                        message: "Can't find platform",
+                        data: updateData
                     });
                 }
             }
         ).then(
             data => {
                 if (data && data[0] && data[1] && data[2]) {
+                    let providerId = recordData.providerId;
                     recordData.playerId = data[0]._id;
                     recordData.platformId = data[0].platform;
                     recordData.gameId = data[1]._id;
@@ -837,7 +845,14 @@ var dbPlayerConsumptionRecord = {
                     return dbconfig.collection_playerConsumptionRecord.findOneAndUpdate({
                         _id: oldData._id,
                         createTime: oldData.createTime
-                    }, recordData, {new: true});
+                    }, recordData, {new: true}).then(
+                        newRecord => {
+                            if(newRecord){
+                                newRecord.providerId = providerId;
+                            }
+                            return newRecord;
+                        }
+                    );
                 } else {
                     const missingList = [];
                     if (!data[0]) {
@@ -853,7 +868,7 @@ var dbPlayerConsumptionRecord = {
                     return resolveError ? Q.resolve(null) : Q.reject({
                         name: "DataError",
                         message: "Could not find documents matching: " + missingList.join(', '),
-                        data: data
+                        data: updateData
                     });
                 }
             }
@@ -863,7 +878,8 @@ var dbPlayerConsumptionRecord = {
                 return resolveError ? Q.resolve(null) : Q.reject({
                     name: "DBError",
                     message: "Error in updating player consumption record",
-                    error: error
+                    error: error,
+                    data: updateData
                 });
             }
         );

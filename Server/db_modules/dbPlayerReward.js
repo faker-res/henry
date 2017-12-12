@@ -505,7 +505,13 @@ let dbPlayerReward = {
         }
     },
 
-    getPromoCodeTypes: (platformObjId, deleteFlag) => dbConfig.collection_promoCodeType.find({platformObjId: platformObjId, deleteFlag: deleteFlag}).lean(),
+    getPromoCodeTypes: (platformObjId, deleteFlag) => dbConfig.collection_promoCodeType.find({
+        platformObjId: platformObjId,
+        $or: [
+            {deleteFlag: {$exists: false}},
+            {deleteFlag: deleteFlag}
+        ]
+    }).lean(),
 
     getPromoCodeTypeByObjId: (promoCodeTypeObjId) => dbConfig.collection_promoCodeType.findOne({_id: promoCodeTypeObjId}).lean(),
 
@@ -1337,9 +1343,13 @@ let dbPlayerReward = {
                         }
                         playerData = playerRecord;
 
+                        let populateCond = platformData.useProviderGroup
+                            ? {path: "allowedProviders", model: dbConfig.collection_gameProviderGroup, populate: {path: "providers", model: dbConfig.collection_gameProvider}}
+                            : {path: "allowedProviders", model: dbConfig.collection_gameProvider};
+
                         return dbConfig.collection_promoCode.find(query)
                             .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
-                            .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean()
+                            .populate(populateCond).lean()
                             .then(
                                 promocodes => {
                                     let usedListArr = [];
@@ -1359,8 +1369,14 @@ let dbPlayerReward = {
                                         let title = getPromoTitle(promocode);
 
                                         promocode.allowedProviders.forEach(provider => {
-                                            providers.push(provider.name);
-                                        })
+                                            if (platformData.useProviderGroup) {
+                                                provider.providers.map(e => {
+                                                    providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
+                                                })
+                                            } else {
+                                                providers.push(platformData.gameProviderInfo[String(provider._id)].localNickName);
+                                            }
+                                        });
 
                                         let promo = {
                                             "title": title,
@@ -1511,7 +1527,7 @@ let dbPlayerReward = {
     },
 
     getPromoCodesHistory: (searchQuery) => {
-        return expirePromoCode().then(res => {
+        return expirePromoCode().then(() => {
             return dbConfig.collection_players.findOne({
                 platform: searchQuery.platformObjId,
                 name: searchQuery.playerName
@@ -1541,11 +1557,14 @@ let dbPlayerReward = {
                 }
 
                 // get the promoCode not from deleted promoCodeType
-                query.isDeleted= false;
+                // query.isDeleted = false;
 
                 return dbConfig.collection_promoCode.find(query)
                     .populate({path: "playerObjId", model: dbConfig.collection_players})
-                    .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
+                    .populate({
+                        path: "promoCodeTypeObjId",
+                        model: dbConfig.collection_promoCodeType
+                    })
                     .populate({
                         path: "allowedProviders",
                         model: searchQuery.isProviderGroup ? dbConfig.collection_gameProviderGroup : dbConfig.collection_gameProvider
@@ -1643,7 +1662,7 @@ let dbPlayerReward = {
 
             if (data) {
                 if (data && data.status) {
-                    return result.deleteFlag = data.status == constPromoCodeStatus.EXPIRED;
+                    result.deleteFlag = data.status != constPromoCodeStatus.AVAILABLE;
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Invalid data"});
@@ -1651,8 +1670,9 @@ let dbPlayerReward = {
             }
             else {
                 result.delete = true;
-                return result;
             }
+
+            return result;
         });
     },
 
@@ -2212,7 +2232,6 @@ let dbPlayerReward = {
             }
         ).then(
             offerSumm => {
-
                 rewards.map(e => {
                     // Get time left when count down to start time
                     if (e.status == 0) {
@@ -2228,25 +2247,26 @@ let dbPlayerReward = {
                             e.status = 5;
                         }
                     }
-
-                    // Filter by status if any
-                    if (status && status !== 0) {
-                        rewards = rewards.filter(e => {
-                            return (e.status === status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
-                        })
-                    } else if (status === 0) {
-                        rewards = rewards.filter(e => {
-                            return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
-                        })
-                    } else {
-                        rewards = rewards.filter(e => {
-                            return (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
-                        })
-                    }
-
                     // Interpret providers
                     e.providers = e.providers && e.providers.length > 0 ? [...e.providers].join(",") : "所有平台"
                 });
+                // Filter by status if any
+                if (status && status !== 0) {
+                    rewards = rewards.filter(e => {
+                        return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                    })
+                } else if (status === 0) {
+                    rewards = rewards.filter(e => {
+                        return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                    })
+                } else {
+                    rewards = rewards.filter(e => {
+                        return (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                    })
+                }
+
+
+
                 return {
                     time: [...timeSet].join("/"),
                     showInfo: playerObj && playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
@@ -2263,6 +2283,7 @@ let dbPlayerReward = {
         let platformObj;
         let eventObj;
         let proposalTypeObj;
+        let rewardEventObj;
 
         return dbConfig.collection_players.findOne({
             playerId: playerId
@@ -2295,7 +2316,7 @@ let dbPlayerReward = {
                     type: rewardTypeData._id
                 };
 
-                return dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
+                return rewardEventObj = dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
             }
         ).then(
             eventData => {
@@ -2354,14 +2375,14 @@ let dbPlayerReward = {
                     });
 
                     if (isPurchased) {
-                        return Q.reject({
-                            status: constServerCode.FAILED_LIMITED_OFFER_CONDITION,
-                            name: "DataError",
-                            message: "Reward not applicable"
-                        });
+                        // return Q.reject({
+                        //     status: constServerCode.FAILED_LIMITED_OFFER_CONDITION,
+                        //     name: "DataError",
+                        //     message: "Reward not applicable"
+                        // });
+                        return Q.resolve(rewardEventObj);
                     }
                 }
-
                 // create reward proposal
                 let proposalData = {
                     type: proposalTypeObj._id,
@@ -2383,6 +2404,7 @@ let dbPlayerReward = {
                         spendingAmount: limitedOfferObj.oriPrice * limitedOfferObj.bet,
                         limitedOfferName: limitedOfferObj.name,
                         expirationTime: moment().add(30, 'm').toDate(),
+                        timeLeft: Math.abs(parseInt((new Date().getTime() - new Date(moment().add(30, 'm').toDate()).getTime()) / 1000)),
                         eventId: eventObj._id,
                         eventName: eventObj.name,
                         eventCode: eventObj.code,
@@ -2392,6 +2414,7 @@ let dbPlayerReward = {
                     userType: constProposalUserType.PLAYERS
                 };
                 return dbProposal.createProposalWithTypeId(proposalTypeObj._id, proposalData);
+
             }
         )
     },
@@ -2909,7 +2932,6 @@ let dbPlayerReward = {
                     $match: {
                         "createTime": freeTrialQuery.createTime,
                         "data.eventId": eventData._id,
-                        "data.playerObjId": playerData._id,
                         "status": 'Approved'
                     }
                 },
@@ -2930,16 +2952,29 @@ let dbPlayerReward = {
                     let samePlayerObjIdResult;
                     let sameIPAddressResult;
                     let samePhoneNumResult;
+                    let samePlayerId = 0;
                     let sameIPAddress = 0;
                     let samePhoneNum = 0;
 
-                    // if found record, same player has received this reward
-                    if (countReward.length >= 1) {
-                        samePlayerObjIdResult = 0; //fail
+                    // check playerId
+                    if (countReward) {
+                        for (let i = 0; i < countReward.length; i++) {
+                            // check if same player  has already received this reward
+                            if (playerData._id.toString() === countReward[i].data.playerObjId.toString()) {
+                                samePlayerId++;
+                            }
+                        }
+
+                        if (samePlayerId >= 1) {
+                            samePlayerObjIdResult = 0; //fail
+                        } else {
+                            samePlayerObjIdResult = 1;
+                        }
+                        resultArr.push(samePlayerObjIdResult);
                     } else {
-                        samePlayerObjIdResult = 1;
+                        samePlayerObjIdResult = 0;
+                        resultArr.push(samePlayerObjIdResult);
                     }
-                    resultArr.push(samePlayerObjIdResult);
 
                     // check IP address
                     if (playerData.lastLoginIp !== '' && eventData.condition.checkIPFreeTrialReward) {
@@ -3944,9 +3979,9 @@ function promoCondition(promo) {
     if (promo.minTopUpAmount) {
         proMsg += "有新存款<span class=\"c_color\">(" + promo.minTopUpAmount + "以上)" + "</span>";
     }
-    if (promo.maxTopUpAmount) {
-        proMsg += ", 存款上限<span class=\"c_color\">(" + promo.maxTopUpAmount + ")" + "</span>";
-    }
+    // if (promo.maxTopUpAmount) {
+    //     proMsg += ", 存款上限<span class=\"c_color\">(" + promo.maxTopUpAmount + ")" + "</span>";
+    // }
     if (promo.disableWithdraw) {
         proMsg += ' 且尚未投注';
     }
