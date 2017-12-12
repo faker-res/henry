@@ -14271,61 +14271,45 @@ define(['js/app'], function (myApp) {
 
                 } else if (type == 'remove') {
 
-                    let sendData = {
-                        platformObjId: vm.selectedPlatform.id,
-                    }
-
-                    let sendData2 = {
-                        platformObjId: vm.selectedPlatform.id,
-                    }
-
                     // delete immediately the constructed promoCodeType before saving into dB
                     if (collection[data]._id == null){
-                        sendData.promoCodeSMSContent = collection.splice(data, 1);
+                        collection.splice(data, 1);
                     }
                     else{
-                        sendData.promoCodeTypeObjId = collection[data]._id;
-                        sendData2.promoCodeTypeObjId = collection[data]._id;
+
+                        let sendData ={
+                            platformObjId: vm.selectedPlatform.id,
+                            promoCodeTypeObjId: collection[data]._id
+                        };
+
                         // check the availability of the promocode type, can only remove if it is expired
                         socketService.$socket($scope.AppSocket, 'checkPromoCodeTypeAvailability', sendData, function (result) {
                             if (result){
                                 if (!result.data.deleteFlag && !result.data.delete) {
-                                    socketService.showErrorMessage('The promoCode Type is still valid');
+                                    socketService.showErrorMessage($translate("The promoCode Type is still valid"));
                                 }
                                 else if (!result.data.deleteFlag && result.data.delete) {
                                     // delete the PromoCodeType from the dB (generated promoCodeType but not using)
-                                    let sendData = {
-                                        platformObjId: vm.selectedPlatform.id,
-                                        promoCodeSMSContent: collection.splice(data, 1),
+                                    vm.removeSMSContent.push({
+                                        smsContent: collection.splice(data, 1),
                                         isDelete: true
-                                    };
-
-                                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                                        vm.loadPlatformData({loadAll: false});
                                     });
+                                    $scope.safeApply();
                                 }
                                 else if (result.data.deleteFlag && !result.data.delete) {
                                     // change the deleteFlag status in dB (as it had been used before)
-                                    collection[data].deleteFlag=true;
-                                    let sendData = {
-                                        platformObjId: vm.selectedPlatform.id,
-                                        promoCodeSMSContent: collection.splice(data, 1),
-                                    };
-
-                                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                                        sendData2.isDeleted = true;
-                                        // update the isDelete flag of each promoCode inherited from the deleted promoCodeType
-                                        socketService.$socket($scope.AppSocket, 'updatePromoCodeIsDeletedFlag', sendData2, function (data) {
-                                            vm.loadPlatformData({loadAll: false});
-                                        });
+                                    vm.removeSMSContent.push({
+                                        smsContent: collection.splice(data, 1),
+                                        updateIsDeletedFlag: true
                                     });
+                                    $scope.safeApply();
                                 }
                                 else{}
+
                             }
                             else{
                                 return Q.reject("data was empty: " + result);
                             }
-
                         });
                     }
                 }
@@ -14701,6 +14685,8 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeType1 = [];
                 vm.promoCodeType2 = [];
                 vm.promoCodeType3 = [];
+
+                vm.removeSMSContent = [];
 
                 vm.userGroupConfig = [];
                 vm.durationGroupConfig = [];
@@ -17686,15 +17672,47 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeType3.forEach(entry => entry.type = 3);
 
                 let promoCodeSMSContent = vm.promoCodeType1.concat(vm.promoCodeType2, vm.promoCodeType3);
-                let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
-                    promoCodeSMSContent: promoCodeSMSContent,
-                    isDelete: false
-                };
 
-                socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                    vm.loadPlatformData({loadAll: false});
-                });
+                if (vm.removeSMSContent && vm.removeSMSContent.length > 0 ){
+                    vm.removeSMSContent.map(r => {
+                        let sendData = {
+                            platformObjId: r.smsContent[0].platformObjId,
+                            promoCodeSMSContent: r.smsContent,
+                            promoCodeTypeObjId: r.smsContent[0]._id,
+                            isDelete: r.isDelete ? r.isDelete : false,
+                            isDeleted: r.updateIsDeletedFlag ? r.updateIsDeletedFlag : false
+                        };
+
+                        if (sendData.isDelete == true) {
+                            // delete from the promoCodeType dB
+                            socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                                vm.loadPlatformData({loadAll: false});
+                            });
+                        }
+
+                        if (sendData.isDeleted == true) {
+                            // delete the promoCodeType by setting the deleteFlag
+                            // set the deleteFlag to be true for affected promoCodeType
+                            sendData.promoCodeSMSContent[0].deleteFlag = true;
+                            socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                                // update the isDelete flag of each promoCode inherited from the deleted promoCodeType
+                                socketService.$socket($scope.AppSocket, 'updatePromoCodeIsDeletedFlag', sendData, function (data) {
+                                    vm.loadPlatformData({loadAll: false});
+                                });
+                            });
+                        }
+                    });
+                } else {
+                    let sendData = {
+                        platformObjId: vm.selectedPlatform.id,
+                        promoCodeSMSContent: promoCodeSMSContent,
+                        isDelete: false
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                        vm.loadPlatformData({loadAll: false});
+                    });
+                }
             }
 
             function updateProviderGroup() {
