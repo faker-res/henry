@@ -1364,6 +1364,7 @@ let dbPlayerReward = {
                                         }
 
                                         let providers = [];
+                                        let providerGroupName;
                                         let status = promocode.status;
                                         let condition = promoCondition(promocode);
                                         let title = getPromoTitle(promocode);
@@ -1371,10 +1372,12 @@ let dbPlayerReward = {
                                         promocode.allowedProviders.forEach(provider => {
                                             if (platformData.useProviderGroup) {
                                                 provider.providers.map(e => {
-                                                    providers.push(e.name);
-                                                })
+                                                    providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
+                                                });
+
+                                                providerGroupName = provider.name;
                                             } else {
-                                                providers.push(provider.name);
+                                                providers.push(platformData.gameProviderInfo[String(provider._id)].localNickName);
                                             }
                                         });
 
@@ -1382,6 +1385,7 @@ let dbPlayerReward = {
                                             "title": title,
                                             "validBet": promocode.requiredConsumption,
                                             "games": providers,
+                                            "groupName": providerGroupName,
                                             "condition": condition,
                                             "expireTime": promocode.expirationTime,
                                             "bonusCode": promocode.code,
@@ -2283,6 +2287,7 @@ let dbPlayerReward = {
         let platformObj;
         let eventObj;
         let proposalTypeObj;
+        let rewardEventObj;
 
         return dbConfig.collection_players.findOne({
             playerId: playerId
@@ -2315,7 +2320,7 @@ let dbPlayerReward = {
                     type: rewardTypeData._id
                 };
 
-                return dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
+                return rewardEventObj = dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
             }
         ).then(
             eventData => {
@@ -2374,14 +2379,14 @@ let dbPlayerReward = {
                     });
 
                     if (isPurchased) {
-                        return Q.reject({
-                            status: constServerCode.FAILED_LIMITED_OFFER_CONDITION,
-                            name: "DataError",
-                            message: "Reward not applicable"
-                        });
+                        // return Q.reject({
+                        //     status: constServerCode.FAILED_LIMITED_OFFER_CONDITION,
+                        //     name: "DataError",
+                        //     message: "Reward not applicable"
+                        // });
+                        return Q.resolve(rewardEventObj);
                     }
                 }
-
                 // create reward proposal
                 let proposalData = {
                     type: proposalTypeObj._id,
@@ -2403,6 +2408,7 @@ let dbPlayerReward = {
                         spendingAmount: limitedOfferObj.oriPrice * limitedOfferObj.bet,
                         limitedOfferName: limitedOfferObj.name,
                         expirationTime: moment().add(30, 'm').toDate(),
+                        timeLeft: Math.abs(parseInt((new Date().getTime() - new Date(moment().add(30, 'm').toDate()).getTime()) / 1000)),
                         eventId: eventObj._id,
                         eventName: eventObj.name,
                         eventCode: eventObj.code,
@@ -2412,6 +2418,7 @@ let dbPlayerReward = {
                     userType: constProposalUserType.PLAYERS
                 };
                 return dbProposal.createProposalWithTypeId(proposalTypeObj._id, proposalData);
+
             }
         )
     },
