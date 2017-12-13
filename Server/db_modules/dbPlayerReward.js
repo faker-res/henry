@@ -2404,7 +2404,9 @@ let dbPlayerReward = {
                             'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}
                         }).lean().then(
                             proposalData => {
-                                proposalData.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.expirationTime).getTime()) / 1000))
+                                if (proposalData && proposalData.data && proposalData.data.expirationTime) {
+                                    proposalData.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.expirationTime).getTime()) / 1000));
+                                }
                                 return proposalData;
                             }
                         );
@@ -2441,7 +2443,9 @@ let dbPlayerReward = {
                 };
                 return dbProposal.createProposalWithTypeId(proposalTypeObj._id, proposalData).then(
                     proposalData => {
-                        proposalData.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.expirationTime).getTime()) / 1000))
+                        if (proposalData && proposalData.data && proposalData.data.expirationTime) {
+                            proposalData.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.expirationTime).getTime()) / 1000));
+                        }
                         return proposalData;
                     }
                 );
