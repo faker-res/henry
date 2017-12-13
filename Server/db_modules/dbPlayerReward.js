@@ -1840,7 +1840,8 @@ let dbPlayerReward = {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_MINTOPUP,
                         name: "ConditionError",
-                        message: "Topup amount '$" + promoCodeObj.minTopUpAmount + "' is needed for this reward"
+                        // message: "Topup amount '$" + promoCodeObj.minTopUpAmount + "' is needed for this reward"
+                        message: "你需要有新存款（" + promoCodeObj.minTopUpAmount + "元）才能领取此优惠，千万别错过了！"
                     })
                 }
             }
@@ -2302,7 +2303,6 @@ let dbPlayerReward = {
         let platformObj;
         let eventObj;
         let proposalTypeObj;
-        let rewardEventObj;
 
         return dbConfig.collection_players.findOne({
             playerId: playerId
@@ -2335,7 +2335,7 @@ let dbPlayerReward = {
                     type: rewardTypeData._id
                 };
 
-                return rewardEventObj = dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
+                return dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
             }
         ).then(
             eventData => {
@@ -2399,7 +2399,10 @@ let dbPlayerReward = {
                         //     name: "DataError",
                         //     message: "Reward not applicable"
                         // });
-                        return Q.resolve(rewardEventObj);
+                        return dbConfig.collection_proposal.findOne({
+                            'data.limitedOfferObjId':  {$in: [ObjectId(limitedOfferObj._id), String(limitedOfferObj._id)]},
+                            'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}
+                        }).lean()
                     }
                 }
                 // create reward proposal
