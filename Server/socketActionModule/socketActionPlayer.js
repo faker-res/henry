@@ -92,24 +92,6 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
-         * Update player info with reward points record based on player id and platform id
-         */
-        upsertPlayerInfoRewardPointsObjId: function upsertPlayerInfoRewardPointsObjId(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.playerId && data.platformId && data.rewardPointsObjId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.upsertPlayerInfoRewardPointsObjId, [data.playerId, data.platformId, data.rewardPointsObjId], actionName, isValidData);
-        },
-
-        /**
-         * Get player reward points record based on player rewardPointsObjId
-         */
-        getPlayerRewardPointsRecord: function getPlayerRewardPointsRecord(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.rewardPointsObjId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerRewardPointsRecord, [data.rewardPointsObjId], actionName, isValidData);
-        },
-
-        /**
          * Get player reward points record based on player rewardPointsObjId
          */
         updatePlayerRewardPointsRecord: function updatePlayerRewardPointsRecord(data) {

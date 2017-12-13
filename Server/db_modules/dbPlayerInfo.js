@@ -96,29 +96,19 @@ let dbPlayerInfo = {
             createTime: Date.now()
         };
         let record = new dbconfig.collection_rewardPoints(recordData);
-        return record.save();
-    },
+        return record.save().then(
+            newData => {
+                let saveObj = {
+                    rewardPointsObjId: newData._id
+                };
 
-    /**
-     * Update player info with reward points record based on player id and platform id
-     */
-    upsertPlayerInfoRewardPointsObjId: function (playerId, platformId, rewardPointsObjId) {
-        let saveObj = {
-            rewardPointsObjId: rewardPointsObjId
-        };
-        return dbconfig.collection_players.findOneAndUpdate({
-            _id: playerId,
-            platform: platformId
-        }, saveObj, {upsert: true, new: true});
-    },
-
-    /**
-     * Get player reward points record based on player rewardPointsObjId
-     */
-    getPlayerRewardPointsRecord: function (rewardPointsObjId) {
-        return dbconfig.collection_rewardPoints.findOne({
-            _id: rewardPointsObjId
-        }).select('points')
+                // update player info with reward points record based on player id and platform id
+                return dbconfig.collection_players.findOneAndUpdate({
+                    _id: newData.playerObjId,
+                    platform: newData.platformObjId
+                }, saveObj, {upsert: true, new: true});
+            }
+        )
     },
 
     /**
@@ -1637,10 +1627,12 @@ let dbPlayerInfo = {
 
     /**
      * Update player payment info
+     * @param userAgent
      * @param {String}  query - The query string
      * @param {Object} updateData - The update data string
+     * @param skipSMSVerification
      */
-    updatePlayerPayment: function (userAgent, query, updateData, skipSMSVerification) {
+    updatePlayerPayment: function (userAgent, query, updateData, skipSMSVerification, skipProposal) {
         let playerObj = null;
         let platformObjId;
         let smsLogData;
@@ -1744,10 +1736,15 @@ let dbPlayerInfo = {
                 let inputDeviceData = dbUtility.getInputDevice(userAgent,false);
                 updateData.isPlayerInit = true;
                 updateData.playerName = playerObj.name;
-                dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {
-                    data: updateData,
-                    inputDevice: inputDeviceData
-                }, smsLogData);
+
+                // If user modified their own, no proposal needed
+                if (!skipProposal) {
+                    dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {
+                        data: updateData,
+                        inputDevice: inputDeviceData
+                    }, smsLogData);
+                }
+
                 return updatedData;
             }
         )
@@ -3546,7 +3543,7 @@ let dbPlayerInfo = {
                         newAgentArray.push(uaObj);
                     }
                     var bUpdateIp = false;
-                    if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp) {
+                    if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp && playerData.lastLoginIp != "undefined") {
                         bUpdateIp = true;
                     }
 
@@ -9672,7 +9669,8 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_PACKET_RAIN_REWARD,
                         constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
                         constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
-                        constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP
+                        constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,
+                        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP
                     ];
 
                     // Check any consumption after topup upon apply reward
