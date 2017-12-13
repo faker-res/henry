@@ -3177,10 +3177,10 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
                                 default :
                                     rewardPointsLogStatus = constRewardPointsLogStatus.PENDING;
                             }
-                            return dbPlayerRewardPoints.changePlayerRewardPoint(playerRewardPoints.playerObjId, playerRewardPoints.platformObjId,
+                            return dbPlayerRewardPoints.tryToDeductRewardPointFromPlayer(playerRewardPoints.playerObjId, playerRewardPoints.platformObjId,
                                 -Math.abs(proposalData.data.convertedRewardPoints), taskData.data.category, proposalData.data.remark,
                                 proposalData.inputDevice, rewardPointsLogStatus, proposalData.data.currentDayAppliedAmount, proposalData.data.maxDayApplyAmount,
-                                rewardTask._id);
+                                rewardTask._id, taskData.proposalId);
                         }
                     );
                 }

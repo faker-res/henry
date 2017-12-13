@@ -1328,6 +1328,8 @@ let dbPlayerReward = {
                     // get the  ExtraBonusInfor state of the player: enable or disable the msg showing
                     if (playerRecord && playerRecord._id) {
                         let showInfoState;
+                        let oneMonthAgoDate = moment(new Date()).subtract(1, 'months').toDate();
+
                         if (playerRecord.viewInfo) {
                             showInfoState = (playerRecord.viewInfo.showInfoState) ? 1 : 0;
                         } else {
@@ -1336,8 +1338,10 @@ let dbPlayerReward = {
 
                         var query = {
                             "playerObjId": playerRecord._id,
-                            "platformObjId": platformData._id
-                        }
+                            "platformObjId": platformData._id,
+                            createTime: {$gte: oneMonthAgoDate, $lt: new Date()}
+                        };
+
                         if (status) {
                             query.status = status;
                         }
@@ -1358,12 +1362,12 @@ let dbPlayerReward = {
                                     let bonusListArr = [];
 
                                     promocodes.forEach(promocode => {
-
                                         if (promocode.promoCodeTypeObjId == null) {
                                             return;
                                         }
 
                                         let providers = [];
+                                        let providerGroupName, dayLeft, usedTime;
                                         let status = promocode.status;
                                         let condition = promoCondition(promocode);
                                         let title = getPromoTitle(promocode);
@@ -1371,23 +1375,38 @@ let dbPlayerReward = {
                                         promocode.allowedProviders.forEach(provider => {
                                             if (platformData.useProviderGroup) {
                                                 provider.providers.map(e => {
-                                                    providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
-                                                })
+                                                    if (platformData.gameProviderInfo[String(e._id)]) {
+                                                        providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
+                                                    }
+                                                });
+
+                                                providerGroupName = provider.name;
                                             } else {
                                                 providers.push(platformData.gameProviderInfo[String(provider._id)].localNickName);
                                             }
                                         });
 
+                                        if (!promocode.bannerText) {
+                                            dayLeft = moment(promocode.expirationTime).diff(moment(new Date()), 'days');
+                                        }
+
+                                        if (promocode.acceptedTime) {
+                                            usedTime = promocode.acceptedTime;
+                                        }
+
                                         let promo = {
                                             "title": title,
                                             "validBet": promocode.requiredConsumption,
                                             "games": providers,
+                                            "groupName": providerGroupName,
                                             "condition": condition,
                                             "expireTime": promocode.expirationTime,
                                             "bonusCode": promocode.code,
                                             "tag": promocode.bannerText,
+                                            "dayLeft": dayLeft,
                                             "isSharedWithXIMA": promocode.isSharedWithXIMA,
-                                            "isViewed": promocode.isViewed
+                                            "isViewed": promocode.isViewed,
+                                            "usedTime": usedTime
                                         };
                                         if (promocode.maxTopUpAmount) {
                                             promo.bonusLimit = promocode.maxTopUpAmount;
@@ -1403,14 +1422,14 @@ let dbPlayerReward = {
                                             bonusListArr.push(promo);
                                         }
                                     });
-                                    let result = {
+
+                                    return {
                                         "showInfo": showInfoState,
                                         "usedList": usedListArr,
                                         "noUseList": noUseListArr,
                                         "expiredList": expiredListArr,
                                         "bonusList": bonusListArr
-                                    }
-                                    return result;
+                                    };
                                 });
                     } else {
                         return Q.reject({name: "DataError", message: "Platform Not Found"});
@@ -1432,7 +1451,7 @@ let dbPlayerReward = {
                                         "type": Object(proposalType._id),
                                         "status": {$in: ["Success", "Approved"]},
                                         "settleTime": {
-                                            '$gte': moment().subtract(4, 'hours'),
+                                            '$gte': moment().subtract(3, 'hours'),
                                             '$lte': new Date()
                                         }
                                     };
@@ -1821,7 +1840,8 @@ let dbPlayerReward = {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_MINTOPUP,
                         name: "ConditionError",
-                        message: "Topup amount '$" + promoCodeObj.minTopUpAmount + "' is needed for this reward"
+                        // message: "Topup amount '$" + promoCodeObj.minTopUpAmount + "' is needed for this reward"
+                        message: "你需要有新存款（" + promoCodeObj.minTopUpAmount + "元）才能领取此优惠，千万别错过了！"
                     })
                 }
             }
@@ -2374,14 +2394,24 @@ let dbPlayerReward = {
                     });
 
                     if (isPurchased) {
-                        return Q.reject({
-                            status: constServerCode.FAILED_LIMITED_OFFER_CONDITION,
-                            name: "DataError",
-                            message: "Reward not applicable"
-                        });
+                        // return Q.reject({
+                        //     status: constServerCode.FAILED_LIMITED_OFFER_CONDITION,
+                        //     name: "DataError",
+                        //     message: "Reward not applicable"
+                        // });
+                        return dbConfig.collection_proposal.findOne({
+                            'data.limitedOfferObjId':  {$in: [ObjectId(limitedOfferObj._id), String(limitedOfferObj._id)]},
+                            'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}
+                        }).lean().then(
+                            proposalData => {
+                                if (proposalData && proposalData.data && proposalData.data.expirationTime) {
+                                    proposalData.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.expirationTime).getTime()) / 1000));
+                                }
+                                return proposalData;
+                            }
+                        );
                     }
                 }
-
                 // create reward proposal
                 let proposalData = {
                     type: proposalTypeObj._id,
@@ -2411,7 +2441,15 @@ let dbPlayerReward = {
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
                 };
-                return dbProposal.createProposalWithTypeId(proposalTypeObj._id, proposalData);
+                return dbProposal.createProposalWithTypeId(proposalTypeObj._id, proposalData).then(
+                    proposalData => {
+                        if (proposalData && proposalData.data && proposalData.data.expirationTime) {
+                            proposalData.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.expirationTime).getTime()) / 1000));
+                        }
+                        return proposalData;
+                    }
+                );
+
             }
         )
     },
@@ -3972,17 +4010,20 @@ function expirePromoCode() {
 }
 
 function promoCondition(promo) {
-    let proMsg = ''
+    let proMsg = '';
+
     if (promo.minTopUpAmount) {
         proMsg += "有新存款<span class=\"c_color\">(" + promo.minTopUpAmount + "以上)" + "</span>";
+
+        if (promo && promo.promoCodeTypeObjId && promo.promoCodeTypeObjId.type == 3) {
+            proMsg += ' 且尚未投注';
+        }
     }
     // if (promo.maxTopUpAmount) {
     //     proMsg += ", 存款上限<span class=\"c_color\">(" + promo.maxTopUpAmount + ")" + "</span>";
     // }
-    if (promo.disableWithdraw) {
-        proMsg += ' 且尚未投注';
-    }
-    if (!promo.minTopUpAmount && !promo.disableWithdraw) {
+
+    if (!proMsg) {
         proMsg += '无';
     }
     return proMsg;

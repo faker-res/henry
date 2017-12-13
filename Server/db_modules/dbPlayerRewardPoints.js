@@ -216,8 +216,9 @@ let dbPlayerRewardPoints = {
      * @param {Number}  [currentDayAppliedAmount]  RP(reward point) to credit: daily pointToCredit Points / Apply RP event: daily get Points
      * @param {Number} [maxDayApplyAmount]        RP(reward point) to credit: pointToCreditMaxPoints / Apply RP event: dailyMaxPoints
      * @param {ObjectId} [rewardPointsTaskObjId]  If create rewardPointsTask
+     * @param {ObjectId} [proposalId]  If create proposalId
      */
-    changePlayerRewardPoint: (playerObjId, platformObjId, updateAmount, category, remark, userAgent, status = constRewardPointsLogStatus.PROCESSED, currentDayAppliedAmount = null, maxDayApplyAmount = null, rewardPointsTaskObjId = null) => {
+    changePlayerRewardPoint: (playerObjId, platformObjId, updateAmount, category, remark, userAgent, status = constRewardPointsLogStatus.PROCESSED, currentDayAppliedAmount = null, maxDayApplyAmount = null, rewardPointsTaskObjId = null, proposalId = null) => {
         let playerRewardPoints;
         let oldPoint;
         let afterChangedRewardPoints;
@@ -252,9 +253,10 @@ let dbPlayerRewardPoints = {
                             });
                         }
 
-                        return dbConfig.collection_rewardPoints.update(
+                        return dbConfig.collection_rewardPoints.findOneAndUpdate(
                             {_id: playerRewardPoints._id},
-                            {$inc: {points: updateAmount}}
+                            {$inc: {points: updateAmount}},
+                            {new: true}
                         );
                     } else {
                         return Q.reject({
@@ -264,7 +266,7 @@ let dbPlayerRewardPoints = {
                     }
                 }
             ).then(
-                () => {
+                (rewardPoints) => {
                     let logData = {
                         rewardPointsObjId: playerRewardPoints._id,
                         rewardPointsTaskObjId: rewardPointsTaskObjId,
@@ -278,11 +280,65 @@ let dbPlayerRewardPoints = {
                         status: status,
                         userAgent: userAgent,
                         currentDayAppliedAmount: currentDayAppliedAmount,
-                        maxDayApplyAmount: maxDayApplyAmount
+                        maxDayApplyAmount: maxDayApplyAmount,
+                        proposalId: proposalId
                     };
                     dbLogger.createRewardPointsLog(logData);
+                    return rewardPoints;
                 }
             )
+    },
+
+    /**
+     * Attempts to take the given amount out of the player's RewardPoint.
+     * It resolves if the deduction was successful.
+     * If rejects if the deduction failed for any reason.
+     *
+     * @param {ObjectId} playerObjId
+     * @param {ObjectId} platformObjId
+     * @param {Number} updateAmount
+     * @param {Number} category
+     * @param {String} remark
+     * @param {Number} userAgent based on constPlayerRegistrationInterface
+     * @param {Number} status
+     * @param {Number}  [currentDayAppliedAmount]  RP(reward point) to credit: daily pointToCredit Points / Apply RP event: daily get Points
+     * @param {Number} [maxDayApplyAmount]        RP(reward point) to credit: pointToCreditMaxPoints / Apply RP event: dailyMaxPoints
+     * @param {ObjectId} [rewardPointsTaskObjId]  If create rewardPointsTask
+     * @param {ObjectId} [proposalId]  If create proposalId
+     */
+    tryToDeductRewardPointFromPlayer: (playerObjId, platformObjId, updateAmount, category, remark, userAgent, status = constRewardPointsLogStatus.PROCESSED, currentDayAppliedAmount = null, maxDayApplyAmount = null, rewardPointsTaskObjId = null, proposalId = null) => {
+        return dbConfig.collection_rewardPoints.findOne({playerObjId: playerObjId, platformObjId: platformObjId}).select('points')
+        .then(
+            rewardPoints => {
+                if (rewardPoints.points < updateAmount) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_ENOUGH_REWARD_POINTS,
+                        name: "DataError",
+                        message: "Player does not have reward points."
+                    });
+                }
+            }
+        ).then(
+            () => dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent, status, currentDayAppliedAmount, maxDayApplyAmount, rewardPointsTaskObjId, proposalId)
+        ).then(
+            rewardPoints => {
+                if (rewardPoints.points < 0) {
+                    // First reset the deduction, then report the problem
+                    return Q.resolve().then(
+                        () => dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, -updateAmount, category, remark, userAgent, constRewardPointsLogStatus.CANCELLED, currentDayAppliedAmount, maxDayApplyAmount, rewardPointsTaskObjId, proposalId)
+                    ).then(
+                        () => Q.reject({
+                            status: constServerCode.PLAYER_NOT_ENOUGH_REWARD_POINTS,
+                            name: "DataError",
+                            message: "Player does not have enough reward points.",
+                            data: '(detected after deducted)'
+                        })
+                    );
+                }
+            }
+        ).then(
+            () => true
+        );
     },
 
     startConvertPlayersRewardPoints: () => {
