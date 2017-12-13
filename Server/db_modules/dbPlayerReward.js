@@ -2283,7 +2283,6 @@ let dbPlayerReward = {
         let platformObj;
         let eventObj;
         let proposalTypeObj;
-        let rewardEventObj;
 
         return dbConfig.collection_players.findOne({
             playerId: playerId
@@ -2316,7 +2315,7 @@ let dbPlayerReward = {
                     type: rewardTypeData._id
                 };
 
-                return rewardEventObj = dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
+                return dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
             }
         ).then(
             eventData => {
@@ -2380,7 +2379,10 @@ let dbPlayerReward = {
                         //     name: "DataError",
                         //     message: "Reward not applicable"
                         // });
-                        return Q.resolve(rewardEventObj);
+                        return dbConfig.collection_proposal.findOne({
+                            'data.limitedOfferObjId':  {$in: [ObjectId(limitedOfferObj._id), String(limitedOfferObj._id)]},
+                            'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}
+                        }).lean()
                     }
                 }
                 // create reward proposal
