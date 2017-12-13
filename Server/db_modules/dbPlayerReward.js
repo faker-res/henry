@@ -1384,7 +1384,7 @@ let dbPlayerReward = {
                                         });
 
                                         if (!promocode.bannerText) {
-                                            dayLeft = "剩余" + moment(promocode.expirationTime).diff(moment(new Date()), 'days') + "天";
+                                            dayLeft = "剩下" + moment(promocode.expirationTime).diff(moment(new Date()), 'days') + "天";
                                         }
 
                                         let promo = {
