@@ -4023,7 +4023,7 @@ function promoCondition(promo) {
     //     proMsg += ", 存款上限<span class=\"c_color\">(" + promo.maxTopUpAmount + ")" + "</span>";
     // }
 
-    if (!promo.minTopUpAmount && !promo.disableWithdraw) {
+    if (!proMsg) {
         proMsg += '无';
     }
     return proMsg;
