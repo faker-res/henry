@@ -1328,6 +1328,8 @@ let dbPlayerReward = {
                     // get the  ExtraBonusInfor state of the player: enable or disable the msg showing
                     if (playerRecord && playerRecord._id) {
                         let showInfoState;
+                        let oneMonthAgoDate = moment(new Date()).subtract(1, 'months').toDate();
+
                         if (playerRecord.viewInfo) {
                             showInfoState = (playerRecord.viewInfo.showInfoState) ? 1 : 0;
                         } else {
@@ -1336,8 +1338,10 @@ let dbPlayerReward = {
 
                         var query = {
                             "playerObjId": playerRecord._id,
-                            "platformObjId": platformData._id
-                        }
+                            "platformObjId": platformData._id,
+                            createTime: {$gte: oneMonthAgoDate, $lt: new Date()}
+                        };
+
                         if (status) {
                             query.status = status;
                         }
@@ -1358,13 +1362,12 @@ let dbPlayerReward = {
                                     let bonusListArr = [];
 
                                     promocodes.forEach(promocode => {
-
                                         if (promocode.promoCodeTypeObjId == null) {
                                             return;
                                         }
 
                                         let providers = [];
-                                        let providerGroupName;
+                                        let providerGroupName, dayLeft, usedTime;
                                         let status = promocode.status;
                                         let condition = promoCondition(promocode);
                                         let title = getPromoTitle(promocode);
@@ -1372,7 +1375,9 @@ let dbPlayerReward = {
                                         promocode.allowedProviders.forEach(provider => {
                                             if (platformData.useProviderGroup) {
                                                 provider.providers.map(e => {
-                                                    providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
+                                                    if (platformData.gameProviderInfo[String(e._id)]) {
+                                                        providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
+                                                    }
                                                 });
 
                                                 providerGroupName = provider.name;
@@ -1380,6 +1385,14 @@ let dbPlayerReward = {
                                                 providers.push(platformData.gameProviderInfo[String(provider._id)].localNickName);
                                             }
                                         });
+
+                                        if (!promocode.bannerText) {
+                                            dayLeft = moment(promocode.expirationTime).diff(moment(new Date()), 'days');
+                                        }
+
+                                        if (promocode.acceptedTime) {
+                                            usedTime = promocode.acceptedTime;
+                                        }
 
                                         let promo = {
                                             "title": title,
@@ -1390,8 +1403,10 @@ let dbPlayerReward = {
                                             "expireTime": promocode.expirationTime,
                                             "bonusCode": promocode.code,
                                             "tag": promocode.bannerText,
+                                            "dayLeft": dayLeft,
                                             "isSharedWithXIMA": promocode.isSharedWithXIMA,
-                                            "isViewed": promocode.isViewed
+                                            "isViewed": promocode.isViewed,
+                                            "usedTime": usedTime
                                         };
                                         if (promocode.maxTopUpAmount) {
                                             promo.bonusLimit = promocode.maxTopUpAmount;
@@ -1407,14 +1422,14 @@ let dbPlayerReward = {
                                             bonusListArr.push(promo);
                                         }
                                     });
-                                    let result = {
+
+                                    return {
                                         "showInfo": showInfoState,
                                         "usedList": usedListArr,
                                         "noUseList": noUseListArr,
                                         "expiredList": expiredListArr,
                                         "bonusList": bonusListArr
-                                    }
-                                    return result;
+                                    };
                                 });
                     } else {
                         return Q.reject({name: "DataError", message: "Platform Not Found"});
@@ -1825,7 +1840,8 @@ let dbPlayerReward = {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_MINTOPUP,
                         name: "ConditionError",
-                        message: "Topup amount '$" + promoCodeObj.minTopUpAmount + "' is needed for this reward"
+                        // message: "Topup amount '$" + promoCodeObj.minTopUpAmount + "' is needed for this reward"
+                        message: "你需要有新存款（" + promoCodeObj.minTopUpAmount + "元）才能领取此优惠，千万别错过了！"
                     })
                 }
             }
@@ -2287,7 +2303,6 @@ let dbPlayerReward = {
         let platformObj;
         let eventObj;
         let proposalTypeObj;
-        let rewardEventObj;
 
         return dbConfig.collection_players.findOne({
             playerId: playerId
@@ -2320,7 +2335,7 @@ let dbPlayerReward = {
                     type: rewardTypeData._id
                 };
 
-                return rewardEventObj = dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
+                return dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
             }
         ).then(
             eventData => {
@@ -2384,7 +2399,10 @@ let dbPlayerReward = {
                         //     name: "DataError",
                         //     message: "Reward not applicable"
                         // });
-                        return Q.resolve(rewardEventObj);
+                        return dbConfig.collection_proposal.findOne({
+                            'data.limitedOfferObjId':  {$in: [ObjectId(limitedOfferObj._id), String(limitedOfferObj._id)]},
+                            'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}
+                        }).lean()
                     }
                 }
                 // create reward proposal

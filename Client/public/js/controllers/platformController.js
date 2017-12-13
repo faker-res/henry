@@ -13625,7 +13625,11 @@ define(['js/app'], function (myApp) {
 
                             $scope.safeApply();
 
-                            vm.disableAllRewardInput(true);
+                            if (vm.rewardMainCondition[0].name == 'name' && vm.rewardMainCondition[0].value == null) {
+                                vm.disableAllRewardInput(false);
+                            }else {
+                                vm.disableAllRewardInput(true);
+                            }
                         });
                     }, 0);
                 }
@@ -14866,6 +14870,17 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case 'rewardPointsLog':
+                        vm.rewardPointsLogQuery = {};
+                        vm.rewardPointsLogPageObjs = {};
+                        vm.allRewardPointsLogPageAASorting = [];
+                        vm.selectedSingleLog = null;
+                        utilService.actionAfterLoaded("#allRewardPointsTablePage", function () {
+                            vm.rewardPointsLogPageObjs.allRewardPoints = utilService.createPageForPagingTable("#allRewardPointsTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "allRewardPointsLogPageAASorting", vm.submitRewardPointsLogQuery)
+                            });
+                            $scope.safeApply();
+                            vm.submitRewardPointsLogQuery(true);
+                        });
                         break;
                 }
             };
@@ -15435,6 +15450,149 @@ define(['js/app'], function (myApp) {
             vm.rewardPointsEventAddNewRow = (rewardPointsEventCategory, otherEventParam={}) => {
                 let defaultEvent = {category:rewardPointsEventCategory, isEditing: true};
                 vm.rewardPointsEvent.push( Object.assign(defaultEvent, otherEventParam));
+            };
+
+            vm.submitRewardPointsLogQuery = function (newSearch) {
+                $('#loadRewardPointsLogIcon').show();
+                var allRewardPointsLogProm = vm.searchRewardPointsLog(newSearch ? 0 : vm.allRewardPointsLogPageAASorting.index, vm.allRewardPointsLogPageAASorting.limit, {sortCol: {}});
+
+                Q.all([allRewardPointsLogProm]).then(
+                    (data) => {
+                        $scope.safeApply();
+                        vm.allRewardPointsLog = data[0];
+                        console.log('vm.allRewardPointsLog', vm.allRewardPointsLog);
+                        vm.drawRewardPointsLogTable("#allRewardPointsTable", vm.allRewardPointsLogPageAASorting, vm.allRewardPointsLog.data, vm.allRewardPointsLog.size, newSearch, {});
+                        $('#loadRewardPointsLogIcon').hide();
+                    }
+                )
+            };
+
+            vm.searchRewardPointsLog = (index,limit, additionalQuery = {}) => {
+                var sendQuery = {
+                    query: {},
+                    index: index,
+                    limit: limit || 10,
+                };
+
+                sendQuery = Object.assign({}, sendQuery, additionalQuery);
+                $.each(vm.rewardPointsLogQuery, function (idx, val) {
+                    if (val != '' && val != 'all') {
+                        sendQuery.query[idx] = val;
+                    }
+                });
+                delete sendQuery.query.rewardPointsOperator;
+                delete sendQuery.query.rewardPointsAmountOne;
+                delete sendQuery.query.rewardPointsAmountTwo;
+                var rewardPointsOperator = vm.rewardPointsLogQuery.rewardPointsOperator;
+                var rewardPointsAmountOne = vm.rewardPointsLogQuery.rewardPointsAmountOne ? vm.rewardPointsLogQuery.rewardPointsAmountOne : 0;
+                var rewardPointsAmountTwo = vm.rewardPointsLogQuery.rewardPointsAmountTwo ? vm.rewardPointsLogQuery.rewardPointsAmountTwo : 0;
+                if (rewardPointsOperator && rewardPointsAmountOne != '') {
+                    switch (rewardPointsOperator) {
+                        case '<=':
+                            sendQuery.query.amount = {$lte: rewardPointsAmountOne};
+                            break;
+                        case '>=':
+                            sendQuery.query.amount = {$gte: rewardPointsAmountOne};
+                            break;
+                        case '=':
+                            sendQuery.query.amount = rewardPointsAmountOne;
+                            break;
+                        case 'range':
+                            if (rewardPointsAmountTwo) sendQuery.query.amount = {$gte: rewardPointsAmountOne, $lte: rewardPointsAmountTwo};
+                            break;
+                    }
+                }
+
+                console.log("rewardPointsLogQuery", sendQuery);
+                return $scope.$socketPromise('getRewardPointsLogsQuery', sendQuery).then(
+                    (data) => data.data
+                );
+
+            };
+
+            vm.drawRewardPointsLogTable = function (id, sort, data, size, newSearch, summary) {
+                var showData = [];
+                $.each(data, function (i, j) {
+                    j.createTime$ = utilService.getFormatTime(j.createTime);
+                    showData.push(j);
+                });
+                var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: showData,
+                    order: sort || [[11, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [11]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('Reward Point ID'),data: "pointLogId"},
+                        {title: $translate('Proposal Creator'), data: "playerName"},
+                        {
+                            title: $translate('Reward Points Type'), data: "category",
+                            render: function (data, type, row) {
+                                return $translate($scope.constRewardPointsLogCategory[row.category]);
+                            }
+                        },
+                        {title: $translate('Reward Title'), data: "rewardTitle"},
+                        {
+                            title: $translate('userAgent'), data: "userAgent",
+                            render: function (data, type, row) {
+                                return $translate($scope.constPlayerRegistrationInterface[row.userAgent]);
+                            }
+                        },
+                        {
+                            title: $translate('Proposal Status'), data: "status",
+                            render: function (data, type, row) {
+                                return $translate($scope.constRewardPointsLogStatus[row.status]);
+                            }
+                        },
+                        {title: $translate('Member Account'), data: "playerName"},
+                        {title: $translate('beforeChangeRewardPoint'), data: "oldPoints"},
+                        {title: $translate('afterChangeRewardPoint'), data: "newPoints"},
+                        {title: $translate('Reward Point Variable'), data: "amount",  bSortable: true},
+                        {
+                            title: $translate('dailyMaxRewardPoint'), data: "maxDayApplyAmount",
+                            render: function (data, type, row) {
+                                return row.currentDayAppliedAmount + "/" + row.maxDayApplyAmount;
+                            }
+                        },
+                        {title: $translate('createTime'), data: "createTime$",  bSortable: true},
+                        {title: $translate('playerLevelName'), data: "playerLevelName"},
+                        {title: $translate('remark'), data: "remark"},
+                        {
+                            title: $translate('detail'),
+                            render: function (data, type, row) {
+                                var $a = $('<a>', {
+                                    'ng-click': "vm.prepareShowRewardPointsLogDetail(" + JSON.stringify(row) + ")"
+                                }).text($translate('detail'));
+                                // $compile($a.prop('outerHTML'))($scope);
+                                return $a.prop('outerHTML');
+                            },
+                            "fnCreatedCell": function (nTd, sData, oData, iRow, iCol) {
+                                $compile(nTd)($scope)
+                            }
+                        },
+                    ],
+                    "paging": false,
+                });
+                var aTable = utilService.createDatatableWithFooter(id, tableOptions, summary, true);
+                vm.rewardPointsLogPageObjs.allRewardPoints.init({maxCount: size}, newSearch);
+                $(id).off('order.dt');
+                $(id).on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'allRewardPointsLogPageAASorting', vm.searchRewardPointsLog);
+                });
+
+                $scope.safeApply();
+                aTable.columns.adjust().draw();
+                $(id).resize();
+            };
+
+            vm.prepareShowRewardPointsLogDetail = (rewardPointsLog) => {
+                rewardPointsLog.category = $scope.constRewardPointsLogCategory[rewardPointsLog.category];
+                rewardPointsLog.status = $scope.constRewardPointsLogStatus[rewardPointsLog.status];
+                vm.rewardPointsLogDetail = rewardPointsLog;
+                console.log(rewardPointsLog);
+                $('#modalRewardPointsLogDetail').modal();
+
             };
 
             vm.datetimePickerSetDisable = (eleId, isDisable) => {
@@ -20122,7 +20280,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPromotionTypeList = function (callback) {
-                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id, deleteFlag: false}, function (data) {
                     console.log('getPromoCodeTypes', data);
                     vm.promoTypeList = data.data;
                     $scope.safeApply();
