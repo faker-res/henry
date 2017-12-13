@@ -1840,7 +1840,8 @@ let dbPlayerReward = {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_MINTOPUP,
                         name: "ConditionError",
-                        message: "Topup amount '$" + promoCodeObj.minTopUpAmount + "' is needed for this reward"
+                        // message: "Topup amount '$" + promoCodeObj.minTopUpAmount + "' is needed for this reward"
+                        message: "你需要有新存款（" + promoCodeObj.minTopUpAmount + "元）才能领取此优惠，千万别错过了！"
                     })
                 }
             }
