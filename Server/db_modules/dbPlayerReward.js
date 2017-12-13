@@ -1364,7 +1364,7 @@ let dbPlayerReward = {
                                         }
 
                                         let providers = [];
-                                        let providerGroupName;
+                                        let providerGroupName, dayLeft;
                                         let status = promocode.status;
                                         let condition = promoCondition(promocode);
                                         let title = getPromoTitle(promocode);
@@ -1372,7 +1372,9 @@ let dbPlayerReward = {
                                         promocode.allowedProviders.forEach(provider => {
                                             if (platformData.useProviderGroup) {
                                                 provider.providers.map(e => {
-                                                    providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
+                                                    if (platformData.gameProviderInfo[String(e._id)]) {
+                                                        providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
+                                                    }
                                                 });
 
                                                 providerGroupName = provider.name;
@@ -1380,6 +1382,10 @@ let dbPlayerReward = {
                                                 providers.push(platformData.gameProviderInfo[String(provider._id)].localNickName);
                                             }
                                         });
+
+                                        if (!promocode.bannerText) {
+                                            dayLeft = "剩余" + moment(promocode.expirationTime).diff(moment(new Date()), 'days') + "天";
+                                        }
 
                                         let promo = {
                                             "title": title,
@@ -1390,6 +1396,7 @@ let dbPlayerReward = {
                                             "expireTime": promocode.expirationTime,
                                             "bonusCode": promocode.code,
                                             "tag": promocode.bannerText,
+                                            "dayLeft": dayLeft,
                                             "isSharedWithXIMA": promocode.isSharedWithXIMA,
                                             "isViewed": promocode.isViewed
                                         };
