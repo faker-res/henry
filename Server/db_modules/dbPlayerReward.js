@@ -2402,7 +2402,14 @@ let dbPlayerReward = {
                         return dbConfig.collection_proposal.findOne({
                             'data.limitedOfferObjId':  {$in: [ObjectId(limitedOfferObj._id), String(limitedOfferObj._id)]},
                             'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}
-                        }).lean()
+                        }).lean().then(
+                            proposalData => {
+                                if (proposalData && proposalData.data && proposalData.data.expirationTime) {
+                                    proposalData.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.expirationTime).getTime()) / 1000));
+                                }
+                                return proposalData;
+                            }
+                        );
                     }
                 }
                 // create reward proposal
@@ -2426,7 +2433,6 @@ let dbPlayerReward = {
                         spendingAmount: limitedOfferObj.oriPrice * limitedOfferObj.bet,
                         limitedOfferName: limitedOfferObj.name,
                         expirationTime: moment().add(30, 'm').toDate(),
-                        timeLeft: Math.abs(parseInt((new Date().getTime() - new Date(moment().add(30, 'm').toDate()).getTime()) / 1000)),
                         eventId: eventObj._id,
                         eventName: eventObj.name,
                         eventCode: eventObj.code,
@@ -2435,7 +2441,14 @@ let dbPlayerReward = {
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
                 };
-                return dbProposal.createProposalWithTypeId(proposalTypeObj._id, proposalData);
+                return dbProposal.createProposalWithTypeId(proposalTypeObj._id, proposalData).then(
+                    proposalData => {
+                        if (proposalData && proposalData.data && proposalData.data.expirationTime) {
+                            proposalData.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.expirationTime).getTime()) / 1000));
+                        }
+                        return proposalData;
+                    }
+                );
 
             }
         )
