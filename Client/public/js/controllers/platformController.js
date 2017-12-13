@@ -10477,6 +10477,11 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 socketService.$socket($scope.AppSocket, 'getPlayerPermissionLog', sendData, function (data) {
+                    data.data.forEach(row => {
+                        if(!row.admin || !row.admin.adminName) {
+                            row.admin = {adminName: "System"};
+                        }
+                    })
                     vm.playerPermissionHistory = data.data || [];
                     vm.playerPermissionQuery.searching = false;
                     $scope.safeApply();

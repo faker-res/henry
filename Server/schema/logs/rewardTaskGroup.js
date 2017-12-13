@@ -45,7 +45,9 @@ let rewardTaskGroupSchema = new Schema({
     proposalId: {type: String, index: true},
     // Ban reward if player credit reached this amount after unlock
     // 0 amount will not trigger this
-    forbidWithdrawIfBalanceAfterUnlock: {type: Number, default: 0}
+    forbidWithdrawIfBalanceAfterUnlock: {type: Number, default: 0},
+    //the last related proposal
+    lastProposalId: {type: Schema.Types.ObjectId}
 });
 
 rewardTaskGroupSchema.index({targetProviders: 1});
