@@ -101,6 +101,15 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
+         * Get player reward points daily limit
+         */
+        getPlayerRewardPointsDailyLimit: function getPlayerRewardPointsDailyLimit(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerLevel);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerRewardPointsDailyLimit, [data.platformObjId, data.playerLevel], actionName, isValidData);
+        },
+
+        /**
          * Create a test player for platform
          * @param {json} data - It has to contain platform id
          */

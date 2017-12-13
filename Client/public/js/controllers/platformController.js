@@ -8196,7 +8196,9 @@ define(['js/app'], function (myApp) {
                 if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
                     vm.createPlayerRewardPointsRecord();
                 }
+                vm.getPlayerRewardPointsDailyLimit();
 
+                vm.playerRewardPointsDailyLimit = null;
                 vm.rewardPointsChange.finalValidAmount = 0;
                 vm.rewardPointsChange.remark = '';
                 vm.rewardPointsChange.updateAmount = 0;
@@ -8226,8 +8228,20 @@ define(['js/app'], function (myApp) {
                     remark: vm.rewardPointsChange.remark
                 };
 
-                socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function () {
                     vm.advancedPlayerQuery();
+                    $scope.safeApply();
+                });
+            };
+
+            vm.getPlayerRewardPointsDailyLimit = function () {
+                let sendData = {
+                    platformObjId: vm.isOneSelectedPlayer().platform,
+                    playerLevel: vm.isOneSelectedPlayer().playerLevel._id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyLimit', sendData, function (data) {
+                    vm.playerRewardPointsDailyLimit = data.data;
                     $scope.safeApply();
                 });
             };

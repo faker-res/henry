@@ -1464,7 +1464,7 @@
                                         td
                                             label(style='color:red;') {{xx}}
                                             label(style='color:red;') &nbsp;
-                                            label(style='color:red;') / 30
+                                            label(style='color:red;') / {{vm.playerRewardPointsDailyLimit}}
                                         td
                                             label.text-danger {{vm.isOneSelectedPlayer().finalValidAmount || 0}}
                                             .text-danger(ng-show='vm.isOneSelectedPlayer().finalValidAmount<0') {{'Player reward points cannot be less than 0' | translate}}

@@ -138,6 +138,26 @@ let dbPlayerInfo = {
         let category = updateAmount >= 0 ? constRewardPointsLogCategory.POINT_INCREMENT : constRewardPointsLogCategory.POINT_REDUCTION;
         return dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, constPlayerRegistrationInterface.BACKSTAGE);
     },
+
+    /**
+     * Get player reward points daily limit
+     */
+    getPlayerRewardPointsDailyLimit: function (platformObjId, playerLevel) {
+        return dbconfig.collection_rewardPointsLvlConfig.findOne({
+            platformObjId: platformObjId
+        }).lean().then(
+            data => {
+                let dailyLimit = null;
+                for (let i=0; i < data.params.length; i++) {
+                    if (data.params[i].levelObjId.toString() === playerLevel.toString()) {
+                        dailyLimit = data.params[i].dailyMaxPoints;
+                        return dailyLimit;
+                    }
+                }
+            }
+        )
+    },
+
     /**
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
