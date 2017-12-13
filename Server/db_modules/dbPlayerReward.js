@@ -1328,6 +1328,8 @@ let dbPlayerReward = {
                     // get the  ExtraBonusInfor state of the player: enable or disable the msg showing
                     if (playerRecord && playerRecord._id) {
                         let showInfoState;
+                        let oneMonthAgoDate = moment(new Date()).subtract(1, 'months').toDate();
+
                         if (playerRecord.viewInfo) {
                             showInfoState = (playerRecord.viewInfo.showInfoState) ? 1 : 0;
                         } else {
@@ -1336,8 +1338,10 @@ let dbPlayerReward = {
 
                         var query = {
                             "playerObjId": playerRecord._id,
-                            "platformObjId": platformData._id
-                        }
+                            "platformObjId": platformData._id,
+                            createTime: {$gte: oneMonthAgoDate, $lt: new Date()}
+                        };
+
                         if (status) {
                             query.status = status;
                         }
@@ -1358,12 +1362,12 @@ let dbPlayerReward = {
                                     let bonusListArr = [];
 
                                     promocodes.forEach(promocode => {
-
                                         if (promocode.promoCodeTypeObjId == null) {
                                             return;
                                         }
 
                                         let providers = [];
+                                        let providerGroupName, dayLeft, usedTime;
                                         let status = promocode.status;
                                         let condition = promoCondition(promocode);
                                         let title = getPromoTitle(promocode);
@@ -1371,23 +1375,38 @@ let dbPlayerReward = {
                                         promocode.allowedProviders.forEach(provider => {
                                             if (platformData.useProviderGroup) {
                                                 provider.providers.map(e => {
-                                                    providers.push(e.name);
-                                                })
+                                                    if (platformData.gameProviderInfo[String(e._id)]) {
+                                                        providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
+                                                    }
+                                                });
+
+                                                providerGroupName = provider.name;
                                             } else {
-                                                providers.push(provider.name);
+                                                providers.push(platformData.gameProviderInfo[String(provider._id)].localNickName);
                                             }
                                         });
+
+                                        if (!promocode.bannerText) {
+                                            dayLeft = moment(promocode.expirationTime).diff(moment(new Date()), 'days');
+                                        }
+
+                                        if (promocode.acceptedTime) {
+                                            usedTime = promocode.acceptedTime;
+                                        }
 
                                         let promo = {
                                             "title": title,
                                             "validBet": promocode.requiredConsumption,
                                             "games": providers,
+                                            "groupName": providerGroupName,
                                             "condition": condition,
                                             "expireTime": promocode.expirationTime,
                                             "bonusCode": promocode.code,
                                             "tag": promocode.bannerText,
+                                            "dayLeft": dayLeft,
                                             "isSharedWithXIMA": promocode.isSharedWithXIMA,
-                                            "isViewed": promocode.isViewed
+                                            "isViewed": promocode.isViewed,
+                                            "usedTime": usedTime
                                         };
                                         if (promocode.maxTopUpAmount) {
                                             promo.bonusLimit = promocode.maxTopUpAmount;
@@ -1403,14 +1422,14 @@ let dbPlayerReward = {
                                             bonusListArr.push(promo);
                                         }
                                     });
-                                    let result = {
+
+                                    return {
                                         "showInfo": showInfoState,
                                         "usedList": usedListArr,
                                         "noUseList": noUseListArr,
                                         "expiredList": expiredListArr,
                                         "bonusList": bonusListArr
-                                    }
-                                    return result;
+                                    };
                                 });
                     } else {
                         return Q.reject({name: "DataError", message: "Platform Not Found"});
