@@ -26,7 +26,7 @@ var SettlementBalancer = require('../settlementModule/settlementBalancer');
 var dbProposal = require('../db_modules/dbProposal');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var dbGameProvider = require('../db_modules/dbGameProvider');
-
+const ObjectId = mongoose.Types.ObjectId;
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 
 const dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
@@ -200,17 +200,18 @@ const dbRewardTask = {
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'createTime': -1};
         var queryObj = {
-            playerId: playerId,
+            playerId: ObjectId(playerId),
             createTime: {
                 $gte: new Date(from),
                 $lt: new Date(to)
             }
         }
 
-        let a,b,c,d;
+        let a,b,c,d,e;
         let size;
         let rewardTaskGroupSize;
         let rewardTaskGroupData;
+        let rewardTaskSummary;
 
         a = dbconfig.collection_rewardTask.find(queryObj).count();
         b = dbconfig.collection_rewardTask.find(queryObj).sort(sortCol).skip(index).limit(limit)
@@ -222,18 +223,30 @@ const dbRewardTask = {
                 .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
         }
 
+        e = dbconfig.collection_rewardTask.aggregate({
+                $match: queryObj
+            },
+            {
+                $group: {
+                    '_id': null,
+                    topUpAmountSum: {$sum: "$topUpAmount"},
+                    bonusAmountSum: {$sum: "$bonusAmount"},
+                    requiredBonusAmountSum: {$sum: "$requiredBonusAmount"},
+                    currentAmountSum: {$sum: "$currentAmount"},
+                }
+            });
 
-        return Q.all([a, b, c, d]).then(
+        return Q.all([a, b, c, d, e]).then(
             data => {
                 size = data[0];
                 rewardTaskGroupSize = data[2];
                 rewardTaskGroupData = data[3];
+                rewardTaskSummary = data[4][0] ? data[4][0]:[] ;
                 let prom = dbRewardTask.getProposalInfo(data[1])
                 return Q.all([prom])
                     .then(proposalData=>{
                         // return proposalData;
-
-                        return {size: size, data: proposalData[0] || [], rewardTaskGroupSize: rewardTaskGroupSize, rewardTaskGroupData: rewardTaskGroupData}
+                        return {size: size, data: proposalData[0] || [], rewardTaskGroupSize: rewardTaskGroupSize,rewardTaskGroupData: rewardTaskGroupData, summary: rewardTaskSummary}
 
                 })
             }
@@ -245,7 +258,6 @@ const dbRewardTask = {
         data.forEach(item=>{
             let rewardProposal = item;
             let proposalId = item.proposalId;
-            console.log(proposalId);
             let proposal =  dbconfig.collection_proposal.findOne({proposalId:proposalId}).then(
                 pdata=>{
                     // console.log(pdata);
@@ -272,7 +284,6 @@ const dbRewardTask = {
                         if(topup.proposalId){
                             rewardProposal.topUpProposal = topup.proposalId;
                         }
-                        console.log(topup);
                         if(topup.data){
                             rewardProposal.topUpAmount = topup.data.amount
                         }else{

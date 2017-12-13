@@ -1016,6 +1016,18 @@ function socketActionPlayer(socketIO, socket) {
             let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
             socketUtil.emitter(self.socket, dbPlayerRewardPoints.convertRewardPointsToCredit, [data.playerId, data.convertRewardPointsAmount, data.remark, userAgent, getAdminId(), getAdminName()], actionName, isValidData);
         },
+        getWithdrawalInfo: function getWithdrawalInfo(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getWithdrawalInfo, [data.platformId, data.playerId], actionName, isValidData);
+        },
+        //
+        // this.getWithdrawalInfo.onRequest = function (wsFunc, conn, data) {
+        //     var isValidData = Boolean(conn.playerId && data.platformId);
+        //     WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWithdrawalInfo, [data.platformId, conn.playerId], isValidData, false, false, true);
+        // };
+
+
         getCreditDetail: function getCreditDetail(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);

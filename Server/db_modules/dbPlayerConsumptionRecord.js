@@ -220,10 +220,10 @@ var dbPlayerConsumptionRecord = {
                     {
                         $group: {
                             _id: null,
-                            validAmountAll: {$sum: "$validAmount"},
-                            amountAll: {$sum: "$amount"},
-                            bonusAmountAll: {$sum: "$bonusAmount"},
-                            commissionAmountAll: {$sum: "$commissionAmount"},
+                            topUpAmount$: {$sum: "$topUpAmount$"},
+                            bonusAmount$: {$sum: "$bonusAmount$"},
+                            requiredBonusAmount$: {$sum: "$requiredBonusAmount$"},
+                            currentAmount$: {$sum: "$currentAmount$"},
                         }
                     });
                 return Q.all([a, b, c]);
@@ -232,6 +232,7 @@ var dbPlayerConsumptionRecord = {
             return {data: result[0], count: result[1], summary: result[2] ? result[2][0] : {}}
         });
     },
+
     /**
      * Upsert without shardkey
      * This function can be run on the same record asynchronously.  It will avoid race conditions by using a queue.

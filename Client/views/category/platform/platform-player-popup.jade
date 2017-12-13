@@ -1135,10 +1135,10 @@
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('manual-reward');vm.initPlayerAddRewardTask();") {{"Add Reward Task" | translate}}
                     li(ng-class="vm.selectedRewardSettingsTab == 'system-reward' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'applyReward')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('system-reward');vm.initPlayerApplyReward();") {{"APPLY_REWARD" | translate}}
-                    li(ng-class="vm.selectedRewardSettingsTab == 'unlock-reward' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ManualUnlockRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1")
+                    //li(ng-class="vm.selectedRewardSettingsTab == 'unlock-reward' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ManualUnlockRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('unlock-reward');vm.initManualUnlockRewardTask();") {{"Manual Unlock Reward Task" | translate}}
                     li(ng-class="vm.selectedRewardSettingsTab == 'reward-progress' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'rewardTaskLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1")
-                        a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('reward-progress');vm.initRewardTaskLog();") {{"RewardTask Log" | translate}}
+                        a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('reward-progress');vm.initRewardTaskLog();") {{"RewardTask Progress Log" | translate}}
                 .panel.panel-primary(style="border-radius:0 !important;")
                     .panel-body
                         //.well(ng-show="vm.platformAction=='delete'")
@@ -1269,25 +1269,25 @@
                                 table#rewardTaskLogTbl.common-table.display(style='min-width:100%')
                                 #rewardTaskLogTblPage.height30
 
-                                table#rewardTaskGroupLogTbl.text-center.display.paddingTbl(style='width:100%;')
-                                    thead
-                                        tr
-                                            th {{'providerGroup' | translate}}
-                                            th {{'rewardAmount' | translate}}
-                                            th {{'CURRENTAMOUNT' | translate}}
-                                            th {{'spendingAmount' | translate}}
-                                            th {{'unlockedAmount' | translate}}
-                                            th {{'NON_CONSUMPTION_RETURN_AMOUNT' | translate}}
-                                            th {{'STATUS' | translate}}
-                                    tbody
-                                        tr(ng-repeat='(i,v) in vm.rewardTaskGroupDetails')
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.providerGroup.name}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.rewardAmt}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.currentAmt}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.targetConsumption}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.curConsumption}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.forbidXIMAAmt}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.status | translate}}
+                                //table#rewardTaskGroupLogTbl.text-center.display.paddingTbl(style='width:100%;')
+                                //    thead
+                                //        tr
+                                //            th {{'providerGroup' | translate}}
+                                //            th {{'rewardAmount' | translate}}
+                                //            th {{'CURRENTAMOUNT' | translate}}
+                                //            th {{'spendingAmount' | translate}}
+                                //            th {{'unlockedAmount' | translate}}
+                                //            th {{'NON_CONSUMPTION_RETURN_AMOUNT' | translate}}
+                                //            th {{'STATUS' | translate}}
+                                //    tbody
+                                //        tr(ng-repeat='(i,v) in vm.rewardTaskGroupDetails')
+                                //            td(style="text-align:center;border: 1px solid #0099CC") {{v.providerGroup.name}}
+                                //            td(style="text-align:center;border: 1px solid #0099CC") {{v.rewardAmt}}
+                                //            td(style="text-align:center;border: 1px solid #0099CC") {{v.currentAmt}}
+                                //            td(style="text-align:center;border: 1px solid #0099CC") {{v.targetConsumption}}
+                                //            td(style="text-align:center;border: 1px solid #0099CC") {{v.curConsumption}}
+                                //            td(style="text-align:center;border: 1px solid #0099CC") {{v.forbidXIMAAmt}}
+                                //            td(style="text-align:center;border: 1px solid #0099CC") {{v.status | translate}}
 
             .modal-footer
                 //#modalPlayerAddRewardTask

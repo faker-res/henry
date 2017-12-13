@@ -10131,8 +10131,9 @@ define(['js/app'], function (myApp) {
                 vm.displayProviderGroupCredit();
             }
             vm.displayProviderGroupCredit = function(){
-                console.log('displayProviderGroupCredit')
-                console.log(vm.selectedSinglePlayer);
+                console.log('displayProviderGroupCredit');
+                let playerId = vm.selectedSinglePlayer.playerId;
+                let platformId = vm.selectedPlatform.id;
                 socketService.$socket($scope.AppSocket, 'getCreditDetail', {playerObjId: vm.selectedSinglePlayer._id}, function (data) {
                     console.log('getCreditDetail', data);
                     vm.playerCreditDetails = data.data.gameCreditList;
@@ -10142,6 +10143,13 @@ define(['js/app'], function (myApp) {
                         }
                     })
                 })
+                socketService.$socket($scope.AppSocket, 'getWithdrawalInfo', {platformId: platformId , playerId: playerId}, function (data) {
+                    console.log('getWithdrawalInfo', data);
+                    console.log(data);
+
+                })
+
+
             }
             vm.getRewardTaskLogData = function (newSearch) {
                 var sendQuery = {
@@ -10168,10 +10176,10 @@ define(['js/app'], function (myApp) {
 
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
-                        item.topUpAmount$ = item.topUpAmount.toFixed(2);
-                        item.bonusAmount$= item.bonusAmount.toFixed(2);
-                        item.requiredBonusAmount$ = item.requiredBonusAmount.toFixed(2);
-                        item.currentAmount$ = item.currentAmount.toFixed(2);
+                        item.topUpAmount$ = (item.topUpAmount);
+                        item.bonusAmount$= (item.bonusAmount);
+                        item.requiredBonusAmount$ = (item.requiredBonusAmount);
+                        item.currentAmount$ = (item.currentAmount);
                         item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
                             return pro.name + ' ';
                         }) : $translate('all')) + ')';
@@ -10191,8 +10199,10 @@ define(['js/app'], function (myApp) {
                         return item;
                     }) : [];
                     var size = data.data ? data.data.size : 0;
+                    console.log(data.data);
+                    let summary = data.data ? data.data.summary :[];
                     vm.rewardTaskLog.totalCount = size;
-                    vm.drawRewardTaskTable(newSearch, tblData, size);
+                    vm.drawRewardTaskTable(newSearch, tblData, size, summary);
                 });
             }
             vm.selectReward = function($event){
@@ -10213,7 +10223,7 @@ define(['js/app'], function (myApp) {
                 //
                 // console.log(vm.selectedRewards);
             }
-            vm.drawRewardTaskTable = function (newSearch, tblData, size) {
+            vm.drawRewardTaskTable = function (newSearch, tblData, size, summary) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
@@ -10225,7 +10235,6 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row, meta) {
                                 var text;
                                 var rowId = String(meta.row);
-                                console.log(data);
                                 if(data!='Started'){
                                     text = '<a class="fa fa-check margin-right-5"></a><span>(' + row.creator.name +')</span>';
                                 }else{
@@ -10248,18 +10257,10 @@ define(['js/app'], function (myApp) {
                                 return link.prop('outerHTML');
                             }
                         },
-                        // {
-                        //     "title": $translate('Unlock Progress(Consumption)'),
-                        //     render: function (data, type, row) {
-                        //         var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
-                        //         return "<div>" + text + "</div>";
-                        //     }
-                        // },
-
                         {title: $translate('SubRewardType'), data: "rewardType"},
                         {title: $translate('CREATETIME'), data: "createTime$"},
                         //相關存款金額
-                        {title: $translate('Deposit Amount'), data: "topUpAmount"},
+                        {title: $translate('Deposit Amount'), data: "topUpAmount$" , sClass: 'sumFloat textRight'},
                         // {title: $translate('Deposit ProposalId'), data: "topUpProposal"},
                         {title: $translate('Deposit ProposalId'),
                             data: "topUpProposal",
@@ -10273,58 +10274,25 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         //相關存款提案號
-                        {title: $translate('REWARD_AMOUNT'), data: "bonusAmount"},
+                        {title: $translate('REWARD_AMOUNT'), data: "bonusAmount", sClass: 'sumFloat textRight'},
                         {
-                            "title": $translate('Unlock Progress(Consumption)'),
+                            "title": $translate('Unlock Progress(Consumption)'),data:"requiredBonusAmount",
                             render: function (data, type, row) {
                                 var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
                                 return "<div>" + text + "</div>";
-                            }
+                            }, sClass: 'sumFloat textRight'
                         },
                         // 解鎖進度
                         {
-                            "title": $translate('Unlock Progress(WinLose)'),
+                            "title": $translate('Unlock Progress(WinLose)'),data:"currentAmount",
                             render: function (data, type, row) {
                                 var text = -row.currentAmount + '/' + -(row.applyAmount + row.bonusAmount);
                                 return "<div>" + text + "</div>";
-                            }
+                            }, sClass: 'sumFloat textRight'
                         },
                         {title: $translate('targetProviders'), data: "provider$"},
                         {
                             "title": $translate('IsConsumption'),data: "useConsumption",
-                            render: function (data, type, row) {
-                                var text = $translate(data);
-                                return "<div>" + text + "</div>";
-                            }
-                        },
-                        {title: $translate('targetProviders'), data: "provider$", sClass: 'sumFloat textRight'},
-                        {
-                            data:"topUpAmount$",
-                            sClass: 'sumFloat textRight',
-                            render: function (data, type, row) {
-                                var text = $translate(data);
-                                return "<div>" + text + "</div>";
-                            }
-                        },
-                        {
-                            data:"bonusAmount$",
-                            sClass: 'sumFloat textRight',
-                            render: function (data, type, row) {
-                                var text = $translate(data);
-                                return "<div>" + text + "</div>";
-                            }
-                        },
-                        {
-                            data:"requiredBonusAmount$",
-                            sClass: 'sumFloat textRight',
-                            render: function (data, type, row) {
-                                var text = $translate(data);
-                                return "<div>" + text + "</div>";
-                            }
-                        },
-                        {
-                            data:"currentAmount$",
-                            sClass: 'sumFloat textRight',
                             render: function (data, type, row) {
                                 var text = $translate(data);
                                 return "<div>" + text + "</div>";
@@ -10356,6 +10324,11 @@ define(['js/app'], function (myApp) {
                         // {title: $translate('useConsumption'), data: "useConsumption"},
                     ],
                     "paging": false,
+                    "scrollX": true,
+                    "autoWidth": true,
+                    "sScrollY": 350,
+                    "scrollCollapse": true,
+                    "destroy": true,
                     fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                         $compile(nRow)($scope);
                         // $(nRow).off('click');
@@ -10365,15 +10338,30 @@ define(['js/app'], function (myApp) {
                     }
 
                 });
+
+                // let summary = {
+                //     'topUpAmountSum':1000,
+                //     'bonusAmountSum':1000,
+                //     'requiredBonusAmountSum': 2000,
+                //     'bonusAmountAllSum': 3000
+                // }
+                utilService.createDatatableWithFooter('#rewardTaskLogTbl', tableOptions, {
+                    4: summary.topUpAmountSum,
+                    6: summary.bonusAmountSum,
+                    7: summary.requiredBonusAmountSum,
+                    8: summary.currentAmountSum
+                });
+
                 var aTable = $("#rewardTaskLogTbl").DataTable(tableOptions);
                 aTable.columns.adjust().draw();
                 vm.rewardTaskLog.pageObj.init({maxCount: size}, newSearch);
-                $('#rewardTaskLogTbl').resize();
+
+                // $('#DD').resize();
                 $('#rewardTaskLogTbl').off('order.dt');
                 $('#rewardTaskLogTbl').on('order.dt', function (event, a, b) {
                     vm.commonSortChangeHandler(a, 'rewardTaskLog', vm.getRewardTaskLogData);
                 });
-
+                // $('#rewardTaskLogTbl').resize();
                 $scope.safeApply();
             }
 
