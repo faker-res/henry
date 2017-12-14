@@ -1585,7 +1585,7 @@ var dbPlatform = {
 
                     if (isUsed)
                         nextSMSCountProm = Promise.resolve(-1);
-                    else if (nextUsedTime || createTime < smsVerificationExpireDate)
+                    else if (nextUsedTime || createTime < smsVerificationExpireDate || log.invalidated)
                         nextSMSCountProm = Promise.resolve(1);
                     else
                         nextSMSCountProm = dbconfig.collection_smsLog.find({

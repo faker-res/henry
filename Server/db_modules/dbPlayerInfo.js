@@ -78,6 +78,7 @@ let dbPlayerCredibility = require('./../db_modules/dbPlayerCredibility');
 let dbPartner = require('../db_modules/dbPartner');
 let dbRewardPoints = require('../db_modules/dbRewardPoints');
 let dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
+let dbPlayerMail = require('../db_modules/dbPlayerMail');
 let PLATFORM_PREFIX_SEPARATOR = '';
 
 let dbPlayerInfo = {
@@ -219,69 +220,10 @@ let dbPlayerInfo = {
                     platformPrefix = platformData.prefix;
 
                     if (!platformObj.requireSMSVerification || bypassSMSVerify) {
-                        return Q.resolve(true);
+                        return true;
                     }
 
-                    platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
-                    let smsExpiredDate = new Date();
-                    smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
-
-                    let smsProm = dbconfig.collection_smsVerificationLog.findOne({
-                        platformId: platformId,
-                        tel: inputData.phoneNumber,
-                        createTime: {$gte: smsExpiredDate}
-                    }).sort({createTime: -1});
-
-                    return smsProm.then(
-                        verificationSMS => {
-                            // Check verification SMS code
-                            if (verificationSMS && verificationSMS.code && verificationSMS.code == inputData.smsCode) {
-                                verificationSMS = verificationSMS || {};
-                                return dbconfig.collection_smsVerificationLog.remove({
-                                    _id: verificationSMS._id
-                                }).then(
-                                    () => {
-                                        dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
-                                        Q.resolve(true);
-                                    }
-                                );
-                            }
-                            else {
-                                // Not verified
-                                if (!verificationSMS) {
-                                    return Q.reject({
-                                        status: constServerCode.VALIDATION_CODE_EXPIRED,
-                                        name: "ValidationError",
-                                        message: "Invalid SMS Validation Code"
-                                    });
-                                }
-                                else if (verificationSMS.loginAttempts >= 3) {
-                                    // Safety - remove sms verification code after 10 attempts to prevent brute force attack
-                                    return dbconfig.collection_smsVerificationLog.remove(
-                                        {_id: verificationSMS._id}
-                                    ).then(() => {
-                                        return Q.reject({
-                                            status: constServerCode.VALIDATION_CODE_EXCEED_ATTEMPT,
-                                            name: "ValidationError",
-                                            message: "Incorrect SMS Validation Code"
-                                        });
-                                    });
-                                }
-                                else {
-                                    return dbconfig.collection_smsVerificationLog.findOneAndUpdate(
-                                        {_id: verificationSMS._id},
-                                        {$inc: {loginAttempts: 1}}
-                                    ).then(() => {
-                                        return Q.reject({
-                                            status: constServerCode.VALIDATION_CODE_INVALID,
-                                            name: "ValidationError",
-                                            message: "Incorrect SMS Validation Code"
-                                        });
-                                    });
-                                }
-                            }
-                        }
-                    );
+                    return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode);
                 }
             ).then(
                 isVerified => {
@@ -1563,38 +1505,7 @@ let dbPlayerInfo = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
-                        let smsExpiredDate = new Date();
-                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
-                        // Check verification SMS match
-                        return dbconfig.collection_smsVerificationLog.findOne({
-                            platformObjId: playerObj.platform,
-                            tel: playerObj.phoneNumber,
-                            createTime: {$gte: smsExpiredDate}
-                        }).sort({createTime: -1}).then(
-                            verificationSMS => {
-                                // Check verification SMS code
-                                if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
-                                    verificationSMS = verificationSMS || {};
-                                    return dbconfig.collection_smsVerificationLog.remove(
-                                        {_id: verificationSMS._id}
-                                    ).then(
-                                        () => {
-                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
-                                            return Q.resolve(true);
-                                        }
-                                    )
-                                }
-                                else {
-                                    let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
-                                    return Q.reject({
-                                        status: constServerCode.VALIDATION_CODE_INVALID,
-                                        name: "ValidationError",
-                                        message: errorMessage
-                                    });
-                                }
-                            }
-                        )
+                        return dbPlayerMail.verifySMSValidationCode(playerObj.phoneNumber, platformData, smsCode);
                     }
                 } else {
                     return Q.reject({
@@ -1758,39 +1669,7 @@ let dbPlayerInfo = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
-                        let smsExpiredDate = new Date();
-                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
-                        // Check verification SMS match
-                        return dbconfig.collection_smsVerificationLog.findOne({
-                            platformObjId: playerObj.platform,
-                            tel: playerObj.phoneNumber,
-                            createTime: {$gte: smsExpiredDate}
-                        }).sort({createTime: -1}).then(
-                            verificationSMS => {
-                                // Check verification SMS code
-                                if (verificationSMS && verificationSMS.code && verificationSMS.code == updateData.smsCode) {
-                                    verificationSMS = verificationSMS || {};
-                                    return dbconfig.collection_smsVerificationLog.remove(
-                                        {_id: verificationSMS._id}
-                                    ).then(
-                                        () => {
-                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
-                                            smsLogData = {tel: verificationSMS.tel, message: verificationSMS.code};
-                                            return Q.resolve(true);
-                                        }
-                                    )
-                                }
-                                else {
-                                    let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
-                                    return Q.reject({
-                                        status: constServerCode.VALIDATION_CODE_INVALID,
-                                        name: "ValidationError",
-                                        message: errorMessage
-                                    });
-                                }
-                            }
-                        )
+                        return dbPlayerMail.verifySMSValidationCode(playerObj.phoneNumber, platformData, updateData.smsCode);
                     }
                 }
                 else {
@@ -1804,6 +1683,7 @@ let dbPlayerInfo = {
         ).then(
             isVerified => {
                 if (isVerified) {
+                    smsLogData = {tel: isVerified.tel, message: isVerified.code};
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateData, constShardKeys.collection_players);
                 }
             }
@@ -2272,8 +2152,9 @@ let dbPlayerInfo = {
                     }
                     var logProm = dbLogger.createCreditChangeLog(playerId, data.platform, amount, type, data.validCredit, null, logData);
                     var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform);
+                    var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, data.platform, amount);
 
-                    let promArr = [recordProm, logProm, levelProm];
+                    let promArr = [recordProm, logProm, levelProm, freeAmountRewardTaskGroupProm];
 
                     if (proposalData && proposalData.data && proposalData.data.limitedOfferObjId) {
                         let newProp;
@@ -4273,6 +4154,7 @@ let dbPlayerInfo = {
                     transferAmount += rewardTaskGroupData.rewardAmt;
                 }
 
+
                 // Check if player has enough credit to play
                 if (transferAmount < 1 || amount == 0) {
                     deferred.reject({
@@ -4382,6 +4264,11 @@ let dbPlayerInfo = {
                                 username: userName,
                                 platformId: platformId,
                                 providerId: playerData.lastPlayedProvider.providerId
+                            }
+                        ).then(
+                            data => data,
+                            error => {
+                                return {credit: 0};
                             }
                         );
                     }
@@ -5742,6 +5629,59 @@ let dbPlayerInfo = {
                     }
                 }, (error) => {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            );
+        }
+    },
+
+    /**
+     * Check if player can level up after top up or consumption
+     *
+     * @param {String|ObjectId} playerObjId
+     * @returns {Promise.<*>}
+     */
+    checkFreeAmountRewardTaskGroup: function (playerObjId, platformObjId, topUpAmount) {
+        if (!platformObjId) {
+            throw Error("platformObjId was not provided!");
+        }
+        else {
+            let query = {
+                platformId: platformObjId,
+                playerId: playerObjId,
+                providerGroup: null,
+                status: constRewardTaskStatus.STARTED
+            };
+    
+            return dbconfig.collection_rewardTaskGroup.findOne(query).then(
+                (rewardTaskGroup) => {
+                    if(rewardTaskGroup){
+                        return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                            {_id: rewardTaskGroup._id},
+                            {$inc :{targetConsumption: topUpAmount,
+                                currentAmt: topUpAmount
+                                //rewardAmt: topUpAmount
+                            }}
+                        )
+                    }else{
+                        let saveObj = {
+                            platformId: platformObjId,
+                            playerId: playerObjId,
+                            providerGroup: null,
+                            status: constRewardTaskStatus.STARTED,
+                            //rewardAmt: topUpAmount,
+                            rewardAmt: 0,
+                            currentAmt: topUpAmount,
+                            forbidWithdrawIfBalanceAfterUnlock:0,
+                            forbidXIMAAmt: 0,
+                            curConsumption: 0,
+                            targetConsumption: topUpAmount
+                        };
+    
+                        // create new reward group
+                        return new dbconfig.collection_rewardTaskGroup(saveObj).save();
+                    }
+                }, (error) => {
+                    return Q.reject({name: "DataError", message: "Cannot find reward task group"});
                 }
             );
         }
@@ -9013,7 +8953,7 @@ let dbPlayerInfo = {
                     deductionAmount = record.amount;
 
                     let creditProm = Q.resolve(false);
-                    if (player.platform.useLockedCredit) {
+                    if (player.platform.useLockedCredit || player.platform.useProviderGroup) {
                         creditProm = dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyTopUpReturn:Deduction", record);
                     }
                     return creditProm.then(
@@ -12194,10 +12134,10 @@ let dbPlayerInfo = {
                             result.serviceCharge = bonusDetails.bonusPercentageCharges;
                         }
 
-                        if(playerDetails.validCredit){
-                            result.currentFreeAmount = playerDetails.validCredit;
-                            result.freeAmount = playerDetails.validCredit;
-                        }
+                        // if(playerDetails.validCredit){
+                        //     result.currentFreeAmount = playerDetails.validCredit;
+                        //     result.freeAmount = playerDetails.validCredit;
+                        // }
 
                         let bonusProm = dbconfig.collection_proposal.aggregate([
                             {
@@ -12229,14 +12169,18 @@ let dbPlayerInfo = {
                                 let lockListArr = [];
                                 rewardDetails.map(r =>{
                                     if(r){
-                                        let providerGroupName = r.providerGroup.name ? r.providerGroup.name : "";
+                                        let providerGroupName = "";
                                         let targetCon = r.targetConsumption ? r.targetConsumption : 0;
                                         let ximaAmt = r.forbidXIMAAmt ? r.forbidXIMAAmt : 0;
                                         let curCon = r.curConsumption ? r.curConsumption : 0;
+                                        if(r.providerGroup){
+                                            providerGroupName = r.providerGroup.name ? r.providerGroup.name : "";
+                                        }else{
+                                            providerGroupName = "LOCAL_CREDIT";
+                                        }
 
                                         lockListArr.push({name: providerGroupName, lockAmount: targetCon + ximaAmt, currentLockAmount: curCon});
                                     }
-
                                 })
 
                                 return lockListArr;
@@ -12253,8 +12197,23 @@ let dbPlayerInfo = {
             return "";
         }).then(data => {
             if(data){
+                let lockListWithoutFreeAmountRewardTaskGroup = [];
                 result.freeTimes = result.freeTimes - (data[0] && data[0][0] ? data[0][0].count : 0);
-                result.lockList = data[1] ? data[1]: "";
+                if(data[1]){
+                    lockListWithoutFreeAmountRewardTaskGroup = data[1].filter(function(e){
+                        return e.name !== "LOCAL_CREDIT";
+                    })
+                }
+
+                //result.lockList = data[1] ? data[1]: "";
+                result.lockList = lockListWithoutFreeAmountRewardTaskGroup;
+
+                data[1].map(d =>{
+                    if(d && d.name && d.name == "LOCAL_CREDIT"){
+                        result.currentFreeAmount = d.currentLockAmount;
+                        result.freeAmount = d.lockAmount;
+                    }
+                })
             }
 
             return result;
