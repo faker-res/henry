@@ -2175,7 +2175,7 @@ let dbPlayerReward = {
                         e.downTime = moment(e.startTime).add(e.outStockDisplayTime, 'minute');
 
                         for (let i = 0; i < levelObj.length; i++) {
-                            if (e.requiredLevel.toString() == levelObj[i]._id.toString()) {
+                            if (e.requiredLevel && e.requiredLevel.toString() == levelObj[i]._id.toString()) {
                                 // e.requiredLevel = levelObj[i].name;
                                 e.level = levelObj[i].name;
                             }
