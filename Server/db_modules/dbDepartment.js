@@ -420,7 +420,9 @@ var dbDepartment = {
                     for( var j = 0; j < data.length; j++ ){
                         var department = data[j];
                         var parent = department;
-                        while( parent ){
+                        let count = 0;
+                        while( parent && count < 100){
+                            count++;
                             if( String(parent._id) == departmentId ){
                                 departmentsTree.push(department);
                                 break;
