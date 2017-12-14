@@ -8197,8 +8197,10 @@ define(['js/app'], function (myApp) {
                     vm.createPlayerRewardPointsRecord();
                 }
                 vm.getPlayerRewardPointsDailyLimit();
+                vm.getPlayerRewardPointsDailyConvertedPoints();
 
-                vm.playerRewardPointsDailyLimit = null;
+                vm.playerRewardPointsDailyLimit = 0;
+                vm.playerRewardPointsDailyConvertedPoints = 0;
                 vm.rewardPointsChange.finalValidAmount = vm.isOneSelectedPlayer().rewardPointsObjId.points;
                 vm.rewardPointsChange.remark = '';
                 vm.rewardPointsChange.updateAmount = 0;
@@ -8242,6 +8244,17 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyLimit', sendData, function (data) {
                     vm.playerRewardPointsDailyLimit = data.data;
+                    $scope.safeApply();
+                });
+            };
+
+            vm.getPlayerRewardPointsDailyConvertedPoints = function () {
+                let sendData = {
+                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId._id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyConvertedPoints', sendData, function (data) {
+                    vm.playerRewardPointsDailyConvertedPoints = data.data;
                     $scope.safeApply();
                 });
             };

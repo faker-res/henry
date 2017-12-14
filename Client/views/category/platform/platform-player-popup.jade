@@ -1462,7 +1462,7 @@
                                         td
                                             input.text-success(type='number', ng-model='vm.rewardPointsConvert.updateAmount', ng-change="vm.rewardPointsConvert.finalValidAmount=vm.isOneSelectedPlayer().rewardPointsObjId.points - vm.rewardPointsConvert.updateAmount")
                                         td
-                                            label(style='color:red;') {{xx}}
+                                            label(style='color:red;') {{vm.playerRewardPointsDailyConvertedPoints}}
                                             label(style='color:red;') &nbsp;
                                             label(style='color:red;') / {{vm.playerRewardPointsDailyLimit}}
                                         td

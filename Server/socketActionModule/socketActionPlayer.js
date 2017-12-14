@@ -110,6 +110,15 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
+         * Get player reward points daily converted points
+         */
+        getPlayerRewardPointsDailyConvertedPoints: function getPlayerRewardPointsDailyConvertedPoints(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.rewardPointsObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints, [data.rewardPointsObjId], actionName, isValidData);
+        },
+
+        /**
          * Create a test player for platform
          * @param {json} data - It has to contain platform id
          */

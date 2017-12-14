@@ -159,6 +159,42 @@ let dbPlayerInfo = {
     },
 
     /**
+     * Get player reward points daily converted points
+     */
+    getPlayerRewardPointsDailyConvertedPoints: function (rewardPointsObjId) {
+        let todayTime = dbUtility.getTodaySGTime();
+        let category = constRewardPointsLogCategory.EARLY_POINT_CONVERSION;
+        return dbconfig.collection_rewardTask.aggregate(
+            {
+                $match: {
+                    createTime: {
+                        $gte: todayTime.startTime,
+                        $lt: todayTime.endTime
+                    },
+                    "data.rewardPointsObjId": ObjectId(rewardPointsObjId),
+                    "data.category": category
+                }
+            },
+            {
+                $group: {
+                    _id: "$playerId",
+                    amount: {$sum: "$data.convertedRewardPointsAmount"}
+                }
+            }
+        ).then(
+            rewardTask => {
+                if (rewardTask && rewardTask[0]) {
+                    return rewardTask[0].amount;
+                }
+                else {
+                    // No rewardTask
+                    return 0;
+                }
+            }
+        );
+    },
+
+    /**
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
