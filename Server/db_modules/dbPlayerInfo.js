@@ -4210,7 +4210,7 @@ let dbPlayerInfo = {
                                 providerId: playerData.lastPlayedProvider.providerId
                             }
                         ).then(
-                            data => data;
+                            data => data,
                             error => {
                                 return {credit: 0};
                             }
