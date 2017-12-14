@@ -10,6 +10,7 @@ let rewardTaskGroupSchema = new Schema({
     //reward task status
     status: {type: String, default: constRewardTaskStatus.STARTED, index: true},
     //target game provider
+    //if null , means it is free amount reward task group
     providerGroup: {type: Schema.Types.ObjectId},
     //task data, data structure depend on type
     data: {type: JSON, default: null},
@@ -45,7 +46,9 @@ let rewardTaskGroupSchema = new Schema({
     proposalId: {type: String, index: true},
     // Ban reward if player credit reached this amount after unlock
     // 0 amount will not trigger this
-    forbidWithdrawIfBalanceAfterUnlock: {type: Number, default: 0}
+    forbidWithdrawIfBalanceAfterUnlock: {type: Number, default: 0},
+    //the last related proposal
+    lastProposalId: {type: Schema.Types.ObjectId}
 });
 
 rewardTaskGroupSchema.index({targetProviders: 1});

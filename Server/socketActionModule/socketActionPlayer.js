@@ -87,8 +87,8 @@ function socketActionPlayer(socketIO, socket) {
          */
         createPlayerRewardPointsRecord: function createPlayerRewardPointsRecord(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data);
-            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerRewardPointsRecord, [data.platformId, data.data.playerId, data.data.points, data.data.playerName, data.data.playerLevel, data.data.progress], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformId && data.playerId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerRewardPointsRecord, [data.platformId, data.playerId], actionName, isValidData);
         },
 
         /**
@@ -97,7 +97,25 @@ function socketActionPlayer(socketIO, socket) {
         updatePlayerRewardPointsRecord: function updatePlayerRewardPointsRecord(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerObjId && data.platformObjId && data.updateAmount);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.playerObjId, data.platformObjId, data.updateAmount, data.remark], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.playerObjId, data.platformObjId, data.updateAmount, data.remark, getAdminName(), getAdminId()], actionName, isValidData);
+        },
+
+        /**
+         * Get player reward points daily limit
+         */
+        getPlayerRewardPointsDailyLimit: function getPlayerRewardPointsDailyLimit(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerLevel);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerRewardPointsDailyLimit, [data.platformObjId, data.playerLevel], actionName, isValidData);
+        },
+
+        /**
+         * Get player reward points daily converted points
+         */
+        getPlayerRewardPointsDailyConvertedPoints: function getPlayerRewardPointsDailyConvertedPoints(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.rewardPointsObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints, [data.rewardPointsObjId], actionName, isValidData);
         },
 
         /**

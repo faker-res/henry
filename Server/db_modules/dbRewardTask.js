@@ -151,6 +151,7 @@ const dbRewardTask = {
                     let saveObj = {
                         platformId: rewardData.platformId,
                         playerId: rewardData.playerId,
+                        lastProposalId: proposalData._id,
                         providerGroup: rewardData.providerGroup,
                         status: constRewardTaskStatus.STARTED,
                         rewardAmt: rewardData.initAmount,
@@ -176,6 +177,144 @@ const dbRewardTask = {
                 if (providerGroup2) {
                     // Successfully created reward task
                     return providerGroup2;
+                }
+                else {
+                    // Failed create reward task group or increase amount
+                    return Q.reject({name: "DBError", message: "Error creating reward task", error: error})
+                }
+            }
+        )
+    },
+
+    insertConsumptionValueIntoFreeAmountProviderGroup: (rewardData, proposalData) => {
+        // Search available reward task group for this reward & this player
+        return dbconfig.collection_rewardTaskGroup.findOne({
+            platformId: rewardData.platformId,
+            playerId: rewardData.playerId,
+            providerGroup: null,
+            status: {$in: [constRewardTaskStatus.STARTED]}
+        }).then(
+            providerGroup => {
+                if (providerGroup) {
+                    let updObj = {
+                        $inc: {
+                            //rewardAmt: rewardData.initAmount,
+                            currentAmt: rewardData.initAmount,
+                            forbidWithdrawIfBalanceAfterUnlock:
+                                proposalData && proposalData.data && proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                                    ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                                    : 0
+                        }
+                    };
+    
+                    if (rewardData.useConsumption) {
+                        updObj.$inc.forbidXIMAAmt = rewardData.requiredUnlockAmount - rewardData.applyAmount;
+                    } else {
+                        updObj.$inc.targetConsumption = rewardData.requiredUnlockAmount - rewardData.applyAmount;
+                    }
+    
+                    // There are on-going reward task for this provider group
+                    return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                        _id: providerGroup._id
+                    }, updObj);
+                }
+                else {
+                    let saveObj = {
+                        platformId: rewardData.platformId,
+                        playerId: rewardData.playerId,
+                        providerGroup: null,
+                        status: constRewardTaskStatus.STARTED,
+                        //rewardAmt: rewardData.initAmount,
+                        rewardAmt: 0,
+                        currentAmt: rewardData.initAmount,
+                        forbidWithdrawIfBalanceAfterUnlock:
+                            proposalData && proposalData.data && proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                                ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                                : 0
+                    };
+    
+                    if (rewardData.useConsumption) {
+                        saveObj.forbidXIMAAmt = rewardData.requiredUnlockAmount;
+                    } else {
+                        saveObj.targetConsumption = rewardData.requiredUnlockAmount;
+                    }
+    
+                    // create new reward group
+                    return new dbconfig.collection_rewardTaskGroup(saveObj).save();
+                }
+            }
+        ).then(
+            providerGroup2 => {
+                if (providerGroup2) {
+                    // Successfully created reward task
+                    return providerGroup2;
+                }
+                else {
+                    // Failed create reward task group or increase amount
+                    return Q.reject({name: "DBError", message: "Error creating reward task", error: error})
+                }
+            }
+        )
+    },
+    
+    deductTargetConsumptionFromFreeAmountProviderGroup: (rewardData, proposalData) => {
+        // Search available reward task group for this reward & this player
+        return dbconfig.collection_rewardTaskGroup.findOne({
+            platformId: rewardData.platformId,
+            playerId: rewardData.playerId,
+            providerGroup: null,
+            status: {$in: [constRewardTaskStatus.STARTED]}
+        }).then(
+            freeProviderGroup => {
+                if (freeProviderGroup) {
+                    let updObj = {
+                        $inc: {
+                            //targetConsumption: -rewardData.applyAmount,
+                            //rewardAmt: -rewardData.applyAmount,
+                            currentAmt: -rewardData.applyAmount
+                            //rewardAmt: rewardData.initAmount,
+                            //currentAmt: rewardData.initAmount,
+                            // forbidWithdrawIfBalanceAfterUnlock:
+                            //     proposalData && proposalData.data && proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                            //         ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                            //         : 0
+                        }
+                    };
+    
+                    if (rewardData.useConsumption) {
+                        updObj.$inc.forbidXIMAAmt = -rewardData.applyAmount;
+                    } else {
+                        updObj.$inc.targetConsumption = -rewardData.applyAmount;
+                    }
+    
+                    // There are on-going reward task for this provider group
+                    return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                        _id: freeProviderGroup._id
+                    }, updObj);
+                }
+                else {
+                    let saveObj = {
+                        platformId: rewardData.platformId,
+                        playerId: rewardData.playerId,
+                        providerGroup: null,
+                        status: constRewardTaskStatus.STARTED,
+                        rewardAmt: 0,
+                        currentAmt: 0,
+                        forbidWithdrawIfBalanceAfterUnlock: 0,
+                        forbidXIMAAmt: 0,
+                        //targetConsumption: -rewardData.applyAmount
+                        targetConsumption: 0
+                    };
+    
+                    // create new reward group
+                    return new dbconfig.collection_rewardTaskGroup(saveObj).save();
+                }
+            }
+        ).then(
+            freeProviderGroup2 => {
+                if (freeProviderGroup2) {
+                    // Successfully created reward task
+                    return freeProviderGroup2;
                 }
                 else {
                     // Failed create reward task group or increase amount
@@ -679,6 +818,54 @@ const dbRewardTask = {
             function (error) {
                 deferred.reject({name: "DBError", message: "Error completing reward task", error: error});
             }
+        ).then(() => {
+            return dbRewardTaskGroup.getFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime).then(
+                freeRewardTaskGroup => {
+                    freeRewardTaskGroup.curConsumption += consumptionRecord.validAmount;
+                    freeRewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
+        
+                    // Check whether player has lost all credit
+                    if (freeRewardTaskGroup.currentAmt < 1) {
+                        freeRewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
+                        freeRewardTaskGroup.unlockTime = createTime;
+                    }
+                    // Consumption reached
+                    else if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
+                        freeRewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
+                        freeRewardTaskGroup.unlockTime = createTime;
+                    }
+        
+                    let updObj = {
+                        $inc: {
+                            currentAmt: consumptionRecord.bonusAmount,
+                            curConsumption: consumptionRecord.validAmount
+                        },
+                        status: freeRewardTaskGroup.status,
+                        unlockTime: freeRewardTaskGroup.unlockTime
+                    };
+        
+                    return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                        {_id: freeRewardTaskGroup._id},
+                        updObj,
+                        {new: true}
+                    );
+                });
+        }).then(
+            updatedData => {
+                if (updatedData) {
+                    // Transfer amount to player if reward is achieved
+                    if (updatedData.status == constRewardTaskStatus.ACHIEVED) {
+                        return dbRewardTask.completeRewardTaskGroup(updatedData);
+                    }
+                }
+            },
+            error => {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Error updating reward task group",
+                    error: error
+                });
+            }
         );
 
         return deferred.promise;
@@ -698,6 +885,7 @@ const dbRewardTask = {
                 if (rewardTaskGroup) {
                     rewardTaskGroup.curConsumption += consumptionRecord.validAmount;
                     rewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
+                    let remainingCurConsumption = 0;
 
                     // Check whether player has lost all credit
                     if (rewardTaskGroup.currentAmt < 1) {
@@ -708,6 +896,7 @@ const dbRewardTask = {
                     else if (rewardTaskGroup.curConsumption >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
                         rewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
                         rewardTaskGroup.unlockTime = createTime;
+                        remainingCurConsumption = rewardTaskGroup.curConsumption - (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt);
                     }
 
                     let updObj = {
@@ -745,11 +934,47 @@ const dbRewardTask = {
                     //     updObj.$inc.curConsumption = consumptionRecord.validAmount;
                     // }
 
+                    if(remainingCurConsumption > 0){
+                        dbRewardTaskGroup.addRemainingConsumptionToFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime, remainingCurConsumption);
+                    }
+
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                         {_id: rewardTaskGroup._id},
                         updObj,
                         {new: true}
                     );
+                }else{
+                    dbRewardTaskGroup.getFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime).then(
+                        freeRewardTaskGroup => {
+                            freeRewardTaskGroup.curConsumption += consumptionRecord.validAmount;
+                            freeRewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
+
+                            // Check whether player has lost all credit
+                            if (freeRewardTaskGroup.currentAmt < 1) {
+                                freeRewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
+                                freeRewardTaskGroup.unlockTime = createTime;
+                            }
+                            // Consumption reached
+                            else if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
+                                freeRewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
+                                freeRewardTaskGroup.unlockTime = createTime;
+                            }
+
+                            let updObj = {
+                                $inc: {
+                                    currentAmt: consumptionRecord.bonusAmount,
+                                    curConsumption: consumptionRecord.validAmount
+                                },
+                                status: freeRewardTaskGroup.status,
+                                unlockTime: freeRewardTaskGroup.unlockTime
+                            };
+
+                            return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                {_id: freeRewardTaskGroup._id},
+                                updObj,
+                                {new: true}
+                            );
+                        });
                 }
             }
         ).then(
@@ -982,14 +1207,66 @@ const dbRewardTask = {
                 playerCreditChange,
                 {new: true}
             ).then(
-                data => {
-                    if (data) {
-                        dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardGroupData.type + ":unlock", data.validCredit, 0, -rewardAmount, null, rewardGroupData);
+                player => {
+                    if (player) {
+                        let validCredit = player.validCredit;
+                        let lockedCredit = player.lockedCredit;
+                        let providerCredit = 0, totalCredit = 0;
+                        let platformProm = dbconfig.collection_platform.findOne({_id: rewardGroupData.platformId});
+                        let providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rewardGroupData.providerGroup})
+                            .populate({path: "providers", model: dbconfig.collection_gameProvider});
 
-                        // Set player bonus permission to off if there's still credit available after unlock reward
-                        if (rewardGroupData && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock > 0) {
-                            dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).catch(errorUtils.reportError);
-                        }
+                        dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardGroupData.type + ":unlock", player.validCredit, 0, -rewardAmount, null, rewardGroupData);
+
+                        Promise.all([platformProm,providerGroupProm]).then(
+                            data => {
+                                let platform = data[0];
+                                let providerGroup = data[1];
+                                let promArr = [];
+                                providerGroup.providers.forEach(provider => {
+                                    promArr.push(
+                                        cpmsAPI.player_queryCredit(
+                                            {
+                                                username: player.name,
+                                                platformId: platform.platformId,
+                                                providerId: provider.providerId
+                                            }
+                                        ).then(
+                                            data => data,
+                                            error => {
+                                                return {credit: 0};
+                                            }
+                                        )
+                                    );
+                                });
+                                return Promise.all(promArr);
+                            }
+                        ).then(
+                            (queryResult) => {
+                                queryResult.forEach(provider => {
+                                    providerCredit += provider ? parseFloat(provider.credit) : 0;
+                                });
+                                totalCredit = validCredit + lockedCredit + providerCredit;
+
+                                // Set player bonus permission to off if there's still credit available after unlock reward
+                                if (rewardGroupData && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
+                                    dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).then(
+                                        () => {
+                                            return dbconfig.collection_proposal.findOne({_id: rewardGroupData.lastProposalId})
+                                        }
+                                    ).then(
+                                        proposal => {
+                                            let proposalId = proposal ? proposal.proposalId : "unknown ID";
+                                            let remark = "优惠提案："+proposalId+"（流水解锁馀额高于"+rewardGroupData.forbidWithdrawIfBalanceAfterUnlock+"元）";
+                                            let oldPermissionObj = {applyBonus: player.permission.applyBonus};
+                                            let newPermissionObj = {applyBonus: false};
+                                            dbPlayerUtil.addPlayerPermissionLog(null, rewardGroupData.platformId, rewardGroupData.playerId, remark, oldPermissionObj, newPermissionObj);
+                                        }
+                                    ).catch(errorUtils.reportError);
+                                }
+                            },
+                            error => {console.log(error);}
+                        );
                     }
                     else {
                         return Q.reject({name: "DataError", message: "Can't update reward task and player credit"});

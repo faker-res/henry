@@ -477,8 +477,10 @@ var dbPlayerConsumptionRecord = {
                         {_id: record.playerId, platform: record.platformId, creditBalance: {$lt: 0}},
                         {creditBalance: 0}
                     ).exec();
-                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId);
-
+                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
+                        data => data,
+                        error => console.error
+                    );
                     return Q.all([creditProm, levelProm]);
                 }
             },
@@ -584,7 +586,10 @@ var dbPlayerConsumptionRecord = {
         ).then(
             () => {
                 // Check auto player level up
-                return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId);
+                return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
+                    data => data,
+                    error => console.error
+                );
             },
             error => {
                 return Q.reject({
@@ -608,7 +613,8 @@ var dbPlayerConsumptionRecord = {
                     return Q.reject({
                         status: constServerCode.CONSUMPTION_ORDERNO_ERROR,
                         name: "DataError",
-                        message: "orderNo exists"
+                        message: "orderNo exists",
+                        data: recordData
                     });
                 }
                 else {
@@ -733,7 +739,8 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             newRecord => {
-                if (newRecord) {
+                if (newRecord && newRecord.toObject) {
+                    newRecord = newRecord.toObject();
                     newRecord.providerId = providerId;
                 }
                 return newRecord;
@@ -842,7 +849,8 @@ var dbPlayerConsumptionRecord = {
                         createTime: oldData.createTime
                     }, recordData, {new: true}).then(
                         newRecord => {
-                            if(newRecord){
+                            if (newRecord && newRecord.toObject) {
+                                newRecord = newRecord.toObject();
                                 newRecord.providerId = providerId;
                             }
                             return newRecord;

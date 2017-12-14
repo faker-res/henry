@@ -2058,7 +2058,6 @@ var proposal = {
             details.map(data => {
                 let currentArrNo = 1;
                 data.map(d => {
-                    console.log("LH Check 尝试次数分布 SELF - data before filtered into array",d);
                     if (!recordArr.find(r => r.phoneNumber == d.data.phoneNumber)) {
                         recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1, arrNo: 1});
                         currentArrNo = 1;
@@ -2080,7 +2079,6 @@ var proposal = {
                     }
                 })
             })
-            console.log("LH Check 尝试次数分布 SELF - record array",recordArr);
             return recordArr;
         }).then(playerAttemptNumber => {
             var firstFail = playerAttemptNumber.filter(function (event) {
@@ -2204,7 +2202,6 @@ var proposal = {
                 return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
                     dataList.map(phoneNumber => {
                         prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: proposalTypesId, data: {$exists: true, $ne: null}}).lean().sort({createTime: 1}));
-                        //totalHeadCount += 1;
                     })
                     return Q.all(prom);
                 })
@@ -2230,7 +2227,6 @@ var proposal = {
                             });
                             currentArrNo = currentArrNo + 1;
                         } else {
-                            //recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
                             recordArr[indexNo].status = d.status;
                             recordArr[indexNo].attemptNo = recordArr[indexNo].attemptNo + 1;
                         }
@@ -2326,7 +2322,6 @@ var proposal = {
                 return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
                     dataList.map(phoneNumber => {
                         prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: proposalTypesId, data: {$exists: true, $ne: null}}).lean().sort({createTime: 1}));
-                        //totalHeadCount += 1;
                     })
                     return Q.all(prom);
                 })
@@ -2373,21 +2368,10 @@ var proposal = {
                     return statusArr.includes(event.status) && event.attemptNo == attemptNo
                 });
             }
-        // }).then( data => {
-        //     // to filter out the duplicate phonenumber generated when getting proposal of different player account with same phone number.
-        //     return data.filter((data, index, self) =>
-        //         index === self.findIndex((t) => (
-        //             t.phoneNumber === data.phoneNumber
-        //         ))
-        //     );
         }).then(data => {
             data.map(d => {
-                //userName = d.name;
                 phoneNumber = d.phoneNumber
-                // if(statusArr && statusArr.includes("Pending")){
-                //     unlockSizeLimit = false;
-                //     size = 1;
-                // }
+
                 let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo, unlockSizeLimit);
                 returnArr.push(p);
             })

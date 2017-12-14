@@ -359,6 +359,7 @@ db.rewardParam.insert({
                 oriPrice: {type: "Number", des: "Original Amount"},
                 offerPrice: {type: "Number", des: "Offer Amount"},
                 displayOriPrice: {type: "Boolean", des: "Display Original Price"},
+                requiredLevel: {type: "String", des: "Required Level"},
                 qty: {type: "Number", des: "Quantity"},
                 limitPerson: {type: "Number", des: "Limit Apply Per Person"},
                 limitTime: {type: "Number", des: "Offer Amount"},

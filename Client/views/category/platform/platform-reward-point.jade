@@ -324,6 +324,52 @@
 
                 // Tab - rewardPointsLog
                 div(ng-if='vm.selectedRewardPointTab=="rewardPointsLog" && checkViewPermission("Platform", "rewardPoints", "rewardPointsLog")')
+                    .row
+                        .col-md-12
+                            .well.feedbackAdminQueryDiv
+                                .inlineBlk
+                                    label.control-label {{'Member Account' | translate}}
+                                    input.form-control(type="text" ng-model="vm.rewardPointsLogQuery.playerName")
+                                .inlineBlk
+                                    label.control-label {{'Reward Points Proposal No' | translate}}
+                                    input.form-control(type="number" ng-model="vm.rewardPointsLogQuery.proposalId")
+                                .inlineBlk
+                                    label.control-label {{'Reward Points Type' | translate}}
+                                    select.form-control(ng-model='vm.rewardPointsLogQuery.category')
+                                        option(value='all') {{'ALL' | translate}}
+                                        option(ng-repeat='(i,v) in constRewardPointsLogCategory' value='{{i}}') {{ v | translate }}
+                                .inlineBlk
+                                    label.control-label {{'Reward Title' | translate}}
+                                    input.form-control(type="text" ng-model="vm.rewardPointsLogQuery.rewardTitle")
+                                .inlineBlk
+                                    label.control-label {{'userAgent' | translate}}
+                                    select.form-control(ng-model='vm.rewardPointsLogQuery.userAgent')
+                                        option(value='all') {{'ALL' | translate}}
+                                        option(ng-repeat='(i,v) in constPlayerRegistrationInterface' value='{{i}}') {{ v | translate }}
+                                .inlineBlk
+                                    label.control-label {{'Reward Point Variable' | translate}}
+                                    div
+                                        select.form-control(ng-model='vm.rewardPointsLogQuery.rewardPointsOperator' style="width:75px;display:inline-block")
+                                            option(value='>=') >=
+                                            option(value='=') =
+                                            option(value='<=') <=
+                                            option(value='range') {{'range' | translate}}
+                                        div(style= "width:8px;display:inline-block")
+                                        input.form-control(ng-model='vm.rewardPointsLogQuery.rewardPointsAmountOne' style="width:80px;display:inline-block" type = 'number')
+                                        div.text-center(style="width:15px;display:inline-block" ng-if="vm.rewardPointsLogQuery.rewardPointsOperator === 'range'") ~
+                                        input.form-control(type="number" ng-model="vm.rewardPointsLogQuery.rewardPointsAmountTwo" style="width:80px;display:inline-block" ng-if="vm.rewardPointsLogQuery.rewardPointsOperator === 'range'")
+                                .inlineBlk
+                                    label.control-label {{'Proposal Status' | translate}}
+                                    select.form-control(ng-model='vm.rewardPointsLogQuery.status')
+                                        option(value='all') {{'ALL' | translate}}
+                                        option(ng-repeat='(i,v) in constRewardPointsLogStatus' value='{{i}}') {{ v | translate }}
+                                button.btn.btn-primary(ng-if="checkViewPermission('Platform', 'rewardPoints', 'Read')",ng-click='vm.submitRewardPointsLogQuery(true)') {{"SEARCH" | translate}}
+                                i#loadRewardPointsLogIcon.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
+                    .row.margin-top-bottom-small
+                        .col-md-12
+                            label.margin-left-5 {{"total" | translate}} {{vm.allRewardPointsLog.size}} {{"records" | translate}}
+                            table#allRewardPointsTable.display.common-table(style='min-width:100%;width:100%')
+                            #allRewardPointsTablePage
 
 #modalDeleteRewardPointsRandom.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
@@ -387,3 +433,85 @@
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click='vm.deleteRewardPointsEvent(vm.deletingRewardPointsEvent)') {{"DELETE" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalRewardPointsLogDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span
+                    ul.nav.nav-tabs
+                        li
+                            label(style="font-size: 1.5em;") {{ 'Reward Points' | translate}}
+                        li.active
+                            a(data-toggle="tab", href="#detail", ng-click="")
+                                .fa.fa-user
+                                | {{ 'DETAIL' | translate }}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            #ProposalDetail.tab-pane.fade.in.active
+                                div
+                                    .titleBackground.margin-bottom-5.text-center {{'Basic' | translate}}
+                                    .label-value
+                                        label {{'TITLE' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.rewardPointsLogDetail.category | translate}}
+                                    .label-value
+                                        label {{'STATUS' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.rewardPointsLogDetail.status | translate}}
+                                    .label-value
+                                        label {{'PROPOSAL_NO' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.rewardPointsLogDetail.proposalId || 'none' | translate}}
+                                    .label-value
+                                        label {{'CREATION_TIME' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.dateReformat(vm.rewardPointsLogDetail.createTime)}}
+
+                                    div(style='min-height:30px')
+                                        hr
+                                div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
+                                    label {{'UPDATE_DETAIL' | translate}}
+                                    div(ng-switch-default)
+                                        table.table(style='width:100%')
+                                            //tr(ng-repeat='(i,v) in vm.selectedProposalDetailForDisplay')
+                                            tr
+                                                td {{ 'Reward Point ID' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.pointLogId }}
+                                            tr
+                                                td {{ 'Member Account' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.playerName }}
+                                            tr
+                                                td {{ 'Player Level' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.playerLevelName }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.currentDayAppliedAmount != null')
+                                                td {{ 'dailyMaxRewardPoint' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.currentDayAppliedAmount}} / {{vm.rewardPointsLogDetail.maxDayApplyAmount}}
+                                            tr
+                                                td {{ 'rewardPointsCategory' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.category | translate}}
+                                            tr
+                                                td {{ 'rewardPoints' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.amount }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.rewardPeriod')
+                                                td {{ 'eventRefreshPeriod' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.rewardPeriod }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.rewardTitle')
+                                                td {{ 'rewardTitle' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.rewardTitle }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.rewardContent')
+                                                td {{ 'rewardContent' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.rewardContent }}
+                                            tr
+                                                td {{ 'remark' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.remark }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.proposal && vm.rewardPointsLogDetail.proposal.data.exchangeRatio')
+                                                td {{ 'exchangeRatio' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.proposal.data.exchangeRatio }}
+                                            tr(ng-repeat='(i,v) in vm.rewardPointsLogDetail.rewardTarget')
+                                                td {{ i | translate}}
+                                                td
+                                                    div(ng-bind-html='v')
+
+
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
