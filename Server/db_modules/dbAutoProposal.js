@@ -313,7 +313,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                 let providerArr;
 
                                 if (getProp.data.providers && getProp.data.providers.length > 0) {
-                                    providerArr = getProp.data.providers.map(e => ObjectId(e._id));
+                                    providerArr = getProp.data.providers.map(e => ObjectId(e));
                                 }
 
                                 // Consumption return proposal does not need to check consumption
