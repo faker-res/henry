@@ -1460,14 +1460,14 @@
                                     tr
                                         td {{vm.isOneSelectedPlayer().rewardPointsObjId.points}}
                                         td
-                                            input.text-success(type='number', ng-model='vm.rewardPointsConvert.updateAmount', ng-change="vm.isOneSelectedPlayer().finalValidAmount=vm.isOneSelectedPlayer().rewardPointsObjId.points - vm.rewardPointsConvert.updateAmount")
+                                            input.text-success(type='number', ng-model='vm.rewardPointsConvert.updateAmount', ng-change="vm.rewardPointsConvert.finalValidAmount=vm.isOneSelectedPlayer().rewardPointsObjId.points - vm.rewardPointsConvert.updateAmount")
                                         td
                                             label(style='color:red;') {{xx}}
                                             label(style='color:red;') &nbsp;
                                             label(style='color:red;') / {{vm.playerRewardPointsDailyLimit}}
                                         td
-                                            label.text-danger {{vm.isOneSelectedPlayer().finalValidAmount || 0}}
-                                            .text-danger(ng-show='vm.isOneSelectedPlayer().finalValidAmount<0') {{'Player reward points cannot be less than 0' | translate}}
+                                            label.text-danger {{vm.rewardPointsConvert.finalValidAmount || 0}}
+                                            .text-danger(ng-show='vm.rewardPointsConvert.finalValidAmount<0') {{'Player reward points cannot be less than 0' | translate}}
                             .row
                                 .col-md-6
                                     label.control-label {{'REMARKS' | translate}}

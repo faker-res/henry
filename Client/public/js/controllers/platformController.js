@@ -8199,10 +8199,10 @@ define(['js/app'], function (myApp) {
                 vm.getPlayerRewardPointsDailyLimit();
 
                 vm.playerRewardPointsDailyLimit = null;
-                vm.rewardPointsChange.finalValidAmount = 0;
+                vm.rewardPointsChange.finalValidAmount = vm.isOneSelectedPlayer().rewardPointsObjId.points;
                 vm.rewardPointsChange.remark = '';
                 vm.rewardPointsChange.updateAmount = 0;
-                vm.rewardPointsConvert.finalValidAmount = 0;
+                vm.rewardPointsConvert.finalValidAmount = vm.isOneSelectedPlayer().rewardPointsObjId.points;
                 vm.rewardPointsConvert.remark = '';
                 vm.rewardPointsConvert.updateAmount = 0;
                 $scope.safeApply();
