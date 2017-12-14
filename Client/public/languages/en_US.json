@@ -1179,6 +1179,15 @@
   "rewardPointsConvertCategory": "Reward Points Convert Category (6 - Early Convert / 7 - Period Convert)",
   "exchangeRatio": "Exchange Ratio",
   "maxDayApplyAmount": "Max Day Apply Amount",
-  "currentDayAppliedAmount": "Current Day Applied Amount (No Include Current)"
+  "currentDayAppliedAmount": "Current Day Applied Amount (No Include Current)",
+  "POINT_REDUCTION": "Point Reduction",
+  "POINT_INCREMENT": "Point Increment",
+  "EARLY_POINT_CONVERSION": "Early Point Conversion",
+  "PERIOD_POINT_CONVERSION": "Period Point Conversion",
+  "PROCESSED": "Processed",
+  "PENDING": "Pending",
+  "CANCELLED": "Cancelled",
+  "BACKSTAGE": "Backstage",
+  "dailyMaxRewardPoint": "Daily Max Reward Point"
 
 }

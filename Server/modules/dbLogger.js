@@ -361,6 +361,18 @@ var dbLogger = {
         ).catch(errorUtils.reportError);
     },
 
+    logInvalidatedVerificationSMS: (tel, message) => {
+        dbconfig.collection_smsLog.find({tel, message}).sort({createTime: -1}).limit(1).lean().exec().then(
+            smsLogArr => {
+                if (smsLogArr && smsLogArr[0]) {
+                    let smsLog = smsLogArr[0];
+
+                    dbconfig.collection_smsLog.update({_id: smsLog._id}, {invalidated: true}).exec();
+                }
+            }
+        ).catch(errorUtils.reportError);
+    },
+
     updateSmsLogProposalId: (tel, message, proposalId) => {
         dbconfig.collection_smsLog.find({tel, message}).sort({createTime: -1}).limit(1).lean().exec().then(
             smsLogArr => {
