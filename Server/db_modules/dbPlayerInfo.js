@@ -1627,6 +1627,7 @@ let dbPlayerInfo = {
         ).then(
             isVerified => {
                 if (isVerified) {
+                    smsLogData = {tel: isVerified.tel, message: isVerified.code};
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateData, constShardKeys.collection_players);
                 }
             }
