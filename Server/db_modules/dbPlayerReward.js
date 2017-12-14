@@ -2308,6 +2308,8 @@ let dbPlayerReward = {
             playerId: playerId
         }).populate({
             path: "platform", model: dbConfig.collection_platform
+        }).populate({
+            path: "playerLevel", model: dbConfig.collection_playerLevel
         }).lean().then(
             playerData => {
                 if (playerData) {
@@ -2352,10 +2354,41 @@ let dbPlayerReward = {
                     })
                 });
 
-                return dbConfig.collection_proposalType.findOne({
-                    platformId: platformObj._id,
-                    name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
-                }).lean();
+               return dbConfig.collection_playerLevel.find({
+                   platform: platformObj._id
+               }).sort({value: 1}).lean();
+            }
+        ).then(
+            allLevelData => {
+                if (allLevelData && allLevelData.length > 0) {
+                    let levelValue;
+                    let isReachMinLevel = false;
+                    for (let i = 0; i < allLevelData.length; i++) {
+                        if (limitedOfferObj.requiredLevel.toString() == allLevelData[i]._id.toString()){
+                            levelValue = allLevelData[i].value;
+                            break;
+                        }
+                    }
+
+                    if (playerObj.playerLevel.value >= levelValue) {
+                        isReachMinLevel = true;
+                    }
+
+                    if (isReachMinLevel) {
+                        return dbConfig.collection_proposalType.findOne({
+                            platformId: platformObj._id,
+                            name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+                        }).lean();
+                    } else {
+                        return Q.reject({
+                            status: constServerCode.FAILED_LIMITED_OFFER_CONDITION,
+                            name: "DataError",
+                            message: "Player level is not enough"
+                        });
+                    }
+                } else {
+                    return Q.reject({name: "DataError", message: "Error in getting player level"});
+                }
             }
         ).then(
             proposalTypeData => {
