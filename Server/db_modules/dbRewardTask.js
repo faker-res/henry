@@ -194,63 +194,103 @@ const dbRewardTask = {
             .findOne(query)
             .exec();
     },
-
-    getPlayerRewardTask: function (playerId, from, to, index, limit, sortCol, useProviderGroup) {
+    getPlayerRewardTask: function (query, index, limit, sortCol, useProviderGroup) {
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'createTime': -1};
+        let providerGroups = [];
         var queryObj = {
-            playerId: ObjectId(playerId),
+            playerId: ObjectId(query.playerId),
             createTime: {
-                $gte: new Date(from),
-                $lt: new Date(to)
+                $gte: new Date(query.from),
+                $lt: new Date(query.to)
             }
         }
-
-        let a,b,c,d,e;
-        let size;
-        let rewardTaskGroupSize;
-        let rewardTaskGroupData;
-        let rewardTaskSummary;
-
-        a = dbconfig.collection_rewardTask.find(queryObj).count();
-        b = dbconfig.collection_rewardTask.find(queryObj).sort(sortCol).skip(index).limit(limit)
-            .populate({path: "targetProviders", model: dbconfig.collection_gameProvider}).lean();
-
-        if(useProviderGroup) {
-            c = dbconfig.collection_rewardTaskGroup.find(queryObj).count();
-            d = dbconfig.collection_rewardTaskGroup.find(queryObj).sort(sortCol).skip(index).limit(limit)
-                .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
-        }
-
-        e = dbconfig.collection_rewardTask.aggregate({
-                $match: queryObj
-            },
-            {
-                $group: {
-                    '_id': null,
-                    topUpAmountSum: {$sum: "$topUpAmount"},
-                    bonusAmountSum: {$sum: "$bonusAmount"},
-                    requiredBonusAmountSum: {$sum: "$requiredBonusAmount"},
-                    currentAmountSum: {$sum: "$currentAmount"},
-                }
-            });
-
-        return Q.all([a, b, c, d, e]).then(
+        return dbGameProvider.getPlatformProviderGroup(query.platformId).then(
             data => {
-                size = data[0];
-                rewardTaskGroupSize = data[2];
-                rewardTaskGroupData = data[3];
-                rewardTaskSummary = data[4][0] ? data[4][0]:[] ;
-                let prom = dbRewardTask.getProposalInfo(data[1])
-                return Q.all([prom])
-                    .then(proposalData=>{
-                        // return proposalData;
-                        return {size: size, data: proposalData[0] || [], rewardTaskGroupSize: rewardTaskGroupSize,rewardTaskGroupData: rewardTaskGroupData, summary: rewardTaskSummary}
+                providerGroups = data;
+            }
+        ).then(
+            data => {
+                if (query.unlockStatus) {
+                    if (query.unlockStatus == 'Started') {
+                        queryObj.status = 'Started'
+                    } else if (query.unlockStatus == 'Done') {
+                        queryObj.status = {$ne: 'Started'}
+                    } else {
+                        // query all result;
+                    }
+                }
+                if (query.topUpProposalId) {
+                    queryObj.topUpProposal = query.topUpProposalId;
+                }
+                if (query.rewardProposalId) {
+                    queryObj.proposalId = query.rewardProposalId;
+                }
+                if(query.selectedProviderGroupID){
 
-                })
+                    let selectedProviderGroup = providerGroups.filter(item=>{
+                        return item._id == query.selectedProviderGroupID
+                    })
+                    let providers = selectedProviderGroup[0] ?  selectedProviderGroup[0].providers : null;
+                    if(providers){
+                        queryObj.targetProviders = {$in: providers}
+                    }
+                }
+
+                let a, b, c, d, e;
+                let size;
+                let rewardTaskGroupSize;
+                let rewardTaskGroupData;
+                let rewardTaskSummary;
+
+                a = dbconfig.collection_rewardTask.find(queryObj).count();
+                b = dbconfig.collection_rewardTask.find(queryObj).sort(sortCol).skip(index).limit(limit)
+                    .populate({path: "targetProviders", model: dbconfig.collection_gameProvider}).lean();
+
+                if (useProviderGroup) {
+                    c = dbconfig.collection_rewardTaskGroup.find(queryObj).count();
+                    d = dbconfig.collection_rewardTaskGroup.find(queryObj).sort(sortCol).skip(index).limit(limit)
+                        .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
+                }
+
+                e = dbconfig.collection_rewardTask.aggregate({
+                        $match: queryObj
+                    },
+                    {
+                        $group: {
+                            '_id': null,
+                            topUpAmountSum: {$sum: "$topUpAmount"},
+                            bonusAmountSum: {$sum: "$bonusAmount"},
+                            requiredBonusAmountSum: {$sum: "$requiredBonusAmount"},
+                            currentAmountSum: {$sum: "$currentAmount"},
+                        }
+                    });
+
+                return Q.all([a, b, c, d, e]).then(
+                    data => {
+                        size = data[0];
+                        rewardTaskGroupSize = data[2];
+                        rewardTaskGroupData = data[3];
+                        rewardTaskSummary = data[4][0] ? data[4][0] : [];
+                        let prom = dbRewardTask.getProposalInfo(data[1])
+                        return Q.all([prom])
+                            .then(proposalData => {
+                                // return proposalData;
+                                return {
+                                    size: size,
+                                    data: proposalData[0] || [],
+                                    rewardTaskGroupSize: rewardTaskGroupSize,
+                                    rewardTaskGroupData: rewardTaskGroupData,
+                                    summary: rewardTaskSummary
+                                }
+
+                            })
+                    }
+                )
             }
         )
+
     },
 
     getProposalInfo: function(data){
@@ -268,7 +308,6 @@ const dbRewardTask = {
                         rewardProposal.topUpProposal = '';
                         // Q.resolve(pdata);
                         return rewardProposal;
-
                     }else{
                         return dbconfig.collection_proposal.findOne({proposalId:pdata.data.topUpProposal})
                     }

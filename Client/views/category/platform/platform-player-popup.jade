@@ -1254,16 +1254,35 @@
                             .inlineBlk
                                 label {{"End date" | translate}}
                                 .endTime
+                            .inlineBlk
+                                label {{"UnlockStatus" | translate}}
+                                select.form-control(ng-model='vm.unlockStatus', ng-init='vm.unlockStatus="all"')
+                                    option(value='all') {{'any' | translate}}
+                                    option(value='Started') {{'LOCK' | translate}}
+                                    option(value='Done') {{'DONE' | translate}}
+                            .inlineBlk
+                                label {{"RewardProposalId" | translate}}
+                                input.input-sm.form-control(ng-model="vm.rewardProposalId")
+                            .inlineBlk
+                                label {{"Deposit ProposalId" | translate}}
+                                input.input-sm.form-control(ng-model="vm.topUpProposalId")
+                            .inlineBlk
+                                label {{"providerGroup" | translate}}
+                                select.form-control(ng-model='vm.selectedProviderGroupID', ng-init='vm.selectedProviderGroupID="all"')
+                                    option(value='all') {{'any' | translate}}
+                                    option(ng-repeat='(i,v) in vm.gameProviderGroup', value='{{v._id}}') {{v.name}}
+
                             button.btn.btn-primary.common-button(ng-click='vm.getRewardTaskLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
 
                             div
-                                table.table
+                                table.table.table-bordered(style='background-color:white;overflow-y:scroll')
                                     tr
                                         td
                                             div {{"Valid Progress" | translate }}
                                             div
                                         td(ng-repeat='(i,v) in vm.playerCreditDetails')
-                                            div(style='width:100px') {{v.nickName}} {{v.validCredit || ''}}
+                                            div(style='display:inline-block'){{v.nickName}}
+                                            div(style='display:inline-block;padding-left:3px'){{v.validCredit || ''}}
                             div
                                 label {{"Total" | translate}} {{vm.rewardTaskLog.totalCount}} {{"records" | translate}}
                                 table#rewardTaskLogTbl.common-table.display(style='min-width:100%')

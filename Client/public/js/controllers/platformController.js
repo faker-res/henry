@@ -10154,8 +10154,13 @@ define(['js/app'], function (myApp) {
             vm.getRewardTaskLogData = function (newSearch) {
                 var sendQuery = {
                     playerId: vm.selectedSinglePlayer._id,
+                    platformId: vm.selectedSinglePlayer.platform,
                     from: vm.rewardTaskLog.query.startTime.data('datetimepicker').getLocalDate(),
                     to: vm.rewardTaskLog.query.endTime.data('datetimepicker').getLocalDate(),
+                    unlockStatus: vm.unlockStatus,
+                    rewardProposalId: vm.rewardProposalId,
+                    topUpProposalId: vm.topUpProposalId,
+                    selectedProviderGroupID: vm.selectedProviderGroupID,
                     index: newSearch ? 0 : vm.rewardTaskLog.index,
                     limit: newSearch ? 10 : vm.rewardTaskLog.limit,
                     sortCol: vm.rewardTaskLog.sortCol || null,
