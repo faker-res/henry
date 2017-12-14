@@ -7,7 +7,7 @@ var dbRewardPointsLog = {
     getRewardPointsLogsQuery: function (data) {
         let rewardPointsLog =  dbConfig.collection_rewardPointsLog.find(data.query)
             .populate({path: "rewardPointsTaskObjId", model: dbConfig.collection_rewardTask})
-            .sort(data.sortCol).skip(data.index).limit(data.limit).lean().exec();
+            .sort(data.sort).skip(data.index).limit(data.limit).lean().exec();
 
         let rewardPointsLogCount = dbConfig.collection_rewardPointsLog.find(data.query).count();
 

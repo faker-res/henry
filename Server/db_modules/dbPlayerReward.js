@@ -1451,7 +1451,7 @@ let dbPlayerReward = {
                                         "type": Object(proposalType._id),
                                         "status": {$in: ["Success", "Approved"]},
                                         "settleTime": {
-                                            '$gte': moment().subtract(4, 'hours'),
+                                            '$gte': moment().subtract(3, 'hours'),
                                             '$lte': new Date()
                                         }
                                     };
@@ -4043,17 +4043,20 @@ function expirePromoCode() {
 }
 
 function promoCondition(promo) {
-    let proMsg = ''
+    let proMsg = '';
+
     if (promo.minTopUpAmount) {
         proMsg += "有新存款<span class=\"c_color\">(" + promo.minTopUpAmount + "以上)" + "</span>";
+
+        if (promo && promo.promoCodeTypeObjId && promo.promoCodeTypeObjId.type == 3) {
+            proMsg += ' 且尚未投注';
+        }
     }
     // if (promo.maxTopUpAmount) {
     //     proMsg += ", 存款上限<span class=\"c_color\">(" + promo.maxTopUpAmount + ")" + "</span>";
     // }
-    if (promo.disableWithdraw) {
-        proMsg += ' 且尚未投注';
-    }
-    if (!promo.minTopUpAmount && !promo.disableWithdraw) {
+
+    if (!proMsg) {
         proMsg += '无';
     }
     return proMsg;

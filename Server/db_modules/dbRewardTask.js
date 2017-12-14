@@ -151,6 +151,7 @@ const dbRewardTask = {
                     let saveObj = {
                         platformId: rewardData.platformId,
                         playerId: rewardData.playerId,
+                        lastProposalId: proposalData._id,
                         providerGroup: rewardData.providerGroup,
                         status: constRewardTaskStatus.STARTED,
                         rewardAmt: rewardData.initAmount,
@@ -916,7 +917,19 @@ const dbRewardTask = {
 
                                 // Set player bonus permission to off if there's still credit available after unlock reward
                                 if (rewardGroupData && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
-                                    dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).catch(errorUtils.reportError);
+                                    dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).then(
+                                        () => {
+                                            return dbconfig.collection_proposal.findOne({_id: rewardGroupData.lastProposalId})
+                                        }
+                                    ).then(
+                                        proposal => {
+                                            let proposalId = proposal ? proposal.proposalId : "unknown ID";
+                                            let remark = "优惠提案："+proposalId+"（流水解锁馀额高于"+rewardGroupData.forbidWithdrawIfBalanceAfterUnlock+"元）";
+                                            let oldPermissionObj = {applyBonus: player.permission.applyBonus};
+                                            let newPermissionObj = {applyBonus: false};
+                                            dbPlayerUtil.addPlayerPermissionLog(null, rewardGroupData.platformId, rewardGroupData.playerId, remark, oldPermissionObj, newPermissionObj);
+                                        }
+                                    ).catch(errorUtils.reportError);
                                 }
                             },
                             error => {console.log(error);}

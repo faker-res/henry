@@ -87,8 +87,8 @@ function socketActionPlayer(socketIO, socket) {
          */
         createPlayerRewardPointsRecord: function createPlayerRewardPointsRecord(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data);
-            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerRewardPointsRecord, [data.platformId, data.data.playerId, data.data.points, data.data.playerName, data.data.playerLevel, data.data.progress], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformId && data.playerId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerRewardPointsRecord, [data.platformId, data.playerId], actionName, isValidData);
         },
 
         /**
@@ -97,7 +97,7 @@ function socketActionPlayer(socketIO, socket) {
         updatePlayerRewardPointsRecord: function updatePlayerRewardPointsRecord(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerObjId && data.platformObjId && data.updateAmount);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.playerObjId, data.platformObjId, data.updateAmount, data.remark], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.playerObjId, data.platformObjId, data.updateAmount, data.remark, getAdminName(), getAdminId()], actionName, isValidData);
         },
 
         /**
