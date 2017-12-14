@@ -205,8 +205,9 @@ var simplifiedChinese = {
     "PlayerLevelUp": "升级奖励",
     "level change fail, please contact cs": "等级变更失效，请联系客服。",
     "The promoCode Type is still valid": "优惠类型还在使用中，不能被删除。",
+    "Player level is not enough": "玩家等级不足",
     "SMS validation code invalidated. Please get another one.": "短信验证码已失效，请重新获取",
-    "There is no valid SMS Code. Please get another one.": "无可用短信验证码，请重新获取",
+    "There is no valid SMS Code. Please get another one.": "无可用短信验证码，请重新获取"
     //todo::add missing messages here
 
     /*
