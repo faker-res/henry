@@ -4207,6 +4207,11 @@ let dbPlayerInfo = {
                                 platformId: platformId,
                                 providerId: playerData.lastPlayedProvider.providerId
                             }
+                        ).then(
+                            data => data;
+                            error => {
+                                return {credit: 0};
+                            }
                         );
                     }
                     return Q.all([rewardProm, gameCreditProm]);
