@@ -1375,14 +1375,16 @@ let dbPlayerReward = {
                                         promocode.allowedProviders.forEach(provider => {
                                             if (platformData.useProviderGroup) {
                                                 provider.providers.map(e => {
-                                                    if (platformData.gameProviderInfo[String(e._id)]) {
+                                                    if (platformData.gameProviderInfo && platformData.gameProviderInfo[String(e._id)]) {
                                                         providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
                                                     }
                                                 });
 
                                                 providerGroupName = provider.name;
                                             } else {
-                                                providers.push(platformData.gameProviderInfo[String(provider._id)].localNickName);
+                                                if (platformData.gameProviderInfo && platformData.gameProviderInfo[String(provider._id)]) {
+                                                    providers.push(platformData.gameProviderInfo[String(provider._id)].localNickName);
+                                                }
                                             }
                                         });
 
@@ -2103,10 +2105,12 @@ let dbPlayerReward = {
 
     getLimitedOffers: (platformId, playerId, status) => {
         let platformObj;
+        let rewardTypeData;
         let intPropTypeObj;
         let timeSet;
         let rewards;
         let playerObj;
+        let levelObj;
 
         if (status) {
             status = Number(status);
@@ -2135,10 +2139,17 @@ let dbPlayerReward = {
             }
         ).then(
             res => {
-                let rewardTypeData = res[0];
+                rewardTypeData = res[0];
                 intPropTypeObj = res[1];
                 playerObj = res[2];
 
+                return dbConfig.collection_playerLevel.find({
+                    platform: platformObj._id
+                }).sort({value: 1}).lean()
+            }
+        ).then(
+            allLevelData => {
+                levelObj = allLevelData;
                 if (rewardTypeData) {
                     let rewardEventQuery = {
                         platform: platformObj._id,
@@ -2164,6 +2175,13 @@ let dbPlayerReward = {
                         e.startTime = moment().set({hour: e.hrs, minute: e.min, second: 0});
                         e.upTime = moment(e.startTime).subtract(e.inStockDisplayTime, 'minute');
                         e.downTime = moment(e.startTime).add(e.outStockDisplayTime, 'minute');
+
+                        for (let i = 0; i < levelObj.length; i++) {
+                            if (e.requiredLevel && e.requiredLevel.toString() == levelObj[i]._id.toString()) {
+                                // e.requiredLevel = levelObj[i].name;
+                                e.level = levelObj[i].name;
+                            }
+                        }
 
                         if (new Date().getTime() >= dbUtility.getLocalTime(e.startTime).getTime()
                             && new Date().getTime() < dbUtility.getLocalTime(e.downTime).getTime()) {
@@ -2308,6 +2326,8 @@ let dbPlayerReward = {
             playerId: playerId
         }).populate({
             path: "platform", model: dbConfig.collection_platform
+        }).populate({
+            path: "playerLevel", model: dbConfig.collection_playerLevel
         }).lean().then(
             playerData => {
                 if (playerData) {
@@ -2352,10 +2372,41 @@ let dbPlayerReward = {
                     })
                 });
 
-                return dbConfig.collection_proposalType.findOne({
-                    platformId: platformObj._id,
-                    name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
-                }).lean();
+               return dbConfig.collection_playerLevel.find({
+                   platform: platformObj._id
+               }).sort({value: 1}).lean();
+            }
+        ).then(
+            allLevelData => {
+                if (allLevelData && allLevelData.length > 0) {
+                    let levelValue;
+                    let isReachMinLevel = false;
+                    for (let i = 0; i < allLevelData.length; i++) {
+                        if (limitedOfferObj.requiredLevel.toString() == allLevelData[i]._id.toString()){
+                            levelValue = allLevelData[i].value;
+                            break;
+                        }
+                    }
+
+                    if (playerObj.playerLevel.value >= levelValue) {
+                        isReachMinLevel = true;
+                    }
+
+                    if (isReachMinLevel) {
+                        return dbConfig.collection_proposalType.findOne({
+                            platformId: platformObj._id,
+                            name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+                        }).lean();
+                    } else {
+                        return Q.reject({
+                            status: constServerCode.FAILED_LIMITED_OFFER_CONDITION,
+                            name: "DataError",
+                            message: "Player level is not enough"
+                        });
+                    }
+                } else {
+                    return Q.reject({name: "DataError", message: "Error in getting player level"});
+                }
             }
         ).then(
             proposalTypeData => {
@@ -2736,6 +2787,10 @@ let dbPlayerReward = {
                         settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                     };
 
+                    if (intervalTime) {
+                        bonusQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                    }
+
 
                     let totalBonusProm = dbConfig.collection_proposal.aggregate(
                         {
@@ -2764,6 +2819,9 @@ let dbPlayerReward = {
                         platformId: playerData.platform._id,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                     };
+                    if (intervalTime) {
+                        totalTopupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                    }
 
                     let totalTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
                         {
@@ -2792,6 +2850,9 @@ let dbPlayerReward = {
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                     };
 
+                    if (intervalTime) {
+                        creditsDailyLogQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                    }
 
                     let totalCreditsDailyProm = dbConfig.collection_playerCreditsDailyLog.aggregate([
                         {"$match": creditsDailyLogQuery},
@@ -2813,11 +2874,6 @@ let dbPlayerReward = {
                         }
                     );
 
-                    if (intervalTime) {
-                        bonusQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                        totalTopupProm.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                        creditsDailyLogQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                    }
                     // let promiseUsed = [];
                     promiseUsed.push(totalBonusProm);
                     promiseUsed.push(totalTopupProm);
@@ -3785,7 +3841,7 @@ function checkInterfaceRewardPermission(eventData, rewardData) {
     if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0 && rewardData && rewardData.selectedTopup) {
         let registrationInterface = rewardData.selectedTopup.userAgent ? rewardData.selectedTopup.userAgent : 0;
 
-        isForbidInterface = eventData.condition.userAgent.indexOf(registrationInterface) < 0;
+        isForbidInterface = eventData.condition.userAgent.indexOf(registrationInterface.toString()) < 0;
     }
 
     return isForbidInterface;

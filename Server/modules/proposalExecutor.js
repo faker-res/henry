@@ -2051,7 +2051,7 @@ var proposalExecutor = {
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
-                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                                updateData.$set["permission.applyBonus"] = false;
                             }
 
                             dbconfig.collection_players.findOneAndUpdate(
@@ -2096,7 +2096,7 @@ var proposalExecutor = {
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
-                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                                updateData.$set["permission.applyBonus"] = false;
                             }
 
                             dbconfig.collection_players.findOneAndUpdate(
@@ -2140,7 +2140,7 @@ var proposalExecutor = {
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
-                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                                updateData.$set["permission.applyBonus"] = false;
                             }
 
                             dbconfig.collection_players.findOneAndUpdate(
@@ -2184,7 +2184,7 @@ var proposalExecutor = {
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
-                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                                updateData.$set["permission.applyBonus"] = false;
                             }
 
                             dbconfig.collection_players.findOneAndUpdate(
@@ -2228,7 +2228,7 @@ var proposalExecutor = {
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
-                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                                updateData.$set["permission.applyBonus"] = false;
                             }
 
                             dbconfig.collection_players.findOneAndUpdate(
@@ -2276,7 +2276,7 @@ var proposalExecutor = {
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
-                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                                updateData.$set["permission.applyBonus"] = false;
                             }
 
                             dbconfig.collection_players.findOneAndUpdate(
@@ -2963,11 +2963,23 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             platform = res[1];
 
             // Create different process flow for lock provider group reward
-            if (platform.useProviderGroup && proposalData.data.providerGroup && gameProviderGroup) {
-                dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(
-                    data => deferred.resolve(resolveValue || data),
-                    error => deferred.reject(error)
-                )
+            if (platform.useProviderGroup) {
+                if(proposalData.data.providerGroup && gameProviderGroup){
+                    dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(
+                        data => deferred.resolve(resolveValue || data),
+                        error => deferred.reject(error)
+                    );
+            
+                    dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(
+                        data => deferred.resolve(resolveValue || data),
+                        error => deferred.reject(error)
+                    );
+                }else{
+                    dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).then(
+                        data => deferred.resolve(resolveValue || data),
+                        error => deferred.reject(error)
+                    );
+                }
             } else {
                 //check if player has reward task and if player's platform support multi reward
                 dbconfig.collection_rewardTask.findOne(
@@ -3015,6 +3027,13 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
                             rewardTask: taskData
                         });
+                    }
+                ).then(
+                    () => {
+                        return dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).then(
+                            data => deferred.resolve(resolveValue || data),
+                            error => deferred.reject(error)
+                        );
                     }
                 ).then(
                     function () {

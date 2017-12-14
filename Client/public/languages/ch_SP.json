@@ -2899,5 +2899,6 @@
   "Proposal Creator": "提案人",
   "createTime": "加入时间",
   "The promoCode Type is still valid": "优惠类型还在使用中，不能被删除。",
+  "Required Level": "等级需求",
   "eventRefreshPeriod": "任务刷新周期"
 }

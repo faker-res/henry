@@ -7623,6 +7623,14 @@ define(['js/app'], function (myApp) {
         vm.getRewardTaskGroupDetail = (playerId, callback) => {
             return $scope.$socketPromise('getPlayerAllRewardTaskGroupDetailByPlayerObjId', {_id: playerId}).then(
                 res => {
+                    res.data.map(r => {
+                        if(r.providerGroup == null){
+                            r.providerGroup = {
+                                name : "LOCAL_CREDIT"
+                            }
+                        }
+                        return r;
+                    })
                     vm.curRewardTask = res.data;
                     console.log('vm.curRewardTask', vm.curRewardTask);
                     $scope.safeApply();
@@ -8196,11 +8204,15 @@ define(['js/app'], function (myApp) {
                 if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
                     vm.createPlayerRewardPointsRecord();
                 }
+                vm.getPlayerRewardPointsDailyLimit();
+                vm.getPlayerRewardPointsDailyConvertedPoints();
 
-                vm.rewardPointsChange.finalValidAmount = 0;
+                vm.playerRewardPointsDailyLimit = 0;
+                vm.playerRewardPointsDailyConvertedPoints = 0;
+                vm.rewardPointsChange.finalValidAmount = vm.isOneSelectedPlayer().rewardPointsObjId.points;
                 vm.rewardPointsChange.remark = '';
                 vm.rewardPointsChange.updateAmount = 0;
-                vm.rewardPointsConvert.finalValidAmount = 0;
+                vm.rewardPointsConvert.finalValidAmount = vm.isOneSelectedPlayer().rewardPointsObjId.points;
                 vm.rewardPointsConvert.remark = '';
                 vm.rewardPointsConvert.updateAmount = 0;
                 $scope.safeApply();
@@ -8226,8 +8238,31 @@ define(['js/app'], function (myApp) {
                     remark: vm.rewardPointsChange.remark
                 };
 
-                socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function () {
                     vm.advancedPlayerQuery();
+                    $scope.safeApply();
+                });
+            };
+
+            vm.getPlayerRewardPointsDailyLimit = function () {
+                let sendData = {
+                    platformObjId: vm.isOneSelectedPlayer().platform,
+                    playerLevel: vm.isOneSelectedPlayer().playerLevel._id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyLimit', sendData, function (data) {
+                    vm.playerRewardPointsDailyLimit = data.data;
+                    $scope.safeApply();
+                });
+            };
+
+            vm.getPlayerRewardPointsDailyConvertedPoints = function () {
+                let sendData = {
+                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId._id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyConvertedPoints', sendData, function (data) {
+                    vm.playerRewardPointsDailyConvertedPoints = data.data;
                     $scope.safeApply();
                 });
             };
