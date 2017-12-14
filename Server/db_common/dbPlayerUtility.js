@@ -215,7 +215,29 @@ const dbPlayerUtility = {
             {_id: playerObjId, platform: platformObjId},
             updateData
         );
-    }
+    },
+
+    /**
+     * @param adminObjId
+     * @param platformObjId
+     * @param playerObjId
+     * @param remark
+     * @param oldPermissionObj - Permission in player.permission, [[name in string, on/off]. ...[,]]
+     * @param newPermissionObj - Permission in player.permission, [[name in string, on/off]. ...[,]]
+     */
+    addPlayerPermissionLog: (adminObjId, platformObjId, playerObjId, remark, oldPermissionObj, newPermissionObj) => {
+        let isSystem = !(adminObjId);
+        let query = {
+            admin: adminObjId,
+            platform: platformObjId,
+            player: playerObjId,
+            remark: remark,
+            oldData: oldPermissionObj,
+            newData: newPermissionObj,
+            isSystem: isSystem
+        };
+        return dbconfig.collection_playerPermissionLog(query).save();
+    },
 };
 
 module.exports = dbPlayerUtility;
