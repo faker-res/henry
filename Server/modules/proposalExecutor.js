@@ -2321,7 +2321,7 @@ var proposalExecutor = {
                     createRewardPointsTaskForProposal(proposalData, taskData, deferred1, constProposalType.PLAYER_CONVERT_REWARD_POINTS, proposalData);
                     deferred1.promise.then(
                         data => deferred.resolve(data),
-                        () => deferred.reject
+                        error => deferred.reject(error)
                     );
                 }
                 else {
@@ -3130,14 +3130,14 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
  * @param [resolveValue] - Optional.  Without this, resolves with the newly created reward task.
  */
 function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rewardPointsType, resolveValue) {
-    let rewardTask, gameProviderGroup, playerRewardPoint;
+    let rewardTask, gameProviderGroup, playerRewardPoint, platform;
     if (!(proposalData && proposalData.data && proposalData.data.playerObjId)) {
         deferred.reject({name: "DBError", message: "Invalid reward points proposal data"});
         return;
     }
     // Add proposalId in reward points data
     taskData.proposalId = proposalData.proposalId;
-    proposalData.data.remark = proposalData.data.remark ? proposalData.data.remark + " Proposal No: " + proposalData.proposalId : "Proposal No." + proposalData.proposalId;
+    proposalData.data.remark = proposalData.data.remark ? proposalData.data.remark + " Proposal No: " + proposalData.proposalId : "Proposal No: " + proposalData.proposalId;
 
     let gameProviderGroupProm = Promise.resolve(false);
     // Check whether game provider group exist
@@ -3146,16 +3146,25 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
     }
 
     let playerRewardPointProm = dbRewardPoints.getPlayerRewardPoints(taskData.playerId);
+    let platformProm = dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean();
 
-    Promise.all([gameProviderGroupProm, playerRewardPointProm]).then(
+    Promise.all([gameProviderGroupProm, playerRewardPointProm, platformProm]).then(
         res => {
             gameProviderGroup = res[0];
             playerRewardPoint = res[1];
+            platform = res[2];
             let createRewardTaskProm = Promise.resolve();
-            if (proposalData.data.providerGroup && gameProviderGroup) {
+
+            if (platform.useProviderGroup && proposalData.data.providerGroup && gameProviderGroup) {
                 createRewardTaskProm = dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData);
             } else {
-                createRewardTaskProm = dbRewardTask.createRewardTask(taskData);
+                createRewardTaskProm = dbRewardTask.createRewardTask(taskData).then(
+                    (data) => {
+                        return dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.convertCredit, rewardPointsType, proposalData.data).then(
+                            () => data
+                        )
+                    }
+                )
             }
             createRewardTaskProm.then(
                 data => rewardTask = data
@@ -3169,24 +3178,13 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
                 () => {
                     return dbconfig.collection_rewardPoints.findOne({_id: proposalData.data.playerRewardPointsObjId}).lean().then(
                         playerRewardPoints => {
-                            let rewardPointsLogStatus;
-                            switch (proposalData.status) {
-                                case constProposalStatus.APPROVED :
-                                    rewardPointsLogStatus = constRewardPointsLogStatus.PROCESSED;
-                                    break;
-                                default :
-                                    rewardPointsLogStatus = constRewardPointsLogStatus.PENDING;
-                            }
+                            let rewardPointsLogStatus = proposalData.status == constProposalStatus.APPROVED ? constRewardPointsLogStatus.PROCESSED : constRewardPointsLogStatus.PENDING;
                             return dbPlayerRewardPoints.tryToDeductRewardPointFromPlayer(playerRewardPoints.playerObjId, playerRewardPoints.platformObjId,
                                 -Math.abs(proposalData.data.convertedRewardPoints), taskData.data.category, proposalData.data.remark,
                                 proposalData.inputDevice, proposalData.creator.name, rewardPointsLogStatus, proposalData.data.currentDayAppliedAmount, proposalData.data.maxDayApplyAmount,
                                 rewardTask._id, taskData.proposalId);
                         }
                     );
-                }
-            ).then(
-                () => {
-                    return dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.convertCredit, rewardPointsType, proposalData.data)
                 }
             ).then(
                 (data) => deferred.resolve(resolveValue || rewardTask),
