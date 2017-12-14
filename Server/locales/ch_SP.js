@@ -202,6 +202,9 @@ var simplifiedChinese = {
     "Invalid phone number": "无效手机号码",
     "Partner Name length is not valid": "代理帐号长度无效",
     "This phone number is already used. Please insert other phone number.": "该号码已经被使用，请使用其他手机号。",
+    "PlayerLevelUp": "升级奖励",
+    "level change fail, please contact cs": "等级变更失效，请联系客服。",
+    "The promoCode Type is still valid": "优惠类型还在使用中，不能被删除。"
     //todo::add missing messages here
 
     /*

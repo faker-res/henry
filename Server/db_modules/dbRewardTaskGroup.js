@@ -115,34 +115,6 @@ let dbRewardTaskGroup = {
             }
         ).then(
             () => {
-                //For Reward Points Task
-                return dbconfig.collection_rewardPointsTask.find({
-                    providerGroup: gameProviderGroupObjId,
-                    status: constRewardTaskStatus.STARTED
-                })
-            }
-        ).then(
-            rewardPointsTasks => {
-                let proms = [];
-
-                if (rewardPointsTasks && rewardPointsTasks.length > 0) {
-                    rewardPointsTasks.forEach(task => {
-                        let updObj = {
-                            status: constRewardTaskStatus.SYSTEM_UNLOCK,
-                            unlockTime: new Date()
-                        };
-
-                        proms.push(
-                            dbconfig.collection_rewardPointsTask.findOneAndUpdate({
-                                _id: task._id
-                            }, updObj)
-                        );
-                    });
-                }
-                return Promise.all(proms);
-            }
-        ).then(
-            () => {
                 // Delete this game provider group
                 return dbconfig.collection_gameProviderGroup.remove({
                     _id: gameProviderGroupObjId

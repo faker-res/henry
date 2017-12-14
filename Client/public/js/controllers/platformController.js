@@ -23,7 +23,7 @@ define(['js/app'], function (myApp) {
             vm.creditChange = {};
             vm.existPhone = false;
             vm.rewardPointsChange = {};
-            vm.rewardPointsExchange = {};
+            vm.rewardPointsConvert = {};
 
             // constants declaration
             vm.proposalStatusList = { // removed APPROVED and REJECTED
@@ -230,6 +230,7 @@ define(['js/app'], function (myApp) {
                 UPDATE_PASSWORD: 'updatePassword',
                 UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
                 UPDATE_BANK_INFO: 'updateBankInfo',
+                FREE_TRIAL_REWARD: 'freeTrialReward',
                 // RESET_PASSWORD: 'resetPassword'
             };
 
@@ -2180,6 +2181,8 @@ define(['js/app'], function (myApp) {
                 vm.SelectedProvider = null;
                 vm.showGameCate = "include";
                 vm.curGame = null;
+                vm.batchCreditTransferOutQuery = {};
+                vm.batchCreditTransferOut = null;
             }
             //get all platform data from server
             vm.getPlatformGameData = function () {
@@ -2196,6 +2199,11 @@ define(['js/app'], function (myApp) {
                     console.log('getPlatform', data.data);
                     //provider list init
                     vm.platformProviderList = data.data.gameProviders;
+                    vm.platformProviderList.forEach(item => {
+                        if(item.batchCreditTransferOutStatus && item.batchCreditTransferOutStatus[vm.selectedPlatform.id]) {
+                            item.batchCreditTransferOut = item.batchCreditTransferOutStatus[vm.selectedPlatform.id];
+                        }
+                    });
                     vm.providerListCheck = {};
                     $.each(vm.platformProviderList, function (i, v) {
                         vm.providerListCheck[v._id] = true;
@@ -2324,6 +2332,7 @@ define(['js/app'], function (myApp) {
                     provider: data._id
                 }
                 vm.includedGames = '';
+                vm.getBatchCreditTransferOutStatus(vm.SelectedProvider._id);
                 socketService.$socket($scope.AppSocket, 'getGamesByPlatformAndProvider', query, function (data2) {
                     console.log("attached", data2.data);
                     vm.includedGames = [];
@@ -2547,7 +2556,56 @@ define(['js/app'], function (myApp) {
                 var gameProviderNickNameData = getPlatformsNickNameDataForProvider(platformData, gameProviderData);
                 return gameProviderNickNameData && gameProviderNickNameData.localPrefix
                     || gameProviderData.prefix;
-            }
+            };
+
+        // getBatchCreditTransferOutStatus by game provider object ID
+        vm.getBatchCreditTransferOutStatus = function (providerObjId) {
+            let query = {
+                _id: providerObjId
+            };
+            socketService.$socket($scope.AppSocket, 'getGameProvider', query, function (data) {
+                if(data.data && data.data.batchCreditTransferOutStatus && data.data.batchCreditTransferOutStatus[vm.selectedPlatform.id]) {
+                    vm.platformProviderList.forEach((provider) => {
+                        if(provider._id == data.data._id) {
+                            provider.batchCreditTransferOut = data.data.batchCreditTransferOutStatus[vm.selectedPlatform.id];
+                        }
+                    });
+                }
+                $scope.safeApply();
+            });
+        };
+
+        vm.initBatchCreditTransferOut = function (platformData, gameProviderData) {
+            utilService.actionAfterLoaded('#modalBatchCreditTransferOut .endTime', function () {
+                vm.batchCreditTransferOutQuery.startTime = utilService.createDatePicker('#modalBatchCreditTransferOut .startTime');
+                vm.batchCreditTransferOutQuery.endTime = utilService.createDatePicker('#modalBatchCreditTransferOut .endTime');
+                vm.batchCreditTransferOutQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.batchCreditTransferOutQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                vm.selectedProviderNickName = vm.getPlatformsNickNameForProvider(platformData, gameProviderData);
+            });
+        };
+
+        vm.submitBatchCreditTransferOut = function() {
+            let sendQuery = {
+                startDate: vm.batchCreditTransferOutQuery.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.batchCreditTransferOutQuery.endTime.data('datetimepicker').getLocalDate(),
+                providerId: vm.SelectedProvider.providerId,
+                providerObjId: vm.SelectedProvider._id,
+                platformObjId: vm.selectedPlatform.id,
+                adminName: authService.adminName
+            };
+            console.log("batchCreditTransferOut",sendQuery);
+            socketService.$socket($scope.AppSocket, "batchCreditTransferOut", sendQuery, function (data) {
+                console.log("batchCreditTransferOut_ret",data.data);
+                vm.batchCreditTransferOut = data.data;
+                vm.platformProviderList.forEach(item => {
+                    if(item._id==data.data.providerObjId) {
+                        item.batchCreditTransferOut = vm.batchCreditTransferOut;
+                    }
+                });
+                $scope.safeApply();
+            });
+        };
 
             /////////////////////////////////Mark::player functions//////////////////
 
@@ -2596,20 +2654,24 @@ define(['js/app'], function (myApp) {
                     remark: ''
                 };
                 vm.platformCreditTransferLog = {};
+                vm.platformCreditTransferLog.isPopup = isPopup===true;
+                vm.platformCreditTransferLog.index = 0;
+                vm.platformCreditTransferLog.limit = 10;
                 utilService.actionAfterLoaded(('#' + panelBody), function () {
                     vm.platformCreditTransferLog.startTime = utilService.createDatePicker('#' + panelBody + ' .startTime');
                     vm.platformCreditTransferLog.endTime = utilService.createDatePicker('#' + panelBody + ' .endTime');
                     vm.platformCreditTransferLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.platformCreditTransferLog.pageObj = utilService.createPageForPagingTable('#' + tablePage, {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, panelBody, vm.getPagedPlatformCreditTransferLog)
+                        vm.commonPageChangeHandler(curP, pageSize, 'platformCreditTransferLog', vm.getPagedPlatformCreditTransferLog)
                     });
                     vm.getPagedPlatformCreditTransferLog(true, isPopup);
                 });
             };
 
-            vm.getPagedPlatformCreditTransferLog = function (newSearch, isPopup) {
+            vm.getPagedPlatformCreditTransferLog = function (newSearch) {
                 vm.platformCreditTransferLog.loading = true;
+                $scope.safeApply();
                 let sendQuery = {
                     PlatformObjId: vm.selectedPlatform.id,
                     startTime: vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate(),
@@ -2628,7 +2690,7 @@ define(['js/app'], function (myApp) {
                     vm.platformCreditTransferLogData = data.data.data;
                     vm.platformCreditTransferLog.totalCount = data.data.total || 0;
                     vm.platformCreditTransferLog.loading = false;
-                    vm.drawPagedPlatformCreditTransferQueryTable(vm.platformCreditTransferLogData, vm.platformCreditTransferLog.totalCount, newSearch, isPopup);
+                    vm.drawPagedPlatformCreditTransferQueryTable(vm.platformCreditTransferLogData, vm.platformCreditTransferLog.totalCount, newSearch);
                 });
 
                 // function getAllPlayerCreditTransferStatus() {
@@ -2642,7 +2704,7 @@ define(['js/app'], function (myApp) {
                 //
                 // getAllPlayerCreditTransferStatus();
             };
-            vm.drawPagedPlatformCreditTransferQueryTable = function (data, size, newSearch, isPopup) {
+            vm.drawPagedPlatformCreditTransferQueryTable = function (data, size, newSearch) {
                 let tableData = data.map(item => {
                     item.createTime$ = vm.dateReformat(item.createTime);
                     item.typeText = $translate(item.type);
@@ -2652,6 +2714,18 @@ define(['js/app'], function (myApp) {
                 });
                 let option = $.extend({}, vm.generalDataTableOptions, {
                     data: tableData,
+                    "order": vm.platformCreditTransferLog.aaSorting || [[0, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'createTime', 'aTargets': [0], bSortable: true},
+                        {'sortCol': 'transferId', 'aTargets': [1], bSortable: true},
+                        {'sortCol': 'playerName', 'aTargets': [2], bSortable: true},
+                        {'sortCol': 'amount', 'aTargets': [3], bSortable: true},
+                        {'sortCol': 'providerId', 'aTargets': [4], bSortable: true},
+                        {'sortCol': 'amount', 'aTargets': [5], bSortable: true},
+                        {'sortCol': 'lockedAmount', 'aTargets': [6], bSortable: true},
+                        {'sortCol': 'type', 'aTargets': [7], bSortable: true},
+                        {'sortCol': 'status', 'aTargets': [8], bSortable: true}
+                    ],
                     columns: [
                         {title: $translate('CREATE_TIME'), data: 'createTime$'},
                         {title: $translate("TRANSFER") + " ID", data: 'transferId'},
@@ -2684,7 +2758,7 @@ define(['js/app'], function (myApp) {
                 });
 
 
-                let tableElem = isPopup ? '#platformCreditTransferLogPopupTable' : '#platformCreditTransferLogTable';
+                let tableElem = vm.platformCreditTransferLog.isPopup ? '#platformCreditTransferLogPopupTable' : '#platformCreditTransferLogTable';
                 console.log(tableElem);
                 let table = utilService.createDatatableWithFooter(tableElem, option, {});
                 vm.platformCreditTransferLog.pageObj.init({maxCount: size}, newSearch);
@@ -2733,7 +2807,7 @@ define(['js/app'], function (myApp) {
 
                 $(tableElem).off('order.dt');
                 $(tableElem).on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'playerCreditChangeLog', vm.getPagedPlayerCreditChangeLog);
+                    vm.commonSortChangeHandler(a, 'platformCreditTransferLog', vm.getPagedPlatformCreditTransferLog);
                 });
                 $(tableElem).resize();
                 $scope.safeApply();
@@ -4676,7 +4750,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsExchange')) {
+                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': "images/icon/rewardPointsBlue.png",
@@ -4704,7 +4778,6 @@ define(['js/app'], function (myApp) {
                                     'class': 'playerPermissionPopover',
                                     'ng-click': "vm.permissionPlayer = " + JSON.stringify(row)
                                     + "; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;"
-                                    + "; vm.permissionPlayer.permission.rewardPointsTask = !vm.permissionPlayer.permission.rewardPointsTask;"
                                     + "; vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
@@ -5569,7 +5642,6 @@ define(['js/app'], function (myApp) {
 
                                 // Invert second render
                                 row.permission.banReward = !row.permission.banReward;
-                                row.permission.rewardPointsTask = !row.permission.rewardPointsTask;
                                 row.permission.disableWechatPay = !row.permission.disableWechatPay;
                                 row.permission.forbidPlayerConsumptionReturn = !row.permission.forbidPlayerConsumptionReturn;
                                 row.permission.forbidPlayerConsumptionIncentive = !row.permission.forbidPlayerConsumptionIncentive;
@@ -5611,10 +5683,6 @@ define(['js/app'], function (myApp) {
                                     // Invert faked permission display
                                     if (changeObj.hasOwnProperty('banReward')) {
                                         changeObj.banReward = !changeObj.banReward;
-                                    }
-
-                                    if (changeObj.hasOwnProperty('rewardPointsTask')) {
-                                        changeObj.rewardPointsTask = !changeObj.rewardPointsTask;
                                     }
 
                                     if (changeObj.hasOwnProperty('disableWechatPay')) {
@@ -6828,8 +6896,9 @@ define(['js/app'], function (myApp) {
             }
 
             function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData, topUpGroupRemark, playerPermission) {
-                if (playerPermission.levelChange === false) {
-                    newPlayerData.playerLevel = oldPlayerData.playerLevel
+                if (playerPermission.levelChange === false && newPlayerData.playerLevel != oldPlayerData.playerLevel) {
+                    newPlayerData.playerLevel = oldPlayerData.playerLevel;
+                    socketService.showErrorMessage($translate("level change fail, please contact cs"));
                 }
                 oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 var updateData = newAndModifiedFields(oldPlayerData, newPlayerData);
@@ -8134,78 +8203,39 @@ define(['js/app'], function (myApp) {
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
                 if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
                     vm.createPlayerRewardPointsRecord();
-                } else if(vm.selectedSinglePlayer.currentPoints === undefined) {
-                    vm.getPlayerRewardPointsRecord();
                 }
 
                 vm.rewardPointsChange.finalValidAmount = 0;
                 vm.rewardPointsChange.remark = '';
                 vm.rewardPointsChange.updateAmount = 0;
+                vm.rewardPointsConvert.finalValidAmount = 0;
+                vm.rewardPointsConvert.remark = '';
+                vm.rewardPointsConvert.updateAmount = 0;
                 $scope.safeApply();
             };
 
             vm.createPlayerRewardPointsRecord = function () {
                 let sendData = {
                     platformId: vm.selectedPlatform.id,
-                    data: {
-                        playerId: vm.isOneSelectedPlayer()._id,
-                        points: 0,
-                        playerName: vm.isOneSelectedPlayer().name,
-                        playerLevel: vm.isOneSelectedPlayer().playerLevel._id,
-                        progress: []
-                    }
+                    playerId: vm.isOneSelectedPlayer()._id
                 };
 
-                socketService.$socket($scope.AppSocket, 'createPlayerRewardPointsRecord', sendData, function (data) {
-                    vm.isOneSelectedPlayer().currentPoints = data.data.points;
-
-                    let playerId = data.data.playerObjId;
-                    let platformId = data.data.platformObjId;
-                    let rewardPointsObjId = data.data._id;
-
-                    vm.upsertPlayerInfoRewardPointsObjId(playerId, platformId, rewardPointsObjId);
-                    $scope.safeApply();
-                });
-            };
-
-            vm.upsertPlayerInfoRewardPointsObjId = function (playerId, platformId, rewardPointsObjId) {
-                let sendData = {
-                    playerId: playerId,
-                    platformId: platformId,
-                    rewardPointsObjId: rewardPointsObjId,
-                };
-
-                socketService.$socket($scope.AppSocket, 'upsertPlayerInfoRewardPointsObjId', sendData, function (data) {
-                    vm.isOneSelectedPlayer().rewardPointsObjId = data.data.rewardPointsObjId;
-                    $scope.safeApply();
-                });
-            };
-
-            vm.getPlayerRewardPointsRecord = function () {
-                let sendData = {
-                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId
-                };
-
-                socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsRecord', sendData, function (data) {
-                    vm.isOneSelectedPlayer().currentPoints = data.data.points;
+                socketService.$socket($scope.AppSocket, 'createPlayerRewardPointsRecord', sendData, function () {
+                    vm.advancedPlayerQuery();
                     $scope.safeApply();
                 });
             };
 
             vm.updatePlayerRewardPointsRecord = function () {
                 let sendData = {
-                    rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId,
-                    data: {
-                        oldPoints: vm.isOneSelectedPlayer().currentPoints,
-                        amount: vm.rewardPointsChange.updateAmount,
-                        creator: authService.adminName,
-                        remark: vm.rewardPointsChange.remark,
-                        status: 1
-                    }
+                    playerObjId: vm.isOneSelectedPlayer()._id,
+                    platformObjId: vm.isOneSelectedPlayer().platform,
+                    updateAmount: vm.rewardPointsChange.updateAmount,
+                    remark: vm.rewardPointsChange.remark
                 };
 
-                socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function () {
-                    vm.getPlatformPlayersData();
+                socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function (data) {
+                    vm.advancedPlayerQuery();
                     $scope.safeApply();
                 });
             };
@@ -10449,6 +10479,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 socketService.$socket($scope.AppSocket, 'getPlayerPermissionLog', sendData, function (data) {
+                    data.data.forEach(row => {row.admin = row.isSystem ? {adminName: "System"} : row.admin;});
                     vm.playerPermissionHistory = data.data || [];
                     vm.playerPermissionQuery.searching = false;
                     $scope.safeApply();
@@ -13557,48 +13588,59 @@ define(['js/app'], function (myApp) {
                         })
                     });
 
-                    let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+                    $scope.safeApply();
 
-                    // Set param value
-                    Object.keys(paramType).forEach(el => {
-                        // Get value
-                        if (vm.showReward && vm.showReward.param && vm.showReward.param.hasOwnProperty(el) && el != "rewardParam") {
-                            vm.rewardMainParam[el] = paramType[el];
-                            vm.rewardMainParam[el].value = vm.showReward.param[el];
-                        }
+                    setTimeout(function() {
+                        let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
 
-                        // Get multi step reward flag
-                        if (el == "isMultiStepReward" && vm.showReward && vm.showReward.param && vm.showReward.param[el] === true) {
-                            vm.isMultiStepReward = true;
-                        }
-                    });
-
-                    vm.changeRewardParamLayout(null, true);
-
-                    utilService.actionAfterLoaded("#rewardMainParamTable", function () {
-                        // Set param table value
-                        Object.keys(paramType.rewardParam).forEach(el => {
-                            if (vm.isPlayerLevelDiff) {
-                                if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
-                                    vm.showReward.param.rewardParam.forEach((el, idx) => {
-                                        vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
-
-                                    })
-                                }
-                            } else {
-                                if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
-                                    vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
+                        // Set param value
+                        Object.keys(paramType).forEach(el => {
+                            // Get value
+                            if (vm.showReward && vm.showReward.param && vm.showReward.param.hasOwnProperty(el) && el != "rewardParam") {
+                                vm.rewardMainParam[el] = paramType[el];
+                                vm.rewardMainParam[el].value = vm.showReward.param[el];
                             }
-                            if (el == "rewardPercentageAmount") {
-                                vm.isRandomReward = true;
-                                vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !=="undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{percentage: "", amount: ""}];
+
+                            // Get multi step reward flag
+                            if (el == "isMultiStepReward" && vm.showReward && vm.showReward.param && vm.showReward.param[el] === true) {
+                                vm.isMultiStepReward = true;
                             }
                         });
 
-                        $scope.safeApply();
+                        vm.changeRewardParamLayout(null, true);
 
-                        vm.disableAllRewardInput(true);
-                    });
+                        utilService.actionAfterLoaded("#rewardMainParamTable", function () {
+                            // Set param table value
+                            Object.keys(paramType.rewardParam).forEach(el => {
+                                if (vm.isPlayerLevelDiff) {
+                                    if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
+                                        vm.showReward.param.rewardParam.forEach((el, idx) => {
+                                            vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
+
+                                        })
+                                    }
+                                } else {
+                                    if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
+                                        vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
+                                }
+                                if (el == "rewardPercentageAmount") {
+                                    vm.isRandomReward = true;
+                                    vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !== "undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{
+                                        percentage: "",
+                                        amount: ""
+                                    }];
+                                }
+                            });
+
+                            $scope.safeApply();
+
+                            if (vm.rewardMainCondition[0].name == 'name' && vm.rewardMainCondition[0].value == null) {
+                                vm.disableAllRewardInput(false);
+                            }else {
+                                vm.disableAllRewardInput(true);
+                            }
+                        });
+                    }, 0);
                 }
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
@@ -14002,7 +14044,7 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            $scope.safeApply();
+            // $scope.safeApply();
         };
 
             /**
@@ -14235,15 +14277,48 @@ define(['js/app'], function (myApp) {
 
 
                 } else if (type == 'remove') {
-                    let sendData = {
-                        platformObjId: vm.selectedPlatform.id,
-                        promoCodeSMSContent: collection.splice(data, 1),
-                        isDelete: true
-                    };
 
-                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                        vm.loadPlatformData({loadAll: false});
-                    });
+                    // delete immediately the constructed promoCodeType before saving into dB
+                    if (collection[data]._id == null){
+                        collection.splice(data, 1);
+                    }
+                    else{
+
+                        let sendData ={
+                            platformObjId: vm.selectedPlatform.id,
+                            promoCodeTypeObjId: collection[data]._id
+                        };
+
+                        // check the availability of the promocode type, can only remove if it is expired
+                        socketService.$socket($scope.AppSocket, 'checkPromoCodeTypeAvailability', sendData, function (result) {
+                            if (result){
+                                if (!result.data.deleteFlag && !result.data.delete) {
+                                    socketService.showErrorMessage($translate("The promoCode Type is still valid"));
+                                }
+                                else if (!result.data.deleteFlag && result.data.delete) {
+                                    // delete the PromoCodeType from the dB (generated promoCodeType but not using)
+                                    vm.removeSMSContent.push({
+                                        smsContent: collection.splice(data, 1),
+                                        isDelete: true
+                                    });
+                                    $scope.safeApply();
+                                }
+                                else if (result.data.deleteFlag && !result.data.delete) {
+                                    // change the deleteFlag status in dB (as it had been used before)
+                                    vm.removeSMSContent.push({
+                                        smsContent: collection.splice(data, 1),
+                                        updateIsDeletedFlag: true
+                                    });
+                                    $scope.safeApply();
+                                }
+                                else{}
+
+                            }
+                            else{
+                                return Q.reject("data was empty: " + result);
+                            }
+                        });
+                    }
                 }
             };
 
@@ -14618,6 +14693,8 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeType2 = [];
                 vm.promoCodeType3 = [];
 
+                vm.removeSMSContent = [];
+
                 vm.userGroupConfig = [];
                 vm.durationGroupConfig = [];
                 vm.modalYesNo = {};
@@ -14739,6 +14816,8 @@ define(['js/app'], function (myApp) {
                     case 'rewardPointsRule':
                         vm.isRewardPointsLvlConfigEditing = false;
                         vm.rewardPointsLvlConfig = {};
+                        vm.oldRewardPointsLvlConfigPeriod = null;
+                        vm.oldRewardPointsLvlConfigCustomPeriodEndTime = null;
                         Q.all([vm.getRewardPointsLvlConfig(),vm.getAllPlayerLevels(),vm.getPlatformProviderGroup()]).then(
                             (data) => {
                                 // Check is all player level already set rewardPointsLvlConfig
@@ -14755,6 +14834,8 @@ define(['js/app'], function (myApp) {
                                         vm.rewardPointsLvlConfig.params.push({'levelObjId' : playerLvl._id});
                                     }
                                 });
+                                vm.oldRewardPointsLvlConfigPeriod = vm.rewardPointsLvlConfig.intervalPeriod;
+                                vm.oldRewardPointsLvlConfigCustomPeriodEndTime = vm.rewardPointsLvlConfig.customPeriodEndTime;
                                 vm.rewardPointsLvlConfigPeriodChange();
                                 vm.rewardPointsLvlConfigSetDisable(true);
                                 $scope.safeApply();
@@ -14798,6 +14879,17 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case 'rewardPointsLog':
+                        vm.rewardPointsLogQuery = {};
+                        vm.rewardPointsLogPageObjs = {};
+                        vm.allRewardPointsLogPageAASorting = [];
+                        vm.selectedSingleLog = null;
+                        utilService.actionAfterLoaded("#allRewardPointsTablePage", function () {
+                            vm.rewardPointsLogPageObjs.allRewardPoints = utilService.createPageForPagingTable("#allRewardPointsTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "allRewardPointsLogPageAASorting", vm.submitRewardPointsLogQuery)
+                            });
+                            $scope.safeApply();
+                            vm.submitRewardPointsLogQuery(true);
+                        });
                         break;
                 }
             };
@@ -15193,6 +15285,13 @@ define(['js/app'], function (myApp) {
                     vm.rewardPointsLvlConfig.customPeriodStartTime = null;
                     vm.rewardPointsLvlConfig.customPeriodEndTime = null;
                 }
+                //if make changes to customPeriodEndTime then set lastRunAutoPeriodTime null
+                // OR original rewardPointsLvlConfigPeriod is not custom(6) and changes interval Period to custom
+                // FOR auto scheduler determines is it need to run this custom interval period rewardPointsLvlConfig.
+                if (vm.oldRewardPointsLvlConfigCustomPeriodEndTime != vm.rewardPointsLvlConfig.customPeriodEndTime ||
+                    (vm.oldRewardPointsLvlConfigPeriod != 6 && vm.rewardPointsLvlConfig.intervalPeriod == 6)) {
+                    vm.rewardPointsLvlConfig.lastRunAutoPeriodTime = null;
+                }
                 $scope.$socketPromise('upsertRewardPointsLvlConfig', {rewardPointsLvlConfig: vm.rewardPointsLvlConfig}).then((data) => {
                     vm.rewardPointsLvlConfigPeriodChange();
                     vm.rewardPointsLvlConfigSetDisable(true);
@@ -15362,6 +15461,149 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsEvent.push( Object.assign(defaultEvent, otherEventParam));
             };
 
+            vm.submitRewardPointsLogQuery = function (newSearch) {
+                $('#loadRewardPointsLogIcon').show();
+                var allRewardPointsLogProm = vm.searchRewardPointsLog(newSearch ? 0 : vm.allRewardPointsLogPageAASorting.index, vm.allRewardPointsLogPageAASorting.limit, {sortCol: {}});
+
+                Q.all([allRewardPointsLogProm]).then(
+                    (data) => {
+                        $scope.safeApply();
+                        vm.allRewardPointsLog = data[0];
+                        console.log('vm.allRewardPointsLog', vm.allRewardPointsLog);
+                        vm.drawRewardPointsLogTable("#allRewardPointsTable", vm.allRewardPointsLogPageAASorting, vm.allRewardPointsLog.data, vm.allRewardPointsLog.size, newSearch, {});
+                        $('#loadRewardPointsLogIcon').hide();
+                    }
+                )
+            };
+
+            vm.searchRewardPointsLog = (index,limit, additionalQuery = {}) => {
+                var sendQuery = {
+                    query: {},
+                    index: index,
+                    limit: limit || 10,
+                };
+
+                sendQuery = Object.assign({}, sendQuery, additionalQuery);
+                $.each(vm.rewardPointsLogQuery, function (idx, val) {
+                    if (val != '' && val != 'all') {
+                        sendQuery.query[idx] = val;
+                    }
+                });
+                delete sendQuery.query.rewardPointsOperator;
+                delete sendQuery.query.rewardPointsAmountOne;
+                delete sendQuery.query.rewardPointsAmountTwo;
+                var rewardPointsOperator = vm.rewardPointsLogQuery.rewardPointsOperator;
+                var rewardPointsAmountOne = vm.rewardPointsLogQuery.rewardPointsAmountOne ? vm.rewardPointsLogQuery.rewardPointsAmountOne : 0;
+                var rewardPointsAmountTwo = vm.rewardPointsLogQuery.rewardPointsAmountTwo ? vm.rewardPointsLogQuery.rewardPointsAmountTwo : 0;
+                if (rewardPointsOperator && rewardPointsAmountOne != '') {
+                    switch (rewardPointsOperator) {
+                        case '<=':
+                            sendQuery.query.amount = {$lte: rewardPointsAmountOne};
+                            break;
+                        case '>=':
+                            sendQuery.query.amount = {$gte: rewardPointsAmountOne};
+                            break;
+                        case '=':
+                            sendQuery.query.amount = rewardPointsAmountOne;
+                            break;
+                        case 'range':
+                            if (rewardPointsAmountTwo) sendQuery.query.amount = {$gte: rewardPointsAmountOne, $lte: rewardPointsAmountTwo};
+                            break;
+                    }
+                }
+
+                console.log("rewardPointsLogQuery", sendQuery);
+                return $scope.$socketPromise('getRewardPointsLogsQuery', sendQuery).then(
+                    (data) => data.data
+                );
+
+            };
+
+            vm.drawRewardPointsLogTable = function (id, sort, data, size, newSearch, summary) {
+                var showData = [];
+                $.each(data, function (i, j) {
+                    j.createTime$ = utilService.getFormatTime(j.createTime);
+                    showData.push(j);
+                });
+                var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: showData,
+                    order: sort || [[11, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [11]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('Reward Point ID'),data: "pointLogId"},
+                        {title: $translate('Proposal Creator'), data: "playerName"},
+                        {
+                            title: $translate('Reward Points Type'), data: "category",
+                            render: function (data, type, row) {
+                                return $translate($scope.constRewardPointsLogCategory[row.category]);
+                            }
+                        },
+                        {title: $translate('Reward Title'), data: "rewardTitle"},
+                        {
+                            title: $translate('userAgent'), data: "userAgent",
+                            render: function (data, type, row) {
+                                return $translate($scope.constPlayerRegistrationInterface[row.userAgent]);
+                            }
+                        },
+                        {
+                            title: $translate('Proposal Status'), data: "status",
+                            render: function (data, type, row) {
+                                return $translate($scope.constRewardPointsLogStatus[row.status]);
+                            }
+                        },
+                        {title: $translate('Member Account'), data: "playerName"},
+                        {title: $translate('beforeChangeRewardPoint'), data: "oldPoints"},
+                        {title: $translate('afterChangeRewardPoint'), data: "newPoints"},
+                        {title: $translate('Reward Point Variable'), data: "amount",  bSortable: true},
+                        {
+                            title: $translate('dailyMaxRewardPoint'), data: "maxDayApplyAmount",
+                            render: function (data, type, row) {
+                                return row.currentDayAppliedAmount + "/" + row.maxDayApplyAmount;
+                            }
+                        },
+                        {title: $translate('createTime'), data: "createTime$",  bSortable: true},
+                        {title: $translate('playerLevelName'), data: "playerLevelName"},
+                        {title: $translate('remark'), data: "remark"},
+                        {
+                            title: $translate('detail'),
+                            render: function (data, type, row) {
+                                var $a = $('<a>', {
+                                    'ng-click': "vm.prepareShowRewardPointsLogDetail(" + JSON.stringify(row) + ")"
+                                }).text($translate('detail'));
+                                // $compile($a.prop('outerHTML'))($scope);
+                                return $a.prop('outerHTML');
+                            },
+                            "fnCreatedCell": function (nTd, sData, oData, iRow, iCol) {
+                                $compile(nTd)($scope)
+                            }
+                        },
+                    ],
+                    "paging": false,
+                });
+                var aTable = utilService.createDatatableWithFooter(id, tableOptions, summary, true);
+                vm.rewardPointsLogPageObjs.allRewardPoints.init({maxCount: size}, newSearch);
+                $(id).off('order.dt');
+                $(id).on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'allRewardPointsLogPageAASorting', vm.searchRewardPointsLog);
+                });
+
+                $scope.safeApply();
+                aTable.columns.adjust().draw();
+                $(id).resize();
+            };
+
+            vm.prepareShowRewardPointsLogDetail = (rewardPointsLog) => {
+                rewardPointsLog.category = $scope.constRewardPointsLogCategory[rewardPointsLog.category];
+                rewardPointsLog.status = $scope.constRewardPointsLogStatus[rewardPointsLog.status];
+                vm.rewardPointsLogDetail = rewardPointsLog;
+                console.log(rewardPointsLog);
+                $('#modalRewardPointsLogDetail').modal();
+
+            };
+
             vm.datetimePickerSetDisable = (eleId, isDisable) => {
                 utilService.actionAfterLoaded(eleId, () => {
                     $(eleId+" :input").prop("disabled", isDisable);
@@ -15373,8 +15615,8 @@ define(['js/app'], function (myApp) {
             vm.convertPlayerRewardPoints = () => {
                 var sendData = {
                     playerId: vm.isOneSelectedPlayer().playerId,
-                    convertRewardPointsAmount: vm.rewardPointsExchange.updateAmount,
-                    remark: vm.rewardPointsExchange.remark
+                    convertRewardPointsAmount: vm.rewardPointsConvert.updateAmount,
+                    remark: vm.rewardPointsConvert.remark
                 };
                 socketService.$socket($scope.AppSocket, 'convertRewardPointsToCredit', sendData, function (data) {
                     console.log('convertRewardPointsToCredit', data.data);
@@ -15384,7 +15626,7 @@ define(['js/app'], function (myApp) {
             };
 
             function loadPromoCodeTypes() {
-                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id, deleteFlag: false}, function (data) {
                     console.log('getPromoCodeTypes', data);
 
                     vm.promoCodeTypes = data.data;
@@ -15415,60 +15657,56 @@ define(['js/app'], function (myApp) {
                 vm.getDelayDurationGroup();
             }
 
-            vm.checkPlayerName = function (el, id) {
+            vm.checkPlayerName = function (el, id, index) {
                 let bgColor;
+                let cssPointer = id;
+                let rowNumber = index + 1;
+                let playerNameList = el.playerName ? el.playerName.split("\n") : el.playerName;
 
-                vm.userGroupConfig.map(e => {
-                    if (e.playerNames.indexOf(el.playerName) > -1) {
-                        bgColor = e.color;
+                if (playerNameList && playerNameList.length > 0) {
+                    vm.userGroupConfig.map(e => {
+                        playerNameList.map(playerName => {
+                            if (e.playerNames.indexOf(playerName.trim()) > -1) {
+                                bgColor = e.color;
+                            }
+                        });
+                    });
+
+                    if (rowNumber) {
+                        cssPointer = id + " > tbody > tr:nth-child(" + rowNumber + ")";
                     }
-                });
 
-                $(id).css("background-color", bgColor ? bgColor : "");
+                    $(cssPointer).css("background-color", bgColor ? bgColor : "");
+                }
             };
 
             vm.promoCodeNewRow = function (collection, type, data) {
-                collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true});
-                collection.forEach((elem, index, arr) => {
-                    let id = '#expDate' + type + '-' + index;
-                    let provId = '#promoProviders' + type + '-' + index;
-                    let tableId = "#createPromoCodeTable" + type;
+                let tableId = "#createPromoCodeTable" + type;
 
-                    if (!$(id).data("datetimepicker")) {
-                        utilService.actionAfterLoaded(id, function () {
-                            collection[index].expirationTime = utilService.createDatePicker(id, {
-                                language: 'en',
-                                format: 'yyyy/MM/dd hh:mm:ss',
-                                startDate: utilService.setLocalDayStartTime(new Date())
+                let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true}));
+
+                return p.then(
+                    () => {setTimeout( () => {
+                        collection.forEach((elem, index, arr) => {
+                            let id = '#expDate' + type + '-' + index;
+
+                            utilService.actionAfterLoaded(id, function () {
+                                collection[index].expirationTime = utilService.createDatePicker(id, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss',
+                                    startDate: utilService.setLocalDayStartTime(new Date())
+                                });
+                                collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             });
-                            collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                            $scope.safeApply();
+
+                            vm.checkPlayerName(elem, tableId, index);
                         });
+
+                        return collection;},0);
                     }
-
-                    if (!$(provId).data("multipleSelect")) {
-                        utilService.actionAfterLoaded(provId, function () {
-                            $(provId).multipleSelect({
-                                allSelected: $translate("All Selected"),
-                                selectAllText: $translate("Select All"),
-                                countSelected: $translate('# of % selected'),
-                                onClick: function () {
-                                    //vm.proposalStatusUpdated();
-                                },
-                                onCheckAll: function () {
-                                    //vm.proposalStatusUpdated();
-                                },
-                                onUncheckAll: function () {
-                                    //vm.proposalStatusUpdated();
-                                }
-                            });
-                            $(provId).multipleSelect("checkAll");
-                        });
-                    }
-
-                    vm.checkPlayerName(elem, tableId);
-                });
-
-                return collection;
+                );
             };
 
             vm.generatePromoCode = function (col, index, data, type) {
@@ -15501,7 +15739,7 @@ define(['js/app'], function (myApp) {
                         status: 1
                     };
 
-                    return $scope.$socketPromise('getPromoCodesHistory', searchQ).then(ret => {
+                    return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
                         if (ret && ret.data && ret.data.length > 0) {
                             if (!data.skipCheck) {
                                 data.hasMoreThanOne = true;
@@ -15602,7 +15840,53 @@ define(['js/app'], function (myApp) {
             };
 
             vm.sendSMSByPromoCode = function (promoCode) {
-                let item = promoCode ? promoCode : vm.selectedPromoCode
+                let item = promoCode ? promoCode : vm.selectedPromoCode;
+
+                // Translate sms content
+                Object.keys($scope.constPromoCodeLegend).forEach(e => {
+                    let indexCode = $scope.constPromoCodeLegend[e];
+                    let codePositionIndex = item.smsContent.indexOf("(" + indexCode + ")");
+                    let contentToReplace = "";
+
+                    switch (indexCode) {
+                        case "X":
+                            contentToReplace = item.amount;
+                            break;
+                        case "D":
+                            contentToReplace = item.minTopUpAmount;
+                            break;
+                        case "Y":
+                            contentToReplace = item.requiredConsumption;
+                            break;
+                        case "Z":
+                            contentToReplace = vm.dateReformat(item.expirationTime);
+                            break;
+                        case "P":
+                            if (vm.selectedPlatform.data.useProviderGroup) {
+                                contentToReplace = [];
+                                item.allowedProviders[0].providers.map(e => {
+                                    if (vm.platformProviderList.find(g => String(g._id) == String(e))) {
+                                        contentToReplace.push(vm.platformProviderList.find(g => String(g._id) == String(e)).name)
+                                    }
+                                })
+                            } else {
+                                contentToReplace = item.allowedProviders.map(f => f.name);
+                            }
+                            break;
+                        case "Q":
+                            contentToReplace = item.code;
+                            break;
+                        case "M":
+                            contentToReplace = item.maxTopUpAmount;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    if (codePositionIndex > -1) {
+                        item.smsContent = item.smsContent.substr(0, codePositionIndex) + contentToReplace + item.smsContent.substr(codePositionIndex + 3);
+                    }
+                })
 
                 let sendObj = {
                     platformId: item.platformObjId,
@@ -16030,7 +16314,12 @@ define(['js/app'], function (myApp) {
                     console.log('getPromoCodesMonitor', data);
                     vm.promoCodeMonitor.totalCount = data.data.length;
                     $scope.safeApply();
-                    vm.drawPromoCodeMonitorTable(data.data, data.data.length, {}, isNewSearch);
+                    vm.drawPromoCodeMonitorTable(data.data.map(
+                        item => {
+                            item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
+                            return item;
+                        }
+                    ), data.data.length, {}, isNewSearch);
                 }, function (err) {
                     console.error(err);
                 }, true);
@@ -16125,19 +16414,23 @@ define(['js/app'], function (myApp) {
                                 },
                                 {
                                     title: $translate('sendCount'),
-                                    data: "sendCount"
+                                    data: "sendCount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('acceptedCount'),
-                                    data: "acceptedCount"
+                                    data: "acceptedCount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('acceptedRate'),
-                                    render: (data, index, row) => String(parseFloat(row.acceptedCount / row.sendCount * 100).toFixed(2)) + "%"
+                                    render: (data, index, row) => String(parseFloat(row.acceptedCount / row.sendCount * 100).toFixed(2)) + "%",
+                                    sClass: "promoCodeAcceptanceRate"
                                 },
                                 {
                                     title: $translate('acceptedAmount'),
-                                    data: "acceptedAmount"
+                                    data: "acceptedAmount",
+                                    sClass: 'sumInt'
                                 }
                             ],
                             "paging": false
@@ -16156,23 +16449,28 @@ define(['js/app'], function (myApp) {
                                 },
                                 {
                                     title: $translate('sendCount'),
-                                    data: "sendCount"
+                                    data: "sendCount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('acceptedCount'),
-                                    data: "acceptedCount"
+                                    data: "acceptedCount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('acceptedRate'),
-                                    render: (data, index, row) => String(parseFloat(row.acceptedCount / row.sendCount * 100).toFixed(2)) + "%"
+                                    render: (data, index, row) => String(parseFloat(row.acceptedCount / row.sendCount * 100).toFixed(2)) + "%",
+                                    sClass: "promoCodeAcceptanceRate"
                                 },
                                 {
                                     title: $translate('acceptedAmount'),
-                                    data: "acceptedAmount"
+                                    data: "acceptedAmount",
+                                    sClass: 'sumInt'
                                 },
                                 {
                                     title: $translate('relatedTopUpAmount'),
-                                    data: "topUpAmount"
+                                    data: "topUpAmount",
+                                    sClass: 'sumInt'
                                 }
                             ],
                             "paging": false
@@ -17535,15 +17833,47 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeType3.forEach(entry => entry.type = 3);
 
                 let promoCodeSMSContent = vm.promoCodeType1.concat(vm.promoCodeType2, vm.promoCodeType3);
-                let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
-                    promoCodeSMSContent: promoCodeSMSContent,
-                    isDelete: false
-                };
 
-                socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                    vm.loadPlatformData({loadAll: false});
-                });
+                if (vm.removeSMSContent && vm.removeSMSContent.length > 0 ){
+                    vm.removeSMSContent.map(r => {
+                        let sendData = {
+                            platformObjId: r.smsContent[0].platformObjId,
+                            promoCodeSMSContent: r.smsContent,
+                            promoCodeTypeObjId: r.smsContent[0]._id,
+                            isDelete: r.isDelete ? r.isDelete : false,
+                            isDeleted: r.updateIsDeletedFlag ? r.updateIsDeletedFlag : false
+                        };
+
+                        if (sendData.isDelete == true) {
+                            // delete from the promoCodeType dB
+                            socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                                vm.loadPlatformData({loadAll: false});
+                            });
+                        }
+
+                        if (sendData.isDeleted == true) {
+                            // delete the promoCodeType by setting the deleteFlag
+                            // set the deleteFlag to be true for affected promoCodeType
+                            sendData.promoCodeSMSContent[0].deleteFlag = true;
+                            socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                                // update the isDelete flag of each promoCode inherited from the deleted promoCodeType
+                                socketService.$socket($scope.AppSocket, 'updatePromoCodeIsDeletedFlag', sendData, function (data) {
+                                    vm.loadPlatformData({loadAll: false});
+                                });
+                            });
+                        }
+                    });
+                } else {
+                    let sendData = {
+                        platformObjId: vm.selectedPlatform.id,
+                        promoCodeSMSContent: promoCodeSMSContent,
+                        isDelete: false
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                        vm.loadPlatformData({loadAll: false});
+                    });
+                }
             }
 
             function updateProviderGroup() {
@@ -18564,11 +18894,11 @@ define(['js/app'], function (myApp) {
 
             vm.commonPageChangeHandler = function (curP, pageSize, objKey, serchFunc) {
                 var isChange = false;
-                if (pageSize != vm[objKey].limit) {
+                if (vm[objKey] && pageSize != vm[objKey].limit) {
                     isChange = true;
                     vm[objKey].limit = pageSize;
                 }
-                if ((curP - 1) * pageSize != vm[objKey].index) {
+                if ( vm[objKey] && (curP - 1) * pageSize != vm[objKey].index) {
                     isChange = true;
                     vm[objKey].index = (curP - 1) * pageSize;
                 }
@@ -19959,7 +20289,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPromotionTypeList = function (callback) {
-                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id, deleteFlag: false}, function (data) {
                     console.log('getPromoCodeTypes', data);
                     vm.promoTypeList = data.data;
                     $scope.safeApply();

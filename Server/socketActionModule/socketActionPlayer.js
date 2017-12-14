@@ -16,6 +16,7 @@ var utility = require('./../modules/encrypt');
 var constPlayerStatus = require('./../const/constPlayerStatus');
 var constPlayerTrustLevel = require('./../const/constPlayerTrustLevel');
 var constPlayerPermission = require('./../const/constPlayerPermissions');
+var constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
 var constSystemParam = require('../const/constSystemParam');
 var constDepositMethod = require('../const/constDepositMethod');
 var mongoose = require('mongoose');
@@ -86,26 +87,8 @@ function socketActionPlayer(socketIO, socket) {
          */
         createPlayerRewardPointsRecord: function createPlayerRewardPointsRecord(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data);
-            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerRewardPointsRecord, [data.platformId, data.data.playerId, data.data.points, data.data.playerName, data.data.playerLevel, data.data.progress], actionName, isValidData);
-        },
-
-        /**
-         * Update player info with reward points record based on player id and platform id
-         */
-        upsertPlayerInfoRewardPointsObjId: function upsertPlayerInfoRewardPointsObjId(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.playerId && data.platformId && data.rewardPointsObjId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.upsertPlayerInfoRewardPointsObjId, [data.playerId, data.platformId, data.rewardPointsObjId], actionName, isValidData);
-        },
-
-        /**
-         * Get player reward points record based on player rewardPointsObjId
-         */
-        getPlayerRewardPointsRecord: function getPlayerRewardPointsRecord(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.rewardPointsObjId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerRewardPointsRecord, [data.rewardPointsObjId], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformId && data.playerId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerRewardPointsRecord, [data.platformId, data.playerId], actionName, isValidData);
         },
 
         /**
@@ -113,8 +96,8 @@ function socketActionPlayer(socketIO, socket) {
          */
         updatePlayerRewardPointsRecord: function updatePlayerRewardPointsRecord(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.rewardPointsObjId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.rewardPointsObjId, data.data], actionName, isValidData);
+            let isValidData = Boolean(data && data.playerObjId && data.platformObjId && data.updateAmount);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.playerObjId, data.platformObjId, data.updateAmount, data.remark], actionName, isValidData);
         },
 
         /**
@@ -1030,8 +1013,8 @@ function socketActionPlayer(socketIO, socket) {
         convertRewardPointsToCredit: function convertRewardPointsToCredit(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.convertRewardPointsAmount);
-            let userAgent = '';
-            socketUtil.emitter(self.socket, dbPlayerRewardPoints.convertRewardPointsToCredit, [data.playerId, data.convertRewardPointsAmount, data.remark , getAdminId(), getAdminName()], actionName, isValidData);
+            let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
+            socketUtil.emitter(self.socket, dbPlayerRewardPoints.convertRewardPointsToCredit, [data.playerId, data.convertRewardPointsAmount, data.remark, userAgent, getAdminId(), getAdminName()], actionName, isValidData);
         },
 
     };

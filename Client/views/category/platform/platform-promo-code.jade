@@ -46,7 +46,7 @@
                         tbody
                             tr(ng-repeat='promoCode in vm.newPromoCode1')
                                 td
-                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable1')", ng-disabled="promoCode.code")
+                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable1', $index)", ng-disabled="promoCode.code")
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType1', ng-disabled="promoCode.code")
                                 td
@@ -70,8 +70,8 @@
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="promoCode.code")
                                     text {{'No' | translate}}
                                 td
-                                    select.pull-left.form-control(id="promoProviders1-{{$index}}", multiple="multiple", style='min-width:100px;height:34px;' ng-if="!vm.selectedPlatform.data.useProviderGroup"
-                                    ng-model="promoCode.allowedProviders" ng-options = "prov.name for prov in vm.allGameProvider" ng-disabled="promoCode.code")
+                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='promoCode.code')
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                 td
@@ -87,7 +87,7 @@
                                     button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.hasMoreThanOne = false;')
                                         text {{'No' | translate}}
                                 td
-                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{promoCode.promoCodeType.smsContent}}
+                                    div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                 td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode1, 1)')
 
@@ -118,7 +118,7 @@
                         tbody
                             tr(ng-repeat='promoCode in vm.newPromoCode2')
                                 td
-                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable2')", ng-disabled="promoCode.code")
+                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable2', $index)", ng-disabled="promoCode.code")
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType2', ng-disabled="promoCode.code")
                                 td
@@ -140,8 +140,8 @@
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="promoCode.code")
                                     text {{'No' | translate}}
                                 td
-                                    select.pull-left.form-control(id="promoProviders2-{{$index}}", multiple="multiple", style='min-width:100px;height:34px;' ng-if="!vm.selectedPlatform.data.useProviderGroup"
-                                    ng-model="promoCode.allowedProviders" ng-options = "prov.name for prov in vm.allGameProvider" ng-disabled="promoCode.code")
+                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='promoCode.code')
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                 td
@@ -157,7 +157,7 @@
                                     button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.hasMoreThanOne = false;')
                                         text {{'No' | translate}}
                                 td
-                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{promoCode.promoCodeType.smsContent}}
+                                    div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                 td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode2, 2)')
                     br
@@ -188,7 +188,7 @@
                         tbody
                             tr(ng-repeat='promoCode in vm.newPromoCode3')
                                 td
-                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable3')", ng-disabled="promoCode.code")
+                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable3', $index)", ng-disabled="promoCode.code")
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType3', ng-disabled="promoCode.code")
                                 td
@@ -214,8 +214,8 @@
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="promoCode.code")
                                     text {{'No' | translate}}
                                 td
-                                    select.pull-left.form-control(id="promoProviders3-{{$index}}", multiple="multiple", style='min-width:100px;height:34px;' ng-if="!vm.selectedPlatform.data.useProviderGroup"
-                                    ng-model="promoCode.allowedProviders" ng-options = "prov.name for prov in vm.allGameProvider" ng-disabled="promoCode.code")
+                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='true')
+                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='promoCode.code')
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                 td
@@ -231,7 +231,7 @@
                                     button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.hasMoreThanOne = false;')
                                         text {{'No' | translate}}
                                 td
-                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{promoCode.promoCodeType.smsContent}}
+                                    div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                 td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode3, 3)')
                     br
@@ -330,8 +330,10 @@
                             tr(ng-repeat='type in vm.promoCodeType1')
                                 td
                                     text {{type.name}}
-                                td
+                                td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                td(ng-if='vm.promoCodeSMSContentEdit')
+                                    input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType1, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')
@@ -340,7 +342,7 @@
                                 td
                                     input(type='text' , ng-model='vm.newPromoCodeSMSContentType1.name')
                                 td
-                                    input(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsContent")
+                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsContent")
                                 td
                                     i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType1, {name: vm.newPromoCodeSMSContentType1.name, smsContent: vm.newPromoCodeSMSContentType1.smsContent}); vm.newPromoCodeSMSContentType1={}')
                     br
@@ -354,8 +356,10 @@
                             tr(ng-repeat='type in vm.promoCodeType2')
                                 td
                                     text {{type.name}}
-                                td
+                                td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                td(ng-if='vm.promoCodeSMSContentEdit')
+                                    input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType2, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')
@@ -364,7 +368,7 @@
                                 td
                                     input(type='text' , ng-model='vm.newPromoCodeSMSContentType2.name')
                                 td
-                                    input(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsContent")
+                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsContent")
                                 td
                                     i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType2, {name: vm.newPromoCodeSMSContentType2.name, smsContent: vm.newPromoCodeSMSContentType2.smsContent}); vm.newPromoCodeSMSContentType2={}')
                     br
@@ -378,8 +382,10 @@
                             tr(ng-repeat='type in vm.promoCodeType3')
                                 td
                                     text {{type.name}}
-                                td
+                                td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                td(ng-if='vm.promoCodeSMSContentEdit')
+                                    input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType3, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')
@@ -388,7 +394,7 @@
                                 td
                                     input(type='text' , ng-model='vm.newPromoCodeSMSContentType3.name')
                                 td
-                                    input(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsContent")
+                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsContent")
                                 td
                                     i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType3, {name: vm.newPromoCodeSMSContentType3.name, smsContent: vm.newPromoCodeSMSContentType3.smsContent}); vm.newPromoCodeSMSContentType3={}')
 
@@ -399,6 +405,16 @@
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.promoCodeSMSContentEdit', ng-click='vm.promoCodeSMSContentEdit=false') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.promoCodeSMSContentEdit', ng-click='vm.promoCodeSMSContentEdit=!vm.promoCodeSMSContentEdit;vm.configSubmitUpdate("promoSMSContent")') {{"CONFIRM" | translate}}
+                    br
+                    table.playerLvlTable(style="width:10%")
+                        thead
+                            tr
+                                th(colspan=2) {{"PROMO_CODE_LEGEND" | translate}}
+                        tbody
+                            tr(ng-repeat="(i, v) in constPromoCodeLegend")
+                                td(style="text-align:center;") {{ i | translate }}
+                                td(style="text-align:center;") {{ v }}
+
 
                 // Tab - Promo Code User Group
                 div(ng-if='vm.selectedPromoCodeTab=="userGroupConfig" && checkViewPermission("Platform", "promoCode", "userGroupConfig")')
@@ -583,10 +599,12 @@
                     .clearfix
                     label(ng-if="vm.promoCodeAnalysis.totalCount") {{"Promo Anaysis" | translate}} : {{"Total" | translate}} {{vm.promoCodeAnalysis.totalCount}} {{"records" | translate}}
                     table#promoCodeAnalysisTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                    #promoCodeAnalysisTablePage.col-md-12
 
                     .clearfix
                     label(ng-if="vm.promoCodeAnalysis2.totalCount") {{"Player Anaysis" | translate}} : {{"Total" | translate}} {{vm.promoCodeAnalysis2.totalCount}} {{"records" | translate}}
                     table#promoCodeAnalysis2Table.common-table.display(style="min-width:100% ;overflow: scroll")
+                    #promoCodeAnalysis2TablePage.col-md-12
 
 #modalDeletePromoCodeUserGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')

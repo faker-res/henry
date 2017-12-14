@@ -527,6 +527,32 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         2: "Auto Apply"
     };
 
+    $scope.constRewardPointsLogCategory = {
+        1: "LOGIN_REWARD_POINTS",
+        2: "TOPUP_REWARD_POINTS",
+        3: "GAME_REWARD_POINTS",
+        4: "POINT_REDUCTION",
+        5: "POINT_INCREMENT",
+        6: "EARLY_POINT_CONVERSION",
+        7: "PERIOD_POINT_CONVERSION"
+    };
+
+    $scope.constRewardPointsLogStatus = {
+        0: "PENDING",
+        1: "PROCESSED",
+        2: "CANCELLED",
+    };
+
+    $scope.constPromoCodeLegend = {
+        PROMO_REWARD_AMOUNT: "X",
+        PROMO_minTopUpAmount: "D",
+        PROMO_CONSUMPTION: "Y",
+        PROMO_DUE_DATE: "Z",
+        ALLOWED_PROVIDER: "P",
+        PROMO_CODE: "Q",
+        PROMO_maxTopUpAmount: "M"
+    };
+
     // $scope.consumptionRecordProviderName = {
     //     1: "AGOTHS",
     //     2: "PT",

@@ -5,7 +5,8 @@ let rsaCrypto = require("../modules/rsaCrypto");
 
 const constServerCode = require('../const/constServerCode');
 const constShardKeys = require('../const/constShardKeys');
-const constProposalType = require('../const/constProposalType')
+const constProposalType = require('../const/constProposalType');
+const constSMSPurpose = require('../const/constSMSPurpose');
 
 let dbConfig = require('../modules/dbproperties');
 let dbUtility = require('./../modules/dbutility');
@@ -13,6 +14,7 @@ let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbPartner = require('./../db_modules/dbPartner');
 let dbProposal = require('./../db_modules/dbProposal');
 let dbLogger = require('./../modules/dbLogger');
+let errorUtils = require('./../modules/errorUtils');
 
 let dbPlayerPartner = {
     createPlayerPartnerAPI: registerData => {
@@ -333,6 +335,7 @@ let dbPlayerPartner = {
         let platform;
         let verificationSmsDetail;
         let smsLogDetail;
+        newPhoneNumber = newPhoneNumber || "";
 
         // 1. Get current platform detail
         return dbConfig.collection_platform.findOne({
@@ -346,11 +349,11 @@ let dbPlayerPartner = {
                     let plyProm = dbConfig.collection_players.findOne({
                         platform: platformObjId,
                         playerId: userId
-                    });
+                    }).lean();
                     let partnerProm = dbConfig.collection_partner.findOne({
                         platform: platformObjId,
                         partnerId: userId
-                    });
+                    }).lean();
 
                     switch (targetType) {
                         case 0:
@@ -381,36 +384,59 @@ let dbPlayerPartner = {
             userData => {
                 if (userData) {
                     // 3. Check if number has already registered on platform
+                    let promises = [];
                     newEncrpytedPhoneNumber = rsaCrypto.encrypt(String(newPhoneNumber));
 
                     let plyProm = dbConfig.collection_players.findOne({
                         platform: platformObjId,
                         phoneNumber: newEncrpytedPhoneNumber
-                    });
+                    }).lean();
                     let partnerProm = dbConfig.collection_partner.findOne({
                         platform: platformObjId,
                         $or: [
                             {phoneNumber: newPhoneNumber},
                             {phoneNumber: newEncrpytedPhoneNumber}
                         ]
-                    });
+                    }).lean();
+
+                    if (!newPhoneNumber) {
+                        plyProm = Promise.resolve();
+                        partnerProm = Promise.resolve();
+                    }
 
                     switch (targetType) {
                         case 0:
                             playerData = userData;
                             curPhoneNumber = playerData.phoneNumber;
-                            return plyProm;
+                            promises.push(Promise.all([plyProm]));
+                            if (!newPhoneNumber) {
+                                let smsLogProm = dbConfig.collection_smsLog.find({recipientName: playerData.name, purpose: constSMSPurpose.NEW_PHONE_NUMBER}).sort({_id:-1}).limit(1).lean();
+                                promises.push(smsLogProm);
+                            }
+                            break;
                         case 1:
                             partnerData = userData;
                             curPhoneNumber = partnerData.phoneNumber;
-                            return partnerProm;
+                            promises.push(Promise.all([partnerProm]));
+                            if (!newPhoneNumber) {
+                                let smsLogProm = dbConfig.collection_smsLog.find({recipientName: partnerData.partnerName, purpose: constSMSPurpose.NEW_PHONE_NUMBER}).sort({_id:-1}).limit(1).lean();
+                                promises.push(smsLogProm);
+                            }
+                            break;
                         case 2:
                             playerData = userData[0];
                             partnerData = userData[1];
                             // for player partner, phone number is suppose to be the same
                             curPhoneNumber = playerData.phoneNumber;
-                            return Promise.all([plyProm, partnerProm]);
+                            promises.push(Promise.all([plyProm, partnerProm]));
+                            if (!newPhoneNumber) {
+                                let smsLogProm = dbConfig.collection_smsLog.find({recipientName: playerData.name, purpose: constSMSPurpose.NEW_PHONE_NUMBER}).sort({_id:-1}).limit(1).lean();
+                                promises.push(smsLogProm);
+                            }
+                            break;
                     }
+
+                    return Promise.all(promises);
                 }
                 else {
                     return Q.reject({
@@ -421,49 +447,73 @@ let dbPlayerPartner = {
                 }
             }
         ).then(
-            playerData => {
-                if (!playerData || (!playerData[0] && !playerData[1])) {
-                    platform.smsVerificationExpireTime = platform.smsVerificationExpireTime || 5;
-                    let smsExpiredDate = new Date();
-                    smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platform.smsVerificationExpireTime);
-                    // 4. Check if smsCode is matched
-                    return dbConfig.collection_smsVerificationLog.findOne({
-                        platformObjId: platformObjId,
-                        tel: curPhoneNumber,
-                        createTime: {$gte: smsExpiredDate}
-                    }).sort({createTime: -1}).then(
-                        verificationSMS => {
-                            verificationSmsDetail = verificationSMS;
-                            // Check verification SMS code
-                            if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
-                                verificationSMS = verificationSMS || {};
-                                return dbConfig.collection_smsVerificationLog.remove(
-                                    {_id: verificationSMS._id}
-                                ).then(
-                                    () => {
-                                        smsLogDetail = {tel: verificationSMS.tel, message: verificationSMS.code}
-                                        dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
-                                        return Q.resolve(true);
-                                    }
-                                )
-                            }
-                            else {
-                                return Q.reject({
-                                    status: constServerCode.VALIDATION_CODE_INVALID,
-                                    name: "ValidationError",
-                                    message: "Invalid SMS Validation Code"
-                                });
-                            }
-                        }
-                    )
+            data => {
+                if (!data) {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find user"
+                    });
                 }
-                else {
+                let phoneAlreadyExist = data[0];
+                if (phoneAlreadyExist && (phoneAlreadyExist[0] || phoneAlreadyExist[1])) {
                     return Q.reject({
                         status: constServerCode.INVALID_PHONE_NUMBER,
                         name: "ValidationError",
                         message: "Phone number already registered on platform"
                     });
                 }
+
+                platform.smsVerificationExpireTime = platform.smsVerificationExpireTime || 5;
+                let smsExpiredDate = new Date();
+                smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platform.smsVerificationExpireTime);
+
+                let smsVerificationLogQuery = {
+                    platformObjId: platformObjId,
+                    tel: curPhoneNumber,
+                    createTime: {$gte: smsExpiredDate}
+                };
+
+                if (!newPhoneNumber) {
+                    if (data[1] && data[1][0] && data[1][0].tel) {
+                        newPhoneNumber = data[1][0].tel;
+                        smsVerificationLogQuery.tel = data[1][0].tel;
+                        newEncrpytedPhoneNumber = rsaCrypto.encrypt(String(data[1][0].tel));
+                    }
+                    else {
+                        return Q.reject({
+                            status: constServerCode.INVALID_PHONE_NUMBER,
+                            name: "ValidationError",
+                            message: "Phone number already registered on platform"
+                        });
+                    }
+                }
+                // 4. Check if smsCode is matched
+                return dbConfig.collection_smsVerificationLog.findOne(smsVerificationLogQuery).sort({createTime: -1}).then(
+                    verificationSMS => {
+                        verificationSmsDetail = verificationSMS;
+                        // Check verification SMS code
+                        if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
+                            verificationSMS = verificationSMS || {};
+                            return dbConfig.collection_smsVerificationLog.remove(
+                                {_id: verificationSMS._id}
+                            ).then(
+                                () => {
+                                    smsLogDetail = {tel: verificationSMS.tel, message: verificationSMS.code};
+                                    dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
+                                    return Q.resolve(true);
+                                }
+                            )
+                        }
+                        else {
+                            return Q.reject({
+                                status: constServerCode.VALIDATION_CODE_INVALID,
+                                name: "ValidationError",
+                                message: "Invalid SMS Validation Code"
+                            });
+                        }
+                    }
+                )
             }
         ).then(
             result => {
@@ -479,8 +529,15 @@ let dbPlayerPartner = {
                     let updateData = {
                         phoneNumber: newEncrpytedPhoneNumber
                     };
-                    let plyProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_players, queryPlayer, updateData, constShardKeys.collection_players);
-                    let partnerProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_partner, queryPartner, updateData, constShardKeys.collection_partner);
+                    let plyProm, partnerProm;
+
+                    if (playerData) {
+                        plyProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_players, queryPlayer, updateData, constShardKeys.collection_players);
+                    }
+
+                    if (partnerData) {
+                        partnerProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_partner, queryPartner, updateData, constShardKeys.collection_partner);
+                    }
 
                     switch (targetType) {
                         case 0:
@@ -497,7 +554,7 @@ let dbPlayerPartner = {
                 // data.data.playerObjId && data.data.playerName && data.data.curData &&
                 // data.data.updateData && data.data.updateData.phoneNumber
                 let player, partner, playerUpdateData, partnerUpdateData;
-                let updatePhoneNumber = dbUtility.encodePhoneNum(newPhoneNumber);
+                let updatePhoneNumber = newPhoneNumber;
                 let inputDevice = 0;
                 switch (targetType) {
                     case 0:
@@ -516,7 +573,7 @@ let dbPlayerPartner = {
                         dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {
                             data: playerUpdateData,
                             inputDevice: inputDevice
-                        }, smsLogDetail);
+                        }, smsLogDetail).catch(errorUtils.reportError);
                         break;
                     case 1:
                         inputDevice = dbUtility.getInputDevice(userAgent,true);
@@ -531,7 +588,7 @@ let dbPlayerPartner = {
 
                         };
                         // result.isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevice});
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevice}).catch(errorUtils.reportError);
                         break;
                     case 2:
                         let inputDevicePlayer = dbUtility.getInputDevice(userAgent,false);
@@ -558,8 +615,8 @@ let dbPlayerPartner = {
                         };
                         // result[0].isPlayerInit = true;
                         // result[1].isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData, inputDevice: inputDevicePlayer});
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevicePartner});
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData, inputDevice: inputDevicePlayer}).catch(errorUtils.reportError);
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevicePartner}).catch(errorUtils.reportError);
                         break;
                 }
 

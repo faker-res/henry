@@ -10,10 +10,11 @@
                 div(ng-if='!vm.platformProviderList || vm.platformProviderList.length==0', style="height: 430px; overflow-y: auto;")
                     label.text-danger {{"NO_PROVIDER" | translate}}
                 ul.list-group.treeview(ng-if='vm.platformProviderList.length > 0', style="height: 430px; overflow-y: auto;")
-                    li.list-group-item(ng-repeat='(i,provider) in vm.platformProviderList', ng-click='vm.providerClicked(i,provider)', ng-class='{active: vm.SelectedProvider === provider}' class='{{vm.getGameStatusClass(provider.status)}}')
+                    li.list-group-item(ng-repeat='(i,provider) in vm.platformProviderList', ng-click='vm.providerClicked(i,provider)', ng-class='{active: vm.SelectedProvider === provider, "processing-transfer-out": provider.batchCreditTransferOut.processedAmount != provider.batchCreditTransferOut.totalAmount && provider.batchCreditTransferOut}', class='{{vm.getGameStatusClass(provider.status)}}')
                         .fa.fa-circle.colorRed(ng-if='vm.getPlatformsProviderEnable(provider)=="ENABLE"')
                         .fa.fa-circle.colorGreen(ng-if='vm.getPlatformsProviderEnable(provider)=="DISABLE"')
                         text {{provider.name}} ({{'PROVIDER_NICKNAME' | translate}} : {{vm.getPlatformsNickNameForProvider(vm.selectedPlatform.data, provider)}} )
+                        text(ng-show="provider.batchCreditTransferOut.processedAmount != provider.batchCreditTransferOut.totalAmount && provider.batchCreditTransferOut") [{{'TRANSFER_OUT' | translate}} {{provider.batchCreditTransferOut.processedAmount}}/{{provider.batchCreditTransferOut.totalAmount}}]
                 .btn-group.text-center(style="border-radius:9px",role="group")
                     //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'AttachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("attach");vm.linkProviderType="ATTACH"')
                     //    text {{"ATTACH" | translate}}
@@ -25,6 +26,9 @@
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EditAttachedProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedProvider", ng-click='vm.confirmUpdateProviderStatus(vm.SelectedProvider)')
                         text {{vm.getPlatformsProviderEnable(vm.SelectedProvider) | translate}}
                         .fa.fa-edit
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'BatchCreditTransferOut')", ng-disabled="!vm.selectedPlatform || !vm.SelectedProvider", data-toggle="modal", data-target='#modalBatchCreditTransferOut', ng-click='vm.initBatchCreditTransferOut(vm.selectedPlatform.data, vm.SelectedProvider);')
+                        text {{"BATCH_CREDIT_TRANSFER_OUT" | translate}}
+                        .fa.fa-gamepad
                     //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'DetachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("detach");vm.linkProviderType="DETACH"')
                     //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'DetachProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedProvider", ng-click='vm.confirmDetachProvider()')
                     //    text {{"DETACH" | translate}}
@@ -194,6 +198,27 @@
                                     input.form-control(type='text', ng-model='vm.selectedProviderPrefix', required)
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitProviderChange(vm.linkProviderType,vm.selectProvider)", ng-disabled="form_tachProvider.$invalid") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalBatchCreditTransferOut.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"BATCH_CREDIT_TRANSFER_OUT" | translate}} {{vm.selectedProviderNickName}}
+            .modal-body
+                form
+                    .panel.panel-primary
+                        .panel-body
+                            .well
+                                .inlineBlk
+                                    label {{"Start date" | translate}}
+                                    .startTime
+                                .inlineBlk
+                                    label {{"End date" | translate}}
+                                    .endTime
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitBatchCreditTransferOut();") {{"TRANSFER_OUT" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalEditAttachedProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')

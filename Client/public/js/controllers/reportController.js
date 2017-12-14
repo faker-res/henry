@@ -1806,7 +1806,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPromotionTypeList = function (callback) {
-            socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform._id}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform._id, deleteFlag: false}, function (data) {
                 console.log('getPromoCodeTypes', data);
                 vm.promoTypeList = data.data;
                 $scope.safeApply();

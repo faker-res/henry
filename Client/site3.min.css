@@ -3808,10 +3808,10 @@ input[type='number'].leftALignNumber {
     border-bottom: none;
 }
 
-#modalPlayerRewardPointAdjustment .nav-tabs>li {
+#modalPlayerRewardPointsAdjustment .nav-tabs>li {
     cursor: pointer;
 }
-#modalPlayerRewardPointAdjustment .nav-tabs>li.active>a {
+#modalPlayerRewardPointsAdjustment .nav-tabs>li.active>a {
     border: 1px solid #337AB7;
     border-bottom: none;
 }
@@ -3997,7 +3997,9 @@ input[type='number'].leftALignNumber {
 #newPlayerListTable_wrapper .dataTable {
     font-size: 12px;
 }
-
+#Game .processing-transfer-out{
+    background-color: rgba(210,50,130,1);
+}
 .navbar-right {
     padding-right: 10px !important;
 }
