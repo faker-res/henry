@@ -964,12 +964,12 @@
                     .endTime
                 div
                     label &nbsp;
-                    button.btn.btn-success(ng-click='vm.getLimitedOfferReport()') {{'SEARCH' | translate}}
+                    button.btn.btn-success(ng-click='vm.getLimitedOfferReport(true)') {{'SEARCH' | translate}}
                     span#limitedOfferTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.winRateReportLoadingStatus}}
             .clearfix
-            table#limitedOfferTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+            //table#limitedOfferTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
                 thead
                     tr
                         th {{'ORDER' | translate}}
@@ -994,6 +994,8 @@
                         td {{el.data.rewardProposalId}}
                         td {{el.data.rewardProposalId ? el.data.rewardAmount : ""}}
                         td {{el.data.spendingAmount}}
+            table#limitedOfferTable.common-table.display(style="width:100%")
+            #limitedOfferTablePage
 
 #modalProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
