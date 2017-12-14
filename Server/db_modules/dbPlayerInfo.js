@@ -2212,8 +2212,9 @@ let dbPlayerInfo = {
                     }
                     var logProm = dbLogger.createCreditChangeLog(playerId, data.platform, amount, type, data.validCredit, null, logData);
                     var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform);
+                    var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, data.platform, amount);
 
-                    let promArr = [recordProm, logProm, levelProm];
+                    let promArr = [recordProm, logProm, levelProm, freeAmountRewardTaskGroupProm];
 
                     if (proposalData && proposalData.data && proposalData.data.limitedOfferObjId) {
                         let newProp;
@@ -4178,8 +4179,9 @@ let dbPlayerInfo = {
             : dbconfig.collection_players.findOne({playerId: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform});
         let prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
-        let playerData, providerData, rewardTaskGroupData;
+        let playerData, providerData, rewardTaskGroupData, freeRewardTaskGroupData;
         let transferAmount = 0;
+        let createTime = new Date();
 
         Q.all([prom0, prom1]).then(
             data => {
@@ -4187,7 +4189,7 @@ let dbPlayerInfo = {
                     playerData = data[0];
                     providerData = data[1];
 
-                    return dbRewardTaskGroup.getPlayerRewardTaskGroup(playerData.platform._id, providerData._id, playerData._id, new Date());
+                    return dbRewardTaskGroup.getPlayerRewardTaskGroup(playerData.platform._id, providerData._id, playerData._id, createTime);
                 } else {
                     deferred.reject({name: "DataError", message: "Cannot find player or provider"});
                 }
@@ -4203,6 +4205,18 @@ let dbPlayerInfo = {
             rewardTaskGroup => {
                 rewardTaskGroupData = rewardTaskGroup;
 
+        //         return dbconfig.collection_rewardTaskGroup.findOne({
+        //             platformId: playerData.platform._id,
+        //             playerId: playerData._id,
+        //             providerGroup: null,
+        //             status: {$in: [constRewardTaskStatus.STARTED]},
+        //             createTime: {$lt: createTime}
+        //         }).lean();
+        //     }
+        // ).then(
+        //     freeRewardTaskGroup => {
+        //         freeRewardTaskGroupData = freeRewardTaskGroup;
+
                 transferAmount += parseFloat(playerData.validCredit.toFixed(2));
 
                 if (playerData.platform.useLockedCredit) {
@@ -4212,6 +4226,10 @@ let dbPlayerInfo = {
                 if (playerData.platform.useProviderGroup && rewardTaskGroupData && rewardTaskGroupData.rewardAmt) {
                     transferAmount += rewardTaskGroupData.rewardAmt;
                 }
+
+                // if(freeRewardTaskGroupData && freeRewardTaskGroupData.rewardAmt){
+                //     transferAmount += freeRewardTaskGroupData.rewardAmt;
+                // }
 
                 // Check if player has enough credit to play
                 if (transferAmount < 1 || amount == 0) {
@@ -5662,6 +5680,59 @@ let dbPlayerInfo = {
                     }
                 }, (error) => {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            );
+        }
+    },
+
+    /**
+     * Check if player can level up after top up or consumption
+     *
+     * @param {String|ObjectId} playerObjId
+     * @returns {Promise.<*>}
+     */
+    checkFreeAmountRewardTaskGroup: function (playerObjId, platformObjId, topUpAmount) {
+        if (!platformObjId) {
+            throw Error("platformObjId was not provided!");
+        }
+        else {
+            let query = {
+                platformId: platformObjId,
+                playerId: playerObjId,
+                providerGroup: null,
+                status: constRewardTaskStatus.STARTED
+            };
+    
+            return dbconfig.collection_rewardTaskGroup.findOne(query).then(
+                (rewardTaskGroup) => {
+                    if(rewardTaskGroup){
+                        return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                            {_id: rewardTaskGroup._id},
+                            {$inc :{targetConsumption: topUpAmount,
+                                currentAmt: topUpAmount
+                                //rewardAmt: topUpAmount
+                            }}
+                        )
+                    }else{
+                        let saveObj = {
+                            platformId: platformObjId,
+                            playerId: playerObjId,
+                            providerGroup: null,
+                            status: constRewardTaskStatus.STARTED,
+                            //rewardAmt: topUpAmount,
+                            rewardAmt: 0,
+                            currentAmt: topUpAmount,
+                            forbidWithdrawIfBalanceAfterUnlock:0,
+                            forbidXIMAAmt: 0,
+                            curConsumption: 0,
+                            targetConsumption: topUpAmount
+                        };
+    
+                        // create new reward group
+                        return new dbconfig.collection_rewardTaskGroup(saveObj).save();
+                    }
+                }, (error) => {
+                    return Q.reject({name: "DataError", message: "Cannot find reward task group"});
                 }
             );
         }
@@ -8835,7 +8906,7 @@ let dbPlayerInfo = {
                     deductionAmount = record.amount;
 
                     let creditProm = Q.resolve(false);
-                    if (player.platform.useLockedCredit) {
+                    if (player.platform.useLockedCredit || player.platform.useProviderGroup) {
                         creditProm = dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyTopUpReturn:Deduction", record);
                     }
                     return creditProm.then(
@@ -12015,10 +12086,10 @@ let dbPlayerInfo = {
                             result.serviceCharge = bonusDetails.bonusPercentageCharges;
                         }
 
-                        if(playerDetails.validCredit){
-                            result.currentFreeAmount = playerDetails.validCredit;
-                            result.freeAmount = playerDetails.validCredit;
-                        }
+                        // if(playerDetails.validCredit){
+                        //     result.currentFreeAmount = playerDetails.validCredit;
+                        //     result.freeAmount = playerDetails.validCredit;
+                        // }
 
                         let bonusProm = dbconfig.collection_proposal.aggregate([
                             {
@@ -12050,14 +12121,18 @@ let dbPlayerInfo = {
                                 let lockListArr = [];
                                 rewardDetails.map(r =>{
                                     if(r){
-                                        let providerGroupName = r.providerGroup.name ? r.providerGroup.name : "";
+                                        let providerGroupName = "";
                                         let targetCon = r.targetConsumption ? r.targetConsumption : 0;
                                         let ximaAmt = r.forbidXIMAAmt ? r.forbidXIMAAmt : 0;
                                         let curCon = r.curConsumption ? r.curConsumption : 0;
+                                        if(r.providerGroup){
+                                            providerGroupName = r.providerGroup.name ? r.providerGroup.name : "";
+                                        }else{
+                                            providerGroupName = "LOCAL_CREDIT";
+                                        }
 
                                         lockListArr.push({name: providerGroupName, lockAmount: targetCon + ximaAmt, currentLockAmount: curCon});
                                     }
-
                                 })
 
                                 return lockListArr;
@@ -12074,8 +12149,23 @@ let dbPlayerInfo = {
             return "";
         }).then(data => {
             if(data){
+                let lockListWithoutFreeAmountRewardTaskGroup = [];
                 result.freeTimes = result.freeTimes - (data[0] && data[0][0] ? data[0][0].count : 0);
-                result.lockList = data[1] ? data[1]: "";
+                if(data[1]){
+                    lockListWithoutFreeAmountRewardTaskGroup = data[1].filter(function(e){
+                        return e.name !== "LOCAL_CREDIT";
+                    })
+                }
+
+                //result.lockList = data[1] ? data[1]: "";
+                result.lockList = lockListWithoutFreeAmountRewardTaskGroup;
+
+                data[1].map(d =>{
+                    if(d && d.name && d.name == "LOCAL_CREDIT"){
+                        result.currentFreeAmount = d.currentLockAmount;
+                        result.freeAmount = d.lockAmount;
+                    }
+                })
             }
 
             return result;
