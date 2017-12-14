@@ -2051,7 +2051,7 @@ var proposalExecutor = {
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
-                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                                updateData.$set["permission.applyBonus"] = false;
                             }
 
                             dbconfig.collection_players.findOneAndUpdate(
@@ -2096,7 +2096,7 @@ var proposalExecutor = {
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
-                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                                updateData.$set["permission.applyBonus"] = false;
                             }
 
                             dbconfig.collection_players.findOneAndUpdate(
@@ -2140,7 +2140,7 @@ var proposalExecutor = {
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
-                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                                updateData.$set["permission.applyBonus"] = false;
                             }
 
                             dbconfig.collection_players.findOneAndUpdate(
@@ -2184,7 +2184,7 @@ var proposalExecutor = {
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
-                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                                updateData.$set["permission.applyBonus"] = false;
                             }
 
                             dbconfig.collection_players.findOneAndUpdate(
@@ -2228,7 +2228,7 @@ var proposalExecutor = {
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
-                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                                updateData.$set["permission.applyBonus"] = false;
                             }
 
                             dbconfig.collection_players.findOneAndUpdate(
@@ -2276,7 +2276,7 @@ var proposalExecutor = {
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
-                                updateData.$set["permission.applyBonus"] = !proposalData.data.forbidWithdrawAfterApply
+                                updateData.$set["permission.applyBonus"] = false;
                             }
 
                             dbconfig.collection_players.findOneAndUpdate(
