@@ -3137,7 +3137,7 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
     }
     // Add proposalId in reward points data
     taskData.proposalId = proposalData.proposalId;
-    proposalData.data.remark = proposalData.data.remark ? proposalData.data.remark + " Proposal No." + proposalData.proposalId : "Proposal No." + proposalData.proposalId;
+    proposalData.data.remark = proposalData.data.remark ? proposalData.data.remark + " Proposal No: " + proposalData.proposalId : "Proposal No." + proposalData.proposalId;
 
     let gameProviderGroupProm = Promise.resolve(false);
     // Check whether game provider group exist
@@ -3179,7 +3179,7 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
                             }
                             return dbPlayerRewardPoints.tryToDeductRewardPointFromPlayer(playerRewardPoints.playerObjId, playerRewardPoints.platformObjId,
                                 -Math.abs(proposalData.data.convertedRewardPoints), taskData.data.category, proposalData.data.remark,
-                                proposalData.inputDevice, rewardPointsLogStatus, proposalData.data.currentDayAppliedAmount, proposalData.data.maxDayApplyAmount,
+                                proposalData.inputDevice, proposalData.creator.name, rewardPointsLogStatus, proposalData.data.currentDayAppliedAmount, proposalData.data.maxDayApplyAmount,
                                 rewardTask._id, taskData.proposalId);
                         }
                     );
