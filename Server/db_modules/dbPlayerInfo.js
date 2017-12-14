@@ -85,30 +85,50 @@ let dbPlayerInfo = {
     /**
      * Create a new reward points record based on player data
      */
-    createPlayerRewardPointsRecord: function (platformId, playerId, points, playerName, playerLevel, progress) {
-        let recordData = {
-            platformObjId: platformId,
-            playerObjId: playerId,
-            points: points,
-            playerName: playerName,
-            playerLevel: playerLevel,
-            progress: progress,
-            createTime: Date.now()
-        };
-        let record = new dbconfig.collection_rewardPoints(recordData);
-        return record.save().then(
-            newData => {
-                let saveObj = {
-                    rewardPointsObjId: newData._id
-                };
+    createPlayerRewardPointsRecord: function (platformId, playerId) {
+        return dbconfig.collection_players.findOne({_id: playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .lean().then(
+                playerData => {
+                    if (playerData) {
+                        if (playerData.permission && playerData.permission.rewardPointsTask === false) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_NO_PERMISSION,
+                                name: "DataError",
+                                message: "Player does not have reward points task permission"
+                            });
+                        }
 
-                // update player info with reward points record based on player id and platform id
-                return dbconfig.collection_players.findOneAndUpdate({
-                    _id: newData.playerObjId,
-                    platform: newData.platformObjId
-                }, saveObj, {upsert: true, new: true});
-            }
-        )
+                        let newRewardPointsData = {
+                            platformObjId: platformId,
+                            playerObjId: playerId,
+                            playerName: playerData.name,
+                            playerLevel: playerData.playerLevel,
+                        };
+
+                        let newRewardPoints = new dbconfig.collection_rewardPoints(newRewardPointsData);
+                        return newRewardPoints.save().then(
+                            points => {
+                                let saveObj = {
+                                    rewardPointsObjId: points._id
+                                };
+
+                                // update player info with reward points record based on player id and platform id
+                                return dbconfig.collection_players.findOneAndUpdate({
+                                    _id: points.playerObjId,
+                                    platform: points.platformObjId
+                                }, saveObj, {upsert: true, new: true});
+                            }
+                        )
+                    }
+                    else {
+                        return Q.reject({
+                            name: "DataError",
+                            message: "Player not found"
+                        });
+                    }
+                }
+            );
     },
 
     /**

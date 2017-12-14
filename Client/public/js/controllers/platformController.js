@@ -8195,7 +8195,6 @@ define(['js/app'], function (myApp) {
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
                 if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
                     vm.createPlayerRewardPointsRecord();
-                    vm.advancedPlayerQuery();
                 }
 
                 vm.rewardPointsChange.finalValidAmount = 0;
@@ -8210,16 +8209,11 @@ define(['js/app'], function (myApp) {
             vm.createPlayerRewardPointsRecord = function () {
                 let sendData = {
                     platformId: vm.selectedPlatform.id,
-                    data: {
-                        playerId: vm.isOneSelectedPlayer()._id,
-                        points: 0,
-                        playerName: vm.isOneSelectedPlayer().name,
-                        playerLevel: vm.isOneSelectedPlayer().playerLevel._id,
-                        progress: []
-                    }
+                    playerId: vm.isOneSelectedPlayer()._id
                 };
 
-                socketService.$socket($scope.AppSocket, 'createPlayerRewardPointsRecord', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'createPlayerRewardPointsRecord', sendData, function () {
+                    vm.advancedPlayerQuery();
                     $scope.safeApply();
                 });
             };
@@ -8232,8 +8226,8 @@ define(['js/app'], function (myApp) {
                     remark: vm.rewardPointsChange.remark
                 };
 
-                socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function () {
-                    vm.getPlatformPlayersData();
+                socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function (data) {
+                    vm.advancedPlayerQuery();
                     $scope.safeApply();
                 });
             };
@@ -20299,7 +20293,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPromotionTypeList = function (callback) {
-                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id, deleteFlag: false}, function (data) {
                     console.log('getPromoCodeTypes', data);
                     vm.promoTypeList = data.data;
                     $scope.safeApply();
