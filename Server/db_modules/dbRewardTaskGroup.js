@@ -51,12 +51,12 @@ let dbRewardTaskGroup = {
                 //freeRewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
 
                 // Check whether player has lost all credit
-                // if (freeRewardTaskGroup.currentAmt < 1) {
-                //     freeRewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
-                //     freeRewardTaskGroup.unlockTime = createTime;
-                // }
+                if (freeRewardTaskGroup.currentAmt < 1){
+                    freeRewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
+                    freeRewardTaskGroup.unlockTime = createTime;
+                }
                 // Consumption reached
-                if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
+                else if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
                     freeRewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
                     freeRewardTaskGroup.unlockTime = createTime;
                 }
