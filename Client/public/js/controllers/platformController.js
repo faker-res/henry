@@ -7623,6 +7623,14 @@ define(['js/app'], function (myApp) {
         vm.getRewardTaskGroupDetail = (playerId, callback) => {
             return $scope.$socketPromise('getPlayerAllRewardTaskGroupDetailByPlayerObjId', {_id: playerId}).then(
                 res => {
+                    res.data.map(r => {
+                        if(r.providerGroup == null){
+                            r.providerGroup = {
+                                name : "LOCAL_CREDIT"
+                            }
+                        }
+                        return r;
+                    })
                     vm.curRewardTask = res.data;
                     console.log('vm.curRewardTask', vm.curRewardTask);
                     $scope.safeApply();
