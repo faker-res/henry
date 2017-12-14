@@ -2843,9 +2843,6 @@ define(['js/app'], function (myApp) {
                 }
             };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
-            let sumData = {
-                // 7: vm.limitedOfferDataSum.manualTopUpAmount
-            };
             let playerTbl = utilService.createDatatableWithFooter('#limitedOfferTable', tableOptions, {}, true);
             vm.limitedOfferQuery.pageObj.init({maxCount: allResultSize}, newSearch);
             utilService.setDataTablePageInput('limitedOfferTable', playerTbl, $translate);
@@ -2898,37 +2895,7 @@ define(['js/app'], function (myApp) {
                     tr.addClass('shown');
                 }
             });
-            // $('#limitedOfferTable tbody').off('click', 'td.expandFeedbackReport');
-            // $('#limitedOfferTable tbody').on('click', 'td.expandFeedbackReport', function () {
-            //     let tr = $(this).closest('tr');
-            //     let row = playerTbl.row(tr);
-            //
-            //     if (row.child.isShown()) {
-            //         // This row is already open - close it
-            //         row.child.hide();
-            //         tr.removeClass('shown');
-            //     }
-            //     else {
-            //         // Open this row
-            //         let data = row.data();
-            //         console.log('content', data);
-            //         let id = 'playertable' + data._id;
-            //         row.child(vm.createInnerTable(id)).show();
-            //
-            //         if (data.feedback) {
-            //             data.feedback.createTime$ = data.createTime$;
-            //             for(let x = 0; x < vm.allFeedbackResults.length; x++) {
-            //                 if(vm.allFeedbackResults[x].key == data.feedback.result) {
-            //                     data.feedback.result$ = vm.allFeedbackResults[x].value;
-            //                     break;
-            //                 }
-            //             }
-            //         }
-            //         vm.drawFeedbackTable(data, id, 1, newSearch, vm.limitedOfferQuery);
-            //
-            //         tr.addClass('shown');
-            //     }
-            // });
+
             $('#limitedOfferTable').off('order.dt');
             $('#limitedOfferTable').on('order.dt', function (event, a) {
                 vm.commonSortChangeHandler(a, 'limitedOfferQuery', vm.drawLimitedOfferReport);
