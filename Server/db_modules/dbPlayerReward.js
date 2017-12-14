@@ -2103,10 +2103,12 @@ let dbPlayerReward = {
 
     getLimitedOffers: (platformId, playerId, status) => {
         let platformObj;
+        let rewardTypeData;
         let intPropTypeObj;
         let timeSet;
         let rewards;
         let playerObj;
+        let levelObj;
 
         if (status) {
             status = Number(status);
@@ -2135,10 +2137,17 @@ let dbPlayerReward = {
             }
         ).then(
             res => {
-                let rewardTypeData = res[0];
+                rewardTypeData = res[0];
                 intPropTypeObj = res[1];
                 playerObj = res[2];
 
+                return dbConfig.collection_playerLevel.find({
+                    platform: platformObj._id
+                }).sort({value: 1}).lean()
+            }
+        ).then(
+            allLevelData => {
+                levelObj = allLevelData;
                 if (rewardTypeData) {
                     let rewardEventQuery = {
                         platform: platformObj._id,
@@ -2164,6 +2173,13 @@ let dbPlayerReward = {
                         e.startTime = moment().set({hour: e.hrs, minute: e.min, second: 0});
                         e.upTime = moment(e.startTime).subtract(e.inStockDisplayTime, 'minute');
                         e.downTime = moment(e.startTime).add(e.outStockDisplayTime, 'minute');
+
+                        for (let i = 0; i < levelObj.length; i++) {
+                            if (e.requiredLevel.toString() == levelObj[i]._id.toString()) {
+                                // e.requiredLevel = levelObj[i].name;
+                                e.level = levelObj[i].name;
+                            }
+                        }
 
                         if (new Date().getTime() >= dbUtility.getLocalTime(e.startTime).getTime()
                             && new Date().getTime() < dbUtility.getLocalTime(e.downTime).getTime()) {
