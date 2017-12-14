@@ -2177,7 +2177,7 @@ let dbPlayerReward = {
                         e.downTime = moment(e.startTime).add(e.outStockDisplayTime, 'minute');
 
                         for (let i = 0; i < levelObj.length; i++) {
-                            if (e.requiredLevel.toString() == levelObj[i]._id.toString()) {
+                            if (e.requiredLevel && e.requiredLevel.toString() == levelObj[i]._id.toString()) {
                                 // e.requiredLevel = levelObj[i].name;
                                 e.level = levelObj[i].name;
                             }
@@ -2787,6 +2787,10 @@ let dbPlayerReward = {
                         settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                     };
 
+                    if (intervalTime) {
+                        bonusQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                    }
+
 
                     let totalBonusProm = dbConfig.collection_proposal.aggregate(
                         {
@@ -2815,6 +2819,9 @@ let dbPlayerReward = {
                         platformId: playerData.platform._id,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                     };
+                    if (intervalTime) {
+                        totalTopupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                    }
 
                     let totalTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
                         {
@@ -2843,6 +2850,9 @@ let dbPlayerReward = {
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                     };
 
+                    if (intervalTime) {
+                        creditsDailyLogQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                    }
 
                     let totalCreditsDailyProm = dbConfig.collection_playerCreditsDailyLog.aggregate([
                         {"$match": creditsDailyLogQuery},
@@ -2864,11 +2874,6 @@ let dbPlayerReward = {
                         }
                     );
 
-                    if (intervalTime) {
-                        bonusQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                        totalTopupProm.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                        creditsDailyLogQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                    }
                     // let promiseUsed = [];
                     promiseUsed.push(totalBonusProm);
                     promiseUsed.push(totalTopupProm);
