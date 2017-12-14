@@ -1451,7 +1451,7 @@ let dbPlayerReward = {
                                         "type": Object(proposalType._id),
                                         "status": {$in: ["Success", "Approved"]},
                                         "settleTime": {
-                                            '$gte': moment().subtract(4, 'hours'),
+                                            '$gte': moment().subtract(3, 'hours'),
                                             '$lte': new Date()
                                         }
                                     };
@@ -2402,7 +2402,14 @@ let dbPlayerReward = {
                         return dbConfig.collection_proposal.findOne({
                             'data.limitedOfferObjId':  {$in: [ObjectId(limitedOfferObj._id), String(limitedOfferObj._id)]},
                             'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}
-                        }).lean()
+                        }).lean().then(
+                            proposalData => {
+                                if (proposalData && proposalData.data && proposalData.data.expirationTime) {
+                                    proposalData.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.expirationTime).getTime()) / 1000));
+                                }
+                                return proposalData;
+                            }
+                        );
                     }
                 }
                 // create reward proposal
@@ -2426,7 +2433,6 @@ let dbPlayerReward = {
                         spendingAmount: limitedOfferObj.oriPrice * limitedOfferObj.bet,
                         limitedOfferName: limitedOfferObj.name,
                         expirationTime: moment().add(30, 'm').toDate(),
-                        timeLeft: Math.abs(parseInt((new Date().getTime() - new Date(moment().add(30, 'm').toDate()).getTime()) / 1000)),
                         eventId: eventObj._id,
                         eventName: eventObj.name,
                         eventCode: eventObj.code,
@@ -2435,7 +2441,14 @@ let dbPlayerReward = {
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
                 };
-                return dbProposal.createProposalWithTypeId(proposalTypeObj._id, proposalData);
+                return dbProposal.createProposalWithTypeId(proposalTypeObj._id, proposalData).then(
+                    proposalData => {
+                        if (proposalData && proposalData.data && proposalData.data.expirationTime) {
+                            proposalData.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.expirationTime).getTime()) / 1000));
+                        }
+                        return proposalData;
+                    }
+                );
 
             }
         )
@@ -3997,17 +4010,20 @@ function expirePromoCode() {
 }
 
 function promoCondition(promo) {
-    let proMsg = ''
+    let proMsg = '';
+
     if (promo.minTopUpAmount) {
         proMsg += "有新存款<span class=\"c_color\">(" + promo.minTopUpAmount + "以上)" + "</span>";
+
+        if (promo && promo.promoCodeTypeObjId && promo.promoCodeTypeObjId.type == 3) {
+            proMsg += ' 且尚未投注';
+        }
     }
     // if (promo.maxTopUpAmount) {
     //     proMsg += ", 存款上限<span class=\"c_color\">(" + promo.maxTopUpAmount + ")" + "</span>";
     // }
-    if (promo.disableWithdraw) {
-        proMsg += ' 且尚未投注';
-    }
-    if (!promo.minTopUpAmount && !promo.disableWithdraw) {
+
+    if (!proMsg) {
         proMsg += '无';
     }
     return proMsg;
