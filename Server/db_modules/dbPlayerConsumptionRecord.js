@@ -612,7 +612,8 @@ var dbPlayerConsumptionRecord = {
                     return Q.reject({
                         status: constServerCode.CONSUMPTION_ORDERNO_ERROR,
                         name: "DataError",
-                        message: "orderNo exists"
+                        message: "orderNo exists",
+                        data: recordData
                     });
                 }
                 else {
@@ -847,7 +848,8 @@ var dbPlayerConsumptionRecord = {
                         createTime: oldData.createTime
                     }, recordData, {new: true}).then(
                         newRecord => {
-                            if(newRecord){
+                            if (newRecord && newRecord.toObject) {
+                                newRecord = newRecord.toObject();
                                 newRecord.providerId = providerId;
                             }
                             return newRecord;

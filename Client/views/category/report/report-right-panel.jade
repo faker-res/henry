@@ -972,17 +972,19 @@
             table#limitedOfferTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
                 thead
                     tr
-                        th {{'PROPOSAL_ID' | translate}}
+                        th {{'ORDER' | translate}}
+                        th {{'Proposal No' | translate}}
                         th {{'TITLE' | translate}}
                         th {{'PLAYERNAME' | translate}}
                         th {{'LIMITED_OFFER_APPLY_TIME' | translate}}
                         th {{'topUpProposalId' | translate}}
-                        th {{'topUpAmount' | translate}}
+                        th {{'TopupAmount' | translate}}
                         th {{'rewardProposalId' | translate}}
-                        th {{'rewardAmount' | translate}}
-                        th {{'spendingAmount' | translate}}
+                        th {{'OFFER_AMOUNT' | translate}}
+                        th {{'SPENDING_AMOUNT' | translate}}
                 tbody
-                    tr(ng-repeat='el in vm.limitedOfferDetail')
+                    tr(ng-repeat='(i,el) in vm.limitedOfferDetail')
+                        td {{(i+1)}}
                         td {{el.proposalId}}
                         td {{el.data.limitedOfferName}}
                         td {{el.data.playerName}}

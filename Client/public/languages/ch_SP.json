@@ -739,6 +739,7 @@
   "CHILDREN": "下线",
   "Add Event": "添加优惠活动",
   "Reward amount": "优惠额",
+  "OFFER_AMOUNT": "促销额度",
   "Reward number": "优惠数",
   "Minimum spending amount for reward task": "优惠最低投注额",
   "Minimum daily top up amount": "每日最低充值额",
@@ -1795,6 +1796,7 @@
   "remark": "备注",
   "partnerName": "代理名称",
   "spendingAmount": "解锁流水额",
+  "SPENDING_AMOUNT": "解锁流水",
   "HONOREE_DETAIL": "提款备注",
   "honoreeDetail": "提款备注",
   "DEPOSIT_METHOD": "手工存款方式",
@@ -2896,5 +2898,7 @@
   "Reward Point ID": "积分ID",
   "Proposal Creator": "提案人",
   "createTime": "加入时间",
-  "The promoCode Type is still valid": "优惠类型还在使用中，不能被删除。"
+  "The promoCode Type is still valid": "优惠类型还在使用中，不能被删除。",
+  "Required Level": "等级需求",
+  "eventRefreshPeriod": "任务刷新周期"
 }

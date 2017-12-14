@@ -7,6 +7,7 @@
                 th(style='min-width:100px;') {{'Original Amount' | translate}}
                 th(style='min-width:100px;') {{'Offer Amount' | translate}}
                 th(style='min-width:100px;') {{'Display Original Price' | translate}}
+                th(style='min-width:100px;') {{'Required Level' | translate}}
                 th(style='min-width:100px;') {{'Quantity' | translate}}
                 th(style='min-width:100px;') {{'Limit Apply Per Person' | translate}}
                 th(style='min-width:100px;') {{'Expired Time' | translate}}
@@ -39,7 +40,10 @@
                 td
                     div
                         input(type='checkbox', ng-model='vm.rewardParams.reward[rowIndex].displayOriPrice', ng-disabled='vm.platformRewardShowEdit()')
-
+                td
+                    div
+                        select.form-control(ng-model='vm.rewardParams.reward[rowIndex].requiredLevel', ng-disabled='vm.platformRewardShowEdit()')
+                            option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
                 td
                     div
                         input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward[rowIndex].qty', ng-disabled='vm.platformRewardShowEdit()', required)
@@ -107,7 +111,10 @@
                 td
                     div
                         input(type='checkbox', ng-model='vm.tempNewRewardEntry.displayOriPrice', ng-disabled='vm.platformRewardShowEdit()')
-
+                td
+                    div
+                        select.form-control(ng-model='vm.tempNewRewardEntry.requiredLevel', ng-init='vm.tempNewRewardEntry.requiredLevel = vm.allPlayerLvl[0]._id', ng-disabled='vm.platformRewardShowEdit()')
+                            option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
                 td
                     div
                         input.form-control(type='number', min='0', ng-model='vm.tempNewRewardEntry.qty', ng-disabled='vm.platformRewardShowEdit()')

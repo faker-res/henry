@@ -19,6 +19,7 @@ var dbLogger = require("./../modules/dbLogger");
 var constProposalMainType = require('../const/constProposalMainType');
 let rsaCrypto = require("../modules/rsaCrypto");
 let dbutility = require("./../modules/dbutility");
+let dbPlayerMail = require("../db_modules/dbPlayerMail");
 
 let env = require('../config/env').config();
 
@@ -1469,38 +1470,7 @@ let dbPartner = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
-                        let smsExpiredDate = new Date();
-                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
-                        // Check verification SMS match
-                        return dbconfig.collection_smsVerificationLog.findOne({
-                            platformObjId: partnerObj.platform,
-                            tel: partnerObj.phoneNumber,
-                            createTime: {$gte: smsExpiredDate}
-                        }).sort({createTime: -1}).then(
-                            verificationSMS => {
-                                // Check verification SMS code
-                                if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
-                                    verificationSMS = verificationSMS || {};
-                                    return dbconfig.collection_smsVerificationLog.remove(
-                                        {_id: verificationSMS._id}
-                                    ).then(
-                                        () => {
-                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
-                                            return Q.resolve(true);
-                                        }
-                                    )
-                                }
-                                else {
-                                    let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
-                                    return Q.reject({
-                                        status: constServerCode.VALIDATION_CODE_INVALID,
-                                        name: "ValidationError",
-                                        message: errorMessage
-                                    });
-                                }
-                            }
-                        )
+                        return dbPlayerMail.verifySMSValidationCode(partnerObj.phoneNumber, platformData, smsCode);
                     }
                 } else {
                     return Q.reject({
