@@ -4183,9 +4183,8 @@ let dbPlayerInfo = {
             : dbconfig.collection_players.findOne({playerId: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform});
         let prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
-        let playerData, providerData, rewardTaskGroupData, freeRewardTaskGroupData;
+        let playerData, providerData, rewardTaskGroupData;
         let transferAmount = 0;
-        let createTime = new Date();
 
         Q.all([prom0, prom1]).then(
             data => {
@@ -4193,7 +4192,7 @@ let dbPlayerInfo = {
                     playerData = data[0];
                     providerData = data[1];
 
-                    return dbRewardTaskGroup.getPlayerRewardTaskGroup(playerData.platform._id, providerData._id, playerData._id, createTime);
+                    return dbRewardTaskGroup.getPlayerRewardTaskGroup(playerData.platform._id, providerData._id, playerData._id, new Date());
                 } else {
                     deferred.reject({name: "DataError", message: "Cannot find player or provider"});
                 }
@@ -4209,18 +4208,6 @@ let dbPlayerInfo = {
             rewardTaskGroup => {
                 rewardTaskGroupData = rewardTaskGroup;
 
-        //         return dbconfig.collection_rewardTaskGroup.findOne({
-        //             platformId: playerData.platform._id,
-        //             playerId: playerData._id,
-        //             providerGroup: null,
-        //             status: {$in: [constRewardTaskStatus.STARTED]},
-        //             createTime: {$lt: createTime}
-        //         }).lean();
-        //     }
-        // ).then(
-        //     freeRewardTaskGroup => {
-        //         freeRewardTaskGroupData = freeRewardTaskGroup;
-
                 transferAmount += parseFloat(playerData.validCredit.toFixed(2));
 
                 if (playerData.platform.useLockedCredit) {
@@ -4231,9 +4218,6 @@ let dbPlayerInfo = {
                     transferAmount += rewardTaskGroupData.rewardAmt;
                 }
 
-                // if(freeRewardTaskGroupData && freeRewardTaskGroupData.rewardAmt){
-                //     transferAmount += freeRewardTaskGroupData.rewardAmt;
-                // }
 
                 // Check if player has enough credit to play
                 if (transferAmount < 1 || amount == 0) {
