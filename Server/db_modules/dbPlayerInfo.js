@@ -139,6 +139,62 @@ let dbPlayerInfo = {
         let category = updateAmount >= 0 ? constRewardPointsLogCategory.POINT_INCREMENT : constRewardPointsLogCategory.POINT_REDUCTION;
         return dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, constPlayerRegistrationInterface.BACKSTAGE, adminName);
     },
+
+    /**
+     * Get player reward points daily limit
+     */
+    getPlayerRewardPointsDailyLimit: function (platformObjId, playerLevel) {
+        return dbconfig.collection_rewardPointsLvlConfig.findOne({
+            platformObjId: platformObjId
+        }).lean().then(
+            data => {
+                let dailyLimit = null;
+                for (let i=0; i < data.params.length; i++) {
+                    if (data.params[i].levelObjId.toString() === playerLevel.toString()) {
+                        dailyLimit = data.params[i].dailyMaxPoints;
+                        return dailyLimit;
+                    }
+                }
+            }
+        )
+    },
+
+    /**
+     * Get player reward points daily converted points
+     */
+    getPlayerRewardPointsDailyConvertedPoints: function (rewardPointsObjId) {
+        let todayTime = dbUtility.getTodaySGTime();
+        let category = constRewardPointsLogCategory.EARLY_POINT_CONVERSION;
+        return dbconfig.collection_rewardTask.aggregate(
+            {
+                $match: {
+                    createTime: {
+                        $gte: todayTime.startTime,
+                        $lt: todayTime.endTime
+                    },
+                    "data.rewardPointsObjId": ObjectId(rewardPointsObjId),
+                    "data.category": category
+                }
+            },
+            {
+                $group: {
+                    _id: "$playerId",
+                    amount: {$sum: "$data.convertedRewardPointsAmount"}
+                }
+            }
+        ).then(
+            rewardTask => {
+                if (rewardTask && rewardTask[0]) {
+                    return rewardTask[0].amount;
+                }
+                else {
+                    // No rewardTask
+                    return 0;
+                }
+            }
+        );
+    },
+
     /**
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
