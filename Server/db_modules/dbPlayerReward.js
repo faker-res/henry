@@ -2785,6 +2785,10 @@ let dbPlayerReward = {
                         settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                     };
 
+                    if (intervalTime) {
+                        bonusQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                    }
+
 
                     let totalBonusProm = dbConfig.collection_proposal.aggregate(
                         {
@@ -2813,6 +2817,9 @@ let dbPlayerReward = {
                         platformId: playerData.platform._id,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                     };
+                    if (intervalTime) {
+                        totalTopupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                    }
 
                     let totalTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
                         {
@@ -2841,6 +2848,9 @@ let dbPlayerReward = {
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                     };
 
+                    if (intervalTime) {
+                        creditsDailyLogQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                    }
 
                     let totalCreditsDailyProm = dbConfig.collection_playerCreditsDailyLog.aggregate([
                         {"$match": creditsDailyLogQuery},
@@ -2862,11 +2872,6 @@ let dbPlayerReward = {
                         }
                     );
 
-                    if (intervalTime) {
-                        bonusQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                        totalTopupProm.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                        creditsDailyLogQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                    }
                     // let promiseUsed = [];
                     promiseUsed.push(totalBonusProm);
                     promiseUsed.push(totalTopupProm);
