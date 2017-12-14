@@ -12234,8 +12234,8 @@ let dbPlayerInfo = {
                 if (gameCreditList && gameCreditList.length > 0) {
                     for (let i = 0; i < gameCreditList.length; i++) {
                         returnData.gameCreditList[i] = {
-                            nickName: gameCreditList[i].nickName,
-                            validCredit: gameCreditList[i].gameCredit
+                            nickName: gameCreditList[i].nickName? gameCreditList[i].nickName: "",
+                            validCredit: gameCreditList[i].gameCredit? gameCreditList[i].gameCredit: ""
                         };
                     }
 
