@@ -1128,22 +1128,24 @@ const dbRewardTask = {
                                 let platform = data[0];
                                 let providerGroup = data[1];
                                 let promArr = [];
-                                if(providerGroup) {
+                                if(providerGroup && providerGroup.providers && providerGroup.providers.length > 0) {
                                     providerGroup.providers.forEach(provider => {
-                                        promArr.push(
-                                            cpmsAPI.player_queryCredit(
-                                                {
-                                                    username: player.name,
-                                                    platformId: platform.platformId,
-                                                    providerId: provider.providerId
-                                                }
-                                            ).then(
-                                                data => data,
-                                                error => {
-                                                    return {credit: 0};
-                                                }
-                                            )
-                                        );
+                                        if(provider) {
+                                            promArr.push(
+                                                cpmsAPI.player_queryCredit(
+                                                    {
+                                                        username: player.name,
+                                                        platformId: platform.platformId,
+                                                        providerId: provider.providerId
+                                                    }
+                                                ).then(
+                                                    data => data,
+                                                    error => {
+                                                        return {credit: 0};
+                                                    }
+                                                )
+                                            );
+                                        }
                                     });
                                 }
                                 return Promise.all(promArr);
