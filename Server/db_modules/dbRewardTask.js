@@ -162,7 +162,7 @@ const dbRewardTask = {
                                 : 0
                     };
 
-                    if (rewardData.useConsumption) {
+                    if (rewardData.useConsumption && rewardData.requiredUnlockAmount) {
                         saveObj.forbidXIMAAmt = rewardData.requiredUnlockAmount;
                     } else {
                         saveObj.targetConsumption = rewardData.requiredUnlockAmount;
@@ -233,7 +233,7 @@ const dbRewardTask = {
                                 : 0
                     };
     
-                    if (rewardData.useConsumption) {
+                    if (rewardData.useConsumption && rewardData.requiredUnlockAmount) {
                         saveObj.forbidXIMAAmt = rewardData.requiredUnlockAmount;
                     } else {
                         saveObj.targetConsumption = rewardData.requiredUnlockAmount;

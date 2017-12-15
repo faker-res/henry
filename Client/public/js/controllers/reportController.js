@@ -63,6 +63,18 @@ define(['js/app'], function (myApp) {
             "PlayerTopUp": ['merchantNo']
         }
 
+        vm.playerInputDevice = {
+            1: "WEB_PLAYER",
+            3: "H5_PLAYER",
+            5: "APP_PLAYER"
+        };
+
+        vm.claimStatus = {
+            valid: "STILL VALID",
+            accepted: "ACCEPTED",
+            expired: "EXPIRED"
+        }
+
         //get all platform data from server
         vm.setPlatform = function (platObj) {
             vm.operSelPlatform = false;
@@ -1619,10 +1631,12 @@ define(['js/app'], function (myApp) {
         vm.getPlayerLevelByPlatformId = function (id) {
             socketService.$socket($scope.AppSocket, 'getPlayerLevelByPlatformId', {platformId: id}, function (data) {
                 vm.playerLvlData = {};
+                vm.playerLvlName = {};
                 console.log(data)
                 if (data.data) {
                     $.each(data.data, function (i, v) {
                         vm.playerLvlData[v._id] = v;
+                        vm.playerLvlName[v._id] = v.name;
                     })
                 }
                 console.log("vm.playerLvlData", vm.playerLvlData);
@@ -2750,14 +2764,26 @@ define(['js/app'], function (myApp) {
 
         vm.getLimitedOfferReport = function (newSearch) {
             $('#limitedOfferTableSpin').show();
+
             let sendQuery = {
                 platformObjId: vm.selectedPlatform._id,
                 startTime: vm.limitedOfferQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.limitedOfferQuery.endTime.data('datetimepicker').getLocalDate(),
-                type: vm.limitedOfferQuery.type,
                 playerName: vm.limitedOfferQuery.playerName,
                 promoName: vm.limitedOfferQuery.promoName
             };
+
+            if(vm.limitedOfferQuery.status && vm.limitedOfferQuery.status.length > 0){
+                sendQuery.status = vm.limitedOfferQuery.status;
+            }
+
+            if(vm.limitedOfferQuery.level && vm.limitedOfferQuery.level.length > 0){
+                sendQuery.level = vm.limitedOfferQuery.level;
+            }
+
+            if(vm.limitedOfferQuery.inputDevice && vm.limitedOfferQuery.inputDevice.length > 0){
+                sendQuery.inputDevice = vm.limitedOfferQuery.inputDevice;
+            }
 
             console.log('sendQuery', sendQuery);
 
@@ -2811,7 +2837,7 @@ define(['js/app'], function (myApp) {
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', 'aTargets': [1], bSortable: true},
                     {'sortCol': 'data.limitedOfferName', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'levelRequirement$', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'data.requiredLevel', 'aTargets': [3], bSortable: true},
                     {'sortCol': 'data.playerName', 'aTargets': [4], bSortable: true},
                     {'sortCol': 'applyTime$', 'aTargets': [5], bSortable: true},
                     {'sortCol': 'data.topUpProposalId', 'aTargets': [6], bSortable: true},
@@ -2826,7 +2852,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('ORDER')},
                     {title: $translate('Proposal No'), data: "proposalId"},
                     {title: $translate('promoName'), data: "data.limitedOfferName"},
-                    {title: $translate('Level Requirement'), data: "levelRequirement$"},
+                    {title: $translate('Level Requirement'), data: "data.requiredLevel"},
                     {title: $translate('PLAYERNAME'), data: "data.playerName", sClass: "realNameCell wordWrap"},
                     {title: $translate('LIMITED_OFFER_APPLY_TIME'), data: "applyTime$"},
                     {title: $translate('topUpProposalId'), data: "data.topUpProposalId"},
@@ -2840,7 +2866,9 @@ define(['js/app'], function (myApp) {
                 "language": {
                     "info": "Total _MAX_ records",
                     "emptyTable": $translate("No data available in table"),
-                }
+                },
+                bSortClasses: false,
+                fnRowCallback: vm.limitedOfferTableCallback
             };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             let playerTbl = utilService.createDatatableWithFooter('#limitedOfferTable', tableOptions, {}, true);
@@ -2901,6 +2929,23 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'limitedOfferQuery', vm.drawLimitedOfferReport);
             });
         };
+
+        vm.limitedOfferTableCallback = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            $compile(nRow)($scope);
+            switch (aData.claimStatus) {
+                case "STILL VALID": {
+                    $(nRow).css('background-color', 'rgba(255, 209, 202, 100)', 'important');
+                    // $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                    break;
+                }
+                case "EXPIRED": {
+                    $(nRow).css('background-color', 'rgba(200, 200, 200, 20)', 'important');
+                    // $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                    break;
+                }
+            }
+        };
+
 
 
         ////////////////////FEEDBACK REPORT//////////////////////
