@@ -2975,19 +2975,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         error => deferred.reject(error)
                     );
                 } else {
-                    dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).then(
-                        (data) => {
+                    dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
+                        data => {
                             rewardTask = data;
-                            if (!taskData.useLockedCredit) {
-                                return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
-                                    playerData => {
-                                        dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
-                                    }
-                                );
-                            }
-                        }
-                    ).then(
-                        () => {
                             SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
                             return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
                                 rewardTask: taskData
