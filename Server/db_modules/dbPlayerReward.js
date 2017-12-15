@@ -3274,6 +3274,9 @@ let dbPlayerReward = {
 
                             if (eventData.condition.isDynamicRewardAmount) {
                                 rewardAmount = applyAmount * selectedRewardParam.rewardPercentage;
+                                if (selectedRewardParam.maxRewardInSingleTopUp && selectedRewardParam.maxRewardInSingleTopUp > 0) {
+                                    rewardAmount = Math.min(rewardAmount, Number(selectedRewardParam.maxRewardInSingleTopUp));
+                                }
 
                                 // Check reward amount exceed daily limit
                                 if (eventData.param.dailyMaxRewardAmount) {
