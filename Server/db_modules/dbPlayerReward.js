@@ -1375,14 +1375,16 @@ let dbPlayerReward = {
                                         promocode.allowedProviders.forEach(provider => {
                                             if (platformData.useProviderGroup) {
                                                 provider.providers.map(e => {
-                                                    if (platformData.gameProviderInfo[String(e._id)]) {
+                                                    if (platformData.gameProviderInfo && platformData.gameProviderInfo[String(e._id)]) {
                                                         providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
                                                     }
                                                 });
 
                                                 providerGroupName = provider.name;
                                             } else {
-                                                providers.push(platformData.gameProviderInfo[String(provider._id)].localNickName);
+                                                if (platformData.gameProviderInfo && platformData.gameProviderInfo[String(provider._id)]) {
+                                                    providers.push(platformData.gameProviderInfo[String(provider._id)].localNickName);
+                                                }
                                             }
                                         });
 
@@ -3839,7 +3841,7 @@ function checkInterfaceRewardPermission(eventData, rewardData) {
     if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0 && rewardData && rewardData.selectedTopup) {
         let registrationInterface = rewardData.selectedTopup.userAgent ? rewardData.selectedTopup.userAgent : 0;
 
-        isForbidInterface = eventData.condition.userAgent.indexOf(registrationInterface) < 0;
+        isForbidInterface = eventData.condition.userAgent.indexOf(registrationInterface.toString()) < 0;
     }
 
     return isForbidInterface;
