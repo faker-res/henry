@@ -2974,10 +2974,22 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         data => deferred.resolve(resolveValue || data),
                         error => deferred.reject(error)
                     );
-                }else{
-                    dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).then(
-                        data => deferred.resolve(resolveValue || data),
-                        error => deferred.reject(error)
+                } else {
+                    dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
+                        data => {
+                            rewardTask = data;
+                            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
+                            return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
+                                rewardTask: taskData
+                            });
+                        }
+                    ).then(
+                        function () {
+                            deferred.resolve(resolveValue || rewardTask);
+                        },
+                        function (error) {
+                            deferred.reject(error);
+                        }
                     );
                 }
             } else {
