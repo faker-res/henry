@@ -15489,12 +15489,10 @@ define(['js/app'], function (myApp) {
 
             vm.submitRewardPointsLogQuery = function (newSearch) {
                 $('#loadRewardPointsLogIcon').show();
-                var allRewardPointsLogProm = vm.searchRewardPointsLog(newSearch ? 0 : vm.rewardPointsLogPageAASorting.index, vm.rewardPointsLogPageAASorting.limit);
-
-                Q.all([allRewardPointsLogProm]).then(
+                vm.searchRewardPointsLog(newSearch ? 0 : vm.rewardPointsLogPageAASorting.index, vm.rewardPointsLogPageAASorting.limit).then(
                     (data) => {
                         $scope.safeApply();
-                        vm.allRewardPointsLog = data[0];
+                        vm.allRewardPointsLog = data;
                         console.log('vm.allRewardPointsLog', vm.allRewardPointsLog);
                         vm.drawRewardPointsLogTable(vm.allRewardPointsLog.data, vm.allRewardPointsLog.size, newSearch, {});
                         $('#loadRewardPointsLogIcon').hide();
@@ -15510,7 +15508,7 @@ define(['js/app'], function (myApp) {
                     sort : vm.rewardPointsLogPageAASorting.sortCol || {'createTime' : -1}
                 };
                 $.each(vm.rewardPointsLogQuery, function (idx, val) {
-                    if (val != '' && val != 'all') {
+                    if (val && val != '' && val != 'all') {
                         sendQuery.query[idx] = val;
                     }
                 });
@@ -15520,7 +15518,7 @@ define(['js/app'], function (myApp) {
                 var rewardPointsOperator = vm.rewardPointsLogQuery.rewardPointsOperator;
                 var rewardPointsAmountOne = vm.rewardPointsLogQuery.rewardPointsAmountOne ? vm.rewardPointsLogQuery.rewardPointsAmountOne : 0;
                 var rewardPointsAmountTwo = vm.rewardPointsLogQuery.rewardPointsAmountTwo ? vm.rewardPointsLogQuery.rewardPointsAmountTwo : 0;
-                if (rewardPointsOperator && rewardPointsAmountOne != '') {
+                if (rewardPointsOperator && $.isNumeric(rewardPointsAmountOne)) {
                     switch (rewardPointsOperator) {
                         case '<=':
                             sendQuery.query.amount = {$lte: rewardPointsAmountOne};
@@ -15532,7 +15530,7 @@ define(['js/app'], function (myApp) {
                             sendQuery.query.amount = rewardPointsAmountOne;
                             break;
                         case 'range':
-                            if (rewardPointsAmountTwo) sendQuery.query.amount = {$gte: rewardPointsAmountOne, $lte: rewardPointsAmountTwo};
+                            if ($.isNumeric(rewardPointsAmountTwo)) sendQuery.query.amount = {$gte: rewardPointsAmountOne, $lte: rewardPointsAmountTwo};
                             break;
                     }
                 }
@@ -15595,7 +15593,11 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {title: $translate('createTime'), data: "createTime$",  bSortable: true},
-                        {title: $translate('playerLevelName'), data: "playerLevelName"},
+                        {
+                            title: $translate('playerLevelName'), data: "playerLevelName",
+                            render: function (data, type, row) {
+                                return $translate(row.playerLevelName);
+                            }},
                         {
                             title: $translate('remark'), data: "remark",
                             render: function (data, type, row) {
