@@ -945,17 +945,20 @@
         div(ng-if='vm.showPageName=="LIMITED_OFFER_REPORT"')
             #limitedOfferQuery.block-query.col-md-12.well
                 div
-                    label {{'playerName' | translate}}
+                    label {{'PLAYERNAME' | translate}}
                     input.form-control(type='text', ng-model='vm.limitedOfferQuery.playerName')
                 div
                     label {{'promoName' | translate}}
                     input.form-control(type='text', ng-model='vm.limitedOfferQuery.promoName')
                 div
-                    label {{'Status' | translate}}
-                    select.form-control(ng-model='vm.limitedOfferQuery.status')
-                        option(value='online') {{"TOPUPONLINE" | translate }}
-                        option(value='manual') {{"TOPUPMANUAL" | translate }}
-                        option(value='bonus') {{"Bonus" | translate }}
+                    label {{'Receive Status' | translate}}
+                    select.form-control(ng-model='vm.limitedOfferQuery.status', ng-options="a | translate for a in vm.claimStatus", style='max-width:200px', multiple, bsp)
+                div
+                    label {{'Level Requirement' | translate}}
+                    select.form-control(ng-model='vm.limitedOfferQuery.level', ng-options="a for a in vm.playerLvlName", style='max-width:200px', multiple, bsp)
+                div
+                    label {{'DEVICE' | translate}}
+                    select.form-control(ng-model='vm.limitedOfferQuery.inputDevice', ng-options="+(i) as v | translate for (i,v) in vm.playerInputDevice", style='max-width:200px', multiple, bsp)
                 div
                     label {{"Start date"|translate}}
                     .startTime
@@ -964,12 +967,12 @@
                     .endTime
                 div
                     label &nbsp;
-                    button.btn.btn-success(ng-click='vm.getLimitedOfferReport()') {{'SEARCH' | translate}}
+                    button.btn.btn-success(ng-click='vm.getLimitedOfferReport(true)') {{'SEARCH' | translate}}
                     span#limitedOfferTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.winRateReportLoadingStatus}}
             .clearfix
-            table#limitedOfferTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+            //table#limitedOfferTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
                 thead
                     tr
                         th {{'ORDER' | translate}}
@@ -994,6 +997,8 @@
                         td {{el.data.rewardProposalId}}
                         td {{el.data.rewardProposalId ? el.data.rewardAmount : ""}}
                         td {{el.data.spendingAmount}}
+            table#limitedOfferTable.common-table.display(style="width:100%")
+            #limitedOfferTablePage
 
 #modalProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

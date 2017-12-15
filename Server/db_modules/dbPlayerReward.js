@@ -21,6 +21,7 @@ const constServerCode = require('../const/constServerCode');
 const dbPlayerUtil = require('../db_common/dbPlayerUtility');
 const dbProposalUtil = require('../db_common/dbProposalUtility');
 var constProposalMainType = require('../const/constProposalMainType');
+var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 
 const dbGameProvider = require('../db_modules/dbGameProvider');
 const dbProposal = require('./../db_modules/dbProposal');
@@ -2505,7 +2506,7 @@ let dbPlayerReward = {
         )
     },
 
-    getLimitedOfferReport: (platformObjId, startTime, endTime, playerName, promoName) => {
+    getLimitedOfferReport: (platformObjId, startTime, endTime, playerName, promoName, status, level, inputDevice) => {
         return dbConfig.collection_proposalType.findOne({
             platformId: platformObjId,
             name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
@@ -2525,10 +2526,57 @@ let dbPlayerReward = {
                     matchQ['data.limitedOfferName'] = promoName;
                 }
 
+                if(inputDevice && inputDevice.length > 0){
+                    matchQ.inputDevice = {$in: inputDevice};
+                }
+
+                if(level && level.length > 0){
+                    matchQ['data.playerLevelName'] = {$in: level};
+                }
+
                 return dbConfig.collection_proposal.find(matchQ).lean();
             }
         ).then(
-            intProps => intProps
+            intProps => {
+                if(intProps && intProps.length > 0){
+                    let validProposal = [];
+                    let acceptedProposal = [];
+                    let expiredProposal = [];
+                    let returnedArray = [];
+
+                    if(status && status.length > 0){
+                        for(let i = 0; i < status.length ; i ++){
+                            if(status[i] == "STILL VALID"){
+                                validProposal = intProps.filter(function (event) {
+                                    if(event && event.data){
+                                        return (event.data.expirationTime > new Date()) && (!event.data.topUpProposalId);
+                                    }
+                                });
+                            }
+
+                            if(status[i] == "ACCEPTED"){
+                                acceptedProposal = intProps.filter(function (event) {
+                                    if(event && event.data){
+                                        return (event.data.topUpProposalId);
+                                    }
+                                });
+                            }
+
+                            if(status[i] == "EXPIRED"){
+                                expiredProposal = intProps.filter(function (event) {
+                                    if(event && event.data){
+                                        return (event.data.expirationTime < new Date()) && (!event.data.topUpProposalId);
+                                    }
+                                });
+                            }
+                        }
+                    }else{
+                        return intProps;
+                    }
+
+                    return returnedArray.concat(validProposal).concat(acceptedProposal).concat(expiredProposal).sort(function(a,b){return a.proposalId - b.proposalId});
+                }
+            }
         )
     },
 
@@ -3234,7 +3282,7 @@ let dbPlayerReward = {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "Cant apply this reward, contact cs"
+                                    message: "Reward already hit maximum number of apply. Please contact cs."
                                 });
                             }
                         }
