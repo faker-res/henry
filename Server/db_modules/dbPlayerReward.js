@@ -3783,7 +3783,7 @@ let dbPlayerReward = {
                                         {
                                             _id: rewardData.selectedTopup._id,
                                             createTime: rewardData.selectedTopup.createTime,
-                                            bDirty: {$ne: true}
+                                            // bDirty: {$ne: true}
                                         },
                                         {
                                             bDirty: true,
