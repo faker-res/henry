@@ -442,7 +442,7 @@
                 span
                     ul.nav.nav-tabs
                         li
-                            label {{ 'Reward Points' | translate}}
+                            label(style="font-size: 1.5em;") {{ 'Reward Points' | translate}}
                         li.active
                             a(data-toggle="tab", href="#detail", ng-click="")
                                 .fa.fa-user
@@ -451,7 +451,7 @@
                 .panel.panel-primary
                     .panel-body
                         .tab-content
-                            #detail.tab-pane.fade.in.active
+                            #ProposalDetail.tab-pane.fade.in.active
                                 div
                                     .titleBackground.margin-bottom-5.text-center {{'Basic' | translate}}
                                     .label-value
@@ -473,8 +473,40 @@
                                     label {{'UPDATE_DETAIL' | translate}}
                                     div(ng-switch-default)
                                         table.table(style='width:100%')
-                                            //tr(ng-repeat='(i,v) in vm.selectedProposalDetailForDisplay')
-                                            tr(ng-repeat='(i,v) in vm.rewardPointsLogDetail')
+                                            tr
+                                                td {{ 'Reward Point ID' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.pointLogId }}
+                                            tr
+                                                td {{ 'Member Account' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.playerName }}
+                                            tr
+                                                td {{ 'Player Level' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.playerLevelName | translate }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.currentDayAppliedAmount != null')
+                                                td {{ 'dailyMaxRewardPoint' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.currentDayAppliedAmount}} / {{vm.rewardPointsLogDetail.maxDayApplyAmount}}
+                                            tr
+                                                td {{ 'rewardPointsCategory' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.category | translate}}
+                                            tr
+                                                td {{ 'rewardPoints' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.amount }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.rewardPeriod')
+                                                td {{ 'eventRefreshPeriod' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.rewardPeriod }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.rewardTitle')
+                                                td {{ 'rewardTitle' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.rewardTitle }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.rewardContent')
+                                                td {{ 'rewardContent' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.rewardContent }}
+                                            tr
+                                                td {{ 'remark' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.remark }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.proposal && vm.rewardPointsLogDetail.proposal.data.exchangeRatio')
+                                                td {{ 'exchangeRatio' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.proposal.data.exchangeRatio }}
+                                            tr(ng-repeat='(i,v) in vm.rewardPointsLogDetail.rewardTarget')
                                                 td {{ i | translate}}
                                                 td
                                                     div(ng-bind-html='v')

@@ -739,6 +739,7 @@
   "CHILDREN": "下线",
   "Add Event": "添加优惠活动",
   "Reward amount": "优惠额",
+  "OFFER_AMOUNT": "促销额度",
   "Reward number": "优惠数",
   "Minimum spending amount for reward task": "优惠最低投注额",
   "Minimum daily top up amount": "每日最低充值额",
@@ -1795,6 +1796,7 @@
   "remark": "备注",
   "partnerName": "代理名称",
   "spendingAmount": "解锁流水额",
+  "SPENDING_AMOUNT": "解锁流水",
   "HONOREE_DETAIL": "提款备注",
   "honoreeDetail": "提款备注",
   "DEPOSIT_METHOD": "手工存款方式",
@@ -2900,5 +2902,8 @@
   "promoName": "礼包名称",
   "Receive Status": "领取状态",
   "Level Requirement": "等级要求",
-  "STILL VALID": "仍有效"
+  "STILL VALID": "仍有效",
+  "Required Level": "等级需求",
+  "eventRefreshPeriod": "任务刷新周期",
+  "Reward already hit maximum number of apply. Please contact cs.": "已经达到申请上限次数，详情请联系客服"
 }

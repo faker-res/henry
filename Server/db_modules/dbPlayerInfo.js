@@ -78,6 +78,7 @@ let dbPlayerCredibility = require('./../db_modules/dbPlayerCredibility');
 let dbPartner = require('../db_modules/dbPartner');
 let dbRewardPoints = require('../db_modules/dbRewardPoints');
 let dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
+let dbPlayerMail = require('../db_modules/dbPlayerMail');
 let PLATFORM_PREFIX_SEPARATOR = '';
 
 let dbPlayerInfo = {
@@ -134,10 +135,66 @@ let dbPlayerInfo = {
     /**
      * Update player's reward points and create log
      */
-    updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark) {
+    updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark, adminName, adminId) {
         let category = updateAmount >= 0 ? constRewardPointsLogCategory.POINT_INCREMENT : constRewardPointsLogCategory.POINT_REDUCTION;
-        return dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, constPlayerRegistrationInterface.BACKSTAGE);
+        return dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, constPlayerRegistrationInterface.BACKSTAGE, adminName);
     },
+
+    /**
+     * Get player reward points daily limit
+     */
+    getPlayerRewardPointsDailyLimit: function (platformObjId, playerLevel) {
+        return dbconfig.collection_rewardPointsLvlConfig.findOne({
+            platformObjId: platformObjId
+        }).lean().then(
+            data => {
+                let dailyLimit = null;
+                for (let i=0; i < data.params.length; i++) {
+                    if (data.params[i].levelObjId.toString() === playerLevel.toString()) {
+                        dailyLimit = data.params[i].dailyMaxPoints;
+                        return dailyLimit;
+                    }
+                }
+            }
+        )
+    },
+
+    /**
+     * Get player reward points daily converted points
+     */
+    getPlayerRewardPointsDailyConvertedPoints: function (rewardPointsObjId) {
+        let todayTime = dbUtility.getTodaySGTime();
+        let category = constRewardPointsLogCategory.EARLY_POINT_CONVERSION;
+        return dbconfig.collection_rewardTask.aggregate(
+            {
+                $match: {
+                    createTime: {
+                        $gte: todayTime.startTime,
+                        $lt: todayTime.endTime
+                    },
+                    "data.rewardPointsObjId": ObjectId(rewardPointsObjId),
+                    "data.category": category
+                }
+            },
+            {
+                $group: {
+                    _id: "$playerId",
+                    amount: {$sum: "$data.convertedRewardPointsAmount"}
+                }
+            }
+        ).then(
+            rewardTask => {
+                if (rewardTask && rewardTask[0]) {
+                    return rewardTask[0].amount;
+                }
+                else {
+                    // No rewardTask
+                    return 0;
+                }
+            }
+        );
+    },
+
     /**
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
@@ -163,69 +220,10 @@ let dbPlayerInfo = {
                     platformPrefix = platformData.prefix;
 
                     if (!platformObj.requireSMSVerification || bypassSMSVerify) {
-                        return Q.resolve(true);
+                        return true;
                     }
 
-                    platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
-                    let smsExpiredDate = new Date();
-                    smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
-
-                    let smsProm = dbconfig.collection_smsVerificationLog.findOne({
-                        platformId: platformId,
-                        tel: inputData.phoneNumber,
-                        createTime: {$gte: smsExpiredDate}
-                    }).sort({createTime: -1});
-
-                    return smsProm.then(
-                        verificationSMS => {
-                            // Check verification SMS code
-                            if (verificationSMS && verificationSMS.code && verificationSMS.code == inputData.smsCode) {
-                                verificationSMS = verificationSMS || {};
-                                return dbconfig.collection_smsVerificationLog.remove({
-                                    _id: verificationSMS._id
-                                }).then(
-                                    () => {
-                                        dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
-                                        Q.resolve(true);
-                                    }
-                                );
-                            }
-                            else {
-                                // Not verified
-                                if (!verificationSMS) {
-                                    return Q.reject({
-                                        status: constServerCode.VALIDATION_CODE_EXPIRED,
-                                        name: "ValidationError",
-                                        message: "Invalid SMS Validation Code"
-                                    });
-                                }
-                                else if (verificationSMS.loginAttempts >= 3) {
-                                    // Safety - remove sms verification code after 10 attempts to prevent brute force attack
-                                    return dbconfig.collection_smsVerificationLog.remove(
-                                        {_id: verificationSMS._id}
-                                    ).then(() => {
-                                        return Q.reject({
-                                            status: constServerCode.VALIDATION_CODE_EXCEED_ATTEMPT,
-                                            name: "ValidationError",
-                                            message: "Incorrect SMS Validation Code"
-                                        });
-                                    });
-                                }
-                                else {
-                                    return dbconfig.collection_smsVerificationLog.findOneAndUpdate(
-                                        {_id: verificationSMS._id},
-                                        {$inc: {loginAttempts: 1}}
-                                    ).then(() => {
-                                        return Q.reject({
-                                            status: constServerCode.VALIDATION_CODE_INVALID,
-                                            name: "ValidationError",
-                                            message: "Incorrect SMS Validation Code"
-                                        });
-                                    });
-                                }
-                            }
-                        }
-                    );
+                    return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode);
                 }
             ).then(
                 isVerified => {
@@ -1507,38 +1505,7 @@ let dbPlayerInfo = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
-                        let smsExpiredDate = new Date();
-                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
-                        // Check verification SMS match
-                        return dbconfig.collection_smsVerificationLog.findOne({
-                            platformObjId: playerObj.platform,
-                            tel: playerObj.phoneNumber,
-                            createTime: {$gte: smsExpiredDate}
-                        }).sort({createTime: -1}).then(
-                            verificationSMS => {
-                                // Check verification SMS code
-                                if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
-                                    verificationSMS = verificationSMS || {};
-                                    return dbconfig.collection_smsVerificationLog.remove(
-                                        {_id: verificationSMS._id}
-                                    ).then(
-                                        () => {
-                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
-                                            return Q.resolve(true);
-                                        }
-                                    )
-                                }
-                                else {
-                                    let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
-                                    return Q.reject({
-                                        status: constServerCode.VALIDATION_CODE_INVALID,
-                                        name: "ValidationError",
-                                        message: errorMessage
-                                    });
-                                }
-                            }
-                        )
+                        return dbPlayerMail.verifySMSValidationCode(playerObj.phoneNumber, platformData, smsCode);
                     }
                 } else {
                     return Q.reject({
@@ -1702,39 +1669,7 @@ let dbPlayerInfo = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
-                        let smsExpiredDate = new Date();
-                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
-                        // Check verification SMS match
-                        return dbconfig.collection_smsVerificationLog.findOne({
-                            platformObjId: playerObj.platform,
-                            tel: playerObj.phoneNumber,
-                            createTime: {$gte: smsExpiredDate}
-                        }).sort({createTime: -1}).then(
-                            verificationSMS => {
-                                // Check verification SMS code
-                                if (verificationSMS && verificationSMS.code && verificationSMS.code == updateData.smsCode) {
-                                    verificationSMS = verificationSMS || {};
-                                    return dbconfig.collection_smsVerificationLog.remove(
-                                        {_id: verificationSMS._id}
-                                    ).then(
-                                        () => {
-                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
-                                            smsLogData = {tel: verificationSMS.tel, message: verificationSMS.code};
-                                            return Q.resolve(true);
-                                        }
-                                    )
-                                }
-                                else {
-                                    let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
-                                    return Q.reject({
-                                        status: constServerCode.VALIDATION_CODE_INVALID,
-                                        name: "ValidationError",
-                                        message: errorMessage
-                                    });
-                                }
-                            }
-                        )
+                        return dbPlayerMail.verifySMSValidationCode(playerObj.phoneNumber, platformData, updateData.smsCode);
                     }
                 }
                 else {
@@ -1748,6 +1683,7 @@ let dbPlayerInfo = {
         ).then(
             isVerified => {
                 if (isVerified) {
+                    smsLogData = {tel: isVerified.tel, message: isVerified.code};
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateData, constShardKeys.collection_players);
                 }
             }
@@ -4328,6 +4264,11 @@ let dbPlayerInfo = {
                                 username: userName,
                                 platformId: platformId,
                                 providerId: playerData.lastPlayedProvider.providerId
+                            }
+                        ).then(
+                            data => data,
+                            error => {
+                                return {credit: 0};
                             }
                         );
                     }
@@ -12349,8 +12290,8 @@ let dbPlayerInfo = {
                 if (gameCreditList && gameCreditList.length > 0) {
                     for (let i = 0; i < gameCreditList.length; i++) {
                         returnData.gameCreditList[i] = {
-                            nickName: gameCreditList[i].nickName,
-                            validCredit: gameCreditList[i].gameCredit
+                            nickName: gameCreditList[i].nickName? gameCreditList[i].nickName: "",
+                            validCredit: gameCreditList[i].gameCredit? gameCreditList[i].gameCredit: ""
                         };
                     }
 

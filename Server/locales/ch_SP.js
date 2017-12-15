@@ -192,7 +192,7 @@ var simplifiedChinese = {
     "SMS is not available": "短信发送失败，请再次尝试",
     "Cant apply this reward, contact cs": "不符合领取条件，请联系客服",
     "PARTNER": "代理",
-    "Incorrect SMS Validation Code": "验证码错误，请再次输入",
+    "Incorrect SMS Validation Code": "短信验证码错误，请再次输入",
     "NO_REACH_TOPUP":"充值金额不足",
     "NO_REACH_CONSUMPTION":"有效投注不足",
     "NO_REACH_TOPUP_CONSUMPTION":"充值金额不足, 有效投注不足",
@@ -204,7 +204,11 @@ var simplifiedChinese = {
     "This phone number is already used. Please insert other phone number.": "该号码已经被使用，请使用其他手机号。",
     "PlayerLevelUp": "升级奖励",
     "level change fail, please contact cs": "等级变更失效，请联系客服。",
-    "The promoCode Type is still valid": "优惠类型还在使用中，不能被删除。"
+    "The promoCode Type is still valid": "优惠类型还在使用中，不能被删除。",
+    "Player level is not enough": "玩家等级不足",
+    "SMS validation code invalidated. Please get another one.": "短信验证码已失效，请重新获取",
+    "There is no valid SMS Code. Please get another one.": "无可用短信验证码，请重新获取",
+    "Reward already hit maximum number of apply. Please contact cs.": "已经达到申请上限次数，详情请联系客服"
     //todo::add missing messages here
 
     /*
