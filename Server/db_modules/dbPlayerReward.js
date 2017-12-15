@@ -1480,20 +1480,22 @@ let dbPlayerReward = {
                         let proposalId = proposal.proposalId || 'none';
                         let prom = dbConfig.collection_promoCode.findOne({proposalId: proposalId}).then(
                             data => {
-                                let bannerText = '';
-                                if (data.bannerText) {
-                                    bannerText = data.bannerText;
+                                if(data){
+                                    let bannerText = '';
+                                    if (data.bannerText) {
+                                        bannerText = data.bannerText;
+                                    }
+                                    let bonusNum = proposal.data.rewardAmount;
+                                    let accountNo = dbPlayerReward.customAccountMask(proposal.data.playerName);
+                                    let record = {
+                                        "accountNo": accountNo,
+                                        "bonus": bonusNum,
+                                        "time": proposal.settleTime,
+                                        "name": bannerText
+                                    }
+                                    approvedProposal.push(record);
+                                    return record;
                                 }
-                                let bonusNum = proposal.data.rewardAmount;
-                                let accountNo = dbPlayerReward.customAccountMask(proposal.data.playerName);
-                                let record = {
-                                    "accountNo": accountNo,
-                                    "bonus": bonusNum,
-                                    "time": proposal.settleTime,
-                                    "name": bannerText
-                                }
-                                approvedProposal.push(record);
-                                return record;
                             })
                         allProm.push(prom)
                     })
@@ -1502,6 +1504,11 @@ let dbPlayerReward = {
             )
             .then(
                 data => {
+                    if (data.length > 0) {
+                        data = data.filter(item => {
+                            return item != null
+                        })
+                    }
                     let result = promoListData;
                     result.bonusList = data;
                     return result;
