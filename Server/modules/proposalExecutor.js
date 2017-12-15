@@ -2050,7 +2050,7 @@ var proposalExecutor = {
                         data => {
                             let updateData = {$set: {}};
 
-                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
                                 updateData.$set["permission.applyBonus"] = false;
                             }
 
@@ -2095,7 +2095,7 @@ var proposalExecutor = {
                         data => {
                             let updateData = {$set: {}};
 
-                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
                                 updateData.$set["permission.applyBonus"] = false;
                             }
 
@@ -2139,7 +2139,7 @@ var proposalExecutor = {
                         data => {
                             let updateData = {$set: {}};
 
-                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
                                 updateData.$set["permission.applyBonus"] = false;
                             }
 
@@ -2183,7 +2183,7 @@ var proposalExecutor = {
                         data => {
                             let updateData = {$set: {}};
 
-                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
                                 updateData.$set["permission.applyBonus"] = false;
                             }
 
@@ -2227,7 +2227,7 @@ var proposalExecutor = {
                         data => {
                             let updateData = {$set: {}};
 
-                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
                                 updateData.$set["permission.applyBonus"] = false;
                             }
 
@@ -2275,7 +2275,7 @@ var proposalExecutor = {
                         data => {
                             let updateData = {$set: {}};
 
-                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply')) {
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
                                 updateData.$set["permission.applyBonus"] = false;
                             }
 
