@@ -2965,19 +2965,27 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             // Create different process flow for lock provider group reward
             if (platform.useProviderGroup) {
                 if(proposalData.data.providerGroup && gameProviderGroup){
-                    dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(
-                        data => deferred.resolve(resolveValue || data),
-                        error => deferred.reject(error)
+                    dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).catch(
+                        error => Q.reject({
+                            name: "DBError",
+                            message: "Error creating reward task with provider group",
+                            error: error
+                        })
                     );
-            
-                    dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(
-                        data => deferred.resolve(resolveValue || data),
-                        error => deferred.reject(error)
+                    dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).catch(
+                        error => Q.reject({
+                            name: "DBError",
+                            message: "Error deduct target consumption from free amount provider group",
+                            error: error
+                        })
                     );
                 }else{
-                    dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).then(
-                        data => deferred.resolve(resolveValue || data),
-                        error => deferred.reject(error)
+                    dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(
+                        error => Q.reject({
+                            name: "DBError",
+                            message: "Error adding consumption value into free amount provider group",
+                            error: error
+                        })
                     );
                 }
             } else {
@@ -3040,6 +3048,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                     }
                 );
             }
+
+            return deferred.resolve(resolveValue);
         }
     );
 }

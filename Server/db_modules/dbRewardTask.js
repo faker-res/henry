@@ -286,29 +286,33 @@ const dbRewardTask = {
                     } else {
                         updObj.$inc.targetConsumption = -rewardData.applyAmount;
                     }
-    
+
+                    if(freeProviderGroup.targetConsumption && freeProviderGroup.targetConsumption - rewardData.applyAmount <= 0){
+                        updObj.status = constRewardTaskStatus.ACHIEVED;
+                    }
+
                     // There are on-going reward task for this provider group
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                         _id: freeProviderGroup._id
                     }, updObj);
                 }
-                else {
-                    let saveObj = {
-                        platformId: rewardData.platformId,
-                        playerId: rewardData.playerId,
-                        providerGroup: null,
-                        status: constRewardTaskStatus.STARTED,
-                        rewardAmt: 0,
-                        currentAmt: 0,
-                        forbidWithdrawIfBalanceAfterUnlock: 0,
-                        forbidXIMAAmt: 0,
-                        //targetConsumption: -rewardData.applyAmount
-                        targetConsumption: 0
-                    };
-    
-                    // create new reward group
-                    return new dbconfig.collection_rewardTaskGroup(saveObj).save();
-                }
+                // else {
+                //     let saveObj = {
+                //         platformId: rewardData.platformId,
+                //         playerId: rewardData.playerId,
+                //         providerGroup: null,
+                //         status: constRewardTaskStatus.STARTED,
+                //         rewardAmt: 0,
+                //         currentAmt: 0,
+                //         forbidWithdrawIfBalanceAfterUnlock: 0,
+                //         forbidXIMAAmt: 0,
+                //         //targetConsumption: -rewardData.applyAmount
+                //         targetConsumption: 0
+                //     };
+                //
+                //     // create new reward group
+                //     return new dbconfig.collection_rewardTaskGroup(saveObj).save();
+                // }
             }
         ).then(
             freeProviderGroup2 => {
