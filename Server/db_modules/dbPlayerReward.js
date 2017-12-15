@@ -2322,6 +2322,7 @@ let dbPlayerReward = {
         let platformObj;
         let eventObj;
         let proposalTypeObj;
+        let requiredLevelName;
 
         return dbConfig.collection_players.findOne({
             playerId: playerId
@@ -2380,12 +2381,16 @@ let dbPlayerReward = {
         ).then(
             allLevelData => {
                 if (allLevelData && allLevelData.length > 0) {
-                    let levelValue;
+                    let levelValue = 0;
                     let isReachMinLevel = false;
-                    for (let i = 0; i < allLevelData.length; i++) {
-                        if (limitedOfferObj.requiredLevel.toString() == allLevelData[i]._id.toString()){
-                            levelValue = allLevelData[i].value;
-                            break;
+
+                    if (limitedOfferObj.requiredLevel) {
+                        for (let i = 0; i < allLevelData.length; i++) {
+                            if (limitedOfferObj.requiredLevel.toString() == allLevelData[i]._id.toString()) {
+                                levelValue = allLevelData[i].value;
+                                requiredLevelName = allLevelData[i].name;
+                                break;
+                            }
                         }
                     }
 
@@ -2488,7 +2493,8 @@ let dbPlayerReward = {
                         eventId: eventObj._id,
                         eventName: eventObj.name,
                         eventCode: eventObj.code,
-                        eventDescription: eventObj.description
+                        eventDescription: eventObj.description,
+                        requiredLevel: requiredLevelName? requiredLevelName: ""
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
@@ -2543,6 +2549,18 @@ let dbPlayerReward = {
                     let acceptedProposal = [];
                     let expiredProposal = [];
                     let returnedArray = [];
+
+                    for (let j = 0; j < intProps.length; j++) {
+                        if (intProps[j].data) {
+                            if ((intProps[j].data.expirationTime > new Date()) && !intProps[j].data.topUpProposalId) {
+                                intProps[j].claimStatus = "STILL VALID";
+                            } else if ((intProps[j].data.expirationTime < new Date()) && !intProps[j].data.topUpProposalId) {
+                                intProps[j].claimStatus = "EXPIRED";
+                            } else {
+                                intProps[j].claimStatus = "ACCEPTED";
+                            }
+                        }
+                    }
 
                     if(status && status.length > 0){
                         for(let i = 0; i < status.length ; i ++){
