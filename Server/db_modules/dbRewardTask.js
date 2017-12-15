@@ -162,7 +162,7 @@ const dbRewardTask = {
                                 : 0
                     };
 
-                    if (rewardData.useConsumption) {
+                    if (rewardData.useConsumption && rewardData.requiredUnlockAmount) {
                         saveObj.forbidXIMAAmt = rewardData.requiredUnlockAmount;
                     } else {
                         saveObj.targetConsumption = rewardData.requiredUnlockAmount;
@@ -186,7 +186,7 @@ const dbRewardTask = {
         )
     },
 
-    insertConsumptionValueIntoFreeAmountProviderGroup: (rewardData, proposalData) => {
+    insertConsumptionValueIntoFreeAmountProviderGroup: (rewardData, proposalData, rewardType) => {
         // Search available reward task group for this reward & this player
         return dbconfig.collection_rewardTaskGroup.findOne({
             platformId: rewardData.platformId,
@@ -233,7 +233,7 @@ const dbRewardTask = {
                                 : 0
                     };
     
-                    if (rewardData.useConsumption) {
+                    if (rewardData.useConsumption && rewardData.requiredUnlockAmount) {
                         saveObj.forbidXIMAAmt = rewardData.requiredUnlockAmount;
                     } else {
                         saveObj.targetConsumption = rewardData.requiredUnlockAmount;
@@ -252,6 +252,20 @@ const dbRewardTask = {
                 else {
                     // Failed create reward task group or increase amount
                     return Q.reject({name: "DBError", message: "Error creating reward task", error: error})
+                }
+            }
+        ).then(
+            (returnData) => {
+                if (!rewardData.useLockedCredit) {
+                    return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
+                        playerData => {
+                            dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
+                        }
+                    ).then(
+                        () => {
+                            return returnData;
+                        }
+                    );
                 }
             }
         )
@@ -839,7 +853,7 @@ const dbRewardTask = {
                         {new: true}
                     );
                 }else{
-                    dbRewardTaskGroup.getFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime).then(
+                    return dbRewardTaskGroup.getFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime).then(
                         freeRewardTaskGroup => {
                             freeRewardTaskGroup.curConsumption += consumptionRecord.validAmount;
                             freeRewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
@@ -1118,22 +1132,24 @@ const dbRewardTask = {
                                 let platform = data[0];
                                 let providerGroup = data[1];
                                 let promArr = [];
-                                providerGroup.providers.forEach(provider => {
-                                    promArr.push(
-                                        cpmsAPI.player_queryCredit(
-                                            {
-                                                username: player.name,
-                                                platformId: platform.platformId,
-                                                providerId: provider.providerId
-                                            }
-                                        ).then(
-                                            data => data,
-                                            error => {
-                                                return {credit: 0};
-                                            }
-                                        )
-                                    );
-                                });
+                                if(providerGroup) {
+                                    providerGroup.providers.forEach(provider => {
+                                        promArr.push(
+                                            cpmsAPI.player_queryCredit(
+                                                {
+                                                    username: player.name,
+                                                    platformId: platform.platformId,
+                                                    providerId: provider.providerId
+                                                }
+                                            ).then(
+                                                data => data,
+                                                error => {
+                                                    return {credit: 0};
+                                                }
+                                            )
+                                        );
+                                    });
+                                }
                                 return Promise.all(promArr);
                             }
                         ).then(

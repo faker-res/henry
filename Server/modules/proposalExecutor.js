@@ -2979,13 +2979,28 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                             error: error
                         })
                     );
-                }else{
-                    dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(
+                } else {
+                    dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
+                        data => {
+                            rewardTask = data;
+                            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
+                            return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
+                                rewardTask: taskData
+                            });
+                        }
+                    ).then(
+                        function () {
+                            deferred.resolve(resolveValue || rewardTask);
+                        },
+                        function (error) {
+                            deferred.reject(error);
+                        }
+                    ).catch(
                         error => Q.reject({
                             name: "DBError",
                             message: "Error adding consumption value into free amount provider group",
                             error: error
-                        })
+                         })
                     );
                 }
             } else {
@@ -3204,8 +3219,9 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
                     return dbconfig.collection_rewardPoints.findOne({_id: proposalData.data.playerRewardPointsObjId}).lean().then(
                         playerRewardPoints => {
                             let rewardPointsLogStatus = proposalData.status == constProposalStatus.APPROVED ? constRewardPointsLogStatus.PROCESSED : constRewardPointsLogStatus.PENDING;
+                            let updateAmount = proposalData.data.convertedRewardPoints >= 0 ? -Math.abs(proposalData.data.convertedRewardPoints) : Math.abs(proposalData.data.convertedRewardPoints);
                             return dbPlayerRewardPoints.tryToDeductRewardPointFromPlayer(playerRewardPoints.playerObjId, playerRewardPoints.platformObjId,
-                                -Math.abs(proposalData.data.convertedRewardPoints), taskData.data.category, proposalData.data.remark,
+                                updateAmount, taskData.data.category, proposalData.data.remark,
                                 proposalData.inputDevice, proposalData.creator.name, rewardPointsLogStatus, proposalData.data.currentDayAppliedAmount, proposalData.data.maxDayApplyAmount,
                                 rewardTask._id, taskData.proposalId);
                         }

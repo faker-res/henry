@@ -5697,7 +5697,7 @@ let dbPlayerInfo = {
                             forbidWithdrawIfBalanceAfterUnlock:0,
                             forbidXIMAAmt: 0,
                             curConsumption: 0,
-                            targetConsumption: topUpAmount
+                            targetConsumption: topUpAmount || 0
                         };
     
                         // create new reward group

@@ -2837,7 +2837,7 @@ define(['js/app'], function (myApp) {
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', 'aTargets': [1], bSortable: true},
                     {'sortCol': 'data.limitedOfferName', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'levelRequirement$', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'data.requiredLevel', 'aTargets': [3], bSortable: true},
                     {'sortCol': 'data.playerName', 'aTargets': [4], bSortable: true},
                     {'sortCol': 'applyTime$', 'aTargets': [5], bSortable: true},
                     {'sortCol': 'data.topUpProposalId', 'aTargets': [6], bSortable: true},
@@ -2852,7 +2852,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('ORDER')},
                     {title: $translate('Proposal No'), data: "proposalId"},
                     {title: $translate('promoName'), data: "data.limitedOfferName"},
-                    {title: $translate('Level Requirement'), data: "levelRequirement$"},
+                    {title: $translate('Level Requirement'), data: "data.requiredLevel"},
                     {title: $translate('PLAYERNAME'), data: "data.playerName", sClass: "realNameCell wordWrap"},
                     {title: $translate('LIMITED_OFFER_APPLY_TIME'), data: "applyTime$"},
                     {title: $translate('topUpProposalId'), data: "data.topUpProposalId"},
@@ -2866,7 +2866,9 @@ define(['js/app'], function (myApp) {
                 "language": {
                     "info": "Total _MAX_ records",
                     "emptyTable": $translate("No data available in table"),
-                }
+                },
+                bSortClasses: false,
+                fnRowCallback: vm.limitedOfferTableCallback
             };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             let playerTbl = utilService.createDatatableWithFooter('#limitedOfferTable', tableOptions, {}, true);
@@ -2927,6 +2929,23 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'limitedOfferQuery', vm.drawLimitedOfferReport);
             });
         };
+
+        vm.limitedOfferTableCallback = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            $compile(nRow)($scope);
+            switch (aData.claimStatus) {
+                case "STILL VALID": {
+                    $(nRow).css('background-color', 'rgba(255, 209, 202, 100)', 'important');
+                    // $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                    break;
+                }
+                case "EXPIRED": {
+                    $(nRow).css('background-color', 'rgba(200, 200, 200, 20)', 'important');
+                    // $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                    break;
+                }
+            }
+        };
+
 
 
         ////////////////////FEEDBACK REPORT//////////////////////
