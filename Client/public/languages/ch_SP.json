@@ -2899,6 +2899,10 @@
   "Proposal Creator": "提案人",
   "createTime": "加入时间",
   "The promoCode Type is still valid": "优惠类型还在使用中，不能被删除。",
+  "promoName": "礼包名称",
+  "Receive Status": "领取状态",
+  "Level Requirement": "等级要求",
+  "STILL VALID": "仍有效",
   "Required Level": "等级需求",
   "eventRefreshPeriod": "任务刷新周期",
   "Reward already hit maximum number of apply. Please contact cs.": "已经达到申请上限次数，详情请联系客服"
