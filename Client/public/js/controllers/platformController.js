@@ -10237,8 +10237,9 @@ define(['js/app'], function (myApp) {
                     var size = data.data ? data.data.size : 0;
                     console.log(data.data);
                     let summary = data.data ? data.data.summary :[];
+                    let topUpAmountSum = data.data ? data.data.topUpAmountSum : 0;
                     vm.rewardTaskLog.totalCount = size;
-                    vm.drawRewardTaskTable(newSearch, tblData, size, summary);
+                    vm.drawRewardTaskTable(newSearch, tblData, size, summary, topUpAmountSum);
                 });
             }
             vm.selectReward = function($event){
@@ -10259,7 +10260,7 @@ define(['js/app'], function (myApp) {
                 //
                 // console.log(vm.selectedRewards);
             }
-            vm.drawRewardTaskTable = function (newSearch, tblData, size, summary) {
+            vm.drawRewardTaskTable = function (newSearch, tblData, size, summary, topUpAmountSum) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
@@ -10271,8 +10272,9 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row, meta) {
                                 var text;
                                 var rowId = String(meta.row);
+                                var adminName = row.creator ? row.creator.name : '';
                                 if(data!='Started'){
-                                    text = '<a class="fa fa-check margin-right-5"></a><span>(' + row.creator.name +')</span>';
+                                    text = '<a class="fa fa-check margin-right-5"></a><span>(' + adminName +')</span>';
                                 }else{
                                     text = '<input type="checkbox" class="unlockList" name="unlockList[]" value="'+rowId+'"  ng-click="vm.selectReward($event)"/>';
                                 }
@@ -10382,7 +10384,7 @@ define(['js/app'], function (myApp) {
                 //     'bonusAmountAllSum': 3000
                 // }
                 utilService.createDatatableWithFooter('#rewardTaskLogTbl', tableOptions, {
-                    4: summary.topUpAmountSum,
+                    4: topUpAmountSum,
                     6: summary.bonusAmountSum,
                     7: summary.requiredBonusAmountSum,
                     8: summary.currentAmountSum
