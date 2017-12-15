@@ -2526,7 +2526,7 @@ let dbPlayerReward = {
                     matchQ['data.limitedOfferName'] = promoName;
                 }
 
-                if(inputDevice){
+                if(inputDevice && inputDevice.length > 0){
                     matchQ.inputDevice = {$in: inputDevice};
                 }
 
