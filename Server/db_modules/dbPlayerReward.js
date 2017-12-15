@@ -3344,7 +3344,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "Cant apply this reward, contact cs"
+                                message: "Reward already hit maximum number of apply. Please contact cs."
                             });
                         }
 
