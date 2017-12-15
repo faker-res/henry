@@ -3850,15 +3850,21 @@ function checkInterfaceRewardPermission(eventData, rewardData) {
 function checkTopupRecordIsDirtyForReward(eventData, rewardData) {
     let isUsed = false;
 
-    if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0
-        && rewardData && rewardData.selectedTopup && rewardData.usedEvent && rewardData.usedEvent.length > 0) {
-        rewardData.usedEvent.map(eventId => {
-            eventData.condition.ignoreTopUpDirtyCheckForReward.map(eventIgnoreId => {
-                if (String(eventId) == String(eventIgnoreId)) {
-                    isUsed = true;
-                }
+    if (rewardData && rewardData.selectedTopup && rewardData.selectedTopup.usedEvent && rewardData.selectedTopup.usedEvent.length > 0) {
+        if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
+            rewardData.usedEvent.map(eventId => {
+                let isOneMatch = false;
+                eventData.condition.ignoreTopUpDirtyCheckForReward.map(eventIgnoreId => {
+                    if (String(eventId) == String(eventIgnoreId)) {
+                        isOneMatch = true;
+                    }
+                });
+                // If one of the reward matched in ignore list, dirty check for this reward is ignored
+                isUsed = isOneMatch ? isUsed : true;
             })
-        })
+        } else {
+            isUsed = true;
+        }
     }
 
     return isUsed;
