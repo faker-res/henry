@@ -2676,7 +2676,7 @@ let dbPlayerReward = {
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
         let rewardAmount = 0, spendingAmount = 0, applyAmount = 0;
         let promArr = [];
-        let selectedRewardParam;
+        let selectedRewardParam = {};
         let intervalTime;
         let isUpdateTopupRecord = false;
         let isUpdateMultiTopupRecord = false;
