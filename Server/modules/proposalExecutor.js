@@ -2988,13 +2988,6 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                                 rewardTask: taskData
                             });
                         }
-                    ).then(
-                        function () {
-                            deferred.resolve(resolveValue || rewardTask);
-                        },
-                        function (error) {
-                            deferred.reject(error);
-                        }
                     ).catch(
                         error => Q.reject({
                             name: "DBError",
