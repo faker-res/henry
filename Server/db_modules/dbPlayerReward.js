@@ -3907,7 +3907,7 @@ function checkTopupRecordIsDirtyForReward(eventData, rewardData) {
 
     if (rewardData && rewardData.selectedTopup && rewardData.selectedTopup.usedEvent && rewardData.selectedTopup.usedEvent.length > 0) {
         if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
-            rewardData.usedEvent.map(eventId => {
+            rewardData.selectedTopup.usedEvent.map(eventId => {
                 let isOneMatch = false;
                 eventData.condition.ignoreTopUpDirtyCheckForReward.map(eventIgnoreId => {
                     if (String(eventId) == String(eventIgnoreId)) {
