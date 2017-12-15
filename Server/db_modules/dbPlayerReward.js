@@ -136,7 +136,7 @@ let dbPlayerReward = {
         let requiredBet = 0;
         let requireBoth = false;
 
-        function insertOutputList (status, step, bonus, requestedTimes, targetDate, forbidWithdrawAfterApply, remark, isSharedWithXIMA, meetRequirement, requiredConsumptionMet, requiredTopUpMet, usedTopUpRecord) {
+        function insertOutputList(status, step, bonus, requestedTimes, targetDate, forbidWithdrawAfterApply, remark, isSharedWithXIMA, meetRequirement, requiredConsumptionMet, requiredTopUpMet, usedTopUpRecord) {
             let listItem = {
                 status, // 0 - unavailable, 1 - available, 2 - applied
                 step,
@@ -259,7 +259,7 @@ let dbPlayerReward = {
             } else {
                 latestRewardProposal = rewardProposalData[0];
                 let lastRewardDate = dbUtility.getTargetSGTime(latestRewardProposal.data.applyTargetDate).startTime;
-                let nextDay = lastRewardDate.setDate(lastRewardDate.getDate()+1);
+                let nextDay = lastRewardDate.setDate(lastRewardDate.getDate() + 1);
                 startCheckTime = nextDay;
                 consecutiveNumber = latestRewardProposal.data.consecutiveNumber + 1;
             }
@@ -271,7 +271,7 @@ let dbPlayerReward = {
                     let bonus = paramOfLevel[i].rewardAmount;
                     let requestedTimes = paramOfLevel[i].spendingTimes || 1;
 
-                    insertOutputList(2, i+1, bonus, requestedTimes);
+                    insertOutputList(2, i + 1, bonus, requestedTimes);
                 }
             }
 
@@ -339,11 +339,11 @@ let dbPlayerReward = {
                         // restart combo check trace back from today, if today's combo check is higher than consecutiveNumber, allow apply for today only
                         let currentStreak = 0;
                         let streakFromPastApplied = true;
-                        let result = checkResults[checkResults.length -1]
+                        let result = checkResults[checkResults.length - 1]
                         let targetDate = result.targetDate;
                         let requestedTimes = selectedParam.spendingTimes || 1;
 
-                        for (let i = checkResults.length -1; i >= 0; i--) {
+                        for (let i = checkResults.length - 1; i >= 0; i--) {
                             let result = checkResults[i];
 
                             if (result.meetRequirement) {
@@ -373,7 +373,7 @@ let dbPlayerReward = {
                                 let bonus = currentParam.rewardAmount;
                                 let requestedTimes = currentParam.spendingTimes || 1;
 
-                                insertOutputList(1, currentStreak+1, bonus, requestedTimes, result.targetDate,
+                                insertOutputList(1, currentStreak + 1, bonus, requestedTimes, result.targetDate,
                                     currentParam.forbidWithdrawAfterApply, currentParam.remark, currentParam.isSharedWithXIMA,
                                     result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
                                 currentStreak++;
@@ -398,7 +398,7 @@ let dbPlayerReward = {
                 let bonus = paramOfLevel[i].rewardAmount;
                 let requestedTimes = paramOfLevel[i].spendingTimes || 1;
 
-                insertOutputList(0, i+1, bonus, requestedTimes);
+                insertOutputList(0, i + 1, bonus, requestedTimes);
             }
 
             return {
@@ -410,7 +410,7 @@ let dbPlayerReward = {
             }
         });
 
-        function isDayMeetRequirement (event, playerData, targetDate, requiredConsumptionAmount, requiredTopUpAmount, operatorOption) {
+        function isDayMeetRequirement(event, playerData, targetDate, requiredConsumptionAmount, requiredTopUpAmount, operatorOption) {
             let playerObjId = ObjectId(playerData._id);
             let startTime = new Date(targetDate.startTime);
             let endTime = new Date(targetDate.endTime);
@@ -441,10 +441,12 @@ let dbPlayerReward = {
 
             let consumptionProm = dbConfig.collection_playerConsumptionRecord.aggregate([
                 {$match: consumptionSumQuery},
-                {$group: {
-                    _id: null,
-                    total: {$sum: "$validAmount"}
-                }}
+                {
+                    $group: {
+                        _id: null,
+                        total: {$sum: "$validAmount"}
+                    }
+                }
             ]);
 
             return Promise.all([topUpProm, consumptionProm]).then(data => {
@@ -1304,11 +1306,11 @@ let dbPlayerReward = {
         var playerData = null;
         var promoListData = null;
 
-        if(!playerId){
+        if (!playerId) {
             return Q.reject({
                 status: constServerCode.INVALID_API_USER,
                 name: "DataError",
-                message:"用户未登录!"
+                message: "用户未登录!"
             })
         }
         return dbConfig.collection_platform.findOne({platformId: platformId}).exec()
@@ -1349,7 +1351,11 @@ let dbPlayerReward = {
                         playerData = playerRecord;
 
                         let populateCond = platformData.useProviderGroup
-                            ? {path: "allowedProviders", model: dbConfig.collection_gameProviderGroup, populate: {path: "providers", model: dbConfig.collection_gameProvider}}
+                            ? {
+                                path: "allowedProviders",
+                                model: dbConfig.collection_gameProviderGroup,
+                                populate: {path: "providers", model: dbConfig.collection_gameProvider}
+                            }
                             : {path: "allowedProviders", model: dbConfig.collection_gameProvider};
 
                         return dbConfig.collection_promoCode.find(query)
@@ -1480,7 +1486,7 @@ let dbPlayerReward = {
                         let proposalId = proposal.proposalId || 'none';
                         let prom = dbConfig.collection_promoCode.findOne({proposalId: proposalId}).then(
                             data => {
-                                if(data){
+                                if (data) {
                                     let bannerText = '';
                                     if (data.bannerText) {
                                         bannerText = data.bannerText;
@@ -1516,13 +1522,13 @@ let dbPlayerReward = {
             )
 
     },
-    customAccountMask: (str)=> {
+    customAccountMask: (str) => {
         str = str || '';
         let strLength = str.length;
-        let subtractNo = - (strLength - 6);
-        if(strLength <= 6){
+        let subtractNo = -(strLength - 6);
+        if (strLength <= 6) {
             return str.substring(0, 3) + "***"
-        }else{
+        } else {
             return str.substring(0, 3) + "***" + str.slice(subtractNo);
         }
 
@@ -1675,7 +1681,7 @@ let dbPlayerReward = {
     },
 
     // check the availability of promoCodeType
-    checkPromoCodeTypeAvailability:  (platformObjId, promoCodeTypeObjId) => {
+    checkPromoCodeTypeAvailability: (platformObjId, promoCodeTypeObjId) => {
         return expirePromoCode().then(() => {
             return dbConfig.collection_promoCode.findOne({
                 platformObjId: platformObjId,
@@ -2312,7 +2318,6 @@ let dbPlayerReward = {
                 }
 
 
-
                 return {
                     time: [...timeSet].join("/"),
                     showInfo: playerObj && playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
@@ -2380,9 +2385,9 @@ let dbPlayerReward = {
                     })
                 });
 
-               return dbConfig.collection_playerLevel.find({
-                   platform: platformObj._id
-               }).sort({value: 1}).lean();
+                return dbConfig.collection_playerLevel.find({
+                    platform: platformObj._id
+                }).sort({value: 1}).lean();
             }
         ).then(
             allLevelData => {
@@ -2390,7 +2395,7 @@ let dbPlayerReward = {
                     let levelValue;
                     let isReachMinLevel = false;
                     for (let i = 0; i < allLevelData.length; i++) {
-                        if (limitedOfferObj.requiredLevel.toString() == allLevelData[i]._id.toString()){
+                        if (limitedOfferObj.requiredLevel.toString() == allLevelData[i]._id.toString()) {
                             levelValue = allLevelData[i].value;
                             break;
                         }
@@ -2459,7 +2464,7 @@ let dbPlayerReward = {
                         //     message: "Reward not applicable"
                         // });
                         return dbConfig.collection_proposal.findOne({
-                            'data.limitedOfferObjId':  {$in: [ObjectId(limitedOfferObj._id), String(limitedOfferObj._id)]},
+                            'data.limitedOfferObjId': {$in: [ObjectId(limitedOfferObj._id), String(limitedOfferObj._id)]},
                             'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}
                         }).lean().then(
                             proposalData => {
@@ -2533,11 +2538,11 @@ let dbPlayerReward = {
                     matchQ['data.limitedOfferName'] = promoName;
                 }
 
-                if(inputDevice && inputDevice.length > 0){
+                if (inputDevice && inputDevice.length > 0) {
                     matchQ.inputDevice = {$in: inputDevice};
                 }
 
-                if(level && level.length > 0){
+                if (level && level.length > 0) {
                     matchQ['data.playerLevelName'] = {$in: level};
                 }
 
@@ -2545,43 +2550,45 @@ let dbPlayerReward = {
             }
         ).then(
             intProps => {
-                if(intProps && intProps.length > 0){
+                if (intProps && intProps.length > 0) {
                     let validProposal = [];
                     let acceptedProposal = [];
                     let expiredProposal = [];
                     let returnedArray = [];
 
-                    if(status && status.length > 0){
-                        for(let i = 0; i < status.length ; i ++){
-                            if(status[i] == "STILL VALID"){
+                    if (status && status.length > 0) {
+                        for (let i = 0; i < status.length; i++) {
+                            if (status[i] == "STILL VALID") {
                                 validProposal = intProps.filter(function (event) {
-                                    if(event && event.data){
+                                    if (event && event.data) {
                                         return (event.data.expirationTime > new Date()) && (!event.data.topUpProposalId);
                                     }
                                 });
                             }
 
-                            if(status[i] == "ACCEPTED"){
+                            if (status[i] == "ACCEPTED") {
                                 acceptedProposal = intProps.filter(function (event) {
-                                    if(event && event.data){
+                                    if (event && event.data) {
                                         return (event.data.topUpProposalId);
                                     }
                                 });
                             }
 
-                            if(status[i] == "EXPIRED"){
+                            if (status[i] == "EXPIRED") {
                                 expiredProposal = intProps.filter(function (event) {
-                                    if(event && event.data){
+                                    if (event && event.data) {
                                         return (event.data.expirationTime < new Date()) && (!event.data.topUpProposalId);
                                     }
                                 });
                             }
                         }
-                    }else{
+                    } else {
                         return intProps;
                     }
 
-                    return returnedArray.concat(validProposal).concat(acceptedProposal).concat(expiredProposal).sort(function(a,b){return a.proposalId - b.proposalId});
+                    return returnedArray.concat(validProposal).concat(acceptedProposal).concat(expiredProposal).sort(function (a, b) {
+                        return a.proposalId - b.proposalId
+                    });
                 }
             }
         )
@@ -3243,7 +3250,7 @@ let dbPlayerReward = {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "Top up amount is not enough"
+                                    message: "您需要有新存款(" + selectedRewardParam.minTopUpAmount + ")元才能领取此优惠，千万别错过了！"
                                 });
                             }
 
@@ -3815,7 +3822,7 @@ let dbPlayerReward = {
 
                                 if (isSetUsedTopUpRecord) {
                                     if (intervalTime) {
-                                        postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount,null,null,ignoreTopUpBdirtyEvent));
+                                        postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount, null, null, ignoreTopUpBdirtyEvent));
                                     } else {
                                         postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount, intervalTime.startTime, intervalTime.endTime, ignoreTopUpBdirtyEvent));
                                     }
