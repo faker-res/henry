@@ -3194,8 +3194,9 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
                     return dbconfig.collection_rewardPoints.findOne({_id: proposalData.data.playerRewardPointsObjId}).lean().then(
                         playerRewardPoints => {
                             let rewardPointsLogStatus = proposalData.status == constProposalStatus.APPROVED ? constRewardPointsLogStatus.PROCESSED : constRewardPointsLogStatus.PENDING;
+                            let updateAmount = proposalData.data.convertedRewardPoints >= 0 ? -Math.abs(proposalData.data.convertedRewardPoints) : Math.abs(proposalData.data.convertedRewardPoints);
                             return dbPlayerRewardPoints.tryToDeductRewardPointFromPlayer(playerRewardPoints.playerObjId, playerRewardPoints.platformObjId,
-                                -Math.abs(proposalData.data.convertedRewardPoints), taskData.data.category, proposalData.data.remark,
+                                updateAmount, taskData.data.category, proposalData.data.remark,
                                 proposalData.inputDevice, proposalData.creator.name, rewardPointsLogStatus, proposalData.data.currentDayAppliedAmount, proposalData.data.maxDayApplyAmount,
                                 rewardTask._id, taskData.proposalId);
                         }
