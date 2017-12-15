@@ -953,28 +953,12 @@
                 div
                     label {{'Receive Status' | translate}}
                     select.form-control(ng-model='vm.limitedOfferQuery.status', ng-options="a | translate for a in vm.claimStatus", style='max-width:200px', multiple, bsp)
-                    //select.form-control(ng-model='vm.limitedOfferQuery.status')
-                        //option(value='valid') {{"STILL VALID" | translate }}
-                        //option(value='accepted') {{"ACCEPTED" | translate }}
-                        //option(value='expired') {{"EXPIRED" | translate }}
                 div
                     label {{'Level Requirement' | translate}}
                     select.form-control(ng-model='vm.limitedOfferQuery.level', ng-options="a for a in vm.playerLvlName", style='max-width:200px', multiple, bsp)
-                    //select.form-control(ng-model='vm.limitedOfferQuery.level', multiple,bsp)
-                    //    option(value='') {{"any" | translate}}
-                    //    option(ng-repeat='(i,v) in vm.levelRequirement', value='{{i}}') {{v | translate}}
-                    //    //option(value='online') {{"TOPUPONLINE" | translate }}
-                    //    //option(value='manual') {{"TOPUPMANUAL" | translate }}
-                    //    //option(value='bonus') {{"Bonus" | translate }}
                 div
                     label {{'DEVICE' | translate}}
-
                     select.form-control(ng-model='vm.limitedOfferQuery.inputDevice', ng-options="+(i) as v | translate for (i,v) in vm.playerInputDevice", style='max-width:200px', multiple, bsp)
-                    //select.form-control(ng-model='vm.limitedOfferQuery.inputDevice', ng-options="a | translate for a in vm.playerInputDevice", style='max-width:200px', multiple, bsp)
-                    //select.form-control(ng-model='vm.limitedOfferQuery.device')
-                    //    option(value='online') {{"TOPUPONLINE" | translate }}
-                    //    option(value='manual') {{"TOPUPMANUAL" | translate }}
-                    //    option(value='bonus') {{"Bonus" | translate }}
                 div
                     label {{"Start date"|translate}}
                     .startTime

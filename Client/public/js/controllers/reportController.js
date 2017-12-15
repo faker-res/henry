@@ -63,14 +63,6 @@ define(['js/app'], function (myApp) {
             "PlayerTopUp": ['merchantNo']
         }
 
-        vm.levelRequirement = {
-            vip1: "VIP1",
-            vip2: "VIP2",
-            vip3: "VIP3",
-            vip4: "VIP4",
-            vip5: "VIP5"
-        }
-
         vm.playerInputDevice = {
             1: "WEB_PLAYER",
             3: "H5_PLAYER",
