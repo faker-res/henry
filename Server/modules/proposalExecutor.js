@@ -3023,17 +3023,13 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                     //() => createRewardLogForProposal(taskData.rewardType, proposalData)
                     () => {
                         SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
+                        // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
+                        // Changing into async function
+                        dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
                         //send message if there is any template created for this reward
                         return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
                             rewardTask: taskData
                         });
-                    }
-                ).then(
-                    () => {
-                        return dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).then(
-                            data => deferred.resolve(resolveValue || data),
-                            error => deferred.reject(error)
-                        );
                     }
                 ).then(
                     function () {
