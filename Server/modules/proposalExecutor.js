@@ -2974,10 +2974,32 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         data => deferred.resolve(resolveValue || data),
                         error => deferred.reject(error)
                     );
-                }else{
+                } else {
                     dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).then(
-                        data => deferred.resolve(resolveValue || data),
-                        error => deferred.reject(error)
+                        (data) => {
+                            rewardTask = data;
+                            if (!taskData.useLockedCredit) {
+                                return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
+                                    playerData => {
+                                        dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
+                                    }
+                                );
+                            }
+                        }
+                    ).then(
+                        () => {
+                            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
+                            return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
+                                rewardTask: taskData
+                            });
+                        }
+                    ).then(
+                        function () {
+                            deferred.resolve(resolveValue || rewardTask);
+                        },
+                        function (error) {
+                            deferred.reject(error);
+                        }
                     );
                 }
             } else {
