@@ -256,7 +256,7 @@ const dbRewardTask = {
             }
         ).then(
             (returnData) => {
-                if (!rewardData.useLockedCredit) {
+                if (rewardData && rewardData.hasOwnProperty("useLockedCredit") && !rewardData.useLockedCredit) {
                     return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
                         playerData => {
                             dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
