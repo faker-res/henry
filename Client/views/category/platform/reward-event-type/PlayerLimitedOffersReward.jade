@@ -30,7 +30,6 @@
                         input(type='checkbox', ng-model='vm.daySelection[i]', ng-click="vm.isDayChecked(i)")
                         label {{v }} /
 
-
             tr(ng-repeat='(rowIndex,rowdata) in vm.rewardParamsFilter', ng-init="$last && vm.endLoadWeekDay()")
                 td
                     div

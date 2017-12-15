@@ -14239,7 +14239,6 @@ define(['js/app'], function (myApp) {
                 '7': 'Sun'
             };
 
-
             vm.daySelection = {
                 '0': true,
                 '1': false,
