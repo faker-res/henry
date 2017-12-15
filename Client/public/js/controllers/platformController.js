@@ -10162,7 +10162,7 @@ define(['js/app'], function (myApp) {
             vm.displayProviderGroupCredit = function(){
                 console.log('displayProviderGroupCredit');
                 let playerId = vm.selectedSinglePlayer.playerId;
-                let platformId = vm.selectedPlatform.id;
+                let platformId = vm.selectedPlatform.data.platformId;
                 socketService.$socket($scope.AppSocket, 'getCreditDetail', {playerObjId: vm.selectedSinglePlayer._id}, function (data) {
                     console.log('getCreditDetail', data);
                     vm.playerCreditDetails = data.data.gameCreditList;
@@ -10172,9 +10172,11 @@ define(['js/app'], function (myApp) {
                         }
                     })
                 })
-                socketService.$socket($scope.AppSocket, 'getWithdrawalInfo', {platformId: platformId , playerId: playerId}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getWithdrawalInfo', {'platformId': platformId , 'playerId': playerId}, function (data) {
                     console.log('getWithdrawalInfo', data);
                     console.log(data);
+                    vm.freeAmount = data.data ? data.data.freeAmount : '';
+                    vm.currentFreeAmount = data.data ? data.data.currentFreeAmount : '';
 
                 })
 

@@ -1279,7 +1279,7 @@
                                     tr
                                         td
                                             div {{"Valid Progress" | translate }}
-                                            div
+                                            div {{vm.currentFreeAmount}}/{{vm.freeAmount}}
                                         td(ng-repeat='(i,v) in vm.playerCreditDetails')
                                             div(style='display:inline-block'){{v.nickName}}
                                             div(style='display:inline-block;padding-left:3px'){{v.validCredit || ''}}

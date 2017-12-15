@@ -12112,7 +12112,7 @@ let dbPlayerInfo = {
             if(data) {
                 let platformDetails = data[0];
                 let playerDetails = data[1];
-
+                console.log(playerDetails);
                 let bonusDetails = {};
                 if(platformDetails){
                     if(playerDetails){
@@ -12200,6 +12200,7 @@ let dbPlayerInfo = {
                 let lockListWithoutFreeAmountRewardTaskGroup = [];
                 result.freeTimes = result.freeTimes - (data[0] && data[0][0] ? data[0][0].count : 0);
                 if(data[1]){
+                    console.log(data);
                     lockListWithoutFreeAmountRewardTaskGroup = data[1].filter(function(e){
                         return e.name !== "LOCAL_CREDIT";
                     })
@@ -12307,10 +12308,12 @@ let dbPlayerInfo = {
             }
         ).then(
             rewardTaskGroup => {
+                console.log(rewardTaskGroup);
+
                 if (rewardTaskGroup && rewardTaskGroup.length > 0) {
                     for (let i = 0; i < rewardTaskGroup.length; i++) {
                         returnData.lockedCreditList[i] = {
-                            nickName: rewardTaskGroup[i].providerGroup.name,
+                            nickName: rewardTaskGroup[i].providerGroup ? rewardTaskGroup[i].providerGroup.name: 'Empty Provider Group',
                             validCredit: rewardTaskGroup[i].rewardAmt
                         }
                     }
