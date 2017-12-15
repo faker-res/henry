@@ -473,7 +473,6 @@
                                     label {{'UPDATE_DETAIL' | translate}}
                                     div(ng-switch-default)
                                         table.table(style='width:100%')
-                                            //tr(ng-repeat='(i,v) in vm.selectedProposalDetailForDisplay')
                                             tr
                                                 td {{ 'Reward Point ID' | translate}}
                                                 td {{ vm.rewardPointsLogDetail.pointLogId }}
@@ -482,7 +481,7 @@
                                                 td {{ vm.rewardPointsLogDetail.playerName }}
                                             tr
                                                 td {{ 'Player Level' | translate}}
-                                                td {{ vm.rewardPointsLogDetail.playerLevelName }}
+                                                td {{ vm.rewardPointsLogDetail.playerLevelName | translate }}
                                             tr(ng-if='vm.rewardPointsLogDetail.currentDayAppliedAmount != null')
                                                 td {{ 'dailyMaxRewardPoint' | translate}}
                                                 td {{ vm.rewardPointsLogDetail.currentDayAppliedAmount}} / {{vm.rewardPointsLogDetail.maxDayApplyAmount}}
