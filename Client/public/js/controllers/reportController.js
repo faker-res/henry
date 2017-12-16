@@ -2851,7 +2851,14 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {title: $translate('ORDER')},
                     {title: $translate('Proposal No'), data: "proposalId"},
-                    {title: $translate('promoName'), data: "data.limitedOfferName"},
+                    {
+                        title: $translate('promoName'),
+                        data: "data.limitedOfferName",
+                        render: function (data, type, row) {
+                            data = String(data);
+                            return '<a ng-click="vm.showProposalModalNoObjId(\'' + row.proposalId + '\')">' + data + '</a>';
+                        }
+                    },
                     {title: $translate('Level Requirement'), data: "data.requiredLevel"},
                     {title: $translate('PLAYERNAME'), data: "data.playerName", sClass: "realNameCell wordWrap"},
                     {title: $translate('LIMITED_OFFER_APPLY_TIME'), data: "applyTime$"},
@@ -5942,6 +5949,29 @@ define(['js/app'], function (myApp) {
                 proposalId: proposalId
             }, function (data) {
                 vm.selectedProposal = data.data;
+                $('#modalProposal').modal('show');
+                $('#modalProposal').on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                })
+
+            })
+        }
+
+        vm.showProposalModalNoObjId = function (proposalId) {
+            vm.proposalDialog = 'proposal';
+            socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
+                platformId: vm.selectedPlatform._id,
+                proposalId: proposalId
+            }, function (data) {
+                vm.selectedProposal = data.data;
+                let proposalDetail = $.extend({}, vm.selectedProposal.data);
+                let checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
+                for (let i in proposalDetail) {
+                    if (checkForHexRegExp.test(proposalDetail[i])) {
+                        delete proposalDetail[i];
+                    }
+                }
+                vm.selectedProposal.data = $.extend({}, proposalDetail);
                 $('#modalProposal').modal('show');
                 $('#modalProposal').on('shown.bs.modal', function (e) {
                     $scope.safeApply();
