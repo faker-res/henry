@@ -3251,6 +3251,14 @@ let dbPlayerReward = {
                             selectedTopUp = rewardData.selectedTopup;
                             applyAmount = rewardData.selectedTopup.amount;
 
+                            if (!isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "This top up did not happen within reward interval time"
+                                });
+                            }
+
                             // Set reward param step to use
                             if (eventData.param.isMultiStepReward) {
                                 if (eventData.param.isSteppingReward) {
@@ -4148,6 +4156,12 @@ function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo) {
     );
 }
 
+function isDateWithinPeriod(date, period) {
+    if (period && period.startTime && period.endTime) {
+        return date > period.startTime && date < period.endTime;
+    }
+    return false;
+}
 
 /**
  * Expire promo code in all platforms pass expirationTime
