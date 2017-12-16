@@ -3257,8 +3257,9 @@ let dbPlayerReward = {
                                     let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
                                     selectedRewardParam = selectedRewardParam[eventStep];
                                 } else {
+                                    let firstRewardParam = selectedRewardParam[0];
                                     selectedRewardParam = selectedRewardParam.filter(e => applyAmount >= e.minTopUpAmount).sort((a, b) => b.minTopUpAmount - a.minTopUpAmount);
-                                    selectedRewardParam = selectedRewardParam[0];
+                                    selectedRewardParam = selectedRewardParam[0] || firstRewardParam || {};
                                 }
                             } else {
                                 selectedRewardParam = selectedRewardParam[0];
