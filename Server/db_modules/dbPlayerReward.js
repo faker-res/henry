@@ -3291,6 +3291,7 @@ let dbPlayerReward = {
                                     }
                                 }
 
+                                selectedRewardParam.spendingTimes = selectedRewardParam.spendingTimes || 1;
                                 spendingAmount = (applyAmount + rewardAmount) * selectedRewardParam.spendingTimes;
                             } else {
                                 rewardAmount = selectedRewardParam.rewardAmount;
