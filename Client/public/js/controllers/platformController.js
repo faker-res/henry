@@ -13786,6 +13786,7 @@ define(['js/app'], function (myApp) {
                 vm.showRewardTypeData = null;   // This will probably be overwritten by vm.platformRewardTypeChanged() below
                 vm.showRewardTypeId = v.type._id;
                 vm.rewardParams = Lodash.cloneDeep(v.param);
+                vm.rewardParamsFilter = vm.rewardParams.reward;
                 vm.rewardCondition = Lodash.cloneDeep(v.condition);
                 vm.rewardDisabledParam = [];
 
@@ -14028,8 +14029,6 @@ define(['js/app'], function (myApp) {
                 }
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
-
-
 
                 // Initialise the models with some default values
                 // and grab any required external data (e.g. for select box lists)
@@ -14490,10 +14489,12 @@ define(['js/app'], function (myApp) {
             }
 
             vm.clearRewardFormData = function () {
-                vm.rewardCondition = null;
-                vm.showReward = null;
-                vm.rewardParams = null;
-                vm.showRewardTypeId = null;
+                // vm.rewardCondition = null;
+                //vm.showReward = null;
+                // vm.rewardParams = null;
+                // vm.showRewardTypeId = null;
+                vm.rewardEventClicked(0,vm.showReward);
+                $scope.safeApply();
             }
 
             vm.clearProvider = function (rowIndex) {
@@ -14571,6 +14572,7 @@ define(['js/app'], function (myApp) {
                         if (objectId) {
                             data._id = objectId;
                             vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                            vm.rewardParamsFilter=vm.rewardParams.reward;
                             $scope.safeApply();
                         }
                     });
@@ -14580,6 +14582,8 @@ define(['js/app'], function (myApp) {
                             return item._id != id;
                         })
                     }
+                    vm.rewardParamsFilter=vm.rewardParams.reward;
+                    $scope.safeApply();
                 }
             };
             vm.weekDayList = {
@@ -14590,6 +14594,58 @@ define(['js/app'], function (myApp) {
                 '5': 'Fri',
                 '6': 'Sat',
                 '7': 'Sun'
+            };
+
+            vm.daySelection = {
+                '0': true,
+                '1': false,
+                '2': false,
+                '3': false,
+                '4': false,
+                '5': false,
+                '6': false,
+                '7': false
+            };
+
+            vm.rewardParamsDaySelectedAll = function () {
+                vm.rewardParamsFilter= [];
+
+                if (vm.daySelection['0']) {
+                    vm.rewardParamsFilter=vm.rewardParams.reward;
+
+                    for (let i in vm.daySelection) {
+                        if (i == '0') {
+                            vm.daySelection[i]= true;
+                        }
+                        else {
+                            vm.daySelection[i]= false;
+                        }
+                    }
+                }
+                console.log('rewardParamsFilter',vm.rewardParamsFilter);
+                $scope.safeApply();
+            };
+
+            vm.isDayChecked = function (index) {
+
+                for (let i in vm.daySelection) {
+                    if (i == index) {
+                        vm.daySelection[i]= true;
+                    }
+                    else {
+                        vm.daySelection[i]= false;
+                    }
+                }
+
+                vm.rewardParamsFilter= [];
+
+                vm.rewardParams.reward.map(
+                    item => {
+                        if (item.repeatWeekDay.includes(index))
+                            vm.rewardParamsFilter.push(item);
+                    });
+                console.log('rewardParamsFilter',vm.rewardParamsFilter);
+                $scope.safeApply();
             };
 
             vm.endLoadWeekDay = function () {
@@ -15846,12 +15902,10 @@ define(['js/app'], function (myApp) {
 
             vm.submitRewardPointsLogQuery = function (newSearch) {
                 $('#loadRewardPointsLogIcon').show();
-                var allRewardPointsLogProm = vm.searchRewardPointsLog(newSearch ? 0 : vm.rewardPointsLogPageAASorting.index, vm.rewardPointsLogPageAASorting.limit);
-
-                Q.all([allRewardPointsLogProm]).then(
+                vm.searchRewardPointsLog(newSearch ? 0 : vm.rewardPointsLogPageAASorting.index, vm.rewardPointsLogPageAASorting.limit).then(
                     (data) => {
                         $scope.safeApply();
-                        vm.allRewardPointsLog = data[0];
+                        vm.allRewardPointsLog = data;
                         console.log('vm.allRewardPointsLog', vm.allRewardPointsLog);
                         vm.drawRewardPointsLogTable(vm.allRewardPointsLog.data, vm.allRewardPointsLog.size, newSearch, {});
                         $('#loadRewardPointsLogIcon').hide();
@@ -15867,7 +15921,7 @@ define(['js/app'], function (myApp) {
                     sort : vm.rewardPointsLogPageAASorting.sortCol || {'createTime' : -1}
                 };
                 $.each(vm.rewardPointsLogQuery, function (idx, val) {
-                    if (val != '' && val != 'all') {
+                    if (val && val != '' && val != 'all') {
                         sendQuery.query[idx] = val;
                     }
                 });
@@ -15877,7 +15931,7 @@ define(['js/app'], function (myApp) {
                 var rewardPointsOperator = vm.rewardPointsLogQuery.rewardPointsOperator;
                 var rewardPointsAmountOne = vm.rewardPointsLogQuery.rewardPointsAmountOne ? vm.rewardPointsLogQuery.rewardPointsAmountOne : 0;
                 var rewardPointsAmountTwo = vm.rewardPointsLogQuery.rewardPointsAmountTwo ? vm.rewardPointsLogQuery.rewardPointsAmountTwo : 0;
-                if (rewardPointsOperator && rewardPointsAmountOne != '') {
+                if (rewardPointsOperator && $.isNumeric(rewardPointsAmountOne)) {
                     switch (rewardPointsOperator) {
                         case '<=':
                             sendQuery.query.amount = {$lte: rewardPointsAmountOne};
@@ -15889,7 +15943,7 @@ define(['js/app'], function (myApp) {
                             sendQuery.query.amount = rewardPointsAmountOne;
                             break;
                         case 'range':
-                            if (rewardPointsAmountTwo) sendQuery.query.amount = {$gte: rewardPointsAmountOne, $lte: rewardPointsAmountTwo};
+                            if ($.isNumeric(rewardPointsAmountTwo)) sendQuery.query.amount = {$gte: rewardPointsAmountOne, $lte: rewardPointsAmountTwo};
                             break;
                     }
                 }
@@ -15952,7 +16006,11 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {title: $translate('createTime'), data: "createTime$",  bSortable: true},
-                        {title: $translate('playerLevelName'), data: "playerLevelName"},
+                        {
+                            title: $translate('playerLevelName'), data: "playerLevelName",
+                            render: function (data, type, row) {
+                                return $translate(row.playerLevelName);
+                            }},
                         {
                             title: $translate('remark'), data: "remark",
                             render: function (data, type, row) {

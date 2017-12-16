@@ -20,6 +20,15 @@ define(['js/app'], function (myApp) {
             APP_PLAYER: 5,
             APP_AGENT: 6
         };
+        vm.inputDeviceMapped = {
+            0: "BACKSTAGE",
+            1: "WEB_PLAYER",
+            2: "WEB_AGENT",
+            3: "H5_PLAYER",
+            4: "H5_AGENT",
+            5: "APP_PLAYER",
+            6: "APP_AGENT"
+        };
 
         vm.proposalStatusList = { // removed APPROVED and REJECTED
             PREPENDING: "PrePending",
@@ -61,6 +70,18 @@ define(['js/app'], function (myApp) {
             "PlayerAlipayTopUp": ['alipayAccount'],
             "PlayerWechatTopUp": ['wechatAccount', 'weChatAccount'],
             "PlayerTopUp": ['merchantNo']
+        }
+
+        vm.playerInputDevice = {
+            1: "WEB_PLAYER",
+            3: "H5_PLAYER",
+            5: "APP_PLAYER"
+        };
+
+        vm.claimStatus = {
+            valid: "STILL VALID",
+            accepted: "ACCEPTED",
+            expired: "EXPIRED"
         }
 
         //get all platform data from server
@@ -1176,6 +1197,11 @@ define(['js/app'], function (myApp) {
                 vm.limitedOfferDetail = {};
                 utilService.actionAfterLoaded("#limitedOfferTable", function () {
                     vm.commonInitTime(vm.limitedOfferQuery, '#limitedOfferQuery');
+                    vm.limitedOfferQuery.limit = 10;
+                    vm.limitedOfferQuery.index = 0;
+                    vm.limitedOfferQuery.pageObj = utilService.createPageForPagingTable("#limitedOfferTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "limitedOfferQuery", vm.drawLimitedOfferReport)
+                    });
                 });
                 $scope.safeApply();
             } else if (choice == "PLAYERPARTNER_REPORT") {
@@ -1614,10 +1640,12 @@ define(['js/app'], function (myApp) {
         vm.getPlayerLevelByPlatformId = function (id) {
             socketService.$socket($scope.AppSocket, 'getPlayerLevelByPlatformId', {platformId: id}, function (data) {
                 vm.playerLvlData = {};
+                vm.playerLvlName = {};
                 console.log(data)
                 if (data.data) {
                     $.each(data.data, function (i, v) {
                         vm.playerLvlData[v._id] = v;
+                        vm.playerLvlName[v._id] = v.name;
                     })
                 }
                 console.log("vm.playerLvlData", vm.playerLvlData);
@@ -2743,16 +2771,28 @@ define(['js/app'], function (myApp) {
 
         };
 
-        vm.getLimitedOfferReport = function () {
+        vm.getLimitedOfferReport = function (newSearch) {
             $('#limitedOfferTableSpin').show();
+
             let sendQuery = {
                 platformObjId: vm.selectedPlatform._id,
                 startTime: vm.limitedOfferQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.limitedOfferQuery.endTime.data('datetimepicker').getLocalDate(),
-                type: vm.limitedOfferQuery.type,
                 playerName: vm.limitedOfferQuery.playerName,
                 promoName: vm.limitedOfferQuery.promoName
             };
+
+            if(vm.limitedOfferQuery.status && vm.limitedOfferQuery.status.length > 0){
+                sendQuery.status = vm.limitedOfferQuery.status;
+            }
+
+            if(vm.limitedOfferQuery.level && vm.limitedOfferQuery.level.length > 0){
+                sendQuery.level = vm.limitedOfferQuery.level;
+            }
+
+            if(vm.limitedOfferQuery.inputDevice && vm.limitedOfferQuery.inputDevice.length > 0){
+                sendQuery.inputDevice = vm.limitedOfferQuery.inputDevice;
+            }
 
             console.log('sendQuery', sendQuery);
 
@@ -2761,12 +2801,167 @@ define(['js/app'], function (myApp) {
                 $('#limitedOfferTableSpin').hide();
                 vm.limitedOfferDetail = data.data;
                 vm.limitedOfferDetail.map(e => {
-                    e.createTime = $scope.timeReformat(e.createTime)
+                    e.applyTime$ = $scope.timeReformat(e.createTime);
+                    e.topUpAmount$ = e.data.topUpAmount ? parseFloat(e.data.topUpAmount).toFixed(2) : "";
+                    e.rewardAmount$ = e.data.rewardProposalId ? parseFloat(e.data.rewardAmount).toFixed(2) : "";
+                    e.data.rewardAmount$ = e.data.rewardProposalId ? e.data.rewardAmount : 0;
+                    e.spendingAmount$ = e.data.spendingAmount ? parseFloat(e.data.spendingAmount).toFixed(2) : parseFloat(0).toFixed(2);
+                    e.data.spendingAmount$ = e.data.spendingAmount ? e.data.spendingAmount : 0;
+                    e.inputDevice$ = (e.hasOwnProperty("inputDevice") && vm.inputDeviceMapped[e.inputDevice]) ? $translate(vm.inputDeviceMapped[e.inputDevice]) : "Unknown";
                 });
-
                 $scope.safeApply();
+                vm.drawLimitedOfferReport(newSearch);
             });
         };
+        vm.drawLimitedOfferReport = function (newSearch) {
+            function localDataProcessing() {
+                vm.limitedOfferQuery.sortCol = vm.limitedOfferQuery.sortCol || {'applyTime$': -1};
+
+                let searchResult = vm.limitedOfferDetail.slice(0);
+                let sortCol = vm.limitedOfferQuery.sortCol;
+                let limit = vm.limitedOfferQuery.limit;
+                let index = vm.limitedOfferQuery.index;
+                if (Object.keys(sortCol).length > 0) {
+                    searchResult.sort(function (a, b) {
+                        if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
+                            return 1 * sortCol[Object.keys(sortCol)[0]];
+                        } else {
+                            return -1 * sortCol[Object.keys(sortCol)[0]];
+                        }
+                    });
+                }
+                let outputResult = [];
+                for (let i = 0, len = limit; i < len; i++) {
+                    searchResult[index + i] ? outputResult.push(searchResult[index + i]) : null;
+                }
+                return outputResult;
+            }
+
+            let result = localDataProcessing();
+            let allResultSize = vm.limitedOfferDetail.length;
+            let tableOptions = {
+                data: result,
+                "order": vm.limitedOfferQuery.aaSorting || [[4, 'desc']],
+                aoColumnDefs: [
+                    {'sortCol': 'proposalId', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'data.limitedOfferName', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'data.requiredLevel', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'data.playerName', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'applyTime$', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'data.topUpProposalId', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'data.topUpAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'data.rewardProposalId', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'data.rewardAmount$', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'data.spendingAmount$', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'inputDevice$', 'aTargets': [11], bSortable: true},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('ORDER')},
+                    {title: $translate('Proposal No'), data: "proposalId"},
+                    {
+                        title: $translate('promoName'),
+                        data: "data.limitedOfferName",
+                        render: function (data, type, row) {
+                            data = String(data);
+                            return '<a ng-click="vm.showProposalModalNoObjId(\'' + row.proposalId + '\')">' + data + '</a>';
+                        }
+                    },
+                    {title: $translate('Level Requirement'), data: "data.requiredLevel"},
+                    {title: $translate('PLAYERNAME'), data: "data.playerName", sClass: "realNameCell wordWrap"},
+                    {title: $translate('LIMITED_OFFER_APPLY_TIME'), data: "applyTime$"},
+                    {title: $translate('topUpProposalId'), data: "data.topUpProposalId"},
+                    {title: $translate('TopupAmount'), data: "topUpAmount$", sClass: "sumFloat"},
+                    {title: $translate('rewardProposalId'), data: "data.rewardProposalId"},
+                    {title: $translate('OFFER_AMOUNT'), data: "rewardAmount$", sClass: "sumFloat"},
+                    {title: $translate('SPENDING_AMOUNT'), data: "spendingAmount$", sClass: "sumFloat"},
+                    {title: $translate('DEVICE'), data: "inputDevice$"}
+                ],
+                "paging": false,
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                },
+                bSortClasses: false,
+                fnRowCallback: vm.limitedOfferTableCallback
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            let playerTbl = utilService.createDatatableWithFooter('#limitedOfferTable', tableOptions, {}, true);
+            vm.limitedOfferQuery.pageObj.init({maxCount: allResultSize}, newSearch);
+            utilService.setDataTablePageInput('limitedOfferTable', playerTbl, $translate);
+            playerTbl.on( 'order.dt', function () {
+                playerTbl.column(0, {order:'applied'}).nodes().each( function (cell, i) {
+                    cell.innerHTML = i+1;
+                } );
+            } ).draw();
+
+            $('#limitedOfferTable').resize();
+            $('#limitedOfferTable tbody').off('click', 'td.expandPlayerReport');
+            $('#limitedOfferTable tbody').on('click', 'td.expandPlayerReport', function () {
+                var tr = $(this).closest('tr');
+                var row = playerTbl.row(tr);
+
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                }
+                else {
+                    // Open this row
+                    var data = row.data();
+                    console.log('content', data);
+                    var id = 'playertable' + data._id;
+                    row.child(vm.createInnerTable(id)).show();
+                    vm[id] = {};
+                    vm.allGame = [];
+                    var gameId = [];
+                    if (data.gameDetail) {
+                        for (let n = 0; n < data.gameDetail.length; n++) {
+                            gameId[n] = data.gameDetail[n].gameId;
+                        }
+
+                        vm.getGameByIds(gameId).then(
+                            function () {
+                                for (let i = 0; i < data.gameDetail.length; i++) {
+                                    data.gameDetail[i].profit = parseFloat(data.gameDetail[i].bonusAmount / data.gameDetail[i].validAmount * -100).toFixed(2) + "%";
+                                    for (let j = 0; j < vm.allGame.length; j++){
+                                        if (data.gameDetail[i].gameId.toString() == vm.allGame[j]._id.toString()){
+                                            data.gameDetail[i].name = vm.allGame[j].name;
+                                        }
+                                    }
+                                }
+                                vm.drawPlatformTable(data, id, data.providerArr.length, newSearch, vm.limitedOfferQuery);
+                            }
+                        )
+                    }
+
+                    tr.addClass('shown');
+                }
+            });
+
+            $('#limitedOfferTable').off('order.dt');
+            $('#limitedOfferTable').on('order.dt', function (event, a) {
+                vm.commonSortChangeHandler(a, 'limitedOfferQuery', vm.drawLimitedOfferReport);
+            });
+        };
+
+        vm.limitedOfferTableCallback = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            $compile(nRow)($scope);
+            switch (aData.claimStatus) {
+                case "STILL VALID": {
+                    $(nRow).css('background-color', 'rgba(255, 209, 202, 100)', 'important');
+                    // $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                    break;
+                }
+                case "EXPIRED": {
+                    $(nRow).css('background-color', 'rgba(200, 200, 200, 20)', 'important');
+                    // $(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
+                    break;
+                }
+            }
+        };
+
+
 
         ////////////////////FEEDBACK REPORT//////////////////////
         vm.searchFeedbackReport = function (newSearch) {
@@ -5762,6 +5957,29 @@ define(['js/app'], function (myApp) {
                 proposalId: proposalId
             }, function (data) {
                 vm.selectedProposal = data.data;
+                $('#modalProposal').modal('show');
+                $('#modalProposal').on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                })
+
+            })
+        }
+
+        vm.showProposalModalNoObjId = function (proposalId) {
+            vm.proposalDialog = 'proposal';
+            socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
+                platformId: vm.selectedPlatform._id,
+                proposalId: proposalId
+            }, function (data) {
+                vm.selectedProposal = data.data;
+                let proposalDetail = $.extend({}, vm.selectedProposal.data);
+                let checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
+                for (let i in proposalDetail) {
+                    if (checkForHexRegExp.test(proposalDetail[i])) {
+                        delete proposalDetail[i];
+                    }
+                }
+                vm.selectedProposal.data = $.extend({}, proposalDetail);
                 $('#modalProposal').modal('show');
                 $('#modalProposal').on('shown.bs.modal', function (e) {
                     $scope.safeApply();
