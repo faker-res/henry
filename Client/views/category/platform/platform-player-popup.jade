@@ -1283,6 +1283,15 @@
                                         td(ng-repeat='(i,v) in vm.playerCreditDetails')
                                             div(style='display:inline-block'){{v.nickName}}
                                             div(style='display:inline-block;padding-left:3px'){{v.validCredit || ''}}
+
+                            div
+                                label {{"Total" | translate}} {{vm.rewardTaskGroupLog.totalCount}} {{"records" | translate}}
+                                table#rewardTaskGroupLogTbl.common-table.display(style='min-width:100%')
+                                #rewardTaskGroupLogTblPage.height30
+                            div
+                                label {{"Total" | translate}} {{vm.rewardTaskGroupLog.totalCount}} {{"records" | translate}}
+                                table#rewardTaskGroupProposalTbl.common-table.display(style='min-width:100%')
+                                #rewardTaskGroupProposalTblPage.height30
                             div
                                 label {{"Total" | translate}} {{vm.rewardTaskLog.totalCount}} {{"records" | translate}}
                                 table#rewardTaskLogTbl.common-table.display(style='min-width:100%')

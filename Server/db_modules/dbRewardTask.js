@@ -346,17 +346,92 @@ const dbRewardTask = {
                 $lt: new Date(query.to)
             }
         }
-        if (query.rewardProposalId) {
+        if (query.topUpProposalId) {
             queryObj = {playerId: ObjectId(query.playerId)}
-            queryObj.proposalId = query.rewardProposalId;
             return dbRewardTask.getRewardProposalId(query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj);
         }else{
             return dbRewardTask.getRewardTaskList( query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj);
         }
     },
-    getRewardProposalId: function(query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj){
-        return
+    getRewardTaskGroupProposal: function (query) {
+        var queryObj = {
+            'data.playerObjId': ObjectId(query.playerId),
+            'data.platformId': ObjectId(query.platformId)
+            // 'data.providerGroup': ObjectId(query._id)
 
+            // createTime: {
+            //     $gte: new Date(query.from),
+            //     $lt: new Date(query.to)
+            // }
+        }
+        return dbconfig.collection_proposal.find(queryObj).
+            then(data=>{
+                console.log(data);
+                return data;
+
+        })
+        // index = index || 0;
+        // limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        // sortCol = sortCol || {'createTime': -1};
+        // let result = null;
+        // let providerGroups = [];
+        // var queryObj = {
+        //     playerId: ObjectId(query.playerId),
+        //     createTime: {
+        //         $gte: new Date(query.from),
+        //         $lt: new Date(query.to)
+        //     }
+        // }
+    },
+    getRewardProposalId: function(query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj){
+        let topUpProposal = null
+        let rewardTaskGroupSize;
+        let rewardTaskGroupData;
+        // let rewardTaskSummary;
+
+        return dbconfig.collection_proposal.findOne({'proposalId':query.topUpProposalId})
+            .then(data=>{
+                    topUpProposal = data;
+                    return data;
+
+            })
+            .then(data=>{
+
+                return dbconfig.collection_proposal.findOne({'data.topUpProposal':query.topUpProposalId})
+                    .then(data=>{
+                        if(data){
+                            let proposalId = data.data;
+                            return dbconfig.collection_rewardTask(queryObj)
+                        }
+                    })
+            })
+            .then(rewardTaskData=>{
+                console.log(rewardTaskData);
+                let c,d;
+                if (useProviderGroup) {
+                    c = dbconfig.collection_rewardTaskGroup.find(queryObj).count();
+                    d = dbconfig.collection_rewardTaskGroup.find(queryObj).sort(sortCol).skip(index).limit(limit)
+                        .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
+                }
+                return Q.all([c, d]).then(
+                    rewardTaskResult=>{
+                        rewardTaskData.topUpProposal = topUpProposal.proposalId;
+                        rewardTaskData.topUpAmount = topUpProposal.data.amount;
+                        console.log(rewardTaskData);
+                        rewardTaskGroupSize = rewardTaskResult[0];
+                        rewardTaskGroupData = rewardTaskResult[1];
+                        // rewardTaskGroupData = rewardTaskResult[0];
+                        // rewardTaskSummary = rewardTaskResult[1] ? rewardTaskResult[1][0] : [];
+                        return {
+                            size: rewardTaskData.length,
+                            data: [rewardTaskData],
+                            rewardTaskGroupSize: 1,
+                            rewardTaskGroupData: [],
+                            summary: {},
+                            topUpAmountSum:topUpProposal.amount
+                        }
+                    })
+            })
     },
     getRewardTaskList: function(query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj){
         return dbGameProvider.getPlatformProviderGroup(query.platformId).then(
@@ -377,7 +452,9 @@ const dbRewardTask = {
                 if (query.topUpProposalId) {
                     queryObj.topUpProposal = query.topUpProposalId;
                 }
-
+                if (query.rewardProposalId) {
+                    queryObj.proposalId = query.rewardProposalId;
+                }
                 if(query.selectedProviderGroupID){
 
                     let selectedProviderGroup = providerGroups.filter(item=>{
@@ -403,7 +480,7 @@ const dbRewardTask = {
                     d = dbconfig.collection_rewardTaskGroup.find(queryObj).sort(sortCol).skip(index).limit(limit)
                         .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
                 }
-
+                // get the sum amount to display the below of table
                 e = dbconfig.collection_rewardTask.aggregate({
                         $match: queryObj
                     },
@@ -497,6 +574,7 @@ const dbRewardTask = {
             )
             .then(
                 topup=>{
+                    // calculate the sum of topUp
                     if(topup){
                         if(topup.proposalId){
                             item.topUpProposal = topup.proposalId;

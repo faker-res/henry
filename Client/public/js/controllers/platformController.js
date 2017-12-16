@@ -10200,16 +10200,16 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardTask', sendQuery, function (data) {
                     console.log('getPlayerRewardTask', data);
                     vm.curRewardTask = data.data;
-                    if(vm.selectedPlatform.data.useProviderGroup){
-                        let tblData = data && data.data ? data.data.rewardTaskGroupData.map(item => {
-                            item.createTime$ = vm.dateReformat(item.createTime);
-                            return item;
-                        }) : [];
-                        vm.rewardTaskGroupDetails = tblData;
-                        //vm.rewardTaskGroupDetails = data.data.rewardTaskGroupData;
-                        $scope.safeApply();
-                    }
 
+                    // if(vm.selectedPlatform.data.useProviderGroup){
+                    //     let tblData = data && data.data ? data.data.rewardTaskGroupData.map(item => {
+                    //         item.createTime$ = vm.dateReformat(item.createTime);
+                    //         return item;
+                    //     }) : [];
+                    //     vm.rewardTaskGroupDetails = tblData;
+                    //     //vm.rewardTaskGroupDetails = data.data.rewardTaskGroupData;
+                    //     $scope.safeApply();
+                    // }
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
                         item.topUpAmount$ = (item.topUpAmount);
@@ -10240,7 +10240,163 @@ define(['js/app'], function (myApp) {
                     let topUpAmountSum = data.data ? data.data.topUpAmountSum : 0;
                     vm.rewardTaskLog.totalCount = size;
                     vm.drawRewardTaskTable(newSearch, tblData, size, summary, topUpAmountSum);
+                    vm.drawRewardTaskGroupTable(newSearch, tblData, size, summary, topUpAmountSum)
                 });
+            }
+            vm.drawRewardTaskGroupTable = function(newSearch, tblData, size, summary, topUpAmountSum){
+                var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('RewardTaskGroup'),
+                            data: "_id",
+                            advSearch: true,
+                            sClass: "",
+                            render: function (data, type, row) {
+                                data = data || '';
+                                var link = $('<div>', {});
+                                console.log(data);
+                                if (data) {
+                                    link.append($('<a>', {
+                                        'ng-click': 'vm.getRewardTaskGroupProposal("' + row._id + '");',
+                                    }).text(data ? data : 0));
+                                }
+                                else {
+                                    link.append($('<div>', {}).text(data ? data : 0));
+                                }
+                                return link.prop('outerHTML')
+                            }
+                        },
+                        // {
+                        //     title: $translate('RewardProposalId'),
+                        //     data: "proposalId",
+                        //     render: function (data, type, row) {
+                        //         var link = $('<a>', {
+                        //
+                        //             'ng-click': 'vm.showProposalModal("' + data + '",1)'
+                        //
+                        //         }).text(data);
+                        //         return link.prop('outerHTML');
+                        //     }
+                        // },
+                        // {title: $translate('SubRewardType'), data: "rewardType"}
+                    ],
+                    "paging": false,
+                    "scrollX": true,
+                    "autoWidth": true,
+                    "sScrollY": 350,
+                    "scrollCollapse": true,
+                    "destroy": true,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+
+                });
+
+                var aTable = $("#rewardTaskGroupLogTbl").DataTable(tableOptions);
+                aTable.columns.adjust().draw();
+                vm.rewardTaskLog.pageObj.init({maxCount: size}, newSearch);
+
+                // $('#DD').resize();
+                $('#rewardTaskGroupLogTbl').off('order.dt');
+                $('#rewardTaskGroupLogTbl').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'rewardTaskLog', vm.getRewardTaskLogData);
+                });
+                // $('#rewardTaskLogTbl').resize();
+                $scope.safeApply();
+            }
+            vm.drawRewardTaskProposalTable = function(newSearch, data, size, summary, topUpAmountSum){
+                var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: data,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('RewardProposalId'),
+                            data: "proposalId",
+                            render: function (data, type, row) {
+                                var text = '<input type="checkbox">';
+                                var result = '<div>'+text+'</div>';
+                                return result;
+                            }
+                        },
+                        {
+                            title: $translate('RewardTaskGroup'),
+                            data: "currentAmt",
+                            advSearch: true,
+                            sClass: "",
+                            render: function (data, type, row) {
+                                data = data || '';
+                                var link = $('<div>', {});
+                                console.log(data);
+                                if (data) {
+                                    link.append($('<a>', {
+                                        'ng-click': 'vm.getRewardTaskGroupProposal("' + row.currentAmt + '");',
+                                    }).text(data ? data : 0));
+                                }
+                                else {
+                                    link.append($('<div>', {}).text(data ? data : 0));
+                                }
+                                return link.prop('outerHTML')
+                            }
+                        },
+                        // {
+                        //     title: $translate('RewardProposalId'),
+                        //     data: "proposalId",
+                        //     render: function (data, type, row) {
+                        //         var link = $('<a>', {
+                        //
+                        //             'ng-click': 'vm.showProposalModal("' + data + '",1)'
+                        //
+                        //         }).text(data);
+                        //         return link.prop('outerHTML');
+                        //     }
+                        // },
+                        // {title: $translate('SubRewardType'), data: "rewardType"}
+                    ],
+                    "paging": false,
+                    "scrollX": true,
+                    "autoWidth": true,
+                    "sScrollY": 350,
+                    "scrollCollapse": true,
+                    "destroy": true,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+
+                });
+
+                var aTable = $("#rewardTaskGroupProposalTbl").DataTable(tableOptions);
+                aTable.columns.adjust().draw();
+                vm.rewardTaskLog.pageObj.init({maxCount: size}, newSearch);
+
+                // $('#DD').resize();
+                $('#rewardTaskGroupProposalTbl').off('order.dt');
+                $('#rewardTaskGroupProposalTbl').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'rewardTaskLog', vm.getRewardTaskLogData);
+                });
+                // $('#rewardTaskLogTbl').resize();
+                $scope.safeApply();
+            }
+            vm.getRewardTaskGroupProposal = function(id){
+                // let sendQuery = { _id : id};
+                var sendQuery = {
+                    _id: id,
+                    playerId: vm.selectedSinglePlayer._id,
+                    platformId: vm.selectedSinglePlayer.platform,
+                    from: vm.rewardTaskLog.query.startTime.data('datetimepicker').getLocalDate(),
+                    to: vm.rewardTaskLog.query.endTime.data('datetimepicker').getLocalDate(),
+                }
+                console.log(sendQuery);
+                socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
+                    console.log('getRewardTaskGroupProposal', data.data);
+                    vm.drawRewardTaskProposalTable(true,data.data);
+                })
+
             }
             vm.selectReward = function($event){
                 $event.stopPropagation();
