@@ -1707,7 +1707,14 @@ var proposalExecutor = {
             },
 
             executeManualUnlockPlayerReward: function (proposalData, deferred) {
-                dbRewardTask.completeRewardTask(proposalData.data).then(deferred.resolve, deferred.reject);
+                // Set proposalId in proposalData.data
+                proposalData = setProposalIdInData(proposalData);
+
+                if (proposalData.data && proposalData.data.providerGroup) {
+                    dbRewardTask.completeRewardTaskGroup(proposalData.data, true).then(deferred.resolve, deferred.reject);
+                } else {
+                    dbRewardTask.completeRewardTask(proposalData.data).then(deferred.resolve, deferred.reject);
+                }
             },
 
             executePartnerCommission: function (proposalData, deferred) {
@@ -2974,10 +2981,22 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         data => deferred.resolve(resolveValue || data),
                         error => deferred.reject(error)
                     );
-                }else{
-                    dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).then(
-                        data => deferred.resolve(resolveValue || data),
-                        error => deferred.reject(error)
+                } else {
+                    dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
+                        data => {
+                            rewardTask = data;
+                            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
+                            return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
+                                rewardTask: taskData
+                            });
+                        }
+                    ).then(
+                        function () {
+                            deferred.resolve(resolveValue || rewardTask);
+                        },
+                        function (error) {
+                            deferred.reject(error);
+                        }
                     );
                 }
             } else {
@@ -3194,8 +3213,9 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
                     return dbconfig.collection_rewardPoints.findOne({_id: proposalData.data.playerRewardPointsObjId}).lean().then(
                         playerRewardPoints => {
                             let rewardPointsLogStatus = proposalData.status == constProposalStatus.APPROVED ? constRewardPointsLogStatus.PROCESSED : constRewardPointsLogStatus.PENDING;
+                            let updateAmount = proposalData.data.convertedRewardPoints >= 0 ? -Math.abs(proposalData.data.convertedRewardPoints) : Math.abs(proposalData.data.convertedRewardPoints);
                             return dbPlayerRewardPoints.tryToDeductRewardPointFromPlayer(playerRewardPoints.playerObjId, playerRewardPoints.platformObjId,
-                                -Math.abs(proposalData.data.convertedRewardPoints), taskData.data.category, proposalData.data.remark,
+                                updateAmount, taskData.data.category, proposalData.data.remark,
                                 proposalData.inputDevice, proposalData.creator.name, rewardPointsLogStatus, proposalData.data.currentDayAppliedAmount, proposalData.data.maxDayApplyAmount,
                                 rewardTask._id, taskData.proposalId);
                         }
@@ -3258,6 +3278,14 @@ function looksLikeObjectId(thing) {
     const isObjectId = thing instanceof mongoose.Types.ObjectId;
     const looksLikeObjectId = String(thing).length === 24 && mongoose.Types.ObjectId.isValid(String(thing));
     return isObjectId || looksLikeObjectId;
+}
+
+function setProposalIdInData(proposal) {
+    if (proposal && proposal.data) {
+        proposal.data.proposalId = proposal.proposalId;
+    }
+
+    return proposal;
 }
 
 var proto = proposalExecutorFunc.prototype;

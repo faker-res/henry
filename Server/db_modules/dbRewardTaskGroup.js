@@ -153,6 +153,23 @@ let dbRewardTaskGroup = {
             error => Q.reject({name: "DBError", message: "Error in getting reward task", error: error})
         );
     },
+
+    /**
+     * For FPMS manual unlock use only
+     * @param {ObjectId} rewardTaskGroupId
+     * @param {Number} incRewardAmount
+     * @param {Number} incConsumptionAmount
+     */
+    unlockRewardTaskInRewardTaskGroup: (rewardTaskGroupId, incRewardAmount, incConsumptionAmount) => {
+        return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+            _id: rewardTaskGroupId
+        }, {
+            inc: {
+                currentAmt: -incRewardAmount,
+                curConsumption: incConsumptionAmount
+            }
+        });
+    },
 };
 
 module.exports = dbRewardTaskGroup;

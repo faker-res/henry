@@ -3324,14 +3324,23 @@ let dbPlayerReward = {
                             selectedTopUp = rewardData.selectedTopup;
                             applyAmount = rewardData.selectedTopup.amount;
 
+                            if (!isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "This top up did not happen within reward interval time"
+                                });
+                            }
+
                             // Set reward param step to use
                             if (eventData.param.isMultiStepReward) {
                                 if (eventData.param.isSteppingReward) {
                                     let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
                                     selectedRewardParam = selectedRewardParam[eventStep];
                                 } else {
+                                    let firstRewardParam = selectedRewardParam[0];
                                     selectedRewardParam = selectedRewardParam.filter(e => applyAmount >= e.minTopUpAmount).sort((a, b) => b.minTopUpAmount - a.minTopUpAmount);
-                                    selectedRewardParam = selectedRewardParam[0];
+                                    selectedRewardParam = selectedRewardParam[0] || firstRewardParam || {};
                                 }
                             } else {
                                 selectedRewardParam = selectedRewardParam[0];
@@ -3347,6 +3356,9 @@ let dbPlayerReward = {
 
                             if (eventData.condition.isDynamicRewardAmount) {
                                 rewardAmount = applyAmount * selectedRewardParam.rewardPercentage;
+                                if (selectedRewardParam.maxRewardInSingleTopUp && selectedRewardParam.maxRewardInSingleTopUp > 0) {
+                                    rewardAmount = Math.min(rewardAmount, Number(selectedRewardParam.maxRewardInSingleTopUp));
+                                }
 
                                 // Check reward amount exceed daily limit
                                 if (eventData.param.dailyMaxRewardAmount) {
@@ -3361,6 +3373,7 @@ let dbPlayerReward = {
                                     }
                                 }
 
+                                selectedRewardParam.spendingTimes = selectedRewardParam.spendingTimes || 1;
                                 spendingAmount = (applyAmount + rewardAmount) * selectedRewardParam.spendingTimes;
                             } else {
                                 rewardAmount = selectedRewardParam.rewardAmount;
@@ -3374,6 +3387,13 @@ let dbPlayerReward = {
                             if (eventData.condition.providerGroup) {
                                 isUpdateValidCredit = true;
                             }
+                        }
+                        else {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "Invalid top up"
+                            });
                         }
                         break;
 
@@ -4209,6 +4229,12 @@ function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo) {
     );
 }
 
+function isDateWithinPeriod(date, period) {
+    if (period && period.startTime && period.endTime) {
+        return date > period.startTime && date < period.endTime;
+    }
+    return false;
+}
 
 /**
  * Expire promo code in all platforms pass expirationTime

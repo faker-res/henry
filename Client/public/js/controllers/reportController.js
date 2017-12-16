@@ -20,6 +20,15 @@ define(['js/app'], function (myApp) {
             APP_PLAYER: 5,
             APP_AGENT: 6
         };
+        vm.inputDeviceMapped = {
+            0: "BACKSTAGE",
+            1: "WEB_PLAYER",
+            2: "WEB_AGENT",
+            3: "H5_PLAYER",
+            4: "H5_AGENT",
+            5: "APP_PLAYER",
+            6: "APP_AGENT"
+        };
 
         vm.proposalStatusList = { // removed APPROVED and REJECTED
             PREPENDING: "PrePending",
@@ -2794,9 +2803,11 @@ define(['js/app'], function (myApp) {
                 vm.limitedOfferDetail.map(e => {
                     e.applyTime$ = $scope.timeReformat(e.createTime);
                     e.topUpAmount$ = e.data.topUpAmount ? parseFloat(e.data.topUpAmount).toFixed(2) : "";
-                    e.spendingAmount$ = e.data.spendingAmount ? parseFloat(e.data.spendingAmount).toFixed(2) : "";
                     e.rewardAmount$ = e.data.rewardProposalId ? parseFloat(e.data.rewardAmount).toFixed(2) : "";
                     e.data.rewardAmount$ = e.data.rewardProposalId ? e.data.rewardAmount : 0;
+                    e.spendingAmount$ = e.data.spendingAmount ? parseFloat(e.data.spendingAmount).toFixed(2) : parseFloat(0).toFixed(2);
+                    e.data.spendingAmount$ = e.data.spendingAmount ? e.data.spendingAmount : 0;
+                    e.inputDevice$ = (e.hasOwnProperty("inputDevice") && vm.inputDeviceMapped[e.inputDevice]) ? $translate(vm.inputDeviceMapped[e.inputDevice]) : "Unknown";
                 });
                 $scope.safeApply();
                 vm.drawLimitedOfferReport(newSearch);
@@ -2804,7 +2815,6 @@ define(['js/app'], function (myApp) {
         };
         vm.drawLimitedOfferReport = function (newSearch) {
             function localDataProcessing() {
-                console.log(vm.limitedOfferDetail);
                 vm.limitedOfferQuery.sortCol = vm.limitedOfferQuery.sortCol || {'applyTime$': -1};
 
                 let searchResult = vm.limitedOfferDetail.slice(0);
@@ -2824,8 +2834,6 @@ define(['js/app'], function (myApp) {
                 for (let i = 0, len = limit; i < len; i++) {
                     searchResult[index + i] ? outputResult.push(searchResult[index + i]) : null;
                 }
-                console.log(searchResult);
-                console.log(outputResult);
                 return outputResult;
             }
 
@@ -2844,8 +2852,8 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'data.topUpAmount', 'aTargets': [7], bSortable: true},
                     {'sortCol': 'data.rewardProposalId', 'aTargets': [8], bSortable: true},
                     {'sortCol': 'data.rewardAmount$', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'data.spendingAmount', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'device', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'data.spendingAmount$', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'inputDevice$', 'aTargets': [11], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -2867,7 +2875,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('rewardProposalId'), data: "data.rewardProposalId"},
                     {title: $translate('OFFER_AMOUNT'), data: "rewardAmount$", sClass: "sumFloat"},
                     {title: $translate('SPENDING_AMOUNT'), data: "spendingAmount$", sClass: "sumFloat"},
-                    {title: $translate('DEVICE'), data: "device"}
+                    {title: $translate('DEVICE'), data: "inputDevice$"}
                 ],
                 "paging": false,
                 "language": {
