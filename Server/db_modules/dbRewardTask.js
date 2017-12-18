@@ -879,7 +879,8 @@ const dbRewardTask = {
                                 }
                                 // Consumption reached
                                 else {
-                                    if(freeRewardTaskGroup.curConsumption && freeRewardTaskGroup.targetConsumption && freeRewardTaskGroup.forbidXIMAAmt){
+                                    //if(freeRewardTaskGroup.curConsumption && freeRewardTaskGroup.targetConsumption && freeRewardTaskGroup.forbidXIMAAmt){
+                                    if(freeRewardTaskGroup.hasOwnProperty("targetConsumption") && freeRewardTaskGroup.hasOwnProperty("forbidXIMAAmt")){
                                         if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
                                             freeRewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
                                             freeRewardTaskGroup.unlockTime = createTime;
