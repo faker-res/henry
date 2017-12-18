@@ -22,6 +22,7 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const constProposalType = require('./../const/constProposalType');
 const constProposalStatus = require('./../const/constProposalStatus');
+const errorUtils = require('./../modules/errorUtils');
 
 let dbUtility = require('./../modules/dbutility');
 
@@ -478,7 +479,9 @@ var dbPlayerConsumptionRecord = {
                     ).exec();
                     var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
                         data => data,
-                        error => console.error
+                        error => {
+                            errorUtils.reportError(error);
+                        }
                     );
                     return Q.all([creditProm, levelProm]);
                 }
@@ -587,7 +590,9 @@ var dbPlayerConsumptionRecord = {
                 // Check auto player level up
                 return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
                     data => data,
-                    error => console.error
+                    error => {
+                        errorUtils.reportError(error);
+                    }
                 );
             },
             error => {

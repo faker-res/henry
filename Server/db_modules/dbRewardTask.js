@@ -188,6 +188,7 @@ const dbRewardTask = {
 
     insertConsumptionValueIntoFreeAmountProviderGroup: (rewardData, proposalData, rewardType) => {
         // Search available reward task group for this reward & this player
+        console.log("rewardData",rewardData);
         return dbconfig.collection_rewardTaskGroup.findOne({
             platformId: rewardData.platformId,
             playerId: rewardData.playerId,
@@ -195,6 +196,10 @@ const dbRewardTask = {
             status: {$in: [constRewardTaskStatus.STARTED]}
         }).then(
             providerGroup => {
+                console.log("providerGroup",providerGroup);
+                if(isNaN(rewardData.applyAmount)) {
+                    rewardData.applyAmount = 0;
+                }
                 if (providerGroup) {
                     let updObj = {
                         $inc: {
@@ -206,10 +211,12 @@ const dbRewardTask = {
                                     : 0
                         }
                     };
-    
+                    console.log("rewardData.useConsumption",rewardData.useConsumption);
                     if (rewardData.useConsumption) {
+                        console.log("providerGroup.forbidXIMAAmt",providerGroup.forbidXIMAAmt);
                         updObj.$inc.forbidXIMAAmt = rewardData.requiredUnlockAmount - rewardData.applyAmount;
                     } else {
+                        console.log("providerGroup.targetConsumption",providerGroup.targetConsumption);
                         updObj.$inc.targetConsumption = rewardData.requiredUnlockAmount - rewardData.applyAmount;
                     }
     
@@ -233,13 +240,14 @@ const dbRewardTask = {
                                 ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
                                 : 0
                     };
-    
+                    console.log("rewardData.useConsumption",rewardData.useConsumption);
+                    console.log("rewardData.requiredUnlockAmount",rewardData.requiredUnlockAmount);
                     if (rewardData.useConsumption && rewardData.requiredUnlockAmount) {
                         saveObj.forbidXIMAAmt = rewardData.requiredUnlockAmount;
                     } else {
                         saveObj.targetConsumption = rewardData.requiredUnlockAmount;
                     }
-    
+                    console.log("saveObj",saveObj);
                     // create new reward group
                     return new dbconfig.collection_rewardTaskGroup(saveObj).save();
                 }
@@ -258,15 +266,26 @@ const dbRewardTask = {
         ).then(
             (returnData) => {
                 if (rewardData && !rewardData.useLockedCredit) {
-                    return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
-                        playerData => {
-                            dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
+                    let amountToUpdate = 0;
+                    if (proposalData && proposalData.data) {
+                        if (proposalData.data.rewardAmount && proposalData.data.applyAmount) {
+                            amountToUpdate = proposalData.data.rewardAmount + proposalData.data.applyAmount;
+                        }else if(proposalData.data.rewardAmount)
+                        {
+                            amountToUpdate = proposalData.data.rewardAmount;
+
                         }
-                    ).then(
-                        () => {
-                            return returnData;
-                        }
-                    );
+
+                        return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
+                            playerData => {
+                                dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, amountToUpdate, rewardType, proposalData);
+                            }
+                        ).then(
+                            () => {
+                                return returnData;
+                            }
+                        );
+                    }
                 }
             }
         )
@@ -301,29 +320,33 @@ const dbRewardTask = {
                     } else {
                         updObj.$inc.targetConsumption = -rewardData.applyAmount;
                     }
-    
+
+                    if(freeProviderGroup.targetConsumption && freeProviderGroup.targetConsumption - rewardData.applyAmount <= 0){
+                        updObj.status = constRewardTaskStatus.ACHIEVED;
+                    }
+
                     // There are on-going reward task for this provider group
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                         _id: freeProviderGroup._id
                     }, updObj);
                 }
-                else {
-                    let saveObj = {
-                        platformId: rewardData.platformId,
-                        playerId: rewardData.playerId,
-                        providerGroup: null,
-                        status: constRewardTaskStatus.STARTED,
-                        rewardAmt: 0,
-                        currentAmt: 0,
-                        forbidWithdrawIfBalanceAfterUnlock: 0,
-                        forbidXIMAAmt: 0,
-                        //targetConsumption: -rewardData.applyAmount
-                        targetConsumption: 0
-                    };
-    
-                    // create new reward group
-                    return new dbconfig.collection_rewardTaskGroup(saveObj).save();
-                }
+                // else {
+                //     let saveObj = {
+                //         platformId: rewardData.platformId,
+                //         playerId: rewardData.playerId,
+                //         providerGroup: null,
+                //         status: constRewardTaskStatus.STARTED,
+                //         rewardAmt: 0,
+                //         currentAmt: 0,
+                //         forbidWithdrawIfBalanceAfterUnlock: 0,
+                //         forbidXIMAAmt: 0,
+                //         //targetConsumption: -rewardData.applyAmount
+                //         targetConsumption: 0
+                //     };
+                //
+                //     // create new reward group
+                //     return new dbconfig.collection_rewardTaskGroup(saveObj).save();
+                // }
             }
         ).then(
             freeProviderGroup2 => {
@@ -724,54 +747,54 @@ const dbRewardTask = {
             function (error) {
                 deferred.reject({name: "DBError", message: "Error completing reward task", error: error});
             }
-        ).then(() => {
-            return dbRewardTaskGroup.getFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime).then(
-                freeRewardTaskGroup => {
-                    freeRewardTaskGroup.curConsumption += consumptionRecord.validAmount;
-                    freeRewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
-        
-                    // Check whether player has lost all credit
-                    if (freeRewardTaskGroup.currentAmt < 1) {
-                        freeRewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
-                        freeRewardTaskGroup.unlockTime = createTime;
-                    }
-                    // Consumption reached
-                    else if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
-                        freeRewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
-                        freeRewardTaskGroup.unlockTime = createTime;
-                    }
-        
-                    let updObj = {
-                        $inc: {
-                            currentAmt: consumptionRecord.bonusAmount,
-                            curConsumption: consumptionRecord.validAmount
-                        },
-                        status: freeRewardTaskGroup.status,
-                        unlockTime: freeRewardTaskGroup.unlockTime
-                    };
-        
-                    return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
-                        {_id: freeRewardTaskGroup._id},
-                        updObj,
-                        {new: true}
-                    );
-                });
-        }).then(
-            updatedData => {
-                if (updatedData) {
-                    // Transfer amount to player if reward is achieved
-                    if (updatedData.status == constRewardTaskStatus.ACHIEVED) {
-                        return dbRewardTask.completeRewardTaskGroup(updatedData);
-                    }
-                }
-            },
-            error => {
-                return Q.reject({
-                    name: "DBError",
-                    message: "Error updating reward task group",
-                    error: error
-                });
-            }
+        // ).then(() => {
+        //     return dbRewardTaskGroup.getFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime).then(
+        //         freeRewardTaskGroup => {
+        //             freeRewardTaskGroup.curConsumption += consumptionRecord.validAmount;
+        //             freeRewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
+        //
+        //             // Check whether player has lost all credit
+        //             if (freeRewardTaskGroup.currentAmt < 1) {
+        //                 freeRewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
+        //                 freeRewardTaskGroup.unlockTime = createTime;
+        //             }
+        //             // Consumption reached
+        //             else if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
+        //                 freeRewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
+        //                 freeRewardTaskGroup.unlockTime = createTime;
+        //             }
+        //
+        //             let updObj = {
+        //                 $inc: {
+        //                     currentAmt: consumptionRecord.bonusAmount,
+        //                     curConsumption: consumptionRecord.validAmount
+        //                 },
+        //                 status: freeRewardTaskGroup.status,
+        //                 unlockTime: freeRewardTaskGroup.unlockTime
+        //             };
+        //
+        //             return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+        //                 {_id: freeRewardTaskGroup._id},
+        //                 updObj,
+        //                 {new: true}
+        //             );
+        //         });
+        // }).then(
+        //     updatedData => {
+        //         if (updatedData) {
+        //             // Transfer amount to player if reward is achieved
+        //             if (updatedData.status == constRewardTaskStatus.ACHIEVED) {
+        //                 return dbRewardTask.completeRewardTaskGroup(updatedData);
+        //             }
+        //         }
+        //     },
+        //     error => {
+        //         return Q.reject({
+        //             name: "DBError",
+        //             message: "Error updating reward task group",
+        //             error: error
+        //         });
+        //     }
         );
 
         return deferred.promise;
@@ -852,34 +875,50 @@ const dbRewardTask = {
                 }else{
                     return dbRewardTaskGroup.getFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime).then(
                         freeRewardTaskGroup => {
-                            freeRewardTaskGroup.curConsumption += consumptionRecord.validAmount;
-                            freeRewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
+                            if(freeRewardTaskGroup){
+                                freeRewardTaskGroup.curConsumption += consumptionRecord.validAmount ? consumptionRecord.validAmount : 0;
 
-                            // Check whether player has lost all credit
-                            if (freeRewardTaskGroup.currentAmt < 1) {
-                                freeRewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
-                                freeRewardTaskGroup.unlockTime = createTime;
+                                freeRewardTaskGroup.currentAmt += consumptionRecord.bonusAmount ? consumptionRecord.bonusAmount : 0;
+
+                                // Check whether player has lost all credit
+                                if (freeRewardTaskGroup.currentAmt && freeRewardTaskGroup.currentAmt < 1) {
+                                    freeRewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
+                                    freeRewardTaskGroup.unlockTime = createTime;
+                                }
+                                // Consumption reached
+                                else {
+                                    if(freeRewardTaskGroup.curConsumption && freeRewardTaskGroup.targetConsumption && freeRewardTaskGroup.forbidXIMAAmt){
+                                        if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
+                                            freeRewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
+                                            freeRewardTaskGroup.unlockTime = createTime;
+                                        }
+                                    }
+                                }
+
+                                let updObj = {
+                                    $inc: {
+                                        currentAmt: consumptionRecord.bonusAmount ? consumptionRecord.bonusAmount : 0,
+                                        curConsumption: consumptionRecord.validAmount ? consumptionRecord.validAmount : 0
+                                    },
+                                    // status: freeRewardTaskGroup.status,
+                                    // unlockTime: freeRewardTaskGroup.unlockTime
+                                };
+
+                                if(freeRewardTaskGroup.status){
+                                    updObj.status = freeRewardTaskGroup.status;
+                                }
+
+                                if(freeRewardTaskGroup.unlockTime){
+                                    updObj.unlockTime = freeRewardTaskGroup.unlockTime;
+                                }
+
+                                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                    {_id: freeRewardTaskGroup._id},
+                                    updObj,
+                                    {new: true}
+                                );
                             }
-                            // Consumption reached
-                            else if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
-                                freeRewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
-                                freeRewardTaskGroup.unlockTime = createTime;
-                            }
 
-                            let updObj = {
-                                $inc: {
-                                    currentAmt: consumptionRecord.bonusAmount,
-                                    curConsumption: consumptionRecord.validAmount
-                                },
-                                status: freeRewardTaskGroup.status,
-                                unlockTime: freeRewardTaskGroup.unlockTime
-                            };
-
-                            return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
-                                {_id: freeRewardTaskGroup._id},
-                                updObj,
-                                {new: true}
-                            );
                         });
                 }
             }
