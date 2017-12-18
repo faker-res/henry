@@ -197,6 +197,9 @@ const dbRewardTask = {
         }).then(
             providerGroup => {
                 console.log("providerGroup",providerGroup);
+                if(isNaN(rewardData.applyAmount)) {
+                    rewardData.applyAmount = 0;
+                }
                 if (providerGroup) {
                     let updObj = {
                         $inc: {
