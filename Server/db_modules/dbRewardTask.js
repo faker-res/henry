@@ -262,7 +262,7 @@ const dbRewardTask = {
                     if(proposalData && proposalData.data){
                         if(proposalData.data.rewardAmount && proposalData.data.applyAmount){
                             amountToUpdate = proposalData.data.rewardAmount + proposalData.data.applyAmount;
-                        }else if(proposalData.data.rewardAmount){
+                        }else if(proposalData.data.rewardAmount)
                         {
                             amountToUpdate = proposalData.data.rewardAmount;
                         }
