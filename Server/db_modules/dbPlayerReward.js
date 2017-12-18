@@ -3847,7 +3847,7 @@ let dbPlayerReward = {
                                 //For set consumption bDirty Use
                                 consumptionRecords.forEach((consumptionRecord) => {
                                     if (useConsumptionRecordAmount < selectedRewardParam.requiredConsumptionAmount) {
-                                        useConsumptionRecordAmount += consumptionRecord.amount;
+                                        useConsumptionRecordAmount += consumptionRecord.validAmount;
                                         updateConsumptionRecordIds.push(consumptionRecord._id);
                                     }
                                 });
