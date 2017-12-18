@@ -3461,6 +3461,7 @@ let dbPlayerReward = {
                     // type 3
                     case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                         let loseAmount = rewardSpecificData[0];
+                        let isReachedTopUpInPeriod = false;
 
                         if (eventInPeriodData && eventInPeriodData.length > 0) {
                             // player already applied the reward within the period timeframe
@@ -3507,16 +3508,27 @@ let dbPlayerReward = {
                         });
 
                         for (let j = selectedRewardParam.length - 1; j >= 0; j--) {
+                            if (topUpinPeriod >= selectedRewardParam[j].minDeposit) {
+                                isReachedTopUpInPeriod = true;
+                            }
                             if (topUpinPeriod >= selectedRewardParam[j].minDeposit && loseAmount >= selectedRewardParam[j].minLoseAmount) {
                                 selectedRewardParam = selectedRewardParam [j];
                                 break;
                             }
                             if (j == 0) {
-                                return Q.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Player's lose amount does not meet condition"
-                                });
+                                if (!isReachedTopUpInPeriod) {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "Player's top up amount does not meet condition in period"
+                                    });
+                                } else {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "Player's lose amount does not meet condition in period"
+                                    });
+                                }
                             }
                         }
 
