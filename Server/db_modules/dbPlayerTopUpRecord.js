@@ -29,6 +29,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const moment = require('moment-timezone');
 const serverInstance = require("../modules/serverInstance");
 const constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
+const dbPromoCode = require("../db_modules/dbPromoCode");
 
 var dbPlayerTopUpRecord = {
     /**
@@ -726,8 +727,14 @@ var dbPlayerTopUpRecord = {
 
                     let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
                     let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount);
+                    let proms = [firstTopUpProm, limitedOfferProm];
 
-                    return Promise.all([firstTopUpProm, limitedOfferProm]);
+                    if (topupRequest.bonusCode) {
+                        let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode);
+                        proms.push(bonusCodeCheckProm)
+                    }
+
+                    return Promise.all(proms);
                 }
                 else {
                     return Q.reject({
@@ -742,11 +749,21 @@ var dbPlayerTopUpRecord = {
                 let minTopUpAmount;
                 let isPlayerFirstTopUp = res[0];
                 let limitedOfferTopUp = res[1];
+                let bonusCodeValidity = res[2];
 
                 if (isPlayerFirstTopUp) {
                     minTopUpAmount = 1;
                 } else {
                     minTopUpAmount = player.platform.minTopUpAmount || 0;
+                }
+
+                // check bonus code validity if exist
+                if (topupRequest.bonusCode && !bonusCodeValidity) {
+                    return Promise.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "DataError",
+                        errorMessage: "Wrong promo code has entered"
+                    });
                 }
 
                 if (topupRequest.amount < minTopUpAmount) {
@@ -951,8 +968,14 @@ var dbPlayerTopUpRecord = {
 
                     let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
                     let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, inputData.amount);
+                    let proms = [firstTopUpProm, limitedOfferProm];
 
-                    return Promise.all([firstTopUpProm, limitedOfferProm]);
+                    if (inputData.bonusCode) {
+                        let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, inputData.bonusCode);
+                        proms.push(bonusCodeCheckProm)
+                    }
+
+                    return Promise.all(proms);
                 } else {
                     return Q.reject({
                         status: constServerCode.INVALID_DATA,
@@ -980,6 +1003,15 @@ var dbPlayerTopUpRecord = {
                 let minTopUpAmount;
                 let isPlayerFirstTopUp = res[0];
                 let limitedOfferTopUp = res[1];
+                let bonusCodeValidity = res[2];
+
+                if (inputData.bonusCode && !bonusCodeValidity) {
+                    return Promise.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "DataError",
+                        errorMessage: "Wrong promo code has entered"
+                    });
+                }
 
                 if (isPlayerFirstTopUp) {
                     minTopUpAmount = 1;
@@ -1713,8 +1745,14 @@ var dbPlayerTopUpRecord = {
 
                         let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
                         let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                        let proms = [firstTopUpProm, limitedOfferProm];
 
-                        return Promise.all([firstTopUpProm, limitedOfferProm]);
+                        if (bonusCode) {
+                            let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode);
+                            proms.push(bonusCodeCheckProm)
+                        }
+
+                        return Promise.all(proms);
                     }
                     else {
                         return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
@@ -1726,6 +1764,8 @@ var dbPlayerTopUpRecord = {
                     let minTopUpAmount = player.platform.minTopUpAmount || 0;
                     let isPlayerFirstTopUp = res[0];
                     let limitedOfferTopUp = res[1];
+                    let bonusCodeValidity = res[2];
+
                     if (isPlayerFirstTopUp) {
                         minTopUpAmount = 1;
                     }
@@ -1767,7 +1807,16 @@ var dbPlayerTopUpRecord = {
                         proposalData.depositeTime = new Date(createTime);
                     }
                     if (bonusCode){
-                        proposalData.bonusCode = bonusCode;
+                        if (bonusCodeValidity) {
+                            proposalData.bonusCode = bonusCode;
+                        }
+                        else {
+                            return Promise.reject({
+                                status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                                name: "DataError",
+                                errorMessage: "Wrong promo code has entered"
+                            });
+                        }
                     }
                     proposalData.creator = entryType === "ADMIN" ? {
                         type: 'admin',
@@ -2007,14 +2056,25 @@ var dbPlayerTopUpRecord = {
                 playerData => {
                     if (playerData) {
                         player = playerData;
-                        return checkLimitedOfferIntention(player.platform._id, player._id, amount);
+
+                        let checkLimitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                        let proms = [checkLimitedOfferProm];
+
+                        if (bonusCode) {
+                            let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode);
+                            proms.push(bonusCodeCheckProm)
+                        }
+
+                        return Promise.all(proms);
                     } else {
                         return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
                     }
                 }
             ).then(
-                intentionProp => {
-                    let limitedOfferTopUp = intentionProp;
+                data => {
+                    let limitedOfferTopUp = data[0];
+                    let bonusCodeValidity = data[1];
+
                     if (player && player.platform && player.wechatPayGroup && player.wechatPayGroup.wechats && player.wechatPayGroup.wechats.length > 0) {
                         let minTopUpAmount = player.platform.minTopUpAmount || 0;
                         if (amount < minTopUpAmount) {
@@ -2051,8 +2111,17 @@ var dbPlayerTopUpRecord = {
                         if (createTime) {
                             proposalData.depositeTime = new Date(createTime);
                         }
-                        if(bonusCode){
-                            proposalData.bonusCode = bonusCode;
+                        if (bonusCode) {
+                            if (bonusCodeValidity) {
+                                proposalData.bonusCode = bonusCode;
+                            }
+                            else {
+                                return Promise.reject({
+                                    status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                                    name: "DataError",
+                                    errorMessage: "Wrong promo code has entered"
+                                });
+                            }
                         }
                         proposalData.creator = entryType === "ADMIN" ? {
                             type: 'admin',
