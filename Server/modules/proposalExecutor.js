@@ -2972,14 +2972,19 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             // Create different process flow for lock provider group reward
             if (platform.useProviderGroup) {
                 if(proposalData.data.providerGroup && gameProviderGroup){
-                    dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(
-                        data => deferred.resolve(resolveValue || data),
-                        error => deferred.reject(error)
+                    dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).catch(
+                        error => Q.reject({
+                            name: "DBError",
+                            message: "Error creating reward task with provider group",
+                            error: error
+                        })
                     );
-            
-                    dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(
-                        data => deferred.resolve(resolveValue || data),
-                        error => deferred.reject(error)
+                    dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).catch(
+                        error => Q.reject({
+                            name: "DBError",
+                            message: "Error deduct target consumption from free amount provider group",
+                            error: error
+                        })
                     );
                 } else {
                     dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
@@ -2990,13 +2995,12 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                                 rewardTask: taskData
                             });
                         }
-                    ).then(
-                        function () {
-                            deferred.resolve(resolveValue || rewardTask);
-                        },
-                        function (error) {
-                            deferred.reject(error);
-                        }
+                    ).catch(
+                        error => Q.reject({
+                            name: "DBError",
+                            message: "Error adding consumption value into free amount provider group",
+                            error: error
+                         })
                     );
                 }
             } else {
@@ -3044,7 +3048,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
                         // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
                         // Changing into async function
-                        dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
+                        //dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
                         //send message if there is any template created for this reward
                         return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
                             rewardTask: taskData
@@ -3059,6 +3063,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                     }
                 );
             }
+
+            return deferred.resolve(resolveValue);
         }
     );
 }
