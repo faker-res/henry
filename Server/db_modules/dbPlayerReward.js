@@ -3077,7 +3077,8 @@ let dbPlayerReward = {
             }
             let consumptionMatchQuery = {
                 createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
-                bDirty:false
+                bDirty:false,
+                playerId: playerData._id,
             };
 
             if (intervalTime) {
