@@ -116,6 +116,195 @@ let dbPlayerReward = {
         )
     },
 
+    getSlotInfo: function (playerId, rewardCode, platformId) {
+        let player, platform, playerLevel, firstProm, event, intervalTime;
+        let list = [];
+        let canApply = false;
+        let isRewardAmountDynamic = false;
+
+        function addParamToList(selectedParam, status) {
+            if (!selectedParam) {
+                return false;
+            }
+
+            let listItem = {
+                minDeposit: selectedParam.minTopUpAmount,
+                status
+            };
+
+            if (isRewardAmountDynamic) {
+                listItem.promoRate = selectedParam.rewardPercentage+"%";
+                listItem.promoLimit = selectedParam.maxRewardInSingleTopUp;
+                listItem.betTimes = selectedParam.spendingTimes;
+            }
+            else {
+                listItem.promoAmount = selectedParam.rewardAmount;
+                listItem.betTimes = selectedParam.spendingTimesOnReward;
+            }
+
+            list.push(listItem);
+        }
+
+        if (playerId) {
+            let playerProm = dbConfig.collection_players.findOne({playerId})
+                .populate({path: "playerLevel", model: dbConfig.collection_playerLevel})
+                .populate({path: "platform", model: dbConfig.collection_platform})
+                .lean().then(playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Invalid player data"});
+                }
+
+                player = playerData;
+                platform = playerData.platform;
+                playerLevel = playerData.playerLevel;
+            });
+            firstProm = playerProm;
+        } else {
+            let platformProm = dbConfig.collection_platform.findOne({platformId}).lean().then(platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Invalid player data"});
+                }
+
+                platform = platformData;
+            });
+            firstProm = platformProm;
+        }
+
+        return firstProm.then(() => {
+            return dbRewardEvent.getPlatformRewardEventWithTypeName(platform._id, constRewardType.PLAYER_TOP_UP_RETURN_GROUP, rewardCode);
+        }).then(eventData => {
+            event = eventData;
+            let currentTime = new Date();
+            if (!event) {
+                return Promise.reject({
+                    status: constServerCode.REWARD_EVENT_INVALID,
+                    name: "DataError",
+                    message: "Error in getting rewardEvent"
+                });
+            }
+
+            if (event.validStartTime && event.validStartTime > currentTime || event.validEndTime && event.validEndTime < currentTime) {
+                return Promise.reject({
+                    status: constServerCode.REWARD_EVENT_INVALID,
+                    name: "DataError",
+                    message: "This reward event is not valid anymore"
+                });
+            }
+
+            intervalTime = getIntervalPeriodFromEvent(event);
+
+            let similarRewardProposalProm = Promise.resolve([]);
+            let lastTopUpProm = Promise.resolve([]);
+
+            if (!player) {
+                return Promise.all([similarRewardProposalProm, lastTopUpProm]);
+            }
+
+            let rewardProposalQuery = {
+                "data.platformObjId": player.platform,
+                "data.playerObjId": player._id,
+                "data.eventId": event._id,
+                status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+            };
+
+            if (intervalTime) {
+                rewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+            }
+
+            similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).sort({createTime: -1}).lean();
+
+            lastTopUpProm = dbConfig.collection_playerTopUpRecord.find({playerId: player._id}).sort({createTime: -1}).limit(1).lean();
+
+            return Promise.all([similarRewardProposalProm, lastTopUpProm]);
+        }).then(data => {
+            if (!data || !data[0] || !data[1]) {
+                return Promise.reject({
+                    status: constServerCode.DOCUMENT_NOT_FOUND,
+                    message: "Error in finding proposal"
+                });
+            }
+            let rewardProposals = data[0];
+            let lastTopUp = data[1][0];
+
+            // big big null check
+            if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
+                return Promise.reject({
+                    status: constServerCode.REWARD_EVENT_INVALID,
+                    name: "DataError",
+                    message: "Invalid reward event"
+                });
+            }
+
+            let isReachCountLimit = event.param && event.param.countInRewardInterval && rewardProposals.length > event.param.countInRewardInterval;
+            isRewardAmountDynamic = event.condition.isDynamicRewardAmount || isRewardAmountDynamic;
+            let paramOfLevel = event.param.rewardParam[0].value;
+
+            if (event.condition.isPlayerLevelDiff && player) {
+                let rewardParam = event.param.rewardParam.filter(e => e.levelId == String(player.playerLevel._id));
+                if (rewardParam && rewardParam[0] && rewardParam[0].value) {
+                    paramOfLevel = rewardParam[0].value;
+                }
+            }
+
+            if (event.param.isSteppingReward) {
+                for (let i = 0; i < rewardProposals.length; i++) {
+                    let selectedParamIndex = Math.min(i, paramOfLevel.length - 1);
+                    let selectedParam = paramOfLevel[selectedParamIndex];
+
+                    addParamToList(selectedParam, 2); // applied
+                }
+
+                let nextRewardParamIndex = Math.min(list.length, paramOfLevel.length - 1);
+                let nextRewardParam = paramOfLevel[nextRewardParamIndex];
+
+                if (!isReachCountLimit && lastTopUp && lastTopUp.amount >= nextRewardParam.minTopUpAmount  && !checkTopupRecordIsDirtyForReward(event, {selectedTopup: lastTopUp})) {
+                    canApply = true;
+                    addParamToList(nextRewardParam, 1); // applicable
+                }
+
+                for (let i = list.length; i < paramOfLevel.length; i++) {
+                    let selectedParam = paramOfLevel[i];
+                    addParamToList(selectedParam, 0); // not applicable
+                }
+            }
+            else {
+                let applicableParamIndex = -1;
+                if (!isReachCountLimit && lastTopUp && lastTopUp.amount) {
+                    for (let i = 0; i < paramOfLevel.length; i++) {
+                        let selectedParam = paramOfLevel[i];
+                        if (selectedParam.minTopUpAmount <= lastTopUp.amount) {
+                            canApply = true;
+                            applicableParamIndex = i;
+                        }
+                    }
+                }
+
+                for (let i = 0; i < paramOfLevel.length; i++) {
+                    let selectedParam = paramOfLevel[i];
+                    let status = applicableParamIndex === i ? 1 : 0; // applicable : not applicable
+                    addParamToList(selectedParam, status);
+                }
+            }
+
+            let outputObject = {
+                startTime: intervalTime.startTime,
+                endTime: intervalTime.endTime,
+                list: list
+            };
+
+            if (canApply) {
+                outputObject.topUpRecordId = lastTopUp._id;
+            }
+
+            if (event.param.countInRewardInterval) {
+                outputObject.maxApplyTimes = event.param.countInRewardInterval;
+                outputObject.appliedTimes = rewardProposals.length;
+            }
+
+            return outputObject;
+        });
+    },
+
     getPlayerConsecutiveRewardDetail: (playerId, code, isApply, platform) => {
         // reward event code is an optional value, getting the latest relevant event by default
         let platformId = null;
@@ -191,27 +380,7 @@ let dbPlayerReward = {
                 });
             }
 
-            if (event.condition) {
-                switch (event.condition.interval) {
-                    case "1":
-                        intervalTime = dbUtility.getTodaySGTime();
-                        break;
-                    case "2":
-                        intervalTime = dbUtility.getCurrentWeekSGTime();
-                        break;
-                    case "3":
-                        intervalTime = dbUtility.getCurrentBiWeekSGTIme();
-                        break;
-                    case "4":
-                        intervalTime = dbUtility.getCurrentMonthSGTIme();
-                        break;
-                    default:
-                        if (event.validStartTime && event.validEndTime) {
-                            intervalTime = {startTime: event.validStartTime, endTime: event.validEndTime};
-                        }
-                        break;
-                }
-            }
+            intervalTime = getIntervalPeriodFromEvent(event);
 
             let similarRewardProposalProm = Promise.resolve([]);
 
@@ -225,7 +394,6 @@ let dbPlayerReward = {
                 "data.eventId": event._id,
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
             };
-            console.log(rewardProposalQuery);
 
             if (!intervalTime) {
                 // get last similar reward proposal
@@ -4234,6 +4402,33 @@ function isDateWithinPeriod(date, period) {
         return date > period.startTime && date < period.endTime;
     }
     return false;
+}
+
+function getIntervalPeriodFromEvent(event) {
+    let intervalTime = dbUtility.getTodaySGTime();
+    if (event && event.condition) {
+        switch (event.condition.interval) {
+            case "1":
+                intervalTime = dbUtility.getTodaySGTime();
+                break;
+            case "2":
+                intervalTime = dbUtility.getCurrentWeekSGTime();
+                break;
+            case "3":
+                intervalTime = dbUtility.getCurrentBiWeekSGTIme();
+                break;
+            case "4":
+                intervalTime = dbUtility.getCurrentMonthSGTIme();
+                break;
+            default:
+                if (event.validStartTime && event.validEndTime) {
+                    intervalTime = {startTime: event.validStartTime, endTime: event.validEndTime};
+                }
+                break;
+        }
+    }
+
+    return intervalTime;
 }
 
 /**
