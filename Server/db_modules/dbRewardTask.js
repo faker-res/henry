@@ -188,7 +188,6 @@ const dbRewardTask = {
 
     insertConsumptionValueIntoFreeAmountProviderGroup: (rewardData, proposalData, rewardType) => {
         // Search available reward task group for this reward & this player
-        console.log("rewardData",rewardData);
         return dbconfig.collection_rewardTaskGroup.findOne({
             platformId: rewardData.platformId,
             playerId: rewardData.playerId,
@@ -196,7 +195,6 @@ const dbRewardTask = {
             status: {$in: [constRewardTaskStatus.STARTED]}
         }).then(
             providerGroup => {
-                console.log("providerGroup",providerGroup);
                 if(isNaN(rewardData.applyAmount)) {
                     rewardData.applyAmount = 0;
                 }
@@ -211,12 +209,9 @@ const dbRewardTask = {
                                     : 0
                         }
                     };
-                    console.log("rewardData.useConsumption",rewardData.useConsumption);
                     if (rewardData.useConsumption) {
-                        console.log("providerGroup.forbidXIMAAmt",providerGroup.forbidXIMAAmt);
                         updObj.$inc.forbidXIMAAmt = rewardData.requiredUnlockAmount - rewardData.applyAmount;
                     } else {
-                        console.log("providerGroup.targetConsumption",providerGroup.targetConsumption);
                         updObj.$inc.targetConsumption = rewardData.requiredUnlockAmount - rewardData.applyAmount;
                     }
     
@@ -240,14 +235,11 @@ const dbRewardTask = {
                                 ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
                                 : 0
                     };
-                    console.log("rewardData.useConsumption",rewardData.useConsumption);
-                    console.log("rewardData.requiredUnlockAmount",rewardData.requiredUnlockAmount);
                     if (rewardData.useConsumption && rewardData.requiredUnlockAmount) {
                         saveObj.forbidXIMAAmt = rewardData.requiredUnlockAmount;
                     } else {
                         saveObj.targetConsumption = rewardData.requiredUnlockAmount;
                     }
-                    console.log("saveObj",saveObj);
                     // create new reward group
                     return new dbconfig.collection_rewardTaskGroup(saveObj).save();
                 }
@@ -1212,7 +1204,7 @@ const dbRewardTask = {
                                     totalCredit = validCredit + lockedCredit + providerCredit;
 
                                     // Set player bonus permission to off if there's still credit available after unlock reward
-                                    if (rewardGroupData && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
+                                    if (rewardGroupData && rewardGroupData.hasOwnProperty("forbidWithdrawIfBalanceAfterUnlock") && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
                                         dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).then(
                                             () => {
                                                 return dbconfig.collection_proposal.findOne({_id: rewardGroupData.lastProposalId})
