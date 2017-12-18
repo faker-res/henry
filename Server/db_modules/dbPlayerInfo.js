@@ -2173,13 +2173,13 @@ let dbPlayerInfo = {
 
                     if(useProviderGroup){
                         var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, data.platform, amount);
-
                         promArr = [recordProm, logProm, levelProm, freeAmountRewardTaskGroupProm];
                     }else{
                         promArr = [recordProm, logProm, levelProm];
                     }
 
                     if (proposalData && proposalData.data && proposalData.data.limitedOfferObjId) {
+                        let topupProposal = proposalData;
                         let newProp;
                         let limitedOfferProm = dbUtility.findOneAndUpdateForShard(
                             dbconfig.collection_proposal,
@@ -2206,6 +2206,9 @@ let dbPlayerInfo = {
                             proposalTypeData => {
                                 if (proposalTypeData) {
                                     // Create reward proposal with intention data
+                                    newProp.data.eventName = newProp.data.eventName.replace(" Intention",'');
+                                    let remark = 'event name: '+ newProp.data.eventName +'('+ newProp.proposalId +') topup proposal id: ' + topupProposal.proposalId;
+                                    newProp.data.remark = remark;
                                     let proposalData = {
                                         type: proposalTypeData._id,
                                         creator: newProp.creator,
@@ -2213,6 +2216,7 @@ let dbPlayerInfo = {
                                         entryType: newProp.entryType,
                                         userType: newProp.userType
                                     };
+
                                     return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
                                 }
                             }
@@ -9834,6 +9838,15 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
                                 case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
                                 case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
+                                    // Check whether platform allowed for reward group
+                                    if (!playerInfo.platform.useProviderGroup) {
+                                        return Q.reject({
+                                            status: constServerCode.GROUP_REWARD_NOT_ALLOWED,
+                                            name: "DataError",
+                                            message: "This reward only applicable on platform with provider group"
+                                        });
+                                    }
+
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
@@ -12352,7 +12365,7 @@ let dbPlayerInfo = {
                 if (rewardTaskGroup && rewardTaskGroup.length > 0) {
                     for (let i = 0; i < rewardTaskGroup.length; i++) {
                         returnData.lockedCreditList[i] = {
-                            nickName: rewardTaskGroup[i].providerGroup.name,
+                            nickName: rewardTaskGroup[i].providerGroup? rewardTaskGroup[i].providerGroup.name: "",
                             validCredit: rewardTaskGroup[i].rewardAmt
                         }
                     }
