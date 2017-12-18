@@ -3742,22 +3742,26 @@ let dbPlayerReward = {
                         spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
                         break;
 
-                    // type 4
+                    // type 4 投注额优惠（组）
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
-                        // （领优惠前）检查投注额来源游戏厅
-                        if (eventInPeriodCount && eventInPeriodCount > 0) {
-                            return Promise.reject({
-                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                name: "DataError",
-                                message: "This player has applied for max reward times in event period"
-                            });
-                        }
+                        // if (eventInPeriodCount && eventInPeriodCount > 0) {
+                        //     return Promise.reject({
+                        //         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        //         name: "DataError",
+                        //         message: "This player has applied for max reward times in event period"
+                        //     });
+                        // }
 
+                        console.log("eventData",eventData);
+                        console.log("eventData.param",eventData.param);
+                        console.log("rewardSpecificData[0]",rewardSpecificData[0]);
                         let consumptions = rewardSpecificData[0];
+                        console.log("consumptions",consumptions);
                         let totalConsumption = 0;
                         for (let x in consumptions) {
                             totalConsumption += consumptions[x].validAmount;
                         }
+                        console.log("totalConsumption",totalConsumption);
 
                         // Set reward param step to use
                         if (eventData.param.isMultiStepReward) {
@@ -3766,6 +3770,7 @@ let dbPlayerReward = {
                         } else {
                             selectedRewardParam = selectedRewardParam[0];
                         }
+                        console.log("selectedRewardParam",selectedRewardParam);
 
                         if (!selectedRewardParam || totalConsumption < selectedRewardParam.minConsumptionAmount) {
                             return Q.reject({
