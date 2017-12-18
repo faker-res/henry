@@ -120,6 +120,12 @@ let dbPlayerInfo = {
                                     platform: points.platformObjId
                                 }, saveObj, {upsert: true, new: true});
                             }
+                        ).then(
+                            data => {
+                                return dbconfig.collection_players.findOne({_id: data._id})
+                                    .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints})
+                                    .lean();
+                            }
                         )
                     }
                     else {
@@ -509,6 +515,15 @@ let dbPlayerInfo = {
                             return pdata;
                         }
                     )
+            ).then(
+                data => {
+                    if (data) {
+                        return dbPlayerInfo.createPlayerRewardPointsRecord(data.platform, data._id);
+                    }
+                    else {
+                        return data;
+                    }
+                }
             );
         } else {
             return Q.reject({name: "DataError", message: "Platform does not exist"});
