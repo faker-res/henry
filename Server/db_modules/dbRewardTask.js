@@ -258,9 +258,19 @@ const dbRewardTask = {
         ).then(
             (returnData) => {
                 if (rewardData && !rewardData.useLockedCredit) {
+                    let amountToUpdate = 0;
+                    if(proposalData && proposalData.data){
+                        if(proposalData.data.rewardAmount && proposalData.data.applyAmount){
+                            amountToUpdate = proposalData.data.rewardAmount + proposalData.data.applyAmount;
+                        }else if(proposalData.data.rewardAmount){
+                        {
+                            amountToUpdate = proposalData.data.rewardAmount;
+                        }
+                    }
+
                     return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
                         playerData => {
-                            dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
+                            dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, amountToUpdate, rewardType, proposalData);
                         }
                     ).then(
                         () => {

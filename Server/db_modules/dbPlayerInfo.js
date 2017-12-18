@@ -10646,17 +10646,9 @@ let dbPlayerInfo = {
      * @returns {Promise<PlayerInfo>}
      */
     changePlayerCredit: function changePlayerCredit(playerObjId, platformObjId, updateAmount, reasonType, data) {
-        let amountToUpdate = 0;
-        if(data && data.data && data.data.applyAmount){
-            amountToUpdate = updateAmount + data.data.applyAmount
-        }else
-        {
-            amountToUpdate = updateAmount;
-        }
-
         return dbconfig.collection_players.findOneAndUpdate(
             {_id: playerObjId, platform: platformObjId},
-            {$inc: {validCredit: amountToUpdate}},
+            {$inc: {validCredit: updateAmount}},
             {new: true}
         ).then(
             player => {
