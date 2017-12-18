@@ -2962,6 +2962,13 @@ let dbPlayerReward = {
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
+        // Set reward param for player level to use
+        if (eventData.condition.isPlayerLevelDiff) {
+            selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
+        } else {
+            selectedRewardParam = eventData.param.rewardParam[0].value;
+        }
+
         // Get interval time
         if (eventData.condition.interval) {
             switch (eventData.condition.interval) {
@@ -3056,6 +3063,7 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
+            eventData.condition.isSharedWithXIMA = !eventData.condition.useConsumptionRecord;
             if(eventData.condition.rewardAppearPeriod){
                 let isValid = false;
                 let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
@@ -3101,7 +3109,7 @@ let dbPlayerReward = {
             ]);
 
             promArr.push(periodConsumptionProm);
-
+            topupMatchQuery.amount = {$gte: selectedRewardParam[0].requiredTopUpAmount};
             topupMatchQuery.$or = [{'bDirty': false}];
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
                 let ignoreUsedTopupReward = [];
@@ -3110,7 +3118,7 @@ let dbPlayerReward = {
                 });
                 topupMatchQuery.$or.push({'usedEvent': {$in: ignoreUsedTopupReward}});
             }
-
+            
             let periodTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
                 {
                     $match: topupMatchQuery
@@ -3483,13 +3491,6 @@ let dbPlayerReward = {
                         name: "DataError",
                         message: "Player has applied for max reward times in event period"
                     });
-                }
-
-                // Set reward param for player level to use
-                if (eventData.condition.isPlayerLevelDiff) {
-                    selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
-                } else {
-                    selectedRewardParam = eventData.param.rewardParam[0].value;
                 }
 
                 // Check top up count within period

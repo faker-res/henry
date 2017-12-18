@@ -2795,7 +2795,7 @@
   "Maximum Reward": "最高优惠金额",
   "Reward amount is dynamically changed by losses": "优惠金额随著输值变动",
   "Number of participation": "每场可参加次数（每次需消耗需求数据）",
-  "Required top up amount": "周期内累积存款金额（每次消耗）",
+  "Required top up amount": "周期内单笔存款金额（每次消耗）",
   "Required top up amount daily": "每日累积存款金额",
   "Required consumption amount daily": "每日累积投注额",
   "Spending times needed": "解锁流水 优惠x倍",
