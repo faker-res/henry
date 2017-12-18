@@ -9815,6 +9815,15 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
                                 case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
                                 case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
+                                    // Check whether platform allowed for reward group
+                                    if (!playerInfo.platform.useProviderGroup) {
+                                        return Q.reject({
+                                            status: constServerCode.GROUP_REWARD_NOT_ALLOWED,
+                                            name: "DataError",
+                                            message: "This reward only applicable on platform with provider group"
+                                        });
+                                    }
+
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
