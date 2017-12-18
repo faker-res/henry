@@ -13430,6 +13430,7 @@ define(['js/app'], function (myApp) {
                 vm.showRewardTypeData = null;   // This will probably be overwritten by vm.platformRewardTypeChanged() below
                 vm.showRewardTypeId = v.type._id;
                 vm.rewardParams = Lodash.cloneDeep(v.param);
+                vm.rewardParamsFilter = vm.rewardParams.reward;
                 vm.rewardCondition = Lodash.cloneDeep(v.condition);
                 vm.rewardDisabledParam = [];
 
@@ -13672,8 +13673,6 @@ define(['js/app'], function (myApp) {
                 }
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
-
-
 
                 // Initialise the models with some default values
                 // and grab any required external data (e.g. for select box lists)
@@ -14134,10 +14133,12 @@ define(['js/app'], function (myApp) {
             }
 
             vm.clearRewardFormData = function () {
-                vm.rewardCondition = null;
-                vm.showReward = null;
-                vm.rewardParams = null;
-                vm.showRewardTypeId = null;
+                // vm.rewardCondition = null;
+                //vm.showReward = null;
+                // vm.rewardParams = null;
+                // vm.showRewardTypeId = null;
+                vm.rewardEventClicked(0,vm.showReward);
+                $scope.safeApply();
             }
 
             vm.clearProvider = function (rowIndex) {
@@ -14215,6 +14216,7 @@ define(['js/app'], function (myApp) {
                         if (objectId) {
                             data._id = objectId;
                             vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                            vm.rewardParamsFilter=vm.rewardParams.reward;
                             $scope.safeApply();
                         }
                     });
@@ -14224,6 +14226,8 @@ define(['js/app'], function (myApp) {
                             return item._id != id;
                         })
                     }
+                    vm.rewardParamsFilter=vm.rewardParams.reward;
+                    $scope.safeApply();
                 }
             };
             vm.weekDayList = {
@@ -14234,6 +14238,58 @@ define(['js/app'], function (myApp) {
                 '5': 'Fri',
                 '6': 'Sat',
                 '7': 'Sun'
+            };
+
+            vm.daySelection = {
+                '0': true,
+                '1': false,
+                '2': false,
+                '3': false,
+                '4': false,
+                '5': false,
+                '6': false,
+                '7': false
+            };
+
+            vm.rewardParamsDaySelectedAll = function () {
+                vm.rewardParamsFilter= [];
+
+                if (vm.daySelection['0']) {
+                    vm.rewardParamsFilter=vm.rewardParams.reward;
+
+                    for (let i in vm.daySelection) {
+                        if (i == '0') {
+                            vm.daySelection[i]= true;
+                        }
+                        else {
+                            vm.daySelection[i]= false;
+                        }
+                    }
+                }
+                console.log('rewardParamsFilter',vm.rewardParamsFilter);
+                $scope.safeApply();
+            };
+
+            vm.isDayChecked = function (index) {
+
+                for (let i in vm.daySelection) {
+                    if (i == index) {
+                        vm.daySelection[i]= true;
+                    }
+                    else {
+                        vm.daySelection[i]= false;
+                    }
+                }
+
+                vm.rewardParamsFilter= [];
+
+                vm.rewardParams.reward.map(
+                    item => {
+                        if (item.repeatWeekDay.includes(index))
+                            vm.rewardParamsFilter.push(item);
+                    });
+                console.log('rewardParamsFilter',vm.rewardParamsFilter);
+                $scope.safeApply();
             };
 
             vm.endLoadWeekDay = function () {
