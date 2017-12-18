@@ -2155,8 +2155,8 @@ let dbPlayerInfo = {
                     var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, data.platform, amount);
 
                     let promArr = [recordProm, logProm, levelProm, freeAmountRewardTaskGroupProm];
-
                     if (proposalData && proposalData.data && proposalData.data.limitedOfferObjId) {
+                        let topupProposal = proposalData;
                         let newProp;
                         let limitedOfferProm = dbUtility.findOneAndUpdateForShard(
                             dbconfig.collection_proposal,
@@ -2183,6 +2183,9 @@ let dbPlayerInfo = {
                             proposalTypeData => {
                                 if (proposalTypeData) {
                                     // Create reward proposal with intention data
+                                    newProp.data.eventName = newProp.data.eventName.replace(" Intention",'');
+                                    let remark = 'event name: '+ newProp.data.eventName +'('+ newProp.proposalId +') topup proposal id: ' + topupProposal.proposalId;
+                                    newProp.data.remark = remark;
                                     let proposalData = {
                                         type: proposalTypeData._id,
                                         creator: newProp.creator,
@@ -2190,6 +2193,7 @@ let dbPlayerInfo = {
                                         entryType: newProp.entryType,
                                         userType: newProp.userType
                                     };
+
                                     return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
                                 }
                             }

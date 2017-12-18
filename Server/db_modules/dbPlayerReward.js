@@ -2503,10 +2503,11 @@ let dbPlayerReward = {
                         limitedOfferName: limitedOfferObj.name,
                         expirationTime: moment().add(30, 'm').toDate(),
                         eventId: eventObj._id,
-                        eventName: eventObj.name,
+                        eventName: eventObj.name + ' Intention',
                         eventCode: eventObj.code,
                         eventDescription: eventObj.description,
-                        requiredLevel: requiredLevelName? requiredLevelName: ""
+                        requiredLevel: requiredLevelName? requiredLevelName: "",
+                        remark: 'event name: ' + limitedOfferObj.name
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
