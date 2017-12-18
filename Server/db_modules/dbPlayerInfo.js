@@ -2089,6 +2089,7 @@ let dbPlayerInfo = {
     playerTopUp: function (playerId, amount, paymentChannelName, topUpType, proposalData) {
         var deferred = Q.defer();
         let playerData;
+        let useProviderGroup = false;
 
         dbUtility.findOneAndUpdateForShard(
             dbconfig.collection_players,
@@ -2105,6 +2106,22 @@ let dbPlayerInfo = {
                 }
             },
             constShardKeys.collection_players
+        ).then(data => {
+                if(data){
+                    if(data.platform){
+                        return dbconfig.collection_platform.findOne({_id: data.platform}).then(
+                            platformData => {
+                                if(platformData && platformData.useProviderGroup){
+                                    useProviderGroup = platformData.useProviderGroup;
+
+                                }
+
+                                return data;
+                            }
+                        )
+                    }
+                }
+            }
         ).then(
             function (data) {
                 if (data) {
@@ -2152,11 +2169,17 @@ let dbPlayerInfo = {
                     }
                     var logProm = dbLogger.createCreditChangeLog(playerId, data.platform, amount, type, data.validCredit, null, logData);
                     var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform);
-                    var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, data.platform, amount);
+                    let promArr;
 
-                    let promArr = [recordProm, logProm, levelProm, freeAmountRewardTaskGroupProm];
+                    if(useProviderGroup){
+                        var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, data.platform, amount);
+                        promArr = [recordProm, logProm, levelProm, freeAmountRewardTaskGroupProm];
+                    }else{
+                        promArr = [recordProm, logProm, levelProm];
+                    }
 
                     if (proposalData && proposalData.data && proposalData.data.limitedOfferObjId) {
+                        let topupProposal = proposalData;
                         let newProp;
                         let limitedOfferProm = dbUtility.findOneAndUpdateForShard(
                             dbconfig.collection_proposal,
@@ -2183,6 +2206,9 @@ let dbPlayerInfo = {
                             proposalTypeData => {
                                 if (proposalTypeData) {
                                     // Create reward proposal with intention data
+                                    newProp.data.eventName = newProp.data.eventName.replace(" Intention",'');
+                                    let remark = 'event name: '+ newProp.data.eventName +'('+ newProp.proposalId +') topup proposal id: ' + topupProposal.proposalId;
+                                    newProp.data.remark = remark;
                                     let proposalData = {
                                         type: proposalTypeData._id,
                                         creator: newProp.creator,
@@ -2190,6 +2216,7 @@ let dbPlayerInfo = {
                                         entryType: newProp.entryType,
                                         userType: newProp.userType
                                     };
+
                                     return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
                                 }
                             }
@@ -9811,6 +9838,15 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
                                 case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
                                 case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
+                                    // Check whether platform allowed for reward group
+                                    if (!playerInfo.platform.useProviderGroup) {
+                                        return Q.reject({
+                                            status: constServerCode.GROUP_REWARD_NOT_ALLOWED,
+                                            name: "DataError",
+                                            message: "This reward only applicable on platform with provider group"
+                                        });
+                                    }
+
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
@@ -12115,83 +12151,103 @@ let dbPlayerInfo = {
 
                 let bonusDetails = {};
                 if(platformDetails){
-                    if(playerDetails){
-                        result.freeTimes = 0;
-                        result.serviceCharge = 0;
-                        result.currentFreeAmount = 0;
-                        result.freeAmount = 0;
+                    if(platformDetails.useProviderGroup)
+                    {
+                        if(playerDetails){
+                            result.freeTimes = 0;
+                            result.serviceCharge = 0;
+                            result.currentFreeAmount = 0;
+                            result.freeAmount = 0;
 
-                        if(platformDetails.bonusSetting){
-                            for(let x in platformDetails.bonusSetting){
-                                if(platformDetails.bonusSetting[x].name == playerDetails.playerLevel.name){
-                                    bonusDetails = platformDetails.bonusSetting[x];
-                                }
-                            }
-                        }
-
-                        if(bonusDetails){
-                            result.freeTimes = bonusDetails.bonusCharges;
-                            result.serviceCharge = bonusDetails.bonusPercentageCharges;
-                        }
-
-                        // if(playerDetails.validCredit){
-                        //     result.currentFreeAmount = playerDetails.validCredit;
-                        //     result.freeAmount = playerDetails.validCredit;
-                        // }
-
-                        let bonusProm = dbconfig.collection_proposal.aggregate([
-                            {
-                                "$match": {
-                                    "data.playerObjId": playerDetails._id,
-                                    "createTime": {
-                                        "$gte": firstDay,
-                                        "$lt": lastDay
-                                    },
-                                    "mainType": "PlayerBonus",
-                                    "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                                }
-                            },
-                            {
-                                "$group": {
-                                    "_id": null,
-                                    "count": {"$sum": 1},
-                                    "amount": {"$sum": "$data.amount"}
-                                }
-                            }
-                        ]);
-
-                        let rewardProm = dbconfig.collection_rewardTaskGroup.find({playerId: playerDetails._id, platformId: platformDetails._id})
-                            .populate({path: "providerGroup", select: 'name', model: dbconfig.collection_gameProviderGroup}).lean()
-                            .then(rewardDetails => {
-                                if(!rewardDetails){
-                                    return "";
-                                }
-                                let lockListArr = [];
-                                rewardDetails.map(r =>{
-                                    if(r){
-                                        let providerGroupName = "";
-                                        let targetCon = r.targetConsumption ? r.targetConsumption : 0;
-                                        let ximaAmt = r.forbidXIMAAmt ? r.forbidXIMAAmt : 0;
-                                        let curCon = r.curConsumption ? r.curConsumption : 0;
-                                        if(r.providerGroup){
-                                            providerGroupName = r.providerGroup.name ? r.providerGroup.name : "";
-                                        }else{
-                                            providerGroupName = "LOCAL_CREDIT";
-                                        }
-
-                                        lockListArr.push({name: providerGroupName, lockAmount: targetCon + ximaAmt, currentLockAmount: curCon});
+                            if(platformDetails.bonusSetting){
+                                for(let x in platformDetails.bonusSetting){
+                                    if(platformDetails.bonusSetting[x].name == playerDetails.playerLevel.name){
+                                        bonusDetails = platformDetails.bonusSetting[x];
                                     }
-                                })
+                                }
+                            }
 
-                                return lockListArr;
+                            if(bonusDetails){
+                                result.freeTimes = bonusDetails.bonusCharges;
+                                result.serviceCharge = bonusDetails.bonusPercentageCharges;
+                            }
+
+                            // if(playerDetails.validCredit){
+                            //     result.currentFreeAmount = playerDetails.validCredit;
+                            //     result.freeAmount = playerDetails.validCredit;
+                            // }
+
+                            let bonusProm = dbconfig.collection_proposal.aggregate([
+                                {
+                                    "$match": {
+                                        "data.playerObjId": playerDetails._id,
+                                        "createTime": {
+                                            "$gte": firstDay,
+                                            "$lt": lastDay
+                                        },
+                                        "mainType": "PlayerBonus",
+                                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                    }
+                                },
+                                {
+                                    "$group": {
+                                        "_id": null,
+                                        "count": {"$sum": 1},
+                                        "amount": {"$sum": "$data.amount"}
+                                    }
+                                }
+                            ]);
+
+                            let sendQuery = {
+                                playerId: playerDetails._id,
+                                platformId: platformDetails._id,
+                                status: constRewardTaskStatus.STARTED
+                            }
+                            let rewardProm = dbconfig.collection_rewardTaskGroup.find(sendQuery)
+                                .populate({path: "providerGroup", select: 'name', model: dbconfig.collection_gameProviderGroup}).lean()
+                                .then(rewardDetails => {
+                                    if(!rewardDetails){
+                                        return "";
+                                    }
+                                    let lockListArr = [];
+                                    rewardDetails.map(r =>{
+                                        if(r){
+                                            let providerGroupName = "";
+                                            let targetCon = r.targetConsumption ? r.targetConsumption : 0;
+                                            let ximaAmt = r.forbidXIMAAmt ? r.forbidXIMAAmt : 0;
+                                            let curCon = r.curConsumption ? r.curConsumption : 0;
+                                            if(r.providerGroup){
+                                                providerGroupName = r.providerGroup.name ? r.providerGroup.name : "";
+                                            }else{
+                                                providerGroupName = "LOCAL_CREDIT";
+                                            }
+
+                                            lockListArr.push({name: providerGroupName, lockAmount: targetCon + ximaAmt, currentLockAmount: curCon});
+                                        }
+                                    })
+
+                                    return lockListArr;
+                                });
+
+                            return Promise.all([bonusProm,rewardProm]);
+                        }else{
+                            return Q.reject({
+                                name: "DataError",
+                                message: "Player not found"
                             });
-
-                        return Promise.all([bonusProm,rewardProm]);
+                        }
                     }else{
-                        return "Player not found.";
+                        return Q.reject({
+                            status: constServerCode.PROVIDER_GROUP_IS_OFF,
+                            name: "DataError",
+                            message: "Provider group is not used."
+                        });
                     }
                 }else{
-                    return "Platform not found.";
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Platform not found"
+                    });
                 }
             }
             return "";
@@ -12205,13 +12261,12 @@ let dbPlayerInfo = {
                     })
                 }
 
-                //result.lockList = data[1] ? data[1]: "";
                 result.lockList = lockListWithoutFreeAmountRewardTaskGroup;
 
                 data[1].map(d =>{
                     if(d && d.name && d.name == "LOCAL_CREDIT"){
-                        result.currentFreeAmount = d.currentLockAmount;
-                        result.freeAmount = d.lockAmount;
+                        result.currentFreeAmount = d.currentLockAmount ? d.currentLockAmount : 0;
+                        result.freeAmount = d.lockAmount ? d.lockAmount : 0;
                     }
                 })
             }
@@ -12310,7 +12365,7 @@ let dbPlayerInfo = {
                 if (rewardTaskGroup && rewardTaskGroup.length > 0) {
                     for (let i = 0; i < rewardTaskGroup.length; i++) {
                         returnData.lockedCreditList[i] = {
-                            nickName: rewardTaskGroup[i].providerGroup.name,
+                            nickName: rewardTaskGroup[i].providerGroup? rewardTaskGroup[i].providerGroup.name: "",
                             validCredit: rewardTaskGroup[i].rewardAmt
                         }
                     }
