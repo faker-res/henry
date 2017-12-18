@@ -377,6 +377,12 @@ define(['js/app'], function (myApp) {
 
             vm.showRewardPointsAdjustmentTab = function (tabName) {
                 vm.selectedRewardPointsAdjustmentTab = tabName == null ? "change" : tabName;
+                if (tabName === 'convert') {
+                    vm.playerRewardPointsDailyLimit = 0;
+                    vm.playerRewardPointsDailyConvertedPoints = 0;
+                    vm.getPlayerRewardPointsDailyLimit();
+                    vm.getPlayerRewardPointsDailyConvertedPoints();
+                }
             };
 
             vm.showSmsTab = function (tabName) {
@@ -8201,14 +8207,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
-                if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
+                if(!vm.selectedSinglePlayer.rewardPointsObjId) {
                     vm.createPlayerRewardPointsRecord();
                 }
-                vm.getPlayerRewardPointsDailyLimit();
-                vm.getPlayerRewardPointsDailyConvertedPoints();
-
-                vm.playerRewardPointsDailyLimit = 0;
-                vm.playerRewardPointsDailyConvertedPoints = 0;
                 vm.rewardPointsChange.finalValidAmount = vm.isOneSelectedPlayer().rewardPointsObjId.points;
                 vm.rewardPointsChange.remark = '';
                 vm.rewardPointsChange.updateAmount = 0;
