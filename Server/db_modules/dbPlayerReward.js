@@ -2887,8 +2887,29 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
+            if(eventData.condition.rewardAppearPeriod){
+                let isValid = false;
+                let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
+                let dayOfHour = moment(new Date()).tz('Asia/Singapore').hours();
+                eventData.condition.rewardAppearPeriod.forEach(appearPeriod => {
+                    if (appearPeriod.startDate <= todayWeekOfDay && appearPeriod.startTime <= dayOfHour &&
+                        appearPeriod.endDate >= todayWeekOfDay && appearPeriod.endTime > dayOfHour
+                    ) {
+                        isValid = true;
+                    }
+                });
+
+                if(!isValid){
+                    return Q.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: "The period of the reward has not yet opened"
+                    });
+                }
+            }
             let consumptionMatchQuery = {
                 createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
+                bDirty:false
             };
 
             if (intervalTime) {
@@ -3654,17 +3675,15 @@ let dbPlayerReward = {
                             }
 
                             if (selectedRewardParam.requiredConsumptionAmount) {
-                                if (eventData.condition.useConsumptionRecord) {
-                                    let useConsumptionRecordAmount = 0;
-                                    //For set consumption bDirty Use
-                                    consumptionRecords.forEach((consumptionRecord) => {
-                                        if (useConsumptionRecordAmount < selectedRewardParam.requiredConsumptionAmount) {
-                                            useConsumptionRecordAmount += consumptionRecord.amount;
-                                            updateConsumptionRecordIds.push(consumptionRecord._id);
-                                        }
-                                    });
-                                    isUpdateMultiConsumptionRecord = true;
-                                }
+                                let useConsumptionRecordAmount = 0;
+                                //For set consumption bDirty Use
+                                consumptionRecords.forEach((consumptionRecord) => {
+                                    if (useConsumptionRecordAmount < selectedRewardParam.requiredConsumptionAmount) {
+                                        useConsumptionRecordAmount += consumptionRecord.amount;
+                                        updateConsumptionRecordIds.push(consumptionRecord._id);
+                                    }
+                                });
+                                isUpdateMultiConsumptionRecord = true;
                                 useConsumptionAmount = selectedRewardParam.requiredConsumptionAmount;
                                 meetConsumptionCondition = consumptionAmount >= selectedRewardParam.requiredConsumptionAmount;
                             } else {

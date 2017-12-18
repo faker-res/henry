@@ -2924,5 +2924,6 @@
   "ALL": "全部",
   "Player does not have enough top up": "玩家没有足够的存款",
   "Player does not have enough consumption": "玩家没有足够的投注额",
-  "Player does not have enough top up or consumption": "玩家没有足够的存款或投注额"
+  "Player does not have enough top up or consumption": "玩家没有足够的存款或投注额",
+  "The period of the reward has not yet opened": "本周期的场次尚未开放"
 }
