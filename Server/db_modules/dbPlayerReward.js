@@ -2902,8 +2902,7 @@ let dbPlayerReward = {
                 eventData.condition.consumptionProvider.forEach(providerId => {
                     consumptionProviders.push(ObjectId(providerId));
                 });
-
-                consumptionMatchQuery.providerId = {$in: eventData.condition.consumptionProvider}
+                consumptionMatchQuery.providerId = {$in:consumptionProviders };
             }
 
             let periodConsumptionProm = dbConfig.collection_playerConsumptionRecord.aggregate([
@@ -3633,7 +3632,7 @@ let dbPlayerReward = {
                         let periodProps = rewardSpecificData[2];
                         let applyRewardTimes = periodProps.length;
                         let topUpAmount = topUpRecords.reduce((sum, value) => sum + value.amount, 0);
-                        let consumptionAmount = consumptionRecords.reduce((sum, value) => sum + value.amount, 0);
+                        let consumptionAmount = consumptionRecords.reduce((sum, value) => sum + value.validAmount, 0);
                         useTopUpAmount = 0;
                         useConsumptionAmount = 0;
                         //periodProps.reduce((sum, value) => sum + value, 1);
@@ -3673,11 +3672,18 @@ let dbPlayerReward = {
                             }
 
                             if (selectedRewardParam.operatorOption) { // true = and, false = or
-                                if (!(meetTopUpCondition && meetConsumptionCondition)) {
+                                if (!meetTopUpCondition) {
                                     return Q.reject({
                                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                         name: "DataError",
-                                        message: "Player does not have enough top up or consumption amount"
+                                        message: "Player does not have enough top up"
+                                    });
+                                }
+                                if(!meetConsumptionCondition){
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "Player does not have enough consumption"
                                     });
                                 }
                             } else {
@@ -3685,7 +3691,7 @@ let dbPlayerReward = {
                                     return Q.reject({
                                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                         name: "DataError",
-                                        message: "Player does not have enough top up or consumption amount"
+                                        message: "Player does not have enough top up or consumption"
                                     });
                                 }
                                 //Only use one of the condition, reset another
@@ -3734,7 +3740,7 @@ let dbPlayerReward = {
                             return Q.reject({
                                 status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                                 name: "DataError",
-                                message: "Please try again random reward tomorrow"
+                                message: "Player reach participate limit"
                             });
                         }
 
