@@ -208,13 +208,16 @@ let dbPlayerReward = {
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
             };
 
+            let lastTopUpQuery = {playerId: player._id};
+
             if (intervalTime) {
                 rewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+                lastTopUpQuery.settlementTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
             similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).sort({createTime: -1}).lean();
 
-            lastTopUpProm = dbConfig.collection_playerTopUpRecord.find({playerId: player._id}).sort({createTime: -1}).limit(1).lean();
+            lastTopUpProm = dbConfig.collection_playerTopUpRecord.find(lastTopUpQuery).sort({createTime: -1}).limit(1).lean();
 
             return Promise.all([similarRewardProposalProm, lastTopUpProm]);
         }).then(data => {
