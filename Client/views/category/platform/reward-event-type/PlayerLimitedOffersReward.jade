@@ -12,7 +12,7 @@
                 th(style='min-width:100px;') {{'Limit Apply Per Person' | translate}}
                 th(style='min-width:100px;') {{'Expired Time' | translate}}
                 th(style='min-width:100px;') {{'Bet' | translate}}
-                th(style='min-width:100px;') {{'Game Providers' | translate}}
+                th(style='min-width:120px;') {{'Game Providers' | translate}}
                 th(style='min-width:200px;') {{'START_DATE' | translate}}
                 th(style='min-width:100px;') {{'Repeat Day' | translate}}
                 th(style='min-width:100px;') {{'inStock DisplayTime' | translate}}
@@ -68,8 +68,10 @@
 
                 td
                     div
-                        select.form-control.spicker(ng-model='vm.rewardParamsFilter[rowIndex].providers', multiple, ng-disabled='vm.platformRewardShowEdit()', data-actions-box='true')
+                        select.form-control.spicker(ng-if="!vm.selectedPlatform.data.useProviderGroup" ng-model='vm.rewardParamsFilter[rowIndex].providers', multiple, ng-disabled='vm.platformRewardShowEdit()', data-actions-box='true')
                             option(ng-repeat='(i,v) in vm.platformProvider', value='{{v._id}}') {{v.name}}
+                        select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="vm.rewardParamsFilter[rowIndex].providerGroup" ng-disabled='vm.platformRewardShowEdit()')
+                            option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                 td
                     div(style="display:inline-block;width:45%")
                         select.form-control(ng-model='vm.rewardParamsFilter[rowIndex].hrs', ng-disabled='vm.platformRewardShowEdit()')
@@ -139,9 +141,11 @@
 
                 td
                     div
-                        select.spicker.form-control( ng-model='vm.tempNewRewardEntry.providers', multiple, ng-disabled='vm.platformRewardShowEdit()', data-actions-box='true')
+                        select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" ng-model='vm.tempNewRewardEntry.providers', multiple, ng-disabled='vm.platformRewardShowEdit()', data-actions-box='true')
                             option(ng-repeat='(i,v) in vm.platformProvider', value='{{v._id}}') {{v.name}}
-                        label.form-control(ng-if='vm.providerGame[vm.rewardParams.providers[i].providerObjId] && vm.providerGame[vm.rewardParams.providers[i].providerObjId].length==0') {{"NO_GAME" | translate}}
+                        label.form-control(ng-if='!vm.selectedPlatform.data.useProviderGroup && vm.providerGame[vm.rewardParams.providers[i].providerObjId] && vm.providerGame[vm.rewardParams.providers[i].providerObjId].length==0') {{"NO_GAME" | translate}}
+                        select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="vm.tempNewRewardEntry.providerGroup" ng-disabled='vm.platformRewardShowEdit()')
+                            option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                 td
                     div(style="display:inline-block;width:45%")
                         select.form-control(ng-model='vm.tempNewRewardEntry.hrs')
