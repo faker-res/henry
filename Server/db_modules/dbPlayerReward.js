@@ -133,7 +133,7 @@ let dbPlayerReward = {
             };
 
             if (isRewardAmountDynamic) {
-                listItem.promoRate = selectedParam.rewardPercentage+"%";
+                listItem.promoRate = (selectedParam.rewardPercentage * 100) + "%";
                 listItem.promoLimit = selectedParam.maxRewardInSingleTopUp;
                 listItem.betTimes = selectedParam.spendingTimes;
             }
@@ -3847,7 +3847,7 @@ let dbPlayerReward = {
                                 //For set consumption bDirty Use
                                 consumptionRecords.forEach((consumptionRecord) => {
                                     if (useConsumptionRecordAmount < selectedRewardParam.requiredConsumptionAmount) {
-                                        useConsumptionRecordAmount += consumptionRecord.amount;
+                                        useConsumptionRecordAmount += consumptionRecord.validAmount;
                                         updateConsumptionRecordIds.push(consumptionRecord._id);
                                     }
                                 });
