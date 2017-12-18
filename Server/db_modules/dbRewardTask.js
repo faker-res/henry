@@ -371,8 +371,8 @@ const dbRewardTask = {
     getRewardTaskGroupProposal: function (query) {
         var queryObj = {
             'data.playerObjId': ObjectId(query.playerId),
-            'data.platformId': ObjectId(query.platformId)
-            // 'data.providerGroup': ObjectId(query._id)
+            'data.platformId': ObjectId(query.platformId),
+            'data.providerGroup': query._id
 
             // createTime: {
             //     $gte: new Date(query.from),

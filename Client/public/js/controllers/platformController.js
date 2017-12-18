@@ -10201,15 +10201,15 @@ define(['js/app'], function (myApp) {
                     console.log('getPlayerRewardTask', data);
                     vm.curRewardTask = data.data;
 
-                    // if(vm.selectedPlatform.data.useProviderGroup){
-                    //     let tblData = data && data.data ? data.data.rewardTaskGroupData.map(item => {
-                    //         item.createTime$ = vm.dateReformat(item.createTime);
-                    //         return item;
-                    //     }) : [];
-                    //     vm.rewardTaskGroupDetails = tblData;
-                    //     //vm.rewardTaskGroupDetails = data.data.rewardTaskGroupData;
-                    //     $scope.safeApply();
-                    // }
+                    if(vm.selectedPlatform.data.useProviderGroup){
+                        let tblData = data && data.data ? data.data.rewardTaskGroupData.map(item => {
+                            item.createTime$ = vm.dateReformat(item.createTime);
+                            return item;
+                        }) : [];
+                        vm.rewardTaskGroupDetails = tblData;
+                        //vm.rewardTaskGroupDetails = data.data.rewardTaskGroupData;
+                        $scope.safeApply();
+                    }
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
                         item.topUpAmount$ = (item.topUpAmount);
@@ -10306,7 +10306,6 @@ define(['js/app'], function (myApp) {
                     vm.commonSortChangeHandler(a, 'rewardTaskLog', vm.getRewardTaskLogData);
                 });
                 // $('#rewardTaskLogTbl').resize();
-                $scope.safeApply();
             }
             vm.drawRewardTaskProposalTable = function(newSearch, data, size, summary, topUpAmountSum){
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
@@ -10325,38 +10324,27 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('RewardTaskGroup'),
-                            data: "currentAmt",
+                            title: $translate('ApplyAmount'),
+                            data: "applyAmount",
                             advSearch: true,
                             sClass: "",
                             render: function (data, type, row) {
-                                data = data || '';
-                                var link = $('<div>', {});
-                                console.log(data);
-                                if (data) {
-                                    link.append($('<a>', {
-                                        'ng-click': 'vm.getRewardTaskGroupProposal("' + row.currentAmt + '");',
-                                    }).text(data ? data : 0));
-                                }
-                                else {
-                                    link.append($('<div>', {}).text(data ? data : 0));
-                                }
-                                return link.prop('outerHTML')
+                                var text = row.data.applyAmount+'/'+row.data.rewardAmount;
+                                var result = '<div>'+text+'</div>';
+                                return result;
                             }
                         },
-                        // {
-                        //     title: $translate('RewardProposalId'),
-                        //     data: "proposalId",
-                        //     render: function (data, type, row) {
-                        //         var link = $('<a>', {
-                        //
-                        //             'ng-click': 'vm.showProposalModal("' + data + '",1)'
-                        //
-                        //         }).text(data);
-                        //         return link.prop('outerHTML');
-                        //     }
-                        // },
-                        // {title: $translate('SubRewardType'), data: "rewardType"}
+                        {
+                            title: $translate('Spending Amount'),
+                            data: "spendingAmount",
+                            advSearch: true,
+                            sClass: "",
+                            render: function (data, type, row) {
+                                var text = row.data.spendingAmount;
+                                var result = '<div>'+text+'</div>';
+                                return result;
+                            }
+                        },
                     ],
                     "paging": false,
                     "scrollX": true,
@@ -10380,7 +10368,7 @@ define(['js/app'], function (myApp) {
                     vm.commonSortChangeHandler(a, 'rewardTaskLog', vm.getRewardTaskLogData);
                 });
                 // $('#rewardTaskLogTbl').resize();
-                $scope.safeApply();
+                // $scope.safeApply();
             }
             vm.getRewardTaskGroupProposal = function(id){
                 // let sendQuery = { _id : id};
@@ -10400,8 +10388,6 @@ define(['js/app'], function (myApp) {
             }
             vm.selectReward = function($event){
                 $event.stopPropagation();
-
-                // console.log(item);
                 vm.selectedRewards = [];
                 $('.unlockList:checked').each(function(){
                     vm.selectedRewards.push($(this).val())
