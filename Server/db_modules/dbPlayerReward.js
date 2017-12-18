@@ -35,6 +35,7 @@ const dbConfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
 const errorUtils = require("./../modules/errorUtils.js");
 const rewardUtility = require("../modules/rewardUtility");
+const dbLogger = require("../modules/dbLogger");
 
 let rsaCrypto = require("../modules/rsaCrypto");
 
@@ -133,7 +134,7 @@ let dbPlayerReward = {
             };
 
             if (isRewardAmountDynamic) {
-                listItem.promoRate = selectedParam.rewardPercentage+"%";
+                listItem.promoRate = (selectedParam.rewardPercentage * 100) + "%";
                 listItem.promoLimit = selectedParam.maxRewardInSingleTopUp;
                 listItem.betTimes = selectedParam.spendingTimes;
             }
@@ -3077,7 +3078,8 @@ let dbPlayerReward = {
             }
             let consumptionMatchQuery = {
                 createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
-                bDirty:false
+                bDirty:false,
+                playerId: playerData._id,
             };
 
             if (intervalTime) {
@@ -3650,6 +3652,7 @@ let dbPlayerReward = {
                     // type 3
                     case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                         let loseAmount = rewardSpecificData[0];
+                        let isReachedTopUpInPeriod = false;
 
                         if (eventInPeriodData && eventInPeriodData.length > 0) {
                             // player already applied the reward within the period timeframe
@@ -3696,16 +3699,27 @@ let dbPlayerReward = {
                         });
 
                         for (let j = selectedRewardParam.length - 1; j >= 0; j--) {
+                            if (topUpinPeriod >= selectedRewardParam[j].minDeposit) {
+                                isReachedTopUpInPeriod = true;
+                            }
                             if (topUpinPeriod >= selectedRewardParam[j].minDeposit && loseAmount >= selectedRewardParam[j].minLoseAmount) {
                                 selectedRewardParam = selectedRewardParam [j];
                                 break;
                             }
                             if (j == 0) {
-                                return Q.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Player's lose amount does not meet condition"
-                                });
+                                if (!isReachedTopUpInPeriod) {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "Player's top up amount does not meet condition in period"
+                                    });
+                                } else {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "Player's lose amount does not meet condition in period"
+                                    });
+                                }
                             }
                         }
 
@@ -3730,22 +3744,26 @@ let dbPlayerReward = {
                         spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
                         break;
 
-                    // type 4
+                    // type 4 投注额优惠（组）
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
-                        // （领优惠前）检查投注额来源游戏厅
-                        if (eventInPeriodCount && eventInPeriodCount > 0) {
-                            return Promise.reject({
-                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                name: "DataError",
-                                message: "This player has applied for max reward times in event period"
-                            });
-                        }
+                        // if (eventInPeriodCount && eventInPeriodCount > 0) {
+                        //     return Promise.reject({
+                        //         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        //         name: "DataError",
+                        //         message: "This player has applied for max reward times in event period"
+                        //     });
+                        // }
 
+                        console.log("eventData",eventData);
+                        console.log("eventData.param",eventData.param);
+                        console.log("rewardSpecificData[0]",rewardSpecificData[0]);
                         let consumptions = rewardSpecificData[0];
+                        console.log("consumptions",consumptions);
                         let totalConsumption = 0;
                         for (let x in consumptions) {
                             totalConsumption += consumptions[x].validAmount;
                         }
+                        console.log("totalConsumption",totalConsumption);
 
                         // Set reward param step to use
                         if (eventData.param.isMultiStepReward) {
@@ -3754,6 +3772,7 @@ let dbPlayerReward = {
                         } else {
                             selectedRewardParam = selectedRewardParam[0];
                         }
+                        console.log("selectedRewardParam",selectedRewardParam);
 
                         if (!selectedRewardParam || totalConsumption < selectedRewardParam.minConsumptionAmount) {
                             return Q.reject({
@@ -3847,7 +3866,7 @@ let dbPlayerReward = {
                                 //For set consumption bDirty Use
                                 consumptionRecords.forEach((consumptionRecord) => {
                                     if (useConsumptionRecordAmount < selectedRewardParam.requiredConsumptionAmount) {
-                                        useConsumptionRecordAmount += consumptionRecord.amount;
+                                        useConsumptionRecordAmount += consumptionRecord.validAmount;
                                         updateConsumptionRecordIds.push(consumptionRecord._id);
                                     }
                                 });
@@ -4129,6 +4148,9 @@ let dbPlayerReward = {
                                 if (isUpdateValidCredit) {
                                     postPropPromArr.push(dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup));
                                 }
+
+                                // Create credit change log for this reward
+                                dbLogger.createCreditChangeLogWithLockedCredit(playerData._id, playerData.platform._id, 0, eventData.name, 0, rewardAmount, rewardAmount, null, proposalData.data);
 
                                 if (isSetUsedTopUpRecord) {
                                     if (intervalTime) {
