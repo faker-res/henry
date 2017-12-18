@@ -14148,7 +14148,10 @@ define(['js/app'], function (myApp) {
                 //vm.showReward = null;
                 // vm.rewardParams = null;
                 // vm.showRewardTypeId = null;
+                // after clearing, force it back to 'ALL' checkbox
                 vm.rewardEventClicked(0,vm.showReward);
+                vm.daySelection['0'] =true;
+                vm.rewardParamsDaySelectedAll();
                 $scope.safeApply();
             }
 
