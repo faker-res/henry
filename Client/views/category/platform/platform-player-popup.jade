@@ -1138,7 +1138,7 @@
                     //li(ng-class="vm.selectedRewardSettingsTab == 'unlock-reward' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ManualUnlockRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('unlock-reward');vm.initManualUnlockRewardTask();") {{"Manual Unlock Reward Task" | translate}}
                     li(ng-class="vm.selectedRewardSettingsTab == 'reward-progress' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'rewardTaskLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1")
-                        a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('reward-progress');vm.initRewardTaskLog();") {{"RewardTask Progress Log" | translate}}
+                        a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('reward-progress');vm.initManualUnlockRewardTask();vm.initRewardTaskLog();") {{"RewardTask Progress Log" | translate}}
                 .panel.panel-primary(style="border-radius:0 !important;")
                     .panel-body
                         //.well(ng-show="vm.platformAction=='delete'")
@@ -1293,6 +1293,11 @@
                                 table#rewardTaskGroupProposalTbl.common-table.display(style='min-width:100%')
                                 #rewardTaskGroupProposalTblPage.height30
                             div
+                                button.common-button.margin-right-5.btn.btn-success( ng-click="vm.submitManualUnlockRewardTask(vm.selectedTaskGroupProposals)") {{'Unlock Reward' | translate}}
+                                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+                                label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
+
+                            div
                                 label {{"Total" | translate}} {{vm.rewardTaskLog.totalCount}} {{"records" | translate}}
                                 table#rewardTaskLogTbl.common-table.display(style='min-width:100%')
                                 #rewardTaskLogTblPage.height30
@@ -1333,7 +1338,7 @@
                 //#modalManualUnlockRewardTask
                 div(ng-show="vm.selectedRewardSettingsTab == 'reward-progress'")
                     //ng-disabled='!vm.rewardTaskGroupDetails',
-                    button.common-button.margin-right-5.btn.btn-success( ng-click="vm.submitManualUnlockRewardTask()") {{'Unlock Reward' | translate}}
+                    button.common-button.margin-right-5.btn.btn-success( ng-click="vm.submitManualUnlockRewardTask(vm.selectedRewards)") {{'Unlock Reward' | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                     label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
 
