@@ -2536,6 +2536,7 @@
   "Profit Times": "盈利倍数（小于）",
   "Profit Times Minimum Amount": "盈利倍数（最低触发值）",
   "Abnormal Profit Offset": "异常输赢值宽限额",
+  "This reward only applicable on platform with provider group": "此优惠只适用于有锁大厅的平台",
   "ORDER": "排序",
   "ATM": "提款机",
   "Incorrect data!": "数据输入错误",
