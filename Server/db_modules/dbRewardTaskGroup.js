@@ -33,7 +33,7 @@ let dbRewardTaskGroup = {
             platformId: platformId,
             playerId: playerId,
             providerGroup: null,
-            status: {$in: [constRewardTaskStatus.STARTED]},
+            status: constRewardTaskStatus.STARTED,
             createTime: {$lt: createTime}
         }).lean();
     },
