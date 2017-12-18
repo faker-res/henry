@@ -2273,6 +2273,10 @@ let dbPlayerReward = {
                                     e.providers = providerObjs.map(g => g.name);
                                 })
                             )
+                        } else if (e && e.providerGroup) {
+                            promArr.push(
+                                dbGameProvider.getProviderGroupById(e.providerGroup).then(providerGroup => e.providerGroup = providerGroup.name)
+                            )
                         }
                     });
 
@@ -2283,7 +2287,7 @@ let dbPlayerReward = {
                 }
             }
         ).then(
-            offerSumm => {
+            () => {
                 rewards.map(e => {
                     // Get time left when count down to start time
                     if (e.status == 0) {
@@ -2543,10 +2547,11 @@ let dbPlayerReward = {
                         limitedOfferName: limitedOfferObj.name,
                         expirationTime: moment().add(30, 'm').toDate(),
                         eventId: eventObj._id,
-                        eventName: eventObj.name,
+                        eventName: eventObj.name + ' Intention',
                         eventCode: eventObj.code,
                         eventDescription: eventObj.description,
                         requiredLevel: requiredLevelName? requiredLevelName: "",
+                        remark: 'event name: ' + limitedOfferObj.name,
                         originalPrice: limitedOfferObj.oriPrice + "（" + (limitedOfferObj.displayOriPrice? '显示': '隐藏') + "）",
                         Quantity: limitedOfferObj.qty,
                         limitApplyPerPerson: limitedOfferObj.limitPerson,
@@ -2555,6 +2560,7 @@ let dbPlayerReward = {
                         limitedOfferApplyTime: moment().toDate(),
                         repeatDay: repeatDay? repeatDay: "",
                         // selectedProvider: selectedProvider? selectedProvider: ""
+                        providerGroup: limitedOfferObj.providerGroup
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS,

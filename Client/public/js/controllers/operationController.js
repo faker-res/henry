@@ -403,11 +403,15 @@ define(['js/app'], function (myApp) {
                 );
             }
             let rewardNames = $('select#selectRewardType').multipleSelect("getSelects");
+            //For limitedOffer intention
+            $.each(rewardNames, function(idx,val){
+                rewardNames[idx] = rewardNames[idx].replace(" "+$translate('Intention')," Intention");
+            });
+
             let promoType = $('select#selectPromoType').multipleSelect("getSelects");
 
             let startTime = $('#datetimepicker').data('datetimepicker').getLocalDate();
             let endTime = $('#datetimepicker2').data('datetimepicker').getLocalDate();
-
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
@@ -816,6 +820,14 @@ define(['js/app'], function (myApp) {
             vm.rewardList = [];
             socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: {$in: vm.allPlatformId}}, function (data) {
                 vm.rewardList = data.data;
+                //For limitedOffer intention
+                vm.rewardList.forEach(
+                    reward => {
+                        if (reward.type.name == "PlayerLimitedOfferReward") {
+                            vm.rewardList.push({name:reward.name +" " + $translate('Intention')});
+                        }
+                    }
+                );
                 console.log('vm.rewardList', vm.rewardList);
                 $scope.safeApply();
                 if (callback) {
@@ -877,6 +889,9 @@ define(['js/app'], function (myApp) {
                     if (v.mainType == 'Reward') {
                         v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
                     }
+                    if (v.mainType == 'Others')
+                        v.data.eventName = v.data && v.data.eventName ? v.data.eventName.replace('Intention',$translate('Intention')) : v.data.eventName;
+
                     v.mainType$ = $translate(v.mainType);
                     if (v.mainType === "PlayerBonus")
                         v.mainType$ = $translate("Bonus");
@@ -912,7 +927,7 @@ define(['js/app'], function (myApp) {
                     //     return item ? item.content : '';
                     // });
                     if (v.data && v.data.remark) {
-                        v.remark$ = v.data.remark;
+                        v.remark$ = v.data.remark.replace('event name',$translate('event name')).replace('topup proposal id',$translate('topup proposal id'));
                     }
                     v.playerLevel$ = v.data.playerLevelName ? $translate(v.data.playerLevelName) : '';
                     v.merchantNo$ = v.data.merchantNo != null
