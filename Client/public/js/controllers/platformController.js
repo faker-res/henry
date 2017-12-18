@@ -4128,36 +4128,47 @@ define(['js/app'], function (myApp) {
                         item.bonusAmount$ = item.bonusAmount.toFixed(2);
                         item.commissionAmount$ = item.commissionAmount.toFixed(2);
                         item.canConsumptionReturn$ = Boolean(!item.bDirty) ? $translate('ABLE') : $translate('UNABLE');
+                        item.roundResult$ = "";
+                        item.roundId$ = "";
+                        item.matchId$ = "";
+                        item.gameType$ = "";
+                        item.betType$ = "";
+                        item.remark$ = "";
+
                         return item;
                     }) : [];
                     vm.expenseQuery.totalCount = data.data.count || 0;
                     var summary = data.data.summary || {};
                     var tableOptions = {
                         data: tableData,
-                        "order": vm.expenseQuery.aaSorting || [[1, 'desc']],
+                        "order": vm.expenseQuery.aaSorting || [[9, 'desc']],
                     };
 
                     vm.commonProviderGameTableOptions = {
                         columnDefs: [
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [9]},
                             // {'sortCol': 'playerId', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [5]},
-                            {'sortCol': 'amount', bSortable: true, 'aTargets': [6]},
-                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
+                            // {'sortCol': 'validAmount', bSortable: true, 'aTargets': [5]},
+                            // {'sortCol': 'amount', bSortable: true, 'aTargets': [6]},
+                            // {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
                             // {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
                             {targets: '_all', bSortable: false, defaultContent: ' '}
                         ],
                         columns: [
                             {title: $translate('orderId'), data: "orderNo"},
-                            {title: $translate('CREATION_TIME'), data: "createTime$"},
-                            //{title: $translate('PLATFORM'), data: "platformId.name"},
                             {title: $translate('PLAYERID'), data: "playerId.name"},
                             {title: $translate('providerId'), data: "providerId.name"},
+                            {title: $translate('ROUND_RESULT'), data: "roundResult$"},
+                            {title: $translate('ROUND_ID'), data: "roundId$"},
+                            {title: $translate('MATCH_ID'), data: "matchId$"},
+                            {title: $translate('GAME_TYPE'), data: "gameType$"},
                             {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
+                            {title: $translate('BET_TYPE'), data: "betType$"},
+                            {title: $translate('BET_TIME'), data: "createTime$"},
                             {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'sumFloat textRight'},
-                            {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
-                            // {title: $translate('commissionAmount'), data: "commissionAmount$", sClass: 'sumFloat textRight'},
+                            {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
+                            {title: $translate('REMARK'), data: "remark$"},
                             {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
                         ],
                         "paging": false,
