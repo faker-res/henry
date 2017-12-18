@@ -2273,6 +2273,10 @@ let dbPlayerReward = {
                                     e.providers = providerObjs.map(g => g.name);
                                 })
                             )
+                        } else if (e && e.providerGroup) {
+                            promArr.push(
+                                dbGameProvider.getProviderGroupById(e.providerGroup).then(providerGroup => e.providerGroup = providerGroup.name)
+                            )
                         }
                     });
 
@@ -2283,7 +2287,7 @@ let dbPlayerReward = {
                 }
             }
         ).then(
-            offerSumm => {
+            () => {
                 rewards.map(e => {
                     // Get time left when count down to start time
                     if (e.status == 0) {
@@ -2555,6 +2559,7 @@ let dbPlayerReward = {
                         limitedOfferApplyTime: moment().toDate(),
                         repeatDay: repeatDay? repeatDay: "",
                         // selectedProvider: selectedProvider? selectedProvider: ""
+                        providerGroup: limitedOfferObj.providerGroup
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS,
