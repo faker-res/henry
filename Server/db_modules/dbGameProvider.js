@@ -353,6 +353,12 @@ var dbGameProvider = {
         );
     },
 
+    getProviderGroupById: providerGroupId => {
+        return dbconfig.collection_gameProviderGroup.findOne({
+            _id: providerGroupId
+        }).lean();
+    },
+
     getPlatformProviderGroup: (platformObjId) => {
         return dbconfig.collection_gameProviderGroup.find({
             platform: platformObjId
