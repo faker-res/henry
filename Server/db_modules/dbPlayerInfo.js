@@ -12310,7 +12310,7 @@ let dbPlayerInfo = {
                 if (rewardTaskGroup && rewardTaskGroup.length > 0) {
                     for (let i = 0; i < rewardTaskGroup.length; i++) {
                         returnData.lockedCreditList[i] = {
-                            nickName: rewardTaskGroup[i].providerGroup.name,
+                            nickName: rewardTaskGroup[i].providerGroup? rewardTaskGroup[i].providerGroup.name: "",
                             validCredit: rewardTaskGroup[i].rewardAmt
                         }
                     }
