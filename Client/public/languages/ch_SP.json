@@ -2804,7 +2804,7 @@
   "Phone Number Already Exists":"电话号码已存在",
   "SMS": "短信",
   "Approved Time": "成功执行时间",
-  "Please try again random reward tomorrow": "今日已参与，明日继续随机抽奖吧！",
+  "Player reach participate limit": "玩家已达参加次数上限",
   "useConsumptionAmount": "消耗投注额",
   "useTopUpAmount": "消耗存款金额",
   "Reached Max Level":"已达到最高等级",
@@ -2922,5 +2922,10 @@
   "event name": "优惠名称",
   "topup proposal id": "存款提案号",
   "originalPrice": "原价",
-  "ALL": "全部"
+  "Player's top up amount does not meet condition in period": "玩家的周期内的累积存款金额不足",
+  "Player's lose amount does not meet condition in period": "玩家的周期内的累积输值金额不足",
+  "Player does not have enough top up": "玩家没有足够的存款",
+  "Player does not have enough consumption": "玩家没有足够的投注额",
+  "Player does not have enough top up or consumption": "玩家没有足够的存款或投注额",
+  "The period of the reward has not yet opened": "本周期的场次尚未开放"
 }

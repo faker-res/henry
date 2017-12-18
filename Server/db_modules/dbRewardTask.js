@@ -872,34 +872,50 @@ const dbRewardTask = {
                 }else{
                     return dbRewardTaskGroup.getFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime).then(
                         freeRewardTaskGroup => {
-                            freeRewardTaskGroup.curConsumption += consumptionRecord.validAmount;
-                            freeRewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
+                            if(freeRewardTaskGroup){
+                                freeRewardTaskGroup.curConsumption += consumptionRecord.validAmount ? consumptionRecord.validAmount : 0;
 
-                            // Check whether player has lost all credit
-                            if (freeRewardTaskGroup.currentAmt < 1) {
-                                freeRewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
-                                freeRewardTaskGroup.unlockTime = createTime;
+                                freeRewardTaskGroup.currentAmt += consumptionRecord.bonusAmount ? consumptionRecord.bonusAmount : 0;
+
+                                // Check whether player has lost all credit
+                                if (freeRewardTaskGroup.currentAmt && freeRewardTaskGroup.currentAmt < 1) {
+                                    freeRewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
+                                    freeRewardTaskGroup.unlockTime = createTime;
+                                }
+                                // Consumption reached
+                                else {
+                                    if(freeRewardTaskGroup.curConsumption && freeRewardTaskGroup.targetConsumption && freeRewardTaskGroup.forbidXIMAAmt){
+                                        if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
+                                            freeRewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
+                                            freeRewardTaskGroup.unlockTime = createTime;
+                                        }
+                                    }
+                                }
+
+                                let updObj = {
+                                    $inc: {
+                                        currentAmt: consumptionRecord.bonusAmount ? consumptionRecord.bonusAmount : 0,
+                                        curConsumption: consumptionRecord.validAmount ? consumptionRecord.validAmount : 0
+                                    },
+                                    // status: freeRewardTaskGroup.status,
+                                    // unlockTime: freeRewardTaskGroup.unlockTime
+                                };
+
+                                if(freeRewardTaskGroup.status){
+                                    updObj.status = freeRewardTaskGroup.status;
+                                }
+
+                                if(freeRewardTaskGroup.unlockTime){
+                                    updObj.unlockTime = freeRewardTaskGroup.unlockTime;
+                                }
+
+                                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                    {_id: freeRewardTaskGroup._id},
+                                    updObj,
+                                    {new: true}
+                                );
                             }
-                            // Consumption reached
-                            else if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
-                                freeRewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
-                                freeRewardTaskGroup.unlockTime = createTime;
-                            }
 
-                            let updObj = {
-                                $inc: {
-                                    currentAmt: consumptionRecord.bonusAmount,
-                                    curConsumption: consumptionRecord.validAmount
-                                },
-                                status: freeRewardTaskGroup.status,
-                                unlockTime: freeRewardTaskGroup.unlockTime
-                            };
-
-                            return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
-                                {_id: freeRewardTaskGroup._id},
-                                updObj,
-                                {new: true}
-                            );
                         });
                 }
             }

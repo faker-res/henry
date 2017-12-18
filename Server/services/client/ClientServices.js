@@ -269,7 +269,8 @@
                 "setLimitedOfferShowInfo",
                 "setBonusShowInfo",
                 "getSignInfo",
-                "getSignBonus"
+                "getSignBonus",
+                "getSlotInfo",
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

@@ -239,6 +239,13 @@
         this.rewardService.getSignBonus.once(callback);
     };
 
+    proto.getSlotInfo = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardService.getSlotInfo.request(data);
+        this.rewardService.getSlotInfo.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientRewardAPITest;
     } else {
