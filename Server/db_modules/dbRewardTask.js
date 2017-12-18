@@ -223,6 +223,7 @@ const dbRewardTask = {
                         platformId: rewardData.platformId,
                         playerId: rewardData.playerId,
                         providerGroup: null,
+                        lastProposalId: proposalData._id,
                         status: constRewardTaskStatus.STARTED,
                         //rewardAmt: rewardData.initAmount,
                         rewardAmt: 0,
@@ -256,7 +257,7 @@ const dbRewardTask = {
             }
         ).then(
             (returnData) => {
-                if (rewardData && rewardData.hasOwnProperty("useLockedCredit") && !rewardData.useLockedCredit) {
+                if (rewardData && !rewardData.useLockedCredit) {
                     return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
                         playerData => {
                             dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
@@ -1097,108 +1098,125 @@ const dbRewardTask = {
 
     /**
      * TODO:: WORK IN PROGRESS
+     * Add manual unlock support
      * @param rewardGroupData
+     * @param {Boolean} isManualUnlock
      */
-    completeRewardTaskGroup: rewardGroupData => {
+    completeRewardTaskGroup: (rewardGroupData, isManualUnlock) => {
         let playerCreditChange;
         let rewardAmount = rewardGroupData.rewardAmt;
 
-        // Check if player is in game when reward group completed
-        if (!rewardGroupData.inProvider) {
-            // If player has left game, add the rewardAmt to player's credit
-            playerCreditChange = {
-                $inc: {validCredit: rewardAmount}
-            };
+        // Mark the provider group as complete if it is manual unlocked
+        let taskGroupProm = Promise.resolve();
 
-            return dbRewardTask.findOneAndUpdateWithRetry(
-                dbconfig.collection_players,
-                {_id: rewardGroupData.playerId, platform: rewardGroupData.platformId},
-                playerCreditChange,
-                {new: true}
-            ).then(
-                player => {
-                    if (player) {
-                        let validCredit = player.validCredit;
-                        let lockedCredit = player.lockedCredit;
-                        let providerCredit = 0, totalCredit = 0;
-                        let platformProm = dbconfig.collection_platform.findOne({_id: rewardGroupData.platformId});
-                        let providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rewardGroupData.providerGroup})
-                            .populate({path: "providers", model: dbconfig.collection_gameProvider});
-
-                        dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardGroupData.type + ":unlock", player.validCredit, 0, -rewardAmount, null, rewardGroupData);
-
-                        Promise.all([platformProm,providerGroupProm]).then(
-                            data => {
-                                let platform = data[0];
-                                let providerGroup = data[1];
-                                let promArr = [];
-                                if(providerGroup && providerGroup.providers && providerGroup.providers.length > 0) {
-                                    providerGroup.providers.forEach(provider => {
-                                        if(provider) {
-                                            promArr.push(
-                                                cpmsAPI.player_queryCredit(
-                                                    {
-                                                        username: player.name,
-                                                        platformId: platform.platformId,
-                                                        providerId: provider.providerId
-                                                    }
-                                                ).then(
-                                                    data => data,
-                                                    error => {
-                                                        return {credit: 0};
-                                                    }
-                                                )
-                                            );
-                                        }
-                                    });
-                                }
-                                return Promise.all(promArr);
-                            }
-                        ).then(
-                            (queryResult) => {
-                                queryResult.forEach(provider => {
-                                    providerCredit += provider ? parseFloat(provider.credit) : 0;
-                                });
-                                totalCredit = validCredit + lockedCredit + providerCredit;
-
-                                // Set player bonus permission to off if there's still credit available after unlock reward
-                                if (rewardGroupData && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
-                                    dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).then(
-                                        () => {
-                                            return dbconfig.collection_proposal.findOne({_id: rewardGroupData.lastProposalId})
-                                        }
-                                    ).then(
-                                        proposal => {
-                                            let proposalId = proposal ? proposal.proposalId : "unknown ID";
-                                            let remark = "优惠提案："+proposalId+"（流水解锁馀额高于"+rewardGroupData.forbidWithdrawIfBalanceAfterUnlock+"元）";
-                                            let oldPermissionObj = {applyBonus: player.permission.applyBonus};
-                                            let newPermissionObj = {applyBonus: false};
-                                            dbPlayerUtil.addPlayerPermissionLog(null, rewardGroupData.platformId, rewardGroupData.playerId, remark, oldPermissionObj, newPermissionObj);
-                                        }
-                                    ).catch(errorUtils.reportError);
-                                }
-                            },
-                            error => {console.log(error);}
-                        );
-                    }
-                    else {
-                        return Q.reject({name: "DataError", message: "Can't update reward task and player credit"});
-                    }
-                },
-                error => {
-                    console.log("Update player credit failed when complete reward task", error, rewardGroupData);
-                    return Q.reject({
-                        name: "DBError",
-                        message: "Error updating reward task and player credit",
-                        error: error
-                    });
-                }
-            );
-        } else {
-            // Do nothing first if player is still in game
-            // This will be triggered again when player transfer out
-            return true;
+        if (isManualUnlock) {
+            taskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                platformId: rewardGroupData.platformId,
+                playerId: rewardGroupData.playerId,
+                providerGroup: rewardGroupData.providerGroup
+            }, {
+                status: constRewardTaskStatus.MANUAL_UNLOCK
+            });
         }
+
+        return taskGroupProm.then(() => {
+            // Check if player is in game when reward group completed
+            if (!rewardGroupData.inProvider) {
+                // If player has left game, add the rewardAmt to player's credit
+                playerCreditChange = {
+                    $inc: {validCredit: rewardAmount}
+                };
+
+                return dbRewardTask.findOneAndUpdateWithRetry(
+                    dbconfig.collection_players,
+                    {_id: rewardGroupData.playerId, platform: rewardGroupData.platformId},
+                    playerCreditChange,
+                    {new: true}
+                ).then(
+                    player => {
+                        if (player) {
+                            let validCredit = player.validCredit;
+                            let lockedCredit = player.lockedCredit;
+                            let providerCredit = 0, totalCredit = 0;
+                            let platformProm = dbconfig.collection_platform.findOne({_id: rewardGroupData.platformId});
+                            let providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rewardGroupData.providerGroup})
+                                .populate({path: "providers", model: dbconfig.collection_gameProvider});
+
+                            dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardGroupData.type + ":unlock", player.validCredit, 0, -rewardAmount, null, rewardGroupData);
+
+                            Promise.all([platformProm,providerGroupProm]).then(
+                                data => {
+                                    let platform = data[0];
+                                    let providerGroup = data[1];
+                                    let promArr = [];
+                                    if(providerGroup && providerGroup.providers && providerGroup.providers.length > 0) {
+                                        providerGroup.providers.forEach(provider => {
+                                            if(provider) {
+                                                promArr.push(
+                                                    cpmsAPI.player_queryCredit(
+                                                        {
+                                                            username: player.name,
+                                                            platformId: platform.platformId,
+                                                            providerId: provider.providerId
+                                                        }
+                                                    ).then(
+                                                        data => data,
+                                                        error => {
+                                                            return {credit: 0};
+                                                        }
+                                                    )
+                                                );
+                                            }
+                                        });
+                                    }
+                                    return Promise.all(promArr);
+                                }
+                            ).then(
+                                (queryResult) => {
+                                    queryResult.forEach(provider => {
+                                        providerCredit += provider ? parseFloat(provider.credit) : 0;
+                                    });
+                                    totalCredit = validCredit + lockedCredit + providerCredit;
+
+                                    // Set player bonus permission to off if there's still credit available after unlock reward
+                                    if (rewardGroupData && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
+                                        dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).then(
+                                            () => {
+                                                return dbconfig.collection_proposal.findOne({_id: rewardGroupData.lastProposalId})
+                                            }
+                                        ).then(
+                                            proposal => {
+                                                let proposalId = proposal ? proposal.proposalId : "unknown ID";
+                                                let remark = "优惠提案："+proposalId+"（流水解锁馀额高于"+rewardGroupData.forbidWithdrawIfBalanceAfterUnlock+"元）";
+                                                let oldPermissionObj = {applyBonus: player.permission.applyBonus};
+                                                let newPermissionObj = {applyBonus: false};
+                                                dbPlayerUtil.addPlayerPermissionLog(null, rewardGroupData.platformId, rewardGroupData.playerId, remark, oldPermissionObj, newPermissionObj);
+                                            }
+                                        ).catch(errorUtils.reportError);
+                                    }
+                                },
+                                error => {console.log(error);}
+                            );
+                        }
+                        else {
+                            return Q.reject({name: "DataError", message: "Can't update reward task and player credit"});
+                        }
+                    },
+                    error => {
+                        console.log("Update player credit failed when complete reward task", error, rewardGroupData);
+                        return Q.reject({
+                            name: "DBError",
+                            message: "Error updating reward task and player credit",
+                            error: error
+                        });
+                    }
+                );
+            } else {
+                // Do nothing first if player is still in game
+                // This will be triggered again when player transfer out
+                return true;
+            }
+        });
     },
 
     findOneAndUpdateWithRetry: function (model, query, update, options) {

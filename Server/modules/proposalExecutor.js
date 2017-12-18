@@ -1707,7 +1707,14 @@ var proposalExecutor = {
             },
 
             executeManualUnlockPlayerReward: function (proposalData, deferred) {
-                dbRewardTask.completeRewardTask(proposalData.data).then(deferred.resolve, deferred.reject);
+                // Set proposalId in proposalData.data
+                proposalData = setProposalIdInData(proposalData);
+
+                if (proposalData.data && proposalData.data.providerGroup) {
+                    dbRewardTask.completeRewardTaskGroup(proposalData.data, true).then(deferred.resolve, deferred.reject);
+                } else {
+                    dbRewardTask.completeRewardTask(proposalData.data).then(deferred.resolve, deferred.reject);
+                }
             },
 
             executePartnerCommission: function (proposalData, deferred) {
@@ -3277,6 +3284,14 @@ function looksLikeObjectId(thing) {
     const isObjectId = thing instanceof mongoose.Types.ObjectId;
     const looksLikeObjectId = String(thing).length === 24 && mongoose.Types.ObjectId.isValid(String(thing));
     return isObjectId || looksLikeObjectId;
+}
+
+function setProposalIdInData(proposal) {
+    if (proposal && proposal.data) {
+        proposal.data.proposalId = proposal.proposalId;
+    }
+
+    return proposal;
 }
 
 var proto = proposalExecutorFunc.prototype;
