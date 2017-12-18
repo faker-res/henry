@@ -262,10 +262,10 @@ const dbRewardTask = {
                     if (proposalData && proposalData.data) {
                         if (proposalData.data.rewardAmount && proposalData.data.applyAmount) {
                             amountToUpdate = proposalData.data.rewardAmount + proposalData.data.applyAmount;
-                        } else if (proposalData.data.rewardAmount) {
-                            {
-                                amountToUpdate = proposalData.data.rewardAmount;
-                            }
+                        }else if(proposalData.data.rewardAmount)
+                        {
+                            amountToUpdate = proposalData.data.rewardAmount;
+
                         }
 
                         return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
