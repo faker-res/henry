@@ -2798,19 +2798,23 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'getLimitedOfferReport', sendQuery, function (data) {
                 console.log('getLimitedOfferReport', data);
-                $('#limitedOfferTableSpin').hide();
-                vm.limitedOfferDetail = data.data;
-                vm.limitedOfferDetail.map(e => {
-                    e.applyTime$ = $scope.timeReformat(e.createTime);
-                    e.topUpAmount$ = e.data.topUpAmount ? parseFloat(e.data.topUpAmount).toFixed(2) : "";
-                    e.rewardAmount$ = e.data.rewardProposalId ? parseFloat(e.data.rewardAmount).toFixed(2) : "";
-                    e.data.rewardAmount$ = e.data.rewardProposalId ? e.data.rewardAmount : 0;
-                    e.spendingAmount$ = e.data.spendingAmount ? parseFloat(e.data.spendingAmount).toFixed(2) : parseFloat(0).toFixed(2);
-                    e.data.spendingAmount$ = e.data.spendingAmount ? e.data.spendingAmount : 0;
-                    e.inputDevice$ = (e.hasOwnProperty("inputDevice") && vm.inputDeviceMapped[e.inputDevice]) ? $translate(vm.inputDeviceMapped[e.inputDevice]) : "Unknown";
-                });
-                $scope.safeApply();
+                vm.limitedOfferDetail = [];
+                if(data.hasOwnProperty('data')) {
+                    vm.limitedOfferDetail = data.data;
+                    vm.limitedOfferDetail.map(e => {
+                        e.applyTime$ = $scope.timeReformat(e.createTime);
+                        e.topUpAmount$ = e.data.topUpAmount ? parseFloat(e.data.topUpAmount).toFixed(2) : "";
+                        e.rewardAmount$ = e.data.rewardProposalId ? parseFloat(e.data.rewardAmount).toFixed(2) : "";
+                        e.data.rewardAmount$ = e.data.rewardProposalId ? e.data.rewardAmount : 0;
+                        e.spendingAmount$ = e.data.spendingAmount ? parseFloat(e.data.spendingAmount).toFixed(2) : parseFloat(0).toFixed(2);
+                        e.data.spendingAmount$ = e.data.spendingAmount ? e.data.spendingAmount : 0;
+                        e.inputDevice$ = (e.hasOwnProperty("inputDevice") && vm.inputDeviceMapped[e.inputDevice]) ? $translate(vm.inputDeviceMapped[e.inputDevice]) : "Unknown";
+                    });
+
+                }
                 vm.drawLimitedOfferReport(newSearch);
+                $('#limitedOfferTableSpin').hide();
+                $scope.safeApply();
             });
         };
         vm.drawLimitedOfferReport = function (newSearch) {

@@ -188,7 +188,6 @@ const dbRewardTask = {
 
     insertConsumptionValueIntoFreeAmountProviderGroup: (rewardData, proposalData, rewardType) => {
         // Search available reward task group for this reward & this player
-        console.log("rewardData",rewardData);
         return dbconfig.collection_rewardTaskGroup.findOne({
             platformId: rewardData.platformId,
             playerId: rewardData.playerId,
@@ -196,7 +195,6 @@ const dbRewardTask = {
             status: {$in: [constRewardTaskStatus.STARTED]}
         }).then(
             providerGroup => {
-                console.log("providerGroup",providerGroup);
                 if(isNaN(rewardData.applyAmount)) {
                     rewardData.applyAmount = 0;
                 }
@@ -211,12 +209,9 @@ const dbRewardTask = {
                                     : 0
                         }
                     };
-                    console.log("rewardData.useConsumption",rewardData.useConsumption);
                     if (rewardData.useConsumption) {
-                        console.log("providerGroup.forbidXIMAAmt",providerGroup.forbidXIMAAmt);
                         updObj.$inc.forbidXIMAAmt = rewardData.requiredUnlockAmount - rewardData.applyAmount;
                     } else {
-                        console.log("providerGroup.targetConsumption",providerGroup.targetConsumption);
                         updObj.$inc.targetConsumption = rewardData.requiredUnlockAmount - rewardData.applyAmount;
                     }
     
@@ -240,14 +235,11 @@ const dbRewardTask = {
                                 ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
                                 : 0
                     };
-                    console.log("rewardData.useConsumption",rewardData.useConsumption);
-                    console.log("rewardData.requiredUnlockAmount",rewardData.requiredUnlockAmount);
                     if (rewardData.useConsumption && rewardData.requiredUnlockAmount) {
                         saveObj.forbidXIMAAmt = rewardData.requiredUnlockAmount;
                     } else {
                         saveObj.targetConsumption = rewardData.requiredUnlockAmount;
                     }
-                    console.log("saveObj",saveObj);
                     // create new reward group
                     return new dbconfig.collection_rewardTaskGroup(saveObj).save();
                 }
@@ -863,7 +855,7 @@ const dbRewardTask = {
                     //     updObj.$inc.curConsumption = consumptionRecord.validAmount;
                     // }
 
-                    if(remainingCurConsumption > 0){
+                    if (remainingCurConsumption > 0) {
                         dbRewardTaskGroup.addRemainingConsumptionToFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime, remainingCurConsumption);
                     }
 
@@ -872,7 +864,7 @@ const dbRewardTask = {
                         updObj,
                         {new: true}
                     );
-                }else{
+                } else {
                     return dbRewardTaskGroup.getFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime).then(
                         freeRewardTaskGroup => {
                             if(freeRewardTaskGroup){
@@ -917,15 +909,17 @@ const dbRewardTask = {
                                 );
                             }
 
-                        });
+                        }
+                    );
                 }
             }
         ).then(
             updatedData => {
                 if (updatedData) {
                     // Transfer amount to player if reward is achieved
-                    if (updatedData.status == constRewardTaskStatus.ACHIEVED) {
-                        return dbRewardTask.completeRewardTaskGroup(updatedData);
+                    // Also transfer to player (amount = 0) when reward is no credit
+                    if (updatedData.status == constRewardTaskStatus.ACHIEVED || updatedData.status == constRewardTaskStatus.NO_CREDIT) {
+                        return dbRewardTask.completeRewardTaskGroup(updatedData, updatedData.status);
                     }
                 }
             },
@@ -1132,17 +1126,21 @@ const dbRewardTask = {
     /**
      * TODO:: WORK IN PROGRESS
      * Add manual unlock support
+     * NO_CREDIT will also trigger this function now
      * @param rewardGroupData
-     * @param {Boolean} isManualUnlock
+     * @param {String} unlockType
      */
-    completeRewardTaskGroup: (rewardGroupData, isManualUnlock) => {
+    completeRewardTaskGroup: (rewardGroupData, unlockType) => {
         let playerCreditChange;
-        let rewardAmount = rewardGroupData.rewardAmt;
+
+        // Set transfer amount
+        let rewardAmount = unlockType == constRewardTaskStatus.NO_CREDIT ? Math.floor(rewardGroupData.currentAmt) : rewardGroupData.rewardAmt;
+        rewardAmount = rewardAmount >= 0 ? rewardAmount : 0;
 
         // Mark the provider group as complete if it is manual unlocked
         let taskGroupProm = Promise.resolve();
 
-        if (isManualUnlock) {
+        if (unlockType == constRewardTaskStatus.MANUAL_UNLOCK) {
             taskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                 platformId: rewardGroupData.platformId,
                 playerId: rewardGroupData.playerId,
@@ -1212,7 +1210,7 @@ const dbRewardTask = {
                                     totalCredit = validCredit + lockedCredit + providerCredit;
 
                                     // Set player bonus permission to off if there's still credit available after unlock reward
-                                    if (rewardGroupData && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
+                                    if (rewardGroupData && rewardGroupData.hasOwnProperty("forbidWithdrawIfBalanceAfterUnlock") && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
                                         dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).then(
                                             () => {
                                                 return dbconfig.collection_proposal.findOne({_id: rewardGroupData.lastProposalId})

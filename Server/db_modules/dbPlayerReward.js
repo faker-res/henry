@@ -208,13 +208,16 @@ let dbPlayerReward = {
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
             };
 
+            let lastTopUpQuery = {playerId: player._id};
+
             if (intervalTime) {
                 rewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+                lastTopUpQuery.settlementTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
             similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).sort({createTime: -1}).lean();
 
-            lastTopUpProm = dbConfig.collection_playerTopUpRecord.find({playerId: player._id}).sort({createTime: -1}).limit(1).lean();
+            lastTopUpProm = dbConfig.collection_playerTopUpRecord.find(lastTopUpQuery).sort({createTime: -1}).limit(1).lean();
 
             return Promise.all([similarRewardProposalProm, lastTopUpProm]);
         }).then(data => {
@@ -2962,6 +2965,13 @@ let dbPlayerReward = {
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
+        // Set reward param for player level to use
+        if (eventData.condition.isPlayerLevelDiff) {
+            selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
+        } else {
+            selectedRewardParam = eventData.param.rewardParam[0].value;
+        }
+
         // Get interval time
         if (eventData.condition.interval) {
             switch (eventData.condition.interval) {
@@ -3056,6 +3066,7 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
+            eventData.condition.isSharedWithXIMA = !eventData.condition.useConsumptionRecord;
             if(eventData.condition.rewardAppearPeriod){
                 let isValid = false;
                 let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
@@ -3101,7 +3112,7 @@ let dbPlayerReward = {
             ]);
 
             promArr.push(periodConsumptionProm);
-
+            topupMatchQuery.amount = {$gte: selectedRewardParam[0].requiredTopUpAmount};
             topupMatchQuery.$or = [{'bDirty': false}];
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
                 let ignoreUsedTopupReward = [];
@@ -3110,7 +3121,7 @@ let dbPlayerReward = {
                 });
                 topupMatchQuery.$or.push({'usedEvent': {$in: ignoreUsedTopupReward}});
             }
-
+            
             let periodTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
                 {
                     $match: topupMatchQuery
@@ -3485,13 +3496,6 @@ let dbPlayerReward = {
                     });
                 }
 
-                // Set reward param for player level to use
-                if (eventData.condition.isPlayerLevelDiff) {
-                    selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
-                } else {
-                    selectedRewardParam = eventData.param.rewardParam[0].value;
-                }
-
                 // Check top up count within period
                 if (eventData.condition.topUpCountType) {
                     let intervalType = eventData.condition.topUpCountType[0];
@@ -3746,24 +3750,19 @@ let dbPlayerReward = {
 
                     // type 4 投注额优惠（组）
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
-                        // if (eventInPeriodCount && eventInPeriodCount > 0) {
-                        //     return Promise.reject({
-                        //         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                        //         name: "DataError",
-                        //         message: "This player has applied for max reward times in event period"
-                        //     });
-                        // }
+                        if (eventInPeriodCount && eventInPeriodCount > 0) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This player has applied for max reward times in event period"
+                            });
+                        }
 
-                        console.log("eventData",eventData);
-                        console.log("eventData.param",eventData.param);
-                        console.log("rewardSpecificData[0]",rewardSpecificData[0]);
                         let consumptions = rewardSpecificData[0];
-                        console.log("consumptions",consumptions);
                         let totalConsumption = 0;
                         for (let x in consumptions) {
                             totalConsumption += consumptions[x].validAmount;
                         }
-                        console.log("totalConsumption",totalConsumption);
 
                         // Set reward param step to use
                         if (eventData.param.isMultiStepReward) {
@@ -3772,7 +3771,6 @@ let dbPlayerReward = {
                         } else {
                             selectedRewardParam = selectedRewardParam[0];
                         }
-                        console.log("selectedRewardParam",selectedRewardParam);
 
                         if (!selectedRewardParam || totalConsumption < selectedRewardParam.minConsumptionAmount) {
                             return Q.reject({
