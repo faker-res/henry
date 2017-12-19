@@ -2810,7 +2810,6 @@ define(['js/app'], function (myApp) {
                         e.data.spendingAmount$ = e.data.spendingAmount ? e.data.spendingAmount : 0;
                         e.inputDevice$ = (e.hasOwnProperty("inputDevice") && vm.inputDeviceMapped[e.inputDevice]) ? $translate(vm.inputDeviceMapped[e.inputDevice]) : "Unknown";
                     });
-
                 }
                 vm.drawLimitedOfferReport(newSearch);
                 $('#limitedOfferTableSpin').hide();
@@ -2845,7 +2844,7 @@ define(['js/app'], function (myApp) {
             let allResultSize = vm.limitedOfferDetail.length;
             let tableOptions = {
                 data: result,
-                "order": vm.limitedOfferQuery.aaSorting || [[4, 'desc']],
+                "order": vm.limitedOfferQuery.aaSorting || [[5, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', 'aTargets': [1], bSortable: true},
                     {'sortCol': 'data.limitedOfferName', 'aTargets': [2], bSortable: true},
@@ -6094,7 +6093,7 @@ define(['js/app'], function (myApp) {
                         "PartnerTopUpReturn": "PARTNER_TOP_UP_RETURN_REPORT",
                         "PlayerTopUpReward": "PLAYER_TOP_UP_REWARD_REPORT",
                         "PlayerReferralReward": "PLAYER_REFERRAL_REWARD_REPORT"
-                    }
+                    };
 
                     // vm.topupTypeJson = {
                     //     '1': 'NetPay',
@@ -6113,7 +6112,6 @@ define(['js/app'], function (myApp) {
                     // };
                 }
             );
-
         });
     };
     myApp.register.controller('reportCtrl', reportController);
