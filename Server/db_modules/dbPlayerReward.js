@@ -202,7 +202,7 @@ let dbPlayerReward = {
             }
 
             let rewardProposalQuery = {
-                "data.platformObjId": player.platform,
+                "data.platformObjId": platform._id,
                 "data.playerObjId": player._id,
                 "data.eventId": event._id,
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
@@ -4170,9 +4170,6 @@ let dbPlayerReward = {
                                 if (isUpdateValidCredit) {
                                     postPropPromArr.push(dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup));
                                 }
-
-                                // Create credit change log for this reward
-                                dbLogger.createCreditChangeLogWithLockedCredit(playerData._id, playerData.platform._id, 0, eventData.name, 0, rewardAmount, rewardAmount, null, proposalData.data);
 
                                 if (isSetUsedTopUpRecord) {
                                     if (intervalTime) {
