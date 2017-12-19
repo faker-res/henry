@@ -81,7 +81,7 @@ let dbRewardTaskGroup = {
             if (updatedData) {
                 // Transfer amount to player if reward is achieved
                 if (updatedData.status == constRewardTaskStatus.ACHIEVED) {
-                    return dbRewardTask.completeRewardTaskGroup(updatedData);
+                    return dbRewardTask.completeRewardTaskGroup(updatedData, updatedData.status);
                 }
             }
         })
@@ -106,7 +106,7 @@ let dbRewardTaskGroup = {
                             dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                                 _id: grp._id
                             }, updObj).then(
-                                () => dbRewardTask.completeRewardTaskGroup(grp)
+                                () => dbRewardTask.completeRewardTaskGroup(grp, constRewardTaskStatus.SYSTEM_UNLOCK)
                             )
                         );
                     });
@@ -169,7 +169,15 @@ let dbRewardTaskGroup = {
                 currentAmt: -incRewardAmount,
                 curConsumption: incConsumptionAmount
             }
-        });
+        }, {
+            new: true
+        }).then(
+            updatedData => {
+                if (updatedData && (updatedData.currentAmt <= 0 || updatedData.curConsumption >= updatedData.targetConsumption)) {
+                    return dbRewardTask.completeRewardTaskGroup(updatedData, constRewardTaskStatus.MANUAL_UNLOCK);
+                }
+            }
+        );
     },
 };
 

@@ -202,19 +202,22 @@ let dbPlayerReward = {
             }
 
             let rewardProposalQuery = {
-                "data.platformObjId": player.platform,
+                "data.platformObjId": platform._id,
                 "data.playerObjId": player._id,
                 "data.eventId": event._id,
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
             };
 
+            let lastTopUpQuery = {playerId: player._id};
+
             if (intervalTime) {
                 rewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+                lastTopUpQuery.settlementTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
             similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).sort({createTime: -1}).lean();
 
-            lastTopUpProm = dbConfig.collection_playerTopUpRecord.find({playerId: player._id}).sort({createTime: -1}).limit(1).lean();
+            lastTopUpProm = dbConfig.collection_playerTopUpRecord.find(lastTopUpQuery).sort({createTime: -1}).limit(1).lean();
 
             return Promise.all([similarRewardProposalProm, lastTopUpProm]);
         }).then(data => {
@@ -2805,56 +2808,80 @@ let dbPlayerReward = {
         ).then(
             intProps => {
                 if (intProps && intProps.length > 0) {
+                    let promArr = [];
                     let validProposal = [];
                     let acceptedProposal = [];
                     let expiredProposal = [];
                     let returnedArray = [];
 
-                    for (let j = 0; j < intProps.length; j++) {
-                        if (intProps[j].data) {
-                            if ((intProps[j].data.expirationTime > new Date()) && !intProps[j].data.topUpProposalId) {
-                                intProps[j].claimStatus = "STILL VALID";
-                            } else if ((intProps[j].data.expirationTime < new Date()) && !intProps[j].data.topUpProposalId) {
-                                intProps[j].claimStatus = "EXPIRED";
-                            } else {
-                                intProps[j].claimStatus = "ACCEPTED";
-                            }
+                    intProps.forEach(proposal => {
+                        if(proposal.hasOwnProperty("data") && proposal.data.topUpProposalId && !proposal.data.rewardProposalId) {
+                            promArr.push(
+                                dbConfig.collection_proposal.findOne({
+                                    mainType: constProposalMainType.PlayerLimitedOfferReward,
+                                    'data.topUpProposalId': proposal.data.topUpProposalId
+                                },{
+                                    proposalId:1
+                                }).lean().then(
+                                    rewardProposal => {
+                                        if(rewardProposal && rewardProposal.proposalId) {
+                                            proposal.data.rewardProposalId = rewardProposal.proposalId;
+                                        }
+                                    }
+                                )
+                            );
                         }
-                    }
-
-                    if (status && status.length > 0) {
-                        for (let i = 0; i < status.length; i++) {
-                            if (status[i] == "STILL VALID") {
-                                validProposal = intProps.filter(function (event) {
-                                    if (event && event.data) {
-                                        return (event.data.expirationTime > new Date()) && (!event.data.topUpProposalId);
-                                    }
-                                });
-                            }
-
-                            if (status[i] == "ACCEPTED") {
-                                acceptedProposal = intProps.filter(function (event) {
-                                    if (event && event.data) {
-                                        return (event.data.topUpProposalId);
-                                    }
-                                });
-                            }
-
-                            if (status[i] == "EXPIRED") {
-                                expiredProposal = intProps.filter(function (event) {
-                                    if (event && event.data) {
-                                        return (event.data.expirationTime < new Date()) && (!event.data.topUpProposalId);
-                                    }
-                                });
-                            }
-                        }
-                    } else {
-                        return intProps;
-                    }
-
-                    return returnedArray.concat(validProposal).concat(acceptedProposal).concat(expiredProposal).sort(function (a, b) {
-                        return a.proposalId - b.proposalId
                     });
+
+                    return Promise.all(promArr).then(
+                        () => {
+                            for (let j = 0; j < intProps.length; j++) {
+                                if (intProps[j].data) {
+                                    if ((intProps[j].data.expirationTime > new Date()) && !intProps[j].data.topUpProposalId) {
+                                        intProps[j].claimStatus = "STILL VALID";
+                                    } else if ((intProps[j].data.expirationTime < new Date()) && !intProps[j].data.topUpProposalId) {
+                                        intProps[j].claimStatus = "EXPIRED";
+                                    } else {
+                                        intProps[j].claimStatus = "ACCEPTED";
+                                    }
+                                }
+                            }
+
+                            if (status && status.length > 0) {
+                                for (let i = 0; i < status.length; i++) {
+                                    if (status[i] == "STILL VALID") {
+                                        validProposal = intProps.filter(function (event) {
+                                            if (event && event.data) {
+                                                return (event.data.expirationTime > new Date()) && (!event.data.topUpProposalId);
+                                            }
+                                        });
+                                    }
+
+                                    if (status[i] == "ACCEPTED") {
+                                        acceptedProposal = intProps.filter(function (event) {
+                                            if (event && event.data) {
+                                                return (event.data.topUpProposalId);
+                                            }
+                                        });
+                                    }
+
+                                    if (status[i] == "EXPIRED") {
+                                        expiredProposal = intProps.filter(function (event) {
+                                            if (event && event.data) {
+                                                return (event.data.expirationTime < new Date()) && (!event.data.topUpProposalId);
+                                            }
+                                        });
+                                    }
+                                }
+                            } else {
+                                return intProps;
+                            }
+
+                            return returnedArray.concat(validProposal).concat(acceptedProposal).concat(expiredProposal).sort(function (a, b) {
+                                return a.proposalId - b.proposalId
+                            });
+                        }
+                    );
                 }
             }
         )
@@ -3747,24 +3774,19 @@ let dbPlayerReward = {
 
                     // type 4 投注额优惠（组）
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
-                        // if (eventInPeriodCount && eventInPeriodCount > 0) {
-                        //     return Promise.reject({
-                        //         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                        //         name: "DataError",
-                        //         message: "This player has applied for max reward times in event period"
-                        //     });
-                        // }
+                        if (eventInPeriodCount && eventInPeriodCount > 0) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This player has applied for max reward times in event period"
+                            });
+                        }
 
-                        console.log("eventData",eventData);
-                        console.log("eventData.param",eventData.param);
-                        console.log("rewardSpecificData[0]",rewardSpecificData[0]);
                         let consumptions = rewardSpecificData[0];
-                        console.log("consumptions",consumptions);
                         let totalConsumption = 0;
                         for (let x in consumptions) {
                             totalConsumption += consumptions[x].validAmount;
                         }
-                        console.log("totalConsumption",totalConsumption);
 
                         // Set reward param step to use
                         if (eventData.param.isMultiStepReward) {
@@ -3773,7 +3795,6 @@ let dbPlayerReward = {
                         } else {
                             selectedRewardParam = selectedRewardParam[0];
                         }
-                        console.log("selectedRewardParam",selectedRewardParam);
 
                         if (!selectedRewardParam || totalConsumption < selectedRewardParam.minConsumptionAmount) {
                             return Q.reject({
@@ -4149,9 +4170,6 @@ let dbPlayerReward = {
                                 if (isUpdateValidCredit) {
                                     postPropPromArr.push(dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup));
                                 }
-
-                                // Create credit change log for this reward
-                                dbLogger.createCreditChangeLogWithLockedCredit(playerData._id, playerData.platform._id, 0, eventData.name, 0, rewardAmount, rewardAmount, null, proposalData.data);
 
                                 if (isSetUsedTopUpRecord) {
                                     if (intervalTime) {

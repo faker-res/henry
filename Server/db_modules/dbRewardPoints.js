@@ -124,7 +124,7 @@ let dbRewardPoints = {
                                 return dbRewardPoints.applyRewardPoint(playerData._id, rewardPointToApply, inputDevice)
                                     .catch(errorUtils.reportError);
 
-                            }
+                            };
                             promResolve = promResolve.then(applyRewardProm);
                         }
                     }
