@@ -2821,7 +2821,7 @@
   "LOGIN_REWARD_POINTS": "登入积分",
   "TOPUP_REWARD_POINTS": "存款积分",
   "GAME_REWARD_POINTS": "游戏积分",
-  "REWARD_POINTS_RANKING": "积分排行榜",
+  "REWARD_POINTS_RANKING_BOARD": "积分排行榜",
   "REWARD_POINTS_LOG": "积分变化记录",
   "intervalPeriod": "（到期）积分清零/兑换周期",
   "applyMethod": "获取积分提案申请（生成）方式",
@@ -2932,5 +2932,6 @@
   "Player does not have enough top up": "玩家没有足够的存款",
   "Player does not have enough consumption": "玩家没有足够的投注额",
   "Player does not have enough top up or consumption": "玩家没有足够的存款或投注额",
-  "The period of the reward has not yet opened": "本周期的场次尚未开放"
+  "The period of the reward has not yet opened": "本周期的场次尚未开放",
+  "Top up does not meet Promo Code minimum required amount": "充值额没达到优惠代码需求"
 }

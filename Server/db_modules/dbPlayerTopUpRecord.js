@@ -730,7 +730,7 @@ var dbPlayerTopUpRecord = {
                     let proms = [firstTopUpProm, limitedOfferProm];
 
                     if (topupRequest.bonusCode) {
-                        let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode);
+                        let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
                         proms.push(bonusCodeCheckProm)
                     }
 
@@ -971,7 +971,7 @@ var dbPlayerTopUpRecord = {
                     let proms = [firstTopUpProm, limitedOfferProm];
 
                     if (inputData.bonusCode) {
-                        let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, inputData.bonusCode);
+                        let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, inputData.bonusCode, inputData.amount);
                         proms.push(bonusCodeCheckProm)
                     }
 
@@ -1748,7 +1748,7 @@ var dbPlayerTopUpRecord = {
                         let proms = [firstTopUpProm, limitedOfferProm];
 
                         if (bonusCode) {
-                            let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode);
+                            let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode, amount);
                             proms.push(bonusCodeCheckProm)
                         }
 
@@ -2061,7 +2061,7 @@ var dbPlayerTopUpRecord = {
                         let proms = [checkLimitedOfferProm];
 
                         if (bonusCode) {
-                            let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode);
+                            let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode, amount);
                             proms.push(bonusCodeCheckProm)
                         }
 
