@@ -2971,7 +2971,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
             // Create different process flow for lock provider group reward
             if (platform.useProviderGroup) {
-                if(proposalData.data.providerGroup && gameProviderGroup){
+                if (proposalData.data.providerGroup && gameProviderGroup) {
                     dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).catch(
                         error => Q.reject({
                             name: "DBError",
