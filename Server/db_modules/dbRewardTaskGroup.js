@@ -5,6 +5,7 @@ const dbRewardTask = require('./../db_modules/dbRewardTask');
 
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 const constServerCode = require('../const/constServerCode');
+let ObjectId = mongoose.Types.ObjectId;
 
 let dbRewardTaskGroup = {
     getPlayerRewardTaskGroup: (platformId, providerId, playerId, createTime) => {
@@ -162,9 +163,9 @@ let dbRewardTaskGroup = {
      */
     unlockRewardTaskInRewardTaskGroup: (rewardTaskGroupId, incRewardAmount, incConsumptionAmount) => {
         return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
-            _id: rewardTaskGroupId
+            _id: ObjectId(rewardTaskGroupId)
         }, {
-            inc: {
+            $inc: {
                 currentAmt: -incRewardAmount,
                 curConsumption: incConsumptionAmount
             }

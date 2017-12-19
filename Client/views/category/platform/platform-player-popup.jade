@@ -1266,7 +1266,7 @@
                             .inlineBlk
                                 label {{"Deposit ProposalId" | translate}}
                                 input.input-sm.form-control(ng-model="vm.topUpProposalId")
-                            .inlineBlk
+                            .inlineBlk(ng-show='vm.selectedPlatform.data.useProviderGroup')
                                 label {{"providerGroup" | translate}}
                                 select.form-control(ng-model='vm.selectedProviderGroupID', ng-init='vm.selectedProviderGroupID="all"')
                                     option(value='all') {{'any' | translate}}
@@ -1283,21 +1283,24 @@
                                         td(ng-repeat='(i,v) in vm.playerCreditDetails')
                                             div(style='display:inline-block'){{v.nickName}}
                                             div(style='display:inline-block;padding-left:3px'){{v.validCredit || ''}}
-
                             div
+                                button.btn.btn-primary.common-button(ng-click="vm.setDisplayTaskGroup(true)", ng-show="vm.selectedPlatform.data.useProviderGroup") TaskGroup
+                                button.btn.btn-primary.common-button(ng-click="vm.setDisplayTaskGroup(false)") RewardTask
+                            div(ng-show="vm.displayTaskGroup && vm.selectedPlatform.data.useProviderGroup")
+
                                 label {{"Total" | translate}} {{vm.rewardTaskGroupLog.totalCount}} {{"records" | translate}}
                                 table#rewardTaskGroupLogTbl.common-table.display(style='min-width:100%')
                                 #rewardTaskGroupLogTblPage.height30
-                            div
+                            div(ng-show="vm.displayTaskGroup && vm.selectedPlatform.data.useProviderGroup")
                                 label {{"Total" | translate}} {{vm.rewardTaskGroupLog.totalCount}} {{"records" | translate}}
                                 table#rewardTaskGroupProposalTbl.common-table.display(style='min-width:100%')
                                 #rewardTaskGroupProposalTblPage.height30
-                            div
-                                button.common-button.margin-right-5.btn.btn-success( ng-click="vm.submitManualUnlockRewardTask(vm.selectedTaskGroupProposals)") {{'Unlock Reward' | translate}}
+                            div(ng-show="vm.displayTaskGroup && vm.selectedPlatform.data.useProviderGroup")
+                                button.common-button.margin-right-5.btn.btn-success( ng-click="vm.unlockRewardTaskInRewardTaskGroup()") {{'Unlock Reward' | translate}}
                                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                                 label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
 
-                            div
+                            div(ng-show="!vm.displayTaskGroup")
                                 label {{"Total" | translate}} {{vm.rewardTaskLog.totalCount}} {{"records" | translate}}
                                 table#rewardTaskLogTbl.common-table.display(style='min-width:100%')
                                 #rewardTaskLogTblPage.height30
@@ -1338,7 +1341,7 @@
                 //#modalManualUnlockRewardTask
                 div(ng-show="vm.selectedRewardSettingsTab == 'reward-progress'")
                     //ng-disabled='!vm.rewardTaskGroupDetails',
-                    button.common-button.margin-right-5.btn.btn-success( ng-click="vm.submitManualUnlockRewardTask(vm.selectedRewards)") {{'Unlock Reward' | translate}}
+                    button.common-button.margin-right-5.btn.btn-success(ng-disabled="vm.selectedRewards.length==0", ng-click="vm.submitManualUnlockRewardTask(vm.selectedRewards)") {{'Unlock Reward' | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                     label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
 
