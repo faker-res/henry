@@ -268,24 +268,29 @@ let dbPlayerRewardPoints = {
                 }
             ).then(
                 (rewardPoints) => {
-                    let logData = {
-                        rewardPointsObjId: playerRewardPoints._id,
-                        rewardPointsTaskObjId: rewardPointsTaskObjId,
-                        category: category,
-                        oldPoints: playerRewardPoints.points,
-                        newPoints: afterChangedRewardPoints,
-                        playerName: playerInfo.name,
-                        playerLevelName: playerInfo.playerLevel.name,
-                        amount: updateAmount,
-                        remark: remark,
-                        status: status,
-                        userAgent: userAgent,
-                        currentDayAppliedAmount: currentDayAppliedAmount,
-                        maxDayApplyAmount: maxDayApplyAmount,
-                        proposalId: proposalId,
-                        creator: creatorName
-                    };
-                    dbLogger.createRewardPointsLog(logData);
+                    //proposalId not null mean proposal already create log, just need update status && rewardPointsTaskObjId
+                    if (proposalId) {
+                        dbRewardPointsLog.updateConvertRewardPointsLog(proposalId, constRewardPointsLogStatus.PROCESSED, rewardPointsTaskObjId);
+                    } else {
+                        let logData = {
+                            rewardPointsObjId: playerRewardPoints._id,
+                            rewardPointsTaskObjId: rewardPointsTaskObjId,
+                            category: category,
+                            oldPoints: playerRewardPoints.points,
+                            newPoints: afterChangedRewardPoints,
+                            playerName: playerInfo.name,
+                            playerLevelName: playerInfo.playerLevel.name,
+                            amount: updateAmount,
+                            remark: remark,
+                            status: status,
+                            userAgent: userAgent,
+                            currentDayAppliedAmount: currentDayAppliedAmount,
+                            maxDayApplyAmount: maxDayApplyAmount,
+                            proposalId: proposalId,
+                            creator: creatorName
+                        };
+                        dbLogger.createRewardPointsLog(logData);
+                    }
                     return rewardPoints;
                 }
             )
