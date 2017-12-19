@@ -284,6 +284,12 @@ describe("Test Client API - Player service", function () {
         })
     });
 
+    it('Should show player withdrawal info', function (done) {
+        clientPlayerAPITest.getWithdrawalInfo(function (data) {
+            done();
+        }, {platformId: testPlatformId});
+    });
+
     //notifyNewMail
     //sendPlayerMailFromPlayerToAdmin
 
