@@ -2996,11 +2996,12 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                             });
                         }
                     ).catch(
-                        error => Q.reject({
-                            name: "DBError",
-                            message: "Error adding consumption value into free amount provider group",
-                            error: error
-                         })
+                        error => errorUtils.reportError(error)
+                         //    Q.reject({
+                         //    name: "DBError",
+                         //    message: "Error adding consumption value into free amount provider group",
+                         //    error: error
+                         // })
                     );
                 }
             } else {
