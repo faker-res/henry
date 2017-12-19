@@ -202,7 +202,7 @@ let dbPlayerReward = {
             }
 
             let rewardProposalQuery = {
-                "data.platformObjId": player.platform,
+                "data.platformObjId": platform._id,
                 "data.playerObjId": player._id,
                 "data.eventId": event._id,
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
@@ -2808,56 +2808,80 @@ let dbPlayerReward = {
         ).then(
             intProps => {
                 if (intProps && intProps.length > 0) {
+                    let promArr = [];
                     let validProposal = [];
                     let acceptedProposal = [];
                     let expiredProposal = [];
                     let returnedArray = [];
 
-                    for (let j = 0; j < intProps.length; j++) {
-                        if (intProps[j].data) {
-                            if ((intProps[j].data.expirationTime > new Date()) && !intProps[j].data.topUpProposalId) {
-                                intProps[j].claimStatus = "STILL VALID";
-                            } else if ((intProps[j].data.expirationTime < new Date()) && !intProps[j].data.topUpProposalId) {
-                                intProps[j].claimStatus = "EXPIRED";
-                            } else {
-                                intProps[j].claimStatus = "ACCEPTED";
-                            }
+                    intProps.forEach(proposal => {
+                        if(proposal.hasOwnProperty("data") && proposal.data.topUpProposalId && !proposal.data.rewardProposalId) {
+                            promArr.push(
+                                dbConfig.collection_proposal.findOne({
+                                    mainType: constProposalMainType.PlayerLimitedOfferReward,
+                                    'data.topUpProposalId': proposal.data.topUpProposalId
+                                },{
+                                    proposalId:1
+                                }).lean().then(
+                                    rewardProposal => {
+                                        if(rewardProposal && rewardProposal.proposalId) {
+                                            proposal.data.rewardProposalId = rewardProposal.proposalId;
+                                        }
+                                    }
+                                )
+                            );
                         }
-                    }
-
-                    if (status && status.length > 0) {
-                        for (let i = 0; i < status.length; i++) {
-                            if (status[i] == "STILL VALID") {
-                                validProposal = intProps.filter(function (event) {
-                                    if (event && event.data) {
-                                        return (event.data.expirationTime > new Date()) && (!event.data.topUpProposalId);
-                                    }
-                                });
-                            }
-
-                            if (status[i] == "ACCEPTED") {
-                                acceptedProposal = intProps.filter(function (event) {
-                                    if (event && event.data) {
-                                        return (event.data.topUpProposalId);
-                                    }
-                                });
-                            }
-
-                            if (status[i] == "EXPIRED") {
-                                expiredProposal = intProps.filter(function (event) {
-                                    if (event && event.data) {
-                                        return (event.data.expirationTime < new Date()) && (!event.data.topUpProposalId);
-                                    }
-                                });
-                            }
-                        }
-                    } else {
-                        return intProps;
-                    }
-
-                    return returnedArray.concat(validProposal).concat(acceptedProposal).concat(expiredProposal).sort(function (a, b) {
-                        return a.proposalId - b.proposalId
                     });
+
+                    return Promise.all(promArr).then(
+                        () => {
+                            for (let j = 0; j < intProps.length; j++) {
+                                if (intProps[j].data) {
+                                    if ((intProps[j].data.expirationTime > new Date()) && !intProps[j].data.topUpProposalId) {
+                                        intProps[j].claimStatus = "STILL VALID";
+                                    } else if ((intProps[j].data.expirationTime < new Date()) && !intProps[j].data.topUpProposalId) {
+                                        intProps[j].claimStatus = "EXPIRED";
+                                    } else {
+                                        intProps[j].claimStatus = "ACCEPTED";
+                                    }
+                                }
+                            }
+
+                            if (status && status.length > 0) {
+                                for (let i = 0; i < status.length; i++) {
+                                    if (status[i] == "STILL VALID") {
+                                        validProposal = intProps.filter(function (event) {
+                                            if (event && event.data) {
+                                                return (event.data.expirationTime > new Date()) && (!event.data.topUpProposalId);
+                                            }
+                                        });
+                                    }
+
+                                    if (status[i] == "ACCEPTED") {
+                                        acceptedProposal = intProps.filter(function (event) {
+                                            if (event && event.data) {
+                                                return (event.data.topUpProposalId);
+                                            }
+                                        });
+                                    }
+
+                                    if (status[i] == "EXPIRED") {
+                                        expiredProposal = intProps.filter(function (event) {
+                                            if (event && event.data) {
+                                                return (event.data.expirationTime < new Date()) && (!event.data.topUpProposalId);
+                                            }
+                                        });
+                                    }
+                                }
+                            } else {
+                                return intProps;
+                            }
+
+                            return returnedArray.concat(validProposal).concat(acceptedProposal).concat(expiredProposal).sort(function (a, b) {
+                                return a.proposalId - b.proposalId
+                            });
+                        }
+                    );
                 }
             }
         )
@@ -4146,9 +4170,6 @@ let dbPlayerReward = {
                                 if (isUpdateValidCredit) {
                                     postPropPromArr.push(dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup));
                                 }
-
-                                // Create credit change log for this reward
-                                dbLogger.createCreditChangeLogWithLockedCredit(playerData._id, playerData.platform._id, 0, eventData.name, 0, rewardAmount, rewardAmount, null, proposalData.data);
 
                                 if (isSetUsedTopUpRecord) {
                                     if (intervalTime) {

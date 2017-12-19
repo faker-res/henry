@@ -19,6 +19,7 @@ var dbPlatform = require('./../db_modules/dbPlatform');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var dbPartner = require('./../db_modules/dbPartner');
+var dbRewardPointsLog = require('./../db_modules/dbRewardPointsLog');
 var dbLogger = require('./../modules/dbLogger');
 var proposalExecutor = require('./../modules/proposalExecutor');
 var mongoose = require('mongoose');
@@ -318,6 +319,10 @@ var proposal = {
         ).then(
             function (data) {
                 if (data && data[0] && data[1] && data[2] != null) {
+                    if(data[0].mainType == constProposalMainType.PlayerConvertRewardPoints){
+                        dbRewardPointsLog.createRewardPointsLogByProposalData(data[0]);
+                    }
+
                     //notify the corresponding clients with new proposal
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     let expiredDate = null;

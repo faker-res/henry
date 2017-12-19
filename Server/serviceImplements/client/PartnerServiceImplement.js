@@ -226,12 +226,11 @@ var PartnerServiceImplement = function () {
     this.fillBankInformation.expectsData = 'partnerId: String';
     this.fillBankInformation.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        data.userAgent = userAgent;
         var isValidData = Boolean(data && data.partnerId && (data.partnerId == conn.partnerId));
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
         }
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.updatePartnerBankInfo, [data.userAgent, data.partnerId, data], isValidData, true, true, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.updatePartnerBankInfo, [userAgent, data.partnerId, data], isValidData, true, true, false).then(
             function (res) {
                 if (res) {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS}, data);
