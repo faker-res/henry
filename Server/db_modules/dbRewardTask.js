@@ -175,6 +175,11 @@ const dbRewardTask = {
         ).then(
             providerGroup2 => {
                 if (providerGroup2) {
+                    let eventName = proposalData && proposalData.data && proposalData.data.eventName ? proposalData.data.eventName : "";
+
+                    // Create credit change log for this reward
+                    dbLogger.createCreditChangeLogWithLockedCredit(rewardData.playerId, rewardData.platformId, 0, eventName, 0, rewardData.initAmount, rewardData.initAmount, null, proposalData.data);
+
                     // Successfully created reward task
                     return providerGroup2;
                 }
