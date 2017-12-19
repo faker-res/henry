@@ -855,7 +855,7 @@ const dbRewardTask = {
                     //     updObj.$inc.curConsumption = consumptionRecord.validAmount;
                     // }
 
-                    if(remainingCurConsumption > 0){
+                    if (remainingCurConsumption > 0) {
                         dbRewardTaskGroup.addRemainingConsumptionToFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime, remainingCurConsumption);
                     }
 
@@ -864,7 +864,7 @@ const dbRewardTask = {
                         updObj,
                         {new: true}
                     );
-                }else{
+                } else {
                     return dbRewardTaskGroup.getFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime).then(
                         freeRewardTaskGroup => {
                             if(freeRewardTaskGroup){
@@ -909,15 +909,17 @@ const dbRewardTask = {
                                 );
                             }
 
-                        });
+                        }
+                    );
                 }
             }
         ).then(
             updatedData => {
                 if (updatedData) {
                     // Transfer amount to player if reward is achieved
-                    if (updatedData.status == constRewardTaskStatus.ACHIEVED) {
-                        return dbRewardTask.completeRewardTaskGroup(updatedData);
+                    // Also transfer to player (amount = 0) when reward is no credit
+                    if (updatedData.status == constRewardTaskStatus.ACHIEVED || updatedData.status == constRewardTaskStatus.NO_CREDIT) {
+                        return dbRewardTask.completeRewardTaskGroup(updatedData, updatedData.status);
                     }
                 }
             },
@@ -1124,17 +1126,20 @@ const dbRewardTask = {
     /**
      * TODO:: WORK IN PROGRESS
      * Add manual unlock support
+     * NO_CREDIT will also trigger this function now
      * @param rewardGroupData
-     * @param {Boolean} isManualUnlock
+     * @param {String} unlockType
      */
-    completeRewardTaskGroup: (rewardGroupData, isManualUnlock) => {
+    completeRewardTaskGroup: (rewardGroupData, unlockType) => {
         let playerCreditChange;
+
+        // Set transfer amount
         let rewardAmount = rewardGroupData.rewardAmt;
 
         // Mark the provider group as complete if it is manual unlocked
         let taskGroupProm = Promise.resolve();
 
-        if (isManualUnlock) {
+        if (unlockType == constRewardTaskStatus.MANUAL_UNLOCK) {
             taskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                 platformId: rewardGroupData.platformId,
                 playerId: rewardGroupData.playerId,
@@ -1167,7 +1172,9 @@ const dbRewardTask = {
                             let providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rewardGroupData.providerGroup})
                                 .populate({path: "providers", model: dbconfig.collection_gameProvider});
 
-                            dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardGroupData.type + ":unlock", player.validCredit, 0, -rewardAmount, null, rewardGroupData);
+                            let rewardType = rewardGroupData && rewardGroupData.type ? rewardGroupData.type : "Free amount";
+
+                            dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardType + ":unlock", player.validCredit, 0, -rewardAmount, null, rewardGroupData);
 
                             Promise.all([platformProm,providerGroupProm]).then(
                                 data => {

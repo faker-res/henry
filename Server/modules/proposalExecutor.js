@@ -1711,7 +1711,7 @@ var proposalExecutor = {
                 proposalData = setProposalIdInData(proposalData);
 
                 if (proposalData.data && proposalData.data.providerGroup) {
-                    dbRewardTask.completeRewardTaskGroup(proposalData.data, true).then(deferred.resolve, deferred.reject);
+                    dbRewardTask.completeRewardTaskGroup(proposalData.data, constRewardTaskStatus.MANUAL_UNLOCK).then(deferred.resolve, deferred.reject);
                 } else {
                     dbRewardTask.completeRewardTask(proposalData.data).then(deferred.resolve, deferred.reject);
                 }
