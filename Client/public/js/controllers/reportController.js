@@ -2800,6 +2800,21 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getLimitedOfferReport', sendQuery, function (data) {
                 console.log('getLimitedOfferReport', data);
                 vm.limitedOfferDetail = [];
+                vm.limitedOfferSums = {
+                    claimStatus: {
+                        accepted: 0,
+                        stillValid: 0,
+                        expired: 0
+                    },
+                    device: {
+                        webPlayer: 0,
+                        h5Player: 0,
+                        appPlayer: 0,
+                        otherDevice: 0
+                    },
+                    topUpAmount: 0,
+                    rewardAmount: 0
+                };
                 if(data.hasOwnProperty('data')) {
                     vm.limitedOfferDetail = data.data;
                     vm.limitedOfferDetail.map(e => {
@@ -2817,7 +2832,36 @@ define(['js/app'], function (myApp) {
                         e.data.topUpAmount$ = e.data.topUpAmount ? parseFloat(e.data.topUpAmount).toFixed(2) : "";
                         e.data.rewardAmount$ = e.data.rewardProposalId ? parseFloat(e.data.rewardAmount).toFixed(2) : "";
                         e.data.spendingAmount$ = e.data.spendingAmount ? parseFloat(e.data.spendingAmount).toFixed(2) : parseFloat(0).toFixed(2);
+
+                        vm.limitedOfferSums.topUpAmount += e.topUpAmount$;
+                        vm.limitedOfferSums.rewardAmount += e.rewardAmount$;
+                        switch (e.claimStatus.toUpperCase()) {
+                            case "ACCEPTED":
+                                vm.limitedOfferSums.claimStatus.accepted++;
+                                break;
+                            case "STILL VALID":
+                                vm.limitedOfferSums.claimStatus.stillValid++;
+                                break;
+                            case "EXPIRED":
+                                vm.limitedOfferSums.claimStatus.expired++;
+                                break;
+                        }
+                        switch (e.inputDevice) {
+                            case vm.inputDevice.WEB_PLAYER:
+                                vm.limitedOfferSums.device.webPlayer++;
+                                break;
+                            case vm.inputDevice.H5_PLAYER:
+                                vm.limitedOfferSums.device.h5Player++;
+                                break;
+                            case vm.inputDevice.APP_PLAYER:
+                                vm.limitedOfferSums.device.appPlayer++;
+                                break;
+                            default:
+                                vm.limitedOfferSums.device.otherDevice++;
+                                break;
+                        }
                     });
+                    vm.limitedOfferSums.total = vm.limitedOfferDetail.length;
                 }
                 vm.drawLimitedOfferReport(newSearch);
                 $('#limitedOfferTableSpin').hide();
@@ -2866,25 +2910,26 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {title: $translate('ORDER')},
-                    {title: $translate('Proposal No'), data: "proposalId"},
+                    {title: $translate('ORDER'), sClass: "limitedOfferClaimStatusLabel"},
+                    {title: $translate('Proposal No'), data: "proposalId", sClass: "limitedOfferClaimStatusAmount"},
                     {
                         title: $translate('promoName'),
                         data: "data.limitedOfferName",
                         render: function (data, type, row) {
                             data = String(data);
                             return '<a ng-click="vm.showProposalModalNoObjId(\'' + row.proposalId + '\')">' + data + '</a>';
-                        }
+                        },
+                        sClass: "limitedOfferClaimStatusPercentage"
                     },
                     {title: $translate('Level Requirement'), data: "data.requiredLevel"},
                     {title: $translate('PLAYERNAME'), data: "data.playerName", sClass: "realNameCell wordWrap"},
-                    {title: $translate('LIMITED_OFFER_APPLY_TIME'), data: "applyTime$"},
+                    {title: $translate('LIMITED_OFFER_APPLY_TIME'), data: "applyTime$", sClass: "limitedOfferSumLabel"},
                     {title: $translate('topUpProposalId'), data: "data.topUpProposalId"},
                     {title: $translate('TopupAmount'), data: "data.topUpAmount$", sClass: "sumFloat"},
                     {title: $translate('rewardProposalId'), data: "data.rewardProposalId"},
                     {title: $translate('OFFER_AMOUNT'), data: "data.rewardAmount$", sClass: "sumFloat"},
-                    {title: $translate('SPENDING_AMOUNT'), data: "data.spendingAmount$", sClass: "sumFloat"},
-                    {title: $translate('DEVICE'), data: "inputDevice$"}
+                    {title: $translate('SPENDING_AMOUNT'), data: "data.spendingAmount$"},
+                    {title: $translate('DEVICE'), data: "inputDevice$", sClass: "limitedOfferDevice"}
                 ],
                 "paging": false,
                 "language": {
@@ -2895,7 +2940,9 @@ define(['js/app'], function (myApp) {
                 fnRowCallback: vm.limitedOfferTableCallback
             };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
-            let playerTbl = utilService.createDatatableWithFooter('#limitedOfferTable', tableOptions, {}, true);
+            vm.limitedOfferSums["7"] = vm.limitedOfferSums.topUpAmount;
+            vm.limitedOfferSums["9"] = vm.limitedOfferSums.rewardAmount;
+            let playerTbl = utilService.createDatatableWithFooter('#limitedOfferTable', tableOptions, vm.limitedOfferSums, false);
             vm.limitedOfferQuery.pageObj.init({maxCount: allResultSize}, newSearch);
             utilService.setDataTablePageInput('limitedOfferTable', playerTbl, $translate);
             playerTbl.on( 'order.dt', function () {
