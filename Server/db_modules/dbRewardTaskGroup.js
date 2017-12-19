@@ -33,7 +33,7 @@ let dbRewardTaskGroup = {
             platformId: platformId,
             playerId: playerId,
             providerGroup: null,
-            status: {$in: [constRewardTaskStatus.STARTED]},
+            status: constRewardTaskStatus.STARTED,
             createTime: {$lt: createTime}
         }).lean();
     },
@@ -80,7 +80,7 @@ let dbRewardTaskGroup = {
             if (updatedData) {
                 // Transfer amount to player if reward is achieved
                 if (updatedData.status == constRewardTaskStatus.ACHIEVED) {
-                    return dbRewardTask.completeRewardTaskGroup(updatedData);
+                    return dbRewardTask.completeRewardTaskGroup(updatedData, updatedData.status);
                 }
             }
         })
@@ -105,7 +105,7 @@ let dbRewardTaskGroup = {
                             dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                                 _id: grp._id
                             }, updObj).then(
-                                () => dbRewardTask.completeRewardTaskGroup(grp)
+                                () => dbRewardTask.completeRewardTaskGroup(grp, constRewardTaskStatus.SYSTEM_UNLOCK)
                             )
                         );
                     });
@@ -152,6 +152,23 @@ let dbRewardTaskGroup = {
             rewardTasks => rewardTasks,
             error => Q.reject({name: "DBError", message: "Error in getting reward task", error: error})
         );
+    },
+
+    /**
+     * For FPMS manual unlock use only
+     * @param {ObjectId} rewardTaskGroupId
+     * @param {Number} incRewardAmount
+     * @param {Number} incConsumptionAmount
+     */
+    unlockRewardTaskInRewardTaskGroup: (rewardTaskGroupId, incRewardAmount, incConsumptionAmount) => {
+        return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+            _id: rewardTaskGroupId
+        }, {
+            inc: {
+                currentAmt: -incRewardAmount,
+                curConsumption: incConsumptionAmount
+            }
+        });
     },
 };
 

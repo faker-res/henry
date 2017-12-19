@@ -377,6 +377,12 @@ define(['js/app'], function (myApp) {
 
             vm.showRewardPointsAdjustmentTab = function (tabName) {
                 vm.selectedRewardPointsAdjustmentTab = tabName == null ? "change" : tabName;
+                if (tabName === 'convert') {
+                    vm.playerRewardPointsDailyLimit = 0;
+                    vm.playerRewardPointsDailyConvertedPoints = 0;
+                    vm.getPlayerRewardPointsDailyLimit();
+                    vm.getPlayerRewardPointsDailyConvertedPoints();
+                }
             };
 
             vm.showSmsTab = function (tabName) {
@@ -4122,36 +4128,47 @@ define(['js/app'], function (myApp) {
                         item.bonusAmount$ = item.bonusAmount.toFixed(2);
                         item.commissionAmount$ = item.commissionAmount.toFixed(2);
                         item.canConsumptionReturn$ = Boolean(!item.bDirty) ? $translate('ABLE') : $translate('UNABLE');
+                        item.roundResult$ = "";
+                        item.roundId$ = "";
+                        item.matchId$ = "";
+                        item.gameType$ = "";
+                        item.betType$ = "";
+                        item.remark$ = "";
+
                         return item;
                     }) : [];
                     vm.expenseQuery.totalCount = data.data.count || 0;
                     var summary = data.data.summary || {};
                     var tableOptions = {
                         data: tableData,
-                        "order": vm.expenseQuery.aaSorting || [[1, 'desc']],
+                        "order": vm.expenseQuery.aaSorting || [[9, 'desc']],
                     };
 
                     vm.commonProviderGameTableOptions = {
                         columnDefs: [
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [9]},
                             // {'sortCol': 'playerId', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [5]},
-                            {'sortCol': 'amount', bSortable: true, 'aTargets': [6]},
-                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
+                            // {'sortCol': 'validAmount', bSortable: true, 'aTargets': [5]},
+                            // {'sortCol': 'amount', bSortable: true, 'aTargets': [6]},
+                            // {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
                             // {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
                             {targets: '_all', bSortable: false, defaultContent: ' '}
                         ],
                         columns: [
                             {title: $translate('orderId'), data: "orderNo"},
-                            {title: $translate('CREATION_TIME'), data: "createTime$"},
-                            //{title: $translate('PLATFORM'), data: "platformId.name"},
                             {title: $translate('PLAYERID'), data: "playerId.name"},
                             {title: $translate('providerId'), data: "providerId.name"},
+                            {title: $translate('ROUND_RESULT'), data: "roundResult$"},
+                            {title: $translate('ROUND_ID'), data: "roundId$"},
+                            {title: $translate('MATCH_ID'), data: "matchId$"},
+                            {title: $translate('GAME_TYPE'), data: "gameType$"},
                             {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
+                            {title: $translate('BET_TYPE'), data: "betType$"},
+                            {title: $translate('BET_TIME'), data: "createTime$"},
                             {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'sumFloat textRight'},
-                            {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
-                            // {title: $translate('commissionAmount'), data: "commissionAmount$", sClass: 'sumFloat textRight'},
+                            {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
+                            {title: $translate('REMARK'), data: "remark$"},
                             {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
                         ],
                         "paging": false,
@@ -8201,14 +8218,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
-                if(vm.selectedSinglePlayer.rewardPointsObjId === undefined) {
+                if(!vm.selectedSinglePlayer.rewardPointsObjId) {
                     vm.createPlayerRewardPointsRecord();
                 }
-                vm.getPlayerRewardPointsDailyLimit();
-                vm.getPlayerRewardPointsDailyConvertedPoints();
-
-                vm.playerRewardPointsDailyLimit = 0;
-                vm.playerRewardPointsDailyConvertedPoints = 0;
                 vm.rewardPointsChange.finalValidAmount = vm.isOneSelectedPlayer().rewardPointsObjId.points;
                 vm.rewardPointsChange.remark = '';
                 vm.rewardPointsChange.updateAmount = 0;
@@ -13429,6 +13441,7 @@ define(['js/app'], function (myApp) {
                 vm.showRewardTypeData = null;   // This will probably be overwritten by vm.platformRewardTypeChanged() below
                 vm.showRewardTypeId = v.type._id;
                 vm.rewardParams = Lodash.cloneDeep(v.param);
+                vm.rewardParamsFilter = vm.rewardParams.reward;
                 vm.rewardCondition = Lodash.cloneDeep(v.condition);
                 vm.rewardDisabledParam = [];
 
@@ -13671,8 +13684,6 @@ define(['js/app'], function (myApp) {
                 }
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
-
-
 
                 // Initialise the models with some default values
                 // and grab any required external data (e.g. for select box lists)
@@ -14133,10 +14144,15 @@ define(['js/app'], function (myApp) {
             }
 
             vm.clearRewardFormData = function () {
-                vm.rewardCondition = null;
-                vm.showReward = null;
-                vm.rewardParams = null;
-                vm.showRewardTypeId = null;
+                // vm.rewardCondition = null;
+                //vm.showReward = null;
+                // vm.rewardParams = null;
+                // vm.showRewardTypeId = null;
+                // after clearing, force it back to 'ALL' checkbox
+                vm.rewardEventClicked(0,vm.showReward);
+                vm.daySelection['0'] =true;
+                vm.rewardParamsDaySelectedAll();
+                $scope.safeApply();
             }
 
             vm.clearProvider = function (rowIndex) {
@@ -14214,6 +14230,7 @@ define(['js/app'], function (myApp) {
                         if (objectId) {
                             data._id = objectId;
                             vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                            vm.rewardParamsFilter=vm.rewardParams.reward;
                             $scope.safeApply();
                         }
                     });
@@ -14223,6 +14240,8 @@ define(['js/app'], function (myApp) {
                             return item._id != id;
                         })
                     }
+                    vm.rewardParamsFilter=vm.rewardParams.reward;
+                    $scope.safeApply();
                 }
             };
             vm.weekDayList = {
@@ -14233,6 +14252,58 @@ define(['js/app'], function (myApp) {
                 '5': 'Fri',
                 '6': 'Sat',
                 '7': 'Sun'
+            };
+
+            vm.daySelection = {
+                '0': true,
+                '1': false,
+                '2': false,
+                '3': false,
+                '4': false,
+                '5': false,
+                '6': false,
+                '7': false
+            };
+
+            vm.rewardParamsDaySelectedAll = function () {
+                vm.rewardParamsFilter= [];
+
+                if (vm.daySelection['0']) {
+                    vm.rewardParamsFilter=vm.rewardParams.reward;
+
+                    for (let i in vm.daySelection) {
+                        if (i == '0') {
+                            vm.daySelection[i]= true;
+                        }
+                        else {
+                            vm.daySelection[i]= false;
+                        }
+                    }
+                }
+                console.log('rewardParamsFilter',vm.rewardParamsFilter);
+                $scope.safeApply();
+            };
+
+            vm.isDayChecked = function (index) {
+
+                for (let i in vm.daySelection) {
+                    if (i == index) {
+                        vm.daySelection[i]= true;
+                    }
+                    else {
+                        vm.daySelection[i]= false;
+                    }
+                }
+
+                vm.rewardParamsFilter= [];
+
+                vm.rewardParams.reward.map(
+                    item => {
+                        if (item.repeatWeekDay.includes(index))
+                            vm.rewardParamsFilter.push(item);
+                    });
+                console.log('rewardParamsFilter',vm.rewardParamsFilter);
+                $scope.safeApply();
             };
 
             vm.endLoadWeekDay = function () {

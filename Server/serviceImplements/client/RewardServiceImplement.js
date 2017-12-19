@@ -119,6 +119,12 @@ let RewardServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerCheckInBonus, [userAgent, conn.playerId], isValidData);
     };
 
+    this.getSlotInfo.expectsData = '';
+    this.getSlotInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = true;
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getSlotInfo, [conn.playerId, data.code, data.platformId], isValidData, false, false, Boolean(data.platformId));
+    };
+
     this.getTopUpPromoList.expectsData = 'clientType: Number';
     this.getTopUpPromoList.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.clientType && conn.playerId);
@@ -155,7 +161,8 @@ let RewardServiceImplement = function () {
     this.applyLimitedOffers.expectsData = 'limitedOfferObjId: String';
     this.applyLimitedOffers.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.limitedOfferObjId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyLimitedOffers, [conn.playerId, ObjectId(data.limitedOfferObjId)], isValidData);
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyLimitedOffers, [conn.playerId, ObjectId(data.limitedOfferObjId), null, userAgent], isValidData);
     };
 
     this.getLimitedOfferBonus.expectsData = 'platformId: String';

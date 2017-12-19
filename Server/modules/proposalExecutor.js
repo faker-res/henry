@@ -1707,7 +1707,14 @@ var proposalExecutor = {
             },
 
             executeManualUnlockPlayerReward: function (proposalData, deferred) {
-                dbRewardTask.completeRewardTask(proposalData.data).then(deferred.resolve, deferred.reject);
+                // Set proposalId in proposalData.data
+                proposalData = setProposalIdInData(proposalData);
+
+                if (proposalData.data && proposalData.data.providerGroup) {
+                    dbRewardTask.completeRewardTaskGroup(proposalData.data, constRewardTaskStatus.MANUAL_UNLOCK).then(deferred.resolve, deferred.reject);
+                } else {
+                    dbRewardTask.completeRewardTask(proposalData.data).then(deferred.resolve, deferred.reject);
+                }
             },
 
             executePartnerCommission: function (proposalData, deferred) {
@@ -2965,19 +2972,36 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             // Create different process flow for lock provider group reward
             if (platform.useProviderGroup) {
                 if(proposalData.data.providerGroup && gameProviderGroup){
-                    dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(
-                        data => deferred.resolve(resolveValue || data),
-                        error => deferred.reject(error)
+                    dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).catch(
+                        error => Q.reject({
+                            name: "DBError",
+                            message: "Error creating reward task with provider group",
+                            error: error
+                        })
                     );
-            
-                    dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(
-                        data => deferred.resolve(resolveValue || data),
-                        error => deferred.reject(error)
+                    dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).catch(
+                        error => Q.reject({
+                            name: "DBError",
+                            message: "Error deduct target consumption from free amount provider group",
+                            error: error
+                        })
                     );
-                }else{
-                    dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).then(
-                        data => deferred.resolve(resolveValue || data),
-                        error => deferred.reject(error)
+                } else {
+                    dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
+                        data => {
+                            rewardTask = data;
+                            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
+                            return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
+                                rewardTask: taskData
+                            });
+                        }
+                    ).catch(
+                        error => errorUtils.reportError(error)
+                         //    Q.reject({
+                         //    name: "DBError",
+                         //    message: "Error adding consumption value into free amount provider group",
+                         //    error: error
+                         // })
                     );
                 }
             } else {
@@ -3025,7 +3049,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
                         // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
                         // Changing into async function
-                        dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
+                        //dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
                         //send message if there is any template created for this reward
                         return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
                             rewardTask: taskData
@@ -3040,6 +3064,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                     }
                 );
             }
+
+            return deferred.resolve(resolveValue);
         }
     );
 }
@@ -3194,8 +3220,9 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
                     return dbconfig.collection_rewardPoints.findOne({_id: proposalData.data.playerRewardPointsObjId}).lean().then(
                         playerRewardPoints => {
                             let rewardPointsLogStatus = proposalData.status == constProposalStatus.APPROVED ? constRewardPointsLogStatus.PROCESSED : constRewardPointsLogStatus.PENDING;
+                            let updateAmount = proposalData.data.convertedRewardPoints >= 0 ? -Math.abs(proposalData.data.convertedRewardPoints) : Math.abs(proposalData.data.convertedRewardPoints);
                             return dbPlayerRewardPoints.tryToDeductRewardPointFromPlayer(playerRewardPoints.playerObjId, playerRewardPoints.platformObjId,
-                                -Math.abs(proposalData.data.convertedRewardPoints), taskData.data.category, proposalData.data.remark,
+                                updateAmount, taskData.data.category, proposalData.data.remark,
                                 proposalData.inputDevice, proposalData.creator.name, rewardPointsLogStatus, proposalData.data.currentDayAppliedAmount, proposalData.data.maxDayApplyAmount,
                                 rewardTask._id, taskData.proposalId);
                         }
@@ -3258,6 +3285,14 @@ function looksLikeObjectId(thing) {
     const isObjectId = thing instanceof mongoose.Types.ObjectId;
     const looksLikeObjectId = String(thing).length === 24 && mongoose.Types.ObjectId.isValid(String(thing));
     return isObjectId || looksLikeObjectId;
+}
+
+function setProposalIdInData(proposal) {
+    if (proposal && proposal.data) {
+        proposal.data.proposalId = proposal.proposalId;
+    }
+
+    return proposal;
 }
 
 var proto = proposalExecutorFunc.prototype;
