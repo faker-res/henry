@@ -24,10 +24,10 @@
 
         tbody
             tr
-                input(ng-model="vm.daySelection['0']", type='checkbox', ng-click="vm.rewardParamsDaySelectedAll()", ng-checked="true", ng-init="check=true")
+                input(ng-model="vm.daySelection['0']", type='checkbox', ng-click="vm.rewardParamsDaySelectedAll()", ng-checked="true", ng-init="check=true", ng-disabled='!vm.platformRewardShowEdit()')
                 label ALL /
                     div(ng-repeat='(i,v) in vm.weekDayList', style="display:inline-block")
-                        input(type='checkbox', ng-model='vm.daySelection[i]', ng-click="vm.isDayChecked(i)")
+                        input(type='checkbox', ng-model='vm.daySelection[i]', ng-click="vm.isDayChecked(i)", ng-disabled='!vm.platformRewardShowEdit()')
                         label {{v }} /
 
             tr(ng-repeat='(rowIndex,rowdata) in vm.rewardParamsFilter', ng-init="$last && vm.endLoadWeekDay()")
@@ -81,7 +81,7 @@
                             option(ng-repeat='(i,v) in vm.dayMin', value='{{v}}') {{v}}
                 td
                     div
-                        select.spicker( ng-model='vm.rewardParamsFilter[rowIndex].repeatWeekDay', multiple, ng-disabled='vm.platformRewardShowEdit()', data-actions-box='true')
+                        select.spicker.form-control(data-container="body", ng-model='vm.rewardParamsFilter[rowIndex].repeatWeekDay', multiple, ng-disabled='vm.platformRewardShowEdit()', data-actions-box='true')
                             option(ng-repeat='(i,v) in vm.weekDayList', value='{{i}}' ) {{v}}
                 td
                     div
@@ -155,7 +155,7 @@
                             option(ng-repeat='(i,v) in vm.dayMin', value='{{v}}') {{v}}
                 td
                     div
-                        select.spicker.form-control( ng-model='vm.tempNewRewardEntry.repeatWeekDay', multiple, ng-disabled='vm.platformRewardShowEdit()', data-actions-box='true')
+                        select.spicker.form-control(data-container="body", ng-model='vm.tempNewRewardEntry.repeatWeekDay', multiple, ng-disabled='vm.platformRewardShowEdit()', data-actions-box='true')
                             option(ng-repeat='(i,v) in vm.weekDayList', ng-init='$last && vm.endLoadWeekDay()', value='{{i}}') {{v}}
                         label.form-control(ng-if='vm.providerGame[vm.rewardParams.providers[i].providerObjId] && vm.providerGame[vm.rewardParams.providers[i].providerObjId].length==0') {{"NO_GAME" | translate}}
                 td

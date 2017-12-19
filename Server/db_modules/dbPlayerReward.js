@@ -35,6 +35,7 @@ const dbConfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
 const errorUtils = require("./../modules/errorUtils.js");
 const rewardUtility = require("../modules/rewardUtility");
+const dbLogger = require("../modules/dbLogger");
 
 let rsaCrypto = require("../modules/rsaCrypto");
 
@@ -207,13 +208,16 @@ let dbPlayerReward = {
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
             };
 
+            let lastTopUpQuery = {playerId: player._id};
+
             if (intervalTime) {
                 rewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+                lastTopUpQuery.settlementTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
             similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).sort({createTime: -1}).lean();
 
-            lastTopUpProm = dbConfig.collection_playerTopUpRecord.find({playerId: player._id}).sort({createTime: -1}).limit(1).lean();
+            lastTopUpProm = dbConfig.collection_playerTopUpRecord.find(lastTopUpQuery).sort({createTime: -1}).limit(1).lean();
 
             return Promise.all([similarRewardProposalProm, lastTopUpProm]);
         }).then(data => {
@@ -2961,6 +2965,13 @@ let dbPlayerReward = {
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
+        // Set reward param for player level to use
+        if (eventData.condition.isPlayerLevelDiff) {
+            selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
+        } else {
+            selectedRewardParam = eventData.param.rewardParam[0].value;
+        }
+
         // Get interval time
         if (eventData.condition.interval) {
             switch (eventData.condition.interval) {
@@ -3055,6 +3066,7 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
+            eventData.condition.isSharedWithXIMA = !eventData.condition.useConsumptionRecord;
             if(eventData.condition.rewardAppearPeriod){
                 let isValid = false;
                 let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
@@ -3077,7 +3089,8 @@ let dbPlayerReward = {
             }
             let consumptionMatchQuery = {
                 createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
-                bDirty:false
+                bDirty:false,
+                playerId: playerData._id,
             };
 
             if (intervalTime) {
@@ -3099,7 +3112,7 @@ let dbPlayerReward = {
             ]);
 
             promArr.push(periodConsumptionProm);
-
+            topupMatchQuery.amount = {$gte: selectedRewardParam[0].requiredTopUpAmount};
             topupMatchQuery.$or = [{'bDirty': false}];
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
                 let ignoreUsedTopupReward = [];
@@ -3108,7 +3121,7 @@ let dbPlayerReward = {
                 });
                 topupMatchQuery.$or.push({'usedEvent': {$in: ignoreUsedTopupReward}});
             }
-
+            
             let periodTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
                 {
                     $match: topupMatchQuery
@@ -3483,13 +3496,6 @@ let dbPlayerReward = {
                     });
                 }
 
-                // Set reward param for player level to use
-                if (eventData.condition.isPlayerLevelDiff) {
-                    selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
-                } else {
-                    selectedRewardParam = eventData.param.rewardParam[0].value;
-                }
-
                 // Check top up count within period
                 if (eventData.condition.topUpCountType) {
                     let intervalType = eventData.condition.topUpCountType[0];
@@ -3742,9 +3748,8 @@ let dbPlayerReward = {
                         spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
                         break;
 
-                    // type 4
+                    // type 4 投注额优惠（组）
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
-                        // （领优惠前）检查投注额来源游戏厅
                         if (eventInPeriodCount && eventInPeriodCount > 0) {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -4141,6 +4146,9 @@ let dbPlayerReward = {
                                 if (isUpdateValidCredit) {
                                     postPropPromArr.push(dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup));
                                 }
+
+                                // Create credit change log for this reward
+                                dbLogger.createCreditChangeLogWithLockedCredit(playerData._id, playerData.platform._id, 0, eventData.name, 0, rewardAmount, rewardAmount, null, proposalData.data);
 
                                 if (isSetUsedTopUpRecord) {
                                     if (intervalTime) {
