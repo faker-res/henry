@@ -1187,9 +1187,8 @@ let dbPlayerCreditTransfer = {
                         }).then(
                             updatedRewardGroup => {
                                 // Check whether provider group has undergo operation
-                                if (updatedRewardGroup.status == constRewardTaskStatus.SYSTEM_UNLOCK
-                                    || updatedRewardGroup.status == constRewardTaskStatus.MANUAL_UNLOCK) {
-                                    return dbRewardTask.completeRewardTaskGroup(updatedRewardGroup);
+                                if (updatedRewardGroup.status != constRewardTaskStatus.STARTED) {
+                                    return dbRewardTask.completeRewardTaskGroup(updatedRewardGroup, updatedRewardGroup.status);
                                 }
 
                                 return true;
