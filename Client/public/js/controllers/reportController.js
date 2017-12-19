@@ -1197,8 +1197,6 @@ define(['js/app'], function (myApp) {
                 vm.limitedOfferDetail = {};
                 utilService.actionAfterLoaded("#limitedOfferTable", function () {
                     vm.commonInitTime(vm.limitedOfferQuery, '#limitedOfferQuery');
-                    vm.limitedOfferQuery.limit = 10;
-                    vm.limitedOfferQuery.index = 0;
                     vm.limitedOfferQuery.pageObj = utilService.createPageForPagingTable("#limitedOfferTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "limitedOfferQuery", vm.drawLimitedOfferReport)
                     });
@@ -2773,6 +2771,9 @@ define(['js/app'], function (myApp) {
 
         vm.getLimitedOfferReport = function (newSearch) {
             $('#limitedOfferTableSpin').show();
+            vm.limitedOfferQuery.limit = 10;
+            vm.limitedOfferQuery.index = 0;
+            vm.limitedOfferQuery.sortCol = vm.limitedOfferQuery.sortCol || {'applyTime$': -1};
 
             let sendQuery = {
                 platformObjId: vm.selectedPlatform._id,
@@ -2802,15 +2803,21 @@ define(['js/app'], function (myApp) {
                 if(data.hasOwnProperty('data')) {
                     vm.limitedOfferDetail = data.data;
                     vm.limitedOfferDetail.map(e => {
+                        e.limitedOfferName$ = e.data.limitedOfferName;
+                        e.requiredLevel$ = e.data.requiredLevel || "";
+                        e.playerName$ = e.data.playerName;
                         e.applyTime$ = $scope.timeReformat(e.createTime);
-                        e.topUpAmount$ = e.data.topUpAmount ? parseFloat(e.data.topUpAmount).toFixed(2) : "";
-                        e.rewardAmount$ = e.data.rewardProposalId ? parseFloat(e.data.rewardAmount).toFixed(2) : "";
-                        e.data.rewardAmount$ = e.data.rewardProposalId ? e.data.rewardAmount : 0;
-                        e.spendingAmount$ = e.data.spendingAmount ? parseFloat(e.data.spendingAmount).toFixed(2) : parseFloat(0).toFixed(2);
-                        e.data.spendingAmount$ = e.data.spendingAmount ? e.data.spendingAmount : 0;
+                        e.topUpProposalId$ = e.data.topUpProposalId || "";
+                        e.topUpAmount$ = e.data.topUpAmount ? e.data.topUpAmount : 0;
+                        e.rewardProposalId$ = e.data.rewardProposalId || "";
+                        e.rewardAmount$ = e.data.rewardProposalId ? e.data.rewardAmount : 0;
+                        e.spendingAmount$ = e.data.spendingAmount ? e.data.spendingAmount : 0;
                         e.inputDevice$ = (e.hasOwnProperty("inputDevice") && vm.inputDeviceMapped[e.inputDevice]) ? $translate(vm.inputDeviceMapped[e.inputDevice]) : "Unknown";
-                    });
 
+                        e.data.topUpAmount$ = e.data.topUpAmount ? parseFloat(e.data.topUpAmount).toFixed(2) : "";
+                        e.data.rewardAmount$ = e.data.rewardProposalId ? parseFloat(e.data.rewardAmount).toFixed(2) : "";
+                        e.data.spendingAmount$ = e.data.spendingAmount ? parseFloat(e.data.spendingAmount).toFixed(2) : parseFloat(0).toFixed(2);
+                    });
                 }
                 vm.drawLimitedOfferReport(newSearch);
                 $('#limitedOfferTableSpin').hide();
@@ -2819,8 +2826,6 @@ define(['js/app'], function (myApp) {
         };
         vm.drawLimitedOfferReport = function (newSearch) {
             function localDataProcessing() {
-                vm.limitedOfferQuery.sortCol = vm.limitedOfferQuery.sortCol || {'applyTime$': -1};
-
                 let searchResult = vm.limitedOfferDetail.slice(0);
                 let sortCol = vm.limitedOfferQuery.sortCol;
                 let limit = vm.limitedOfferQuery.limit;
@@ -2845,18 +2850,18 @@ define(['js/app'], function (myApp) {
             let allResultSize = vm.limitedOfferDetail.length;
             let tableOptions = {
                 data: result,
-                "order": vm.limitedOfferQuery.aaSorting || [[4, 'desc']],
+                "order": vm.limitedOfferQuery.aaSorting || [[5, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'data.limitedOfferName', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'data.requiredLevel', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'data.playerName', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'limitedOfferName$', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'requiredLevel$', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'playerName$', 'aTargets': [4], bSortable: true},
                     {'sortCol': 'applyTime$', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'data.topUpProposalId', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'data.topUpAmount', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'data.rewardProposalId', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'data.rewardAmount$', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'data.spendingAmount$', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'topUpProposalId$', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'topUpAmount$', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'rewardProposalId$', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'rewardAmount$', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'spendingAmount$', 'aTargets': [10], bSortable: true},
                     {'sortCol': 'inputDevice$', 'aTargets': [11], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
@@ -2875,10 +2880,10 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYERNAME'), data: "data.playerName", sClass: "realNameCell wordWrap"},
                     {title: $translate('LIMITED_OFFER_APPLY_TIME'), data: "applyTime$"},
                     {title: $translate('topUpProposalId'), data: "data.topUpProposalId"},
-                    {title: $translate('TopupAmount'), data: "topUpAmount$", sClass: "sumFloat"},
+                    {title: $translate('TopupAmount'), data: "data.topUpAmount$", sClass: "sumFloat"},
                     {title: $translate('rewardProposalId'), data: "data.rewardProposalId"},
-                    {title: $translate('OFFER_AMOUNT'), data: "rewardAmount$", sClass: "sumFloat"},
-                    {title: $translate('SPENDING_AMOUNT'), data: "spendingAmount$", sClass: "sumFloat"},
+                    {title: $translate('OFFER_AMOUNT'), data: "data.rewardAmount$", sClass: "sumFloat"},
+                    {title: $translate('SPENDING_AMOUNT'), data: "data.spendingAmount$", sClass: "sumFloat"},
                     {title: $translate('DEVICE'), data: "inputDevice$"}
                 ],
                 "paging": false,
@@ -2900,48 +2905,48 @@ define(['js/app'], function (myApp) {
             } ).draw();
 
             $('#limitedOfferTable').resize();
-            $('#limitedOfferTable tbody').off('click', 'td.expandPlayerReport');
-            $('#limitedOfferTable tbody').on('click', 'td.expandPlayerReport', function () {
-                var tr = $(this).closest('tr');
-                var row = playerTbl.row(tr);
-
-                if (row.child.isShown()) {
-                    // This row is already open - close it
-                    row.child.hide();
-                    tr.removeClass('shown');
-                }
-                else {
-                    // Open this row
-                    var data = row.data();
-                    console.log('content', data);
-                    var id = 'playertable' + data._id;
-                    row.child(vm.createInnerTable(id)).show();
-                    vm[id] = {};
-                    vm.allGame = [];
-                    var gameId = [];
-                    if (data.gameDetail) {
-                        for (let n = 0; n < data.gameDetail.length; n++) {
-                            gameId[n] = data.gameDetail[n].gameId;
-                        }
-
-                        vm.getGameByIds(gameId).then(
-                            function () {
-                                for (let i = 0; i < data.gameDetail.length; i++) {
-                                    data.gameDetail[i].profit = parseFloat(data.gameDetail[i].bonusAmount / data.gameDetail[i].validAmount * -100).toFixed(2) + "%";
-                                    for (let j = 0; j < vm.allGame.length; j++){
-                                        if (data.gameDetail[i].gameId.toString() == vm.allGame[j]._id.toString()){
-                                            data.gameDetail[i].name = vm.allGame[j].name;
-                                        }
-                                    }
-                                }
-                                vm.drawPlatformTable(data, id, data.providerArr.length, newSearch, vm.limitedOfferQuery);
-                            }
-                        )
-                    }
-
-                    tr.addClass('shown');
-                }
-            });
+            // $('#limitedOfferTable tbody').off('click', 'td.expandPlayerReport');
+            // $('#limitedOfferTable tbody').on('click', 'td.expandPlayerReport', function () {
+            //     var tr = $(this).closest('tr');
+            //     var row = playerTbl.row(tr);
+            //
+            //     if (row.child.isShown()) {
+            //         // This row is already open - close it
+            //         row.child.hide();
+            //         tr.removeClass('shown');
+            //     }
+            //     else {
+            //         // Open this row
+            //         var data = row.data();
+            //         console.log('content', data);
+            //         var id = 'playertable' + data._id;
+            //         row.child(vm.createInnerTable(id)).show();
+            //         vm[id] = {};
+            //         vm.allGame = [];
+            //         var gameId = [];
+            //         if (data.gameDetail) {
+            //             for (let n = 0; n < data.gameDetail.length; n++) {
+            //                 gameId[n] = data.gameDetail[n].gameId;
+            //             }
+            //
+            //             vm.getGameByIds(gameId).then(
+            //                 function () {
+            //                     for (let i = 0; i < data.gameDetail.length; i++) {
+            //                         data.gameDetail[i].profit = parseFloat(data.gameDetail[i].bonusAmount / data.gameDetail[i].validAmount * -100).toFixed(2) + "%";
+            //                         for (let j = 0; j < vm.allGame.length; j++){
+            //                             if (data.gameDetail[i].gameId.toString() == vm.allGame[j]._id.toString()){
+            //                                 data.gameDetail[i].name = vm.allGame[j].name;
+            //                             }
+            //                         }
+            //                     }
+            //                     vm.drawPlatformTable(data, id, data.providerArr.length, newSearch, vm.limitedOfferQuery);
+            //                 }
+            //             )
+            //         }
+            //
+            //         tr.addClass('shown');
+            //     }
+            // });
 
             $('#limitedOfferTable').off('order.dt');
             $('#limitedOfferTable').on('order.dt', function (event, a) {
@@ -6094,7 +6099,7 @@ define(['js/app'], function (myApp) {
                         "PartnerTopUpReturn": "PARTNER_TOP_UP_RETURN_REPORT",
                         "PlayerTopUpReward": "PLAYER_TOP_UP_REWARD_REPORT",
                         "PlayerReferralReward": "PLAYER_REFERRAL_REWARD_REPORT"
-                    }
+                    };
 
                     // vm.topupTypeJson = {
                     //     '1': 'NetPay',
@@ -6113,7 +6118,6 @@ define(['js/app'], function (myApp) {
                     // };
                 }
             );
-
         });
     };
     myApp.register.controller('reportCtrl', reportController);
