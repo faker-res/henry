@@ -202,7 +202,7 @@ let dbPlayerReward = {
             }
 
             let rewardProposalQuery = {
-                "data.platformObjId": player.platform,
+                "data.platformObjId": platform._id,
                 "data.playerObjId": player._id,
                 "data.eventId": event._id,
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
