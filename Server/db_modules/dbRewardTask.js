@@ -400,9 +400,7 @@ const dbRewardTask = {
         }
         return dbconfig.collection_proposal.find(queryObj).
             then(data=>{
-                console.log(data);
                 return data;
-
         })
     },
     getRewardProposalId: function(query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj){
@@ -411,51 +409,53 @@ const dbRewardTask = {
         let rewardTaskGroupData;
         let rewardTaskData;
         let rewardTask = null;
+        let proposal = null;
+        let creator = null;
+        let isTopUpInProposal = false;
+        let topUpProposalId = null;
         // let rewardTaskSummary;
 
         return dbconfig.collection_proposal.findOne({'proposalId':query.topUpProposalId})
             .then(data=>{
                     topUpProposal = data;
-                    console.log(data);
+                    if(data.data.topUpProposalId){
+                        isTopUpInProposal = true;
+                        topUpProposalId = data.proposalId;
+                        topUpProposal.data.amount = data.data.topUpAmount;
+                    }
                     return data;
-
             })
             .then(data=>{
 
                 return dbconfig.collection_proposal.findOne({'data.topUpProposal':query.topUpProposalId})
+                    .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
                     .then(data=>{
                         if(data){
-                            let proposalId = data.data;
-                            return dbconfig.collection_rewardTask(queryObj)
+                            proposal = data.data;
+                            if(isTopUpInProposal){
+                                queryObj.proposalId = topUpProposalId;
+                            }else{
+                                queryObj.proposalId = data.proposalId;
+                            }
+                            creator = data.creator;
+                            return dbconfig.collection_rewardTask.find(queryObj)
                         }
                     })
             })
             .then(rewardTask=>{
-                rewardTaskData = rewardTask;
-                let c,d;
-                if (useProviderGroup) {
-                    c = dbconfig.collection_rewardTaskGroup.find(queryObj).count();
-                    d = dbconfig.collection_rewardTaskGroup.find(queryObj).sort(sortCol).skip(index).limit(limit)
-                        .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
+                rewardTaskData = rewardTask[0] ?  rewardTask[0] :[];
+                console.log(rewardTaskData);
+                return {
+                    size: rewardTaskData.length,
+                    data: [rewardTaskData],
+                    rewardTaskGroupSize: 1,
+                    rewardTaskGroupData: [],
+                    summary: {},
+                    topUpAmountSum:topUpProposal.data ?topUpProposal.data.amount:0,
+                    topUpProposal:topUpProposal.proposalId,
+                    proposal:proposal,
+                    creator:creator
                 }
-                return Q.all([c, d]).then(
-                    rewardTaskResult=>{
-                        console.log(topUpProposal);
-                        rewardTaskData.data['topUpAmountSum'] = topUpProposal.data.amount;
-                        rewardTaskData.data['topUpProposal'] = topUpProposal.proposalId;
-                        rewardTaskGroupSize = rewardTaskResult[0];
-                        rewardTaskGroupData = rewardTaskResult[1];
-
-                        return {
-                            size: rewardTaskData.length,
-                            data: [rewardTaskData],
-                            rewardTaskGroupSize: 1,
-                            rewardTaskGroupData: [],
-                            summary: {},
-                            topUpAmountSum:topUpProposal.data ?topUpProposal.data.amount:0,
-                            topUpProposal:topUpProposal.proposalId
-                        }
-                    })
             })
     },
     getRewardTaskList: function(query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj){
@@ -520,7 +520,6 @@ const dbRewardTask = {
                 f = dbRewardTask.getTopUpAmountSum(queryObj, sortCol);
                 return Q.all([a, b, c, d, e, f]).then(
                     data => {
-                        console.log(data);
                         size = data[0];
                         rewardTaskGroupSize = data[2];
                         rewardTaskGroupData = data[3];
@@ -530,8 +529,6 @@ const dbRewardTask = {
 
                         return Q.all([prom])
                             .then(proposalData => {
-                                console.log(proposalData);
-                                // return proposalData;
                                 return {
                                     size: size,
                                     data: proposalData[0] || [],
@@ -569,6 +566,7 @@ const dbRewardTask = {
     getProposalInfo: function(data){
         let prom = [];
         let topUpAmountSum = 0;
+        let topUpAmount = 0;
         let count = 0;
         data.map(item=>{
             let proposalId = item.proposalId;
@@ -581,6 +579,9 @@ const dbRewardTask = {
 
                     if(pdata.data.topUpProposal){
                         topUpProposal = pdata.data.topUpProposal;
+                    }
+                    if(pdata.data.topUpAmount){
+                        topUpAmount = pdata.data.topUpAmount;
                     }
                     return item;
                 },
@@ -608,7 +609,7 @@ const dbRewardTask = {
                             item.topUpAmount = topup.data.amount;
                             topUpAmountSum += item.topUpAmount;
                         }else{
-                            item.topUpAmount = '';
+                            item.topUpAmount =  topUpAmount?topUpAmount:'';
                         }
                     }
                     return item;

@@ -10194,7 +10194,6 @@ define(['js/app'], function (myApp) {
                     console.log(data);
                     vm.freeAmount = data.data ? data.data.freeAmount : '';
                     vm.currentFreeAmount = data.data ? data.data.currentFreeAmount : '';
-
                 })
 
 
@@ -10231,7 +10230,7 @@ define(['js/app'], function (myApp) {
 
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
-                        item.topUpAmount$ = (item.topUpAmount);
+                        item.topUpAmount = (item.topUpAmount);
                         item.bonusAmount$= (item.bonusAmount);
                         item.requiredBonusAmount$ = (item.requiredBonusAmount);
                         item.currentAmount$ = (item.currentAmount);
@@ -10248,9 +10247,18 @@ define(['js/app'], function (myApp) {
                         if (item.rewardType){
                             item.rewardType = $translate(item.rewardType);
                         }
-
-                        // item.isUnlock = $translate(item.isUnlock);
-
+                        // if search from topupProposalId
+                        if(data.data.topUpProposal && data.data.topUpProposal!=''){
+                            item.topUpProposal = data.data.topUpProposal;
+                            item.topUpAmount = data.data.topUpAmountSum;
+                        }
+                        // if search from topupProposalId
+                        if(data.data.topUpAmountSum){
+                            item.topUpAmount$ = data.data.topUpAmountSum;
+                        }
+                        if(data.data.creator){
+                            item.creator = data.data.creator
+                        }
                         return item;
                     }) : [];
                     var size = data.data ? data.data.size : 0;
@@ -10591,15 +10599,12 @@ define(['js/app'], function (myApp) {
                         {title: $translate('SubRewardType'), data: "rewardType"},
                         {title: $translate('CREATETIME'), data: "createTime$"},
                         //相關存款金額
-                        {title: $translate('Deposit Amount'), data: "topUpAmount$" , sClass: 'sumFloat textRight'},
-                        // {title: $translate('Deposit ProposalId'), data: "topUpProposal"},
+                        {title: $translate('Deposit Amount'), data: "topUpAmount" , sClass: 'sumFloat textRight'},
                         {title: $translate('Deposit ProposalId'),
                             data: "topUpProposal",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-
                                     'ng-click': 'vm.showProposalModal("' + data + '",1)'
-
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -10629,30 +10634,6 @@ define(['js/app'], function (myApp) {
                                 return "<div>" + text + "</div>";
                             }
                         },
-                        // ***
-                        // {title: $translate('applyAmount'), data: "applyAmount"},
-                        // {title: $translate('initAMOUNT'), data: "initAmount"},
-                        // {title: $translate('currentAMOUNT'), data: "currentAmount"},
-                        // {title: $translate('unlockedAmount'), data: "unlockedAmount"},
-                        // {title: $translate('unlockedBonusAmount'), data: "unlockedBonusAmount"},
-                        // // {title: $translate('targetEnable'), data: "targetEnable"},
-                        // {title: $translate('useConsumption'), data: "useConsumption"},
-                        //***
-
-                        // {title: $translate('CREATETIME'), data: "createTime$"},
-                        // {title: $translate('rewardType'), data: "rewardType"},
-                        // {title: $translate('ISUNLOCK'), data: "isUnlock"},
-                        // {title: $translate('applyAmount'), data: "applyAmount"},
-                        // {title: $translate('initAMOUNT'), data: "initAmount"},
-                        // {title: $translate('currentAMOUNT'), data: "currentAmount"},
-                        // {title: $translate('bonusAmount'), data: "bonusAmount"},
-                        // {title: $translate('requiredUnlockAmount'), data: "requiredUnlockAmount"},
-                        // {title: $translate('unlockedAmount'), data: "unlockedAmount"},
-                        // {title: $translate('requiredBonusAmount'), data: "requiredBonusAmount"},
-                        // {title: $translate('unlockedBonusAmount'), data: "unlockedBonusAmount"},
-                        // // {title: $translate('targetEnable'), data: "targetEnable"},
-                        // {title: $translate('targetProviders'), data: "provider$"},
-                        // {title: $translate('useConsumption'), data: "useConsumption"},
                     ],
                     "paging": false,
                     "scrollX": true,
