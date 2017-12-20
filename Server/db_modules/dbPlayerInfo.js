@@ -139,6 +139,29 @@ let dbPlayerInfo = {
     },
 
     /**
+     * Remove a new reward points record based on player data
+     */
+    removePlayerRewardPointsRecord: function (platformId, playerId, rewardPointsObjId) {
+        return dbconfig.collection_players.update(
+            {
+                _id: playerId,
+                platform: platformId
+            },
+            {
+                $unset: { rewardPointsObjId: ""}
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_rewardPoints.remove({_id:rewardPointsObjId});
+
+            }
+        ).catch(err => {
+                console.error(err);
+            }
+        )
+    },
+
+    /**
      * Update player's reward points and create log
      */
     updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark, adminName, adminId) {
