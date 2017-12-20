@@ -284,6 +284,26 @@
         rootObj.RewardService = RewardService;
     };
 
+    var defineRewardPointsService = function (sinonet) {
+        var RewardPointsService = function (connection) {
+            sinonet.WebSocketService.call(this, "rewardPoints", connection);
+
+            //define functions
+            var functionNames = [
+                "getLoginRewardPoints",
+            ];
+            addServiceFunctions(sinonet, this, functionNames);
+
+            // this.consumeRebateNotify = new sinonet.WebSocketNotification("consumeRebateNotify");
+            // this.addFunction(this.consumeRebateNotify);
+        };
+
+        RewardPointsService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        RewardPointsService.prototype.constructor = RewardPointsService;
+
+        rootObj.RewardPointsService = RewardPointsService;
+    };
+
     var defineGameService = function (sinonet) {
         var GameService = function (connection) {
             sinonet.WebSocketService.call(this, "game", connection);
@@ -377,6 +397,7 @@
         defineTopUpIntentionService(sinonet);
         defineConsumptionService(sinonet);
         defineRewardService(sinonet);
+        defineRewardPointsService(sinonet);
         defineGameService(sinonet);
         definePartnerService(sinonet);
     };
