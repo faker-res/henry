@@ -34,33 +34,115 @@ form(name="form_new_platform" ,novalidate)
                     input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmail")
 
             div(name="player-display-data", ng-show="vm.selectedPlatformDetailTab == 'player-display-data'")
-                div.form-group.col-md-6
-                    label.control-label {{"CUSTOMER_SERVICE_EMAIL" | translate}} ({{"IMAGE_URL" | translate}})
-                    input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmailImageUrl")
-                div.form-group.col-md-6
-                    label.control-label {{"CUSTOMER_SERVICE_HOTLINE" | translate}} ({{"IMAGE_URL" | translate}})
-                    input.form-control(type="text", placeholder="{{'HOTLINE' | translate}}", ng-model="vm.showPlatform.csPhone")
-                div.form-group.col-md-6
-                    label.control-label {{"CUSTOMER_SERVICE_URL" | translate}} ({{"IMAGE_URL" | translate}})
-                    input.form-control(type="text", placeholder="{{'CUSTOMER_SERVICE_URL' | translate}}", ng-model="vm.showPlatform.csUrl")
-                div.form-group.col-md-6
-                    label.control-label {{"CUSTOMER_SERVICE_QQ" | translate}} ({{"IMAGE_URL" | translate}})
-                    input.form-control(type="text", placeholder="{{'QQ' | translate}}", ng-model="vm.showPlatform.csQQ")
-                div.form-group.col-md-6
-                    label.control-label {{"CUSTOMER_SERVICE_WEIXIN" | translate}} ({{"IMAGE_URL" | translate}})
-                    input.form-control(type="text", placeholder="{{'CUSTOMER_WEIXIN' | translate}}", ng-model="vm.showPlatform.csWeixin")
-                div.form-group.col-md-6
-                    label.control-label {{"CUSTOMER_SERVICE_SKYPE" | translate}} ({{"IMAGE_URL" | translate}})
-                    input.form-control(type="text", placeholder="{{'CUSTOMER_SERVICE_SKYPE' | translate}}", ng-model="vm.showPlatform.csSkype")
-                div.form-group.col-md-6
-                    label.control-label {{"CUSTOMER_SERVICE_DISPLAY_URL" | translate}} ({{"IMAGE_URL" | translate}})
-                    input.form-control(type="text", ng-model="vm.showPlatform.csDisplayUrl")
-                div.form-group.col-md-6
-                    label.control-label {{"PLAYER_INVITE" | translate}}
-                    input.form-control(type="text", ng-model="vm.showPlatform.playerInvitationUrl")
-                div.form-group.col-md-6
-                    label.control-label {{"CUSTOMER_SERVICE_WEIXIN_PHOTO" | translate}}
-                    input.form-control(type="text", placeholder="{{'WEIXIN_PHOTO' | translate}}", ng-model="vm.showPlatform.weixinPhotoUrl")
+                ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='height: 46px;')
+                    .pull-left.padding-all-5
+                    li.active(id = 'customerServeiceTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
+                        a.common-tab(data-toggle="tab", ng-click='vm.playerDisplayDataTab = \'customerServicePanel\'')
+                            .fa.fa-file-text.margin-right-5
+                            text.span {{"CUSTOMER_SERVICE" | translate}}
+                    li(id = 'advertisementTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
+                        a.common-tab(data-toggle="tab",ng-click='vm.playerDisplayDataTab = \'advertisementPanel\'; vm.playerAdvertisementList();')
+                            .fa.fa-file-text.margin-right-5
+                            text.span {{"ADVERTISEMENT" | translate}}
+
+                #customerServicePanel.panel-body(ng-if="vm.playerDisplayDataTab === 'customerServicePanel'", style="background-color: white;")
+                    div.form-group.col-md-6
+                        label.control-label {{"CUSTOMER_SERVICE_EMAIL" | translate}} ({{"IMAGE_URL" | translate}})
+                        input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmailImageUrl")
+                    div.form-group.col-md-6
+                        label.control-label {{"CUSTOMER_SERVICE_HOTLINE" | translate}} ({{"IMAGE_URL" | translate}})
+                        input.form-control(type="text", placeholder="{{'HOTLINE' | translate}}", ng-model="vm.showPlatform.csPhone")
+                    div.form-group.col-md-6
+                        label.control-label {{"CUSTOMER_SERVICE_URL" | translate}} ({{"IMAGE_URL" | translate}})
+                        input.form-control(type="text", placeholder="{{'CUSTOMER_SERVICE_URL' | translate}}", ng-model="vm.showPlatform.csUrl")
+                    div.form-group.col-md-6
+                        label.control-label {{"CUSTOMER_SERVICE_QQ" | translate}} ({{"IMAGE_URL" | translate}})
+                        input.form-control(type="text", placeholder="{{'QQ' | translate}}", ng-model="vm.showPlatform.csQQ")
+                    div.form-group.col-md-6
+                        label.control-label {{"CUSTOMER_SERVICE_WEIXIN" | translate}} ({{"IMAGE_URL" | translate}})
+                        input.form-control(type="text", placeholder="{{'CUSTOMER_WEIXIN' | translate}}", ng-model="vm.showPlatform.csWeixin")
+                    div.form-group.col-md-6
+                        label.control-label {{"CUSTOMER_SERVICE_SKYPE" | translate}} ({{"IMAGE_URL" | translate}})
+                        input.form-control(type="text", placeholder="{{'CUSTOMER_SERVICE_SKYPE' | translate}}", ng-model="vm.showPlatform.csSkype")
+                    div.form-group.col-md-6
+                        label.control-label {{"CUSTOMER_SERVICE_DISPLAY_URL" | translate}} ({{"IMAGE_URL" | translate}})
+                        input.form-control(type="text", ng-model="vm.showPlatform.csDisplayUrl")
+                    div.form-group.col-md-6
+                        label.control-label {{"PLAYER_INVITE" | translate}}
+                        input.form-control(type="text", ng-model="vm.showPlatform.playerInvitationUrl")
+                    div.form-group.col-md-6
+                        label.control-label {{"CUSTOMER_SERVICE_WEIXIN_PHOTO" | translate}}
+                        input.form-control(type="text", placeholder="{{'WEIXIN_PHOTO' | translate}}", ng-model="vm.showPlatform.weixinPhotoUrl")
+                //#advertisementPanel.panel-body(ng-if="vm.playerDisplayDataTab === 'advertisementPanel'", style="background-color: white;")
+                    #playerAdvertisementRecords.adminLogQueryDiv
+                        .inlineBlk
+                            label {{"DEVICE" | translate}}
+                            select.form-control(ng-model='vm.advertisement.deviceStatus', ng-change="vm.getPlayerAdvertisementListByDevice(true)")
+                                option(value='1' selected="true") {{"WEB_PLAYER" | translate}}
+                                option(value='3') {{"H5_PLAYER" | translate}}
+                    .well
+                        .row
+                            .col-md-12
+                                p
+                                label {{"Total" | translate}} {{vm.playerAdvertisementRecords.totalCount}} {{"records" | translate}}
+                                i.fa.fa-spin.fa-spinner(ng-show='vm.playerAdvertisementRecords.loading')
+                                table#playerAdvertisementListTable.common-table.display(style='width:100%')
+                                #playerAdvertisementListTablePage
+                        .row
+                            button.button.btn.btn-primary.common-button(ng-click='vm.getNewPlayerListByFilter(true)') {{'SEARCH' | translate}}
+
+                        table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                            thead
+                                tr
+                                    th.col-md-2.oblique {{'Display Order' | translate}}
+                                    th.col-md-3.oblique {{'ADVERTISEMENT CODE (CANNOT REPEAT)' | translate}}
+                                    th.col-md-4.oblique {{'BANNER TITLE' | translate}}
+                                    th.col-md-4.oblique {{'DISPLAY BACKGROUND IMAGE' | translate}}
+                                    th.col-md-4.oblique {{'BANNER LINK BUTTON' | translate}}
+                                    th.col-md-4.oblique {{'ACTION_BUTTON' | translate}}
+                            tbody
+                                tr
+                                    td.col-md-4.oblique
+                                        input(type='number' , ng-model='vm.playerAdvertisementGroup.orderNo', style="width: 50px;")
+                                    td.col-md-4.oblique
+                                        input(type='text' , ng-model='vm.playerAdvertisementGroup.adCode', , style="width: 100px;")
+                                    td.col-md-4.oblique
+                                        table
+                                            tbody
+                                                tr
+                                                    td
+                                                        input(type="number" ng-model="vm.playerAdvertisementGroup.bannerTitle" style="width: 150px;")
+                                                    td
+                                                        i.fa.fa-plus(ng-click='vm.rewardPercentageAmountNewRow(entry[i])')
+                                                        //i.fa.fa-minus(ng-click='vm.rewardPercentageAmountDeleteRow(idx,entry[i])')
+
+                                    td.col-md-4
+                                        table
+                                            tbody
+                                                tr
+                                                    td(colspan=2)
+                                                        div(style="width: 430px;height: 120px;")
+                                                tr
+                                                    td
+                                                        label {{'BANNER IMAGE URL' | translate}}
+                                                    td
+                                                        input(type='text' , ng-model='vm.playerAdvertisementGroup.backgroundUrl', style="margin-bottom: 2px;")
+                                                tr
+                                                    td
+                                                        label {{'BANNER IMAGE HYPERLINK' | translate}}
+                                                    td
+                                                        input(type='text' , ng-model='vm.playerAdvertisementGroup.backgroundHyperLink', style="margin-bottom: 2px;")
+                                    td.col-md-4.oblique
+                                        table
+                                            tbody
+                                                tr
+                                                    td(ng-repeat="a in vm.noOfPlayerAdvertisementImageButton")
+                                                        div(style="display: inline-grid")
+                                                            input(type="number" ng-model="vm.playerAdvertisementGroup.button" style="width: 150px;")
+                                                            input(type="number" ng-model="vm.playerAdvertisementGroup.button" style="width: 150px;")
+                                                            input(type="number" ng-model="vm.playerAdvertisementGroup.button" style="width: 150px;")
+                                    td.col-md-4.oblique
+                                        i.fa.fa-plus(ng-click='vm.durationGroupConfig.push(vm.newDelayDurationGroup); vm.newDelayDurationGroup={};')
 
             div(name="partner-display-data", ng-show="vm.selectedPlatformDetailTab == 'partner-display-data'")
                 div.form-group.col-md-6

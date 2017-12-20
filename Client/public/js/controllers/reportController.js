@@ -1640,12 +1640,10 @@ define(['js/app'], function (myApp) {
         vm.getPlayerLevelByPlatformId = function (id) {
             socketService.$socket($scope.AppSocket, 'getPlayerLevelByPlatformId', {platformId: id}, function (data) {
                 vm.playerLvlData = {};
-                vm.playerLvlName = {};
                 console.log(data)
                 if (data.data) {
                     $.each(data.data, function (i, v) {
                         vm.playerLvlData[v._id] = v;
-                        vm.playerLvlName[v._id] = v.name;
                     })
                 }
                 console.log("vm.playerLvlData", vm.playerLvlData);
@@ -2810,7 +2808,6 @@ define(['js/app'], function (myApp) {
                         e.data.spendingAmount$ = e.data.spendingAmount ? e.data.spendingAmount : 0;
                         e.inputDevice$ = (e.hasOwnProperty("inputDevice") && vm.inputDeviceMapped[e.inputDevice]) ? $translate(vm.inputDeviceMapped[e.inputDevice]) : "Unknown";
                     });
-
                 }
                 vm.drawLimitedOfferReport(newSearch);
                 $('#limitedOfferTableSpin').hide();
