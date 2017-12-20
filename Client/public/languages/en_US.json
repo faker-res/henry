@@ -892,18 +892,18 @@
   "freeTrialReward": "Free Trial Reward",
 
   "REWARD_POINTS_ADJUSTMENT": "Modify Reward Points",
-  "VALID_REWARD_POINTS": "Valid Reward Points",
+  "VALID_REWARD_POINTS": "Modify Reward Points",
   "CURRENT_REWARD_POINTS": "Before Update",
   "CHANGE_REWARD_POINTS": "Change Reward Points",
   "UPDATED_REWARD_POINTS": "After Update",
-
-  "ADVANCE_REWARD_POINTS_CONVERT": "Advance Reward Points Convert",
+  "ADVANCE_REWARD_POINTS_CONVERT": "Convert Reward Points",
   "BEFORE_REWARD_POINTS_CONVERT": "Before Convert",
-  "REWARD_POINTS_CONVERT_AMOUNT": "Reward Points Convert",
+  "REWARD_POINTS_CONVERT_AMOUNT": "Convert Reward Points",
   "REWARD_POINTS_CONVERT_DAILY_LIMIT": "Daily limit",
   "AFTER_REWARD_POINTS_CONVERT": "After Convert",
-
   "rewardPointsTask": "Reward Points Task",
+  "RewardPointsChange": "Change Reward Points",
+  "RewardPointsConvert": "Convert Reward Points",
 
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
