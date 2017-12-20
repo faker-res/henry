@@ -8933,7 +8933,7 @@ define(['js/app'], function (myApp) {
             vm.safeApply = function () {
                 $scope.safeApply();
             }
-
+            
             vm.drawPlayerProposal = function (tblData, newSearch, summary) {
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
@@ -14229,18 +14229,29 @@ define(['js/app'], function (myApp) {
                         var objectId = result.data
                         if (objectId) {
                             data._id = objectId;
-                            vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
-                            vm.rewardParamsFilter=vm.rewardParams.reward;
+
+                            if (vm.rewardParamsFilter.length == vm.rewardParams.reward.length){
+                                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                            }
+                            else{
+                                vm.rewardParamsFilter.push(JSON.parse(JSON.stringify(data)));
+                                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                            }
                             $scope.safeApply();
                         }
                     });
                 } else if (type == 'remove') {
+                    if(vm.rewardParamsFilter){
+                        vm.rewardParamsFilter = vm.rewardParamsFilter.filter(item => {
+                            return item._id != id;
+                        })
+                    }
+
                     if (vm.rewardParams.reward) {
                         vm.rewardParams.reward = vm.rewardParams.reward.filter(item => {
                             return item._id != id;
                         })
                     }
-                    vm.rewardParamsFilter=vm.rewardParams.reward;
                     $scope.safeApply();
                 }
             };
@@ -14256,32 +14267,26 @@ define(['js/app'], function (myApp) {
 
             vm.daySelection = {
                 '0': true,
-                '1': false,
-                '2': false,
-                '3': false,
-                '4': false,
-                '5': false,
-                '6': false,
-                '7': false
+                '1': true,
+                '2': true,
+                '3': true,
+                '4': true,
+                '5': true,
+                '6': true,
+                '7': true
             };
 
             vm.rewardParamsDaySelectedAll = function () {
                 vm.rewardParamsFilter= [];
+                vm.rewardParamsFilter=vm.rewardParams.reward;
 
-                if (vm.daySelection['0']) {
-                    vm.rewardParamsFilter=vm.rewardParams.reward;
+                for (let i in vm.daySelection) {
+                    vm.daySelection[i]= true;
 
-                    for (let i in vm.daySelection) {
-                        if (i == '0') {
-                            vm.daySelection[i]= true;
-                        }
-                        else {
-                            vm.daySelection[i]= false;
-                        }
-                    }
                 }
                 console.log('rewardParamsFilter',vm.rewardParamsFilter);
                 $scope.safeApply();
+                vm.endLoadWeekDay();
             };
 
             vm.isDayChecked = function (index) {
@@ -14299,11 +14304,17 @@ define(['js/app'], function (myApp) {
 
                 vm.rewardParams.reward.map(
                     item => {
-                        if (item.repeatWeekDay.includes(index))
+                        if (item.repeatWeekDay === undefined) {
                             vm.rewardParamsFilter.push(item);
+                        }
+                        else if (item.repeatWeekDay.includes(index)){
+                            vm.rewardParamsFilter.push(item);
+                        }
+                        else {}
                     });
                 console.log('rewardParamsFilter',vm.rewardParamsFilter);
                 $scope.safeApply();
+                vm.endLoadWeekDay();
             };
 
             vm.endLoadWeekDay = function () {

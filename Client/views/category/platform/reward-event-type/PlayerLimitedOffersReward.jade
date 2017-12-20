@@ -24,7 +24,7 @@
 
         tbody
             tr
-                input(ng-model="vm.daySelection['0']", type='checkbox', ng-click="vm.rewardParamsDaySelectedAll()", ng-checked="true", ng-init="check=true", ng-disabled='!vm.platformRewardShowEdit()')
+                input(ng-model="vm.daySelection['0']", type='checkbox', ng-click="vm.rewardParamsDaySelectedAll()", ng-disabled='!vm.platformRewardShowEdit()')
                 label ALL /
                     div(ng-repeat='(i,v) in vm.weekDayList', style="display:inline-block")
                         input(type='checkbox', ng-model='vm.daySelection[i]', ng-click="vm.isDayChecked(i)", ng-disabled='!vm.platformRewardShowEdit()')
