@@ -215,14 +215,14 @@ var simplifiedChinese = {
     "This top up did not happen within reward interval time": "此提款记录并不在奖励周期内",
     "Player's top up amount does not meet condition in period": "玩家的周期内的累积存款金额不足",
     "Player's lose amount does not meet condition in period": "玩家的周期内的累积输值金额不足",
-<<<<<<< HEAD
+
     "This top up did not happen within reward interval time": "此存款记录并不在奖励周期内",
     "This reward only applicable on platform with provider group": "此优惠只适用于有锁大厅的平台",
-    "Phone number already registered on platform": "该手机号码已被注册，请更换或联系客服。"
-=======
+    "Phone number already registered on platform": "该手机号码已被注册，请更换或联系客服。",
+
     "This reward only applicable on platform with provider group": "此优惠只适用于有锁大厅的平台",
     "Top up does not meet Promo Code minimum required amount": "充值额没达到优惠代码需求",
->>>>>>> 3d03ab62cfe6d4838edf122c0cf6e8addadec400
+
     //todo::add missing messages here
 
     /*
