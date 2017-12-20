@@ -2,7 +2,7 @@
     .text-center
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 .row(ng-if='vm.curPlatformText')
-    .col-md-3
+    .col-md-2
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
                 label {{"WechatPay Group" | translate}}
@@ -32,7 +32,7 @@
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'AddAllPlayer')", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalAddAllPlayersToWechatPayGroup', ng-click='vm.addAllPlayerToWechatResult=""')
                         text {{"ADD_ALL_PLAYER" | translate}}
                         img.img-create
-    .col-md-9(style="padding-left:0;padding-right:15px")
+    .col-md-10(style="padding-left:0;padding-right:15px")
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
                 label {{"WechatPay Group" | translate}} : {{vm.SelectedWechatPayGroupNode.name}} ({{vm.SelectedWechatPayGroupNode.displayName}})
