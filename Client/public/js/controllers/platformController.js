@@ -9142,6 +9142,12 @@ define(['js/app'], function (myApp) {
                             record.commissionAmount$ = parseFloat(record.commissionAmount).toFixed(2);
                             // record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
                             record.bDirty$ = record.bDirty ? $translate('UNABLE') : $translate('ABLE');
+                            record.roundResult$ = "";
+                            record.roundId$ = "";
+                            record.matchId$ = "";
+                            record.gameType$ = "";
+                            record.betType$ = "";
+                            record.remark$ = "";
                             return record
                         }
                     );
@@ -9168,22 +9174,21 @@ define(['js/app'], function (myApp) {
 
                         columns: [
                             {title: $translate('orderId'), data: "orderNo"},
-                            {title: $translate('CREATION_TIME'), data: "createTime$"},
                             {title: $translate('PROVIDER'), data: "providerId.name"},
+                            {title: $translate('ROUND_RESULT'), data: "roundResult$"},
+                            {title: $translate('ROUND_ID'), data: "roundId$"},
+                            {title: $translate('MATCH_ID'), data: "matchId$"},
+                            {title: $translate('GAME_TYPE'), data: "gameType$"},
                             {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
-                            // {title: $translate('GAME_TYPE'), data: "gameType$", sClass: 'sumText'},
-                            // {title: $translate('Game Round'), data: "roundNo", sClass: 'sumText'},
+                            {title: $translate('BET_TYPE'), data: "betType$"},
+                            {title: $translate('BET_TIME'), data: "createTime$"},
                             {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
-                            {
-                                title: $translate('CREDIT'),
-                                data: "amount$",
-                                bSortable: true,
-                                sClass: 'alignRight sumFloat'
-                            },
                             {
                                 title: $translate('bonusAmount1'),
                                 data: "bonusAmount$", sClass: 'alignRight sumFloat'
                             },
+                            {title: $translate('Total Amount'), data: "amount$", bSortable: true, sClass: 'alignRight sumFloat'},
+                            {title: $translate('REMARK'), data: "remark$"},
                             {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "bDirty$"},
                             // {
                             //     title: $translate('commissionAmount'),
