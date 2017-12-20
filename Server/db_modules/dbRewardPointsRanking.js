@@ -78,20 +78,8 @@ var dbRewardPointsRanking = {
             }
         );
 
-        let rewardPointsCount = dbConfig.collection_platform.findOne({
-            platformId: platformId
-        }, {
-            _id:1
-        }).lean().then(
-            platform => {
-                return dbConfig.collection_rewardPoints.find({
-                    platformObjId: platform._id
-                }).count();
-            }
-        );
-
-        return Q.all([rewardPoints, rewardPointsCount]).then(result => {
-            return {data: result[0], size: result[1]};
+        return Q.all([rewardPoints]).then(result => {
+            return {data: result[0]};
         })
     },
 
