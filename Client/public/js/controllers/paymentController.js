@@ -841,7 +841,7 @@ define(['js/app'], function (myApp) {
 
         vm.merchantGroupTabClicked = function () {
             socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
-                if (data && data.data && data.data.merchantTypes) {
+                if (data && data.data && data.data.merchantTypes && data.data.merchantTypes.length > 0) {
                     vm.allMerchantTypeList = {};
                     data.data.merchantTypes.forEach(item => {
                         vm.allMerchantTypeList[item.merchantTypeId] = item;
@@ -850,7 +850,7 @@ define(['js/app'], function (myApp) {
                 }
                 $scope.safeApply();
             })
-        }
+        };
 
         vm.loadMerchantGroupData = function () {
             //init gametab start===============================
