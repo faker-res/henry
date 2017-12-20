@@ -105,7 +105,8 @@
                 "requestCancellationPayOrder",
                 "requestWeChatAccount",
                 "requestWeChatQRAccount",
-                "requestMfbAccount"
+                "requestMfbAccount",
+                "requestProposalSuccess"
             ];
             addServiceSyncFunctions(sinonet, this, functionNames1, ["proposalId"]);
 
