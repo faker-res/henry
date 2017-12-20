@@ -4404,34 +4404,41 @@ define(['js/app'], function (myApp) {
             }
         }
         vm.searchProposalRecord = function (newSearch) {
-
             vm.curPlatformId = vm.selectedPlatform._id;
-            var newproposalQuery = $.extend(true, {}, vm.proposalQuery);
-            // if (newproposalQuery.proposalTypeId == "all") {
-            //     newproposalQuery.proposalTypeId = null;
-            // }
 
-            var proposalNames = $('select#selectProposalType').multipleSelect("getSelects");
+            let newproposalQuery = $.extend(true, {}, vm.proposalQuery);
             newproposalQuery.proposalTypeId = [];
-            vm.allProposalType.filter(item => {
-                if (proposalNames.indexOf(item.name) > -1) {
-                    newproposalQuery.proposalTypeId.push(item._id);
-                }
-            });
-            var rewardTypes = $('select#selectRewardType').multipleSelect("getSelects");
             newproposalQuery.rewardTypeName = [];
-            vm.rewardList.filter(item => {
-                if (rewardTypes.indexOf(item.name) > -1) {
-                    newproposalQuery.rewardTypeName.push(item.name);
-                }
-            });
-            var promoType = $('select#selectPromoType').multipleSelect("getSelects");
             newproposalQuery.promoTypeName = [];
-            vm.promoTypeList.filter(item => {
-                if (promoType.indexOf(item.name) > -1) {
-                    newproposalQuery.promoTypeName.push(item.name);
-                }
-            });
+
+            let proposalNames = $('select#selectProposalType').multipleSelect("getSelects");
+            let rewardTypes = $('select#selectRewardType').multipleSelect("getSelects");
+            let promoType = $('select#selectPromoType').multipleSelect("getSelects");
+
+            if (vm.allProposalType.length != proposalNames.length) {
+                vm.allProposalType.filter(item => {
+                    if (proposalNames.indexOf(item.name) > -1) {
+                        newproposalQuery.proposalTypeId.push(item._id);
+                    }
+                });
+            }
+
+            if (vm.rewardList.length != rewardTypes.length) {
+                vm.rewardList.filter(item => {
+                    if (rewardTypes.indexOf(item.name) > -1) {
+                        newproposalQuery.rewardTypeName.push(item.name);
+                    }
+                });
+            }
+
+            if (vm.promoTypeList.length != promoType.length) {
+                vm.promoTypeList.filter(item => {
+                    if (promoType.indexOf(item.name) > -1) {
+                        newproposalQuery.promoTypeName.push(item.name);
+                    }
+                });
+            }
+
             if (newproposalQuery.status == "all") {
                 newproposalQuery.status = null;
             }
