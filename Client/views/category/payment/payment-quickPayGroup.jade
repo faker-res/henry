@@ -2,7 +2,7 @@
     .text-center
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 .row(ng-if='vm.curPlatformText')
-    .col-md-3
+    .col-md-2
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
                 label {{"QuickPay Group" | translate}}
@@ -36,7 +36,7 @@
                     //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'Bank', 'DetachProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedQuickPayGroupNode", ng-click='vm.confirmDetachProvider()')
                     //    text {{"DETACH" | translate}}
                     //    .fa.fa-chain-broken
-    .col-md-9(style="padding-left:0;padding-right:15px")
+    .col-md-10(style="padding-left:0;padding-right:15px")
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
                 label {{"QuickPay Group" | translate}} : {{vm.SelectedQuickPayGroupNode.name}} ({{vm.SelectedQuickPayGroupNode.displayName}})
