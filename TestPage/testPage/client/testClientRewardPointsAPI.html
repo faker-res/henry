@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="cache-control" content="max-age=0"/>
+    <meta http-equiv="cache-control" content="no-cache"/>
+    <meta http-equiv="expires" content="0"/>
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT"/>
+    <meta http-equiv="pragma" content="no-cache"/>
+    <title>Reward Points API</title>
+</head>
+<body>
+
+
+
+<h3>Get Login Reward Points (获取登入积分信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input id="platformId" type=text name="platformId">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getLoginRewardPoints" data-api-name="getLoginRewardPoints">Get Login Reward Points</button>
+    </div>
+</div>
+
+
+<h3>GET REWARD POINTS RANKING (获取积分排名)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getRewardPointsRanking" data-api-name="getRewardPointsRanking">Get Reward Points Ranking</button>
+    </div>
+</div>
+
+
+<script>
+    require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardPointsAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
+        function (ClientServices, WebSocketClient, TestHelper, ClientRewardPointsAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {
+            var Client = function (url) {
+
+                WebSocketClient.call(this, url);
+
+                var RewardPointsService = new ClientServices.RewardPointsService();
+                this.addService(RewardPointsService);
+
+                var playerService = new ClientServices.PlayerService();
+                this.addService(playerService);
+
+                var conService = new ClientServices.ConnectionService();
+                this.addService(conService);
+            };
+
+            var proto = Client.prototype = Object.create(WebSocketClient.prototype);
+            proto.constructor = Client;
+
+            var client = new Client(TestHelper.websocketURL);
+            client.connect();
+
+            client.addEventListener("open", function () {
+                var RewardPointsService = client.getService("rewardPoints");
+                var clientRewardPointsAPITest = new ClientRewardPointsAPITest(RewardPointsService);
+
+                var connectionService = client.getService("connection");
+                var connAPITest = new ClientConnectionAPITest(connectionService);
+
+                connAPITest.setLang(function (data) {
+                    console.log('setlang data.....', data);
+                });
+
+                TestHelper.loginCookiePlayer(client, ClientPlayerAPITest);
+                TestHelper.setAPIName('ClientServices.rewardPoints');
+                TestHelper.attachListeners(clientRewardPointsAPITest);
+            });
+
+            TestHelper.addReconnectOnCloseListener(client);
+        }
+    );
+
+
+</script>
+</body>
+</html>
+</body>
+</html>

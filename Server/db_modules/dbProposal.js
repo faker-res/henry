@@ -19,6 +19,7 @@ var dbPlatform = require('./../db_modules/dbPlatform');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var dbPartner = require('./../db_modules/dbPartner');
+var dbRewardPointsLog = require('./../db_modules/dbRewardPointsLog');
 var dbLogger = require('./../modules/dbLogger');
 var proposalExecutor = require('./../modules/proposalExecutor');
 var mongoose = require('mongoose');
@@ -318,6 +319,10 @@ var proposal = {
         ).then(
             function (data) {
                 if (data && data[0] && data[1] && data[2] != null) {
+                    if(data[0].mainType == constProposalMainType.PlayerConvertRewardPoints){
+                        dbRewardPointsLog.createRewardPointsLogByProposalData(data[0]);
+                    }
+
                     //notify the corresponding clients with new proposal
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     let expiredDate = null;
@@ -2530,45 +2535,17 @@ var proposal = {
         }
         else {
             if (reqData.type && reqData.type.length > 0) {
-                var arr = reqData.type.map(item => {
+                let arr = reqData.type.map(item => {
                     return ObjectId(item);
                 });
                 reqData.type = {$in: arr}
             }
 
-            if (reqData["data.eventName"] || reqData["data.PROMO_CODE_TYPE"] || reqData["data.playerName"] || reqData["data.partnerName"]) {
-                reqData["$and"] = [];
-            }
-
-            if (reqData["data.eventName"]) {
-                let dataCheck = {"data.eventName": {$in: reqData["data.eventName"]}};
-                let existCheck = {"data.eventName": {$exists: false}};
-                let orQuery = [dataCheck, existCheck];
-                reqData["$and"].push({$or: orQuery});
-                delete reqData["data.eventName"];
-            }
-
-            if (reqData["data.PROMO_CODE_TYPE"]) {
-                let dataCheck = {"data.PROMO_CODE_TYPE": {$in: reqData["data.PROMO_CODE_TYPE"]}};
-                let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
-                let orQuery = [dataCheck, existCheck];
-                reqData["$and"].push({$or: orQuery});
-                delete reqData["data.PROMO_CODE_TYPE"];
-            }
-            if (reqData["data.playerName"] || reqData["data.partnerName"]) {
-                let playerNameCheck = {"data.playerName": reqData["data.playerName"]};
-                let partnerNameCheck = {"data.partnerName": reqData["data.partnerName"]};
-                let orQuery = [playerNameCheck, partnerNameCheck];
-                reqData["$and"].push({$or: orQuery});
-                delete reqData["data.playerName"];
-                delete reqData["data.partnerName"];
-            }
-
-            var a = dbconfig.collection_proposal.find(reqData).count();
-            var b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
+            let a = dbconfig.collection_proposal.find(reqData).lean().count();
+            let b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                 .populate({path: "type", model: dbconfig.collection_proposalType})
-                .populate({path: "process", model: dbconfig.collection_proposalProcess});
-            var c = dbconfig.collection_proposal.aggregate([
+                .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
+            let c = dbconfig.collection_proposal.aggregate([
                 {
                     $match: reqData
                 },
@@ -2668,6 +2645,7 @@ var proposal = {
                 })
             }
         );
+
         return deferred.promise;
     },
     /**

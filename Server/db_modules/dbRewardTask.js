@@ -175,6 +175,11 @@ const dbRewardTask = {
         ).then(
             providerGroup2 => {
                 if (providerGroup2) {
+                    let eventName = proposalData && proposalData.data && proposalData.data.eventName ? proposalData.data.eventName : "";
+
+                    // Create credit change log for this reward
+                    dbLogger.createCreditChangeLogWithLockedCredit(rewardData.playerId, rewardData.platformId, 0, eventName, 0, rewardData.initAmount, rewardData.initAmount, null, proposalData.data);
+
                     // Successfully created reward task
                     return providerGroup2;
                 }
@@ -1134,8 +1139,7 @@ const dbRewardTask = {
         let playerCreditChange;
 
         // Set transfer amount
-        let rewardAmount = unlockType == constRewardTaskStatus.NO_CREDIT ? Math.floor(rewardGroupData.currentAmt) : rewardGroupData.rewardAmt;
-        rewardAmount = rewardAmount >= 0 ? rewardAmount : 0;
+        let rewardAmount = rewardGroupData.rewardAmt;
 
         // Mark the provider group as complete if it is manual unlocked
         let taskGroupProm = Promise.resolve();
@@ -1173,7 +1177,9 @@ const dbRewardTask = {
                             let providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rewardGroupData.providerGroup})
                                 .populate({path: "providers", model: dbconfig.collection_gameProvider});
 
-                            dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardGroupData.type + ":unlock", player.validCredit, 0, -rewardAmount, null, rewardGroupData);
+                            let rewardType = rewardGroupData && rewardGroupData.type ? rewardGroupData.type : "Free amount";
+
+                            dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardType + ":unlock", player.validCredit, 0, -rewardAmount, null, rewardGroupData);
 
                             Promise.all([platformProm,providerGroupProm]).then(
                                 data => {

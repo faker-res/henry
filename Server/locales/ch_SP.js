@@ -125,7 +125,7 @@ var simplifiedChinese = {
     "Invalid player top up reward event data for platform": "无效奖励活动",
     "Topup amount is less than minimum topup requirement": "充值额度不够",
     "Wrong promo code has entered": "您输入了错误的优惠代码，请确认您的短信内容。",
-    "No available promo code at the moment": "您目前尚无可领取优惠，谢谢。",
+    "No available promo code at the moment": "您无可以使用的优惠代码，请多投注后系统将随机赠送。",
     "Topup has been used for other reward": "您的最新存款已经申请其他优惠，请在重新存款后、投注前申请！",
     "Topup amount '$": "您需要有新的存款 '",
     "' is needed for this reward": "元' 才可以领取此优惠，千万别错过了！",
@@ -215,8 +215,13 @@ var simplifiedChinese = {
     "This top up did not happen within reward interval time": "此提款记录并不在奖励周期内",
     "Player's top up amount does not meet condition in period": "玩家的周期内的累积存款金额不足",
     "Player's lose amount does not meet condition in period": "玩家的周期内的累积输值金额不足",
+
     "This top up did not happen within reward interval time": "此存款记录并不在奖励周期内",
-    "This reward only applicable on platform with provider group": "此优惠只适用于有锁大厅的平台"
+    "This reward only applicable on platform with provider group": "此优惠只适用于有锁大厅的平台",
+    "Phone number already registered on platform": "该手机号码已被注册，请更换或联系客服。",
+
+    "This reward only applicable on platform with provider group": "此优惠只适用于有锁大厅的平台",
+    "Top up does not meet Promo Code minimum required amount": "您的存款金额低于该优惠代码限制，请调整存款金额。",
     //todo::add missing messages here
 
     /*
