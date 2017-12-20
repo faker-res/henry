@@ -78,7 +78,6 @@ let rewardPointsTaskSchema = require('./../schema/rewardPointsTask');
 
 let frontEndInfoSchema = require('./../schema/frontEndInfo');
 
-
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
