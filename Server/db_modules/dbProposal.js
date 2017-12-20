@@ -2419,6 +2419,10 @@ var proposal = {
      *
      */
     getProposalsByAdvancedQuery: function (reqData, index, count, sortObj) {
+
+        // PERFORMANCE DEBUG
+        console.time("getProposalsByAdvancedQuery");
+
         count = Math.min(count, constSystemParam.REPORT_MAX_RECORD_NUM)
         sortObj = sortObj || {};
         var dataDeferred = Q.defer();
@@ -2673,6 +2677,10 @@ var proposal = {
                 })
             }
         );
+
+        // PERFORMANCE DEBUG
+        console.timeEnd("getProposalsByAdvancedQuery");
+
         return deferred.promise;
     },
     /**
