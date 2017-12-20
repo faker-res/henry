@@ -168,7 +168,15 @@ let dbRewardTaskGroup = {
                 currentAmt: -incRewardAmount,
                 curConsumption: incConsumptionAmount
             }
-        });
+        }, {
+            new: true
+        }).then(
+            updatedData => {
+                if (updatedData && (updatedData.currentAmt <= 0 || updatedData.curConsumption >= updatedData.targetConsumption)) {
+                    return dbRewardTask.completeRewardTaskGroup(updatedData, constRewardTaskStatus.MANUAL_UNLOCK);
+                }
+            }
+        );
     },
 };
 

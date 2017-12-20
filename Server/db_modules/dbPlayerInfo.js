@@ -2186,10 +2186,10 @@ let dbPlayerInfo = {
                     var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform);
                     let promArr;
 
-                    if(useProviderGroup){
+                    if (useProviderGroup) {
                         var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, data.platform, amount);
                         promArr = [recordProm, logProm, levelProm, freeAmountRewardTaskGroupProm];
-                    }else{
+                    } else {
                         promArr = [recordProm, logProm, levelProm];
                     }
 
