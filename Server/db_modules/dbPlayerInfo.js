@@ -8377,7 +8377,7 @@ let dbPlayerInfo = {
         ).then(
             loginData => ({gameURL: loginData.gameURL}),
             error => Q.reject({
-                status: constServerCode.TEST_GAME_REQUIRE_LOGIN,
+                status: constServerCode.INVALID_API_USER,
                 name: "DataError",
                 message: "Please login and try again"
             })
