@@ -2289,7 +2289,15 @@ let dbPlayerReward = {
         })
     },
 
-    getLimitedOffers: (platformId, playerId, status) => {
+    /**
+     *
+     * @param platformId
+     * @param playerId
+     * @param status
+     * @param {Number} period - In past X hours
+     * @returns {Promise<T>}
+     */
+    getLimitedOffers: (platformId, playerId, status, period) => {
         let platformObj;
         let rewardTypeData;
         let intPropTypeObj;
@@ -2297,11 +2305,11 @@ let dbPlayerReward = {
         let rewards;
         let playerObj;
         let levelObj;
+        let acceptedList = [], expiredList = [];
 
         if (status) {
             status = Number(status);
         }
-
 
         return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -2354,6 +2362,8 @@ let dbPlayerReward = {
                     rewards = eventData.param.reward;
                     timeSet = new Set();
                     let promArr = [];
+
+                    // Set reward status
                     rewards.map(e => {
                         let status = 0;
                         timeSet.add(String(e.hrs + ":" + e.min));
@@ -2372,6 +2382,33 @@ let dbPlayerReward = {
                         if (new Date().getTime() >= dbUtility.getLocalTime(e.startTime).getTime()
                             && new Date().getTime() < dbUtility.getLocalTime(e.downTime).getTime()) {
                             status = 1;
+                        }
+
+                        let proposalQuery = {
+                            'data.platformObjId': platformObj._id,
+                            'data.playerId': playerId,
+                            'data.limitedOfferObjId': e._id,
+                            type: intPropTypeObj._id
+                        };
+
+                        // Find player's limited offer application
+                        if (period) {
+                            let timeInPassPeriodHours = dbUtility.getSGTimeOfPassHours(period);
+                            proposalQuery.createTime = {$gte: timeInPassPeriodHours.startTime, $lte: timeInPassPeriodHours.endTime};
+
+                            promArr.push(
+                                dbConfig.collection_proposal.findOne(proposalQuery).lean().then(
+                                    prop => {
+                                        if (prop && prop.data) {
+                                            if (prop.data.topUpProposalId) {
+                                                acceptedList.push(e);
+                                            } else if (prop.data.expirationTime.getTime() >= new Date().getTime()) {
+                                                expiredList.push(e);
+                                            }
+                                        }
+                                    }
+                                )
+                            );
                         }
 
                         promArr.push(
@@ -2400,6 +2437,7 @@ let dbPlayerReward = {
                                             if (String(f._id) == String(playerId)) {
                                                 status = 2;
 
+                                                // Player paid
                                                 if (f.paidCount > 0) {
                                                     status = 3;
                                                 }
@@ -2437,6 +2475,7 @@ let dbPlayerReward = {
                             )
                         );
 
+                        // Get provider group name from object ids
                         if (e.providers && e.providers.length > 0) {
                             let providerIds = e.providers;
 
@@ -2478,6 +2517,7 @@ let dbPlayerReward = {
                     // Interpret providers
                     e.providers = e.providers && e.providers.length > 0 ? [...e.providers].join(",") : "所有平台"
                 });
+
                 // Filter by status if any
                 if (status && status !== 0) {
                     rewards = rewards.filter(e => {
@@ -2493,12 +2533,13 @@ let dbPlayerReward = {
                     })
                 }
 
-
                 return {
                     time: [...timeSet].join("/"),
                     showInfo: playerObj && playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
                     secretList: rewards.filter(e => Boolean(e.displayOriPrice) === false),
-                    normalList: rewards.filter(e => Boolean(e.displayOriPrice) === true)
+                    normalList: rewards.filter(e => Boolean(e.displayOriPrice) === true),
+                    acceptedList: acceptedList,
+                    expiredList: expiredList
                 }
             }
         );
