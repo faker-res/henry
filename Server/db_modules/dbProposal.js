@@ -468,7 +468,7 @@ var proposal = {
                         errorMessage = "Invalid requestId";
                     }
                     return Q.reject({
-                        code: proposalData.status == constProposalStatus.SUCCESS ?  constServerCode.INVALID_PROPOSAL : constServerCode.INVALID_PARAM,
+                        status: proposalData.status == constProposalStatus.SUCCESS ?  constServerCode.INVALID_PROPOSAL : constServerCode.INVALID_PARAM,
                         name: "DataError",
                         message: errorMessage,
                         data: {
@@ -505,7 +505,7 @@ var proposal = {
             error => {
                 if (!error.data) {
                     return Q.reject({
-                        code: constServerCode.COMMON_ERROR,
+                        status: constServerCode.COMMON_ERROR,
                         name: "DataError",
                         message: error.message || error,
                         data: {
