@@ -13,31 +13,48 @@ let dbPromoCode = {
                 let promoCodeQuery = {
                     playerObjId: playerObjId,
                     platformObjId: platformObjId,
-                    code: promoCode,
+                    // code: promoCode,
                     expirationTime: {$gt: new Date()},
                     isActive: {$ne: true},
                     status: constPromoCodeStatus.AVAILABLE
                 };
 
-                // if (amount && typeof amount === "number") {
-                //     promoCodeQuery.minTopUpAmount = {$lte: amount};
-                // }
 
-                return dbconfig.collection_promoCode.findOne(promoCodeQuery).lean();
+                return dbconfig.collection_promoCode.find(promoCodeQuery).lean();
             }
         }).then(promoCodeData => {
-
-            if (amount && typeof amount === "number" && promoCodeData && promoCodeData.minTopUpAmount && amount < promoCodeData.minTopUpAmount) {
+            console.log(promoCodeData)
+            if (!promoCodeData || !promoCodeData.length) {
                 return Promise.reject({
-                    status: constServerCode.FAILED_PROMO_CODE_MIN_TOP_UP,
-                    errorMessage: "Top up does not meet Promo Code minimum required amount"
+                    status: constServerCode.DOCUMENT_NOT_FOUND,
+                    name: "DataError",
+                    errorMessage: "No available promo code at the moment"
                 });
             }
 
-            return Boolean(promoCodeData && promoCodeData._id);
-        }).catch(err => {
-            errorUtils.reportError(err);
-            return false;
+            for (let i = 0; i < promoCodeData.length; i++) {
+                let promoCodeObj = promoCodeData[i];
+                if (promoCodeObj.code.toString() === promoCode) {
+                    if (amount && typeof amount === "number") {
+                        if (amount >= promoCodeObj.minTopUpAmount) {
+                            return true;
+                        } else {
+                            return Promise.reject({
+                                status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                                name: "DataError",
+                                errorMessage: "Top up does not meet Promo Code minimum required amount"
+                            });
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            return Promise.reject({
+                status: constServerCode.NO_PROMO_CODE_MATCH,
+                name: "DataError",
+                errorMessage: "Wrong promo code has entered"
+            });
         });
     },
 };

@@ -2468,6 +2468,10 @@ var dbPlayerTopUpRecord = {
                 }
             }
         );
+    },
+
+    addTestTopUp: function(platformId, name, type, amount, createTime) {
+        //todo:: implement later
     }
 
 };

@@ -29,6 +29,26 @@
 </div>
 
 
+<h3>GET REWARD POINTS RANKING (获取积分排名)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Total Rank
+            <input type=number name="totalRank">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getRewardPointsRanking" data-api-name="getRewardPointsRanking">Get Reward Points Ranking</button>
+    </div>
+</div>
+
 
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardPointsAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],

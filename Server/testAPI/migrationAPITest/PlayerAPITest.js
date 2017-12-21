@@ -30,6 +30,17 @@
         });
     };
 
+    proto.removePlayerRewardPointsRecord = function (callback, requestData) {
+        var data = requestData;
+        this._service.removePlayerRewardPointsRecord.request(data);
+        var self = this;
+        this._service.removePlayerRewardPointsRecord.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.createPlayerTopUpRecord = function (callback, requestData) {
         var data = requestData;
         this._service.createPlayerTopUpRecord.request(data);

@@ -2,7 +2,7 @@
     .text-center
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 .row(ng-if='vm.curPlatformText')
-    .col-md-3
+    .col-md-2
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
                 label {{"Bankcard Group" | translate}}
@@ -33,7 +33,7 @@
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'AddAllPlayer')", ng-disabled="!vm.selectedPlatform || !vm.SelectedBankCardGroupNode", data-toggle="modal", data-target='#modalAddAllPlayersToBankCardGroup', ng-click='vm.addAllPlayerToBankCardResult=""')
                         text {{"ADD_ALL_PLAYER" | translate}}
                         img.img-create
-    .col-md-9(style="padding-left:0;padding-right:15px")
+    .col-md-10(style="padding-left:0;padding-right:15px")
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
                 label {{"Bankcard Group" | translate}} : {{vm.SelectedBankCardGroupNode.name}} ({{vm.SelectedBankCardGroupNode.displayName}})
@@ -97,15 +97,15 @@
                                         tr
                                             td.text-center
                                             td {{'BANK_ACCOUNT_PROVINCE' | translate}}
-                                            td.text-success {{v.province}}
+                                            td.text-success {{v.provinceName}}
                                         tr
                                             td.text-center
                                             td {{'BANK_ACCOUNT_CITY' | translate}}
-                                            td.text-success {{v.city}}
+                                            td.text-success {{v.cityName}}
                                         tr
                                             td.text-center
                                             td {{'BANK_ACCOUNT_BRANCH' | translate}}
-                                            td.text-success {{v.branch}}
+                                            td.text-success {{v.openingPoint}}
                                         tr
                                             td.text-center
                                             td {{'DAY_LIMIT' | translate}}
@@ -154,15 +154,15 @@
                                         tr
                                             td.text-center
                                             td {{'BANK_ACCOUNT_PROVINCE' | translate}}
-                                            //td.text-success {{v.name}}
+                                            td.text-success {{v.provinceName}}
                                         tr
                                             td.text-center
                                             td {{'BANK_ACCOUNT_CITY' | translate}}
-                                            //td.text-success {{v.name}}
+                                            td.text-success {{v.cityName}}
                                         tr
                                             td.text-center
                                             td {{'BANK_ACCOUNT_BRANCH' | translate}}
-                                            //td.text-success {{v.name}}
+                                            td.text-success {{v.openingPoint}}
                                         tr
                                             td.text-center
                                             td {{'DAY_LIMIT' | translate}}

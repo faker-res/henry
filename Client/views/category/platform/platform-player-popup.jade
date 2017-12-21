@@ -1416,11 +1416,15 @@
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{'REWARD_POINTS_ADJUSTMENT' | translate}} : {{vm.selectedSinglePlayer.name}} ({{vm.selectedSinglePlayer.realName}})
-            .modal-body(ng-show='vm.isOneSelectedPlayer().permission && !vm.isOneSelectedPlayer().permission.rewardPointsTask')
+            .modal-body(ng-show='!vm.selectedPlatform.data.usePointSystem')
+                .well
+                    label.text-danger {{'FAIL' | translate}}
+                    label.form-control {{"Point system is disabled for this platform" | translate}}
+            .modal-body(ng-show='vm.isOneSelectedPlayer().permission && !vm.isOneSelectedPlayer().permission.rewardPointsTask && vm.selectedPlatform.data.usePointSystem')
                 .well
                     label.text-danger {{'FAIL' | translate}}
                     label.form-control {{"Player does not have reward points task permission" | translate}}
-            .modal-body(ng-show='vm.isOneSelectedPlayer().permission && vm.isOneSelectedPlayer().permission.rewardPointsTask')
+            .modal-body(ng-show='vm.isOneSelectedPlayer().permission && vm.isOneSelectedPlayer().permission.rewardPointsTask && vm.selectedPlatform.data.usePointSystem')
                 ul.nav.nav-tabs.common-nav-tabs
                     li(ng-class="vm.selectedRewardPointsAdjustmentTab == 'change' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RewardPointsChange')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardPointsAdjustmentTab('change');") {{"VALID_REWARD_POINTS" | translate}}
