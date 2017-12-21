@@ -1195,6 +1195,7 @@ define(['js/app'], function (myApp) {
             } else if (choice == "LIMITED_OFFER_REPORT") {
                 vm.limitedOfferQuery = {};
                 vm.limitedOfferDetail = {};
+                vm.limitedOfferQuery.limit = 10;
                 utilService.actionAfterLoaded("#limitedOfferTable", function () {
                     vm.commonInitTime(vm.limitedOfferQuery, '#limitedOfferQuery');
                     vm.limitedOfferQuery.pageObj = utilService.createPageForPagingTable("#limitedOfferTablePage", {}, $translate, function (curP, pageSize) {
@@ -2769,7 +2770,6 @@ define(['js/app'], function (myApp) {
 
         vm.getLimitedOfferReport = function (newSearch) {
             $('#limitedOfferTableSpin').show();
-            vm.limitedOfferQuery.limit = 10;
             vm.limitedOfferQuery.index = 0;
             vm.limitedOfferQuery.sortCol = vm.limitedOfferQuery.sortCol || {'applyTime$': -1};
 

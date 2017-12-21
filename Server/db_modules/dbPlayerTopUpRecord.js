@@ -1999,9 +1999,9 @@ var dbPlayerTopUpRecord = {
     getPlayerAliPayStatus: playerId => {
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "aliPayGroup", model: dbconfig.collection_platformAliPayGroup}).then(
+            .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
-                    if (playerData && playerData.platform && playerData.aliPayGroup && playerData.aliPayGroup.alipays && playerData.aliPayGroup.alipays.length > 0) {
+                    if (playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) {
                         return pmsAPI.alipay_getAlipayList({
                             platformId: playerData.platform.platformId,
                             queryId: serverInstance.getQueryId()
@@ -2011,7 +2011,7 @@ var dbPlayerTopUpRecord = {
                                 if (alipays.data && alipays.data.length > 0) {
                                     alipays.data.forEach(
                                         alipay => {
-                                            playerData.aliPayGroup.alipays.forEach(
+                                            playerData.alipayGroup.alipays.forEach(
                                                 pAlipay => {
                                                     if (pAlipay == alipay.accountNumber && alipay.state == "NORMAL") {
                                                         bValid = true;
