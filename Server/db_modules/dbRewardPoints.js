@@ -343,6 +343,116 @@ let dbRewardPoints = {
         );
     },
 
+    getLoginRewardPoints: function (playerId, platformId) {
+        let returnData;
+        let playerObjId;
+        if (playerId) {
+            return dbConfig.collection_players.findOne({playerId: playerId}).lean().then(
+                playerData => {
+                    if (playerData) {
+                        playerObjId = playerData._id;
+                        return dbConfig.collection_rewardPointsEvent.find({
+                            platformObjId: playerData.platform,
+                            category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS
+                        }).lean().sort({index: 1});
+                    } else {
+                        return Promise.reject({name: "DataError", message: "Cannot find player"});
+                    }
+                }
+            ).then(
+                rewardPointsEvent => {
+                    if (rewardPointsEvent && rewardPointsEvent.length > 0) {
+                        let noProgress = {
+                            isApplicable: false,
+                            isApplied: false,
+                            count: 0
+                        }
+                        returnData = rewardPointsEvent;
+                        for (let i = 0; i < returnData.length; i++) {
+                            returnData[i].progress = noProgress;
+                            if (returnData[i].period) {
+                                let periodTime = getEventPeriodTime(returnData[i]);
+                                returnData[i].startTime = periodTime.startTime;
+                                returnData[i].endTime = periodTime.endTime;
+                            }
+                        }
+                        return dbConfig.collection_rewardPoints.findOne({playerObjId: playerObjId}).lean();
+                    }
+                }
+            ).then(
+                rewardPointsData => {
+                    if (rewardPointsData) {
+                        if (rewardPointsData.progress && rewardPointsData.progress.length > 0) {
+                            rewardPointsData.progress.filter(item => {
+                                for (let i = 0; i < returnData.length; i++) {
+                                    if (returnData[i]._id && item.rewardPointsEventObjId && item.rewardPointsEventObjId.toString() == returnData[i]._id.toString()
+                                        && item.lastUpdateTime >= returnData[i].startTime && item.lastUpdateTime <= returnData[i].endTime) {
+                                        delete item.lastUpdateTime;
+                                        delete item.rewardPointsEventObjId;
+                                        returnData[i].progress = item;
+                                        return item;
+                                    }
+                                }
+                            });
+                        }
+                        returnData.map(item => {
+                            delete item._id;
+                            delete item.__v;
+                            delete item.platformObjId;
+                            delete item.category;
+                            delete item.customPeriodStartTime;
+                            delete item.customPeriodEndTime;
+                            return item;
+                        });
+                        return {data: returnData};
+                    }
+                }
+            );
+        }
+        if (platformId && !playerId) {
+            return dbConfig.collection_platform.findOne({platformId: platformId}).then(
+                platformData => {
+                    if (!platformData || !platformData._id) {
+                        return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                    }
+                    return dbConfig.collection_rewardPointsEvent.find({
+                        platformObjId: platformData._id,
+                        category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS
+                    }).lean().sort({index: 1});
+                }
+            ).then(
+                rewardPointsEvent => {
+                    if (rewardPointsEvent && rewardPointsEvent.length > 0) {
+                        let noProgress = {
+                            isApplicable: false,
+                            isApplied: false,
+                            count: 0
+                        }
+                        returnData = rewardPointsEvent;
+                        for (let i = 0; i < returnData.length; i++) {
+                            returnData[i].progress = noProgress;
+                            if (returnData[i].period) {
+                                let periodTime = getEventPeriodTime(returnData[i]);
+                                returnData[i].startTime = periodTime.startTime;
+                                returnData[i].endTime = periodTime.endTime;
+                            }
+                        }
+                        returnData.map(item => {
+                            delete item._id;
+                            delete item.__v;
+                            delete item.platformObjId;
+                            delete item.category;
+                            delete item.customPeriodStartTime;
+                            delete item.customPeriodEndTime;
+                            return item;
+                        });
+                        return returnData;
+                    }
+                }
+            )
+        }
+    },
+
     // this function might need to move to dbRewardPointLog
     createRewardPointsLog: function (logDetails) {
         return dbConfig.collection_rewardPointsLog(logDetails).save();
@@ -454,6 +564,35 @@ function getEventPeriodStartTime(event) {
                 return event.customPeriodStartTime;
             }
             // go to default if custom period start time does not exist
+        default:
+            return false;
+    }
+}
+
+function getEventPeriodTime(event) {
+    if (!event || !event.period) {
+        return false;
+    }
+    switch(Number(event.period)) {
+        case 1:
+            return dbUtility.getTodaySGTime();
+        case 2:
+            return dbUtility.getCurrentWeekSGTime();
+        case 3:
+            return dbUtility.getCurrentBiWeekSGTIme();
+        case 4:
+            return dbUtility.getCurrentMonthSGTIme();
+        case 5:
+            return dbUtility.getCurrentYearSGTime();
+        case 6:
+            // if (event.customPeriodStartTime) {
+            //     return event.customPeriodStartTime;
+            // }
+            return {
+                startTime: event.customPeriodStartTime?event.customPeriodStartTime:"",
+                endTime: event.customPeriodEndTime? event.customPeriodEndTime: ""
+            };
+        // go to default if custom period start time does not exist
         default:
             return false;
     }
