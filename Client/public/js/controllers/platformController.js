@@ -10193,7 +10193,9 @@ define(['js/app'], function (myApp) {
                         vm.commonPageChangeHandler(curP, pageSize, "rewardTaskLog", vm.getRewardTaskLogData)
                     });
                     vm.getRewardTaskLogData(true);
+
                 });
+
                 vm.displayProviderGroupCredit();
             }
             vm.displayProviderGroupCredit = function(){
@@ -10288,6 +10290,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardTaskLog.totalCount = size;
                     vm.drawRewardTaskTable(newSearch, tblData, size, summary, topUpAmountSum);
                     vm.drawRewardTaskGroupTable(newSearch, data, size, summary, topUpAmountSum);
+                    
                 });
             }
             vm.drawRewardTaskGroupTable = function(newSearch, tdata, size, summary, topUpAmountSum){
@@ -10411,11 +10414,14 @@ define(['js/app'], function (myApp) {
                 let otherPeriodRewardAmount = 0;
                 let otherPeriodConsumption = 0;
                 if(lastIndex - firstIndex > 0){
-                    let startFrom = firstIndex + 1;
+                    let startFrom = Number(firstIndex) + 1;
                     for (let i = startFrom; i < lastIndex; i++) {
                         let rewardTaskProposal = vm.rewardTaskProposalData[i];
-                        otherPeriodRewardAmount += rewardTaskProposal.data.applyAmount + rewardTaskProposal.data.rewardAmount;
-                        otherPeriodConsumption += rewardTaskProposal.data.spendingAmount;
+                        let applyAmount = rewardTaskProposal.data.applyAmount ? rewardTaskProposal.data.applyAmount :0;
+                        let rewardAmount = rewardTaskProposal.data.rewardAmount ? rewardTaskProposal.data.rewardAmount :0;
+                        let spendingAmount = rewardTaskProposal.data.spendingAmount ? rewardTaskProposal.data.spendingAmount:0;
+                        otherPeriodRewardAmount += applyAmount + rewardAmount;
+                        otherPeriodConsumption += spendingAmount;
                     }
                 }
                 incRewardAmount = firstPeriodRewardAmount + otherPeriodRewardAmount;
@@ -10446,7 +10452,9 @@ define(['js/app'], function (myApp) {
                                 let text = '';
                                 let sumRewardAmount = 0;
                                 for(let i=0; i <= rowId;i++){
-                                    sumRewardAmount += vm.rewardTaskProposalData[i].data.applyAmount + vm.rewardTaskProposalData[i].data.rewardAmount;
+                                    let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount:0;
+                                    let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount:0;
+                                    sumRewardAmount += applyAmount + rewardAmount;
                                 }
                                 let isSubmit = vm.isSubmitProposal(rowId);
                                 var adminName = row.creator ? row.creator.name : '';
