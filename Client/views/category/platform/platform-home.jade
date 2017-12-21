@@ -40,24 +40,24 @@
                                     td(style='text-align: center')
                                         div(ng-repeat='(i,v) in vm.providerLatestTime' style="height:24px;")
                                             label {{v}}
-
-                        li(ng-if='!vm.curPlatformText', style='margin-right: 0;')
-                            div.platformName(style='border-radius: 9px 0 0 9px;')
-                                .fa.fa-2x(style='margin:5px 10px;')
-                                    img(src="images/icon/websiteBusiness_hover.png" width="30" )
-                                text.text-danger.shadow(style='margin:5px 10px;font-size:20px') {{"SELECT_PLATFORM"|translate}}
-                        li(ng-if='vm.curPlatformText', style='margin-right: 0;')
-                            div.platformName(ng-if='checkViewPermission("Platform","Platform", "Read")',ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalUpdatePlatform', ng-click='vm.initPlatform(false);vm.showPlatformDetailTab(null);vm.setPlatformFooter(null);vm.getAllDepartmentData();vm.prepareSettlementHistory();vm.populatePlatformData();', style='border-radius: 9px 0 0 9px;')
-                                .fa.fa-2x(style='margin:5px 10px;')
-                                    img(src="images/icon/websiteBusiness_hover.png" width="30" )
-                                text.shadow(style='margin:5px 10px;font-size:20px') {{vm.curPlatformText}}
-
-                        //dropdown
-                        li(style='margin-right:5px')
-                            div.platformName(ng-click='vm.toggleShowPlatformDropDownList()', style='border-radius: 0 9px 9px 0;')
-                                .fa.fa-2x.fa-caret-down(style='margin:5px 10px; margin-top:8px;')
-                            //div#platformTree(style="height: 400px;")
-                            #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
+                        //
+                        //li(ng-if='!vm.curPlatformText', style='margin-right: 0;')
+                        //    div.platformName(style='border-radius: 9px 0 0 9px;')
+                        //        .fa.fa-2x(style='margin:5px 10px;')
+                        //            img(src="images/icon/websiteBusiness_hover.png" width="30" )
+                        //        text.text-danger.shadow(style='margin:5px 10px;font-size:20px') {{"SELECT_PLATFORM"|translate}}
+                        //li(ng-if='vm.curPlatformText', style='margin-right: 0;')
+                        //    div.platformName(ng-if='checkViewPermission("Platform","Platform", "Read")',ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalUpdatePlatform', ng-click='vm.initPlatform(false);vm.showPlatformDetailTab(null);vm.setPlatformFooter(null);vm.getAllDepartmentData();vm.prepareSettlementHistory();vm.populatePlatformData();', style='border-radius: 9px 0 0 9px;')
+                        //        .fa.fa-2x(style='margin:5px 10px;')
+                        //            img(src="images/icon/websiteBusiness_hover.png" width="30" )
+                        //        text.shadow(style='margin:5px 10px;font-size:20px') {{vm.curPlatformText}}
+                        //
+                        ////dropdown
+                        //li(style='margin-right:5px')
+                        //    div.platformName(ng-click='vm.toggleShowPlatformDropDownList()', style='border-radius: 0 9px 9px 0;')
+                        //        .fa.fa-2x.fa-caret-down(style='margin:5px 10px; margin-top:8px;')
+                        //    //div#platformTree(style="height: 400px;")
+                        #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
 
                         li.active(ng-show="checkViewPermission('Platform', 'Player', 'Read')")
                             a.common-tab(data-toggle="tab", href="#Player", ng-click="vm.activatePlayerTab();vm.platformPageName='Player';vm.updatePageTile();")

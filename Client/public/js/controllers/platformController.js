@@ -464,7 +464,13 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'syncPlatform', {}, function (data) {
 
                 })
-            }
+            };
+
+            $scope.$on('switchPlatform', (e, cb) => {
+                vm.loadPlatformData();
+                cb("Switch complete!");
+            });
+
             //get all platform data from server
             vm.loadPlatformData = function (option) {
                 if ($('#platformRefresh').hasClass('fa-spin')) {
