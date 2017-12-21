@@ -753,7 +753,7 @@ var dbUtility = {
             device: ua.device.name || '',
             os: ua.os.name || ''
         }];
-
+        
         let inputDevice="";
 
         if (userAgentInput && userAgentInput[0] && inputUserAgent) {
