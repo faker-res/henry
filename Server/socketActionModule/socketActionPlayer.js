@@ -92,6 +92,16 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
+         * Remove a new reward points record based on player data
+         */
+        removePlayerRewardPointsRecord: function removePlayerRewardPointsRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.playerId && data.rewardPointsObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.removePlayerRewardPointsRecord, [data.platformId, data.playerId, data.rewardPointsObjId], actionName, isValidData);
+        },
+
+
+        /**
          * Get player reward points record based on player rewardPointsObjId
          */
         updatePlayerRewardPointsRecord: function updatePlayerRewardPointsRecord(data) {

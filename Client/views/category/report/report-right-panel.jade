@@ -955,7 +955,7 @@
                     select.form-control(ng-model='vm.limitedOfferQuery.status', ng-options="a | translate for a in vm.claimStatus", style='max-width:200px', multiple, bsp)
                 div
                     label {{'Level Requirement' | translate}}
-                    select.form-control(ng-model='vm.limitedOfferQuery.level', ng-options="a for a in vm.playerLvlName", style='max-width:200px', multiple, bsp)
+                    select.form-control(ng-model='vm.limitedOfferQuery.level', ng-options="a.name for a in vm.playerLvlData", style='max-width:200px', multiple, bsp)
                 div
                     label {{'DEVICE' | translate}}
                     select.form-control(ng-model='vm.limitedOfferQuery.inputDevice', ng-options="+(i) as v | translate for (i,v) in vm.playerInputDevice", style='max-width:200px', multiple, bsp)

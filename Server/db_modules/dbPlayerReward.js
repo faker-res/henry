@@ -2781,29 +2781,48 @@ let dbPlayerReward = {
             name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
         }).lean().then(
             propType => {
-                let matchQ = {
-                    "data.platformObjId": platformObjId,
-                    type: propType._id,
-                    createTime: {$gte: startTime, $lt: endTime}
-                };
+                if(propType){
+                    let levelArray = [];
+                    let matchQ = {
+                        "data.platformObjId": platformObjId,
+                        type: propType._id,
+                        createTime: {$gte: startTime, $lt: endTime}
+                    };
 
-                if (playerName) {
-                    matchQ['data.playerName'] = playerName;
+                    if (playerName) {
+                        matchQ['data.playerName'] = playerName;
+                    }
+
+                    if (promoName) {
+                        matchQ['data.limitedOfferName'] = promoName;
+                    }
+
+                    if (inputDevice && inputDevice.length > 0) {
+                        matchQ.inputDevice = {$in: inputDevice};
+                    }
+
+                    if (level && level.length > 0) {
+                        let levelName = [];
+                        let bNormal = false;
+                        for(let i = 0; i < level.length; i ++){
+                            if(level[i].value == 0){
+                                bNormal = true;
+                                //check if data.requiredLevel field is exist but no data
+                                levelName.push("");
+                            }
+                            levelName.push(level[i].name);
+                        }
+                        if(!bNormal && levelName.length > 0){
+                            matchQ['data.requiredLevel'] = {$in: levelName};
+                        }
+                        else if(bNormal && levelName.length > 0){
+                            matchQ.$or = [];
+                            matchQ.$or.push({"data.requiredLevel": {$in: levelName}});
+                            matchQ.$or.push({"data.requiredLevel": {$exists: false}});
+                        }
+                    }
+                    return dbConfig.collection_proposal.find(matchQ).lean();
                 }
-
-                if (promoName) {
-                    matchQ['data.limitedOfferName'] = promoName;
-                }
-
-                if (inputDevice && inputDevice.length > 0) {
-                    matchQ.inputDevice = {$in: inputDevice};
-                }
-
-                if (level && level.length > 0) {
-                    matchQ['data.playerLevelName'] = {$in: level};
-                }
-
-                return dbConfig.collection_proposal.find(matchQ).lean();
             }
         ).then(
             intProps => {
