@@ -427,6 +427,16 @@ var dbUtility = {
         };
     },
 
+    getSGTimeOfPassHours: function (hours) {
+        let endTime = moment().tz('Asia/Singapore').toDate();
+        let startTime = moment(endTime).tz('Asia/Singapore').subtract(hours, "hours").toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        }
+    },
+
     /*
      * if today is the first day of the week based on SG time
      */
