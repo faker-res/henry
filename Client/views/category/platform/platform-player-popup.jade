@@ -1293,7 +1293,7 @@
                                 table#rewardTaskGroupProposalTbl.common-table.display(style='min-width:100%')
                                 #rewardTaskGroupProposalTblPage.height30
                             div(ng-show="vm.displayTaskGroup && vm.selectedPlatform.data.useProviderGroup")
-                                button.common-button.margin-right-5.btn.btn-success( ng-click="vm.unlockRewardTaskInRewardTaskGroup()") {{'Unlock Reward' | translate}}
+                                button.common-button.margin-right-5.btn.btn-success(ng-disabled="!vm.dynRewardTaskGroupIndex || vm.dynRewardTaskGroupIndex.length==0", ng-click="vm.unlockRewardTaskInRewardTaskGroup()") {{'Unlock Reward' | translate}}
                                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                                 label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
 

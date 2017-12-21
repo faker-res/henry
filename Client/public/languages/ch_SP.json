@@ -2888,6 +2888,7 @@
   "afterRewardPoints": "兑换后积分",
   "beforeRewardPoints": "兑换前积分",
   "Reward Points": "积分",
+  "Unlock Progress(TopUp)":"解锁进度（充值）",
   "Unlock Progress(Consumption)":"解锁进度（投注额）",
   "Unlock Progress(WinLose)":"解锁进度（输赢值）",
   "Game Provider/Wallet Group":"游戏大厅/锁定组",

@@ -10267,7 +10267,7 @@ define(['js/app'], function (myApp) {
                     let topUpAmountSum = data.data ? data.data.topUpAmountSum : 0;
                     vm.rewardTaskLog.totalCount = size;
                     vm.drawRewardTaskTable(newSearch, tblData, size, summary, topUpAmountSum);
-                    vm.drawRewardTaskGroupTable(newSearch, data, size, summary, topUpAmountSum)
+                    vm.drawRewardTaskGroupTable(newSearch, data, size, summary, topUpAmountSum);
                 });
             }
             vm.drawRewardTaskGroupTable = function(newSearch, tdata, size, summary, topUpAmountSum){
@@ -10288,7 +10288,7 @@ define(['js/app'], function (myApp) {
                     ],
                     columns: [
                         {
-                            title: $translate('RewardTaskGroup'),
+                            title: $translate('Provider group'),
                             data: "providerGroup.name",
                             advSearch: true,
                             sClass: "",
@@ -10309,7 +10309,7 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('rewardAmt'),
+                            title: $translate('Unlock Progress(TopUp)'),
                             advSearch: true,
                             sClass: "",
                             render: function (data, type, row) {
@@ -10320,7 +10320,7 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('targetConsumption'),
+                            title: $translate('Unlock Progress(Consumption)'),
                             advSearch: true,
                             sClass: "",
                             render: function (data, type, row) {
@@ -10377,7 +10377,6 @@ define(['js/app'], function (myApp) {
                 // calculate first proposal that people choose.
                 for (let i = 0; i < firstIndex; i++) {
                     let rewardTaskProposal = vm.rewardTaskProposalData[i];
-                    console.log(vm.rewardTaskProposalData[i]);
                     sumRewardAmount += rewardTaskProposal.data.applyAmount + rewardTaskProposal.data.rewardAmount;
                     sumConsumptionAmount += rewardTaskProposal.data.spendingAmount;
                 }
@@ -10402,10 +10401,10 @@ define(['js/app'], function (myApp) {
                 incRewardAmount = firstPeriodRewardAmount + otherPeriodRewardAmount;
                 incConsumptionAmount = firstPeriodConsumption + otherPeriodConsumption;
                 let sendQuery = {'rewardTaskGroupId':rewardTaskGroup._id, 'incRewardAmount': incRewardAmount , 'incConsumptionAmount':incConsumptionAmount}
-                 socketService.$socket($scope.AppSocket, 'unlockRewardTaskInRewardTaskGroup', sendQuery, function (data) {
 
-                    console.log(data);
+                socketService.$socket($scope.AppSocket, 'unlockRewardTaskInRewardTaskGroup', sendQuery, function (data) {
                      vm.getRewardTaskLogData(true);
+                    $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
                  })
 
             }
@@ -10450,21 +10449,23 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('ApplyAmount'),
+                            title: $translate('Unlock Progress(TopUp)'),
                             data: "applyAmount",
                             advSearch: true,
                             sClass: "",
                             render: function (data, type, row) {
-
+                                console.log(row.data);
                                 let rewardAmt = rewardTaskGroup ? rewardTaskGroup.rewardAmt : 0;
-                                let sumAmount = row.data.applyAmount+row.data.rewardAmount
+                                let applyAmount = row.data.applyAmount ? row.data.applyAmount:0;
+                                let rewardAmount = row.data.rewardAmount ? row.data.rewardAmount:0;
+                                let sumAmount = applyAmount + row.data.rewardAmount;
                                 let text = sumAmount + '/' + rewardAmt;
                                 let result = '<div>'+text+'</div>';
                                 return result;
                             }
                         },
                         {
-                            title: $translate('Spending Amount'),
+                            title: $translate('Unlock Progress(Consumption)'),
                             data: "spendingAmount",
                             advSearch: true,
                             sClass: "",
@@ -10507,7 +10508,9 @@ define(['js/app'], function (myApp) {
                 let spendingAmt = 0;
                 let curConsumption = rewardTaskGroup.curConsumption ? rewardTaskGroup.curConsumption:0;
                 for(let i=0; i< rowId;i++){
-                    spendingAmt += vm.rewardTaskProposalData[i].data.applyAmount + vm.rewardTaskProposalData[i].data.rewardAmount;
+                    let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount : 0;
+                    let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount : 0;
+                    spendingAmt += applyAmount + rewardAmount;
                 }
                 let incCurConsumption = curConsumption - spendingAmt;
                 return incCurConsumption;
@@ -10517,9 +10520,14 @@ define(['js/app'], function (myApp) {
                 let sumRewardAmount = 0;
                 let taskGroupCurrentAmt = vm.dynRewardTaskGroupId[0].currentAmt;
 
-                for (let i = 0; i < rowId; i++) {
-                    sumRewardAmount += vm.rewardTaskProposalData[i].data.applyAmount + vm.rewardTaskProposalData[i].data.rewardAmount;
+                if(rowId=='0'){
+                    sumRewardAmount += vm.rewardTaskProposalData[0].data.applyAmount + vm.rewardTaskProposalData[0].data.rewardAmount;
+                }else{
+                    for (let i = 0; i <= rowId; i++) {
+                        sumRewardAmount += vm.rewardTaskProposalData[i].data.applyAmount + vm.rewardTaskProposalData[i].data.rewardAmount;
+                    }
                 }
+
 
                 // should over 0
                 let finalRewardAmount = taskGroupCurrentAmt - sumRewardAmount;
@@ -10546,13 +10554,18 @@ define(['js/app'], function (myApp) {
                     from: vm.rewardTaskLog.query.startTime.data('datetimepicker').getLocalDate(),
                     to: vm.rewardTaskLog.query.endTime.data('datetimepicker').getLocalDate(),
                 }
-                console.log(sendQuery);
-                socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
-                    console.log('getRewardTaskGroupProposal', data.data);
-                    vm.rewardTaskProposalData = data.data;
-                    vm.drawRewardTaskProposalTable(true,data.data);
-                    vm.curRewardTask = data;
-                })
+
+                if(!id){
+                    $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
+                }else{
+                    socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
+                        console.log('getRewardTaskGroupProposal', data.data);
+                        vm.rewardTaskProposalData = data.data;
+                        vm.drawRewardTaskProposalTable(true,data.data);
+                        vm.curRewardTask = data;
+                    })
+                }
+
 
             }
             vm.selectReward = function($event){
