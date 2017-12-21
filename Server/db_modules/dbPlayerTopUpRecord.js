@@ -224,7 +224,7 @@ var dbPlayerTopUpRecord = {
                 if ((!query.merchantNo || query.merchantNo.length == 0) && query.merchantGroup && query.merchantGroup.length > 0) {
                     let mGroupList = [];
                     query.merchantGroup.forEach(item => {
-                        if(item.list.length > 0){
+                        if (item.list.length > 0) {
                             item.list.forEach(sItem => {
                                 mGroupList.push(sItem)
                             })
@@ -247,9 +247,9 @@ var dbPlayerTopUpRecord = {
                             });
                         });
 
-                        if(query.merchantNo.length > 0){
+                        if (query.merchantNo.length > 0) {
                             queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupC)};
-                        }else if(query.merchantGroup.length > 0 && query.merchantNo.length == 0){
+                        } else if (query.merchantGroup.length > 0 && query.merchantNo.length == 0) {
                             queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupD)}
                         }
 
@@ -869,7 +869,7 @@ var dbPlayerTopUpRecord = {
                     let end = new Date();
                     end.setHours(23, 59, 59, 999);
                     if (merchantResponseData.result.merchantNo) {
-                        queryObj['data.merchantNo'] = {'$in': [String(merchantResponseData.result.merchantNo),Number(merchantResponseData.result.merchantNo)]}
+                        queryObj['data.merchantNo'] = {'$in': [String(merchantResponseData.result.merchantNo), Number(merchantResponseData.result.merchantNo)]}
                     }
                     queryObj['data.platformId'] = ObjectId(player.platform._id);
                     queryObj['mainType'] = 'TopUp';
@@ -984,7 +984,6 @@ var dbPlayerTopUpRecord = {
                     });
                 }
             }
-
         ).then(
             res => {
                 //disable bankaccount check for now
@@ -1137,7 +1136,7 @@ var dbPlayerTopUpRecord = {
         ).then(
             topupResult => {
 
-                if(topupResult.result){
+                if (topupResult.result) {
                     request = topupResult;
                     var queryObj = {};
                     let start = new Date();
@@ -1299,10 +1298,10 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             },
             error => {
-                if(adminName && error.status == 408){
+                if (adminName && error.status == 408) {
                     return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
                 }
-                else{
+                else {
                     return Q.reject(error);
                 }
             }
@@ -1344,10 +1343,10 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             },
             error => {
-                if(adminName && error.status == 408){
+                if (adminName && error.status == 408) {
                     return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
                 }
-                else{
+                else {
                     return Q.reject(error);
                 }
             }
@@ -1390,10 +1389,10 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             },
             error => {
-                if(adminName && error.status == 408){
+                if (adminName && error.status == 408) {
                     return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
                 }
-                else{
+                else {
                     return Q.reject(error);
                 }
             }
@@ -1806,7 +1805,7 @@ var dbPlayerTopUpRecord = {
                     if (createTime) {
                         proposalData.depositeTime = new Date(createTime);
                     }
-                    if (bonusCode){
+                    if (bonusCode) {
                         if (bonusCodeValidity) {
                             proposalData.bonusCode = bonusCode;
                         }
@@ -1871,7 +1870,6 @@ var dbPlayerTopUpRecord = {
                         return Q.reject({name: "DataError", errorMessage: "Cannot create alipay top up proposal"});
                     }
                 }
-
             ).then(
                 pmsResult => {
                     pmsData = pmsResult;
@@ -2470,8 +2468,98 @@ var dbPlayerTopUpRecord = {
         );
     },
 
-    addTestTopUp: function(platformId, name, type, amount, createTime) {
-        //todo:: implement later
+    addTestTopUp: function (platformId, name, type, requestData, amount, createTime) {
+        let proposalType = null;
+        let playerObj = {};
+        let currentTime = new Date();
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    return dbconfig.collection_players.findOne({platform: platformData._id, name: name}).lean();
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    playerObj = playerData;
+                    switch (type) {
+                        case 1: //online
+                            proposalType = constProposalType.PLAYER_TOP_UP;
+                            return dbPlayerTopUpRecord.addOnlineTopupRequest(null, playerData.playerId, requestData, 1, requestData.clientType);
+                            break;
+                        case 2: //bankcard
+                            proposalType = constProposalType.PLAYER_MANUAL_TOP_UP;
+                            return dbPlayerTopUpRecord.addManualTopupRequest(null, playerData.playerId, requestData, "CLIENT");
+                            break;
+                        case 3: //alipay
+                            proposalType = constProposalType.PLAYER_ALIPAY_TOP_UP;
+                            return dbPlayerTopUpRecord.requestAlipayTopup(null, playerData.playerId, amount, "test", "test", data.bonusCode, "CLIENT");
+                            break;
+                        case 4: //wechat
+                            proposalType = constProposalType.PLAYER_WECHAT_TOP_UP;
+                            return dbPlayerTopUpRecord.requestWechatTopup(null, playerData.playerId, amount, "test", "test", data.bonusCode, "CLIENT");
+                            break;
+                    }
+                }
+            }
+        ).then(
+            topUpResult => {
+                if(topUpResult && topUpResult.proposalId){
+                    return dbconfig.collection_proposal.findOne({proposalId: topUpResult.proposalId}).lean().then(
+                        pData => {
+                            if( pData ){
+                                return dbProposal.updateTopupProposal(pData.proposalId, constProposalStatus.SUCCESS, pData.data.requestId, 1);
+                            }
+                        }
+                    ).then(
+                        data => topUpResult
+                    );
+                }
+            }
+        ).then(
+            topUpResult => {
+                if (topUpResult) {
+                    if (createTime) {
+                        let proposalProm = dbconfig.collection_proposal.findOne({
+                            proposalId: topUpResult.proposalId
+                        }).lean().then(
+                            proposalData => {
+                                if (proposalData) {
+                                    dbconfig.collection_proposal.remove({_id: proposalData._id});
+                                    delete proposalData._id;
+                                    delete proposalData.proposalId;
+                                    proposalData.createTime = new Date(createTime);
+                                    proposalData.settleTime = new Date(createTime);
+                                    let newProposal = new dbconfig.collection_proposal(proposalData);
+                                    return newProposal.save();
+                                }
+                            }
+                        );
+                        let recordProm = dbconfig.collection_playerTopUpRecord.find({
+                            playerId: playerObj._id,
+                            platformId: playerObj.platform,
+                            amount: amount,
+                            createTime: {$gte: currentTime}
+                        }).sort({createTime: -1}).limit(1).lean().then(
+                            recordData => {
+                                if (recordData && recordData[0]) {
+                                    dbconfig.collection_playerTopUpRecord.remove({_id: recordData[0]._id});
+                                    delete recordData[0]._id;
+                                    recordData[0].createTime = new Date(createTime);
+                                    recordData[0].settlementTime = new Date(createTime);
+                                    let newRecord = new dbconfig.collection_playerTopUpRecord(recordData[0]);
+                                    return newRecord.save();
+                                }
+                            }
+                        );
+                        return Q.all([proposalProm, recordProm]);
+                    }
+                    else {
+                        return topUpResult;
+                    }
+                }
+            }
+        );
     }
 
 };
@@ -2828,6 +2916,7 @@ function getTopUpProposalTypeIds(platformId) {
         }
     );
 }
+
 function asyncLoop(count, func, callback) {
     let i = -1;
 
@@ -2873,9 +2962,9 @@ function convertStringNumber(Arr) {
     Arrs.forEach(item => {
         result.push(String(item));
     })
-    Arrs.forEach(item=>{
+    Arrs.forEach(item => {
         let currentNum = Number(item);
-        if(isNaN(currentNum)==false){
+        if (isNaN(currentNum) == false) {
             result.push(currentNum);
         }
     })
