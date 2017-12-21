@@ -250,6 +250,11 @@ var ProposalServiceImplement = function () {
             }
         );
     };
+
+    this.addTestTopUp.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.platformId && data.name && data.type && data.amount && data.amount > 0);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addTestTopUp, [data.platformId, data.name, data.type, data.amount, data.createTime], isValidData);
+    };
 };
 
 var proto = ProposalServiceImplement.prototype = Object.create(ProposalService.prototype);
