@@ -395,15 +395,15 @@ let dbRewardPoints = {
                                 }
                             });
                         }
-                        returnData.map(item => {
-                            delete item._id;
-                            delete item.__v;
-                            delete item.platformObjId;
-                            delete item.category;
-                            delete item.customPeriodStartTime;
-                            delete item.customPeriodEndTime;
-                            return item;
-                        });
+                        for (let i = 0; i < returnData.length; i++) {
+                            delete returnData[i]._id;
+                            delete returnData[i].__v;
+                            delete returnData[i].platformObjId;
+                            delete returnData[i].category;
+                            delete returnData[i].customPeriodStartTime;
+                            delete returnData[i].customPeriodEndTime;
+                        };
+
                         return {data: returnData};
                     }
                 }
@@ -437,15 +437,14 @@ let dbRewardPoints = {
                                 returnData[i].endTime = periodTime.endTime;
                             }
                         }
-                        returnData.map(item => {
-                            delete item._id;
-                            delete item.__v;
-                            delete item.platformObjId;
-                            delete item.category;
-                            delete item.customPeriodStartTime;
-                            delete item.customPeriodEndTime;
-                            return item;
-                        });
+                        for (let i = 0; i < returnData.length; i++) {
+                            delete returnData[i]._id;
+                            delete returnData[i].__v;
+                            delete returnData[i].platformObjId;
+                            delete returnData[i].category;
+                            delete returnData[i].customPeriodStartTime;
+                            delete returnData[i].customPeriodEndTime;
+                        };
                         return returnData;
                     }
                 }
