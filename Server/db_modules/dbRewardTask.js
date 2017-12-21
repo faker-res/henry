@@ -388,20 +388,111 @@ const dbRewardTask = {
             return dbRewardTask.getRewardTaskList( query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj);
         }
     },
+    // getRewardTaskGroupProposal: function (query) {
+    //     var queryObj = {
+    //         'data.playerObjId': ObjectId(query.playerId),
+    //         'data.platformId': ObjectId(query.platformId),
+    //         'data.providerGroup': query._id
+    //         // createTime: {
+    //         //     $gte: new Date(query.from),
+    //         //     $lt: new Date(query.to)
+    //         // }
+    //     }
+    //     return dbconfig.collection_proposal.find(queryObj).
+    //         then(data=>{
+    //             return data;
+    //     })
+    // },
     getRewardTaskGroupProposal: function (query) {
+        let rewardTaskGroup = null;
         var queryObj = {
-            'data.playerObjId': ObjectId(query.playerId),
-            'data.platformId': ObjectId(query.platformId),
-            'data.providerGroup': query._id
+            playerId: ObjectId(query.playerId),
+            providerGroup: query._id
             // createTime: {
             //     $gte: new Date(query.from),
             //     $lt: new Date(query.to)
             // }
         }
-        return dbconfig.collection_proposal.find(queryObj).
-            then(data=>{
+
+        return dbconfig.collection_rewardTaskGroup.find(queryObj)
+            .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
+            .then(data => {
+                console.log(data);
+                rewardTaskGroup = data[0];
                 return data;
-        })
+            })
+            .then(data => {
+                var rewardTaskProposalQuery = {
+                    'data.playerObjId': ObjectId(query.playerId),
+                    'data.platformId': ObjectId(query.platformId),
+                    'data.providerGroup': query._id
+                }
+                return dbconfig.collection_proposal.find(rewardTaskProposalQuery).then(udata => {
+                    // console.log(rewardTaskGroup);
+                    console.log(udata);
+                    udata.map(item=>{ item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';})
+                    let prom = dbRewardTask.getTopUpProposal(udata);
+
+                    return Q.all([prom])
+                        .then(result => {
+                            // console.log(result[0]);
+                            result = result[0].map(item => {
+                                
+                                if (rewardTaskGroup) {
+                                    // console.log('yeah')
+
+                                    item.data['createTime$'] = rewardTaskGroup.createTime;
+                                    item.data.useConsumption = rewardTaskGroup.useConsumption;
+                                    item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                                    item.data.xxxx = 'zzzxx';
+
+                                    if (rewardTaskGroup.providerGroup.name) {
+                                        item.data.provider$ = rewardTaskGroup.providerGroup.name;
+                                    }
+                                    return item;
+                                }
+                            })
+                            console.log(result)
+                            return result;
+
+                            // return {
+                            //     size: size,
+                            //     data: proposalData[0] || [],
+                            //     rewardTaskGroupSize: rewardTaskGroupSize,
+                            //     rewardTaskGroupData: rewardTaskGroupData,
+                            //     summary: rewardTaskSummary,
+                            //     topUpAmountSum:topUpAmountSum
+                            // }
+
+                        })
+                    // udata = udata.map(item => {
+                    //
+                    //     if (rewardTaskGroup) {
+                    //         console.log('yeah')
+                    //         item.data['createTime$'] = rewardTaskGroup.createTime;
+                    //         item.data.useConsumption = rewardTaskGroup.useConsumption;
+                    //         item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                    //         item.data.xxxx = 'zzzxx';
+                    //
+                    //         if (rewardTaskGroup.providerGroup.name) {
+                    //             item.data.provider$ = rewardTaskGroup.providerGroup.name;
+                    //         }
+                    //         return item;
+                    //     }
+                    // })
+                    // console.log(udata)
+                    // return udata;
+                })
+            })
+        // var queryObj = {
+        //     'data.playerObjId': ObjectId(query.playerId),
+        //     'data.platformId': ObjectId(query.platformId),
+        //     'data.providerGroup': query._id
+        // }
+        // return dbconfig.collection_proposal.find(queryObj).
+        // then(data=>{
+        //     return data;
+        // })
     },
     getRewardProposalId: function(query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj){
         let topUpProposal = null;
@@ -563,11 +654,39 @@ const dbRewardTask = {
             })
 
     },
+    getTopUpProposal:function(data){
+        let prom = [];
+        data.map(item=>{
+            console.log(item)
+            let proposalId = item.data.topUpProposal;
+            console.log(proposalId);
+            let proposal = dbconfig.collection_proposal.findOne({proposalId:proposalId}).then(
+                pdata=>{
+                    console.log(pdata);
+                    if(pdata){
+                        if(pdata.creator.name){
+                            item.creator = pdata.creator;
+                        }
+                        if(pdata.data.amount){
+                            item.data.topUpAmount = pdata.data.amount;
+                        }
+                    }
+                    return item;
+                },
+                error=>{
+                    console.log(error);
+                }
+            )
+            prom.push(proposal);
+        })
+        return Promise.all(prom)
+    },
     getProposalInfo: function(data){
         let prom = [];
         let topUpAmountSum = 0;
         let topUpAmount = 0;
         let count = 0;
+        console.log(data);
         data.map(item=>{
             let proposalId = item.proposalId;
             let topUpProposal = null;
@@ -576,13 +695,13 @@ const dbRewardTask = {
                     if(pdata.creator.name){
                         item.creator = pdata.creator;
                     }
-
                     if(pdata.data.topUpProposal){
                         topUpProposal = pdata.data.topUpProposal;
                     }
                     if(pdata.data.topUpAmount){
                         topUpAmount = pdata.data.topUpAmount;
                     }
+                    console.log(pdata)
                     return item;
                 },
                 error=>{
@@ -602,6 +721,7 @@ const dbRewardTask = {
                 topup=>{
                     // calculate the sum of topUp
                     if(topup){
+                        console.log(topup);
                         if(topup.proposalId){
                             item.topUpProposal = topup.proposalId;
                         }
@@ -611,6 +731,7 @@ const dbRewardTask = {
                         }else{
                             item.topUpAmount =  topUpAmount?topUpAmount:'';
                         }
+                        console.log(item);
                     }
                     return item;
             })
