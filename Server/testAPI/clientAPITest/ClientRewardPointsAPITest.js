@@ -51,6 +51,13 @@
         this.rewardPointsService.getLoginRewardPoints.once(callback);
     };
 
+    proto.getRewardPointsRanking = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardPointsService.getRewardPointsRanking.request(data);
+        this.rewardPointsService.getRewardPointsRanking.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientRewardPointsAPITest;
     } else {
