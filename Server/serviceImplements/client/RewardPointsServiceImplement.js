@@ -30,7 +30,7 @@ let RewardPointsServiceImplement = function () {
     this.getRewardPointsRanking.onRequest = function (wsFunc, conn, data) {
         console.log("getRewardPointsRankingData",data);
         let isValidData = Boolean(data && data.platformId); console.log("isValidData",isValidData);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPointsRanking.getRewardPointsRanking, [data.platformId, data.index, data.limit, data.sortCol], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPointsRanking.getRewardPointsRanking, [data.platformId, data.totalRank], isValidData, false, false, true);
     };
 
 
