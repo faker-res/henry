@@ -740,12 +740,20 @@ var dbUtility = {
     },
 
     getInputDevice: function (inputUserAgent, isPartnerProposal) {
-        let ua = uaParser(inputUserAgent);
+        let ua;
+        // userAgent string already parse outside if parse again will always set to WEB
+        if (inputUserAgent && (inputUserAgent.browser || inputUserAgent.device || inputUserAgent.os)) {
+            ua = inputUserAgent;
+        } else {
+            ua = uaParser(inputUserAgent);
+        }
+
         let userAgentInput = [{
             browser: ua.browser.name || '',
             device: ua.device.name || '',
             os: ua.os.name || ''
         }];
+
         let inputDevice="";
 
         if (userAgentInput && userAgentInput[0] && inputUserAgent) {
@@ -777,7 +785,6 @@ var dbUtility = {
         } else {
             inputDevice = constPlayerRegistrationInterface.BACKSTAGE;
         }
-        console.log("input device", inputDevice);
         return inputDevice;
     }
 
