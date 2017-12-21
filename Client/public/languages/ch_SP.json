@@ -2937,5 +2937,14 @@
   "Player does not have enough consumption": "玩家没有足够的投注额",
   "Player does not have enough top up or consumption": "玩家没有足够的存款或投注额",
   "The period of the reward has not yet opened": "本周期的场次尚未开放",
+  "ADVERTISEMENT": "广告",
+  "ADVERTISEMENT CODE (CANNOT REPEAT)": "广告代码　（不可重复）",
+  "BANNER TITLE": "标题",
+  "DISPLAY BACKGROUND IMAGE": "展示背景图",
+  "BANNER LINK BUTTON": "图中按钮",
+  "BANNER IMAGE URL": "背景图来源",
+  "BANNER IMAGE HYPERLINK": "背景图超链接",
+  "LINK IMAGE URL": "按钮图来源",
+  "LINK IMAGE HYPERLINK": "按钮图超链接",
   "Top up does not meet Promo Code minimum required amount": "您的存款金额低于该优惠代码限制，请调整存款金额。"
 }
