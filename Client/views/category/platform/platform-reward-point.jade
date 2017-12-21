@@ -134,7 +134,7 @@
                         thead
                             tr
                                 th {{'rewardPointsCategory' | translate}}
-                                th {{'intervalPeriod' | translate}}
+                                th {{'refreshPeriod' | translate}}
                                 th {{'displayOrder' | translate}}
                                 th {{'userAgent' | translate}}
                                 th {{'topupType' | translate}}
@@ -161,7 +161,7 @@
                                 td(style="min-width:150px;")
                                     select.form-control(ng-model='val.userAgent' ng-options="+(i) as v | translate for (i,v) in userAgentType" ng-disabled='!val.isEditing')
                                 td(style="min-width:150px;")
-                                    select.form-control(ng-model='val.target.merchantTopupMainType' ng-options="+(i) as v | translate for (i,v) in merchantTopupMainTypeJson" ng-disabled='!val.isEditing')
+                                    select.form-control(ng-model='val.target.merchantTopupMainType' ng-options="+(i) as v | translate for (i,v) in topUpTypeList" ng-disabled='!val.isEditing')
                                 td(style="min-width:140px;")
                                     select.form-control(ng-model='val.target.merchantTopupType' ng-options="+(i) as v | translate for (i,v) in merchantTopupTypeJson" ng-disabled='!val.isEditing')
                                 td(style="min-width:180px;")
@@ -506,10 +506,14 @@
                                             tr(ng-if='vm.rewardPointsLogDetail.proposal && vm.rewardPointsLogDetail.proposal.data.exchangeRatio')
                                                 td {{ 'exchangeRatio' | translate}}
                                                 td {{ vm.rewardPointsLogDetail.proposal.data.exchangeRatio }}
-                                            tr(ng-repeat='(i,v) in vm.rewardPointsLogDetail.rewardTarget')
+                                            tr(ng-repeat='(i,v) in vm.rewardPointsLogDetail.rewardTarget' ng-switch='i')
                                                 td {{ i | translate}}
-                                                td
-                                                    div(ng-bind-html='v')
+                                                td(ng-switch-when='merchantTopupMainType') {{ vm.topUpTypeList[v] | translate}}
+                                                td(ng-switch-when='merchantTopupType') {{ vm.merchantTopupTypeJson[v] | translate}}
+                                                td(ng-switch-when='depositMethod') {{ depositMethod[v] | translate}}
+                                                td(ng-switch-when='bankType') {{ vm.allBankTypeList[v] | translate}}
+                                                td(ng-switch-default) {{ v }}
+
 
 
             .modal-footer
