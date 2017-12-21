@@ -1284,8 +1284,12 @@
                                             div(style='display:inline-block'){{v.nickName}}
                                             div(style='display:inline-block;padding-left:3px'){{v.validCredit || ''}}
                             div
-                                button.btn.btn-primary.common-button(ng-click="vm.setDisplayTaskGroup(false)") {{'Reward task'| translate}}
-                                button.btn.btn-primary.common-button(ng-click="vm.setDisplayTaskGroup(true)", ng-show="vm.selectedPlatform.data.useProviderGroup") {{'Provider group'| translate}}
+                                ul.nav.nav-tabs.common-nav-tabs
+                                    li(ng-class="vm.selectedRewardSettingsTab == false ? 'active' : null")
+                                        a.common-tab(data-toggle="tab", ng-click="vm.setDisplayTaskGroup(false)") {{'Reward task'| translate}}
+                                    li(ng-class="vm.selectedRewardSettingsTab == true ? 'active' : null")
+                                        a.common-tab(data-toggle="tab", ng-click="vm.setDisplayTaskGroup(true)", ng-show="vm.selectedPlatform.data.useProviderGroup") {{'Provider group'| translate}}
+
                             div(ng-show="vm.displayTaskGroup && vm.selectedPlatform.data.useProviderGroup")
                                 table#rewardTaskGroupLogTbl.common-table.display(style='min-width:100%')
                                 #rewardTaskGroupLogTblPage.height30
@@ -1298,9 +1302,9 @@
                                 label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
 
                             div(ng-show="!vm.displayTaskGroup")
-                                label {{"Total" | translate}} {{vm.rewardTaskLog.totalCount}} {{"records" | translate}}
                                 table#rewardTaskLogTbl.common-table.display(style='min-width:100%')
                                 #rewardTaskLogTblPage.height30
+                                label {{"Total" | translate}} {{vm.rewardTaskLog.totalCount}} {{"records" | translate}}
 
             .modal-footer
                 //#modalPlayerAddRewardTask
