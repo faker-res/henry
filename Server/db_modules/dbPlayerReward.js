@@ -2305,7 +2305,6 @@ let dbPlayerReward = {
         let rewards;
         let playerObj;
         let levelObj;
-        let acceptedList = [], expiredList = [];
 
         if (status) {
             status = Number(status);
@@ -2386,7 +2385,6 @@ let dbPlayerReward = {
 
                         let proposalQuery = {
                             'data.platformObjId': platformObj._id,
-                            'data.playerId': playerId,
                             'data.limitedOfferObjId': e._id,
                             type: intPropTypeObj._id
                         };
@@ -2395,29 +2393,11 @@ let dbPlayerReward = {
                         if (period) {
                             let timeInPassPeriodHours = dbUtility.getSGTimeOfPassHours(period);
                             proposalQuery.createTime = {$gte: timeInPassPeriodHours.startTime, $lte: timeInPassPeriodHours.endTime};
-
-                            promArr.push(
-                                dbConfig.collection_proposal.findOne(proposalQuery).lean().then(
-                                    prop => {
-                                        if (prop && prop.data) {
-                                            if (prop.data.topUpProposalId) {
-                                                acceptedList.push(e);
-                                            } else if (prop.data.expirationTime.getTime() >= new Date().getTime()) {
-                                                expiredList.push(e);
-                                            }
-                                        }
-                                    }
-                                )
-                            );
                         }
 
                         promArr.push(
                             dbConfig.collection_proposal.aggregate({
-                                $match: {
-                                    'data.platformObjId': platformObj._id,
-                                    'data.limitedOfferObjId': e._id,
-                                    type: intPropTypeObj._id
-                                }
+                                $match: proposalQuery
                             }, {
                                 $project: {
                                     "data.playerId": 1,
@@ -2521,7 +2501,11 @@ let dbPlayerReward = {
                 // Filter by status if any
                 if (status && status !== 0) {
                     rewards = rewards.filter(e => {
-                        return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                        if (period) {
+                            return (e.status == status )
+                        } else {
+                            return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                        }
                     })
                 } else if (status === 0) {
                     rewards = rewards.filter(e => {
@@ -2537,9 +2521,7 @@ let dbPlayerReward = {
                     time: [...timeSet].join("/"),
                     showInfo: playerObj && playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
                     secretList: rewards.filter(e => Boolean(e.displayOriPrice) === false),
-                    normalList: rewards.filter(e => Boolean(e.displayOriPrice) === true),
-                    acceptedList: acceptedList,
-                    expiredList: expiredList
+                    normalList: rewards.filter(e => Boolean(e.displayOriPrice) === true)
                 }
             }
         );
