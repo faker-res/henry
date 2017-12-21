@@ -15644,7 +15644,8 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('userAgent'), data: "userAgent",
                             render: function (data, type, row) {
-                                return $translate($scope.constPlayerRegistrationInterface[row.userAgent]);
+                                // TOPUP_REWARD_POINTS use different userAgent
+                                return row.category == 2 ? $translate($scope.userAgentType[row.userAgent]) : $translate($scope.constPlayerRegistrationInterface[row.userAgent]);
                             }
                         },
                         {

@@ -902,6 +902,7 @@ var proposalExecutor = {
                                 }
                             );
                         }
+                        dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ONLINE);
                         let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData);
                         let applyPromoCode = null;
                         if (proposalData.data.bonusCode) {
@@ -942,6 +943,7 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
+                        dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ALIPAY);
                         let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
                         let applyPromoCode = null;
                         if (proposalData.data.bonusCode) {
@@ -1009,6 +1011,7 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
+                        dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.WECHAT);
                         let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'weChat');
                         let applyPromoCode = null;
                         if (proposalData.data.bonusCode) {
@@ -1053,6 +1056,7 @@ var proposalExecutor = {
                             }
                             // DEBUG: Reward sometime not applied issue
                             console.log('applyForPlatformTransactionReward - Start', proposalData.proposalId);
+                            dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL);
                             // return dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
                             let applyforTransactionReward = dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
                             let applyPromoCode = null;

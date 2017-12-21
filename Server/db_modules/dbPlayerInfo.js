@@ -2154,6 +2154,7 @@ let dbPlayerInfo = {
                     if (proposalData && proposalData.data) {
                         if (topUpType == constPlayerTopUpType.MANUAL) {
                             recordData.bankCardType = proposalData.data.bankCardType;
+                            recordData.depositMethod = proposalData.data.depositMethod;
                         }
                         else if (topUpType == constPlayerTopUpType.ONLINE) {
                             recordData.merchantTopUpType = proposalData.data.topupType;
@@ -2222,14 +2223,15 @@ let dbPlayerInfo = {
                                 if (proposalTypeData) {
                                     // Create reward proposal with intention data
                                     newProp.data.eventName = newProp.data.eventName.replace(" Intention",'');
-                                    let remark = 'event name: '+ newProp.data.eventName +'('+ newProp.proposalId +') topup proposal id: ' + topupProposal.proposalId;
+                                    let remark = 'event name: '+ newProp.data.limitedOfferName +'('+ newProp.proposalId +') topup proposal id: ' + topupProposal.proposalId;
                                     newProp.data.remark = remark;
                                     let proposalData = {
                                         type: proposalTypeData._id,
                                         creator: newProp.creator,
                                         data: newProp.data,
                                         entryType: newProp.entryType,
-                                        userType: newProp.userType
+                                        userType: newProp.userType,
+                                        inputDevice: newProp.inputDevice
                                     };
 
                                     return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);

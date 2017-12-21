@@ -33,7 +33,9 @@ var playerTopUpRecordSchema = new Schema({
     //related proposal id
     proposalId: {type: String, index: true},
     // Device interface
-    userAgent: {type: String}
+    userAgent: {type: String},
+    // Deposit Method
+    depositMethod: {type: String}
 });
 
 //record is unique by playerId platformId and createTime

@@ -2934,5 +2934,8 @@
   "Player does not have enough consumption": "玩家没有足够的投注额",
   "Player does not have enough top up or consumption": "玩家没有足够的存款或投注额",
   "The period of the reward has not yet opened": "本周期的场次尚未开放",
-  "Top up does not meet Promo Code minimum required amount": "充值额没达到优惠代码需求"
+  "Top up does not meet Promo Code minimum required amount": "充值额没达到优惠代码需求",
+  "bankType": "收款银行类型",
+  "merchantTopupType": "在线充值方式",
+  "merchantTopupMainType": "充值类型"
 }
