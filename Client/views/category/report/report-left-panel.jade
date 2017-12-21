@@ -1,15 +1,15 @@
 .panel.panel-primary
-    .panel-heading.padding-all-5
-        .panel-title.left-col
-            .fa.fa-cubes(ng-if='vm.selectedPlatform')
-            //-
-                text(ng-click='vm.operSelPlatform=true') {{vm.selectedPlatform.platformName | translate}}
-                .fa.fa-cubes(ng-if='!vm.selectedPlatform')
-                span(ng-if='!vm.selectedPlatform') {{'SELECT_PLATFORM' | translate}}
-                div(ng-show='vm.operSelPlatform')
-                    a.fa.fa-times.text-danger(ng-click='vm.operSelPlatform=false')
-            select.platform-select(ng-model='vm.selectedPlatformID', ng-change='vm.setPlatformById(vm.selectedPlatformID)', required)
-                option(ng-repeat='(i,v) in vm.platformList', value='{{v._id}}', ng-selected='vm.selectedPlatform._id==v._id') {{v.name}}
+    //.panel-heading.padding-all-5
+    //    .panel-title.left-col
+    //        .fa.fa-cubes(ng-if='vm.selectedPlatform')
+    //        //-
+    //            text(ng-click='vm.operSelPlatform=true') {{vm.selectedPlatform.platformName | translate}}
+    //            .fa.fa-cubes(ng-if='!vm.selectedPlatform')
+    //            span(ng-if='!vm.selectedPlatform') {{'SELECT_PLATFORM' | translate}}
+    //            div(ng-show='vm.operSelPlatform')
+    //                a.fa.fa-times.text-danger(ng-click='vm.operSelPlatform=false')
+    //        select.platform-select(ng-model='vm.selectedPlatformID', ng-change='vm.setPlatformById(vm.selectedPlatformID)', required)
+    //            option(ng-repeat='(i,v) in vm.platformList', value='{{v._id}}', ng-selected='vm.selectedPlatform._id==v._id') {{v.name}}
     .panel-body.common-left-panel-body.leftPanel-vlist
         #reportCategory.panel-group
             .panel.panel-default

@@ -51,7 +51,12 @@ define(['js/app'], function (myApp) {
             }
             $cookies.put("paymentShowLeft", vm.showPlatformList);
             $scope.safeApply();
-        }
+        };
+
+        $scope.$on('switchPlatform', () => {
+            $scope.$evalAsync(vm.loadPlatformData());
+        });
+
         vm.loadPlatformData = function (option) {
             vm.showPlatformSpin = true;
             socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
