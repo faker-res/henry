@@ -2023,12 +2023,16 @@ var proposalExecutor = {
                         rewardType: constRewardType.PLAYER_LIMITED_OFFERS_REWARD,
                         platformId: proposalData.data.platformId,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
-                        currentAmount: proposalData.data.applyAmount,
-                        initAmount: proposalData.data.applyAmount,
+                        applyAmount: proposalData.data.applyAmount,
+                        currentAmount: proposalData.data.applyAmount + proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.applyAmount + proposalData.data.rewardAmount,
                         eventId: proposalData.data.eventId
                     };
+
                     if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;
+                    } else {
+                        taskData.providerGroup = proposalData.data.providerGroup;
                     }
 
                     createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_LIMITED_OFFERS_REWARD, proposalData);

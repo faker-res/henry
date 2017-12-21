@@ -1195,6 +1195,7 @@ define(['js/app'], function (myApp) {
             } else if (choice == "LIMITED_OFFER_REPORT") {
                 vm.limitedOfferQuery = {};
                 vm.limitedOfferDetail = {};
+                vm.limitedOfferQuery.limit = 10;
                 utilService.actionAfterLoaded("#limitedOfferTable", function () {
                     vm.commonInitTime(vm.limitedOfferQuery, '#limitedOfferQuery');
                     vm.limitedOfferQuery.pageObj = utilService.createPageForPagingTable("#limitedOfferTablePage", {}, $translate, function (curP, pageSize) {
@@ -1638,12 +1639,10 @@ define(['js/app'], function (myApp) {
         vm.getPlayerLevelByPlatformId = function (id) {
             socketService.$socket($scope.AppSocket, 'getPlayerLevelByPlatformId', {platformId: id}, function (data) {
                 vm.playerLvlData = {};
-                vm.playerLvlName = {};
                 console.log(data)
                 if (data.data) {
                     $.each(data.data, function (i, v) {
                         vm.playerLvlData[v._id] = v;
-                        vm.playerLvlName[v._id] = v.name;
                     })
                 }
                 console.log("vm.playerLvlData", vm.playerLvlData);
@@ -2771,7 +2770,6 @@ define(['js/app'], function (myApp) {
 
         vm.getLimitedOfferReport = function (newSearch) {
             $('#limitedOfferTableSpin').show();
-            vm.limitedOfferQuery.limit = 10;
             vm.limitedOfferQuery.index = 0;
             vm.limitedOfferQuery.sortCol = vm.limitedOfferQuery.sortCol || {'applyTime$': -1};
 
@@ -2828,7 +2826,6 @@ define(['js/app'], function (myApp) {
                         e.rewardAmount$ = e.data.rewardProposalId ? e.data.rewardAmount : 0;
                         e.spendingAmount$ = e.data.spendingAmount ? e.data.spendingAmount : 0;
                         e.inputDevice$ = (e.hasOwnProperty("inputDevice") && vm.inputDeviceMapped[e.inputDevice]) ? $translate(vm.inputDeviceMapped[e.inputDevice]) : "Unknown";
-
                         e.data.topUpAmount$ = e.data.topUpAmount ? parseFloat(e.data.topUpAmount).toFixed(2) : "";
                         e.data.rewardAmount$ = e.data.rewardProposalId ? parseFloat(e.data.rewardAmount).toFixed(2) : "";
                         e.data.spendingAmount$ = e.data.spendingAmount ? parseFloat(e.data.spendingAmount).toFixed(2) : parseFloat(0).toFixed(2);
@@ -4404,34 +4401,41 @@ define(['js/app'], function (myApp) {
             }
         }
         vm.searchProposalRecord = function (newSearch) {
-
             vm.curPlatformId = vm.selectedPlatform._id;
-            var newproposalQuery = $.extend(true, {}, vm.proposalQuery);
-            // if (newproposalQuery.proposalTypeId == "all") {
-            //     newproposalQuery.proposalTypeId = null;
-            // }
 
-            var proposalNames = $('select#selectProposalType').multipleSelect("getSelects");
+            let newproposalQuery = $.extend(true, {}, vm.proposalQuery);
             newproposalQuery.proposalTypeId = [];
-            vm.allProposalType.filter(item => {
-                if (proposalNames.indexOf(item.name) > -1) {
-                    newproposalQuery.proposalTypeId.push(item._id);
-                }
-            });
-            var rewardTypes = $('select#selectRewardType').multipleSelect("getSelects");
             newproposalQuery.rewardTypeName = [];
-            vm.rewardList.filter(item => {
-                if (rewardTypes.indexOf(item.name) > -1) {
-                    newproposalQuery.rewardTypeName.push(item.name);
-                }
-            });
-            var promoType = $('select#selectPromoType').multipleSelect("getSelects");
             newproposalQuery.promoTypeName = [];
-            vm.promoTypeList.filter(item => {
-                if (promoType.indexOf(item.name) > -1) {
-                    newproposalQuery.promoTypeName.push(item.name);
-                }
-            });
+
+            let proposalNames = $('select#selectProposalType').multipleSelect("getSelects");
+            let rewardTypes = $('select#selectRewardType').multipleSelect("getSelects");
+            let promoType = $('select#selectPromoType').multipleSelect("getSelects");
+
+            if (vm.allProposalType.length != proposalNames.length) {
+                vm.allProposalType.filter(item => {
+                    if (proposalNames.indexOf(item.name) > -1) {
+                        newproposalQuery.proposalTypeId.push(item._id);
+                    }
+                });
+            }
+
+            if (vm.rewardList.length != rewardTypes.length) {
+                vm.rewardList.filter(item => {
+                    if (rewardTypes.indexOf(item.name) > -1) {
+                        newproposalQuery.rewardTypeName.push(item.name);
+                    }
+                });
+            }
+
+            if (vm.promoTypeList.length != promoType.length) {
+                vm.promoTypeList.filter(item => {
+                    if (promoType.indexOf(item.name) > -1) {
+                        newproposalQuery.promoTypeName.push(item.name);
+                    }
+                });
+            }
+
             if (newproposalQuery.status == "all") {
                 newproposalQuery.status = null;
             }

@@ -66,76 +66,78 @@ var dbPlayerRegistrationIntentRecord = {
     },
 
     createPlayerRegistrationIntentRecord: function (data, status) {
-        let proposalData = {
-            creator: data.adminInfo || {
-                type: data.partnerName ? "partner" :'player',
-                name: data.partnerName ? data.partnerName : data.name,
-                id: data.partnerName ? data.partnerId : data.playerId
-            }
-        };
-
-        if(data.smsCode){
-            data.smsCode = parseInt(data.smsCode);
-        }
-
-        let newProposal = {
-            creator: proposalData.creator,
-            data: data,
-            entryType: data.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-            userType: data.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-        };
-
-        //data.ipArea = geoip('210.21.84.23');
-        if( data.phoneNumber ){
-            var queryRes = queryPhoneLocation(data.phoneNumber);
-            if (queryRes) {
-                data.phoneProvince = queryRes.province;
-                data.phoneCity = queryRes.city;
-                data.phoneType = queryRes.type;
-            }
-            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status);
-        }
-
-        if (typeof(data.platform) != 'object') {
-            data.platform = ObjectId(data.platform);
-        }
-
-        let newIntentData = {
-            status: constRegistrationIntentRecordStatus[status.toString().toUpperCase()],
-            data: data,
-            name: data.name
-        };
-
-        let query;
-        if(data.name){
-            query = {
-                name: data.name,
-                "data.phoneNumber": data.phoneNumber,
-                "data.smsCode": data.smsCode
-            }
-        }else{
-            query = {
-                "data.phoneNumber": data.phoneNumber,
-                "data.smsCode": data.smsCode
-            }
-        }
-
-        if(data.lastLoginIp && data.lastLoginIp != "undefined"){
-            return dbUtil.getGeoIp(data.lastLoginIp).then(
-                ipData=>{
-                    if(data){
-                        data.ipArea = ipData;
-                    }else{
-                        data.ipArea = {'province':'', 'city':''};
-                    }
-
-                    return data;
+        if(data){
+            let proposalData = {
+                creator: data.adminInfo || {
+                    type: data.partnerName ? "partner" :'player',
+                    name: data.partnerName ? data.partnerName : data.name,
+                    id: data.partnerName ? data.partnerId : data.playerId
                 }
-            ).then(data => {
+            };
+
+            if(data.smsCode){
+                data.smsCode = parseInt(data.smsCode);
+            }
+
+            let newProposal = {
+                creator: proposalData.creator,
+                data: data,
+                entryType: data.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                userType: data.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+            };
+
+            //data.ipArea = geoip('210.21.84.23');
+            if( data.phoneNumber ){
+                var queryRes = queryPhoneLocation(data.phoneNumber);
+                if (queryRes) {
+                    data.phoneProvince = queryRes.province;
+                    data.phoneCity = queryRes.city;
+                    data.phoneType = queryRes.type;
+                }
+                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status);
+            }
+
+            if (typeof(data.platform) != 'object') {
+                data.platform = ObjectId(data.platform);
+            }
+
+            let newIntentData = {
+                status: constRegistrationIntentRecordStatus[status.toString().toUpperCase()],
+                data: data,
+                name: data.name
+            };
+
+            let query;
+            if(data.name){
+                query = {
+                    name: data.name,
+                    "data.phoneNumber": data.phoneNumber,
+                    "data.smsCode": data.smsCode
+                }
+            }else{
+                query = {
+                    "data.phoneNumber": data.phoneNumber,
+                    "data.smsCode": data.smsCode
+                }
+            }
+
+            if(data.lastLoginIp && data.lastLoginIp != "undefined"){
+                return dbUtil.getGeoIp(data.lastLoginIp).then(
+                    ipData=>{
+                        if(data){
+                            data.ipArea = ipData;
+                        }else{
+                            data.ipArea = {'province':'', 'city':''};
+                        }
+
+                        return data;
+                    }
+                ).then(data => {
+                    return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
+                })
+            }else{
                 return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
-            })
-        }else{
-            return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
+            }
         }
     },
 
@@ -187,9 +189,13 @@ var dbPlayerRegistrationIntentRecord = {
             }
         }
         let updateQuery = {
-            status: updateData,
             data: query
         };
+
+        if(updateData != "Fail"){
+            updateQuery.status = updateData;
+        }
+
         let intentUpdateData = {
             name: query.name,
             status: "",
@@ -201,7 +207,7 @@ var dbPlayerRegistrationIntentRecord = {
 
         if (query && query._id && query.createTime) {
             proposalProm = dbconfig.collection_proposal.findOneAndUpdate(queryObj, updateQuery, {new: true});
-            if(updateData){
+            if(updateData && updateData != "Fail"){
                 intentUpdateData.status = constRegistrationIntentRecordStatus[intentUpdateData.toString().toUpperCase()];
             }
             registrationIntentProm = dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(queryObj, intentUpdateData, {new: true});
@@ -211,7 +217,7 @@ var dbPlayerRegistrationIntentRecord = {
                 queryObj, updateQuery,
                 constShardKeys.collection_proposal
             );
-            if(updateData){
+            if(updateData && updateData != "Fail"){
                 intentUpdateData.status = constRegistrationIntentRecordStatus[updateData.toString().toUpperCase()];
             }
             registrationIntentProm = dbUtil.findOneAndUpdateForShard(
