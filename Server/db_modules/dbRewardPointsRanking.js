@@ -35,10 +35,10 @@ var dbRewardPointsRanking = {
     },
 
     // for API use only
-    getRewardPointsRanking: (platformId, index, limit, sortCol) => {
-        index = index || 0;
-        limit = limit || 10;
-        sortCol = sortCol || {points: -1, lastUpdate: 1};
+    getRewardPointsRanking: (platformId, totalRank) => {
+        totalRank = parseInt(totalRank,10);
+        let limit = !isNaN(totalRank) && totalRank > 0 ? totalRank : 10;
+        let sortCol = {points: -1, lastUpdate: 1};
         let rewardPoints = dbConfig.collection_platform.findOne({
             platformId: platformId
         }, {
@@ -55,7 +55,7 @@ var dbRewardPointsRanking = {
                         lastUpdate: 1,
                         createTime: 1,
                         _id: 0
-                    }).sort(sortCol).skip(index).limit(limit)
+                    }).sort(sortCol).limit(limit)
                         .populate({path: "playerLevel", model: dbConfig.collection_playerLevel, select: 'name'}).lean();
                 }
             }

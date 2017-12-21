@@ -1638,12 +1638,10 @@ define(['js/app'], function (myApp) {
         vm.getPlayerLevelByPlatformId = function (id) {
             socketService.$socket($scope.AppSocket, 'getPlayerLevelByPlatformId', {platformId: id}, function (data) {
                 vm.playerLvlData = {};
-                vm.playerLvlName = {};
                 console.log(data)
                 if (data.data) {
                     $.each(data.data, function (i, v) {
                         vm.playerLvlData[v._id] = v;
-                        vm.playerLvlName[v._id] = v.name;
                     })
                 }
                 console.log("vm.playerLvlData", vm.playerLvlData);
@@ -2828,7 +2826,6 @@ define(['js/app'], function (myApp) {
                         e.rewardAmount$ = e.data.rewardProposalId ? e.data.rewardAmount : 0;
                         e.spendingAmount$ = e.data.spendingAmount ? e.data.spendingAmount : 0;
                         e.inputDevice$ = (e.hasOwnProperty("inputDevice") && vm.inputDeviceMapped[e.inputDevice]) ? $translate(vm.inputDeviceMapped[e.inputDevice]) : "Unknown";
-
                         e.data.topUpAmount$ = e.data.topUpAmount ? parseFloat(e.data.topUpAmount).toFixed(2) : "";
                         e.data.rewardAmount$ = e.data.rewardProposalId ? parseFloat(e.data.rewardAmount).toFixed(2) : "";
                         e.data.spendingAmount$ = e.data.spendingAmount ? parseFloat(e.data.spendingAmount).toFixed(2) : parseFloat(0).toFixed(2);
