@@ -8753,44 +8753,6 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            // vm.submitManualUnlockRewardTask = function () {
-            //     console.log(vm.manualUnlockRewardTaskIndexList);
-            //     if (!vm.manualUnlockRewardTaskIndexList) {
-            //         vm.manualUnlockRewardTask.resMsg = "No reward tasks are selected to unlock.";
-            //         $scope.safeApply();
-            //         return;
-            //     }
-            //
-            //     let updateStatus = function updateStatus() {
-            //         vm.manualUnlockRewardTask.resMsg =
-            //             taskCount == vm.manualUnlockRewardTaskIndexList.length ?
-            //                 numberOfRewardUnlocked == vm.manualUnlockRewardTaskIndexList.length ?
-            //                     $translate('Submitted proposal for approval') :
-            //                     $translate('FAIL')
-            //                 : "";
-            //
-            //         $scope.safeApply();
-            //     };
-            //     let numberOfRewardUnlocked = 0, taskCount = 0;
-            //     vm.manualUnlockRewardTaskIndexList.forEach(function (index) {
-            //         taskCount++;
-            //         console.log(vm.curRewardTask)
-            //         socketService.$socket($scope.AppSocket, 'manualUnlockRewardTask', [vm.curRewardTask[index], vm.selectedSinglePlayer], function (data) {
-            //             console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " is submitted for approval.");
-            //             numberOfRewardUnlocked++;
-            //             updateStatus();
-            //         }, function (err) {
-            //             if (err.error.message) {
-            //                 console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " failed to submit, error: " + err.error.message);
-            //             } else {
-            //                 console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " failed to submit.");
-            //             }
-            //             updateStatus();
-            //         });
-            //     });
-            // };
-
-
             vm.submitManualUnlockRewardTask = function (rewards) {
 
                 if (!rewards) {
@@ -10201,13 +10163,9 @@ define(['js/app'], function (myApp) {
                     })
                 })
                 socketService.$socket($scope.AppSocket, 'getWithdrawalInfo', {'platformId': platformId , 'playerId': playerId}, function (data) {
-                    console.log('getWithdrawalInfo', data);
-                    console.log(data);
                     vm.freeAmount = data.data ? data.data.freeAmount : '';
                     vm.currentFreeAmount = data.data ? data.data.currentFreeAmount : '';
                 })
-
-
             }
             vm.setDisplayTaskGroup = function(status){
                 vm.displayTaskGroup = status;
@@ -10235,10 +10193,7 @@ define(['js/app'], function (myApp) {
                     useProviderGroup: vm.selectedPlatform.data.useProviderGroup
                 };
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardTask', sendQuery, function (data) {
-                    console.log('getPlayerRewardTask', data);
                     vm.curRewardTask = data.data;
-
-
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
                         item.topUpAmount = (item.topUpAmount);
@@ -10273,7 +10228,6 @@ define(['js/app'], function (myApp) {
                         return item;
                     }) : [];
                     var size = data.data ? data.data.size : 0;
-                    console.log(data.data);
                     let summary = data.data ? data.data.summary : [];
                     let topUpAmountSum = data.data ? data.data.topUpAmountSum : 0;
                     vm.rewardTaskLog.totalCount = size;
@@ -10431,7 +10385,6 @@ define(['js/app'], function (myApp) {
             }
             vm.drawRewardTaskProposalTable = function (newSearch, data, size, summary, topUpAmountSum) {
                 let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
-
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: data,
                     aoColumnDefs: [
@@ -10686,17 +10639,11 @@ define(['js/app'], function (myApp) {
 
                 });
 
-                // let summary = {
-                //     'topUpAmountSum':1000,
-                //     'bonusAmountSum':1000,
-                //     'requiredBonusAmountSum': 2000,
-                //     'bonusAmountAllSum': 3000
-                // }
                 utilService.createDatatableWithFooter('#rewardTaskLogTbl', tableOptions, {
                     4: topUpAmountSum,
-                    6: summary.bonusAmountSum,
-                    7: summary.requiredBonusAmountSum,
-                    8: summary.currentAmountSum
+                    6: summary ? summary.bonusAmountSum: 0,
+                    7: summary ? summary.requiredBonusAmountSum: 0,
+                    8: summary ? summary.currentAmountSum :0
                 });
 
                 var aTable = $("#rewardTaskLogTbl").DataTable(tableOptions);
