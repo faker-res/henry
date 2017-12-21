@@ -1999,7 +1999,7 @@ var dbPlayerTopUpRecord = {
     getPlayerAliPayStatus: playerId => {
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "aliPayGroup", model: dbconfig.collection_platformAliPayGroup}).then(
+            .populate({path: "aliPayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
                     if (playerData && playerData.platform && playerData.aliPayGroup && playerData.aliPayGroup.alipays && playerData.aliPayGroup.alipays.length > 0) {
                         return pmsAPI.alipay_getAlipayList({

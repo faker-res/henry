@@ -3027,17 +3027,12 @@ define(['js/app'], function (myApp) {
                 return result
             }
             vm.getNewPlayerListByFilter = function (newSearch) {
-                // var selectedStatus = vm.queryPara.newPlayerList ? [vm.constRegistrationIntentRecordStatus[vm.queryPara.newPlayerList.status]] : [vm.constRegistrationIntentRecordStatus.INTENT,
-                //     vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE, vm.constRegistrationIntentRecordStatus.SUCCESS,
-                //     vm.constRegistrationIntentRecordStatus.FAIL, vm.constRegistrationIntentRecordStatus.MANUAL];
                 var selectedStatus;
 
                 if (vm.queryPara.newPlayerList) {
                     if (vm.queryPara.newPlayerList.status == "ATTEMPT") {
-                        //selectedStatus = [vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE, vm.constRegistrationIntentRecordStatus.FAIL];
                         selectedStatus = [vm.constProposalStatus.PENDING];
                     } else {
-                        //selectedStatus = [vm.constRegistrationIntentRecordStatus[vm.queryPara.newPlayerList.status]];
                         selectedStatus = [vm.constProposalStatus[vm.queryPara.newPlayerList.status]];
                     }
                 }
@@ -3060,12 +3055,6 @@ define(['js/app'], function (myApp) {
                     displayPhoneNum: true
 
                 }
-                // if (selectedStatus && selectedStatus != "") {
-                //     sendData.status = selectedStatus
-                // } else {
-                //     sendData.status = [vm.constRegistrationIntentRecordStatus.INTENT, vm.constRegistrationIntentRecordStatus.VERIFICATION_CODE,
-                //         vm.constRegistrationIntentRecordStatus.SUCCESS, vm.constRegistrationIntentRecordStatus.FAIL, vm.constRegistrationIntentRecordStatus.MANUAL];
-                // }
 
                 if (selectedStatus && selectedStatus != "") {
                     sendData.status = selectedStatus
@@ -15675,7 +15664,8 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('userAgent'), data: "userAgent",
                             render: function (data, type, row) {
-                                return $translate($scope.constPlayerRegistrationInterface[row.userAgent]);
+                                // TOPUP_REWARD_POINTS use different userAgent
+                                return row.category == 2 ? $translate($scope.userAgentType[row.userAgent]) : $translate($scope.constPlayerRegistrationInterface[row.userAgent]);
                             }
                         },
                         {
