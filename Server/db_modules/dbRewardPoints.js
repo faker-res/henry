@@ -220,7 +220,7 @@ let dbRewardPoints = {
                                             }
                                         }
                                         let applyRewardProm = function () {
-                                            return dbRewardPoints.applyRewardPoint(topupProposalData.data.playerObjId, rewardPointToApply, topupProposalData.data.userAgent)
+                                            return dbRewardPoints.applyRewardPoint(topupProposalData.data.playerObjId, rewardPointToApply, topupProposalData.inputDevice)
                                                 .catch(errorUtils.reportError);
 
                                         };
