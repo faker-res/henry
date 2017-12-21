@@ -1354,6 +1354,7 @@ const dbRewardTask = {
      * @param {String} unlockType
      */
     completeRewardTaskGroup: (rewardGroupData, unlockType) => {
+        rewardGroupData = JSON.parse(JSON.stringify(rewardGroupData));
         let playerCreditChange;
 
         // Set transfer amount

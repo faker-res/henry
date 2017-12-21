@@ -2,6 +2,7 @@ WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var RewardPointsService = require("./../../services/client/ClientServices").RewardPointsService;
 var dbRewardEvent = require('./../../db_modules/dbRewardEvent');
 var dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
+var dbRewardPoints = require('./../../db_modules/dbRewardPoints');
 var constSystemParam = require('./../../const/constSystemParam');
 var dbRewardTask = require('./../../db_modules/dbRewardTask');
 var dbPlayerConsumptionWeekSummary = require('./../../db_modules/dbPlayerConsumptionWeekSummary');
@@ -19,11 +20,10 @@ let RewardPointsServiceImplement = function () {
     RewardPointsService.call(this);
     var self = this;
 
-    //todo
     this.getLoginRewardPoints.expectsData = '';
     this.getLoginRewardPoints.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getRewardEventForPlatform, [data.platformId], isValidData, false, false, true);
+        var isValidData = true;
+        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPoints.getLoginRewardPoints, [conn.playerId, data.platformId], isValidData, false, false, Boolean(data.platformId));
     };
 
     this.getRewardPointsRanking.expectsData = 'platformId: String';
@@ -32,6 +32,7 @@ let RewardPointsServiceImplement = function () {
         let isValidData = Boolean(data && data.platformId); console.log("isValidData",isValidData);
         WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPointsRanking.getRewardPointsRanking, [data.platformId, data.totalRank], isValidData, false, false, true);
     };
+
 
 
 };

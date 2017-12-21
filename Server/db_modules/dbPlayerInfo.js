@@ -2180,6 +2180,7 @@ let dbPlayerInfo = {
                     if (proposalData && proposalData.data) {
                         if (topUpType == constPlayerTopUpType.MANUAL) {
                             recordData.bankCardType = proposalData.data.bankCardType;
+                            recordData.depositMethod = proposalData.data.depositMethod;
                         }
                         else if (topUpType == constPlayerTopUpType.ONLINE) {
                             recordData.merchantTopUpType = proposalData.data.topupType;
@@ -8400,7 +8401,7 @@ let dbPlayerInfo = {
         ).then(
             loginData => ({gameURL: loginData.gameURL}),
             error => Q.reject({
-                status: constServerCode.TEST_GAME_REQUIRE_LOGIN,
+                status: constServerCode.INVALID_API_USER,
                 name: "DataError",
                 message: "Please login and try again"
             })
@@ -12405,14 +12406,15 @@ function checkLimitedOfferToApply (proposalData) {
                 if (proposalTypeData) {
                     // Create reward proposal with intention data
                     newProp.data.eventName = newProp.data.eventName.replace(" Intention",'');
-                    newProp.data.remark = 'event name: '+ newProp.data.eventName +'('+ newProp.proposalId +') topup proposal id: ' + topupProposal.proposalId;
+                    newProp.data.remark = 'event name: '+ newProp.data.limitedOfferName +'('+ newProp.proposalId +') topup proposal id: ' + topupProposal.proposalId;
 
                     let proposalData = {
                         type: proposalTypeData._id,
                         creator: newProp.creator,
                         data: newProp.data,
                         entryType: newProp.entryType,
-                        userType: newProp.userType
+                        userType: newProp.userType,
+                        inputDevice: newProp.inputDevice
                     };
 
                     return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
