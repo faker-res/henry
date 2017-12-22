@@ -10565,7 +10565,6 @@ define(['js/app'], function (myApp) {
                 let currentAmt = 0;
                 let AmtNow = 0;
                 let curConsumption = rewardTaskGroup.curConsumption ? rewardTaskGroup.curConsumption : 0;
-                // console.log('*************')
                 for (let i = 0; i <= rowId; i++) {
                     let spendingAmount = vm.rewardTaskProposalData[i].data.spendingAmount;
                     currentMax = vm.rewardTaskProposalData[i].data.spendingAmount;
@@ -10583,14 +10582,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                // console.log('AmtNow = curConsumption - spendingAmt - currentMax');
-                // console.log(AmtNow + ' = '+ curConsumption +'-'+ spendingAmt+'-'+currentMax);
-                // console.log(AmtNow);
-                // console.log('================');
-                // console.log(' = curConsumption '+ curConsumption + ' - spendingAmt' + spendingAmt)
-                // console.log(incCurConsumption);
-                // return incCurConsumption;
-                return { 'incCurConsumption': incCurConsumption , 'currentAmt':AmtNow}
+                return { 'incCurConsumption': incCurConsumption , 'currentAmt':AmtNow ,'currentMax':currentMax }
             }
             vm.isSubmitProposal = function (rowId) {
 
@@ -10611,10 +10603,7 @@ define(['js/app'], function (myApp) {
                 // should over 0
                 let finalRewardAmount = taskGroupCurrentAmt - sumRewardAmount;
                 let spendingAmt = vm.calSpendingAmt(rowId);
-                // console.log(rowId);
-                // console.log(finalRewardAmount);
-                // console.log(spendingAmt);
-                // console.log('-----------------')
+
                 if (finalRewardAmount >= 0 && spendingAmt.incCurConsumption >= 0) {
                     // already submit, display tick icon
                     return {isSubmit: true, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt}
@@ -10764,8 +10753,12 @@ define(['js/app'], function (myApp) {
                                 let spendingAmt = vm.calSpendingAmt(rowId);
 
                                 let spAmount = spendingAmt.currentAmt;
-                                var text = spAmount + '/' + row.requiredUnlockAmount;
-                                // var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
+                                let spCurrentMax = spendingAmt.currentMax;
+                                if(vm.isUnlockTaskGroup){
+                                    var text = spAmount + '/' + spCurrentMax;
+                                }else{
+                                    var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
+                                }
                                 return "<div>" + text + "</div>";
                             }, sClass: 'sumFloat textRight'
                         },
