@@ -1394,17 +1394,11 @@ define(['js/app'], function (myApp) {
                 platform: vm.selectedPlatform.data.platformId,
                 alipayGroup: alipayGroup._id
             }
-            vm.alipayStatusFilterOptions = {};
+            vm.alipayStatusFilterOptions = {"NORMAL": true, "CLOSE": true, "LOCK": true};
             socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroupWithIsInGroup', query, function(data){
 
                 //provider list init
                 vm.allAlipayList = data.data;
-                // loop get alipay status for future add extra status, no need change code
-                vm.allAlipayList.forEach(alipay => {
-                    if (!vm.alipayStatusFilterOptions.hasOwnProperty(alipay.state)) {
-                        vm.alipayStatusFilterOptions[alipay.state] = true;
-                    }
-                });
                 console.log('vm.allAlipayList', vm.allAlipayList);
                 $scope.safeApply();
             });
@@ -1903,8 +1897,7 @@ define(['js/app'], function (myApp) {
                 platform: vm.selectedPlatform.data.platformId,
                 wechatGroup: wechatPayGroup._id
             };
-
-            vm.wechatStatusFilterOptions = {};
+            vm.wechatStatusFilterOptions = {"NORMAL": true, "DISABLED": true, "LOCK": true};
             socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroupWithIsInGroup', query, function(data){
 
                 //provider list init
