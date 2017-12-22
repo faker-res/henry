@@ -10345,11 +10345,22 @@ define(['js/app'], function (myApp) {
                 let startConsumptionAmount = 0;
 
                 // calculate first proposal that people choose.
-                for (let i = 0; i < firstIndex; i++) {
-                    let rewardTaskProposal = vm.rewardTaskProposalData[i];
-                    sumRewardAmount += rewardTaskProposal.data.applyAmount + rewardTaskProposal.data.rewardAmount;
+                if(firstIndex == lastIndex){
+                    let rewardTaskProposal = vm.rewardTaskProposalData[0];
+                    let applyAmount = rewardTaskProposal.data.applyAmount ? rewardTaskProposal.data.applyAmount:0;
+                    let rewardAmount = rewardTaskProposal.data.rewardAmount ? rewardTaskProposal.data.rewardAmount:0;
+                    sumRewardAmount += applyAmount + rewardAmount;
                     sumConsumptionAmount += rewardTaskProposal.data.spendingAmount;
+                }else{
+                    for (let i = 0; i <= firstIndex; i++) {
+                        let rewardTaskProposal = vm.rewardTaskProposalData[i];
+                        let applyAmount = rewardTaskProposal.data.applyAmount ? rewardTaskProposal.data.applyAmount:0;
+                        let rewardAmount = rewardTaskProposal.data.rewardAmount ? rewardTaskProposal.data.rewardAmount:0;
+                        sumRewardAmount += applyAmount + rewardAmount;
+                        sumConsumptionAmount += rewardTaskProposal.data.spendingAmount;
+                    }
                 }
+
                 startRewardAmount = rewardTaskGroup.currentAmt - sumRewardAmount;
                 startConsumptionAmount = rewardTaskGroup.curConsumption - sumConsumptionAmount;
 
@@ -10382,12 +10393,74 @@ define(['js/app'], function (myApp) {
                     'incConsumptionAmount': incConsumptionAmount
                 }
 
-                socketService.$socket($scope.AppSocket, 'unlockRewardTaskInRewardTaskGroup', sendQuery, function (data) {
-                    vm.getRewardTaskLogData(true);
-                    $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
-                })
+                //socketService.$socket($scope.AppSocket, 'unlockRewardTaskInRewardTaskGroup', sendQuery, function (data) {
+                //    vm.getRewardTaskLogData(true);
+                //   $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
+                //})
 
             }
+            vm.unlockTaskGroup = function(){
+                let indexArr = vm.dynRewardTaskGroupIndex;
+                let firstIndex = indexArr.sort()[0];
+                let lastIndex = indexArr.sort()[indexArr.length - 1];
+
+                let sumRewardAmt = 0;
+                let sumConsumptAmt = 0;
+                let incRewardAmt = 0;
+                let incConsumptAmt = 0;
+
+                for(let i = 0; i <= lastIndex; i++){
+                    let prop = vm.simpleRewardProposalData[i];
+                    sumRewardAmt +=  prop.applyAmount + prop.rewardAmount;
+                    sumConsumptAmt += prop.spendingAmount;
+                }
+
+                // Get the RewardTaskGroup Details;
+                let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
+                let currentAmt = rewardTaskGroup.currentAmt;
+                let rewardAmt = rewardTaskGroup.rewardAmt;
+                let curConsumption = rewardTaskGroup.curConsumption;
+                let targetConsumption = rewardTaskGroup.targetConsumption;
+
+                incRewardAmt = vm.getIncReward(currentAmt,rewardAmt,firstIndex, lastIndex);
+                incConsumptAmt = vm.getIncConsumpt(curConsumption,targetConsumption,firstIndex, lastIndex);
+
+                console.log(incRewardAmt,incConsumptAmt);
+
+                let sendQuery = {
+                    'rewardTaskGroupId': rewardTaskGroup._id,
+                    'incRewardAmount': incRewardAmt,
+                    'incConsumptionAmount': incConsumptAmt
+                }
+                socketService.$socket($scope.AppSocket, 'unlockRewardTaskInRewardTaskGroup', sendQuery, function (data) {
+                   vm.getRewardTaskLogData(true);
+                  $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
+                })
+            }
+
+            vm.getIncReward = function(currentAmt,rewardAmt,firstIdx, lastIdx){
+
+                let sumRewardAmt = 0;
+                for(let i = 0; i <= lastIdx; i++){
+                    let prop = vm.simpleRewardProposalData[i];
+                    sumRewardAmt +=  prop.applyAmount + prop.rewardAmount;
+                }
+                let result = sumRewardAmt - currentAmt;
+                return result
+            }
+
+            vm.getIncConsumpt = function(curConsumption,targetConsumption,firstIdx, lastIdx){
+
+                let sumConsumption = 0;
+                for(let i = 0; i <= lastIdx; i++){
+                    let prop = vm.simpleRewardProposalData[i];
+                    sumConsumption +=  prop.spendingAmount;
+                }
+                let result = sumConsumption - curConsumption;
+                return result;
+
+            }
+
             vm.drawRewardTaskProposalTable = function (newSearch, data, size, summary, topUpAmountSum) {
                 let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
@@ -10435,7 +10508,7 @@ define(['js/app'], function (myApp) {
                             advSearch: true,
                             sClass: "",
                             render: function (data, type, row) {
-                                console.log(row.data);
+
                                 let rewardAmt = rewardTaskGroup ? rewardTaskGroup.rewardAmt : 0;
                                 let applyAmount = row.data.applyAmount ? row.data.applyAmount : 0;
                                 let rewardAmount = row.data.rewardAmount ? row.data.rewardAmount : 0;
@@ -10450,9 +10523,8 @@ define(['js/app'], function (myApp) {
                             data: "spendingAmount",
                             advSearch: true,
                             sClass: "",
-                            render: function (data, type, row, meta) {
-                                var rowId = String(meta.row);
-                                let spendingAmt = vm.calSpendingAmt(rowId);
+                            render: function (data, type, row) {
+
                                 let targetConsumption = rewardTaskGroup ? rewardTaskGroup.targetConsumption : 0;
                                 let text = spendingAmt + '/' + targetConsumption;
                                 let result = '<div>' + text + '</div>';
@@ -10487,14 +10559,38 @@ define(['js/app'], function (myApp) {
             vm.calSpendingAmt = function (rowId) {
                 let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
                 let spendingAmt = 0;
+
+                //calculate the value between this rowId
+                let currentMax = 0;
+                let currentAmt = 0;
+                let AmtNow = 0;
                 let curConsumption = rewardTaskGroup.curConsumption ? rewardTaskGroup.curConsumption : 0;
-                for (let i = 0; i < rowId; i++) {
-                    let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount : 0;
-                    let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount : 0;
-                    spendingAmt += applyAmount + rewardAmount;
+                // console.log('*************')
+                for (let i = 0; i <= rowId; i++) {
+                    let spendingAmount = vm.rewardTaskProposalData[i].data.spendingAmount;
+                    currentMax = vm.rewardTaskProposalData[i].data.spendingAmount;
+                    spendingAmt += spendingAmount;
                 }
                 let incCurConsumption = curConsumption - spendingAmt;
-                return incCurConsumption;
+
+
+                if(incCurConsumption >= 0){
+                    AmtNow = currentMax;
+                }else{
+                    AmtNow = currentMax + incCurConsumption;
+                    if(AmtNow < 0){
+                        AmtNow = 0;
+                    }
+                }
+
+                // console.log('AmtNow = curConsumption - spendingAmt - currentMax');
+                // console.log(AmtNow + ' = '+ curConsumption +'-'+ spendingAmt+'-'+currentMax);
+                // console.log(AmtNow);
+                // console.log('================');
+                // console.log(' = curConsumption '+ curConsumption + ' - spendingAmt' + spendingAmt)
+                // console.log(incCurConsumption);
+                // return incCurConsumption;
+                return { 'incCurConsumption': incCurConsumption , 'currentAmt':AmtNow}
             }
             vm.isSubmitProposal = function (rowId) {
 
@@ -10502,18 +10598,24 @@ define(['js/app'], function (myApp) {
                 let taskGroupCurrentAmt = vm.dynRewardTaskGroupId[0].currentAmt;
 
                 if (rowId == '0') {
-                    sumRewardAmount += vm.rewardTaskProposalData[0].data.applyAmount + vm.rewardTaskProposalData[0].data.rewardAmount;
+                    let applyAmount = vm.rewardTaskProposalData[0].data.applyAmount ? vm.rewardTaskProposalData[0].data.applyAmount:0;
+                    let rewardAmount = vm.rewardTaskProposalData[0].data.rewardAmount ? vm.rewardTaskProposalData[0].data.rewardAmount :0;
+                    sumRewardAmount += applyAmount + rewardAmount;
                 } else {
                     for (let i = 0; i <= rowId; i++) {
-                        sumRewardAmount += vm.rewardTaskProposalData[i].data.applyAmount + vm.rewardTaskProposalData[i].data.rewardAmount;
+                        let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount :0;
+                        let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount:0 ;
+                        sumRewardAmount += applyAmount + sumRewardAmount;
                     }
                 }
-
-
                 // should over 0
                 let finalRewardAmount = taskGroupCurrentAmt - sumRewardAmount;
                 let spendingAmt = vm.calSpendingAmt(rowId);
-                if (finalRewardAmount > 0 && spendingAmt > 0) {
+                // console.log(rowId);
+                // console.log(finalRewardAmount);
+                // console.log(spendingAmt);
+                // console.log('-----------------')
+                if (finalRewardAmount >= 0 && spendingAmt.incCurConsumption >= 0) {
                     // already submit, display tick icon
                     return {isSubmit: true, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt}
                 } else {
@@ -10542,6 +10644,8 @@ define(['js/app'], function (myApp) {
                 } else {
                     socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
                         vm.rewardTaskProposalData = data.data;
+                        vm.simpleRewardProposalData = vm.constructProposalData(data.data);
+                        console.log(vm.simpleRewardProposalData);
                         let summary = {};
                         let result = data.data;
                         result.map(item=>{
@@ -10556,16 +10660,6 @@ define(['js/app'], function (myApp) {
 
                         })
                         console.log(result);
-                        // result[0]['createTime$'] = result[0].data.createTime$;
-                        // result[0].useConsumption = result[0].data.useConsumption;
-                        // result[0].topUpProposal = result[0].data.topUpProposalId;
-                        // result[0].topUpAmount = result[0].data.topUpAmount;
-                        // result[0].bonusAmount = result[0].data.rewardAmount;
-                        // result[0].applyAmount = result[0].data.applyAmount;
-                        // result[0].requiredUnlockAmount = result[0].data.spendingAmount;
-                        // result[0]['provider$'] = result[0].data.provider$;
-
-                        // vm.drawRewardTaskProposalTable(true, data.data);
                         vm.drawRewardTaskTable(true, result, 0, summary, 0);
                         // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
                         vm.curRewardTask = data;
@@ -10573,6 +10667,21 @@ define(['js/app'], function (myApp) {
                 }
 
 
+            }
+            vm.constructProposalData = function(proposals){
+                let proposalData = [];
+
+                proposals.map(item=>{
+                    let proposal = {
+                        applyAmount:item.data.applyAmount ? item.data.applyAmount:0,
+                        rewardAmount:item.data.rewardAmount ? item.data.rewardAmount:0,
+
+                        //consumption
+                        spendingAmount:item.data.spendingAmount ? item.data.spendingAmount:0
+                    }
+                    proposalData.push(proposal);
+                })
+                return proposalData;
             }
             vm.selectReward = function($event){
                 $event.stopPropagation();
@@ -10595,12 +10704,6 @@ define(['js/app'], function (myApp) {
                                 var text;
                                 var rowId = String(meta.row);
                                 var adminName = row.creator ? row.creator.name : '';
-                                // if(data!='Started'){
-                                //     text = '<a class="fa fa-check margin-right-5"></a><span>(' + adminName +')</span>';
-                                // }else{
-                                    text = '<input type="checkbox" class="unlockList" name="unlockList[]" value="'+rowId+'"  ng-click="vm.selectReward($event)"/>';
-                                // }
-
 
                                 if(vm.isUnlockTaskGroup){
                                     let isSubmit = vm.isSubmitProposal(rowId);
@@ -10614,7 +10717,11 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 if(!vm.isUnlockTaskGroup){
-                                    text = '<input type="checkbox" class="unlockList" name="unlockList[]" value="'+rowId+'"  ng-click="vm.selectReward($event)"/>';
+                                    if(data!='Started'){
+                                        text = '<a class="fa fa-check margin-right-5"></a><span>(' + adminName +')</span>';
+                                    }else{
+                                        text = '<input type="checkbox" class="unlockList" name="unlockList[]" value="'+rowId+'"  ng-click="vm.selectReward($event)"/>';
+                                    }
                                 }
 
                                 return "<div>" + text + "</div>";
@@ -10650,8 +10757,15 @@ define(['js/app'], function (myApp) {
                         {
                             //解锁进度（投注额）
                             "title": $translate('Unlock Progress(Consumption)'),data:"requiredBonusAmount",
-                            render: function (data, type, row) {
-                                var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
+                            render: function (data, type, row, meta) {
+                                let isSubmit = vm.isSubmitProposal(meta.row);
+                                console.log(isSubmit);
+                                var rowId = String(meta.row);
+                                let spendingAmt = vm.calSpendingAmt(rowId);
+
+                                let spAmount = spendingAmt.currentAmt;
+                                var text = spAmount + '/' + row.requiredUnlockAmount;
+                                // var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
                                 return "<div>" + text + "</div>";
                             }, sClass: 'sumFloat textRight'
                         },
@@ -10660,6 +10774,7 @@ define(['js/app'], function (myApp) {
                             //解锁进度（输赢值）
                             "title": $translate('Unlock Progress(WinLose)'),data:"currentAmount",
                             render: function (data, type, row) {
+
                                 var text = -row.currentAmount + '/' + -(row.applyAmount + row.bonusAmount);
                                 return "<div>" + text + "</div>";
                             }, sClass: 'sumFloat textRight'

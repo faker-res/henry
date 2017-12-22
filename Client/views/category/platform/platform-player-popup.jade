@@ -1297,7 +1297,7 @@
                                 table#rewardTaskGroupProposalTbl.common-table.display(style='min-width:100%')
                                 #rewardTaskGroupProposalTblPage.height30
                             div(ng-show="vm.selectedPlatform.data.useProviderGroup")
-                                button.common-button.margin-right-5.btn.btn-success(ng-disabled="!vm.dynRewardTaskGroupIndex || vm.dynRewardTaskGroupIndex.length==0", ng-click="vm.unlockRewardTaskInRewardTaskGroup()") {{'Unlock Reward' | translate}}
+                                //button.common-button.margin-right-5.btn.btn-success(ng-disabled="!vm.dynRewardTaskGroupIndex || vm.dynRewardTaskGroupIndex.length==0", ng-click="vm.unlockRewardTaskInRewardTaskGroup()") {{'Unlock Reward' | translate}}
                                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                                 label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
 
@@ -1322,7 +1322,7 @@
                 //#modalManualUnlockRewardTask
                 div(ng-show="vm.selectedRewardSettingsTab == 'reward-progress'")
                     //ng-disabled='!vm.rewardTaskGroupDetails',
-                    button.common-button.margin-right-5.btn.btn-success(ng-show="vm.isUnlockTaskGroup",ng-disabled="!vm.dynRewardTaskGroupIndex || vm.dynRewardTaskGroupIndex.length==0", ng-click="vm.unlockRewardTaskInRewardTaskGroup()") {{'Unlock Reward xyz' | translate}}
+                    button.common-button.margin-right-5.btn.btn-success(ng-show="vm.isUnlockTaskGroup",ng-disabled="!vm.dynRewardTaskGroupIndex || vm.dynRewardTaskGroupIndex.length==0", ng-click="vm.unlockTaskGroup()") {{'Unlock Reward xyz' | translate}}
                     button.common-button.margin-right-5.btn.btn-success(ng-show="!vm.isUnlockTaskGroup", ng-disabled="vm.selectedRewards.length==0", ng-click="vm.submitManualUnlockRewardTask(vm.selectedRewards)") {{'Unlock Reward' | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                     label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}

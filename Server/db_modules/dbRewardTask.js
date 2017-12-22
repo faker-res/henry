@@ -407,7 +407,8 @@ const dbRewardTask = {
         let rewardTaskGroup = null;
         var queryObj = {
             playerId: ObjectId(query.playerId),
-            providerGroup: query._id
+            providerGroup: query._id,
+            status:'Started'
             // createTime: {
             //     $gte: new Date(query.from),
             //     $lt: new Date(query.to)
@@ -440,8 +441,8 @@ const dbRewardTask = {
                                 
                                 if (rewardTaskGroup) {
                                     // console.log('yeah')
-
-                                    item.data['createTime$'] = rewardTaskGroup.createTime;
+                                    console.log(item)
+                                    item.data['createTime$'] = item.createTime;
                                     item.data.useConsumption = rewardTaskGroup.useConsumption;
                                     item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
                                     item.data.xxxx = 'zzzxx';
