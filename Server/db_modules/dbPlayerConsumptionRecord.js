@@ -25,6 +25,7 @@ const constProposalStatus = require('./../const/constProposalStatus');
 const errorUtils = require('./../modules/errorUtils');
 
 let dbUtility = require('./../modules/dbutility');
+let dbPlayerReward = require('../db_modules/dbPlayerReward');
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
@@ -476,8 +477,9 @@ var dbPlayerConsumptionRecord = {
                 if (record) {
                     var creditProm = dbconfig.collection_players.findOneAndUpdate(
                         {_id: record.playerId, platform: record.platformId, creditBalance: {$lt: 0}},
-                        {creditBalance: 0}
-                    ).exec();
+                        {creditBalance: 0},
+                        {new: true}
+                    ).lean().exec();
                     var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
                         data => data,
                         error => {
@@ -496,6 +498,9 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             function (data) {
+                if (data[0]) {
+                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(data[0].platform, data[0], {}).catch(errorUtils.reportError);
+                }
                 deferred.resolve(record);
             },
             function (error) {
@@ -514,6 +519,7 @@ var dbPlayerConsumptionRecord = {
         let isSameDay = dbUtility.isSameDaySG(data.createTime, Date.now());
         let record = null;
         let newRecord = new dbconfig.collection_playerConsumptionRecord(data);
+        let playerData;
 
         return newRecord.save().then(
             res => {
@@ -587,7 +593,8 @@ var dbPlayerConsumptionRecord = {
                 });
             }
         ).then(
-            () => {
+            (playerUpdatedData) => {
+                playerData = playerUpdatedData;
                 // Check auto player level up
                 return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
                     data => data,
@@ -604,7 +611,12 @@ var dbPlayerConsumptionRecord = {
                 });
             }
         ).then(
-            data => record,
+            data => {
+                if (playerData) {
+                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, {}).catch(errorUtils.reportError);
+                }
+                return record
+            },
             error => {
                 return Q.reject({name: "DBError", message: "Error in checking player level", error: error});
             }
