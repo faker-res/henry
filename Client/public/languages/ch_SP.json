@@ -85,6 +85,7 @@
   "updateLockedAmount": "更新锁定额度",
   "BALCKLIST": "黑名单",
   "ATTENTION": "关注",
+  "Player free amount is less than required top up amount": "玩家可用自由额度小于要求存款金额",
   "CONSUMPTION_INTERVAL": "投注历史分析",
   "ConsumptionInterval": "投注历史分析",
   "ClientSource": "访问来源",
