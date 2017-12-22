@@ -106,6 +106,35 @@ var dbPlatformAlipayGroup = {
             }
         );
     },
+
+    getAllAlipaysByAlipayGroupWithIsInGroup: function(platformId, alipayGroupId){
+        let allAlipays = [];
+        return pmsAPI.alipay_getAlipayList(
+            {
+                platformId: platformId,
+                queryId: serverInstance.getQueryId()
+            }
+        ).then(
+            data=> {
+                allAlipays = data.data || [];
+                return dbconfig.collection_platformAlipayGroup.findOne({_id: alipayGroupId})
+            }
+        ).then(
+            data=> {
+                var alipaysGroup = data.alipays || [];
+                return allAlipays.map(a=> {
+                     if (alipaysGroup.indexOf(a.accountNumber) != -1) {
+                         //in group
+                         a.isInGroup = true;
+                     } else {
+                         //not in group
+                         a.isInGroup = false;
+                     }
+                     return a;
+                })
+            });
+    },
+
     getIncludedAlipaysByAlipayGroup: function (platformId, alipayGroupId) {
         var allAlipays = [];
         return pmsAPI.alipay_getAlipayList(

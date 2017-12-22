@@ -2962,6 +2962,13 @@
   "LINK IMAGE URL": "按钮图来源",
   "LINK IMAGE HYPERLINK": "按钮图超链接",
   "Top up does not meet Promo Code minimum required amount": "您的存款金额低于该优惠代码限制，请调整存款金额。",
+  "isInGroup": "组内外",
+  "noInGroup": "组外",
+  "inGroup": "组内",
+  "select": "选择",
+  "loading alipays": "加载支付宝中",
+  "will only show status in alipay list": "只显示有在支付宝列表的状态",
+  "will only show status in wechat list": "只显示有在微信列表的状态",
   "IS_IN_GROUP": "组内外",
   "IN_GROUP": "组内",
   "NOT_IN_GROUP": "组外"
