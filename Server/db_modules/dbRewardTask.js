@@ -623,24 +623,22 @@ const dbRewardTask = {
     },
     getTopUpProposal:function(data){
         let prom = [];
-        data.map(item=>{
-            console.log(item)
+        data.map(item => {
             let proposalId = item.data.topUpProposal;
             console.log(proposalId);
-            let proposal = dbconfig.collection_proposal.findOne({proposalId:proposalId}).then(
-                pdata=>{
-                    console.log(pdata);
-                    if(pdata){
-                        if(pdata.creator.name){
+            let proposal = dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+                pdata => {
+                    if (pdata) {
+                        if (pdata.creator.name) {
                             item.creator = pdata.creator;
                         }
-                        if(pdata.data.amount){
+                        if (pdata.data.amount) {
                             item.data.topUpAmount = pdata.data.amount;
                         }
                     }
                     return item;
                 },
-                error=>{
+                error => {
                     console.log(error);
                 }
             )
@@ -648,60 +646,57 @@ const dbRewardTask = {
         })
         return Promise.all(prom)
     },
-    getProposalInfo: function(data){
+    getProposalInfo: function (data) {
         let prom = [];
         let topUpAmountSum = 0;
         let topUpAmount = 0;
         let count = 0;
-        console.log(data);
-        data.map(item=>{
+        data.map(item => {
             let proposalId = item.proposalId;
             let topUpProposal = null;
-            let proposal = dbconfig.collection_proposal.findOne({proposalId:proposalId}).then(
-                pdata=>{
-                    if(pdata.creator.name){
+            let proposal = dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+                pdata => {
+                    if (pdata.creator.name) {
                         item.creator = pdata.creator;
                     }
-                    if(pdata.data.topUpProposal){
+                    if (pdata.data.topUpProposal) {
                         topUpProposal = pdata.data.topUpProposal;
                     }
-                    if(pdata.data.topUpAmount){
+                    if (pdata.data.topUpAmount) {
                         topUpAmount = pdata.data.topUpAmount;
                     }
-                    console.log(pdata)
                     return item;
                 },
-                error=>{
+                error => {
                     console.log(error);
                 }
             ).then(
-                data=>{
+                data => {
 
-                    if(topUpProposal){
-                        return dbconfig.collection_proposal.findOne({proposalId:topUpProposal})
-                    }else{
+                    if (topUpProposal) {
+                        return dbconfig.collection_proposal.findOne({proposalId: topUpProposal})
+                    } else {
                         return item;
                     }
                 }
             )
-            .then(
-                topup=>{
-                    // calculate the sum of topUp
-                    if(topup){
-                        console.log(topup);
-                        if(topup.proposalId){
-                            item.topUpProposal = topup.proposalId;
+                .then(
+                    topup => {
+                        // calculate the sum of topUp
+                        if (topup) {
+                            if (topup.proposalId) {
+                                item.topUpProposal = topup.proposalId;
+                            }
+                            if (topup.data) {
+                                item.topUpAmount = topup.data.amount;
+                                topUpAmountSum += item.topUpAmount;
+                            } else {
+                                item.topUpAmount = topUpAmount ? topUpAmount : '';
+                            }
+
                         }
-                        if(topup.data){
-                            item.topUpAmount = topup.data.amount;
-                            topUpAmountSum += item.topUpAmount;
-                        }else{
-                            item.topUpAmount =  topUpAmount?topUpAmount:'';
-                        }
-                        console.log(item);
-                    }
-                    return item;
-            })
+                        return item;
+                    })
             prom.push(proposal);
         });
         return Promise.all(prom)

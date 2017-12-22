@@ -10227,7 +10227,7 @@ define(['js/app'], function (myApp) {
                         if (data.data.creator) {
                             item.creator = data.data.creator
                         }
-                        if(item.data){
+                        if (item.data) {
                             item.currentAmount = item.data.currentAmount;
                             item.bonusAmount = item.data.bonusAmount;
                             item.requiredBonusAmount = item.data.requiredBonusAmount;
@@ -10235,9 +10235,6 @@ define(['js/app'], function (myApp) {
                             item.requiredBonusAmount$ = item.data.requiredBonusAmount;
                             item.requiredUnlockAmount = item.data.requiredUnlockAmount;
                         }
-
-
-
 
 
                         return item;
@@ -10343,75 +10340,6 @@ define(['js/app'], function (myApp) {
                 })
             }
 
-            vm.unlockRewardTaskInRewardTaskGroup = function () {
-                let incRewardAmount = 0;
-                let incConsumptionAmount = 0;
-                let sumRewardAmount = 0;
-                let sumConsumptionAmount = 0;
-                let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
-
-                //setUnlockTaskGroup
-                let indexArr = vm.dynRewardTaskGroupIndex;
-                let lastIndex = indexArr.sort().slice(-1)[0];
-                let firstIndex = indexArr.sort()[0];
-                let startRewardAmount = 0;
-                let startConsumptionAmount = 0;
-
-                // calculate first proposal that people choose.
-                if(firstIndex == lastIndex){
-                    let rewardTaskProposal = vm.rewardTaskProposalData[0];
-                    let applyAmount = rewardTaskProposal.data.applyAmount ? rewardTaskProposal.data.applyAmount:0;
-                    let rewardAmount = rewardTaskProposal.data.rewardAmount ? rewardTaskProposal.data.rewardAmount:0;
-                    sumRewardAmount += applyAmount + rewardAmount;
-                    sumConsumptionAmount += rewardTaskProposal.data.spendingAmount;
-                }else{
-                    for (let i = 0; i <= firstIndex; i++) {
-                        let rewardTaskProposal = vm.rewardTaskProposalData[i];
-                        let applyAmount = rewardTaskProposal.data.applyAmount ? rewardTaskProposal.data.applyAmount:0;
-                        let rewardAmount = rewardTaskProposal.data.rewardAmount ? rewardTaskProposal.data.rewardAmount:0;
-                        sumRewardAmount += applyAmount + rewardAmount;
-                        sumConsumptionAmount += rewardTaskProposal.data.spendingAmount;
-                    }
-                }
-
-                startRewardAmount = rewardTaskGroup.currentAmt - sumRewardAmount;
-                startConsumptionAmount = rewardTaskGroup.curConsumption - sumConsumptionAmount;
-
-                let firstApplyAmount =  vm.rewardTaskProposalData[firstIndex].data.applyAmount ?  vm.rewardTaskProposalData[firstIndex].data.applyAmount : 0;
-                let firstRewardAmount = vm.rewardTaskProposalData[firstIndex].data.rewardAmount ? vm.rewardTaskProposalData[firstIndex].data.rewardAmount : 0;
-                let firstSpendingAmount = vm.rewardTaskProposalData[firstIndex].data.spendingAmount ? vm.rewardTaskProposalData[firstIndex].data.spendingAmount :0;
-                let firstPeriodRewardAmount = firstApplyAmount + firstRewardAmount - startRewardAmount;
-                let firstPeriodConsumption = firstSpendingAmount - startConsumptionAmount;
-
-
-                // if click more than 1, then calculate every proposal later.
-                let otherPeriodRewardAmount = 0;
-                let otherPeriodConsumption = 0;
-                if (lastIndex - firstIndex > 0) {
-                    let startFrom = Number(firstIndex) + 1;
-                    for (let i = startFrom; i < lastIndex; i++) {
-                        let rewardTaskProposal = vm.rewardTaskProposalData[i];
-                        let applyAmount = rewardTaskProposal.data.applyAmount ? rewardTaskProposal.data.applyAmount : 0;
-                        let rewardAmount = rewardTaskProposal.data.rewardAmount ? rewardTaskProposal.data.rewardAmount : 0;
-                        let spendingAmount = rewardTaskProposal.data.spendingAmount ? rewardTaskProposal.data.spendingAmount : 0;
-                        otherPeriodRewardAmount += applyAmount + rewardAmount;
-                        otherPeriodConsumption += spendingAmount;
-                    }
-                }
-                incRewardAmount = firstPeriodRewardAmount + otherPeriodRewardAmount;
-                incConsumptionAmount = firstPeriodConsumption + otherPeriodConsumption;
-                let sendQuery = {
-                    'rewardTaskGroupId': rewardTaskGroup._id,
-                    'incRewardAmount': incRewardAmount,
-                    'incConsumptionAmount': incConsumptionAmount
-                }
-
-                //socketService.$socket($scope.AppSocket, 'unlockRewardTaskInRewardTaskGroup', sendQuery, function (data) {
-                //    vm.getRewardTaskLogData(true);
-                //   $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
-                //})
-
-            }
             vm.unlockTaskGroup = function(){
                 let indexArr = vm.dynRewardTaskGroupIndex;
                 let firstIndex = indexArr.sort()[0];
@@ -10422,9 +10350,9 @@ define(['js/app'], function (myApp) {
                 let incRewardAmt = 0;
                 let incConsumptAmt = 0;
 
-                for(let i = 0; i <= lastIndex; i++){
+                for (let i = 0; i <= lastIndex; i++) {
                     let prop = vm.simpleRewardProposalData[i];
-                    sumRewardAmt +=  prop.applyAmount + prop.rewardAmount;
+                    sumRewardAmt += prop.applyAmount + prop.rewardAmount;
                     sumConsumptAmt += prop.spendingAmount;
                 }
 
@@ -10435,10 +10363,8 @@ define(['js/app'], function (myApp) {
                 let curConsumption = rewardTaskGroup.curConsumption;
                 let targetConsumption = rewardTaskGroup.targetConsumption;
 
-                incRewardAmt = vm.getIncReward(currentAmt,rewardAmt,firstIndex, lastIndex);
-                incConsumptAmt = vm.getIncConsumpt(curConsumption,targetConsumption,firstIndex, lastIndex);
-
-                console.log(incRewardAmt,incConsumptAmt);
+                incRewardAmt = vm.getIncReward(currentAmt, rewardAmt, firstIndex, lastIndex);
+                incConsumptAmt = vm.getIncConsumpt(curConsumption, targetConsumption, firstIndex, lastIndex);
 
                 let sendQuery = {
                     'rewardTaskGroupId': rewardTaskGroup._id,
@@ -10446,17 +10372,17 @@ define(['js/app'], function (myApp) {
                     'incConsumptionAmount': incConsumptAmt
                 }
                 socketService.$socket($scope.AppSocket, 'unlockRewardTaskInRewardTaskGroup', sendQuery, function (data) {
-                   vm.getRewardTaskLogData(true);
-                  $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
+                    vm.getRewardTaskLogData(true);
+                    $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
                 })
             }
 
             vm.getIncReward = function(currentAmt,rewardAmt,firstIdx, lastIdx){
 
                 let sumRewardAmt = 0;
-                for(let i = 0; i <= lastIdx; i++){
+                for (let i = 0; i <= lastIdx; i++) {
                     let prop = vm.simpleRewardProposalData[i];
-                    sumRewardAmt +=  prop.applyAmount + prop.rewardAmount;
+                    sumRewardAmt += prop.applyAmount + prop.rewardAmount;
                 }
                 let result = sumRewardAmt - currentAmt;
                 return result
@@ -10465,9 +10391,9 @@ define(['js/app'], function (myApp) {
             vm.getIncConsumpt = function(curConsumption,targetConsumption,firstIdx, lastIdx){
 
                 let sumConsumption = 0;
-                for(let i = 0; i <= lastIdx; i++){
+                for (let i = 0; i <= lastIdx; i++) {
                     let prop = vm.simpleRewardProposalData[i];
-                    sumConsumption +=  prop.spendingAmount;
+                    sumConsumption += prop.spendingAmount;
                 }
                 let result = sumConsumption - curConsumption;
                 return result;
@@ -10586,16 +10512,16 @@ define(['js/app'], function (myApp) {
                 let incCurConsumption = curConsumption - spendingAmt;
 
 
-                if(incCurConsumption >= 0){
+                if (incCurConsumption >= 0) {
                     AmtNow = currentMax;
-                }else{
+                } else {
                     AmtNow = currentMax + incCurConsumption;
-                    if(AmtNow < 0){
+                    if (AmtNow < 0) {
                         AmtNow = 0;
                     }
                 }
 
-                return { 'incCurConsumption': incCurConsumption , 'currentAmt':AmtNow ,'currentMax':currentMax }
+                return {'incCurConsumption': incCurConsumption, 'currentAmt': AmtNow, 'currentMax': currentMax}
             }
             vm.isSubmitProposal = function (rowId) {
 
