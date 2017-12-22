@@ -57,6 +57,7 @@
                             option(value='false') {{'noInGroup' | translate}}
                             option(value='true') {{'inGroup' | translate}}
                 text.blink.margin-left-5.text-danger(ng-if='vm.SelectedAlipayGroupNode && !vm.allAlipayList') {{'loading alipays' | translate}}...
+                text.margin-left-5(ng-if='vm.SelectedAlipayGroupNode && vm.allAlipayList') {{'Total' | translate}}: {{vm.allAlipayList.length}}
                 table#aliPayTable.simple-table.table-vertical-middle
                     thead
                         th {{ 'select' | translate }}
@@ -231,9 +232,6 @@
                 .modal-body
                     .panel.panel-primary
                         .panel-body
-                            .col-md-12
-                                span ({{ "will only show status in alipay list" | translate }})
-                                br
                             .col-md-3(ng-repeat="(status, show) in vm.alipayStatusFilterOptions")
                                 input(type="checkbox" ng-model="vm.alipayStatusFilterOptions[status]")
                                 span {{status | translate}}

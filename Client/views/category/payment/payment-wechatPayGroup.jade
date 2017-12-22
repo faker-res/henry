@@ -182,6 +182,7 @@
                 //            i.fa.fa-plus-square
                 //            text {{"INCLUDE" | translate}}
                 text.blink.margin-left-5.text-danger(ng-if='vm.SelectedWechatPayGroupNode && !vm.allWechatList') {{'Loading WechatPays' | translate}}...
+                text.margin-left-5(ng-if='vm.SelectedWechatPayGroupNode && vm.allWechatList') {{'Total' | translate}}: {{vm.allWechatList.length}}
                 table#wechatTable.simple-table.table-vertical-middle
                     thead
                         th {{ 'select' | translate }}
@@ -368,9 +369,6 @@
             .modal-body
                 .panel.panel-primary
                     .panel-body
-                        .col-md-12
-                            span ({{ "will only show status in wechat list" | translate }})
-                            br
                         .col-md-3(ng-repeat="(status, show) in vm.wechatStatusFilterOptions")
                             input(type="checkbox" ng-model="vm.wechatStatusFilterOptions[status]")
                             span {{status | translate}}
