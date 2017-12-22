@@ -57,7 +57,7 @@
                             option(value='false') {{'noInGroup' | translate}}
                             option(value='true') {{'inGroup' | translate}}
                 text.blink.margin-left-5.text-danger(ng-if='vm.SelectedAlipayGroupNode && !vm.allAlipayList') {{'loading alipays' | translate}}...
-                text.margin-left-5(ng-if='vm.SelectedAlipayGroupNode && vm.allAlipayList') {{'Total' | translate}}: {{vm.allAlipayList.length}}
+                text.margin-left-5(ng-if='vm.SelectedAlipayGroupNode && vm.allAlipayList') {{'Total' | translate}}: {{filteredAlipayList.length}}
                 table#aliPayTable.simple-table.table-vertical-middle
                     thead
                         th {{ 'select' | translate }}
@@ -67,7 +67,7 @@
                         th {{ 'SINGLE_LIMIT' | translate }}
                         th {{ 'DAY_LIMIT' | translate }}
                     tbody
-                        tr(ng-repeat="(idx,val) in vm.allAlipayList | filter: vm.filterAlipay" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
+                        tr(ng-repeat="(idx,val) in vm.allAlipayList | filter: vm.filterAlipay as filteredAlipayList" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
                             td
                                 input(type="checkbox" ng-model="val.isCheck" ng-change="vm.alipayListUncheckDifferentGroup(val.isCheck, val.isInGroup);")
                             td {{ val.state | translate}}

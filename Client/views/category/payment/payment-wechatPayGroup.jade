@@ -182,7 +182,7 @@
                 //            i.fa.fa-plus-square
                 //            text {{"INCLUDE" | translate}}
                 text.blink.margin-left-5.text-danger(ng-if='vm.SelectedWechatPayGroupNode && !vm.allWechatList') {{'Loading WechatPays' | translate}}...
-                text.margin-left-5(ng-if='vm.SelectedWechatPayGroupNode && vm.allWechatList') {{'Total' | translate}}: {{vm.allWechatList.length}}
+                text.margin-left-5(ng-if='vm.SelectedWechatPayGroupNode && vm.allWechatList') {{'Total' | translate}}: {{filteredWechatList.length}}
                 table#wechatTable.simple-table.table-vertical-middle
                     thead
                         th {{ 'select' | translate }}
@@ -193,7 +193,7 @@
                         th {{ 'SINGLE_LIMIT' | translate }}
                         th {{ 'DAY_LIMIT' | translate }}
                     tbody
-                        tr(ng-repeat="(idx,val) in vm.allWechatList | filter: vm.filterWechat" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
+                        tr(ng-repeat="(idx,val) in vm.allWechatList | filter: vm.filterWechat as filteredWechatList" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
                             td
                                 input(type="checkbox" ng-model="val.isCheck" ng-change="vm.wechatListUncheckDifferentGroup(val.isCheck, val.isInGroup);")
                             td {{ val.state | translate}}
