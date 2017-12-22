@@ -1584,8 +1584,10 @@ define(['js/app'], function (myApp) {
                 vm.curAlipay = null;
                 console.log(data);
                 vm.allAlipayList = vm.allAlipayList.map(alipay => {
-                    if (alipay.isCheck)
+                    if (alipay.isCheck) {
+                        alipay.isCheck = false;
                         alipay.isInGroup =!alipay.isInGroup;
+                    }
                     return alipay;
                 });
                 //vm.alipayGroupClicked(0, vm.SelectedAlipayGroupNode);

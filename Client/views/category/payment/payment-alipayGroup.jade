@@ -68,7 +68,7 @@
                     tbody
                         tr(ng-repeat="(idx,val) in vm.allAlipayList | filter: vm.filterAlipay" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
                             td
-                                input.form-control(type="checkbox" ng-model="val.isCheck" ng-change="vm.alipayListUncheckDifferentGroup(val.isCheck, val.isInGroup);")
+                                input(type="checkbox" ng-model="val.isCheck" ng-change="vm.alipayListUncheckDifferentGroup(val.isCheck, val.isInGroup);")
                             td {{ val.state | translate}}
                             td {{ val.accountNumber | translate}}
                             td {{ val.name | translate}}
@@ -76,8 +76,12 @@
                             td {{ val.quota | translate}}
                 br
                 .div.pull-right
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')" ng-click='vm.alipaytoAlipayGroup("attach")') {{"INCLUDE" | translate}}
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')" ng-click='vm.alipaytoAlipayGroup("detach")') {{"EXCLUDE" | translate}}
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')" ng-click='vm.alipaytoAlipayGroup("attach")')
+                        i.fa.fa-plus-square
+                        text {{"INCLUDE" | translate}}
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')" ng-click='vm.alipaytoAlipayGroup("detach")')
+                        i.fa.fa-minus-square
+                        text {{"EXCLUDE" | translate}}
 
 #modalAddAlipayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
