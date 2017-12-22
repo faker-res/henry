@@ -453,6 +453,24 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.changeAllBankCardTypeInFilter = (select) => {
+            for (let key in vm.bankCardFilterOptions.bankTypes) {
+                if (vm.bankCardFilterOptions.bankTypes.hasOwnProperty(key)) {
+                    vm.bankCardFilterOptions.bankTypes[key] = Boolean(select);
+                }
+            }
+        };
+
+        vm.totalBankCardShows = () => {
+            let total = 0;
+            for (let key in vm.allBankCards) {
+                if (vm.allBankCards.hasOwnProperty(key) && vm.allBankCards[key].show$) {
+                    total++;
+                }
+            }
+            return total;
+        };
+
         vm.bankCardsFilter = () => {
             if (!vm.allBankCards || !vm.allBankCards.length) {
                 return;
