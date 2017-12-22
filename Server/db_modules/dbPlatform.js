@@ -1649,7 +1649,7 @@ var dbPlatform = {
             platformObj =>{
                 if(platformObj){
                     if(inputDevice){
-                        return dbconfig.collection_frontEndInfo.find({platformId: platformId, inputDevice: inputDevice}).lean();
+                        return dbconfig.collection_frontEndInfo.find({platformId: platformObj._id, inputDevice: inputDevice}).lean();
                     }
                     else{
                         return Q.reject(Error("Invalid input device"));
@@ -1660,7 +1660,34 @@ var dbPlatform = {
             }
         );
 
+    },
+    createNewPlayerAdvertisementRecord: function(platformId, orderNo, adCode, title, backgroundBanner, imageButton, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj =>{
+                if(platformObj){
+                    let newRecordData = {
+                        platformId: platformId,
+                        orderNo: orderNo,
+                        adCode: adCode,
+                        title: title,
+                        backgroundBannerURL: backgroundBanner,
+                        button: imageButton,
+                        inputDevice: inputDevice,
+                    }
+
+                    let advertistmentRecord = new dbconfig.collection_frontEndInfo(newRecordData);
+                    return advertistmentRecord.save();
+                }else{
+                    return Q.reject(Error("No platform exists with id: " + platformId));
+                }
+            }
+        );
+    },
+
+    deleteAdvertisementRecord: function(platformId, advertisementId){
+        return dbconfig.collection_frontEndInfo.remove({_id: advertisementId, platformId: platformId});
     }
+
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {

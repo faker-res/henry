@@ -2946,5 +2946,10 @@
   "BANNER IMAGE HYPERLINK": "背景图超链接",
   "LINK IMAGE URL": "按钮图来源",
   "LINK IMAGE HYPERLINK": "按钮图超链接",
-  "Top up does not meet Promo Code minimum required amount": "您的存款金额低于该优惠代码限制，请调整存款金额。"
+  "Top up does not meet Promo Code minimum required amount": "您的存款金额低于该优惠代码限制，请调整存款金额。",
+  "PREVIEW AND SETTING": "预览及设置",
+  "ADD NEW BUTTON": "新增按钮",
+  "Add new advertisement": "添加新广告",
+  "SOURCE": "来源",
+  "HYPERLINK": "超链接"
 }

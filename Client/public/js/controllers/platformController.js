@@ -258,10 +258,10 @@ define(['js/app'], function (myApp) {
                 MANUAL: 5,
             };
 
-            vm.noOfPlayerAdvertisementImageButton = {
-              1: "1",
-                2: "2",
-            };
+            vm.playerAdvertisementImageButton = [{url:"",hyperLink: ""},{url:"",hyperLink: ""}];
+
+            vm.playerAdvertisementTitle = [];
+            vm.editPlayerAdvertisementList = [];
 
             // Basic library functions
             var Lodash = {
@@ -7735,6 +7735,9 @@ define(['js/app'], function (myApp) {
             $('#advertisementTab').removeClass('active');
             $scope.safeApply();
             vm.playerDisplayDataTab = "customerServicePanel";
+            vm.showAdvertisementRecord = true;
+            vm.editAdvertisementRecord = false;
+            vm.playerAdvertisementWebDevice = true;
         }
 
         vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
@@ -20432,303 +20435,427 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-        vm.playerAdvertisementList = function () {
-            vm.playerAdvertisementRecords = {totalCount: 0};
-            utilService.actionAfterLoaded('#playerAdvertisementListTable', function () {
-                    vm.playerAdvertisementRecords.pageObj = utilService.createPageForPagingTable("#playerAdvertisementListTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "playerAdvertisementRecords", vm.getPlayerAdvertisementListByDevice)
-                    });
+        vm.addNewPlayerAdvertisementRecord = function() {
+            let query = {
+                platformId: vm.selectedPlatform.id,
+                orderNo: vm.playerAdvertisementGroup.orderNo,
+                adCode: vm.playerAdvertisementGroup.adCode,
+                title: vm.playerAdvertisementTitle,
+                backgroundBanner: {
+                    url: vm.playerAdvertisementGroup.backgroundUrl,
+                    hyperLink: vm.playerAdvertisementGroup.backgroundHyperLink
+                },
+                imageButton:vm.playerAdvertisementImageButton,
+                inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
+            }
 
-                    vm.getPlayerAdvertisementListByDevice(true);
-            })
-        }
-
-        vm.getPlayerAdvertisementListByDevice = function (newSearch) {
-            vm.playerAdvertisementRecords.loading = true;
-            let sendData = {
-                        platformId: vm.selectedPlatform.id,
-                        inputDevice: 1
-                    };
-            console.log("Query to get player advertisement list", sendData);
-            vm.preparePlayerAdvertisementListRecords(sendData, newSearch);
-            $("#playerAdvertisementListTable").off('order.dt');
-            $("#playerAdvertisementListTable").on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'playerAdvertisementRecords', vm.getPlayerAdvertisementListByDevice);
-            });
-        };
-
-        vm.preparePlayerAdvertisementListRecords = function (queryData, newSearch) {
-            vm.playerAdvertisementListRecords = [];
-            socketService.$socket($scope.AppSocket, 'getPlayerAdvertisementList', queryData, function (data) {
-                if(data && data.length > 0){
-                    vm.playerAdvertisementListRecords = data.data.data;
-                    vm.playerAdvertisementRecords.totalCount = data.data.size;
-                    vm.playerAdvertisementRecords.loading = false;
-                    console.log('Player advertisement list record', data);
-
-                    var tableData = vm.playerAdvertisementListRecords.map(
-                        record => {
-                            record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
-                            //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                            if (record.status) {
-                                if (record.status == vm.constProposalStatus.SUCCESS) {
-                                    record.statusName = record.status ? $translate("Success") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                                }
-                                else if (record.status == vm.constProposalStatus.MANUAL) {
-                                    //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                                    record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                                } else {
-                                    record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                                }
-                            }
-                            record.playerId = (record.data && record.data.playerId) ? record.data.playerId : "";
-                            record.name = (record.data && record.data.name) ? record.data.name : "";
-                            record.realName = (record.data && record.data.realName) ? record.data.realName : "";
-                            record.combinedArea = (record.data && (record.data.phoneProvince && record.data.phoneCity)) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
-                            record.topUpTimes = (record.data && record.data.topUpTimes) ? record.data.topUpTimes : 0;
-                            record.smsCode = (record.data && record.data.smsCode) ? record.data.smsCode : "";
-                            record.remarks = (record.data && record.data.remarks) ? record.data.remarks : "";
-                            record.device = (record.inputDevice != "undefined" && record.inputDevice != "null") ? $translate($scope.constPlayerRegistrationInterface[record.inputDevice]) : "";
-                            record.promoteWay = (record.data && record.data.promoteWay) ? record.data.promoteWay : "";
-                            record.csOfficer = (record.data && record.data.csOfficer) ? record.data.csOfficer : "";
-                            record.registrationTime = (record.data && record.data.registrationTime) ? vm.dateReformat(record.data.registrationTime) : "";
-                            record.proposalId = (record.data && record.proposalId) ? record.proposalId : "";
-                            record.ipAreaName = (record.data && record.data.ipArea) ? vm.getIpAreaName(record.data.ipArea) : '';
-                            return record
-                        }
-                    );
-                    var tableData = vm.playerAdvertisementListRecords;
-                    var option = $.extend({}, vm.generalDataTableOptions, {
-                        data: tableData,
-                        aoColumnDefs: [
-                            {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                            {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
-                            {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
-                            {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
-                            {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
-                            {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
-                            {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
-                            {'sortCol': 'remarks', bSortable: true, 'aTargets': [9]},
-                            {'sortCol': 'device', bSortable: true, 'aTargets': [10]},
-                            {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [12]},
-                            {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
-                        ],
-                        columns: [
-                            // {title: $translate('PROPOSAL_ID'), data: "proposalId"},
-                            {
-                                title: $translate('proposalId'),
-                                data: "proposalId",
-                                render: function (data, type, row) {
-
-                                    var link = $('<a>', {
-                                        'ng-click': 'vm.editNewplayerRemark=false;vm.showNewPlayerModal(' + JSON.stringify(row) + ',2)'
-                                    }).text(data);
-                                    return link.prop('outerHTML');
-                                }
-                            },
-                            {title: $translate('PLAYERNAME'), data: "name"},
-                            {title: $translate('STATUS'), data: "statusName"},
-                            {title: $translate('SENT TIME'), data: "createTime"},
-                            {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
-                            {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
-                            {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
-                            {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
-                            {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
-                            {title: $translate('REMARKS'), data: "remarks"},
-                            {title: $translate('DEVICE'), data: "device"},
-                            {
-                                title: $translate('Function'),
-                                data: "data.phoneNumber",
-                                advSearch: true,
-                                "sClass": "",
-                                render: function (data, type, row) {
-                                    data = data || '';
-                                    //var playerObjId = row.data._id ? row.data._id : "";
-                                    let displayTXT = '';
-                                    let action = '';
-                                    var link = $('<div>', {});
-
-                                    if (row.data.phoneNumber && row.data.phoneNumber != "") {
-                                        link.append($('<div>', {
-                                            'class': 'fa fa-volume-control-phone',
-                                            'ng-click': 'vm.callNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
-                                            'title': $translate("PHONE")
-                                        }));
-                                        link.append($('<div>', {
-                                            'class': 'fa fa-comment',
-                                            'style': 'padding-left:15px',
-                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');vm.initSMSModal();',
-                                            'title': $translate("SMS")
-                                        }));
-                                    }
-
-                                    if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL) {
-                                        displayTXT = $translate('CREATE_NEW_PLAYER');
-                                        action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
-                                        link.append($('<div>', {
-                                            'class': 'fa fa-user-plus',
-                                            'style': 'padding-left:15px',
-                                            'ng-click': action,
-                                            'title': $translate(displayTXT)
-                                        }));
-
-                                    } else {
-                                        displayTXT = $translate('FEEDBACK');
-                                        action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
-                                        $('#modalAddPlayerFeedback').css('z-Index', 1051);
-                                        link.append($('<div>', {
-                                            'class': 'fa fa-commenting',
-                                            'style': 'padding-left:15px',
-                                            'data-row': JSON.stringify(row),
-                                            'data-toggle': 'modal',
-                                            'data-target': '#modalAddPlayerFeedback',
-                                            'ng-click': action,
-                                            'title': $translate(displayTXT)
-                                        }));
-                                    }
-
-                                    return link.prop('outerHTML')
-                                }
-                            },
-
-                            {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
-                            {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
-                        ],
-                        bSortClasses: false,
-                        destroy: true,
-                        paging: false,
-                        autoWidth: true,
-                        initComplete: function (data, type, row) {
-                            $scope.safeApply();
-                        },
-                        createdRow: function (row, data, dataIndex) {
-                            $compile(angular.element(row).contents())($scope);
-
-                        },
-                        fnRowCallback: vm.playerListTableRow
-                    });
-                    var a = utilService.createDatatableWithFooter('#playerAdvertisementListTable', option, {});
-                    vm.playerAdvertisementRecords.pageObj.init({maxCount: vm.playerAdvertisementRecords.totalCount}, newSearch);
-                    setTimeout(function () {
-                        $('#playerAdvertisementListTable').resize();
-                    }, 300);
-                }else{
-                    vm.playerAdvertisementRecords.totalCount = 0;
-                    vm.playerAdvertisementRecords.loading = false;
-                    var option = $.extend({}, vm.generalDataTableOptions, {
-                        //data: tableData,
-                        aoColumnDefs: [
-                            {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                            {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
-                            {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
-                            {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
-                        ],
-                        columns: [
-                            // {title: $translate('PROPOSAL_ID'), data: "proposalId"},
-                            {
-                                title: $translate('Display Order'),
-                                data: "proposalId",
-                                render: function (data, type, row) {
-
-                                    var link = $('<a>', {
-                                        'ng-click': 'vm.editNewplayerRemark=false;vm.showNewPlayerModal(' + JSON.stringify(row) + ',2)'
-                                    }).text(data);
-                                    return link.prop('outerHTML');
-                                }
-                            },
-                            {title: $translate('ADVERTISEMENT CODE (CANNOT REPEAT)'), data: "name"},
-                            {title: $translate('BANNER TITLE'), data: "statusName"},
-                            {title: $translate('DISPLAY BACKGROUND IMAGE'), data: "createTime"},
-                            {title: $translate('BANNER LINK BUTTON'), data: "registrationTime"},
-                            {title: $translate('ACTION_BUTTON'), data: "ipAreaName"},
-                            // {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
-                            // {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
-                            // {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
-                            // {title: $translate('REMARKS'), data: "remarks"},
-                            // {title: $translate('DEVICE'), data: "device"},
-                            // {
-                            //     title: $translate('Function'),
-                            //     data: "data.phoneNumber",
-                            //     advSearch: true,
-                            //     "sClass": "",
-                            //     render: function (data, type, row) {
-                            //         data = data || '';
-                            //         //var playerObjId = row.data._id ? row.data._id : "";
-                            //         let displayTXT = '';
-                            //         let action = '';
-                            //         var link = $('<div>', {});
-                            //
-                            //         if (row.data.phoneNumber && row.data.phoneNumber != "") {
-                            //             link.append($('<div>', {
-                            //                 'class': 'fa fa-volume-control-phone',
-                            //                 'ng-click': 'vm.callNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
-                            //                 'title': $translate("PHONE")
-                            //             }));
-                            //             link.append($('<div>', {
-                            //                 'class': 'fa fa-comment',
-                            //                 'style': 'padding-left:15px',
-                            //                 'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');vm.initSMSModal();',
-                            //                 'title': $translate("SMS")
-                            //             }));
-                            //         }
-                            //
-                            //         if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL) {
-                            //             displayTXT = $translate('CREATE_NEW_PLAYER');
-                            //             action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
-                            //             link.append($('<div>', {
-                            //                 'class': 'fa fa-user-plus',
-                            //                 'style': 'padding-left:15px',
-                            //                 'ng-click': action,
-                            //                 'title': $translate(displayTXT)
-                            //             }));
-                            //
-                            //         } else {
-                            //             displayTXT = $translate('FEEDBACK');
-                            //             action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
-                            //             $('#modalAddPlayerFeedback').css('z-Index', 1051);
-                            //             link.append($('<div>', {
-                            //                 'class': 'fa fa-commenting',
-                            //                 'style': 'padding-left:15px',
-                            //                 'data-row': JSON.stringify(row),
-                            //                 'data-toggle': 'modal',
-                            //                 'data-target': '#modalAddPlayerFeedback',
-                            //                 'ng-click': action,
-                            //                 'title': $translate(displayTXT)
-                            //             }));
-                            //         }
-                            //
-                            //         return link.prop('outerHTML')
-                            //     }
-                            // },
-                            //
-                            // {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
-                            // {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
-                        ],
-                        bSortClasses: false,
-                        destroy: true,
-                        paging: false,
-                        autoWidth: true,
-                        initComplete: function (data, type, row) {
-                            $scope.safeApply();
-                        },
-                        createdRow: function (row, data, dataIndex) {
-                            $compile(angular.element(row).contents())($scope);
-
-                        },
-                        fnRowCallback: vm.playerListTableRow
-                    });
-                    var a = utilService.createDatatableWithFooter('#playerAdvertisementListTable', option, {});
-                    vm.playerAdvertisementRecords.pageObj.init({maxCount: vm.playerAdvertisementRecords.totalCount}, newSearch);
-                    setTimeout(function () {
-                        $('#playerAdvertisementListTable').resize();
-                    }, 300);
+            socketService.$socket($scope.AppSocket, 'createNewPlayerAdvertisementRecord', query, function (data) {
+                console.log('getPromoCodeTypes', data);
+                vm.promoTypeList = data.data;
+                $scope.safeApply();
+                if (callback) {
+                    callback();
                 }
             });
-        };
+
+        }
+
+        vm.savePlayerAdvertisementRecordChanges = function(){
+            console.log("AAAAAAAAAAAAAA",vm.displayAdvertisementList);
+        }
+
+        vm.deletePlayerAdvertisementRecord = function(advertisementId) {
+
+            let sendData = {
+                platformId: vm.selectedPlatform.id,
+                advertisementId: advertisementId,
+            };
+
+            socketService.$socket($scope.AppSocket, 'deleteAdvertisementRecord', sendData);
+        }
+
+            vm.playerAdvertisementList = function (inputDevice) {
+                let sendData = {
+                            platformId: vm.selectedPlatform.id,
+                            inputDevice: inputDevice ? inputDevice : 1
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlayerAdvertisementList', sendData, function (data) {
+                    console.log("player advertisement list",data);
+                    if(data && data.data){
+
+                        data.data.map(d => {
+                            if(d){
+                                if(d.backgroundBannerURL){
+                                    if(d.backgroundBannerURL.url && d.backgroundBannerURL.url.length > 35){
+                                        d.backgroundBannerURL.urlDisplay = d.backgroundBannerURL.url.substring(0,30) + "...";
+                                    }else{
+                                        d.backgroundBannerURL.urlDisplay = d.backgroundBannerURL.url || null;
+                                    }
+
+                                    if(d.backgroundBannerURL.hyperLink && d.backgroundBannerURL.hyperLink.length > 35){
+                                        d.backgroundBannerURL.hyperLinkDisplay = d.backgroundBannerURL.hyperLink.substring(0,30) + "...";
+                                    }else{
+                                        d.backgroundBannerURL.hyperLinkDisplay = d.backgroundBannerURL.hyperLink || null;
+                                    }
+                                }
+
+                                if(d.button){
+                                    d.button.map(b => {
+                                        if(b){
+                                            if(b.url && b.url.length > 35){
+                                                b.urlDisplay = b.url.substring(0,30) + "...";
+                                            }else{
+                                                b.urlDisplay = b.url || null;
+                                            }
+
+                                            if(b.hyperLink && b.hyperLink.length > 35){
+                                                b.hyperLinkDisplay = b.hyperLink.substring(0,30) + "...";
+                                            }else{
+                                                b.hyperLinkDisplay = b.hyperLink || null;
+                                            }
+                                        }
+                                    })
+                                }
+                            }
+                        })
+
+                        // if (data.data.backgroundBannerURL && data.data.backgroundBannerURL.length > 30) {
+                        //     data.data.backgroundBannerURL.urlDisplay = data.data.backgroundBannerURL.url.substring(0, 25) + "...";
+                        // } else {
+                        //     data.data.backgroundBannerURL.urlDisplay = data.data.backgroundBannerURL.url || null;
+                        // }
+
+
+                        vm.displayAdvertisementList = data.data;
+
+                        $scope.safeApply();
+                        // if(data.orderNo){
+                        //     vm.playerAdvertisementGroup.orderNo = orderNo;
+                        // }
+                        //
+                        // if(data.adCode){
+                        //     vm.playerAdvertisementGroup.adCode = adCode;
+                        // }
+                        //
+                        // if(data.title && data.title.length > 0){
+                        //     vm.playerAdvertisementTitle = title;
+                        // }
+                        //
+                        // if(data.backgroundBannerURL){
+                        //     if(data.backgroundBannerURL.url){
+                        //         vm.playerAdvertisementGroup.backgroundUrl = data.backgroundBannerURL.url;
+                        //     }
+                        //
+                        //     if(data.backgroundBannerURL.hyperLink){
+                        //         vm.playerAdvertisementGroup.backgroundHyperLink = data.backgroundBannerURL.hyperLink;
+                        //     }
+                        // }
+                        //
+                        // if(data.button && data.button.length > 0){
+                        //     vm.playerAdvertisementImageButton = data.button;
+                        // }
+                    }
+                });
+            }
+
+        // vm.playerAdvertisementList = function () {
+        //     vm.playerAdvertisementRecords = {totalCount: 0};
+        //     utilService.actionAfterLoaded('#playerAdvertisementListTable', function () {
+        //             vm.playerAdvertisementRecords.pageObj = utilService.createPageForPagingTable("#playerAdvertisementListTablePage", {}, $translate, function (curP, pageSize) {
+        //                 vm.commonPageChangeHandler(curP, pageSize, "playerAdvertisementRecords", vm.getPlayerAdvertisementListByDevice)
+        //             });
+        //
+        //             vm.getPlayerAdvertisementListByDevice(true);
+        //     })
+        // }
+        //
+        // vm.getPlayerAdvertisementListByDevice = function (newSearch) {
+        //     vm.playerAdvertisementRecords.loading = true;
+        //     let sendData = {
+        //                 platformId: vm.selectedPlatform.id,
+        //                 inputDevice: 1
+        //             };
+        //     console.log("Query to get player advertisement list", sendData);
+        //     vm.preparePlayerAdvertisementListRecords(sendData, newSearch);
+        //     $("#playerAdvertisementListTable").off('order.dt');
+        //     $("#playerAdvertisementListTable").on('order.dt', function (event, a, b) {
+        //         vm.commonSortChangeHandler(a, 'playerAdvertisementRecords', vm.getPlayerAdvertisementListByDevice);
+        //     });
+        // };
+        //
+        // vm.preparePlayerAdvertisementListRecords = function (queryData, newSearch) {
+        //     vm.playerAdvertisementListRecords = [];
+        //     socketService.$socket($scope.AppSocket, 'getPlayerAdvertisementList', queryData, function (data) {
+        //         if(data && data.length > 0){
+        //             vm.playerAdvertisementListRecords = data.data.data;
+        //             vm.playerAdvertisementRecords.totalCount = data.data.size;
+        //             vm.playerAdvertisementRecords.loading = false;
+        //             console.log('Player advertisement list record', data);
+        //
+        //             var tableData = vm.playerAdvertisementListRecords.map(
+        //                 record => {
+        //                     record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
+        //                     //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+        //                     if (record.status) {
+        //                         if (record.status == vm.constProposalStatus.SUCCESS) {
+        //                             record.statusName = record.status ? $translate("Success") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+        //                         }
+        //                         else if (record.status == vm.constProposalStatus.MANUAL) {
+        //                             //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+        //                             record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+        //                         } else {
+        //                             record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+        //                         }
+        //                     }
+        //                     record.playerId = (record.data && record.data.playerId) ? record.data.playerId : "";
+        //                     record.name = (record.data && record.data.name) ? record.data.name : "";
+        //                     record.realName = (record.data && record.data.realName) ? record.data.realName : "";
+        //                     record.combinedArea = (record.data && (record.data.phoneProvince && record.data.phoneCity)) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+        //                     record.topUpTimes = (record.data && record.data.topUpTimes) ? record.data.topUpTimes : 0;
+        //                     record.smsCode = (record.data && record.data.smsCode) ? record.data.smsCode : "";
+        //                     record.remarks = (record.data && record.data.remarks) ? record.data.remarks : "";
+        //                     record.device = (record.inputDevice != "undefined" && record.inputDevice != "null") ? $translate($scope.constPlayerRegistrationInterface[record.inputDevice]) : "";
+        //                     record.promoteWay = (record.data && record.data.promoteWay) ? record.data.promoteWay : "";
+        //                     record.csOfficer = (record.data && record.data.csOfficer) ? record.data.csOfficer : "";
+        //                     record.registrationTime = (record.data && record.data.registrationTime) ? vm.dateReformat(record.data.registrationTime) : "";
+        //                     record.proposalId = (record.data && record.proposalId) ? record.proposalId : "";
+        //                     record.ipAreaName = (record.data && record.data.ipArea) ? vm.getIpAreaName(record.data.ipArea) : '';
+        //                     return record
+        //                 }
+        //             );
+        //             var tableData = vm.playerAdvertisementListRecords;
+        //             var option = $.extend({}, vm.generalDataTableOptions, {
+        //                 data: tableData,
+        //                 aoColumnDefs: [
+        //                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+        //                     {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
+        //                     {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
+        //                     {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
+        //                     {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
+        //                     {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
+        //                     {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
+        //                     {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
+        //                     {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
+        //                     {'sortCol': 'remarks', bSortable: true, 'aTargets': [9]},
+        //                     {'sortCol': 'device', bSortable: true, 'aTargets': [10]},
+        //                     {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [12]},
+        //                     {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
+        //                 ],
+        //                 columns: [
+        //                     // {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+        //                     {
+        //                         title: $translate('proposalId'),
+        //                         data: "proposalId",
+        //                         render: function (data, type, row) {
+        //
+        //                             var link = $('<a>', {
+        //                                 'ng-click': 'vm.editNewplayerRemark=false;vm.showNewPlayerModal(' + JSON.stringify(row) + ',2)'
+        //                             }).text(data);
+        //                             return link.prop('outerHTML');
+        //                         }
+        //                     },
+        //                     {title: $translate('PLAYERNAME'), data: "name"},
+        //                     {title: $translate('STATUS'), data: "statusName"},
+        //                     {title: $translate('SENT TIME'), data: "createTime"},
+        //                     {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
+        //                     {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
+        //                     {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
+        //                     {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
+        //                     {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
+        //                     {title: $translate('REMARKS'), data: "remarks"},
+        //                     {title: $translate('DEVICE'), data: "device"},
+        //                     {
+        //                         title: $translate('Function'),
+        //                         data: "data.phoneNumber",
+        //                         advSearch: true,
+        //                         "sClass": "",
+        //                         render: function (data, type, row) {
+        //                             data = data || '';
+        //                             //var playerObjId = row.data._id ? row.data._id : "";
+        //                             let displayTXT = '';
+        //                             let action = '';
+        //                             var link = $('<div>', {});
+        //
+        //                             if (row.data.phoneNumber && row.data.phoneNumber != "") {
+        //                                 link.append($('<div>', {
+        //                                     'class': 'fa fa-volume-control-phone',
+        //                                     'ng-click': 'vm.callNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
+        //                                     'title': $translate("PHONE")
+        //                                 }));
+        //                                 link.append($('<div>', {
+        //                                     'class': 'fa fa-comment',
+        //                                     'style': 'padding-left:15px',
+        //                                     'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');vm.initSMSModal();',
+        //                                     'title': $translate("SMS")
+        //                                 }));
+        //                             }
+        //
+        //                             if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL) {
+        //                                 displayTXT = $translate('CREATE_NEW_PLAYER');
+        //                                 action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
+        //                                 link.append($('<div>', {
+        //                                     'class': 'fa fa-user-plus',
+        //                                     'style': 'padding-left:15px',
+        //                                     'ng-click': action,
+        //                                     'title': $translate(displayTXT)
+        //                                 }));
+        //
+        //                             } else {
+        //                                 displayTXT = $translate('FEEDBACK');
+        //                                 action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
+        //                                 $('#modalAddPlayerFeedback').css('z-Index', 1051);
+        //                                 link.append($('<div>', {
+        //                                     'class': 'fa fa-commenting',
+        //                                     'style': 'padding-left:15px',
+        //                                     'data-row': JSON.stringify(row),
+        //                                     'data-toggle': 'modal',
+        //                                     'data-target': '#modalAddPlayerFeedback',
+        //                                     'ng-click': action,
+        //                                     'title': $translate(displayTXT)
+        //                                 }));
+        //                             }
+        //
+        //                             return link.prop('outerHTML')
+        //                         }
+        //                     },
+        //
+        //                     {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
+        //                     {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
+        //                 ],
+        //                 bSortClasses: false,
+        //                 destroy: true,
+        //                 paging: false,
+        //                 autoWidth: true,
+        //                 initComplete: function (data, type, row) {
+        //                     $scope.safeApply();
+        //                 },
+        //                 createdRow: function (row, data, dataIndex) {
+        //                     $compile(angular.element(row).contents())($scope);
+        //
+        //                 },
+        //                 fnRowCallback: vm.playerListTableRow
+        //             });
+        //             var a = utilService.createDatatableWithFooter('#playerAdvertisementListTable', option, {});
+        //             vm.playerAdvertisementRecords.pageObj.init({maxCount: vm.playerAdvertisementRecords.totalCount}, newSearch);
+        //             setTimeout(function () {
+        //                 $('#playerAdvertisementListTable').resize();
+        //             }, 300);
+        //         }else{
+        //             vm.playerAdvertisementRecords.totalCount = 0;
+        //             vm.playerAdvertisementRecords.loading = false;
+        //             var option = $.extend({}, vm.generalDataTableOptions, {
+        //                 //data: tableData,
+        //                 aoColumnDefs: [
+        //                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+        //                     {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
+        //                     {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
+        //                     {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
+        //                     {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
+        //                     {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
+        //                 ],
+        //                 columns: [
+        //                     // {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+        //                     {
+        //                         title: $translate('Display Order'),
+        //                         data: "proposalId",
+        //                         render: function (data, type, row) {
+        //
+        //                             var link = $('<a>', {
+        //                                 'ng-click': 'vm.editNewplayerRemark=false;vm.showNewPlayerModal(' + JSON.stringify(row) + ',2)'
+        //                             }).text(data);
+        //                             return link.prop('outerHTML');
+        //                         }
+        //                     },
+        //                     {title: $translate('ADVERTISEMENT CODE (CANNOT REPEAT)'), data: "name"},
+        //                     {title: $translate('BANNER TITLE'), data: "statusName"},
+        //                     {title: $translate('DISPLAY BACKGROUND IMAGE'), data: "createTime"},
+        //                     {title: $translate('BANNER LINK BUTTON'), data: "registrationTime"},
+        //                     {title: $translate('ACTION_BUTTON'), data: "ipAreaName"},
+        //                     // {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
+        //                     // {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
+        //                     // {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
+        //                     // {title: $translate('REMARKS'), data: "remarks"},
+        //                     // {title: $translate('DEVICE'), data: "device"},
+        //                     // {
+        //                     //     title: $translate('Function'),
+        //                     //     data: "data.phoneNumber",
+        //                     //     advSearch: true,
+        //                     //     "sClass": "",
+        //                     //     render: function (data, type, row) {
+        //                     //         data = data || '';
+        //                     //         //var playerObjId = row.data._id ? row.data._id : "";
+        //                     //         let displayTXT = '';
+        //                     //         let action = '';
+        //                     //         var link = $('<div>', {});
+        //                     //
+        //                     //         if (row.data.phoneNumber && row.data.phoneNumber != "") {
+        //                     //             link.append($('<div>', {
+        //                     //                 'class': 'fa fa-volume-control-phone',
+        //                     //                 'ng-click': 'vm.callNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
+        //                     //                 'title': $translate("PHONE")
+        //                     //             }));
+        //                     //             link.append($('<div>', {
+        //                     //                 'class': 'fa fa-comment',
+        //                     //                 'style': 'padding-left:15px',
+        //                     //                 'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');vm.initSMSModal();',
+        //                     //                 'title': $translate("SMS")
+        //                     //             }));
+        //                     //         }
+        //                     //
+        //                     //         if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL) {
+        //                     //             displayTXT = $translate('CREATE_NEW_PLAYER');
+        //                     //             action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
+        //                     //             link.append($('<div>', {
+        //                     //                 'class': 'fa fa-user-plus',
+        //                     //                 'style': 'padding-left:15px',
+        //                     //                 'ng-click': action,
+        //                     //                 'title': $translate(displayTXT)
+        //                     //             }));
+        //                     //
+        //                     //         } else {
+        //                     //             displayTXT = $translate('FEEDBACK');
+        //                     //             action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
+        //                     //             $('#modalAddPlayerFeedback').css('z-Index', 1051);
+        //                     //             link.append($('<div>', {
+        //                     //                 'class': 'fa fa-commenting',
+        //                     //                 'style': 'padding-left:15px',
+        //                     //                 'data-row': JSON.stringify(row),
+        //                     //                 'data-toggle': 'modal',
+        //                     //                 'data-target': '#modalAddPlayerFeedback',
+        //                     //                 'ng-click': action,
+        //                     //                 'title': $translate(displayTXT)
+        //                     //             }));
+        //                     //         }
+        //                     //
+        //                     //         return link.prop('outerHTML')
+        //                     //     }
+        //                     // },
+        //                     //
+        //                     // {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
+        //                     // {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
+        //                 ],
+        //                 bSortClasses: false,
+        //                 destroy: true,
+        //                 paging: false,
+        //                 autoWidth: true,
+        //                 initComplete: function (data, type, row) {
+        //                     $scope.safeApply();
+        //                 },
+        //                 createdRow: function (row, data, dataIndex) {
+        //                     $compile(angular.element(row).contents())($scope);
+        //
+        //                 },
+        //                 fnRowCallback: vm.playerListTableRow
+        //             });
+        //             var a = utilService.createDatatableWithFooter('#playerAdvertisementListTable', option, {});
+        //             vm.playerAdvertisementRecords.pageObj.init({maxCount: vm.playerAdvertisementRecords.totalCount}, newSearch);
+        //             setTimeout(function () {
+        //                 $('#playerAdvertisementListTable').resize();
+        //             }, 300);
+        //         }
+        //     });
+        // };
 
             vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);
 

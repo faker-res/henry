@@ -391,7 +391,20 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.inputDevice);
             socketUtil.emitter(self.socket, dbPlatform.getPlayerAdvertisementList, [data.platformId, data.inputDevice], actionName, isValidData);
+        },
+
+        createNewPlayerAdvertisementRecord: function createNewPlayerAdvertisementRecord(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.adCode && data.inputDevice);
+            socketUtil.emitter(self.socket, dbPlatform.createNewPlayerAdvertisementRecord, [data.platformId, data.orderNo, data.adCode, data.title, data.backgroundBanner, data.imageButton, data.inputDevice], actionName, isValidData);
+        },
+
+        deleteAdvertisementRecord: function deleteAdvertisementRecord(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.advertisementId);
+            socketUtil.emitter(self.socket, dbPlatform.deleteAdvertisementRecord, [data.platformId, data.advertisementId], actionName, isValidData);
         }
+
 
     };
     socketActionPlatform.actions = this.actions;
