@@ -1558,6 +1558,9 @@ define(['js/app'], function (myApp) {
                 (checkedAlipayList[0].isInGroup && type === 'attach') ||
                 (!checkedAlipayList[0].isInGroup && type === 'detach')
             ) {
+                // situation that do nothing:
+                //      no select any alipay,
+                //      selecting inGroup alipay click add, selecting noInGroup alipay click remove
                 return;
             }
             let updateAlipayGroupAccNumber =checkedAlipayList.map(alipay => alipay.accountNumber);
