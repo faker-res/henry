@@ -10227,6 +10227,19 @@ define(['js/app'], function (myApp) {
                         if (data.data.creator) {
                             item.creator = data.data.creator
                         }
+                        if(item.data){
+                            item.currentAmount = item.data.currentAmount;
+                            item.bonusAmount = item.data.bonusAmount;
+                            item.requiredBonusAmount = item.data.requiredBonusAmount;
+                            item.bonusAmount$ = item.data.bonusAmount;
+                            item.requiredBonusAmount$ = item.data.requiredBonusAmount;
+                            item.requiredUnlockAmount = item.data.requiredUnlockAmount;
+                        }
+
+
+
+
+
                         return item;
                     }) : [];
                     var size = data.data ? data.data.size : 0;
@@ -10587,7 +10600,7 @@ define(['js/app'], function (myApp) {
             vm.isSubmitProposal = function (rowId) {
 
                 let sumRewardAmount = 0;
-                let taskGroupCurrentAmt = vm.dynRewardTaskGroupId[0].currentAmt;
+                let taskGroupCurrentAmt = vm.dynRewardTaskGroupId ? vm.dynRewardTaskGroupId[0].currentAmt:0;
 
                 if (rowId == '0') {
                     let applyAmount = vm.rewardTaskProposalData[0].data.applyAmount ? vm.rewardTaskProposalData[0].data.applyAmount:0;
@@ -10648,7 +10661,6 @@ define(['js/app'], function (myApp) {
                             item['provider$'] = item.data.provider$;
 
                         })
-                        console.log(result);
                         vm.drawRewardTaskTable(true, result, 0, summary, 0);
                         // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
                         vm.curRewardTask = data;
@@ -10747,14 +10759,13 @@ define(['js/app'], function (myApp) {
                             //解锁进度（投注额）
                             "title": $translate('Unlock Progress(Consumption)'),data:"requiredBonusAmount",
                             render: function (data, type, row, meta) {
-                                let isSubmit = vm.isSubmitProposal(meta.row);
-                                console.log(isSubmit);
                                 var rowId = String(meta.row);
-                                let spendingAmt = vm.calSpendingAmt(rowId);
 
-                                let spAmount = spendingAmt.currentAmt;
-                                let spCurrentMax = spendingAmt.currentMax;
                                 if(vm.isUnlockTaskGroup){
+                                    let spendingAmt = vm.calSpendingAmt(rowId);
+
+                                    let spAmount = spendingAmt.currentAmt;
+                                    let spCurrentMax = spendingAmt.currentMax;
                                     var text = spAmount + '/' + spCurrentMax;
                                 }else{
                                     var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
@@ -10766,9 +10777,19 @@ define(['js/app'], function (myApp) {
                         {
                             //解锁进度（输赢值）
                             "title": $translate('Unlock Progress(WinLose)'),data:"currentAmount",
-                            render: function (data, type, row) {
+                            render: function (data, type, row ,meta){
+                                if(vm.isUnlockTaskGroup){
+                                    let spendingAmt = vm.calSpendingAmt(meta.row);
+                                    let isSubmit = vm.isSubmitProposal(meta.row);
+                                    let rewardAmt = isSubmit.rewardAmount;
+                                    let spAmount = spendingAmt.currentAmt;
+                                    let spCurrentMax = spendingAmt.currentMax;
+                                    var text = spAmount + '/' + rewardAmt;
+                                }else{
+                                    let applyAmount = row.applyAmount ? row.applyAmount: 0
+                                    var text = row.currentAmount + '/' + (applyAmount + row.bonusAmount);
+                                }
 
-                                var text = -row.currentAmount + '/' + -(row.applyAmount + row.bonusAmount);
                                 return "<div>" + text + "</div>";
                             }, sClass: 'sumFloat textRight'
                         },
