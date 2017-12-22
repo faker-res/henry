@@ -257,7 +257,7 @@ var ProposalServiceImplement = function () {
     };
 
     this.requestProposalSuccessPMS.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.proposalId && data.status);
+        var isValidData = Boolean(data && data.proposalId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestProposalSuccessPMS, [data.proposalId && data.status], isValidData);
     };
 };
