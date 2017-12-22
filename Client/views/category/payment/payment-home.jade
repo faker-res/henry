@@ -1,22 +1,42 @@
 .row.margin-left-5.margin-right-5(ng-if="checkViewPermission('Payment')")
-    .col-md-3(ng-class='vm.leftPanelClass')
-        include ./platform-list
-    #platformContent.col-md-9(style="padding-left:0;",ng-class='vm.rightPanelClass')
+    //.col-md-3(ng-class='vm.leftPanelClass')
+    //    include ./platform-list
+    #platformContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
         .padding-all-5
             .panel.panel-primary
                 .panel-heading.common-left-panel-heading
-                    ul.nav.nav-tabs.common-nav-tabs
-                        .pull-left.padding-all-5
-                            a.fa.fa-chevron-circle-left.contractIcon(ng-show='vm.showPlatformList', ng-click='vm.toggleShowPlatformList(false)')
-                            a.fa.fa-chevron-circle-right.contractIcon(ng-show='!vm.showPlatformList', ng-click='vm.toggleShowPlatformList(true)')
-                        li(ng-if='!vm.curPlatformText')
-                            div.platformName
-                                .fa.fa-2x.fa-cubes(style='margin:5px 10px;')
-                                text.text-danger.shadow(style='margin:5px 10px;font-size:20px') {{"SELECT_PLATFORM"|translate}}
-                        li(ng-if='vm.curPlatformText', style='margin: 0 5px')
-                            div.platformName(ng-click='vm.showPlatformDetailModal()')
-                                .fa.fa-2x.fa-money(style='margin:5px 10px;')
-                                text.shadow(style='margin:5px 10px;font-size:20px') {{vm.curPlatformText}}
+                    ul.nav.nav-tabs.common-nav-tabs.padding-left-5.margi
+                        //.pull-left.padding-all-5
+                        //    a.fa.fa-chevron-circle-left.contractIcon(ng-show='vm.showPlatformList', ng-click='vm.toggleShowPlatformList(false)')
+                        //    a.fa.fa-chevron-circle-right.contractIcon(ng-show='!vm.showPlatformList', ng-click='vm.toggleShowPlatformList(true)')
+
+                        //li(ng-if='!vm.curPlatformText')
+                        //    div.platformName
+                        //        .fa.fa-2x.fa-cubes(style='margin:5px 10px;')
+                        //        text.text-danger.shadow(style='margin:5px 10px;font-size:20px') {{"SELECT_PLATFORM"|translate}}
+                        //li(ng-if='vm.curPlatformText', style='margin: 0 5px')
+                        //    div.platformName(ng-click='vm.showPlatformDetailModal()')
+                        //        .fa.fa-2x.fa-money(style='margin:5px 10px;')
+                        //        text.shadow(style='margin:5px 10px;font-size:20px') {{vm.curPlatformText}}
+
+                        //li(ng-if='!vm.curPlatformText', style='margin-right: 0;')
+                        //    div.platformName(style='border-radius: 9px 0 0 9px;')
+                        //        .fa.fa-2x(style='margin:5px 10px;')
+                        //            img(src="images/icon/websiteBusiness_hover.png" width="30" )
+                        //        text.text-danger.shadow(style='margin:5px 10px;font-size:20px') {{"SELECT_PLATFORM"|translate}}
+                        //li(ng-if='vm.curPlatformText', style='margin-right: 0;')
+                        //    div.platformName(ng-if='checkViewPermission("Platform","Platform", "Read")',ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalUpdatePlatform', ng-click='vm.initPlatform(false);vm.showPlatformDetailTab(null);vm.setPlatformFooter(null);vm.getAllDepartmentData();vm.prepareSettlementHistory();vm.populatePlatformData();', style='border-radius: 9px 0 0 9px;')
+                        //        .fa.fa-2x(style='margin:5px 10px;')
+                        //            img(src="images/icon/websiteBusiness_hover.png" width="30" )
+                        //        text.shadow(style='margin:5px 10px;font-size:20px') {{vm.curPlatformText}}
+                        //
+                        ////dropdown
+                        //li(style='margin-right:5px')
+                        //    div.platformName(ng-click='vm.showPlatformDropDownList = !vm.showPlatformDropDownList', style='border-radius: 0 9px 9px 0;')
+                        //        .fa.fa-2x.fa-caret-down(style='margin:5px 10px; margin-top:8px;')
+                        //    //div#platformTree(style="height: 400px;")
+                        #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
+
                         li.active
                             a.common-tab(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Read')",data-toggle="tab", href="#bankCardGroup", ng-click="vm.bankCardGroupTabClicked();vm.paymentPageName='bankCardGroup';vm.updatePageTile();")
                                 .fa.fa-credit-card.margin-right-5

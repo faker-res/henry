@@ -2180,6 +2180,7 @@ let dbPlayerInfo = {
                     if (proposalData && proposalData.data) {
                         if (topUpType == constPlayerTopUpType.MANUAL) {
                             recordData.bankCardType = proposalData.data.bankCardType;
+                            recordData.depositMethod = proposalData.data.depositMethod;
                         }
                         else if (topUpType == constPlayerTopUpType.ONLINE) {
                             recordData.merchantTopUpType = proposalData.data.topupType;
@@ -12131,7 +12132,7 @@ let dbPlayerInfo = {
             if(data) {
                 let platformDetails = data[0];
                 let playerDetails = data[1];
-
+                console.log(playerDetails);
                 let bonusDetails = {};
                 if(platformDetails){
                     if(platformDetails.useProviderGroup)
@@ -12239,6 +12240,7 @@ let dbPlayerInfo = {
                 let lockListWithoutFreeAmountRewardTaskGroup = [];
                 result.freeTimes = result.freeTimes - (data[0] && data[0][0] ? data[0][0].count : 0);
                 if(data[1]){
+                    console.log(data);
                     lockListWithoutFreeAmountRewardTaskGroup = data[1].filter(function(e){
                         return e.name !== "LOCAL_CREDIT";
                     })
@@ -12345,6 +12347,8 @@ let dbPlayerInfo = {
             }
         ).then(
             rewardTaskGroup => {
+                console.log(rewardTaskGroup);
+
                 if (rewardTaskGroup && rewardTaskGroup.length > 0) {
                     for (let i = 0; i < rewardTaskGroup.length; i++) {
                         returnData.lockedCreditList[i] = {
@@ -12402,14 +12406,15 @@ function checkLimitedOfferToApply (proposalData) {
                 if (proposalTypeData) {
                     // Create reward proposal with intention data
                     newProp.data.eventName = newProp.data.eventName.replace(" Intention",'');
-                    newProp.data.remark = 'event name: '+ newProp.data.eventName +'('+ newProp.proposalId +') topup proposal id: ' + topupProposal.proposalId;
+                    newProp.data.remark = 'event name: '+ newProp.data.limitedOfferName +'('+ newProp.proposalId +') topup proposal id: ' + topupProposal.proposalId;
 
                     let proposalData = {
                         type: proposalTypeData._id,
                         creator: newProp.creator,
                         data: newProp.data,
                         entryType: newProp.entryType,
-                        userType: newProp.userType
+                        userType: newProp.userType,
+                        inputDevice: newProp.inputDevice
                     };
 
                     return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);

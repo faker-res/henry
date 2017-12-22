@@ -295,6 +295,106 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             $('#cssmenu .navbar-brand  a[name*="mainPage"]').parent().removeClass('clickedBackstagePrivilege');
     };
 
+    $scope.curPlatformText = "XBet";
+    $scope.showPlatformDropDownList = false;
+
+    $scope.switchPlatform = () => {
+        $scope.showPlatformDropDownList = !$scope.showPlatformDropDownList;
+    };
+
+    //get all platform data from server
+    $scope.loadPlatformData = option => {
+        if ($('#platformRefresh').hasClass('fa-spin')) {
+            return
+        }
+        $('#platformRefresh').addClass('fa-spin');
+        socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
+            $scope.allPlatformData = data.data;
+            if (data.data) {
+                $scope.buildPlatformList(data.data);
+            }
+            $('#platformRefresh').removeClass('fa-spin');
+
+            $('#platformRefresh').addClass('fa-check');
+            $('#platformRefresh').removeClass('fa-refresh');
+            setTimeout(function () {
+                $('#platformRefresh').removeClass('fa-check');
+                $('#platformRefresh').addClass('fa-refresh').fadeIn(100);
+            }, 1000);
+
+            //select platform from cookies data
+            let storedPlatform = $cookies.get("platform");
+            if (storedPlatform) {
+                $scope.searchAndSelectPlatform(storedPlatform, option);
+            }
+
+        }, function (err) {
+            $('#platformRefresh').removeClass('fa-spin');
+        });
+    };
+
+    $scope.buildPlatformList = data => {
+        $scope.platformList = [];
+        for (let i = 0; i < data.length; i++) {
+            $scope.platformList.push($scope.createPlatformNode(data[i]));
+        }
+
+        let searchText = ($scope.platformSearchText || '').toLowerCase();
+        let platformsToDisplay = $scope.platformList.filter(platformData => platformData.data.name.toLowerCase().includes(searchText));
+        $('#platformTreeHeader').treeview(
+            {
+                data: platformsToDisplay,
+                highlightSearchResults: false,
+                showImage: true,
+                showIcon: false,
+            }
+        );
+        // vm.selectPlatformNode($('#platformTree').treeview('getNode', 0));
+        $('#platformTreeHeader').on('nodeSelected', function (event, data) {
+            $scope.$evalAsync($scope.selectPlatformNode(data));
+            $scope.showPlatformDropDownList = false;
+        });
+    };
+
+    $scope.createPlatformNode = function (v) {
+        var obj = {
+            text: v.name,
+            id: v._id,
+            selectable: true,
+            data: v,
+            image: {
+                url: v.icon,
+                width: 30,
+                height: 30,
+            }
+        };
+        return obj;
+    };
+
+    $scope.searchAndSelectPlatform = function (text, option) {
+        var findNodes = $('#platformTreeHeader').treeview('search', [text, {
+            ignoreCase: false,
+            exactMatch: true
+        }]);
+        if (findNodes && findNodes.length > 0) {
+            $scope.selectPlatformNode(findNodes[0], option);
+            $('#platformTreeHeader').treeview('selectNode', [findNodes[0], {silent: true}]);
+        }
+    };
+
+    $scope.selectPlatformNode = function (node, option) {
+        $scope.selectedPlatform = node;
+        $scope.curPlatformText = node.text;
+        console.log("$scope.selectedPlatform", $scope.selectedPlatform);
+        $cookies.put("platform", node.text);
+        if (option && !option.loadAll) {
+            $scope.safeApply();
+            return;
+        }
+
+        $scope.$broadcast('switchPlatform');
+    };
+
     // From: https://davidwalsh.name/javascript-debounce-function
     // Returns a function, that, as long as it continues to be invoked, will not
     // be triggered. The function will be called after it stops being called for
@@ -1077,6 +1177,9 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         $scope.phoneCall = {};
         utilService.initTranslate($filter('translate'));
         socketService.initTranslate($filter('translate'));
+
+        // Platform switch
+        $scope.loadPlatformData();
     }
 
     $scope.presentActionLog = function () {
