@@ -73,7 +73,8 @@
                 "getBankcardListByGroup",
                 "getMerchantIdListByGroup",
                 "setUpdateCreditProposalStatus",
-                "addTestTopUp"
+                "addTestTopUp",
+                "requestProposalSuccessPMS"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
