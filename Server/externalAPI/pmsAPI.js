@@ -158,6 +158,10 @@ const pmsAPI = {
         return callPMSAPI("payment", "requestClearProposalLimits", data);
     },
 
+    payment_requestProposalSuccess: function (data) {
+        return callPMSAPI("payment", "requestProposalSuccess", data);
+    },
+
     foundation_getProvince: function (data) {
         return callPMSAPI("foundation", "getProvince", data);
     },

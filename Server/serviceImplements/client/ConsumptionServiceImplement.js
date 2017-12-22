@@ -9,11 +9,11 @@ var ConsumptionServiceImplement = function(){
     //getLastConsumptions api handler
     this.getLastConsumptions.expectsData = 'playerId: String';
     this.getLastConsumptions.onRequest = function(wsFunc, conn, data){
-        var isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId));
+        var isValidData = Boolean(conn.playerId);
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
         WebSocketUtil.performAction(
-            conn, wsFunc, data, dbPlayerConsumptionRecord.getLastConsumptionsAPI, [data.playerId, data.startIndex, data.requestCount], isValidData
+            conn, wsFunc, data, dbPlayerConsumptionRecord.getLastConsumptionsAPI, [conn.playerId, data.startIndex, data.requestCount], isValidData
         );
     };
 
