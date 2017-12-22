@@ -5988,12 +5988,7 @@ define(['js/app'], function (myApp) {
             var result = utilService.getProposalGroupValue(proposalType);
             return $translate(result);
         };
-        // $scope.$on('$viewContentLoaded', function () {
-        var eventName = "$viewContentLoaded";
-        if (!$scope.AppSocket) {
-            eventName = "socketConnected";
-            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
-        }
+
         vm.getProvinceName = function (provinceId) {
             socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
                 var text = data.data.province ? data.data.province.name : '';
@@ -6046,130 +6041,127 @@ define(['js/app'], function (myApp) {
                 })
 
             })
+        };
+
+        function loadPlatform() {
+            vm.playerReport = {};
+            vm.playerPlatformReport = {};
+            vm.playerGameReport = {};
+            vm.playerTable = {};
+            vm.gameTable = {};
+            vm.tableIndentWidth = 60;
+            vm.showPageName = $translate("NO_REPORT_TYPE_MESSAGE");
+            $scope.platId = '';
+            vm.innerTable = {};
+            vm.hideLeftPanel = false;
+            // console.log('ISODate("2016-04-12T16:00:00.311Z")',new Date("2016-04-12T16:00:00.311Z"));
+
+            var showLeft = $cookies.get("reportShowLeft");
+            if (showLeft === 'true') {
+                vm.setPanel(true)
+            }
+
+            socketService.$socket($scope.AppSocket, 'getAllGameTypes', {}, function (data) {
+                vm.gameAllTypes = data.data;
+                //console.log("getAllGameTypfes",vm.gameAllTypes);
+                $scope.safeApply();
+            }, function (data) {
+                console.log("create not", data);
+            });
+
+            if (!authService.checkViewPermission('Report', 'General', 'Read')) {
+                return;
+            }
+            socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
+                vm.platformList = data.data;
+                //console.log("platformList", vm.platformList);
+                if (vm.platformList.length == 0)return;
+                var storedPlatform = $cookies.get("platform");
+                var tPlat = {};
+                if (storedPlatform) {
+                    vm.platformList.forEach(
+                        platform => {
+                            if (platform.name == storedPlatform) {
+                                tPlat = platform;
+                            }
+                        }
+                    );
+                } else {
+                    tPlat = vm.platformList[0];
+                }
+                vm.selectedPlatform = tPlat;
+                vm.selectedPlatformID = tPlat._id;
+                vm.setPlatform(JSON.stringify(tPlat));
+                $scope.safeApply();
+            });
+            // socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data) {
+            //     delete data.data.APPROVED;
+            //     delete data.data.REJECTED;
+            //     delete data.data.PROCESSING;
+            //     vm.proposalStatusList = data.data;
+            //     //console.log("proposalStatusList", vm.proposalStatusList);
+            //     $scope.safeApply();
+            //     //if (vm.proposalStatusList.length == 0)return;
+            //     //vm.selectedStatus = vm.proposalStatusList[0];
+            // }, function (data) {
+            //     console.log("create not", data);
+            // });
+
+            // socketService.$socket($scope.AppSocket, 'getAllFeedbackResultList', {}, function (data) {
+            //     vm.feedbackResultList = data.data;
+            //     //console.log("proposalStatusList", vm.proposalStatusList);
+            //     $scope.safeApply();
+            //     //if (vm.proposalStatusList.length == 0)return;
+            //     //vm.selectedStatus = vm.proposalStatusList[0];
+            // }, function (data) {
+            //     console.log("create not", data);
+            // });
+
+            vm.playerFeedbackQuery = vm.playerFeedbackQuery || {};
+
+            // socketService.$socket($scope.AppSocket, 'getAllTopUpType', {}, function (data) {
+            //     vm.topUpTypeList = data.data;
+            //     console.log("getAllTopUpType", vm.topUpTypeList);
+            //     $scope.safeApply();
+            // }, function (data) {
+            //     console.log("create not", data);
+            // });
+
+            vm.rewardNamePage = {
+                "FirstTopUp": "FIRST_TOPUP_REWARD_REPORT",
+                "PlayerConsumptionReturn": "PLAYER_CONSUMPTION_RETURN_REPORT",
+                "FullAttendance": "FULL_ATTENDANCE_REPORT",
+                "PartnerConsumptionReturn": "PARTNER_CONSUMPTION_REPORT",
+                "PartnerIncentiveReward": "PARTNER_INCENTIVE_REPORT",
+                "PartnerReferralReward": "PARTNER_REFERRAL_REPORT",
+                "GameProviderReward": "PROVIDER_REPORT",
+                "PlatformTransactionReward": "TRANSACTION_REPORT",
+                "PlayerTopUpReturn": "PLAYER_TOP_UP_RETURN_REPORT",
+                "PlayerConsumptionIncentive": "PLAYER_CONSUMPTION_INCENTIVE_REPORT",
+                "PlayerLevelUp": "PLAYER_LEVEL_UP_REPORT",
+                "PartnerTopUpReturn": "PARTNER_TOP_UP_RETURN_REPORT",
+                "PlayerTopUpReward": "PLAYER_TOP_UP_REWARD_REPORT",
+                "PlayerReferralReward": "PLAYER_REFERRAL_REWARD_REPORT"
+            };
         }
 
-        $scope.$on(eventName, function (e, d) {
+        // $scope.$on('$viewContentLoaded', function () {
+        var eventName = "$viewContentLoaded";
+        if (!$scope.AppSocket) {
+            eventName = "socketConnected";
+            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
+        }
 
-            setTimeout(
-                function () {
-                    vm.playerReport = {};
-                    vm.playerPlatformReport = {};
-                    vm.playerGameReport = {};
-                    vm.playerTable = {};
-                    vm.gameTable = {};
-                    vm.tableIndentWidth = 60;
-                    vm.showPageName = $translate("NO_REPORT_TYPE_MESSAGE");
-                    $scope.platId = '';
-                    vm.innerTable = {};
-                    vm.hideLeftPanel = false;
-                    // console.log('ISODate("2016-04-12T16:00:00.311Z")',new Date("2016-04-12T16:00:00.311Z"));
+        $scope.$on(eventName, () => {
+            $scope.$evalAsync(loadPlatform());
+        });
 
-                    var showLeft = $cookies.get("reportShowLeft");
-                    if (showLeft === 'true') {
-                        vm.setPanel(true)
-                    }
-
-                    socketService.$socket($scope.AppSocket, 'getAllGameTypes', {}, function (data) {
-                        vm.gameAllTypes = data.data;
-                        //console.log("getAllGameTypfes",vm.gameAllTypes);
-                        $scope.safeApply();
-                    }, function (data) {
-                        console.log("create not", data);
-                    });
-
-                    if (!authService.checkViewPermission('Report', 'General', 'Read')) {
-                        return;
-                    }
-                    socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
-                        vm.platformList = data.data;
-                        //console.log("platformList", vm.platformList);
-                        if (vm.platformList.length == 0)return;
-                        var storedPlatform = $cookies.get("platform");
-                        var tPlat = {};
-                        if (storedPlatform) {
-                            vm.platformList.forEach(
-                                platform => {
-                                    if (platform.name == storedPlatform) {
-                                        tPlat = platform;
-                                    }
-                                }
-                            );
-                        } else {
-                            tPlat = vm.platformList[0];
-                        }
-                        vm.selectedPlatform = tPlat;
-                        vm.selectedPlatformID = tPlat._id;
-                        vm.setPlatform(JSON.stringify(tPlat));
-                        $scope.safeApply();
-                    });
-                    // socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data) {
-                    //     delete data.data.APPROVED;
-                    //     delete data.data.REJECTED;
-                    //     delete data.data.PROCESSING;
-                    //     vm.proposalStatusList = data.data;
-                    //     //console.log("proposalStatusList", vm.proposalStatusList);
-                    //     $scope.safeApply();
-                    //     //if (vm.proposalStatusList.length == 0)return;
-                    //     //vm.selectedStatus = vm.proposalStatusList[0];
-                    // }, function (data) {
-                    //     console.log("create not", data);
-                    // });
-
-                    // socketService.$socket($scope.AppSocket, 'getAllFeedbackResultList', {}, function (data) {
-                    //     vm.feedbackResultList = data.data;
-                    //     //console.log("proposalStatusList", vm.proposalStatusList);
-                    //     $scope.safeApply();
-                    //     //if (vm.proposalStatusList.length == 0)return;
-                    //     //vm.selectedStatus = vm.proposalStatusList[0];
-                    // }, function (data) {
-                    //     console.log("create not", data);
-                    // });
-
-                    vm.playerFeedbackQuery = vm.playerFeedbackQuery || {};
-
-                    // socketService.$socket($scope.AppSocket, 'getAllTopUpType', {}, function (data) {
-                    //     vm.topUpTypeList = data.data;
-                    //     console.log("getAllTopUpType", vm.topUpTypeList);
-                    //     $scope.safeApply();
-                    // }, function (data) {
-                    //     console.log("create not", data);
-                    // });
-
-                    vm.rewardNamePage = {
-                        "FirstTopUp": "FIRST_TOPUP_REWARD_REPORT",
-                        "PlayerConsumptionReturn": "PLAYER_CONSUMPTION_RETURN_REPORT",
-                        "FullAttendance": "FULL_ATTENDANCE_REPORT",
-                        "PartnerConsumptionReturn": "PARTNER_CONSUMPTION_REPORT",
-                        "PartnerIncentiveReward": "PARTNER_INCENTIVE_REPORT",
-                        "PartnerReferralReward": "PARTNER_REFERRAL_REPORT",
-                        "GameProviderReward": "PROVIDER_REPORT",
-                        "PlatformTransactionReward": "TRANSACTION_REPORT",
-                        "PlayerTopUpReturn": "PLAYER_TOP_UP_RETURN_REPORT",
-                        "PlayerConsumptionIncentive": "PLAYER_CONSUMPTION_INCENTIVE_REPORT",
-                        "PlayerLevelUp": "PLAYER_LEVEL_UP_REPORT",
-                        "PartnerTopUpReturn": "PARTNER_TOP_UP_RETURN_REPORT",
-                        "PlayerTopUpReward": "PLAYER_TOP_UP_REWARD_REPORT",
-                        "PlayerReferralReward": "PLAYER_REFERRAL_REWARD_REPORT"
-                    };
-
-                    // vm.topupTypeJson = {
-                    //     '1': 'NetPay',
-                    //     '2': 'WechatQR',
-                    //     '3': 'AlipayQR',
-                    //     '4': 'WechatApp',
-                    //     '5': 'AlipayApp',
-                    //     '6': 'FASTPAY',
-                    //     '7': 'QQPAYQR',
-                    //     '8': 'UnPayQR',
-                    //     '9': 'JdPayQR',
-                    //     '10': 'WXWAP',
-                    //     '11': 'ALIWAP',
-                    //     '12': 'QQWAP',
-                    //     '13': 'PCard'
-                    // };
-                }
-            );
+        $scope.$on('switchPlatform', () => {
+            $scope.$evalAsync(loadPlatform());
         });
     };
+
+
+
     myApp.register.controller('reportCtrl', reportController);
 });
