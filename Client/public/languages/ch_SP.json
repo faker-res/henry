@@ -2949,7 +2949,6 @@
   "Player does not have enough top up or consumption": "玩家没有足够的存款或投注额",
   "The period of the reward has not yet opened": "本周期的场次尚未开放",
   "GAME LOBBY / REWARD TASK GROUP":"游戏大厅 /锁定组",
-  "Top up does not meet Promo Code minimum required amount": "充值额没达到优惠代码需求",
   "bankType": "收款银行类型",
   "merchantTopupType": "在线充值方式",
   "merchantTopupMainType": "充值类型",
@@ -2969,4 +2968,7 @@
   "select": "选择",
   "loading alipays": "加载支付宝中",
   "will only show status in alipay list": "只显示有在支付宝列表的状态"
+  "IS_IN_GROUP": "组内外",
+  "IN_GROUP": "组内",
+  "NOT_IN_GROUP": "组外"
 }

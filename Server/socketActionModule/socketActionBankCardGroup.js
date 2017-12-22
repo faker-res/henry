@@ -24,6 +24,19 @@ function socketActionBankCardGroup(socketIO, socket) {
         },
 
         /**
+         * Get all the bank card groups by platformObjId without sync with PMS
+         * Since every time when the page load up, it will run the one with sync,
+         * it is not necessary to do it multiple times within 5 minutes when admin
+         * are changing card groups
+         * @param {String}  platform - ObjId of the platform
+         */
+        getPlatformBankCardGroupLite: function getPlatformBankCardGroupLite(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getPlatformBankCardGroupLite, [ObjectId(data.platform)], actionName, isValidData);
+        },
+
+        /**
          * Create platform BankCardGroup by BankCardGroup data
          * @param {json} data - BankCardGroup data
          */
