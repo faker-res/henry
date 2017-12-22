@@ -951,7 +951,7 @@ define(['js/app'], function (myApp) {
 
             $scope.safeApply();
             function updateNumReceipient() {
-                vm.selectMultiPlayer.numRecipient = $(id + ' tbody input:checked[type="checkbox"]').length;
+                vm.selectMultiPlayer.numRecipient = $(vm.curPlayerTableId + ' tbody input:checked[type="checkbox"]').length;
                 vm.selectMultiPlayer.numReceived = 0;
                 vm.selectMultiPlayer.numFailed = 0;
                 $scope.safeApply();
@@ -1370,95 +1370,111 @@ define(['js/app'], function (myApp) {
             vm.SelectedAlipayGroupNode = alipayGroup;
             vm.includedAlipays = null;
             vm.excludedAlipays = null;
+            vm.allAlipayList = null;
             console.log('alipayGroup clicked', alipayGroup);
             var query = {
                 platform: vm.selectedPlatform.data.platformId,
                 alipayGroup: alipayGroup._id
             }
+            vm.alipayStatusFilterOptions = {};
+            socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroupWithIsInGroup', query, function(data){
 
-            socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function(data){
-                console.log('AlipayList', data);
                 //provider list init
                 vm.allAlipayList = data.data;
-                $.each(vm.allAlipayList, function (i, v) {
-                    vm.allAlipayList[v._id] = true;
-                })
+                // loop get alipay status for future add extra status, no need change code
+                vm.allAlipayList.forEach(alipay => {
+                    if (!vm.alipayStatusFilterOptions.hasOwnProperty(alipay.state)) {
+                        vm.alipayStatusFilterOptions[alipay.state] = true;
+                    }
+                });
+                vm.alipayStatusFilterOptions.hasOwnProperty('key');
+                console.log('vm.allAlipayList', vm.allAlipayList);
                 $scope.safeApply();
             });
 
-            socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function (data2) {
-                console.log("attached alipays", data2);
-                if (data2 && data2.data) {
-                    vm.includedAlipays = [];
-                    $.each(data2.data, function (i, v) {
-                        if (vm.filterAlipayAccount && (vm.filterAlipayAccount != 'all' && vm.filterAlipayAccount != '') && (!vm.filterAlipayAccount.find(aa => aa.accountNumber == v.accountNumber))) {
-
-                        } else if (vm.filterAlipayName && (vm.filterAlipayName != 'all' && vm.filterAlipayName != '') && (!vm.filterAlipayName.find(an => an.name == v.name))) {
-
-                        } else {
-                            vm.includedAlipays.push(v);
-                        }
-
-                    });
-
-                } else {
-                    vm.includedAlipays = [];
-                }
-                $scope.safeApply();
-            })
-
-            socketService.$socket($scope.AppSocket, 'getExcludedAlipayByAlipayGroup', query, function (data2) {
-                console.log("not attached alipays", data2);
-                if (data2 && data2.data) {
-                    vm.excludedAlipays = data2.data;
-                } else {
-                    vm.excludedAlipays = [];
-                }
-                $scope.safeApply();
-            })
+            // socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function(data){
+            //     console.log('AlipayList', data);
+            //     //provider list init
+            //     vm.allAlipayList = data.data;
+            //     $.each(vm.allAlipayList, function (i, v) {
+            //         vm.allAlipayList[v._id] = true;
+            //     })
+            //     $scope.safeApply();
+            // });
+            //
+            // socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function (data2) {
+            //     console.log("attached alipays", data2);
+            //     if (data2 && data2.data) {
+            //         vm.includedAlipays = [];
+            //         $.each(data2.data, function (i, v) {
+            //             if (vm.filterAlipayAccount && (vm.filterAlipayAccount != 'all' && vm.filterAlipayAccount != '') && (!vm.filterAlipayAccount.find(aa => aa.accountNumber == v.accountNumber))) {
+            //
+            //             } else if (vm.filterAlipayName && (vm.filterAlipayName != 'all' && vm.filterAlipayName != '') && (!vm.filterAlipayName.find(an => an.name == v.name))) {
+            //
+            //             } else {
+            //                 vm.includedAlipays.push(v);
+            //             }
+            //
+            //         });
+            //
+            //     } else {
+            //         vm.includedAlipays = [];
+            //     }
+            //     $scope.safeApply();
+            // })
+            //
+            // socketService.$socket($scope.AppSocket, 'getExcludedAlipayByAlipayGroup', query, function (data2) {
+            //     console.log("not attached alipays", data2);
+            //     if (data2 && data2.data) {
+            //         vm.excludedAlipays = data2.data;
+            //     } else {
+            //         vm.excludedAlipays = [];
+            //     }
+            //     $scope.safeApply();
+            // })
         }
 
-        vm.alipayFilter = function(i, alipayGroup){
-            vm.SelectedAlipayGroupNode = alipayGroup;
-            vm.includedAlipays = null;
-            vm.excludedAlipays = null;
-            console.log('alipayFilter clicked', alipayGroup);
-            var query = {
-                platform: vm.selectedPlatform.data.platformId,
-                alipayGroup: alipayGroup._id
-            }
-
-            socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function (data2) {
-                console.log("attached alipays", data2);
-                if (data2 && data2.data) {
-                    vm.includedAlipays = [];
-                    $.each(data2.data, function (i, v) {
-                        if (vm.filterAlipayAccount && (vm.filterAlipayAccount != 'all' && vm.filterAlipayAccount != '') && (!vm.filterAlipayAccount.find(aa => aa.accountNumber == v.accountNumber))) {
-
-                        } else if (vm.filterAlipayName && (vm.filterAlipayName != 'all' && vm.filterAlipayName != '') && (!vm.filterAlipayName.find(an => an.name == v.name))) {
-
-                        } else {
-                            vm.includedAlipays.push(v);
-                        }
-
-                    });
-
-                } else {
-                    vm.includedAlipays = [];
-                }
-                $scope.safeApply();
-            })
-
-            socketService.$socket($scope.AppSocket, 'getExcludedAlipayByAlipayGroup', query, function (data2) {
-                console.log("not attached alipays", data2);
-                if (data2 && data2.data) {
-                    vm.excludedAlipays = data2.data;
-                } else {
-                    vm.excludedAlipays = [];
-                }
-                $scope.safeApply();
-            })
-        }
+        // vm.alipayFilter = function(i, alipayGroup){
+        //     vm.SelectedAlipayGroupNode = alipayGroup;
+        //     vm.includedAlipays = null;
+        //     vm.excludedAlipays = null;
+        //     console.log('alipayFilter clicked', alipayGroup);
+        //     var query = {
+        //         platform: vm.selectedPlatform.data.platformId,
+        //         alipayGroup: alipayGroup._id
+        //     }
+        //
+        //     socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function (data2) {
+        //         console.log("attached alipays", data2);
+        //         if (data2 && data2.data) {
+        //             vm.includedAlipays = [];
+        //             $.each(data2.data, function (i, v) {
+        //                 if (vm.filterAlipayAccount && (vm.filterAlipayAccount != 'all' && vm.filterAlipayAccount != '') && (!vm.filterAlipayAccount.find(aa => aa.accountNumber == v.accountNumber))) {
+        //
+        //                 } else if (vm.filterAlipayName && (vm.filterAlipayName != 'all' && vm.filterAlipayName != '') && (!vm.filterAlipayName.find(an => an.name == v.name))) {
+        //
+        //                 } else {
+        //                     vm.includedAlipays.push(v);
+        //                 }
+        //
+        //             });
+        //
+        //         } else {
+        //             vm.includedAlipays = [];
+        //         }
+        //         $scope.safeApply();
+        //     })
+        //
+        //     socketService.$socket($scope.AppSocket, 'getExcludedAlipayByAlipayGroup', query, function (data2) {
+        //         console.log("not attached alipays", data2);
+        //         if (data2 && data2.data) {
+        //             vm.excludedAlipays = data2.data;
+        //         } else {
+        //             vm.excludedAlipays = [];
+        //         }
+        //         $scope.safeApply();
+        //     })
+        // }
 
         vm.removeAlipayGroup = function (node) {
             console.log('to del node', node);
@@ -1512,6 +1528,24 @@ define(['js/app'], function (myApp) {
             vm.curAlipay = v;
         }
 
+        vm.alipayListUncheckDifferentGroup = (val, isInGroup) => {
+            if(!val) return; // if uncheck checkbox then do nothing
+            vm.allAlipayList = vm.allAlipayList.map(alipay => {
+                alipay.isCheck = alipay.isInGroup == isInGroup ? alipay.isCheck : false;
+                return alipay;
+            })
+        };
+
+        vm.filterAlipay = (alipay) => {
+            let isValid = true;
+            isValid = vm.filterAlipayAccount ? alipay.accountNumber.indexOf(vm.filterAlipayAccount) !== -1 : isValid;
+            isValid = vm.filterAlipayName ? alipay.name.indexOf(vm.filterAlipayName) !== -1 && isValid : isValid;
+            isValid = vm.alipayStatusFilterOptions ? vm.alipayStatusFilterOptions[alipay.state] && isValid : isValid;
+            isValid = vm.filterAlipayInGroup != "all" ? alipay.isInGroup.toString() == vm.filterAlipayInGroup && isValid : isValid;
+
+            return isValid;
+        };
+
         vm.alipaytoAlipayGroup = function (type) {
             var sendData = {
                 query: {
@@ -1519,16 +1553,27 @@ define(['js/app'], function (myApp) {
                     _id: vm.SelectedAlipayGroupNode._id
                 }
             }
+            let checkedAlipayList = vm.allAlipayList.filter(alipay => alipay.isCheck);
+            if (!checkedAlipayList || checkedAlipayList.length <= 0 || !checkedAlipayList[0] ||
+                (checkedAlipayList[0].isInGroup && type === 'attach') ||
+                (!checkedAlipayList[0].isInGroup && type === 'detach')
+            ) {
+                // situation that do nothing:
+                //      no select any alipay,
+                //      selecting inGroup alipay click add, selecting noInGroup alipay click remove
+                return;
+            }
+            let updateAlipayGroupAccNumber =checkedAlipayList.map(alipay => alipay.accountNumber);
             if (type === 'attach') {
                 sendData.update = {
                     "$push": {
-                        alipays: vm.curAlipay.accountNumber
+                        alipays:  { "$each": updateAlipayGroupAccNumber }
                     }
                 }
             } else if (type === 'detach') {
                 sendData.update = {
                     "$pull": {
-                        alipays: vm.curAlipay.accountNumber
+                        alipays: { "$in": updateAlipayGroupAccNumber }
                     }
                 }
             }
@@ -1538,7 +1583,14 @@ define(['js/app'], function (myApp) {
             function success(data) {
                 vm.curAlipay = null;
                 console.log(data);
-                vm.alipayGroupClicked(0, vm.SelectedAlipayGroupNode);
+                vm.allAlipayList = vm.allAlipayList.map(alipay => {
+                    if (alipay.isCheck) {
+                        alipay.isCheck = false;
+                        alipay.isInGroup =!alipay.isInGroup;
+                    }
+                    return alipay;
+                });
+                //vm.alipayGroupClicked(0, vm.SelectedAlipayGroupNode);
                 $scope.safeApply();
             }
         }
