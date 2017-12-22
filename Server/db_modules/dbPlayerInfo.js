@@ -2202,6 +2202,9 @@ let dbPlayerInfo = {
                         case constPlayerTopUpType.ALIPAY:
                             type = constPlayerCreditChangeType.ALIPAY_TOP_UP;
                             break;
+                        case constPlayerTopUpType.WECHAT:
+                            type = constPlayerCreditChangeType.WECHAT_TOP_UP;
+                            break;
                         case constPlayerTopUpType.QUICKPAY:
                             type = constPlayerCreditChangeType.QUICKPAY_TOP_UP;
                             break;

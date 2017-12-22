@@ -48,6 +48,17 @@ var dbPlatformBankCardGroup = {
     },
 
     /**
+     * Get all the bank card groups by platformObjId without sync with PMS
+     * Since every time when the page load up, it will run the one with sync,
+     * it is not necessary to do it multiple times within 5 minutes when admin
+     * are changing card groups
+     * @param {String}  platform - ObjId of the platform
+     */
+    getPlatformBankCardGroupLite: (platform) => {
+        return dbconfig.collection_platformBankCardGroup.find({platform}).lean();
+    },
+
+    /**
      * Get all the games which are unattached to the gameGroup in the platform
      * @param {Json}  query - platform , groupId
      */
