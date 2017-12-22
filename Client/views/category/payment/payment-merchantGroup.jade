@@ -1,3 +1,7 @@
+style.
+    .bg-grey {
+        background-color: rgba(200, 200, 200, 20);
+    }
 .col-sm-12(ng-if='!vm.curPlatformText')
     .text-center
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
@@ -45,23 +49,23 @@
                 .text-center(ng-if='!vm.SelectedMerchantGroupNode')
                     label.text-danger {{"NO_MERCHANT_GROUP_MESSAGE" | translate}}
                 .well
-                    .inlineBlk.margin-right-5
+                    //.inlineBlk.margin-right-5
                         .control-label {{"Target Device" | translate}}
                         select.input-sm.form-control.merchantNoList(ng-model='vm.filterTargetDeviceJson',ng-options="a | translate for a in merchantTargetDeviceJson", style='max-width:200px', ng-init='vm.filterTargetDeviceJson="all"',multiple,bsp)
                             //option(value='all') {{'any' | translate}}
                             //option(ng-repeat='(i,v) in merchantTargetDeviceJson', value='{{i}}') {{v | translate}}
-                    .inlineBlk.margin-right-5
+                    //.inlineBlk.margin-right-5
                         .control-label {{"Online Topup Type" | translate}}
                         select.input-sm.form-control.merchantNoList(ng-model='vm.filterMerchantTopupType',ng-options="a | translate for a in merchantTopupTypeJson", style='max-width:200px', ng-init='vm.filterMerchantTopupType="all"',multiple,bsp)
                             //option(value='all') {{'any' | translate}}
                             //option(ng-repeat='(i,v) in merchantTopupTypeJson', value='{{i}}') {{v | translate}}
-                    .inlineBlk.margin-right-5
+                    //.inlineBlk.margin-right-5
                         .control-label {{"Third Party Platform" | translate}}
                         select.input-sm.form-control.merchantNoList(ng-model='vm.filterMerchantType',ng-options="a.name for a in vm.allMerchantTypeList", style='max-width:200px', ng-init='vm.filterMerchantType="all"',multiple,bsp)
                         //select.input-sm.form-control(ng-model='vm.filterMerchantType', style='max-width:200px', ng-init='vm.filterMerchantType="all"')
                         //    option(value='all') {{'any' | translate}}
                         //    option(ng-repeat='(i,v) in vm.allMerchantTypeList', value='{{i}}') {{v.name | translate}}
-                    .inlineBlk.margin-right-5
+                    //.inlineBlk.margin-right-5
                         .control-label {{"Backstage Merchant ID" | translate}}
                         select.input-sm.form-control.merchantNoList(ng-model='vm.filterMerchantName',ng-options="a.name for a in vm.allMerchantList", style='max-width:200px', ng-init='vm.filterMerchantName="all"',multiple,bsp)
                         //select.input-sm.form-control(ng-model='vm.filterMerchantBackstageMerchantId',style='max-width:200px', ng-init='vm.filterMerchantBackstageMerchantId="all"')
@@ -93,9 +97,55 @@
                     //    select.input-sm.form-control(ng-model='vm.filterMerchantTargetDevices', style='max-width:200px', ng-init='vm.filterMerchantTargetDevices="all"')
                     //        option(value='all') {{'any' | translate}}
                     //        option(ng-repeat='(i,v) in merchantTargetDeviceJson', value='{{i}}') {{v | translate}}
+                    .inlineBlk.margin-right-5
+                        .control-label {{"Backstage Merchant ID" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.merchantFilterOptions.backstageMerchantId')
+                    .inlineBlk.margin-right-5
+                        .control-label {{"IS_IN_GROUP" | translate}}
+                        select.input-sm.form-control(ng-model="vm.merchantFilterOptions.isIncluded")
+                            option(value='all') {{'any' | translate}}
+                            option(value='yes') {{'IN_GROUP' | translate}}
+                            option(value='no') {{'NOT_IN_GROUP' | translate}}
                     .inlineBlk
-                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.merchantPayFilter(1,vm.SelectedMerchantGroupNode)") {{"FILTER" | translate}}
-                #MerchantList.panel-group(ng-if='vm.SelectedMerchantGroupNode')
+                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.merchantPayFilter()") {{"FILTER" | translate}}
+                span {{"All Pages" | translate}}: {{vm.totalMerchantShows()}}
+                table#merchantGroupTable.table(ng-if='vm.SelectedMerchantGroupNode')
+                    thead
+                        tr
+                            th {{'SELECT' | translate}}
+                            th(data-toggle="modal", data-target="#modalFilterMerchantStatus", style="cursor: pointer")
+                                u {{'STATUS' | translate}}
+                            th(data-toggle="modal", data-target="#modalFilterMerchantDevice", style="cursor: pointer")
+                                u {{'Target Device' | translate}}
+                            th(data-toggle="modal", data-target="#modalFilterMerchantOnlineTopUp", style="cursor: pointer")
+                                u {{'Online Topup Type' | translate}}
+                            th(data-toggle="modal", data-target="#modalFilterMerchantThirdParty", style="cursor: pointer")
+                                u {{'Third Party Platform' | translate}}
+                            th {{'merchantNo' | translate}}
+                            th {{'Backstage Merchant ID' | translate}}
+                            th {{'SINGLE_LIMIT' | translate}}
+                            th {{'DAY_LIMIT' | translate}}
+                    tbody
+                        tr(ng-repeat='(i,v) in vm.allMerchantList' ng-class="{'bg-grey' : v.isIncluded == false}" ng-show="v.show$")
+                            td
+                                input(type="checkbox" ng-model="v.selected")
+                            td(ng-class="{'text-disabled': v.status === 'DISABLED'}").text-success {{v.status| translate}}
+                            td {{merchantTargetDeviceJson[v.targetDevices] | translate}}
+                            td {{merchantTopupTypeJson[v.topupType] | translate}}
+                            td {{vm.allMerchantTypeList[v.merchantTypeId].name | translate}}
+                                img(ng-if='v.merchantTypeId', src='{{vm.allMerchantTypeList[v.merchantTypeId].showIconURL}}')
+                            td {{v.merchantNo}}
+                            td {{v.name}}
+                            td {{v.permerchantLimits}}
+                            td {{v.transactionForPlayerOneDay}}
+
+                button.btn.btn-primary.common-button.pull-right(style='margin-top:20px;' ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update')", ng-click='vm.removeMerchantFromGroup()')
+                        i.fa.fa-minus-square
+                        text {{"EXCLUDE" | translate}}
+                button.btn.btn-primary.common-button.pull-right(style='margin-top:20px;' ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update')", ng-click='vm.addmerchantToGroup()')
+                        i.fa.fa-plus-square
+                        text {{"INCLUDE" | translate}}
+                //#MerchantList.panel-group(ng-if='vm.SelectedMerchantGroupNode')
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#MerchantList", href='#includedMerchants', ng-click='vm.showMerchantCate="include";vm.toggleBankType()')
                             h4.panel-title
@@ -268,11 +318,11 @@
                                 label.text-success {{v}}
                 div(ng-if='vm.curMerchant')
                     div(ng-if='vm.showMerchantCate=="include"')
-                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update')", ng-click='vm.merchanttoMerchantGroup("detach")')
+                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update')", ng-click='vm.removeMerchantFromGroup()')
                             i.fa.fa-minus-square
                             text {{"EXCLUDE" | translate}}
                     div(ng-if='vm.showMerchantCate=="exclude"')
-                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update')", ng-click='vm.merchanttoMerchantGroup("attach")')
+                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update')", ng-click='vm.addmerchantToGroup()')
                             i.fa.fa-plus-square
                             text {{"INCLUDE" | translate}}
 
@@ -415,3 +465,69 @@
                 button.btn.btn-warning.common-button(ng-show='!vm.addAllPlayerToMerchantResult' data-dismiss='modal') {{"CANCEL" | translate}}
                 button.btn.btn-success.common-button(ng-show='vm.addAllPlayerToMerchantResult' data-dismiss='modal') {{"CONFIRM" | translate}}
                 label(ng-show='vm.addAllPlayerToMerchantResult') {{vm.addAllPlayerToMerchantResult}}
+
+#modalFilterMerchantOnlineTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Online Topup Type'" | translate}} {{"Show Options" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .col-md-3(ng-repeat="(topupTypeId, show) in vm.merchantFilterOptions.topupType")
+                            input(type="checkbox" ng-model="vm.merchantFilterOptions.topupType[topupTypeId]")
+                            span {{merchantTopupTypeJson[topupTypeId] | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.merchantPayFilter()") {{"FILTER" | translate}}
+                button.btn.btn-info.common-button(ng-click="vm.changeMerchantFilter('topupType', true)") {{"Select All" | translate}}
+                button.btn.btn-info.common-button(ng-click="vm.changeMerchantFilter('topupType', false)") {{"Clear All" | translate}}
+
+#modalFilterMerchantThirdParty.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Third Party Platform" | translate}} {{"Show Options" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .col-md-3(ng-repeat="(merchantTypeId, show) in vm.merchantFilterOptions.merchantTypeId")
+                            input(type="checkbox" ng-model="vm.merchantFilterOptions.merchantTypeId[merchantTypeId]")
+                            span {{vm.allMerchantTypeList[merchantTypeId].name | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.merchantPayFilter()") {{"FILTER" | translate}}
+                button.btn.btn-info.common-button(ng-click="vm.changeMerchantFilter('merchantTypeId', true)") {{"Select All" | translate}}
+                button.btn.btn-info.common-button(ng-click="vm.changeMerchantFilter('merchantTypeId', false)") {{"Clear All" | translate}}
+
+#modalFilterMerchantDevice.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Target Device" | translate}} {{"Show Options" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .col-md-3(ng-repeat="(targetDevicesId, show) in vm.merchantFilterOptions.targetDevices")
+                            input(type="checkbox" ng-model="vm.merchantFilterOptions.targetDevices[targetDevicesId]")
+                            span {{merchantTargetDeviceJson[targetDevicesId] | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.merchantPayFilter()") {{"FILTER" | translate}}
+                button.btn.btn-info.common-button(ng-click="vm.changeMerchantFilter('targetDevices', true)") {{"Select All" | translate}}
+                button.btn.btn-info.common-button(ng-click="vm.changeMerchantFilter('targetDevices', false)") {{"Clear All" | translate}}
+
+#modalFilterMerchantStatus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"STATUS" | translate}} {{"Show Options" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .col-md-3(ng-repeat="(status, show) in vm.merchantFilterOptions.status")
+                            input(type="checkbox" ng-model="vm.merchantFilterOptions.status[status]")
+                            span {{status | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.merchantPayFilter()") {{"FILTER" | translate}}
