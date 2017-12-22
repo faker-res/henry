@@ -98,25 +98,25 @@ form(name="form_new_platform" ,novalidate)
                         //    button.button.btn.btn-primary.common-button(ng-click='vm.getNewPlayerListByFilter(true)') {{'SEARCH' | translate}}
 
                         .row(style="overflow:scroll; max-height: 250px;")
-                            table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                            table.common-table.playerLvlTable(style='width:auto; min-width:99.9%; background-color: white;')
                                 thead
                                     tr
-                                        th.col-md-2.oblique {{'Display Order' | translate}}
-                                        th.col-md-3.oblique {{'ADVERTISEMENT CODE (CANNOT REPEAT)' | translate}}
-                                        th.col-md-4.oblique {{'BANNER TITLE' | translate}}
-                                        th.col-md-4.oblique {{'DISPLAY BACKGROUND IMAGE' | translate}}
-                                        th.col-md-4.oblique {{'BANNER LINK BUTTON' | translate}}
-                                        th.col-md-4.oblique {{'ACTION_BUTTON' | translate}}
+                                        th.oblique {{'Display Order' | translate}}
+                                        th.oblique {{'ADVERTISEMENT CODE (CANNOT REPEAT)' | translate}}
+                                        th.oblique {{'BANNER TITLE' | translate}}
+                                        th.oblique {{'DISPLAY BACKGROUND IMAGE' | translate}}
+                                        th.oblique {{'BANNER LINK BUTTON' | translate}}
+                                        th.oblique {{'ACTION_BUTTON' | translate}}
                                 tbody
-                                    tr(ng-if="vm.showAdvertisementRecord" ng-repeat="a in vm.displayAdvertisementList")
-                                        td.col-md-4.oblique {{a.orderNo}}
-                                        td.col-md-4.oblique {{a.adCode}}
-                                        td.col-md-4.oblique
+                                    tr(ng-if="vm.showAdvertisementRecord" ng-repeat="a in vm.displayAdvertisementList" )
+                                        td.oblique(ng-class='{grayRow: a.status==1}') {{a.orderNo}}
+                                        td.oblique(ng-class='{grayRow: a.status==1}') {{a.adCode}}
+                                        td.oblique(ng-class='{grayRow: a.status==1}')
                                             table
                                                 tbody
                                                     tr(ng-repeat="a in a.title")
-                                                        td {{a}}
-                                        td
+                                                        td(style="width: 200px;") {{a}}
+                                        td(ng-class='{grayRow: a.status==1}')
                                             table(style="font-size: 10px; width: 200px;")
                                                 tbody
                                                     tr
@@ -132,12 +132,12 @@ form(name="form_new_platform" ,novalidate)
                                                             label {{'HYPERLINK' | translate}}
                                                         td
                                                             a(href='{{a.backgroundBannerURL.hyperLink}}', title='{{a.backgroundBannerURL.hyperLink}}', target='_blank') {{a.backgroundBannerURL.hyperLinkDisplay | translate}}
-                                        td.oblique
+                                        td.oblique(ng-class='{grayRow: a.status==1}')
                                             div
                                                 table(style="font-size: 10px;")
                                                     tbody
                                                         tr
-                                                            td(ng-repeat="(i,v) in a.button" style="border: none; width: 250px;")
+                                                            td(ng-repeat="(i,v) in a.button" style="border: none;")
                                                                 table
                                                                     tbody
                                                                         tr
@@ -154,37 +154,32 @@ form(name="form_new_platform" ,novalidate)
                                                                             td
                                                                                 a(href='{{v.hyperLink}}', title='{{v.hyperLink}}', target='_blank') {{v.hyperLinkDisplay | translate}}
                                                                                 //input(type='text' , ng-model='v.hyperLink', style="margin-bottom: 2px;")
-                                        td.col-md-4.oblique
-                                            div(style="display: inline-grid;")
-                                                //i.fa.fa-plus(ng-click='vm.addNewPlayerAdvertisementRecord();'  )
+                                        td.oblique(ng-class='{grayRow: a.status==1}')
+                                            div(style="display: inline-grid; font-size: 10px;")
                                                 button.common-button.btn.btn-info(ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
                                                 button.common-button.btn.btn-info(ng-click="vm.editAdvertisementRecord=true; vm.showAdvertisementRecord=false" style="width: auto; background-color: #5bc0de") {{'EDIT' | translate}}
-                                                button.common-button.btn.btn-info(ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" style="width: auto; background-color: #5bc0de") {{'DELETE' | translate}}
-                                                button.common-button.btn.btn-info(ng-click="vm.playerAdvertisementImageButton.push({url: '', hyperLink: ''});" style="width: auto; background-color: #5bc0de") {{'ADD NEW BUTTON' | translate}}
-                                                button.common-button.btn.btn-info(ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" style="width: auto; background-color: #5bc0de") {{'Open' | translate}}
-                                                //button.common-button.btn.btn-info(ng-click="vm.editOrAddAdvertisementRecord=true" style="width: auto; background-color: #5bc0de") {{'ADD' | translate}}
+                                                button.common-button.btn.btn-info(ng-click="vm.displayAdvertisementList.splice($index,1); vm.deletePlayerAdvertisementRecord(a._id);" style="width: auto; background-color: #5bc0de") {{'DELETE' | translate}}
+                                                button.common-button.btn.btn-info(ng-click="vm.changeAdvertisementStatus(a._id,1);vm.playerAdvertisementList()" ng-if="a.status == 1; " style="width: auto; background-color: #5bc0de") {{'Open' | translate}}
+                                                button.common-button.btn.btn-info(ng-click="vm.changeAdvertisementStatus(a._id,0);vm.playerAdvertisementList()" ng-if="a.status == 0; " style="width: auto; background-color: #5bc0de") {{'CLOSE' | translate}}
 
                                     tr(ng-if="vm.editAdvertisementRecord" ng-repeat="a in vm.displayAdvertisementList")
                                         td.col-md-4.oblique
-                                            input(type='number' , ng-model='a.orderNo', style="width: 50px;" )
+                                            input(type='number' , ng-model='a.orderNo', style="width: 50px;" ng-change="vm.checkDuplicateOrderNo(a.orderNo)" )
                                         td.col-md-4.oblique
-                                            input(type='text' , ng-model='a.adCode', style="width: 100px;")
+                                            input(type='text' , ng-model='a.adCode', style="width: 100px;" ng-change="vm.checkDuplicateadCode(a.adCode)" )
                                         td.col-md-4.oblique
                                             table(style="font-size: 10px;")
                                                 tbody
-                                                    //tr(ng-if="vm.existingPlayerAdvertisementTitle" ng-repeat="a in a.title")
                                                     tr(ng-repeat="a in a.title")
                                                         td
                                                             input(type="text" style="width: 150px;" value="{{a}}")
                                                         td
-                                                            //i.fa.fa-plus(ng-click='vm.playerAdvertisementTitle.push();')
                                                             i.fa.fa-minus(ng-click='a.title.splice($index,1)')
                                                     tr
                                                         td
                                                             input(type="text" ng-model="vm.playerAdvertisementGroup.bannerTitle" style="width: 150px;")
                                                         td
                                                             i.fa.fa-plus(ng-click='a.title.push(vm.playerAdvertisementGroup.bannerTitle);vm.existingPlayerAdvertisementTitle = "true";vm.playerAdvertisementGroup.bannerTitle = ""'  )
-                                                            //i.fa.fa-minus(ng-click='vm.rewardPercentageAmountDeleteRow(idx,entry[i])')
                                         td
                                             table(style="font-size: 10px;")
                                                 tbody
@@ -223,19 +218,16 @@ form(name="form_new_platform" ,novalidate)
                                                                             td
                                                                                 input(type='text' , ng-model='v.hyperLink', style="margin-bottom: 2px;")
                                         td.col-md-4.oblique
-                                            div(style="display: inline-grid;")
-                                                i.fa.fa-save(ng-click='vm.savePlayerAdvertisementRecordChanges();')
-                                                i.fa.fa-minus(ng-click='vm.displayAdvertisementList.splice($index,1); vm.deletePlayerAdvertisementRecord(a._id);')
-                                                //button.common-button.btn.btn-info(ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
-                                                //button.common-button.btn.btn-info(ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" style="width: auto; background-color: #5bc0de") {{'EDIT' | translate}}
-                                                //button.common-button.btn.btn-info(ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" style="width: auto; background-color: #5bc0de") {{'DELETE' | translate}}
-                                                button.common-button.btn.btn-info(ng-click="vm.playerAdvertisementImageButton.push({url: '', hyperLink: ''});" style="width: auto; background-color: #5bc0de") {{'ADD NEW BUTTON' | translate}}
+                                            div(style="display: inline-grid;font-size: 10px;")
+                                                button.common-button.btn.btn-info(ng-click="vm.savePlayerAdvertisementRecordChanges();" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
+                                                button.common-button.btn.btn-info(ng-click="vm.playerAdvertisementImageButton.push({url: '', hyperLink: '', css: 'position:absolute; width: 195px; height: 80px; top:150px; left: 500px'});" style="width: auto; background-color: #5bc0de") {{'ADD NEW BUTTON' | translate}}
                                                 button.common-button.btn.btn-info(ng-click="vm.editAdvertisementRecord=false; vm.showAdvertisementRecord=true;" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
-                                                //button.common-button.btn.btn-info(ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" style="width: auto; background-color: #5bc0de") {{'Open' | translate}}
 
                     .well(style="margin-top: 50px; background-color: white;" ng-if="vm.addNewPlayerAdvertisement")
+                        .row(style="text-align: center; margin-bottom: 10px;")
+                            label {{"Add new advertisement" | translate}}
                         .row(style="overflow-x: scroll; max-height: 250px;")
-                            table.common-table.playerLvlTable(style='width:auto;min-width:99.9%' )
+                            table.common-table.playerLvlTable(style='width:auto; min-width:99.9%; background-color: white' )
                                 thead
                                     tr
                                         th.col-md-2.oblique {{'Display Order' | translate}}
@@ -245,10 +237,6 @@ form(name="form_new_platform" ,novalidate)
                                         th.col-md-4.oblique {{'BANNER LINK BUTTON' | translate}}
                                         th.col-md-4.oblique {{'ACTION_BUTTON' | translate}}
                                 tbody
-                                    //tr(ng-if="vm.editOrAddAdvertisementRecord")
-                                    tr
-                                        td(colspan=5) {{"Add new advertisement" | translate}}
-                                    //tr(ng-if="vm.editOrAddAdvertisementRecord")
                                     tr
                                         td.col-md-4.oblique
                                             input(type='number' , ng-model='vm.playerAdvertisementGroup.orderNo', style="width: 50px;" )
@@ -261,14 +249,12 @@ form(name="form_new_platform" ,novalidate)
                                                         td
                                                             input(type="text" style="width: 150px;" value="{{a}}")
                                                         td
-                                                            //i.fa.fa-plus(ng-click='vm.playerAdvertisementTitle.push();')
                                                             i.fa.fa-minus(ng-click='vm.playerAdvertisementTitle.splice($index,1)')
                                                     tr
                                                         td
                                                             input(type="text" ng-model="vm.playerAdvertisementGroup.bannerTitle" style="width: 150px;")
                                                         td
                                                             i.fa.fa-plus(ng-click='vm.playerAdvertisementTitle.push(vm.playerAdvertisementGroup.bannerTitle);vm.existingPlayerAdvertisementTitle = "true";vm.playerAdvertisementGroup.bannerTitle = ""'  )
-                                                            //i.fa.fa-minus(ng-click='vm.rewardPercentageAmountDeleteRow(idx,entry[i])')
                                         td
                                             table(style="font-size: 10px;")
                                                 tbody
@@ -307,13 +293,10 @@ form(name="form_new_platform" ,novalidate)
                                                                             td
                                                                                 input(type='text' , ng-model='v.hyperLink', style="margin-bottom: 2px;")
                                         td.col-md-4.oblique
-                                            div(style="display: inline-grid;")
-                                                i.fa.fa-plus(ng-click='vm.addNewPlayerAdvertisementRecord();'  )
-                                                //button.common-button.btn.btn-info(ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
-                                                //button.common-button.btn.btn-info(ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" style="width: auto; background-color: #5bc0de") {{'EDIT' | translate}}
-                                                //button.common-button.btn.btn-info(ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" style="width: auto; background-color: #5bc0de") {{'DELETE' | translate}}
+                                            div(style="display: inline-grid; font-size: 10px;")
+                                                button.common-button.btn.btn-info(ng-click="vm.addNewPlayerAdvertisementRecord();vm.addNewPlayerAdvertisement = false;vm.playerAdvertisementList();" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
                                                 button.common-button.btn.btn-info(ng-click="vm.playerAdvertisementImageButton.push({url: '', hyperLink: ''});" style="width: auto; background-color: #5bc0de") {{'ADD NEW BUTTON' | translate}}
-                                                //button.common-button.btn.btn-info(ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" style="width: auto; background-color: #5bc0de") {{'Open' | translate}}
+                                                button.common-button.btn.btn-info(ng-click="vm.addNewPlayerAdvertisement=false;" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
                                     //tr
                                     //    td.col-md-4.oblique
                                     //        input(type='number' , ng-model='a.orderNo', style="width: 50px;" )

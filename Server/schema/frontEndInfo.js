@@ -19,6 +19,7 @@ var fronEndInfoSchema = new Schema({
     button: [],
     // input device that using this advertisement
     inputDevice: Number,
+    status: {type: Number, default: 0, required: true},
 });
 
 module.exports = fronEndInfoSchema;

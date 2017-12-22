@@ -1673,6 +1673,7 @@ var dbPlatform = {
                         backgroundBannerURL: backgroundBanner,
                         button: imageButton,
                         inputDevice: inputDevice,
+                        status: 1
                     }
 
                     let advertistmentRecord = new dbconfig.collection_frontEndInfo(newRecordData);
@@ -1686,8 +1687,84 @@ var dbPlatform = {
 
     deleteAdvertisementRecord: function(platformId, advertisementId){
         return dbconfig.collection_frontEndInfo.remove({_id: advertisementId, platformId: platformId});
-    }
+    },
 
+    savePlayerAdvertisementRecordChanges: function(platformId, advertisementId, orderNo, adCode, title, backgroundBanner, imageButton, inputDevice){
+
+        let query = {
+            platformId: platformId,
+            _id: advertisementId
+        }
+
+        let updateData = {
+            orderNo: orderNo,
+            adCode: adCode,
+            title: title,
+            backgroundBannerURL: backgroundBanner,
+            button: imageButton,
+            inputDevice: inputDevice
+        }
+        return dbconfig.collection_frontEndInfo.findOneAndUpdate(query,updateData).then(
+            platformObj =>{
+
+                return platformObj;
+                // if(platformObj){
+                //     let newRecordData = {
+                //         platformId: platformId,
+                //         orderNo: orderNo,
+                //         adCode: adCode,
+                //         title: title,
+                //         backgroundBannerURL: backgroundBanner,
+                //         button: imageButton,
+                //         inputDevice: inputDevice,
+                //     }
+                //
+                //     let advertistmentRecord = new dbconfig.collection_frontEndInfo(newRecordData);
+                //     return advertistmentRecord.save();
+                // }else{
+                //     return Q.reject(Error("No platform exists with id: " + platformId));
+                // }
+            }
+        );
+    },
+
+    changeAdvertisementStatus: function(platformId, advertisementId, status){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        _id: advertisementId,
+                        status: status ? status : 0
+                    }
+                    return dbconfig.collection_frontEndInfo.findOneAndUpdate(query,{status: !status});
+                }
+            }
+        )
+    },
+
+    checkDuplicateOrderNo: function(platformId, orderNo, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        orderNo: orderNo,
+                        inputDevice: inputDevice
+                    }
+                    console.log("AAAAAAAAAa",query);
+                    return dbconfig.collection_frontEndInfo.findOne(query);
+                }
+            }
+        ).then(data => {
+            if(data){
+                console.log("BBBBBBBBB",data);
+                return data;
+            }else{
+                console.log("CCCCCCCCC");
+            }
+        });
+    }
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {

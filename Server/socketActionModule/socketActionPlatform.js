@@ -403,8 +403,25 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.advertisementId);
             socketUtil.emitter(self.socket, dbPlatform.deleteAdvertisementRecord, [data.platformId, data.advertisementId], actionName, isValidData);
-        }
+        },
 
+        savePlayerAdvertisementRecordChanges: function savePlayerAdvertisementRecordChanges(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id);
+            socketUtil.emitter(self.socket, dbPlatform.savePlayerAdvertisementRecordChanges, [data.platformId, data._id, data.orderNo, data.adCode, data.title, data.backgroundBannerURL, data.button, data.inputDevice], actionName, isValidData);
+        },
+
+        changeAdvertisementStatus: function changeAdvertisementStatus(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id);
+            socketUtil.emitter(self.socket, dbPlatform.changeAdvertisementStatus, [data.platformId, data._id, data.status], actionName, isValidData);
+        },
+
+        checkDuplicateOrderNo: function checkDuplicateOrderNo(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbPlatform.checkDuplicateOrderNo, [data.platformId, data.orderNo, data.inputDevice], actionName, isValidData);
+        }
 
     };
     socketActionPlatform.actions = this.actions;
