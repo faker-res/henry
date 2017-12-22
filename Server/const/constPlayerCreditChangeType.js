@@ -4,6 +4,7 @@
 const constPlayerCreditChangeType = {
     TOP_UP: "OnlineTopUp",
     ALIPAY_TOP_UP: "AlipayTopUp",
+    WECHAT_TOP_UP: "WechatTopUp",
     QUICKPAY_TOP_UP: "QuickpayTopUp",
     MANUAL_TOP_UP: "ManualTopUp",
     CONSUME: "Consume",
