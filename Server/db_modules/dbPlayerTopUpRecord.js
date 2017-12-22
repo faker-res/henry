@@ -2504,10 +2504,10 @@ var dbPlayerTopUpRecord = {
             }
         ).then(
             topUpResult => {
-                if(topUpResult && topUpResult.proposalId){
+                if (topUpResult && topUpResult.proposalId) {
                     return dbconfig.collection_proposal.findOne({proposalId: topUpResult.proposalId}).lean().then(
                         pData => {
-                            if( pData ){
+                            if (pData) {
                                 return dbProposal.updateTopupProposal(pData.proposalId, constProposalStatus.SUCCESS, pData.data.requestId, 1);
                             }
                         }
@@ -2557,6 +2557,22 @@ var dbPlayerTopUpRecord = {
                     else {
                         return topUpResult;
                     }
+                }
+            }
+        );
+    },
+
+    requestProposalSuccessPMS: function (proposalId, status) {
+        return pmsAPI.payment_requestProposalSuccess({proposalId: proposalId, status: status}).then(
+            topUpResult => {
+                if (topUpResult) {
+                    return dbconfig.collection_proposal.findOne({proposalId: proposalId}).lean().then(
+                        pData => {
+                            if (pData) {
+                                return dbProposal.updateTopupProposal(pData.proposalId, constProposalStatus.SUCCESS, pData.data.requestId, 1);
+                            }
+                        }
+                    );
                 }
             }
         );
