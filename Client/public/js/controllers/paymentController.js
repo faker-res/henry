@@ -1387,7 +1387,6 @@ define(['js/app'], function (myApp) {
                         vm.alipayStatusFilterOptions[alipay.state] = true;
                     }
                 });
-                vm.alipayStatusFilterOptions.hasOwnProperty('key');
                 console.log('vm.allAlipayList', vm.allAlipayList);
                 $scope.safeApply();
             });
@@ -1881,49 +1880,82 @@ define(['js/app'], function (myApp) {
             vm.SelectedWechatPayGroupNode = wechatPayGroup;
             vm.includedWechatPays = null;
             vm.excludedWechatPays = null;
-
+            vm.allWechatList = null;
             let query = {
                 platform: vm.selectedPlatform.data.platformId,
-                alipayGroup: wechatPayGroup._id
+                wechatGroup: wechatPayGroup._id
             };
 
-            socketService.$socket($scope.AppSocket, 'getIncludedWechatsByWechatPayGroup', query, function(data){
-                console.log('WechatList', data);
+            vm.wechatStatusFilterOptions = {};
+            socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroupWithIsInGroup', query, function(data){
+
                 //provider list init
                 vm.allWechatList = data.data;
-                $.each(vm.allWechatList, function (i, v) {
-                    vm.allWechatList[v._id] = true;
-                })
+                // loop get alipay status for future add extra status, no need change code
+                vm.allWechatList.forEach(wechat => {
+                    if (!vm.wechatStatusFilterOptions.hasOwnProperty(wechat.state)) {
+                        vm.wechatStatusFilterOptions[wechat.state] = true;
+                    }
+                });
+                console.log('vm.allWechatList', vm.allWechatList);
                 $scope.safeApply();
             });
 
-            $scope.$socketPromise('getIncludedWechatsByWechatPayGroup', query).then(function (data2) {
-                console.log('attached included wechat',data2);
-                if (data2 && data2.data) {
-                    vm.includedWechatPays = [];
-                    $.each(data2.data, function (i, v) {
-                        if (vm.filterWechatPayAcc && (vm.filterWechatPayAcc != 'all' && vm.filterWechatPayAcc != '') && (!vm.filterWechatPayAcc.find(wpa => wpa.accountNumber == v.accountNumber))) {
+            // socketService.$socket($scope.AppSocket, 'getIncludedWechatsByWechatPayGroup', query, function(data){
+            //     console.log('WechatList', data);
+            //     //provider list init
+            //     vm.allWechatList = data.data;
+            //     $.each(vm.allWechatList, function (i, v) {
+            //         vm.allWechatList[v._id] = true;
+            //     })
+            //     $scope.safeApply();
+            // });
+            //
+            // $scope.$socketPromise('getIncludedWechatsByWechatPayGroup', query).then(function (data2) {
+            //     console.log('attached included wechat',data2);
+            //     if (data2 && data2.data) {
+            //         vm.includedWechatPays = [];
+            //         $.each(data2.data, function (i, v) {
+            //             if (vm.filterWechatPayAcc && (vm.filterWechatPayAcc != 'all' && vm.filterWechatPayAcc != '') && (!vm.filterWechatPayAcc.find(wpa => wpa.accountNumber == v.accountNumber))) {
+            //
+            //             } else if (vm.filterWechatPayName && (vm.filterWechatPayName != 'all' && vm.filterWechatPayName != '') && (!vm.filterWechatPayName.find(wpn => wpn.name == v.name))) {
+            //
+            //             } else {
+            //                 vm.includedWechatPays.push(v);
+            //             }
+            //         });
+            //
+            //     } else {
+            //         vm.includedWechatPays = [];
+            //     }
+            //     $scope.safeApply();
+            // });
+            //
+            // socketService.$socket($scope.AppSocket, 'getExcludedWechatsByWechatPayGroup', query, function (data2) {
+            //     if (data2 && data2.data) {
+            //         vm.excludedWechatPays = data2.data;
+            //     } else {
+            //         vm.excludedWechatPays = [];
+            //     }
+            //     $scope.safeApply();
+            // })
+        };
 
-                        } else if (vm.filterWechatPayName && (vm.filterWechatPayName != 'all' && vm.filterWechatPayName != '') && (!vm.filterWechatPayName.find(wpn => wpn.name == v.name))) {
+        vm.filterWechat = (wechat) => {
+            let isValid = true;
+            isValid = vm.filterWechatAccount ? wechat.accountNumber.indexOf(vm.filterWechatAccount) !== -1 : isValid;
+            isValid = vm.filterWechatName ? wechat.name.indexOf(vm.filterWechatName) !== -1 && isValid : isValid;
+            isValid = vm.filterWechatNickname ? wechat.nickName.indexOf(vm.filterWechatNickname) !== -1 && isValid : isValid;
+            isValid = vm.wechatStatusFilterOptions ? vm.wechatStatusFilterOptions[wechat.state] && isValid : isValid;
+            isValid = vm.filterWechatInGroup != "all" ? wechat.isInGroup.toString() == vm.filterWechatInGroup && isValid : isValid;
+            return isValid;
+        };
 
-                        } else {
-                            vm.includedWechatPays.push(v);
-                        }
-                    });
-
-                } else {
-                    vm.includedWechatPays = [];
-                }
-                $scope.safeApply();
-            });
-
-            socketService.$socket($scope.AppSocket, 'getExcludedWechatsByWechatPayGroup', query, function (data2) {
-                if (data2 && data2.data) {
-                    vm.excludedWechatPays = data2.data;
-                } else {
-                    vm.excludedWechatPays = [];
-                }
-                $scope.safeApply();
+        vm.wechatListUncheckDifferentGroup = (val, isInGroup) => {
+            if(!val) return; // if uncheck checkbox then do nothing
+            vm.allWechatList = vm.allWechatList.map(wechat => {
+                wechat.isCheck = wechat.isInGroup == isInGroup ? wechat.isCheck : false;
+                return wechat;
             })
         };
 
@@ -2025,16 +2057,28 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            let checkedWechatList = vm.allWechatList.filter(wechat => wechat.isCheck);
+            if (!checkedWechatList || checkedWechatList.length <= 0 || !checkedWechatList[0] ||
+                (checkedWechatList[0].isInGroup && type === 'attach') ||
+                (!checkedWechatList[0].isInGroup && type === 'detach')
+            ) {
+                // situation that do nothing:
+                //      no select any wechat,
+                //      selecting inGroup wechat click add, selecting noInGroup wechat click remove
+                return;
+            }
+            let updateWechatGroupAccNumber =checkedWechatList.map(wechat => wechat.accountNumber);
+
             if (type === 'attach') {
                 sendData.update = {
                     "$push": {
-                        wechats: vm.curWechatPay.accountNumber
+                        wechats: { "$each": updateWechatGroupAccNumber }
                     }
                 }
             } else if (type === 'detach') {
                 sendData.update = {
                     "$pull": {
-                        wechats: vm.curWechatPay.accountNumber
+                        wechats: { "$in": updateWechatGroupAccNumber }
                     }
                 }
             }
@@ -2042,7 +2086,14 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'updatePlatformWechatPayGroup', sendData, success);
             function success(data) {
                 vm.curWechatPay = null;
-                vm.wechatPayGroupClicked(0, vm.SelectedWechatPayGroupNode);
+                vm.allWechatList = vm.allWechatList.map(wechat => {
+                    if (wechat.isCheck) {
+                        wechat.isCheck = false;
+                        wechat.isInGroup =!wechat.isInGroup;
+                    }
+                    return wechat;
+                });
+                //vm.wechatPayGroupClicked(0, vm.SelectedWechatPayGroupNode);
                 $scope.safeApply();
             }
         };

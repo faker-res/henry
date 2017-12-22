@@ -2968,6 +2968,7 @@
   "select": "选择",
   "loading alipays": "加载支付宝中",
   "will only show status in alipay list": "只显示有在支付宝列表的状态",
+  "will only show status in wechat list": "只显示有在微信列表的状态",
   "IS_IN_GROUP": "组内外",
   "IN_GROUP": "组内",
   "NOT_IN_GROUP": "组外"
