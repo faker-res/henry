@@ -521,8 +521,6 @@ const dbRewardTask = {
                         return item._id == query.selectedProviderGroupID
                     })
 
-
-
                     let providers = selectedProviderGroup[0] ?  selectedProviderGroup[0].providers : null;
                     if(providers){
                         queryObj.targetProviders = {$in: providers}
@@ -626,8 +624,12 @@ const dbRewardTask = {
         data.map(item => {
             let proposalId = item.data.topUpProposal;
             console.log(proposalId);
-            let proposal = dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+            let proposal = dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
+                path: "type",
+                model: dbconfig.collection_proposalType
+            }).then(
                 pdata => {
+                    console.log(pdata);
                     if (pdata) {
                         if (pdata.creator.name) {
                             item.creator = pdata.creator;

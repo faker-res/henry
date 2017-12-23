@@ -10346,41 +10346,31 @@ define(['js/app'], function (myApp) {
                 })
             }
 
+            
             vm.unlockTaskGroup = function(){
                 let indexArr = vm.dynRewardTaskGroupIndex;
                 let firstIndex = indexArr.sort()[0];
                 let lastIndex = indexArr.sort()[indexArr.length - 1];
 
-                let sumRewardAmt = 0;
-                let sumConsumptAmt = 0;
                 let incRewardAmt = 0;
                 let incConsumptAmt = 0;
-
-                for (let i = 0; i <= lastIndex; i++) {
-                    let prop = vm.simpleRewardProposalData[i];
-                    sumRewardAmt += prop.applyAmount + prop.rewardAmount;
-                    sumConsumptAmt += prop.spendingAmount;
-                }
-
-                // Get the RewardTaskGroup Details;
                 let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
-                let currentAmt = rewardTaskGroup.currentAmt;
-                let rewardAmt = rewardTaskGroup.rewardAmt;
-                let curConsumption = rewardTaskGroup.curConsumption;
-                let targetConsumption = rewardTaskGroup.targetConsumption;
 
-                incRewardAmt = vm.getIncReward(currentAmt, rewardAmt, firstIndex, lastIndex);
-                incConsumptAmt = vm.getIncConsumpt(curConsumption, targetConsumption, firstIndex, lastIndex);
+                for (let i = firstIndex; i <= lastIndex; i++) {
+                    let prop = vm.simpleRewardProposalData[i];
+                    incRewardAmt = prop.applyAmount + prop.rewardAmount;
+                    incConsumptAmt = prop.spendingAmount;
 
-                let sendQuery = {
-                    'rewardTaskGroupId': rewardTaskGroup._id,
-                    'incRewardAmount': incRewardAmt,
-                    'incConsumptionAmount': incConsumptAmt
+                    let sendQuery = {
+                        'rewardTaskGroupId': rewardTaskGroup._id,
+                        'incRewardAmount': incRewardAmt,
+                        'incConsumptionAmount': incConsumptAmt
+                    }
+                    socketService.$socket($scope.AppSocket, 'unlockRewardTaskInRewardTaskGroup', sendQuery, function (data) {
+                        vm.getRewardTaskLogData(true);
+                        $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
+                    })
                 }
-                socketService.$socket($scope.AppSocket, 'unlockRewardTaskInRewardTaskGroup', sendQuery, function (data) {
-                    vm.getRewardTaskLogData(true);
-                    $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
-                })
             }
 
             vm.getIncReward = function(currentAmt,rewardAmt,firstIdx, lastIdx){
@@ -10583,7 +10573,7 @@ define(['js/app'], function (myApp) {
                         let summary = {};
                         let result = data.data;
                         result.map(item=>{
-                            item['createTime$'] = item.data.createTime$;
+                            item['createTime$'] = vm.dateReformat(item.data.createTime$);
                             item.useConsumption = item.data.useConsumption;
                             item.topUpProposal = item.data.topUpProposalId;
                             item.topUpAmount = item.data.topUpAmount;
