@@ -724,7 +724,7 @@
                                 tbody(ng-repeat='(i,level) in vm.bonusSetting')
                                     tr.stronger-top
                                         td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
-                                            text {{level.name | translate}}
+                                            text {{level.value}} ({{level.name | translate}})
                                         td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
                                             div(style='display:inline-block')
                                                 text(ng-show='!vm.configTableEdit') {{level.bonusPercentageCharges | number}}

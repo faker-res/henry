@@ -17954,6 +17954,7 @@ define(['js/app'], function (myApp) {
 
                 for (var d in vm.allPlayerLvl) {
                     let val = Object.keys(vm.allPlayerLvl)[d];
+
                     if (Object.keys(vm.bonusSetting).length === 0) {
 
                         vm.bonusSetting[d] = {};
@@ -17963,6 +17964,10 @@ define(['js/app'], function (myApp) {
                         vm.bonusSetting[d].bonusPercentageCharges = 0;
                         vm.bonusSetting[d].bonusCharges = 0;
                     } else {
+
+                        if(vm.allPlayerLvl[d].name){
+                            vm.bonusSetting[d].name = vm.allPlayerLvl[d].name;
+                        }
                         let setting = vm.getValueByKey(val, vm.bonusSetting);
                         if (!setting) {
                             vm.bonusSetting[d] = {};
