@@ -3668,7 +3668,7 @@ let dbPlayerReward = {
                             isUpdateTopupRecord = true;
 
                             // Set player valid credit update flag
-                            if (eventData.condition.providerGroup) {
+                            if (eventData.condition.providerGroup && eventData.condition.isDynamicRewardAmount) {
                                 isUpdateValidCredit = true;
                             }
                         }
@@ -4193,7 +4193,8 @@ let dbPlayerReward = {
                                 // Use this flag for auto apply reward
                                 isGroupReward: true,
                                 // If player credit is more than this number after unlock reward group, will ban bonus
-                                forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0
+                                forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0,
+                                isDynamicRewardAmount: Boolean(eventData.condition.isDynamicRewardAmount)
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS
