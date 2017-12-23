@@ -15,6 +15,7 @@ const constProposalStatus = require("./../const/constProposalStatus");
 const constProposalType = require("./../const/constProposalType");
 const constProposalUserType = require("./../const/constProposalUserType");
 const constRewardApplyType = require("./../const/constRewardApplyType");
+const constRewardPeriod = require("./../const/constRewardPeriod");
 const constRewardType = require("./../const/constRewardType");
 const constServerCode = require('../const/constServerCode');
 
@@ -2358,6 +2359,7 @@ let dbPlayerReward = {
         ).then(
             eventData => {
                 if (eventData) {
+                    let rewardPeriod = eventData.param.period;
                     rewards = eventData.param.reward;
                     timeSet = new Set();
                     let promArr = [];
@@ -2388,6 +2390,22 @@ let dbPlayerReward = {
                             'data.limitedOfferObjId': e._id,
                             type: intPropTypeObj._id
                         };
+
+                        // Find intention within current reward period
+                        if (rewardPeriod) {
+                            let intentionTime;
+
+                            switch (Number(rewardPeriod)) {
+                                case constRewardPeriod.DAILY: intentionTime = dbUtility.getTodaySGTime(); break;
+                                case constRewardPeriod.WEEKLY: intentionTime = dbUtility.getCurrentWeekSGTime(); break;
+                                case constRewardPeriod.BIWEEKLY: intentionTime = dbUtility.getCurrentBiWeekSGTIme(); break;
+                                case constRewardPeriod.MONTHLY: intentionTime = dbUtility.getCurrentMonthSGTIme(); break;
+                            }
+
+                            if (intentionTime) {
+                                proposalQuery.createTime = {$gte: intentionTime.startTime, $lte: intentionTime.endTime};
+                            }
+                        }
 
                         // Find player's limited offer application
                         if (period) {
