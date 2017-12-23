@@ -578,10 +578,10 @@ const dbRewardTask = {
                             .then(proposalData => {
 
                                 let resultData = [];
-                                if(query.selectedProviderGroupID == 'free'){
+                                if(query.selectedProviderGroupID == 'free' || useProviderGroup){
                                     resultData = rewardTaskGroupData;
                                     resultData.map(item=>{
-                                        item.data = {}
+                                        item.data = {};
                                         item.data.currentAmount = item.currentAmt;
                                         item.data.bonusAmount = item.rewardAmt;
                                         item.data.requiredBonusAmount = item.curConsumption;

@@ -10523,6 +10523,7 @@ define(['js/app'], function (myApp) {
             vm.isSubmitProposal = function (rowId) {
 
                 let sumRewardAmount = 0;
+                let curRewardAmount = 0;
                 let taskGroupCurrentAmt = vm.dynRewardTaskGroupId ? vm.dynRewardTaskGroupId[0].currentAmt:0;
 
                 if (rowId == '0') {
@@ -10540,11 +10541,20 @@ define(['js/app'], function (myApp) {
                 let finalRewardAmount = taskGroupCurrentAmt - sumRewardAmount;
                 let spendingAmt = vm.calSpendingAmt(rowId);
 
+
+                //getCurrentRewardAmt
+                if(vm.rewardTaskProposalData[rowId]){
+                    let curApplyAmt = vm.rewardTaskProposalData[rowId].data.applyAmount ? vm.rewardTaskProposalData[rowId].data.applyAmount :0;
+                    let curRewardAmt = vm.rewardTaskProposalData[rowId].data.rewardAmount ? vm.rewardTaskProposalData[rowId].data.rewardAmount:0 ;
+                    curRewardAmount = curApplyAmt + curRewardAmt;
+                }
+
+
                 if (finalRewardAmount >= 0 && spendingAmt.incCurConsumption >= 0) {
                     // already submit, display tick icon
-                    return {isSubmit: true, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt}
+                    return {isSubmit: true, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt, curRewardAmount:curRewardAmount}
                 } else {
-                    return {isSubmit: false, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt}
+                    return {isSubmit: false, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt, curRewardAmount: curRewardAmount}
                 }
             }
             vm.getRewardTaskGroupProposal = function (id) {
@@ -10710,10 +10720,10 @@ define(['js/app'], function (myApp) {
                                 if(vm.isUnlockTaskGroup){
                                     let spendingAmt = vm.calSpendingAmt(meta.row);
                                     let isSubmit = vm.isSubmitProposal(meta.row);
-                                    let rewardAmt = isSubmit.rewardAmount;
+                                    let curRewardAmount = isSubmit.curRewardAmount;
                                     let spAmount = spendingAmt.currentAmt;
                                     let spCurrentMax = spendingAmt.currentMax;
-                                    var text = spAmount + '/ -' + rewardAmt;
+                                    var text = spAmount + '/ -' + curRewardAmount;
                                 }else{
                                     let applyAmount = row.applyAmount ? row.applyAmount: 0
                                     var text = row.currentAmount + '/ -' + (applyAmount + row.bonusAmount);
