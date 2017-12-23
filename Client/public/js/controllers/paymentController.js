@@ -139,6 +139,7 @@ define(['js/app'], function (myApp) {
             vm.loadQuickPayGroupData();
             vm.getAllBankCard();
             vm.bankCardFilterOptions = {};
+            vm.merchantFilterOptions = {};
             $scope.safeApply();
         };
 
@@ -1094,101 +1095,98 @@ define(['js/app'], function (myApp) {
             vm.includedMerchants = null;
             vm.excludedMerchants = null;
             console.log('merchantGroup clicked', merchantGroup);
+
+            if (vm.merchantFilterOptions && !vm.merchantFilterOptions.status) {
+                vm.merchantFilterOptions.status = {
+                    "DISABLED": true,
+                    "ENABLED": true
+                }
+            }
+
+            if ($scope.merchantTargetDeviceJson && vm.merchantFilterOptions && !vm.merchantFilterOptions.targetDevices) {
+                vm.merchantFilterOptions.targetDevices = {};
+                for (let key in $scope.merchantTargetDeviceJson) {
+                    if ($scope.merchantTargetDeviceJson.hasOwnProperty(key)) {
+                        vm.merchantFilterOptions.targetDevices[key] = true;
+                    }
+                }
+            }
+
+            if ($scope.merchantTopupTypeJson && vm.merchantFilterOptions && !vm.merchantFilterOptions.topupType) {
+                vm.merchantFilterOptions.topupType = {};
+                for (let key in $scope.merchantTopupTypeJson) {
+                    if ($scope.merchantTopupTypeJson.hasOwnProperty(key)) {
+                        vm.merchantFilterOptions.topupType[key] = true;
+                    }
+                }
+            }
+
+            if (vm.allMerchantTypeList && vm.merchantFilterOptions && !vm.merchantFilterOptions.merchantTypeId) {
+                vm.merchantFilterOptions.merchantTypeId = {};
+                for (let key in vm.allMerchantTypeList) {
+                    if (vm.allMerchantTypeList.hasOwnProperty(key)) {
+                        vm.merchantFilterOptions.merchantTypeId[key] = true;
+                    }
+                }
+            }
+
             var query = {
                 platform: vm.selectedPlatform.data.platformId,
                 merchantGroup: merchantGroup._id
             }
 
-            socketService.$socket($scope.AppSocket, 'getIncludedMerchantByMerchantGroup', query, function(data){
+            socketService.$socket($scope.AppSocket, 'getMerchantByMerchantGroup', query, function(data){
                 console.log('MerchantGroupList', data);
                 //provider list init
                 vm.allMerchantList = data.data;
-                $.each(vm.allMerchantList, function (i, v) {
-                    vm.allMerchantList[v._id] = true;
-                })
-                $scope.safeApply();
+                $scope.$evalAsync(vm.merchantPayFilter());
             });
 
-            socketService.$socket($scope.AppSocket, 'getIncludedMerchantByMerchantGroup', query, function (data2) {
-                console.log("attached merchants", data2);
-                if (data2 && data2.data) {
-                    vm.includedMerchants = [];
-
-                    $.each(data2.data, function (i, v) {
-                        if (vm.filterTargetDeviceJson && (vm.filterTargetDeviceJson != 'all' && vm.filterTargetDeviceJson != '') && (!vm.filterTargetDeviceJson.includes($scope.merchantTargetDeviceJson[v.targetDevices]))) {
-
-                        }else if (vm.filterMerchantTopupType && (vm.filterMerchantTopupType != 'all' && vm.filterMerchantTopupType != '') && (!vm.filterMerchantTopupType.includes($scope.merchantTopupTypeJson[v.topupType]))) {
-
-                        }else if (vm.filterMerchantType && (vm.filterMerchantType != 'all' && vm.filterMerchantType != '') && (!vm.filterMerchantType.find(mt => mt.merchantTypeId == v.merchantTypeId))) {
-
-                        }else if (vm.filterMerchantName && (vm.filterMerchantName != 'all' && vm.filterMerchantName != '') && (vm.filterMerchantName != v.name)) {
-
-                        }else {
-                            vm.includedMerchants.push(v);
-                        }
-                    });
-
-                } else {
-                    vm.includedMerchants = [];
-                }
-                $scope.safeApply();
-            })
-
-            socketService.$socket($scope.AppSocket, 'getExcludedMerchantByMerchantGroup', query, function (data2) {
-                console.log("not attached merchants", data2);
-                if (data2 && data2.data) {
-                    vm.excludedMerchants = data2.data;
-                } else {
-                    vm.excludedMerchants = [];
-                }
-                $scope.safeApply();
-            })
         }
 
-        vm.merchantPayFilter = function(i, merchantGroup){
-            vm.SelectedMerchantGroupNode = merchantGroup;
-            vm.includedMerchants = null;
-            vm.excludedMerchants = null;
-            console.log('merchantGroup clicked', merchantGroup);
-            var query = {
-                platform: vm.selectedPlatform.data.platformId,
-                merchantGroup: merchantGroup._id
+        vm.changeMerchantFilter = (objKey, select) => {
+            for (let key in vm.merchantFilterOptions[objKey]) {
+                if (vm.merchantFilterOptions[objKey].hasOwnProperty(key)) {
+                    vm.merchantFilterOptions[objKey][key] = Boolean(select);
+                }
             }
+        };
 
-            socketService.$socket($scope.AppSocket, 'getIncludedMerchantByMerchantGroup', query, function (data2) {
-                console.log("attached merchants", data2);
-                if (data2 && data2.data) {
-                    vm.includedMerchants = [];
-
-                    $.each(data2.data, function (i, v) {
-                        if (vm.filterTargetDeviceJson && (vm.filterTargetDeviceJson != 'all' && vm.filterTargetDeviceJson != '') && (!vm.filterTargetDeviceJson.includes($scope.merchantTargetDeviceJson[v.targetDevices]))) {
-
-                        }else if (vm.filterMerchantTopupType && (vm.filterMerchantTopupType != 'all' && vm.filterMerchantTopupType != '') && (!vm.filterMerchantTopupType.includes($scope.merchantTopupTypeJson[v.topupType]))) {
-
-                        }else if (vm.filterMerchantType && (vm.filterMerchantType != 'all' && vm.filterMerchantType != '') && (!vm.filterMerchantType.find(mt => mt.merchantTypeId == v.merchantTypeId))) {
-
-                        }else if (vm.filterMerchantName && (vm.filterMerchantName != 'all' && vm.filterMerchantName != '') && (!vm.filterMerchantName.find(mn => mn.name == v.name))) {
-
-                        }else {
-                            vm.includedMerchants.push(v);
-                        }
-                    });
-
-                } else {
-                    vm.includedMerchants = [];
+        vm.totalMerchantShows = () => {
+            let total = 0;
+            for (let key in vm.allMerchantList) {
+                if (vm.allMerchantList.hasOwnProperty(key) && vm.allMerchantList[key].show$) {
+                    total++;
                 }
-                $scope.safeApply();
-            })
+            }
+            return total;
+        };
 
-            socketService.$socket($scope.AppSocket, 'getExcludedMerchantByMerchantGroup', query, function (data2) {
-                console.log("not attached merchants", data2);
-                if (data2 && data2.data) {
-                    vm.excludedMerchants = data2.data;
-                } else {
-                    vm.excludedMerchants = [];
+        vm.merchantPayFilter = function(){
+            console.log('merchantGroup filter');
+            for (let i = 0; i < vm.allMerchantList.length; i++) {
+                let merchant = vm.allMerchantList[i];
+                let show = true;
+                if (vm.merchantFilterOptions.backstageMerchantId && merchant.name.indexOf(vm.merchantFilterOptions.backstageMerchantId) < 0) {
+                    show = false;
                 }
-                $scope.safeApply();
-            })
+                if (vm.merchantFilterOptions.isIncluded === "yes" && !merchant.isIncluded || vm.merchantFilterOptions.isIncluded === "no" && merchant.isIncluded) {
+                    show = false;
+                }
+                if (vm.merchantFilterOptions.status && vm.merchantFilterOptions.status[merchant.status] === false) {
+                    show = false;
+                }
+                if (vm.merchantFilterOptions.targetDevices && vm.merchantFilterOptions.targetDevices[merchant.targetDevices] === false) {
+                    show = false;
+                }
+                if (vm.merchantFilterOptions.topupType && vm.merchantFilterOptions.topupType[merchant.topupType] === false) {
+                    show = false;
+                }
+                if (vm.merchantFilterOptions.merchantTypeId && vm.merchantFilterOptions.merchantTypeId[merchant.merchantTypeId] === false) {
+                    show = false;
+                }
+                merchant.show$ = show;
+            }
         };
 
 
@@ -1259,26 +1257,71 @@ define(['js/app'], function (myApp) {
             vm.curMerchant = v;
         }
 
-        vm.merchanttoMerchantGroup = function (type) {
+        vm.addmerchantToGroup = function (type) {
+            let merchantNumbers = [];
+            for (let i = 0; i < vm.allMerchantList.length; i++) {
+                let merchant = vm.allMerchantList[i];
+                if (merchant.selected && !merchant.isIncluded) {
+                    merchantNumbers.push(merchant.merchantNo)
+                }
+            }
+
+            if (!merchantNumbers.length) {
+                socketService.showErrorMessage($translate("There is no merchant group to be added"));
+                return;
+            }
+
             var sendData = {
                 query: {
                     platform: vm.selectedPlatform.id,
                     _id: vm.SelectedMerchantGroupNode._id
                 }
             }
-            if (type === 'attach') {
-                sendData.update = {
-                    "$push": {
-                        merchants: vm.curMerchant.merchantNo
-                    }
-                }
-            } else if (type === 'detach') {
-                sendData.update = {
-                    "$pull": {
-                        merchants: vm.curMerchant.merchantNo
-                    }
+
+            sendData.update = {
+                "$push": {
+                    merchants: {$each: merchantNumbers}
                 }
             }
+
+
+            console.log(sendData);
+            socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
+            function success(data) {
+                vm.curMerchant = null;
+                console.log(data);
+                vm.merchantGroupClicked(0, vm.SelectedMerchantGroupNode);
+                $scope.safeApply();
+            }
+        }
+
+        vm.removeMerchantFromGroup = function (type) {
+            let merchantNumbers = [];
+            for (let i = 0; i < vm.allMerchantList.length; i++) {
+                let merchant = vm.allMerchantList[i];
+                if (merchant.selected && merchant.isIncluded) {
+                    merchantNumbers.push(merchant.merchantNo)
+                }
+            }
+
+            if (!merchantNumbers.length) {
+                socketService.showErrorMessage($translate("There is no merchant group to be remove"));
+                return;
+            }
+
+            var sendData = {
+                query: {
+                    platform: vm.selectedPlatform.id,
+                    _id: vm.SelectedMerchantGroupNode._id
+                }
+            }
+
+            sendData.update = {
+                "$pull": {
+                    merchants: {$in: merchantNumbers}
+                }
+            }
+
 
             console.log(sendData);
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);

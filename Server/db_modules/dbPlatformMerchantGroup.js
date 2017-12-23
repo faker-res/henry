@@ -130,6 +130,33 @@ var dbPlatformMerchantGroup = {
             })
     },
 
+    getMerchantsByMerchantGroup: function (platformId, merchantGroupId) {
+        var allMerchants = [];
+        return pmsAPI.merchant_getMerchantList(
+            {
+                platformId: platformId,
+                queryId: serverInstance.getQueryId()
+            }
+        ).then(
+            data=> {
+                allMerchants = data.merchants || [];
+                return dbconfig.collection_platformMerchantGroup.findOne({_id: merchantGroupId})
+            }
+        ).then(
+            data=> {
+                var merchantsArr = data.merchants || [];
+                for (let i = 0; i < allMerchants.length; i++) {
+
+                    if (merchantsArr.indexOf(allMerchants[i].merchantNo) != -1) {
+                        allMerchants[i].isIncluded = true;
+                    } else {
+                        allMerchants[i].isIncluded = false;
+                    }
+                }
+                return allMerchants;
+            })
+    },
+
     getExcludedMerchantsByMerchantGroup: function (platformId, merchantGroupId) {
         var allMerchants = [];
         return pmsAPI.merchant_getMerchantList(
