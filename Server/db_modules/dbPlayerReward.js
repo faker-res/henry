@@ -2958,7 +2958,7 @@ let dbPlayerReward = {
         return false;
     },
 
-    getLimitedOfferBonus: (platformId) => {
+    getLimitedOfferBonus: (platformId, period = 4) => {
         let platformObj;
         let intPropTypeObj;
 
@@ -2980,7 +2980,7 @@ let dbPlayerReward = {
             res => {
                 intPropTypeObj = res;
 
-                let startTime = moment().subtract(4, "hours");
+                let startTime = moment().subtract(period, "hours");
 
                 return dbConfig.collection_proposal.find({
                     'data.platformObjId': platformObj._id,
