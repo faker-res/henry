@@ -1524,7 +1524,10 @@ const dbRewardTask = {
                                     totalCredit = validCredit + lockedCredit + providerCredit;
 
                                     // Set player bonus permission to off if there's still credit available after unlock reward
-                                    if (rewardGroupData && rewardGroupData.hasOwnProperty("forbidWithdrawIfBalanceAfterUnlock") && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
+                                    if (rewardGroupData
+                                            && rewardGroupData.hasOwnProperty("forbidWithdrawIfBalanceAfterUnlock")
+                                            && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock > 0
+                                            && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
                                         dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).then(
                                             () => {
                                                 return dbconfig.collection_proposal.findOne({_id: rewardGroupData.lastProposalId})
