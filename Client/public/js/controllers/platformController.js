@@ -10713,7 +10713,7 @@ define(['js/app'], function (myApp) {
                                     let rewardAmt = isSubmit.rewardAmount;
                                     let spAmount = spendingAmt.currentAmt;
                                     let spCurrentMax = spendingAmt.currentMax;
-                                    var text = spAmount + '/' + rewardAmt;
+                                    var text = spAmount + '/ -' + rewardAmt;
                                 }else{
                                     let applyAmount = row.applyAmount ? row.applyAmount: 0
                                     var text = row.currentAmount + '/ -' + (applyAmount + row.bonusAmount);
