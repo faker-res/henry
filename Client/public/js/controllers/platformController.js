@@ -10312,7 +10312,7 @@ define(['js/app'], function (myApp) {
                             sClass: "",
                             render: function (data, type, row) {
                                 let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
-                                var text = row.currentAmt + '/' + row.rewardAmt;
+                                var text = row.currentAmt + '/ -' + row.rewardAmt;
                                 var result = '<div id="' + "pgReward" + providerGroupId + '">' + text + '</div>';
                                 return result;
                             }
@@ -10533,7 +10533,7 @@ define(['js/app'], function (myApp) {
                     for (let i = 0; i <= rowId; i++) {
                         let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount :0;
                         let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount:0 ;
-                        sumRewardAmount += applyAmount + sumRewardAmount;
+                        sumRewardAmount += applyAmount + rewardAmount;
                     }
                 }
                 // should over 0
@@ -10716,7 +10716,7 @@ define(['js/app'], function (myApp) {
                                     var text = spAmount + '/' + rewardAmt;
                                 }else{
                                     let applyAmount = row.applyAmount ? row.applyAmount: 0
-                                    var text = row.currentAmount + '/' + (applyAmount + row.bonusAmount);
+                                    var text = row.currentAmount + '/ -' + (applyAmount + row.bonusAmount);
                                 }
 
                                 return "<div>" + text + "</div>";
