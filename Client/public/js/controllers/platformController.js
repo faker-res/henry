@@ -10240,6 +10240,7 @@ define(['js/app'], function (myApp) {
                             item.bonusAmount$ = item.data.bonusAmount;
                             item.requiredBonusAmount$ = item.data.requiredBonusAmount;
                             item.requiredUnlockAmount = item.data.requiredUnlockAmount;
+                            item.rewardType = item.data.rewardType;
                         }
 
 
@@ -10346,7 +10347,7 @@ define(['js/app'], function (myApp) {
                 })
             }
 
-            
+
             vm.unlockTaskGroup = function(){
                 let indexArr = vm.dynRewardTaskGroupIndex;
                 let firstIndex = indexArr.sort()[0];
@@ -10581,7 +10582,7 @@ define(['js/app'], function (myApp) {
                             item.applyAmount = item.data.applyAmount;
                             item.requiredUnlockAmount = result[0].data.spendingAmount;
                             item['provider$'] = item.data.provider$;
-
+                            item.rewardType = item.data.rewardType;
                         })
                         vm.drawRewardTaskTable(true, result, 0, summary, 0);
                         // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
@@ -10662,7 +10663,13 @@ define(['js/app'], function (myApp) {
                                 return link.prop('outerHTML');
                             }
                         },
-                        {title: $translate('SubRewardType'), data: "rewardType"},
+                        {title: $translate('SubRewardType'), data: "rewardType",
+                            render: function(data,type,row){
+                                var text = $translate(data);
+                                return text;
+                            }
+
+                        },
                         {title: $translate('CREATETIME'), data: "createTime$"},
                         //相關存款金額
                         {title: $translate('Deposit Amount'), data: "topUpAmount" , sClass: 'sumFloat textRight'},
