@@ -12155,7 +12155,7 @@ let dbPlayerInfo = {
 
                             if(bonusDetails){
                                 result.freeTimes = bonusDetails.bonusCharges;
-                                result.serviceCharge = bonusDetails.bonusPercentageCharges;
+                                result.serviceCharge = parseFloat(bonusDetails.bonusPercentageCharges * 0.01);
                             }
 
                             let bonusProm = dbconfig.collection_proposal.aggregate([
