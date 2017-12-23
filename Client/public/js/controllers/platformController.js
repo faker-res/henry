@@ -10296,17 +10296,6 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('Unlock Progress(TopUp)'),
-                            advSearch: true,
-                            sClass: "",
-                            render: function (data, type, row) {
-                                let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
-                                var text = row.currentAmt + '/' + row.rewardAmt;
-                                var result = '<div id="' + "pgReward" + providerGroupId + '">' + text + '</div>';
-                                return result;
-                            }
-                        },
-                        {
                             title: $translate('Unlock Progress(Consumption)'),
                             advSearch: true,
                             sClass: "",
@@ -10314,6 +10303,17 @@ define(['js/app'], function (myApp) {
                                 let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
                                 var text = row.curConsumption + '/' + row.targetConsumption;
                                 var result = '<div id="' + "pgConsumpt" + providerGroupId + '">' + text + '</div>';
+                                return result;
+                            }
+                        },
+                        {
+                            title: $translate('Unlock Progress(WinLose)'),
+                            advSearch: true,
+                            sClass: "",
+                            render: function (data, type, row) {
+                                let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
+                                var text = row.currentAmt + '/' + row.rewardAmt;
+                                var result = '<div id="' + "pgReward" + providerGroupId + '">' + text + '</div>';
                                 return result;
                             }
                         },

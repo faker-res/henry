@@ -631,8 +631,15 @@ const dbRewardTask = {
         let prom = [];
         data.map(item => {
             let proposalId = item.data.topUpProposal;
-            console.log(proposalId);
-            let proposal = dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+            let topUpRecordId = item.data.topUpRecordId ? item.data.topUpRecordId : null;
+            let sendQuery = {};
+            if (topUpRecordId) {
+                sendQuery = {proposalId: proposalId};
+            } else {
+                sendQuery = {proposalId: proposalId};
+            }
+
+            let proposal = dbconfig.collection_proposal.findOne(sendQuery).then(
                 pdata => {
                     if (pdata) {
                         if (pdata.creator.name) {
