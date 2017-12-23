@@ -389,19 +389,54 @@ const dbRewardTask = {
         }
     },
     getRewardTaskGroupProposal: function (query) {
+        let rewardTaskGroup = null;
         var queryObj = {
-            'data.playerObjId': ObjectId(query.playerId),
-            'data.platformId': ObjectId(query.platformId),
-            'data.providerGroup': query._id
+            playerId: ObjectId(query.playerId),
+            providerGroup: query._id,
+            status: 'Started'
             // createTime: {
             //     $gte: new Date(query.from),
             //     $lt: new Date(query.to)
             // }
         }
-        return dbconfig.collection_proposal.find(queryObj).
-            then(data=>{
+
+        return dbconfig.collection_rewardTaskGroup.find(queryObj)
+            .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
+            .then(data => {
+                rewardTaskGroup = data[0];
                 return data;
-        })
+            })
+            .then(data => {
+                var rewardTaskProposalQuery = {
+                    'data.playerObjId': ObjectId(query.playerId),
+                    'data.platformId': ObjectId(query.platformId),
+                    'data.providerGroup': query._id
+                }
+                return dbconfig.collection_proposal.find(rewardTaskProposalQuery).then(udata => {
+                    udata.map(item => {
+                        item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                    })
+                    let prom = dbRewardTask.getTopUpProposal(udata);
+
+                    return Q.all([prom])
+                        .then(result => {
+                            result = result[0].map(item => {
+
+                                if (rewardTaskGroup) {
+                                    item.data['createTime$'] = item.createTime;
+                                    item.data.useConsumption = rewardTaskGroup.useConsumption;
+                                    item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                                    if (rewardTaskGroup.providerGroup.name) {
+                                        item.data.provider$ = rewardTaskGroup.providerGroup.name;
+                                    }
+                                    return item;
+                                }
+                            })
+                            return result;
+                        })
+                })
+            })
+
     },
     getRewardProposalId: function(query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj){
         let topUpProposal = null;
@@ -485,9 +520,15 @@ const dbRewardTask = {
                     let selectedProviderGroup = providerGroups.filter(item=>{
                         return item._id == query.selectedProviderGroupID
                     })
+
+
+
                     let providers = selectedProviderGroup[0] ?  selectedProviderGroup[0].providers : null;
                     if(providers){
                         queryObj.targetProviders = {$in: providers}
+                    }
+                    if(query.selectedProviderGroupID == 'free'){
+                        queryObj.providerGroup = null;
                     }
                 }
                 let a, b, c, d, e, f;
@@ -521,17 +562,34 @@ const dbRewardTask = {
                 return Q.all([a, b, c, d, e, f]).then(
                     data => {
                         size = data[0];
+
                         rewardTaskGroupSize = data[2];
                         rewardTaskGroupData = data[3];
                         rewardTaskSummary = data[4][0] ? data[4][0] : [];
                         topUpAmountSum = data[5] ? data[5].topUpAmountSum : 0;
                         let prom = dbRewardTask.getProposalInfo(data[1]);
-
                         return Q.all([prom])
                             .then(proposalData => {
+
+                                let resultData = [];
+                                if(query.selectedProviderGroupID == 'free'){
+                                    resultData = rewardTaskGroupData;
+                                    resultData.map(item=>{
+                                        item.data = {}
+                                        item.data.currentAmount = item.currentAmt;
+                                        item.data.bonusAmount = item.rewardAmt;
+                                        item.data.requiredBonusAmount = item.curConsumption;
+                                        item.data.requiredUnlockAmount = item.targetConsumption;
+                                        return item;
+                                    })
+                                }else{
+                                    resultData = proposalData[0] || [];
+                                }
+
+
                                 return {
                                     size: size,
-                                    data: proposalData[0] || [],
+                                    data: resultData,
                                     rewardTaskGroupSize: rewardTaskGroupSize,
                                     rewardTaskGroupData: rewardTaskGroupData,
                                     summary: rewardTaskSummary,
@@ -563,57 +621,82 @@ const dbRewardTask = {
             })
 
     },
-    getProposalInfo: function(data){
+    getTopUpProposal:function(data){
+        let prom = [];
+        data.map(item => {
+            let proposalId = item.data.topUpProposal;
+            console.log(proposalId);
+            let proposal = dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+                pdata => {
+                    if (pdata) {
+                        if (pdata.creator.name) {
+                            item.creator = pdata.creator;
+                        }
+                        if (pdata.data.amount) {
+                            item.data.topUpAmount = pdata.data.amount;
+                        }
+                    }
+                    return item;
+                },
+                error => {
+                    console.log(error);
+                }
+            )
+            prom.push(proposal);
+        })
+        return Promise.all(prom)
+    },
+    getProposalInfo: function (data) {
         let prom = [];
         let topUpAmountSum = 0;
         let topUpAmount = 0;
         let count = 0;
-        data.map(item=>{
+        data.map(item => {
             let proposalId = item.proposalId;
             let topUpProposal = null;
-            let proposal = dbconfig.collection_proposal.findOne({proposalId:proposalId}).then(
-                pdata=>{
-                    if(pdata.creator.name){
+            let proposal = dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+                pdata => {
+                    if (pdata.creator.name) {
                         item.creator = pdata.creator;
                     }
-
-                    if(pdata.data.topUpProposal){
+                    if (pdata.data.topUpProposal) {
                         topUpProposal = pdata.data.topUpProposal;
                     }
-                    if(pdata.data.topUpAmount){
+                    if (pdata.data.topUpAmount) {
                         topUpAmount = pdata.data.topUpAmount;
                     }
                     return item;
                 },
-                error=>{
+                error => {
                     console.log(error);
                 }
             ).then(
-                data=>{
+                data => {
 
-                    if(topUpProposal){
-                        return dbconfig.collection_proposal.findOne({proposalId:topUpProposal})
-                    }else{
+                    if (topUpProposal) {
+                        return dbconfig.collection_proposal.findOne({proposalId: topUpProposal})
+                    } else {
                         return item;
                     }
                 }
             )
-            .then(
-                topup=>{
-                    // calculate the sum of topUp
-                    if(topup){
-                        if(topup.proposalId){
-                            item.topUpProposal = topup.proposalId;
+                .then(
+                    topup => {
+                        // calculate the sum of topUp
+                        if (topup) {
+                            if (topup.proposalId) {
+                                item.topUpProposal = topup.proposalId;
+                            }
+                            if (topup.data) {
+                                item.topUpAmount = topup.data.amount;
+                                topUpAmountSum += item.topUpAmount;
+                            } else {
+                                item.topUpAmount = topUpAmount ? topUpAmount : '';
+                            }
+
                         }
-                        if(topup.data){
-                            item.topUpAmount = topup.data.amount;
-                            topUpAmountSum += item.topUpAmount;
-                        }else{
-                            item.topUpAmount =  topUpAmount?topUpAmount:'';
-                        }
-                    }
-                    return item;
-            })
+                        return item;
+                    })
             prom.push(proposal);
         });
         return Promise.all(prom)
