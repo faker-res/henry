@@ -425,10 +425,20 @@ const dbRewardTask = {
                     })
 
                     let prom = dbRewardTask.getTopUpProposal(udata);
-
-                    return Q.all([prom])
+                    let propCount = dbconfig.collection_proposal.aggregate({
+                            $match: rewardTaskProposalQuery
+                        },
+                        {
+                            $group: {
+                                '_id': null,
+                                bonusAmountSum: {$sum: "$data.rewardAmount"},
+                                requiredBonusAmountSum: {$sum: "$data.spendingAmount"},
+                                currentAmountSum: {$sum: "$data.rewardAmount"},
+                            }
+                        });
+                    return Q.all([prom, propCount])
                         .then(result => {
-                            result = result[0].map(item => {
+                            result[0].map(item => {
 
                                 if (rewardTaskGroup) {
                                     item.data['createTime$'] = item.createTime;
@@ -440,7 +450,12 @@ const dbRewardTask = {
                                     return item;
                                 }
                             })
-                            return result;
+
+                            return {
+                                size: 0,
+                                data: result[0] ? result[0] : [],
+                                summary: result[1][0] ? result[1][0] : {}
+                            }
                         })
                 })
             })

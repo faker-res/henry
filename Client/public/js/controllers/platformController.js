@@ -10581,11 +10581,11 @@ define(['js/app'], function (myApp) {
                     $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
                 } else {
                     socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
-                        vm.rewardTaskProposalData = data.data;
-                        vm.simpleRewardProposalData = vm.constructProposalData(data.data);
+                        vm.rewardTaskProposalData = data.data.data;
+                        vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
                         console.log(vm.simpleRewardProposalData);
-                        let summary = {};
-                        let result = data.data;
+                        let summary = data.data.summary;
+                        let result = data.data.data;
                         result.map(item=>{
                             item['createTime$'] = vm.dateReformat(item.data.createTime$);
                             item.useConsumption = item.data.useConsumption;
