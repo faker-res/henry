@@ -12,6 +12,8 @@ const dbconfig = require('./../modules/dbproperties');
 const dbLogger = require("./../modules/dbLogger");
 const errorUtils = require("./../modules/errorUtils.js");
 
+const dbProviderUtil = require("./../db_common/dbProviderUtility");
+
 const dbPlayerUtility = {
     //region State
 
@@ -214,17 +216,16 @@ const dbPlayerUtility = {
      * @returns {Promise<T>}
      */
     getProviderGroupInGameCreditByObjId: function (playerObjId, platformObjId, providerGroupId) {
-        let totalInGameCredit = 0;
         let providersCreditProm = Promise.resolve();
 
         if (providerGroupId) {
-            providersCreditProm = dbconfig.collection_gameProviderGroup.findOne({_id: providerGroupId}).lean().then(
+            providersCreditProm = dbProviderUtil.getProvidersDetailInProviderGroup(providerGroupId).then(
                 providerGroup => {
                     if (providerGroup && providerGroup.providers && providerGroup.providers.length > 0) {
                         let promArr = [];
 
                         providerGroup.providers.map(provider => {
-                            promArr.push(dbPlayerUtility.getProviderCreditByObjId(playerObjId, provider));
+                            promArr.push(dbPlayerUtility.getProviderCreditByObjId(playerObjId, provider.providerId));
                         });
 
                         return Promise.all(promArr);
@@ -233,13 +234,14 @@ const dbPlayerUtility = {
             );
         } else {
             // Check credit in all providers
-            providersCreditProm = dbconfig.collection_platform.find({_id: platformObjId}).lean().then(
+            providersCreditProm = dbconfig.collection_platform.find({_id: platformObjId})
+                    .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().then(
                 platform => {
                     if (platform && platform.gameProviders && platform.gameProviders.length > 0) {
                         let promArr = [];
 
                         platform.gameProviders.map(provider => {
-                            promArr.push(dbPlayerUtility.getProviderCreditByObjId(playerObjId, provider));
+                            promArr.push(dbPlayerUtility.getProviderCreditByObjId(playerObjId, provider.providerId));
                         });
 
                         return Promise.all(promArr);
@@ -250,27 +252,25 @@ const dbPlayerUtility = {
 
         return providersCreditProm.then(
             res => {
-                console.log('res', res);
+                let retData = {
+                    providerId: [],
+                    totalInGameCredit: 0
+                };
 
                 if (res && res.length > 0) {
                     res.map(
-                        amount => {
-                            totalInGameCredit += amount;
+                        data => {
+                            if (data && data.credit) {
+                                retData.providerId.push(data.providerId);
+                                retData.totalInGameCredit += data.credit;
+                            }
                         }
                     )
                 }
 
-                console.log('totalInGameCredit', totalInGameCredit);
-
-                return totalInGameCredit;
+                return retData;
             }
-        ).then(
-            credit => {
-                if (credit && credit > 0) {
-
-                }
-            }
-        )
+        );
     },
 
     getProviderCreditByObjId: (playerObjId, providerId) => {
@@ -292,16 +292,25 @@ const dbPlayerUtility = {
         ).then(
             data => {
                 if (data) {
-                    return Math.floor(parseFloat(data.credit));
+                    return {
+                        providerId: providerId,
+                        credit: Math.floor(parseFloat(data.credit))
+                    }
                 }
                 else {
-                    return 0
+                    return {
+                        providerId: providerId,
+                        credit: 0
+                    }
                 }
             }
         ).catch(
             error => {
                 // Don't care what happened to provider, just return 0
-                return 0;
+                return {
+                    providerId: providerId,
+                    credit: 0
+                };
             }
         );
     },

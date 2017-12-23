@@ -4033,10 +4033,18 @@ let dbPlayerReward = {
                     } else {
                         // Player doesn't have enough validCredit, proceed to check in game credit
                         return dbPlayerUtil.getProviderGroupInGameCreditByObjId(playerData._id, playerData.platform._id, eventData.condition.providerGroup).then(
-                            inGameCredit => {
-                                if (inGameCredit && inGameCredit >= applyAmount) {
+                            res => {
+                                if (res && res.totalInGameCredit >= applyAmount) {
                                     // Player has enough credit in game provider to apply reward
-                                    return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
+                                    let transferOutPromArr = [];
+
+                                    if (res && res.providerId && res.providerId.length > 0) {
+                                        res.providerId.map(
+                                            providerId => transferOutPromArr.push(dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, providerId, -1, null, true))
+                                        );
+
+                                        return Promise.all(transferOutPromArr);
+                                    }
                                 } else {
                                     return Promise.reject({
                                         status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
