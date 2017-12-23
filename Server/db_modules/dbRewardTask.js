@@ -412,10 +412,18 @@ const dbRewardTask = {
                     'data.platformId': ObjectId(query.platformId),
                     'data.providerGroup': query._id
                 }
-                return dbconfig.collection_proposal.find(rewardTaskProposalQuery).then(udata => {
+                return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
+                    path: "type",
+                    model: dbconfig.collection_proposalType
+                }).then(udata => {
                     udata.map(item => {
                         item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+
+                        if (item.type.name) {
+                            item.data.rewardType = item.type.name;
+                        }
                     })
+
                     let prom = dbRewardTask.getTopUpProposal(udata);
 
                     return Q.all([prom])
@@ -520,8 +528,6 @@ const dbRewardTask = {
                     let selectedProviderGroup = providerGroups.filter(item=>{
                         return item._id == query.selectedProviderGroupID
                     })
-
-
 
                     let providers = selectedProviderGroup[0] ?  selectedProviderGroup[0].providers : null;
                     if(providers){
