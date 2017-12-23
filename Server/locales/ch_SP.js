@@ -174,6 +174,7 @@ var simplifiedChinese = {
     "Please login to get packet rain reward": "请登陆再参与红包雨活动",
     "Player has been rewarded for first time top up event!": "玩家已申请首冲奖励",
     "Top up record is not the first top up of this week": "该存款不是本周第一笔存款",
+    "Player free amount is less than required top up amount": "玩家可用自由额度小于要求存款金额",
     "Player does not match the condition for this reward": "不符合领取条件",
     "Please topup to enjoy reward": "亲，存50就可以抢红包啦",
     "Please try again packet rain reward again tomorrow": "今日已参与，明日继续抢大红包吧！",
