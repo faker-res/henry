@@ -10263,8 +10263,8 @@ define(['js/app'], function (myApp) {
                         return item;
                     }) : [];
                     tblData = tblData.filter(item => {
-                        return item.providerGroup && item.status == 'Started'
-                    })
+                        return item.status == 'Started'
+                    });
                     vm.rewardTaskGroupDetails = tblData;
                 }
 
@@ -10290,7 +10290,7 @@ define(['js/app'], function (myApp) {
                                     }).text(data ? data : 0));
                                 }
                                 else {
-                                    link.append($('<div>', {}).text(data ? data : 'Manual Reward'));
+                                    link.append($('<div>', {}).text(data ? data : $translate('Valid Progress')));
                                 }
                                 return link.prop('outerHTML')
                             }
@@ -10532,9 +10532,12 @@ define(['js/app'], function (myApp) {
                     sumRewardAmount += applyAmount + rewardAmount;
                 } else {
                     for (let i = 0; i <= rowId; i++) {
-                        let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount :0;
-                        let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount:0 ;
-                        sumRewardAmount += applyAmount + rewardAmount;
+                        if(vm.rewardTaskProposalData[i]){
+                            let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount :0;
+                            let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount:0 ;
+                            sumRewardAmount += applyAmount + rewardAmount;
+                        }
+
                     }
                 }
                 // should over 0
