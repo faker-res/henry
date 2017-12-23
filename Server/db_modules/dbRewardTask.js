@@ -412,10 +412,18 @@ const dbRewardTask = {
                     'data.platformId': ObjectId(query.platformId),
                     'data.providerGroup': query._id
                 }
-                return dbconfig.collection_proposal.find(rewardTaskProposalQuery).then(udata => {
+                return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
+                    path: "type",
+                    model: dbconfig.collection_proposalType
+                }).then(udata => {
                     udata.map(item => {
                         item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+
+                        if (item.type.name) {
+                            item.data.rewardType = item.type.name;
+                        }
                     })
+
                     let prom = dbRewardTask.getTopUpProposal(udata);
 
                     return Q.all([prom])
@@ -521,8 +529,6 @@ const dbRewardTask = {
                         return item._id == query.selectedProviderGroupID
                     })
 
-
-
                     let providers = selectedProviderGroup[0] ?  selectedProviderGroup[0].providers : null;
                     if(providers){
                         queryObj.targetProviders = {$in: providers}
@@ -625,8 +631,15 @@ const dbRewardTask = {
         let prom = [];
         data.map(item => {
             let proposalId = item.data.topUpProposal;
-            console.log(proposalId);
-            let proposal = dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+            let topUpRecordId = item.data.topUpRecordId ? item.data.topUpRecordId : null;
+            let sendQuery = {};
+            if (topUpRecordId) {
+                sendQuery = {proposalId: proposalId};
+            } else {
+                sendQuery = {proposalId: proposalId};
+            }
+
+            let proposal = dbconfig.collection_proposal.findOne(sendQuery).then(
                 pdata => {
                     if (pdata) {
                         if (pdata.creator.name) {
@@ -1518,7 +1531,10 @@ const dbRewardTask = {
                                     totalCredit = validCredit + lockedCredit + providerCredit;
 
                                     // Set player bonus permission to off if there's still credit available after unlock reward
-                                    if (rewardGroupData && rewardGroupData.hasOwnProperty("forbidWithdrawIfBalanceAfterUnlock") && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
+                                    if (rewardGroupData
+                                            && rewardGroupData.hasOwnProperty("forbidWithdrawIfBalanceAfterUnlock")
+                                            && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock > 0
+                                            && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
                                         dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).then(
                                             () => {
                                                 return dbconfig.collection_proposal.findOne({_id: rewardGroupData.lastProposalId})
