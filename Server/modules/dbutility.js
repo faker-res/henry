@@ -743,7 +743,7 @@ var dbUtility = {
      * @returns {string}
      */
     encodePlayerName: (str = "") => {
-        return str.substring(0, 2) + "******" + str.slice(-5);
+        return str.substring(0, 2) + "***" + str.slice(-5);
     },
 
     getParameterByName: function (name, url) {
