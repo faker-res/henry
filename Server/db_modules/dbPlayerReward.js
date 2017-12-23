@@ -2993,7 +2993,7 @@ let dbPlayerReward = {
             res => {
                 return res.map(e => {
                     return {
-                        accountNo: e.data.playerName,
+                        accountNo: dbUtility.encodePlayerName(e.data.playerName),
                         bonus: e.data.applyAmount + e.data.rewardAmount,
                         time: e.createTime
                     }
