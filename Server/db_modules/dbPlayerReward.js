@@ -15,6 +15,7 @@ const constProposalStatus = require("./../const/constProposalStatus");
 const constProposalType = require("./../const/constProposalType");
 const constProposalUserType = require("./../const/constProposalUserType");
 const constRewardApplyType = require("./../const/constRewardApplyType");
+const constRewardPeriod = require("./../const/constRewardPeriod");
 const constRewardType = require("./../const/constRewardType");
 const constServerCode = require('../const/constServerCode');
 
@@ -2358,6 +2359,7 @@ let dbPlayerReward = {
         ).then(
             eventData => {
                 if (eventData) {
+                    let rewardPeriod = eventData.param.period;
                     rewards = eventData.param.reward;
                     timeSet = new Set();
                     let promArr = [];
@@ -2388,6 +2390,22 @@ let dbPlayerReward = {
                             'data.limitedOfferObjId': e._id,
                             type: intPropTypeObj._id
                         };
+
+                        // Find intention within current reward period
+                        if (rewardPeriod) {
+                            let intentionTime;
+
+                            switch (Number(rewardPeriod)) {
+                                case constRewardPeriod.DAILY: intentionTime = dbUtility.getTodaySGTime(); break;
+                                case constRewardPeriod.WEEKLY: intentionTime = dbUtility.getCurrentWeekSGTime(); break;
+                                case constRewardPeriod.BIWEEKLY: intentionTime = dbUtility.getCurrentBiWeekSGTIme(); break;
+                                case constRewardPeriod.MONTHLY: intentionTime = dbUtility.getCurrentMonthSGTIme(); break;
+                            }
+
+                            if (intentionTime) {
+                                proposalQuery.createTime = {$gte: intentionTime.startTime, $lte: intentionTime.endTime};
+                            }
+                        }
 
                         // Find player's limited offer application
                         if (period) {
@@ -2940,7 +2958,7 @@ let dbPlayerReward = {
         return false;
     },
 
-    getLimitedOfferBonus: (platformId) => {
+    getLimitedOfferBonus: (platformId, period = 4) => {
         let platformObj;
         let intPropTypeObj;
 
@@ -2962,7 +2980,7 @@ let dbPlayerReward = {
             res => {
                 intPropTypeObj = res;
 
-                let startTime = moment().subtract(4, "hours");
+                let startTime = moment().subtract(period, "hours");
 
                 return dbConfig.collection_proposal.find({
                     'data.platformObjId': platformObj._id,
@@ -2975,7 +2993,7 @@ let dbPlayerReward = {
             res => {
                 return res.map(e => {
                     return {
-                        accountNo: e.data.playerName,
+                        accountNo: dbUtility.encodePlayerName(e.data.playerName),
                         bonus: e.data.applyAmount + e.data.rewardAmount,
                         time: e.createTime
                     }
@@ -3650,7 +3668,7 @@ let dbPlayerReward = {
                             isUpdateTopupRecord = true;
 
                             // Set player valid credit update flag
-                            if (eventData.condition.providerGroup) {
+                            if (eventData.condition.providerGroup && eventData.condition.isDynamicRewardAmount) {
                                 isUpdateValidCredit = true;
                             }
                         }
@@ -4175,7 +4193,8 @@ let dbPlayerReward = {
                                 // Use this flag for auto apply reward
                                 isGroupReward: true,
                                 // If player credit is more than this number after unlock reward group, will ban bonus
-                                forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0
+                                forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0,
+                                isDynamicRewardAmount: Boolean(eventData.condition.isDynamicRewardAmount)
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS

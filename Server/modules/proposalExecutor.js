@@ -41,6 +41,7 @@ let dbRewardPoints = require("../db_modules/dbRewardPoints.js");
 let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
 let dbRewardPointsLog = require("../db_modules/dbRewardPointsLog.js");
 const moment = require('moment-timezone');
+const ObjectId = mongoose.Types.ObjectId;
 
 /**
  * Proposal executor
@@ -284,7 +285,7 @@ var proposalExecutor = {
                             recordObjId => dbUtil.findOneAndUpdateForShard(
                                 dbconfig.collection_playerTopUpRecord,
                                 {_id: recordObjId},
-                                {bDirty: false},
+                                {bDirty: false, $pull: {usedEvent: ObjectId(proposalData.data.eventId)}},
                                 constShardKeys.collection_playerTopUpRecord
                             )
                         );
@@ -2052,8 +2053,8 @@ var proposalExecutor = {
                         rewardType: constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
                         platformId: proposalData.data.platformId,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
-                        currentAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
-                        initAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
+                        currentAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + proposalData.data.applyAmount : proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + proposalData.data.applyAmount : proposalData.data.rewardAmount,
                         useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
                         applyAmount: proposalData.data.applyAmount,
@@ -2910,9 +2911,14 @@ var proposalExecutor = {
             },
 
             rejectPlayerTopUpReturnGroup: function (proposalData, deferred) {
-                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_PLAYER_TOP_UP_RETURN_GROUP).then(
-                    () => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject)
-                );
+                //clean top up records that are used for application
+                let refundProm = Promise.resolve();
+
+                if (proposalData.data.isDynamicRewardAmount) {
+                    refundProm = proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_PLAYER_TOP_UP_RETURN);
+                }
+
+                refundProm.then(() => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject));
             },
 
             rejectPlayerRandomRewardGroup: function (proposalData, deferred) {

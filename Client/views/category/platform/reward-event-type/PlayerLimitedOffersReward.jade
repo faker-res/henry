@@ -1,4 +1,8 @@
 .col-md-12.well.scrollRecord
+    .full-width-input-block
+        label {{"PERIOD" | translate}}
+        select.form-control(ng-model="vm.rewardParams.period" ng-options="i as v | translate for (i,v) in rewardInterval" ng-disabled="vm.platformRewardShowEdit()")
+
     table.simple-table.table-vertical-middle.margin-medium.limitOffersTB
         thead
             tr
