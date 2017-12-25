@@ -10276,7 +10276,7 @@ define(['js/app'], function (myApp) {
                     ],
                     columns: [
                         {
-                            title: $translate('Provider group'),
+                            title: $translate('Reward Task Group(Progress)'),
                             data: "providerGroup.name",
                             advSearch: true,
                             sClass: "",

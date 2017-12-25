@@ -2973,5 +2973,7 @@
   "will only show status in wechat list": "只显示有在微信列表的状态",
   "IS_IN_GROUP": "组内外",
   "IN_GROUP": "组内",
-  "NOT_IN_GROUP": "组外"
+  "NOT_IN_GROUP": "组外",
+  "Reward Task Group(Progress)": "锁定大厅 (进度)"
+
 }
