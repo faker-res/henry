@@ -10600,6 +10600,11 @@ define(['js/app'], function (myApp) {
                             item.requiredUnlockAmount = result[0].data.spendingAmount;
                             item['provider$'] = item.data.provider$;
                             item.rewardType = item.data.rewardType;
+
+                            item.bonusAmount$ = item.data.bonusAmount;
+                            item.requiredBonusAmount$ = item.data.requiredBonusAmount;
+                            item.currentAmount$ = item.data.currentAmount;
+
                         })
                         vm.drawRewardTaskTable(true, result, 0, summary, 0);
                         // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
@@ -10616,7 +10621,6 @@ define(['js/app'], function (myApp) {
                     let proposal = {
                         applyAmount:item.data.applyAmount ? item.data.applyAmount:0,
                         rewardAmount:item.data.rewardAmount ? item.data.rewardAmount:0,
-
                         //consumption
                         spendingAmount:item.data.spendingAmount ? item.data.spendingAmount:0
                     }
