@@ -56,7 +56,14 @@ var dbPlatform = {
 
         // We give platforms a random ObjectID, so that if 5 platforms are created in quick succession, they and their
         // associated data will not all get stored on the same shard.
-        platformData._id = randomObjectId();
+
+        if(platformData){
+            platformData._id = randomObjectId();
+
+            if(platformData.platformId){
+                delete platformData.platformId;
+            }
+        }
 
         var platform = new dbconfig.collection_platform(platformData);
         platform.save().then(
