@@ -365,6 +365,8 @@ const dbRewardTask = {
     },
     getRewardTaskGroupProposal: function (query) {
         let rewardTaskGroup = null;
+        let sortCol = query.sortCol || {"createTime": 1};
+
         var queryObj = {
             playerId: ObjectId(query.playerId),
             providerGroup: query._id,
@@ -390,7 +392,8 @@ const dbRewardTask = {
                 return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
                     path: "type",
                     model: dbconfig.collection_proposalType
-                }).then(udata => {
+                }).sort(sortCol)
+                .then(udata => {
                     udata.map(item => {
                         item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
 
