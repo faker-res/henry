@@ -10723,7 +10723,7 @@ define(['js/app'], function (myApp) {
                             item.currentAmount$ = item.data.currentAmount;
 
                         })
-                        vm.drawRewardTaskTable(true, result, 0, summary, 0);
+                        vm.drawRewardTaskTable(true, result, 0, summary, 0, 0);
                         // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
                         vm.curRewardTask = data;
                     })
@@ -13925,16 +13925,17 @@ define(['js/app'], function (myApp) {
                     return
                 }
                 console.log("getQuickPay", vm.selectedPlatform.id);
-                socketService.$socket($scope.AppSocket, 'getPlatformQuickPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                    console.log('QuickPayGroup', data);
-                    //provider list init
-                    vm.platformQuickPayGroupList = data.data;
-                    vm.platformQuickPayGroupListCheck = {};
-                    $.each(vm.platformQuickPayGroupList, function (i, v) {
-                        vm.platformQuickPayGroupListCheck[v._id] = true;
-                    })
-                    $scope.safeApply();
-                })
+                //todo::no need quick pay for now
+                // socketService.$socket($scope.AppSocket, 'getPlatformQuickPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                //     console.log('QuickPayGroup', data);
+                //     //provider list init
+                //     vm.platformQuickPayGroupList = data.data;
+                //     vm.platformQuickPayGroupListCheck = {};
+                //     $.each(vm.platformQuickPayGroupList, function (i, v) {
+                //         vm.platformQuickPayGroupListCheck[v._id] = true;
+                //     })
+                //     $scope.safeApply();
+                // })
             }
 
             /////////////////////////////////////// QuickPay Group end  /////////////////////////////////////////////////

@@ -870,7 +870,6 @@ include modalGameCreditLog
                         th {{'Provider group' | translate}}
                         th {{'LOCAL_BALANCE' | translate}}
                         th {{'Unlock Progress(Consumption)' | translate}}
-
                 tbody(ng-repeat="group in vm.rewardTaskGroupPopoverData | orderBy:'providerGroup.providers'")
                     tr
                         td {{group.providerGroup.name | translate}}

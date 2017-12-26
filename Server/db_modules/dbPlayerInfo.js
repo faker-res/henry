@@ -4158,6 +4158,14 @@ let dbPlayerInfo = {
                     transferAmount += rewardTaskGroupData.rewardAmt;
                 }
 
+                if(providerData && providerData.status != constProviderStatus.NORMAL){
+                    deferred.reject({
+                        status: constServerCode.CP_NOT_AVAILABLE,
+                        name: "DataError",
+                        errorMessage: "Game is not available on platform"
+                    });
+                    return;
+                }
 
                 // Check if player has enough credit to play
                 if (transferAmount < 1 || amount == 0) {
