@@ -300,15 +300,7 @@ const dbRewardTask = {
                 if (freeProviderGroup) {
                     let updObj = {
                         $inc: {
-                            //targetConsumption: -rewardData.applyAmount,
-                            //rewardAmt: -rewardData.applyAmount,
                             currentAmt: -rewardData.applyAmount
-                            //rewardAmt: rewardData.initAmount,
-                            //currentAmt: rewardData.initAmount,
-                            // forbidWithdrawIfBalanceAfterUnlock:
-                            //     proposalData && proposalData.data && proposalData.data.forbidWithdrawIfBalanceAfterUnlock
-                            //         ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
-                            //         : 0
                         }
                     };
     
@@ -327,23 +319,6 @@ const dbRewardTask = {
                         _id: freeProviderGroup._id
                     }, updObj);
                 }
-                // else {
-                //     let saveObj = {
-                //         platformId: rewardData.platformId,
-                //         playerId: rewardData.playerId,
-                //         providerGroup: null,
-                //         status: constRewardTaskStatus.STARTED,
-                //         rewardAmt: 0,
-                //         currentAmt: 0,
-                //         forbidWithdrawIfBalanceAfterUnlock: 0,
-                //         forbidXIMAAmt: 0,
-                //         //targetConsumption: -rewardData.applyAmount
-                //         targetConsumption: 0
-                //     };
-                //
-                //     // create new reward group
-                //     return new dbconfig.collection_rewardTaskGroup(saveObj).save();
-                // }
             }
         ).then(
             freeProviderGroup2 => {
@@ -1137,8 +1112,17 @@ const dbRewardTask = {
         let bDirty = false;
         let nonDirtyAmount = 0;
         let createTime = new Date(consumptionRecord.createTime);
+        let platform;
 
-        return dbRewardTaskGroup.getPlayerRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.providerId, consumptionRecord.playerId, createTime).then(
+        return dbconfig.collection_platform.findOne({_id: consumptionRecord.platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platform = platformData;
+
+                    return dbRewardTaskGroup.getPlayerRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.providerId, consumptionRecord.playerId, createTime)
+                }
+            }
+        ).then(
             rewardTaskGroup => {
                 if (rewardTaskGroup) {
                     rewardTaskGroup.curConsumption += consumptionRecord.validAmount;
@@ -1146,12 +1130,12 @@ const dbRewardTask = {
                     let remainingCurConsumption = 0;
 
                     // Check whether player has lost all credit
-                    if (rewardTaskGroup.currentAmt < 1) {
+                    if (rewardTaskGroup.currentAmt < platform.autoApproveLostThreshold) {
                         rewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
                         rewardTaskGroup.unlockTime = createTime;
                     }
                     // Consumption reached
-                    else if (rewardTaskGroup.curConsumption >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
+                    else if (rewardTaskGroup.curConsumption + platform.autoApproveConsumptionOffset >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
                         rewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
                         rewardTaskGroup.unlockTime = createTime;
                         remainingCurConsumption = rewardTaskGroup.curConsumption - (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt);

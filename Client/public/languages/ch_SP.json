@@ -197,6 +197,7 @@
   "MOVE": "移动",
   "SAVE": "存储",
   "CANCEL": "取消",
+  "ADV SETTING": "前端广告设置",
   "ROLE": "角色",
   "STEP_NAME": "步骤",
   "ADD": "添加",
@@ -2250,8 +2251,8 @@
   "PLAYER_REGISTRATION_REWARD_REPORT": "注册彩金优惠报表",
   "Auto Approval Retry Count": "回圈次数",
   "Auto Approval Interval": "回圈等待时间",
-  "Lost Threshold": "流水输赢值宽限额",
-  "Consumption Offset": "流水宽限额",
+  "Lost Threshold": "输赢宽限值（优惠-输值小于该正数则通过）",
+  "Consumption Offset": "投注额宽限值",
   "todayTopUpAmount": "当日充值额",
   "todayBonusAmount": "当日投注额",
   "eventDescription": "优惠活动注解",
@@ -2964,6 +2965,11 @@
   "LINK IMAGE URL": "按钮图来源",
   "LINK IMAGE HYPERLINK": "按钮图超链接",
   "Top up does not meet Promo Code minimum required amount": "您的存款金额低于该优惠代码限制，请调整存款金额。",
+  "PREVIEW AND SETTING": "预览及设置",
+  "ADD NEW BUTTON": "新增按钮",
+  "Add new advertisement": "添加新广告",
+  "SOURCE": "来源",
+  "HYPERLINK": "超链接",
   "isInGroup": "组内外",
   "noInGroup": "组外",
   "inGroup": "组内",
@@ -2974,6 +2980,10 @@
   "IS_IN_GROUP": "组内外",
   "IN_GROUP": "组内",
   "NOT_IN_GROUP": "组外",
-  "Reward Task Group(Progress)": "锁定大厅 (进度)"
-
+  "Reward Task Group(Progress)": "锁定大厅 (进度)",
+  "LOCAL_BALANCE": "本地余额",
+  "Order no is duplicated": "展示顺序已存在",
+  "Advertisement code is duplicated": "广告代码已存在",
+  "BUTTON NAME": "按钮名字",
+  "PLATFORM_ID": "平台ID"
 }

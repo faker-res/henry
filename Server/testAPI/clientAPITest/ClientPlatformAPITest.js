@@ -50,6 +50,18 @@
         });
     };
 
+    proto.getConfig = function (callback, requestData) {
+        var data = requestData || {
+            platformId: testPlatformId
+        };
+        this._service.getConfig.request(data);
+        this._service.getConfig.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
 
 
     if (isNode) {

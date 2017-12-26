@@ -360,33 +360,39 @@ let dbPlayerRewardPoints = {
     startConvertPlayersRewardPoints: () => {
         let AllRewardPointsLvlConfigs;
         let queryTime = dbUtil.getYesterdaySGTime();
-        let queryObj = {
-            $or: [
-                {$and: [{"intervalPeriod": constRewardPointsPeriod.Custom}, {"customPeriodEndTime": {$lte: queryTime.endTime}}, {"lastRunAutoPeriodTime": null}]},
-                {"intervalPeriod": constRewardPointsPeriod.Daily}
-            ]
-        };
-        if (dbUtil.isFirstDayOfMonthSG()) {
-            queryObj.$or.push({"intervalPeriod": constRewardPointsPeriod.Monthly});
-        }
+        return dbConfig.collection_platform.find({usePointSystem : true}).lean().then(
+            platforms => {
+                let usePointSystemPlatformIds = platforms.map(platform => platform._id);
 
-        if (dbUtil.isFirstDayOfWeekSG()) {
-            queryObj.$or.push({"intervalPeriod": constRewardPointsPeriod.Weekly});
-        }
+                let queryObj = {
+                    "platformObjId": {$in : usePointSystemPlatformIds},
+                    $or: [
+                        {$and: [{"intervalPeriod": constRewardPointsPeriod.Custom}, {"customPeriodEndTime": {$lte: queryTime.endTime}}, {"lastRunAutoPeriodTime": null}]},
+                        {"intervalPeriod": constRewardPointsPeriod.Daily}
+                    ]
+                };
+                if (dbUtil.isFirstDayOfMonthSG()) {
+                    queryObj.$or.push({"intervalPeriod": constRewardPointsPeriod.Monthly});
+                }
 
-        if (dbUtil.isHalfMonthDaySG()) {
-            queryObj.$or.push({"intervalPeriod": constRewardPointsPeriod.Biweekly});
-        }
+                if (dbUtil.isFirstDayOfWeekSG()) {
+                    queryObj.$or.push({"intervalPeriod": constRewardPointsPeriod.Weekly});
+                }
 
-        if (dbUtil.isFirstDayOfYearSG()) {
-            queryObj.$or.push({"intervalPeriod": constRewardPointsPeriod.Yearly});
-        }
+                if (dbUtil.isHalfMonthDaySG()) {
+                    queryObj.$or.push({"intervalPeriod": constRewardPointsPeriod.Biweekly});
+                }
 
-        //Get platform ids from rewardPointsLvlConfig, ignore platform without rewardPointsLvlConfig.
-        return dbConfig.collection_rewardPointsLvlConfig.find(queryObj).populate({
-            path: 'platformObjId',
-            model: dbConfig.collection_platform
-        }).lean().then(
+                if (dbUtil.isFirstDayOfYearSG()) {
+                    queryObj.$or.push({"intervalPeriod": constRewardPointsPeriod.Yearly});
+                }
+                //Get platform ids from rewardPointsLvlConfig, ignore platform without rewardPointsLvlConfig.
+                return dbConfig.collection_rewardPointsLvlConfig.find(queryObj).populate({
+                    path: 'platformObjId',
+                    model: dbConfig.collection_platform
+                }).lean()
+            }
+        ).then(
             rewardPointsLvlConfigs => {
                 let settlePlayerRewardPoints = platformId => {
                     // System log
