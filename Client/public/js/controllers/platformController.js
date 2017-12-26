@@ -21588,7 +21588,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.changePartnerAdvertisementStatus= function(advertisementId, advertisementStatus){
-                if(advertisementId && advertisementStatus){
+                if(advertisementId){
                     let sendData = {
                         platformId: vm.selectedPlatform.id,
                         _id: advertisementId,
