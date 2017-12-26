@@ -21234,6 +21234,72 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.selectedAdvListData = function (id,subject) {
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    _id: id,
+                    subject: subject
+                };
+
+                socketService.$socket($scope.AppSocket, 'getSelectedAdvList', sendData, function (data) {
+
+                    if(data && data.data){
+                        vm.selectedAdvList = data.data;
+                        vm.hoverStyle = document.createElement('style');
+                        vm.drawUIPlatformCSS(vm.selectedAdvList);
+                        console.log("vm.selectedAdvList", vm.selectedAdvList);
+                        vm.CSSContentEdit = false;
+                        $scope.safeApply();
+                    }
+                    else {
+                        Q.reject('Advertisement List is not found.');}
+                });
+
+            };
+
+            vm.drawUIPlatformCSS = function (elem) {
+                // generate the css
+                if (vm.hoverStyle) {
+                    vm.hoverStyle.innerHTML = "";
+
+                    if (vm.hoverStyle.styleSheet) {
+                        vm.hoverStyle.styleSheet.cssText = '';
+                    }
+                    else {
+                        vm.hoverStyle.appendChild(document.createTextNode(''));
+                    }
+
+                    let temp = '';
+                    elem.imageButton.forEach(item => {
+                        let css = '#' + item.buttonName + "{" + item.css + "}";
+                        temp += css;
+                    });
+
+                    elem.imageButton.forEach(item => {
+                        let css = '#' + item.buttonName + item.hoverCss;
+                        temp += css;
+
+                    });
+                    vm.hoverStyle.appendChild(document.createTextNode(temp));
+                    document.getElementsByTagName('head')[0].appendChild(vm.hoverStyle);
+                    $scope.safeApply();
+                }
+            };
+
+            vm.advSettingUpdate = function(elem, subject){
+                if(elem){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: elem._id,
+                        imageButton: elem.imageButton,
+                        subject: subject
+                    };
+                    socketService.$socket($scope.AppSocket, 'updateAdvertisementRecord', sendData, function (data) {
+                    });
+                }
+            };
+
             vm.changeAdvertisementStatus= function(advertisementId, advertisementStatus){
                 if(advertisementId){
                     let sendData = {
@@ -21590,7 +21656,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                 });
-            }
+            };
 
             vm.changePartnerAdvertisementStatus= function(advertisementId, advertisementStatus){
                 if(advertisementId){
@@ -21666,7 +21732,12 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                 });
-            }
+            };
+
+
+
+
+
 
             vm.checkPartnerDuplicateAdCode = function(advertisementCode){
                 if(advertisementCode){

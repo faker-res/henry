@@ -73,6 +73,7 @@ form(name="form_new_platform" ,novalidate)
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_WEIXIN_PHOTO" | translate}}
                         input.form-control(type="text", placeholder="{{'WEIXIN_PHOTO' | translate}}", ng-model="vm.showPlatform.weixinPhotoUrl")
+
                 #advertisementPanel.panel-body(ng-if="vm.playerDisplayDataTab === 'advertisementPanel'", style="background-color: white;")
                     #playerAdvertisementRecords.adminLogQueryDiv
                         .inlineBlk
@@ -145,7 +146,7 @@ form(name="form_new_platform" ,novalidate)
                                                                                 //input(type='text' , ng-model='v.hyperLink', style="margin-bottom: 2px;")
                                         td.oblique(ng-class='{grayRow: a.status==0}')
                                             div(style="display: inline-grid; font-size: 10px;")
-                                                button.common-button.btn.btn-info(ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
+                                                button.common-button.btn.btn-info(ng-click="vm.selectedAdvListData(a._id,vm.subject='player');vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false);" data-toggle="modal", data-target="#modalAdvPlatform" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
                                                 button.common-button.btn.btn-info(ng-click="vm.editAdvertisementRecord=true; vm.showAdvertisementRecord=false" style="width: auto; background-color: #5bc0de") {{'EDIT' | translate}}
                                                 button.common-button.btn.btn-info(ng-click="vm.displayAdvertisementList.splice($index,1); vm.deletePlayerAdvertisementRecord(a._id);" style="width: auto; background-color: #5bc0de") {{'DELETE' | translate}}
                                                 button.common-button.btn.btn-info(ng-click="vm.changeAdvertisementStatus(a._id,0);vm.playerAdvertisementList()" ng-if="a.status == 0; " style="width: auto; background-color: #5bc0de") {{'Open' | translate}}
@@ -418,7 +419,7 @@ form(name="form_new_platform" ,novalidate)
                                                                                 //input(type='text' , ng-model='v.hyperLink', style="margin-bottom: 2px;")
                                         td.oblique(ng-class='{grayRow: a.status==0}')
                                             div(style="display: inline-grid; font-size: 10px;")
-                                                button.common-button.btn.btn-info(ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
+                                                button.common-button.btn.btn-info(ng-click="vm.selectedAdvListData(a._id,vm.subject='partner');vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" data-toggle="modal", data-target="#modalAdvPlatform" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
                                                 button.common-button.btn.btn-info(ng-click="vm.editPartnerAdvertisementRecord=true; vm.showPartnerAdvertisementRecord=false" style="width: auto; background-color: #5bc0de") {{'EDIT' | translate}}
                                                 button.common-button.btn.btn-info(ng-click="vm.displayPartnerAdvertisementList.splice($index,1); vm.deletePartnerAdvertisementRecord(a._id);" style="width: auto; background-color: #5bc0de") {{'DELETE' | translate}}
                                                 button.common-button.btn.btn-info(ng-click="vm.changePartnerAdvertisementStatus(a._id,0);vm.partnerAdvertisementList()" ng-if="a.status == 0; " style="width: auto; background-color: #5bc0de") {{'Open' | translate}}
