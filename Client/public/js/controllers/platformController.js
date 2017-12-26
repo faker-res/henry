@@ -527,11 +527,19 @@ define(['js/app'], function (myApp) {
             };
 
             $scope.$on('switchPlatform', () => {
-                vm.loadPlatformData();
+                vm.loadPlatformData({loadAll: true, noParallelTrigger: true});
             });
 
             //get all platform data from server
             vm.loadPlatformData = function (option) {
+                if (vm.onGoingLoadPlatformData) {
+                    return;
+                }
+
+                if (option && option.noParallelTrigger) {
+                    vm.onGoingLoadPlatformData = true;
+                }
+
                 if ($('#platformRefresh').hasClass('fa-spin')) {
                     return
                 }
@@ -559,6 +567,7 @@ define(['js/app'], function (myApp) {
                     setTimeout(function () {
                         $('#platformRefresh').removeClass('fa-check');
                         $('#platformRefresh').addClass('fa-refresh').fadeIn(100);
+                        vm.onGoingLoadPlatformData = false;
                     }, 1000);
 
                     //select platform from cookies data
@@ -721,6 +730,7 @@ define(['js/app'], function (myApp) {
                         vm.rewardPointsTabClicked();
                         //     break;
                         // }
+                        vm.onGoingLoadPlatformData = false;
                         $scope.safeApply();
                     },
                     function (error) {
