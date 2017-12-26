@@ -291,6 +291,7 @@
 
             //define functions
             var functionNames = [
+                "applyRewardPoint",
                 "getLoginRewardPoints",
                 "getRewardPointsRanking",
             ];
