@@ -2113,7 +2113,25 @@ var dbPlatform = {
                             value: data.csWeixin
                         },{
                             isImg: 1,
-                            value:  data.weixinPhotoUrl ? data.weixinPhotoUrl : 0
+                            value:  data.weixinPhotoUrl ? data.weixinPhotoUrl : ""
+                        });
+                    }
+
+                    if(data.csQQ){
+                        return qqList.push({
+                            isImg: 0,
+                            value: data.csQQ
+                        },{
+
+                        });
+                    }
+
+                    if(data.csPhone){
+                        return telList.push({
+                            isImg: 0,
+                            value: data.csPhone
+                        },{
+
                         });
                     }
                     if(data.platformId){
