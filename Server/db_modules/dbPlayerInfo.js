@@ -1136,6 +1136,7 @@ let dbPlayerInfo = {
             model: dbconfig.collection_playerLevel
         }).lean().then(
             function (data) {
+                data.fullPhoneNumber = data.phoneNumber;
                 data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 data.email = dbUtility.encodeEmail(data.email);
                 if (data.bankAccount) {
@@ -12121,11 +12122,16 @@ let dbPlayerInfo = {
     },
 
     getWithdrawalInfo: function(platformId, playerId){
-        let result = {};
+        let result = {
+            freeTimes: 0,
+            serviceCharge: 0,
+            currentFreeAmount: 0,
+            freeAmount: 0
+        };
 
         let platformProm = dbconfig.collection_platform.findOne({platformId: platformId});
         let playerProm = dbconfig.collection_players.findOne({playerId:  playerId})
-            .populate({path: "playerLevel", select: 'name', model: dbconfig.collection_playerLevel}).lean()
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
 
         var date = dbUtility.getCurrentMonthSGTIme();
         var firstDay = date.startTime;
@@ -12135,20 +12141,14 @@ let dbPlayerInfo = {
             if(data) {
                 let platformDetails = data[0];
                 let playerDetails = data[1];
-                console.log(playerDetails);
-                let bonusDetails = {};
+                let bonusDetails = null;
                 if(platformDetails){
                     if(platformDetails.useProviderGroup)
                     {
                         if(playerDetails){
-                            result.freeTimes = 0;
-                            result.serviceCharge = 0;
-                            result.currentFreeAmount = 0;
-                            result.freeAmount = 0;
-
                             if(platformDetails.bonusSetting){
                                 for(let x in platformDetails.bonusSetting){
-                                    if(platformDetails.bonusSetting[x].name == playerDetails.playerLevel.name){
+                                    if(platformDetails.bonusSetting[x].value == playerDetails.playerLevel.value){
                                         bonusDetails = platformDetails.bonusSetting[x];
                                     }
                                 }
@@ -12156,13 +12156,8 @@ let dbPlayerInfo = {
 
                             if(bonusDetails){
                                 result.freeTimes = bonusDetails.bonusCharges;
-                                result.serviceCharge = bonusDetails.bonusPercentageCharges;
+                                result.serviceCharge = parseFloat(bonusDetails.bonusPercentageCharges * 0.01);
                             }
-
-                            // if(playerDetails.validCredit){
-                            //     result.currentFreeAmount = playerDetails.validCredit;
-                            //     result.freeAmount = playerDetails.validCredit;
-                            // }
 
                             let bonusProm = dbconfig.collection_proposal.aggregate([
                                 {
@@ -12211,7 +12206,7 @@ let dbPlayerInfo = {
 
                                             lockListArr.push({name: providerGroupName, lockAmount: targetCon + ximaAmt, currentLockAmount: curCon});
                                         }
-                                    })
+                                    });
 
                                     return lockListArr;
                                 });
@@ -12243,7 +12238,6 @@ let dbPlayerInfo = {
                 let lockListWithoutFreeAmountRewardTaskGroup = [];
                 result.freeTimes = result.freeTimes - (data[0] && data[0][0] ? data[0][0].count : 0);
                 if(data[1]){
-                    console.log(data);
                     lockListWithoutFreeAmountRewardTaskGroup = data[1].filter(function(e){
                         return e.name !== "LOCAL_CREDIT";
                     })
