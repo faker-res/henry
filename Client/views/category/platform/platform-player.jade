@@ -862,19 +862,19 @@ include modalGameCreditLog
                             text(ng-repeat='(i,v) in rewardTask.targetProviders') &nbsp;{{v.name}}
 
 #rewardTaskGroupPopover.hide(style="width: 600px")
-    label {{"Reward task for"|translate}} {{vm.rewardTaskPlayerName}}
+    label {{"MEMBERSHIP_ACCOUNT_NUMBER"|translate}}: {{vm.rewardTaskPlayerName}}
         div(style='max-height:400px;overflow-y:auto;')
             table.simple-table
                 thead
                     tr
                         th {{'Provider group' | translate}}
-                        th {{'Reward amount' | translate}}
-                        th {{'Consumption' | translate}}
+                        th {{'LOCAL_BALANCE' | translate}}
+                        th {{'Unlock Progress(Consumption)' | translate}}
 
-                tbody(ng-repeat='group in vm.curRewardTask')
+                tbody(ng-repeat="group in vm.curRewardTask | orderBy:'providerGroup.providers'")
                     tr
                         td {{group.providerGroup.name | translate}}
-                        td {{group.rewardAmt}}
+                        td {{group.providerGroup.name == "LOCAL_CREDIT" ? group.validCredit : group.rewardAmt}}
                         td {{group.curConsumption}} / {{group.targetConsumption + group.forbidXIMAAmt}}
 
 //#modalPlayerFeedbackRecord.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
