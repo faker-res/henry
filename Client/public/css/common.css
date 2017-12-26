@@ -2940,3 +2940,7 @@ input[type='number'].leftALignNumber {
 #Game .processing-transfer-out{
     background-color: rgba(210,50,130,1);
 }
+
+.grayRow{
+    background-color: rgba(153, 153, 153, 100);
+}
