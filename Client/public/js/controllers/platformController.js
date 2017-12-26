@@ -10721,7 +10721,7 @@ define(['js/app'], function (myApp) {
                             item.currentAmount$ = item.data.currentAmount;
 
                         })
-                        vm.drawRewardTaskTable(true, result, 0, summary, 0);
+                        vm.drawRewardTaskTable(true, result, 0, summary, 0, 0);
                         // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
                         vm.curRewardTask = data;
                     })
