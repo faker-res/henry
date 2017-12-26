@@ -75,6 +75,7 @@
                         select.form-control.spicker(ng-if="!vm.selectedPlatform.data.useProviderGroup" ng-model='vm.rewardParamsFilter[rowIndex].providers', multiple, ng-disabled='vm.platformRewardShowEdit()', data-actions-box='true')
                             option(ng-repeat='(i,v) in vm.platformProvider', value='{{v._id}}') {{v.name}}
                         select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="vm.rewardParamsFilter[rowIndex].providerGroup" ng-disabled='vm.platformRewardShowEdit()')
+                            option(value='') {{'LOCAL_CREDIT' | translate}}
                             option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                 td
                     div(style="display:inline-block;width:45%")
@@ -149,6 +150,7 @@
                             option(ng-repeat='(i,v) in vm.platformProvider', value='{{v._id}}') {{v.name}}
                         label.form-control(ng-if='!vm.selectedPlatform.data.useProviderGroup && vm.providerGame[vm.rewardParams.providers[i].providerObjId] && vm.providerGame[vm.rewardParams.providers[i].providerObjId].length==0') {{"NO_GAME" | translate}}
                         select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="vm.tempNewRewardEntry.providerGroup" ng-disabled='vm.platformRewardShowEdit()')
+                            option(value='') {{'LOCAL_CREDIT' | translate}}
                             option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                 td
                     div(style="display:inline-block;width:45%")
