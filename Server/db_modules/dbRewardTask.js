@@ -591,7 +591,7 @@ const dbRewardTask = {
                                     resultData = proposalData[0] || [];
                                 }
 
-                                if(!query.showProposal){
+                                if(!query.showProposal && !useProviderGroup){
                                     resultData = [];
                                 }
 
