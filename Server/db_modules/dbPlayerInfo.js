@@ -183,7 +183,7 @@ let dbPlayerInfo = {
                 let dailyLimit = null;
                 for (let i=0; i < data.params.length; i++) {
                     if (data.params[i].levelObjId.toString() === playerLevel.toString()) {
-                        dailyLimit = data.params[i].dailyMaxPoints;
+                        dailyLimit = data.params[i].pointToCreditManualMaxPoints;
                         return dailyLimit;
                     }
                 }
@@ -197,34 +197,23 @@ let dbPlayerInfo = {
     getPlayerRewardPointsDailyConvertedPoints: function (rewardPointsObjId) {
         let todayTime = dbUtility.getTodaySGTime();
         let category = constRewardPointsLogCategory.EARLY_POINT_CONVERSION;
-        return dbconfig.collection_rewardTask.aggregate(
-            {
-                $match: {
-                    createTime: {
-                        $gte: todayTime.startTime,
-                        $lt: todayTime.endTime
-                    },
-                    "data.rewardPointsObjId": ObjectId(rewardPointsObjId),
-                    "data.category": category
-                }
-            },
-            {
-                $group: {
-                    _id: "$playerId",
-                    amount: {$sum: "$data.convertedRewardPointsAmount"}
-                }
+        return dbconfig.collection_rewardPointsLog.aggregate({
+            $match: {
+                createTime: {
+                    $gte: todayTime.startTime,
+                    $lt: todayTime.endTime
+                },
+                rewardPointsObjId: ObjectId(rewardPointsObjId),
+                category: category
             }
-        ).then(
-            rewardTask => {
-                if (rewardTask && rewardTask[0]) {
-                    return rewardTask[0].amount;
-                }
-                else {
-                    // No rewardTask
-                    return 0;
-                }
+        }, {
+            $group: {
+                _id: "$rewardPointsObjId",
+                amount: {$sum: {$subtract: ["$oldPoints", "$newPoints"]}}
             }
-        );
+        }).then(
+            rewardPointsLog => rewardPointsLog && rewardPointsLog[0] ? rewardPointsLog[0].amount : 0
+        )
     },
 
     /**
@@ -5668,7 +5657,7 @@ let dbPlayerInfo = {
                 providerGroup: null,
                 status: constRewardTaskStatus.STARTED
             };
-    
+
             return dbconfig.collection_rewardTaskGroup.findOne(query).then(
                 (rewardTaskGroup) => {
                     if(rewardTaskGroup){
@@ -5693,7 +5682,7 @@ let dbPlayerInfo = {
                             curConsumption: 0,
                             targetConsumption: topUpAmount || 0
                         };
-    
+
                         // create new reward group
                         return new dbconfig.collection_rewardTaskGroup(saveObj).save();
                     }
