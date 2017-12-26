@@ -1169,7 +1169,7 @@ const dbRewardTask = {
                     let remainingCurConsumption = 0;
 
                     // Check whether player has lost all credit
-                    if (rewardTaskGroup.currentAmt < platform.autoApproveLostThreshold) {
+                    if (rewardTaskGroup.currentAmt <= platform.autoApproveLostThreshold) {
                         rewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
                         rewardTaskGroup.unlockTime = createTime;
                     }
