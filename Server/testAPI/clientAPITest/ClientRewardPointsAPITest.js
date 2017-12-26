@@ -58,6 +58,14 @@
         this.rewardPointsService.getLoginRewardPoints.once(callback);
     };
 
+
+    proto.getGameRewardPoints = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardPointsService.getGameRewardPoints.request(data);
+        this.rewardPointsService.getGameRewardPoints.once(callback);
+	};
+	
     proto.getTopUpRewardPointsEvent = function (callback, requestData) {
         let data = requestData || {};
 
