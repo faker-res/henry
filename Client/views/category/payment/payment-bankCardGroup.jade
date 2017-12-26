@@ -63,7 +63,7 @@ style.
                         //select.input-sm.form-control(ng-model='vm.filterBankAccountNo', style='max-width:200px',ng-init='vm.filterBankAccountNo="all"',ng-change='vm.BankAccountNumberChanged();')
                         //    option(value='all') {{'any' | translate}}
                         //    option(ng-repeat='(i,v) in vm.allBankCardList', value='{{i}}') {{v.accountNumber}}
-                    .inlineBlk.margin-right-5l
+                    .inlineBlk.margin-right-5
                         .control-label {{"Bank Card Name" | translate}}
                         input.input-sm.form-control(type='text', ng-model='vm.bankCardFilterOptions.bankAccountName')
                     .inlineBlk.margin-right-5
@@ -77,6 +77,7 @@ style.
                             option(value='no') {{'NOT_IN_GROUP' | translate}}
                     .inlineBlk
                         button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.bankCardsFilter()") {{"FILTER" | translate}}
+                span {{"All Pages" | translate}}: {{vm.totalBankCardShows()}}
                 table#bankCards.table(ng-if='vm.SelectedBankCardGroupNode')
                     thead
                         tr
@@ -399,6 +400,8 @@ style.
                             span {{vm.allBankTypeList[bankCardTypeId]}}
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.bankCardsFilter()") {{"FILTER" | translate}}
+                button.btn.btn-info.common-button(ng-click="vm.changeAllBankCardTypeInFilter(true)") {{"Select All" | translate}}
+                button.btn.btn-info.common-button(ng-click="vm.changeAllBankCardTypeInFilter(false)") {{"Clear All" | translate}}
 
 #modalFilterBankCardStatus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

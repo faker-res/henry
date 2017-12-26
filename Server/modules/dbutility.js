@@ -737,6 +737,15 @@ var dbUtility = {
         return encodedStr;
     },
 
+    /**
+     * Covered third to fifth, maybe parameterize
+     * @param str
+     * @returns {string}
+     */
+    encodePlayerName: (str = "") => {
+        return str.substring(0, 2) + "***" + str.slice(-5);
+    },
+
     getParameterByName: function (name, url) {
         if( !url ){
             return url;

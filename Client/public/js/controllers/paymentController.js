@@ -139,6 +139,7 @@ define(['js/app'], function (myApp) {
             vm.loadQuickPayGroupData();
             vm.getAllBankCard();
             vm.bankCardFilterOptions = {};
+            vm.merchantFilterOptions = {};
             $scope.safeApply();
         };
 
@@ -451,6 +452,24 @@ define(['js/app'], function (myApp) {
                     bank.included = cardIncluded;
                 }
             }
+        };
+
+        vm.changeAllBankCardTypeInFilter = (select) => {
+            for (let key in vm.bankCardFilterOptions.bankTypes) {
+                if (vm.bankCardFilterOptions.bankTypes.hasOwnProperty(key)) {
+                    vm.bankCardFilterOptions.bankTypes[key] = Boolean(select);
+                }
+            }
+        };
+
+        vm.totalBankCardShows = () => {
+            let total = 0;
+            for (let key in vm.allBankCards) {
+                if (vm.allBankCards.hasOwnProperty(key) && vm.allBankCards[key].show$) {
+                    total++;
+                }
+            }
+            return total;
         };
 
         vm.bankCardsFilter = () => {
@@ -1076,101 +1095,98 @@ define(['js/app'], function (myApp) {
             vm.includedMerchants = null;
             vm.excludedMerchants = null;
             console.log('merchantGroup clicked', merchantGroup);
+
+            if (vm.merchantFilterOptions && !vm.merchantFilterOptions.status) {
+                vm.merchantFilterOptions.status = {
+                    "DISABLED": true,
+                    "ENABLED": true
+                }
+            }
+
+            if ($scope.merchantTargetDeviceJson && vm.merchantFilterOptions && !vm.merchantFilterOptions.targetDevices) {
+                vm.merchantFilterOptions.targetDevices = {};
+                for (let key in $scope.merchantTargetDeviceJson) {
+                    if ($scope.merchantTargetDeviceJson.hasOwnProperty(key)) {
+                        vm.merchantFilterOptions.targetDevices[key] = true;
+                    }
+                }
+            }
+
+            if ($scope.merchantTopupTypeJson && vm.merchantFilterOptions && !vm.merchantFilterOptions.topupType) {
+                vm.merchantFilterOptions.topupType = {};
+                for (let key in $scope.merchantTopupTypeJson) {
+                    if ($scope.merchantTopupTypeJson.hasOwnProperty(key)) {
+                        vm.merchantFilterOptions.topupType[key] = true;
+                    }
+                }
+            }
+
+            if (vm.allMerchantTypeList && vm.merchantFilterOptions && !vm.merchantFilterOptions.merchantTypeId) {
+                vm.merchantFilterOptions.merchantTypeId = {};
+                for (let key in vm.allMerchantTypeList) {
+                    if (vm.allMerchantTypeList.hasOwnProperty(key)) {
+                        vm.merchantFilterOptions.merchantTypeId[key] = true;
+                    }
+                }
+            }
+
             var query = {
                 platform: vm.selectedPlatform.data.platformId,
                 merchantGroup: merchantGroup._id
             }
 
-            socketService.$socket($scope.AppSocket, 'getIncludedMerchantByMerchantGroup', query, function(data){
+            socketService.$socket($scope.AppSocket, 'getMerchantByMerchantGroup', query, function(data){
                 console.log('MerchantGroupList', data);
                 //provider list init
                 vm.allMerchantList = data.data;
-                $.each(vm.allMerchantList, function (i, v) {
-                    vm.allMerchantList[v._id] = true;
-                })
-                $scope.safeApply();
+                $scope.$evalAsync(vm.merchantPayFilter());
             });
 
-            socketService.$socket($scope.AppSocket, 'getIncludedMerchantByMerchantGroup', query, function (data2) {
-                console.log("attached merchants", data2);
-                if (data2 && data2.data) {
-                    vm.includedMerchants = [];
-
-                    $.each(data2.data, function (i, v) {
-                        if (vm.filterTargetDeviceJson && (vm.filterTargetDeviceJson != 'all' && vm.filterTargetDeviceJson != '') && (!vm.filterTargetDeviceJson.includes($scope.merchantTargetDeviceJson[v.targetDevices]))) {
-
-                        }else if (vm.filterMerchantTopupType && (vm.filterMerchantTopupType != 'all' && vm.filterMerchantTopupType != '') && (!vm.filterMerchantTopupType.includes($scope.merchantTopupTypeJson[v.topupType]))) {
-
-                        }else if (vm.filterMerchantType && (vm.filterMerchantType != 'all' && vm.filterMerchantType != '') && (!vm.filterMerchantType.find(mt => mt.merchantTypeId == v.merchantTypeId))) {
-
-                        }else if (vm.filterMerchantName && (vm.filterMerchantName != 'all' && vm.filterMerchantName != '') && (vm.filterMerchantName != v.name)) {
-
-                        }else {
-                            vm.includedMerchants.push(v);
-                        }
-                    });
-
-                } else {
-                    vm.includedMerchants = [];
-                }
-                $scope.safeApply();
-            })
-
-            socketService.$socket($scope.AppSocket, 'getExcludedMerchantByMerchantGroup', query, function (data2) {
-                console.log("not attached merchants", data2);
-                if (data2 && data2.data) {
-                    vm.excludedMerchants = data2.data;
-                } else {
-                    vm.excludedMerchants = [];
-                }
-                $scope.safeApply();
-            })
         }
 
-        vm.merchantPayFilter = function(i, merchantGroup){
-            vm.SelectedMerchantGroupNode = merchantGroup;
-            vm.includedMerchants = null;
-            vm.excludedMerchants = null;
-            console.log('merchantGroup clicked', merchantGroup);
-            var query = {
-                platform: vm.selectedPlatform.data.platformId,
-                merchantGroup: merchantGroup._id
+        vm.changeMerchantFilter = (objKey, select) => {
+            for (let key in vm.merchantFilterOptions[objKey]) {
+                if (vm.merchantFilterOptions[objKey].hasOwnProperty(key)) {
+                    vm.merchantFilterOptions[objKey][key] = Boolean(select);
+                }
             }
+        };
 
-            socketService.$socket($scope.AppSocket, 'getIncludedMerchantByMerchantGroup', query, function (data2) {
-                console.log("attached merchants", data2);
-                if (data2 && data2.data) {
-                    vm.includedMerchants = [];
-
-                    $.each(data2.data, function (i, v) {
-                        if (vm.filterTargetDeviceJson && (vm.filterTargetDeviceJson != 'all' && vm.filterTargetDeviceJson != '') && (!vm.filterTargetDeviceJson.includes($scope.merchantTargetDeviceJson[v.targetDevices]))) {
-
-                        }else if (vm.filterMerchantTopupType && (vm.filterMerchantTopupType != 'all' && vm.filterMerchantTopupType != '') && (!vm.filterMerchantTopupType.includes($scope.merchantTopupTypeJson[v.topupType]))) {
-
-                        }else if (vm.filterMerchantType && (vm.filterMerchantType != 'all' && vm.filterMerchantType != '') && (!vm.filterMerchantType.find(mt => mt.merchantTypeId == v.merchantTypeId))) {
-
-                        }else if (vm.filterMerchantName && (vm.filterMerchantName != 'all' && vm.filterMerchantName != '') && (!vm.filterMerchantName.find(mn => mn.name == v.name))) {
-
-                        }else {
-                            vm.includedMerchants.push(v);
-                        }
-                    });
-
-                } else {
-                    vm.includedMerchants = [];
+        vm.totalMerchantShows = () => {
+            let total = 0;
+            for (let key in vm.allMerchantList) {
+                if (vm.allMerchantList.hasOwnProperty(key) && vm.allMerchantList[key].show$) {
+                    total++;
                 }
-                $scope.safeApply();
-            })
+            }
+            return total;
+        };
 
-            socketService.$socket($scope.AppSocket, 'getExcludedMerchantByMerchantGroup', query, function (data2) {
-                console.log("not attached merchants", data2);
-                if (data2 && data2.data) {
-                    vm.excludedMerchants = data2.data;
-                } else {
-                    vm.excludedMerchants = [];
+        vm.merchantPayFilter = function(){
+            console.log('merchantGroup filter');
+            for (let i = 0; i < vm.allMerchantList.length; i++) {
+                let merchant = vm.allMerchantList[i];
+                let show = true;
+                if (vm.merchantFilterOptions.backstageMerchantId && merchant.name.indexOf(vm.merchantFilterOptions.backstageMerchantId) < 0) {
+                    show = false;
                 }
-                $scope.safeApply();
-            })
+                if (vm.merchantFilterOptions.isIncluded === "yes" && !merchant.isIncluded || vm.merchantFilterOptions.isIncluded === "no" && merchant.isIncluded) {
+                    show = false;
+                }
+                if (vm.merchantFilterOptions.status && vm.merchantFilterOptions.status[merchant.status] === false) {
+                    show = false;
+                }
+                if (vm.merchantFilterOptions.targetDevices && vm.merchantFilterOptions.targetDevices[merchant.targetDevices] === false) {
+                    show = false;
+                }
+                if (vm.merchantFilterOptions.topupType && vm.merchantFilterOptions.topupType[merchant.topupType] === false) {
+                    show = false;
+                }
+                if (vm.merchantFilterOptions.merchantTypeId && vm.merchantFilterOptions.merchantTypeId[merchant.merchantTypeId] === false) {
+                    show = false;
+                }
+                merchant.show$ = show;
+            }
         };
 
 
@@ -1241,26 +1257,71 @@ define(['js/app'], function (myApp) {
             vm.curMerchant = v;
         }
 
-        vm.merchanttoMerchantGroup = function (type) {
+        vm.addmerchantToGroup = function (type) {
+            let merchantNumbers = [];
+            for (let i = 0; i < vm.allMerchantList.length; i++) {
+                let merchant = vm.allMerchantList[i];
+                if (merchant.selected && !merchant.isIncluded) {
+                    merchantNumbers.push(merchant.merchantNo)
+                }
+            }
+
+            if (!merchantNumbers.length) {
+                socketService.showErrorMessage($translate("There is no merchant group to be added"));
+                return;
+            }
+
             var sendData = {
                 query: {
                     platform: vm.selectedPlatform.id,
                     _id: vm.SelectedMerchantGroupNode._id
                 }
             }
-            if (type === 'attach') {
-                sendData.update = {
-                    "$push": {
-                        merchants: vm.curMerchant.merchantNo
-                    }
-                }
-            } else if (type === 'detach') {
-                sendData.update = {
-                    "$pull": {
-                        merchants: vm.curMerchant.merchantNo
-                    }
+
+            sendData.update = {
+                "$push": {
+                    merchants: {$each: merchantNumbers}
                 }
             }
+
+
+            console.log(sendData);
+            socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
+            function success(data) {
+                vm.curMerchant = null;
+                console.log(data);
+                vm.merchantGroupClicked(0, vm.SelectedMerchantGroupNode);
+                $scope.safeApply();
+            }
+        }
+
+        vm.removeMerchantFromGroup = function (type) {
+            let merchantNumbers = [];
+            for (let i = 0; i < vm.allMerchantList.length; i++) {
+                let merchant = vm.allMerchantList[i];
+                if (merchant.selected && merchant.isIncluded) {
+                    merchantNumbers.push(merchant.merchantNo)
+                }
+            }
+
+            if (!merchantNumbers.length) {
+                socketService.showErrorMessage($translate("There is no merchant group to be remove"));
+                return;
+            }
+
+            var sendData = {
+                query: {
+                    platform: vm.selectedPlatform.id,
+                    _id: vm.SelectedMerchantGroupNode._id
+                }
+            }
+
+            sendData.update = {
+                "$pull": {
+                    merchants: {$in: merchantNumbers}
+                }
+            }
+
 
             console.log(sendData);
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
@@ -1376,18 +1437,11 @@ define(['js/app'], function (myApp) {
                 platform: vm.selectedPlatform.data.platformId,
                 alipayGroup: alipayGroup._id
             }
-            vm.alipayStatusFilterOptions = {};
+            vm.alipayStatusFilterOptions = {"NORMAL": true, "CLOSE": true, "LOCK": true};
             socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroupWithIsInGroup', query, function(data){
 
                 //provider list init
                 vm.allAlipayList = data.data;
-                // loop get alipay status for future add extra status, no need change code
-                vm.allAlipayList.forEach(alipay => {
-                    if (!vm.alipayStatusFilterOptions.hasOwnProperty(alipay.state)) {
-                        vm.alipayStatusFilterOptions[alipay.state] = true;
-                    }
-                });
-                vm.alipayStatusFilterOptions.hasOwnProperty('key');
                 console.log('vm.allAlipayList', vm.allAlipayList);
                 $scope.safeApply();
             });
@@ -1881,49 +1935,81 @@ define(['js/app'], function (myApp) {
             vm.SelectedWechatPayGroupNode = wechatPayGroup;
             vm.includedWechatPays = null;
             vm.excludedWechatPays = null;
-
+            vm.allWechatList = null;
             let query = {
                 platform: vm.selectedPlatform.data.platformId,
-                alipayGroup: wechatPayGroup._id
+                wechatGroup: wechatPayGroup._id
             };
+            vm.wechatStatusFilterOptions = {"NORMAL": true, "DISABLED": true, "LOCK": true};
+            socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroupWithIsInGroup', query, function(data){
 
-            socketService.$socket($scope.AppSocket, 'getIncludedWechatsByWechatPayGroup', query, function(data){
-                console.log('WechatList', data);
                 //provider list init
                 vm.allWechatList = data.data;
-                $.each(vm.allWechatList, function (i, v) {
-                    vm.allWechatList[v._id] = true;
-                })
+                // loop get alipay status for future add extra status, no need change code
+                vm.allWechatList.forEach(wechat => {
+                    if (!vm.wechatStatusFilterOptions.hasOwnProperty(wechat.state)) {
+                        vm.wechatStatusFilterOptions[wechat.state] = true;
+                    }
+                });
+                console.log('vm.allWechatList', vm.allWechatList);
                 $scope.safeApply();
             });
 
-            $scope.$socketPromise('getIncludedWechatsByWechatPayGroup', query).then(function (data2) {
-                console.log('attached included wechat',data2);
-                if (data2 && data2.data) {
-                    vm.includedWechatPays = [];
-                    $.each(data2.data, function (i, v) {
-                        if (vm.filterWechatPayAcc && (vm.filterWechatPayAcc != 'all' && vm.filterWechatPayAcc != '') && (!vm.filterWechatPayAcc.find(wpa => wpa.accountNumber == v.accountNumber))) {
+            // socketService.$socket($scope.AppSocket, 'getIncludedWechatsByWechatPayGroup', query, function(data){
+            //     console.log('WechatList', data);
+            //     //provider list init
+            //     vm.allWechatList = data.data;
+            //     $.each(vm.allWechatList, function (i, v) {
+            //         vm.allWechatList[v._id] = true;
+            //     })
+            //     $scope.safeApply();
+            // });
+            //
+            // $scope.$socketPromise('getIncludedWechatsByWechatPayGroup', query).then(function (data2) {
+            //     console.log('attached included wechat',data2);
+            //     if (data2 && data2.data) {
+            //         vm.includedWechatPays = [];
+            //         $.each(data2.data, function (i, v) {
+            //             if (vm.filterWechatPayAcc && (vm.filterWechatPayAcc != 'all' && vm.filterWechatPayAcc != '') && (!vm.filterWechatPayAcc.find(wpa => wpa.accountNumber == v.accountNumber))) {
+            //
+            //             } else if (vm.filterWechatPayName && (vm.filterWechatPayName != 'all' && vm.filterWechatPayName != '') && (!vm.filterWechatPayName.find(wpn => wpn.name == v.name))) {
+            //
+            //             } else {
+            //                 vm.includedWechatPays.push(v);
+            //             }
+            //         });
+            //
+            //     } else {
+            //         vm.includedWechatPays = [];
+            //     }
+            //     $scope.safeApply();
+            // });
+            //
+            // socketService.$socket($scope.AppSocket, 'getExcludedWechatsByWechatPayGroup', query, function (data2) {
+            //     if (data2 && data2.data) {
+            //         vm.excludedWechatPays = data2.data;
+            //     } else {
+            //         vm.excludedWechatPays = [];
+            //     }
+            //     $scope.safeApply();
+            // })
+        };
 
-                        } else if (vm.filterWechatPayName && (vm.filterWechatPayName != 'all' && vm.filterWechatPayName != '') && (!vm.filterWechatPayName.find(wpn => wpn.name == v.name))) {
+        vm.filterWechat = (wechat) => {
+            let isValid = true;
+            isValid = vm.filterWechatAccount ? wechat.accountNumber.indexOf(vm.filterWechatAccount) !== -1 : isValid;
+            isValid = vm.filterWechatName ? wechat.name.indexOf(vm.filterWechatName) !== -1 && isValid : isValid;
+            isValid = vm.filterWechatNickname ? wechat.nickName.indexOf(vm.filterWechatNickname) !== -1 && isValid : isValid;
+            isValid = vm.wechatStatusFilterOptions ? vm.wechatStatusFilterOptions[wechat.state] && isValid : isValid;
+            isValid = vm.filterWechatInGroup != "all" ? wechat.isInGroup.toString() == vm.filterWechatInGroup && isValid : isValid;
+            return isValid;
+        };
 
-                        } else {
-                            vm.includedWechatPays.push(v);
-                        }
-                    });
-
-                } else {
-                    vm.includedWechatPays = [];
-                }
-                $scope.safeApply();
-            });
-
-            socketService.$socket($scope.AppSocket, 'getExcludedWechatsByWechatPayGroup', query, function (data2) {
-                if (data2 && data2.data) {
-                    vm.excludedWechatPays = data2.data;
-                } else {
-                    vm.excludedWechatPays = [];
-                }
-                $scope.safeApply();
+        vm.wechatListUncheckDifferentGroup = (val, isInGroup) => {
+            if(!val) return; // if uncheck checkbox then do nothing
+            vm.allWechatList = vm.allWechatList.map(wechat => {
+                wechat.isCheck = wechat.isInGroup == isInGroup ? wechat.isCheck : false;
+                return wechat;
             })
         };
 
@@ -2025,16 +2111,28 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            let checkedWechatList = vm.allWechatList.filter(wechat => wechat.isCheck);
+            if (!checkedWechatList || checkedWechatList.length <= 0 || !checkedWechatList[0] ||
+                (checkedWechatList[0].isInGroup && type === 'attach') ||
+                (!checkedWechatList[0].isInGroup && type === 'detach')
+            ) {
+                // situation that do nothing:
+                //      no select any wechat,
+                //      selecting inGroup wechat click add, selecting noInGroup wechat click remove
+                return;
+            }
+            let updateWechatGroupAccNumber =checkedWechatList.map(wechat => wechat.accountNumber);
+
             if (type === 'attach') {
                 sendData.update = {
                     "$push": {
-                        wechats: vm.curWechatPay.accountNumber
+                        wechats: { "$each": updateWechatGroupAccNumber }
                     }
                 }
             } else if (type === 'detach') {
                 sendData.update = {
                     "$pull": {
-                        wechats: vm.curWechatPay.accountNumber
+                        wechats: { "$in": updateWechatGroupAccNumber }
                     }
                 }
             }
@@ -2042,7 +2140,14 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'updatePlatformWechatPayGroup', sendData, success);
             function success(data) {
                 vm.curWechatPay = null;
-                vm.wechatPayGroupClicked(0, vm.SelectedWechatPayGroupNode);
+                vm.allWechatList = vm.allWechatList.map(wechat => {
+                    if (wechat.isCheck) {
+                        wechat.isCheck = false;
+                        wechat.isInGroup =!wechat.isInGroup;
+                    }
+                    return wechat;
+                });
+                //vm.wechatPayGroupClicked(0, vm.SelectedWechatPayGroupNode);
                 $scope.safeApply();
             }
         };

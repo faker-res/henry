@@ -270,7 +270,7 @@ const dbPlayerMail = {
         ).then(
             function (data) {
                 if (data) {
-                    channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : 2;
+                    channel = data[0] && data[0].channels && data[0].channels[0] ? 1 : 2;
                     lastMinuteHistory = data[1];
                     template = data[2];
                     phoneValidation = data[3];
