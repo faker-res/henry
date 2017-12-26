@@ -10328,8 +10328,8 @@ define(['js/app'], function (myApp) {
                         return item;
                     }) : [];
                     tblData = tblData.filter(item => {
-                        return item.providerGroup && item.status == 'Started'
-                    })
+                        return item.status == 'Started'
+                    });
                     vm.rewardTaskGroupDetails = tblData;
                 }
 
@@ -10355,7 +10355,7 @@ define(['js/app'], function (myApp) {
                                     }).text(data ? data : 0));
                                 }
                                 else {
-                                    link.append($('<div>', {}).text(data ? data : 'Manual Reward'));
+                                    link.append($('<div>', {}).text(data ? data : $translate('Valid Progress')));
                                 }
                                 return link.prop('outerHTML')
                             }
@@ -10588,6 +10588,7 @@ define(['js/app'], function (myApp) {
             vm.isSubmitProposal = function (rowId) {
 
                 let sumRewardAmount = 0;
+                let curRewardAmount = 0;
                 let taskGroupCurrentAmt = vm.dynRewardTaskGroupId ? vm.dynRewardTaskGroupId[0].currentAmt:0;
 
                 if (rowId == '0') {
@@ -10596,20 +10597,32 @@ define(['js/app'], function (myApp) {
                     sumRewardAmount += applyAmount + rewardAmount;
                 } else {
                     for (let i = 0; i <= rowId; i++) {
-                        let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount :0;
-                        let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount:0 ;
-                        sumRewardAmount += applyAmount + rewardAmount;
+                        if(vm.rewardTaskProposalData[i]){
+                            let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount :0;
+                            let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount:0 ;
+                            sumRewardAmount += applyAmount + rewardAmount;
+                        }
+
                     }
                 }
                 // should over 0
                 let finalRewardAmount = taskGroupCurrentAmt - sumRewardAmount;
                 let spendingAmt = vm.calSpendingAmt(rowId);
 
+
+                //getCurrentRewardAmt
+                if(vm.rewardTaskProposalData[rowId]){
+                    let curApplyAmt = vm.rewardTaskProposalData[rowId].data.applyAmount ? vm.rewardTaskProposalData[rowId].data.applyAmount :0;
+                    let curRewardAmt = vm.rewardTaskProposalData[rowId].data.rewardAmount ? vm.rewardTaskProposalData[rowId].data.rewardAmount:0 ;
+                    curRewardAmount = curApplyAmt + curRewardAmt;
+                }
+
+
                 if (finalRewardAmount >= 0 && spendingAmt.incCurConsumption >= 0) {
                     // already submit, display tick icon
-                    return {isSubmit: true, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt}
+                    return {isSubmit: true, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt, curRewardAmount:curRewardAmount}
                 } else {
-                    return {isSubmit: false, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt}
+                    return {isSubmit: false, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt, curRewardAmount: curRewardAmount}
                 }
             }
             vm.getRewardTaskGroupProposal = function (id) {
@@ -10633,11 +10646,11 @@ define(['js/app'], function (myApp) {
                     $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
                 } else {
                     socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
-                        vm.rewardTaskProposalData = data.data;
-                        vm.simpleRewardProposalData = vm.constructProposalData(data.data);
+                        vm.rewardTaskProposalData = data.data.data;
+                        vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
                         console.log(vm.simpleRewardProposalData);
-                        let summary = {};
-                        let result = data.data;
+                        let summary = data.data.summary;
+                        let result = data.data.data;
                         result.map(item=>{
                             item['createTime$'] = vm.dateReformat(item.data.createTime$);
                             item.useConsumption = item.data.useConsumption;
@@ -10775,10 +10788,10 @@ define(['js/app'], function (myApp) {
                                 if(vm.isUnlockTaskGroup){
                                     let spendingAmt = vm.calSpendingAmt(meta.row);
                                     let isSubmit = vm.isSubmitProposal(meta.row);
-                                    let rewardAmt = isSubmit.rewardAmount;
+                                    let curRewardAmount = isSubmit.curRewardAmount;
                                     let spAmount = spendingAmt.currentAmt;
                                     let spCurrentMax = spendingAmt.currentMax;
-                                    var text = spAmount + '/ -' + rewardAmt;
+                                    var text = spAmount + '/ -' + curRewardAmount;
                                 }else{
                                     let applyAmount = row.applyAmount ? row.applyAmount: 0
                                     var text = row.currentAmount + '/ -' + (applyAmount + row.bonusAmount);
