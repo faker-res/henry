@@ -868,7 +868,7 @@ var dbPlayerTopUpRecord = {
                     start.setHours(0, 0, 0, 0);
                     let end = new Date();
                     end.setHours(23, 59, 59, 999);
-                    if (merchantResponseData.result.merchantNo) {
+                    if (merchantResponseData.result && merchantResponseData.result.merchantNo) {
                         queryObj['data.merchantNo'] = {'$in': [String(merchantResponseData.result.merchantNo), Number(merchantResponseData.result.merchantNo)]}
                     }
                     queryObj['data.platformId'] = ObjectId(player.platform._id);
