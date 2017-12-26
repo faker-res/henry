@@ -1,5 +1,7 @@
 // https://gist.github.com/soplakanets/980737 --> see for hashing
 var crypto = require('crypto');
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
 
 var encrypt = {
 
@@ -236,6 +238,7 @@ var encrypt = {
             }
 
             if (data.proposalTypeId && data.proposalTypeId.length > 0) {
+                data.proposalTypeId = data.proposalTypeId.map(id => ObjectId(id));
                 query["type"] = {$in: data.proposalTypeId};
             }
             else {
