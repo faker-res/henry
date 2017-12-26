@@ -10299,9 +10299,9 @@ define(['js/app'], function (myApp) {
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
                         item.topUpAmount = (item.topUpAmount);
-                        item.bonusAmount$ = (item.bonusAmount);
+                        item.bonusAmount$ = -item.data.currentAmt;
                         item.requiredBonusAmount$ = (item.requiredBonusAmount);
-                        item.currentAmount$ = (item.currentAmount);
+                        item.currentAmount$ = 0;
                         item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
                                 return pro.name + ' ';
                             }) : $translate('all')) + ')';
@@ -10337,7 +10337,6 @@ define(['js/app'], function (myApp) {
                             item.rewardType = item.data.rewardType;
                         }
 
-
                         return item;
                     }) : [];
                     var size = data.data ? data.data.size : 0;
@@ -10354,6 +10353,8 @@ define(['js/app'], function (myApp) {
                 if (vm.selectedPlatform.data.useProviderGroup) {
                     tblData = tdata && tdata.data ? tdata.data.rewardTaskGroupData.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
+                        item.currentAmount$ = item.currentAmt - item.initAmt;
+                        item.bonusAmount$ = -item.initAmt;
                         return item;
                     }) : [];
                     tblData = tblData.filter(item => {
@@ -10409,7 +10410,7 @@ define(['js/app'], function (myApp) {
                             sClass: "",
                             render: function (data, type, row) {
                                 let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
-                                var text = row.currentAmt + '/ -' + row.rewardAmt;
+                                var text = row.currentAmount$ + '/' + row.bonusAmount$;
                                 var result = '<div id="' + "pgReward" + providerGroupId + '">' + text + '</div>';
                                 return result;
                             }
@@ -10702,16 +10703,17 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
                         vm.rewardTaskProposalData = data.data.data;
                         vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
-                        console.log(vm.simpleRewardProposalData);
+                        console.log("vm.simpleRewardProposalData", vm.simpleRewardProposalData);
                         let summary = data.data.summary;
                         let result = data.data.data;
                         result.map(item=>{
+                            item.proposalId = item.proposalId || item.data.proposalId;
                             item['createTime$'] = vm.dateReformat(item.data.createTime$);
                             item.useConsumption = item.data.useConsumption;
                             item.topUpProposal = item.data.topUpProposalId;
                             item.topUpAmount = item.data.topUpAmount;
                             item.bonusAmount = item.data.rewardAmount;
-                            item.applyAmount = item.data.applyAmount;
+                            item.applyAmount = item.data.applyAmount || item.data.amount;
                             item.requiredUnlockAmount = result[0].data.spendingAmount;
                             item['provider$'] = item.data.provider$;
                             item.rewardType = item.data.rewardType;
