@@ -10505,8 +10505,13 @@ define(['js/app'], function (myApp) {
                 let curConsumption = rewardTaskGroup.curConsumption ? rewardTaskGroup.curConsumption : 0;
                 for (let i = 0; i <= rowId; i++) {
                     if (vm.rewardTaskProposalData[i]) {
+                        let forbidXIMAAmt = 0;
                         let spendingAmount = vm.rewardTaskProposalData[i].data.spendingAmount;
-                        currentMax = vm.rewardTaskProposalData[i].data.spendingAmount;
+                        let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : null;
+                        if(rewardTaskGroup){
+                            forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt ? rewardTaskGroup.forbidXIMAAmt:0;
+                        }
+                        currentMax = vm.rewardTaskProposalData[i].data.spendingAmount + forbidXIMAAmt;
                         spendingAmt += spendingAmount;
                     }
                 }
