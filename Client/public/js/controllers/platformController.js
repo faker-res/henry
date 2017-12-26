@@ -10606,8 +10606,8 @@ define(['js/app'], function (myApp) {
                         if(rewardTaskGroup){
                             forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt ? rewardTaskGroup.forbidXIMAAmt:0;
                         }
-                        currentMax = vm.rewardTaskProposalData[i].data.spendingAmount + forbidXIMAAmt;
-                        spendingAmt += spendingAmount + forbidXIMAAmt;
+                        currentMax = vm.rewardTaskProposalData[i].data.spendingAmount;
+                        spendingAmt += spendingAmount;
                     }
                 }
                 let incCurConsumption = curConsumption - spendingAmt;
