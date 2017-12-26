@@ -11,6 +11,7 @@ const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 const constRewardType = require('./../const/constRewardType');
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 const dbRewardTask = require('../db_modules/dbRewardTask');
+const dbRewardPoints = require('../db_modules/dbRewardPoints');
 const constShardKeys = require('../const/constShardKeys');
 const constSystemParam = require('../const/constSystemParam');
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
@@ -501,6 +502,9 @@ var dbPlayerConsumptionRecord = {
                 if (data[0]) {
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(data[0].platform, data[0], {}).catch(errorUtils.reportError);
                 }
+                if (record) {
+                    dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
+                }
                 deferred.resolve(record);
             },
             function (error) {
@@ -614,6 +618,9 @@ var dbPlayerConsumptionRecord = {
             data => {
                 if (playerData) {
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, {}).catch(errorUtils.reportError);
+                }
+                if (record) {
+                    dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
                 }
                 return record
             },
