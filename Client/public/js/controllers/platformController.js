@@ -10502,9 +10502,11 @@ define(['js/app'], function (myApp) {
                 let AmtNow = 0;
                 let curConsumption = rewardTaskGroup.curConsumption ? rewardTaskGroup.curConsumption : 0;
                 for (let i = 0; i <= rowId; i++) {
-                    let spendingAmount = vm.rewardTaskProposalData[i].data.spendingAmount;
-                    currentMax = vm.rewardTaskProposalData[i].data.spendingAmount;
-                    spendingAmt += spendingAmount;
+                    if (vm.rewardTaskProposalData[i]) {
+                        let spendingAmount = vm.rewardTaskProposalData[i].data.spendingAmount;
+                        currentMax = vm.rewardTaskProposalData[i].data.spendingAmount;
+                        spendingAmt += spendingAmount;
+                    }
                 }
                 let incCurConsumption = curConsumption - spendingAmt;
 
