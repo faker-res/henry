@@ -300,15 +300,7 @@ const dbRewardTask = {
                 if (freeProviderGroup) {
                     let updObj = {
                         $inc: {
-                            //targetConsumption: -rewardData.applyAmount,
-                            //rewardAmt: -rewardData.applyAmount,
                             currentAmt: -rewardData.applyAmount
-                            //rewardAmt: rewardData.initAmount,
-                            //currentAmt: rewardData.initAmount,
-                            // forbidWithdrawIfBalanceAfterUnlock:
-                            //     proposalData && proposalData.data && proposalData.data.forbidWithdrawIfBalanceAfterUnlock
-                            //         ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
-                            //         : 0
                         }
                     };
     
@@ -327,23 +319,6 @@ const dbRewardTask = {
                         _id: freeProviderGroup._id
                     }, updObj);
                 }
-                // else {
-                //     let saveObj = {
-                //         platformId: rewardData.platformId,
-                //         playerId: rewardData.playerId,
-                //         providerGroup: null,
-                //         status: constRewardTaskStatus.STARTED,
-                //         rewardAmt: 0,
-                //         currentAmt: 0,
-                //         forbidWithdrawIfBalanceAfterUnlock: 0,
-                //         forbidXIMAAmt: 0,
-                //         //targetConsumption: -rewardData.applyAmount
-                //         targetConsumption: 0
-                //     };
-                //
-                //     // create new reward group
-                //     return new dbconfig.collection_rewardTaskGroup(saveObj).save();
-                // }
             }
         ).then(
             freeProviderGroup2 => {
