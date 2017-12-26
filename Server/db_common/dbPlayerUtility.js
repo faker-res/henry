@@ -315,6 +315,8 @@ const dbPlayerUtility = {
         );
     },
 
+    getPlayerValidCredit: (playerObjId) => dbconfig.collection_players.findOne({_id: playerObjId}, {_id: 0, validCredit: 1}).lean().then(res => res.validCredit),
+
     //endregion
 
     //region Permission
