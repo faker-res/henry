@@ -10365,11 +10365,12 @@ define(['js/app'], function (myApp) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
+
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
                         {
-                            title: $translate('Provider group'),
+                            title: $translate('Reward Task Group(Progress)'),
                             data: "providerGroup.name",
                             advSearch: true,
                             sClass: "",
@@ -10606,17 +10607,16 @@ define(['js/app'], function (myApp) {
                             forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt ? rewardTaskGroup.forbidXIMAAmt:0;
                         }
                         currentMax = vm.rewardTaskProposalData[i].data.spendingAmount + forbidXIMAAmt;
-                        spendingAmt += spendingAmount;
+                        spendingAmt += spendingAmount + forbidXIMAAmt;
                     }
                 }
                 let incCurConsumption = curConsumption - spendingAmt;
 
-
-                if (incCurConsumption >= 0) {
+                if(incCurConsumption >= 0 ){
                     AmtNow = currentMax;
-                } else {
+                }else{
                     AmtNow = currentMax + incCurConsumption;
-                    if (AmtNow < 0) {
+                    if(AmtNow <= 0){
                         AmtNow = 0;
                     }
                 }
@@ -10628,10 +10628,13 @@ define(['js/app'], function (myApp) {
                 let sumRewardAmount = 0;
                 let curRewardAmount = 0;
                 let taskGroupCurrentAmt = vm.dynRewardTaskGroupId ? vm.dynRewardTaskGroupId[0].currentAmt:0;
+                let currentMax = 0;
+                let curRewardDisplay = 0;
 
                 if (rowId == '0') {
                     let applyAmount = vm.rewardTaskProposalData[0].data.applyAmount ? vm.rewardTaskProposalData[0].data.applyAmount:0;
                     let rewardAmount = vm.rewardTaskProposalData[0].data.rewardAmount ? vm.rewardTaskProposalData[0].data.rewardAmount :0;
+                    currentMax = applyAmount + rewardAmount;
                     sumRewardAmount += applyAmount + rewardAmount;
                 } else {
                     for (let i = 0; i <= rowId; i++) {
@@ -10643,10 +10646,18 @@ define(['js/app'], function (myApp) {
 
                     }
                 }
-                // should over 0
-                let finalRewardAmount = taskGroupCurrentAmt - sumRewardAmount;
-                let spendingAmt = vm.calSpendingAmt(rowId);
 
+                let finalRewardAmount = taskGroupCurrentAmt - sumRewardAmount;
+
+                if(finalRewardAmount >= 0 ){
+                    curRewardDisplay = currentMax;
+                }else{
+                    curRewardDisplay = currentMax + finalRewardAmount;
+                    if(curRewardDisplay <= 0){
+                        curRewardDisplay = 0;
+                    }
+                }
+                let spendingAmt = vm.calSpendingAmt(rowId);
 
                 //getCurrentRewardAmt
                 if(vm.rewardTaskProposalData[rowId]){
@@ -10655,12 +10666,14 @@ define(['js/app'], function (myApp) {
                     curRewardAmount = curApplyAmt + curRewardAmt;
                 }
 
-
-                if (finalRewardAmount >= 0 && spendingAmt.incCurConsumption >= 0) {
+                if(curRewardDisplay == 0  && spendingAmt.currentAmt ==  0){
+                    return {isSubmit: false, curRewardAmount: curRewardDisplay, rewardAmount: currentMax, spendingAmt: spendingAmt}
+                }
+                else if (finalRewardAmount > 0  || spendingAmt.incCurConsumption >  0) {
                     // already submit, display tick icon
-                    return {isSubmit: true, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt, curRewardAmount:curRewardAmount}
+                    return {isSubmit: true, curRewardAmount: curRewardDisplay, rewardAmount: currentMax, spendingAmt: spendingAmt}
                 } else {
-                    return {isSubmit: false, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt, curRewardAmount: curRewardAmount}
+                    return {isSubmit: false, curRewardAmount: curRewardDisplay, rewardAmount: currentMax, spendingAmt: spendingAmt}
                 }
             }
             vm.getRewardTaskGroupProposal = function (id) {
@@ -10678,6 +10691,9 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedSinglePlayer.platform,
                     from: vm.rewardTaskLog.query.startTime.data('datetimepicker').getLocalDate(),
                     to: vm.rewardTaskLog.query.endTime.data('datetimepicker').getLocalDate(),
+                    index:  vm.rewardTaskLog.index ? vm.rewardTaskLog.index: 0,
+                    limit:  vm.rewardTaskLog.limit ? vm.rewardTaskLog.limit: 0,
+                    sortCol: vm.rewardTaskLog.sortCol || null
                 }
 
                 if (!id) {
@@ -10699,6 +10715,11 @@ define(['js/app'], function (myApp) {
                             item.requiredUnlockAmount = result[0].data.spendingAmount;
                             item['provider$'] = item.data.provider$;
                             item.rewardType = item.data.rewardType;
+
+                            item.bonusAmount$ = item.data.bonusAmount;
+                            item.requiredBonusAmount$ = item.data.requiredBonusAmount;
+                            item.currentAmount$ = item.data.currentAmount;
+
                         })
                         vm.drawRewardTaskTable(true, result, 0, summary, 0);
                         // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
@@ -10715,7 +10736,6 @@ define(['js/app'], function (myApp) {
                     let proposal = {
                         applyAmount:item.data.applyAmount ? item.data.applyAmount:0,
                         rewardAmount:item.data.rewardAmount ? item.data.rewardAmount:0,
-
                         //consumption
                         spendingAmount:item.data.spendingAmount ? item.data.spendingAmount:0
                     }
@@ -10735,6 +10755,7 @@ define(['js/app'], function (myApp) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
+                        // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
@@ -10829,7 +10850,7 @@ define(['js/app'], function (myApp) {
                                     let curRewardAmount = isSubmit.curRewardAmount;
                                     let spAmount = spendingAmt.currentAmt;
                                     let spCurrentMax = spendingAmt.currentMax;
-                                    var text = spAmount + '/ -' + curRewardAmount;
+                                    var text = isSubmit.curRewardAmount + '/ -' + isSubmit.rewardAmount;
                                 }else{
                                     let applyAmount = row.applyAmount ? row.applyAmount: 0
                                     var text = row.currentAmount + '/ -' + (applyAmount + row.bonusAmount);
@@ -14188,7 +14209,7 @@ define(['js/app'], function (myApp) {
                                 case "providerGroup":
                                     if (!vm.gameProviderGroup) break;
                                     let providerGroup = {
-                                        "": "LOCAL_CREDIT"
+                                    //     "": "LOCAL_CREDIT"
                                     };
                                     for (let i = 0; i < vm.gameProviderGroup.length; i++) {
                                         let group = vm.gameProviderGroup[i];

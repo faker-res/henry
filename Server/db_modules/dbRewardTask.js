@@ -365,6 +365,8 @@ const dbRewardTask = {
     },
     getRewardTaskGroupProposal: function (query) {
         let rewardTaskGroup = null;
+        let sortCol = query.sortCol || {"createTime": 1};
+
         var queryObj = {
             playerId: ObjectId(query.playerId),
             providerGroup: query._id,
@@ -390,7 +392,8 @@ const dbRewardTask = {
                 return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
                     path: "type",
                     model: dbconfig.collection_proposalType
-                }).then(udata => {
+                }).sort(sortCol)
+                .then(udata => {
                     udata.map(item => {
                         item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
 
@@ -513,11 +516,11 @@ const dbRewardTask = {
                 if (query.rewardProposalId) {
                     queryObj.proposalId = query.rewardProposalId;
                 }
-                if(query.selectedProviderGroupID){
 
+                if (query.selectedProviderGroupID) {
                     let selectedProviderGroup = providerGroups.filter(item=>{
-                        return item._id == query.selectedProviderGroupID
-                    })
+                        return item._id.toString() == query.selectedProviderGroupID.toString()
+                    });
 
                     let providers = selectedProviderGroup[0] ?  selectedProviderGroup[0].providers : null;
                     if(providers){
@@ -527,19 +530,26 @@ const dbRewardTask = {
                         queryObj.providerGroup = null;
                     }
                 }
+
+                let rewardTaskQuery = JSON.parse(JSON.stringify(queryObj));
+                delete rewardTaskQuery.targetProviders;
+                if (query.selectedProviderGroupID && query.selectedProviderGroupID.length === 24) {
+                    rewardTaskQuery.providerGroup = query.selectedProviderGroupID
+                }
+
                 let a, b, c, d, e, f;
                 let size;
                 let rewardTaskGroupSize;
                 let rewardTaskGroupData;
                 let rewardTaskSummary;
                 let topUpAmountSum;
-                a = dbconfig.collection_rewardTask.find(queryObj).count();
-                b = dbconfig.collection_rewardTask.find(queryObj).sort(sortCol).skip(index).limit(limit)
+                a = dbconfig.collection_rewardTask.find(rewardTaskQuery).count();
+                b = dbconfig.collection_rewardTask.find(rewardTaskQuery).sort(sortCol).skip(index).limit(limit)
                     .populate({path: "targetProviders", model: dbconfig.collection_gameProvider}).lean();
 
                 if (useProviderGroup) {
-                    c = dbconfig.collection_rewardTaskGroup.find(queryObj).count();
-                    d = dbconfig.collection_rewardTaskGroup.find(queryObj).sort(sortCol).skip(index).limit(limit)
+                    c = dbconfig.collection_rewardTaskGroup.find(rewardTaskQuery).count();
+                    d = dbconfig.collection_rewardTaskGroup.find(rewardTaskQuery).sort(sortCol).skip(index).limit(limit)
                         .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
                 }
                 // get the sum amount to display the below of table
@@ -659,13 +669,16 @@ const dbRewardTask = {
             let topUpProposal = null;
             let proposal = dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
                 pdata => {
-                    if (pdata.creator.name) {
+                    if (!pdata) {
+                        return {};
+                    }
+                    if (pdata.creator && pdata.creator.name) {
                         item.creator = pdata.creator;
                     }
-                    if (pdata.data.topUpProposal) {
+                    if (pdata.data && pdata.data.topUpProposal) {
                         topUpProposal = pdata.data.topUpProposal;
                     }
-                    if (pdata.data.topUpAmount) {
+                    if (pdata.data && pdata.data.topUpAmount) {
                         topUpAmount = pdata.data.topUpAmount;
                     }
                     return item;
