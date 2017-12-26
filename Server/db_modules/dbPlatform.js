@@ -1654,10 +1654,10 @@ var dbPlatform = {
                         return dbconfig.collection_playerPageAdvertisementInfo.find({platformId: platformObj._id, inputDevice: inputDevice}).lean();
                     }
                     else{
-                        return Q.reject(Error("Invalid input device"));
+                        return Q.reject({name: "DBError", message: "Invalid input device"});
                     }
                 }else{
-                    return Q.reject(Error("No platform exists with id: " + platformId));
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
@@ -1684,6 +1684,21 @@ var dbPlatform = {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj =>{
                 if(platformObj){
+                    if(advertisementCode){
+                        return dbconfig.collection_playerPageAdvertisementInfo.findOne({advertisementCode: advertisementCode})
+                    }else{
+                        return Q.reject({name: "DBError", message: "Advertisement code not valid"});
+                    }
+
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        ).then(
+            existingAdvertisementCodeData => {
+                if(existingAdvertisementCodeData){
+                    return Q.reject({name: "DBError", message: "Advertisement code already exists."});
+                }else{
                     let newRecordData = {
                         platformId: platformId,
                         orderNo: orderNo,
@@ -1695,9 +1710,7 @@ var dbPlatform = {
                         status: 1
                     }
                     let advertistmentRecord = new dbconfig.collection_playerPageAdvertisementInfo(newRecordData);
-                    return advertistmentRecord.save();0
-                }else{
-                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId, error: error});
+                    return advertistmentRecord.save();
                 }
             }
         );
@@ -1724,9 +1737,9 @@ var dbPlatform = {
         }
         return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query,updateData).then(
             platformObj =>{
-
-                return platformObj;
-
+                if(platformObj){
+                    return platformObj;
+                }
             }
         );
     },
@@ -1761,6 +1774,8 @@ var dbPlatform = {
                         status: status ? status : 0
                     }
                     return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query,{status: !status});
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         )
@@ -1791,6 +1806,8 @@ var dbPlatform = {
 
                         }
                     );
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
@@ -1821,6 +1838,8 @@ var dbPlatform = {
 
                         }
                     );
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
@@ -1837,6 +1856,8 @@ var dbPlatform = {
                     };
                     return dbconfig.collection_playerPageAdvertisementInfo.findOne(query);
 
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
@@ -1852,6 +1873,8 @@ var dbPlatform = {
                         inputDevice: inputDevice
                     };
                     return dbconfig.collection_playerPageAdvertisementInfo.findOne(query);
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
@@ -1867,6 +1890,8 @@ var dbPlatform = {
                         _id: advertisementId
                     }
                     return dbconfig.collection_playerPageAdvertisementInfo.findOne(query);
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
@@ -1881,6 +1906,8 @@ var dbPlatform = {
                         inputDevice: inputDevice
                     }
                     return dbconfig.collection_playerPageAdvertisementInfo.findOne(query).sort({orderNo: -1}).limit(1);
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
@@ -1898,7 +1925,7 @@ var dbPlatform = {
                         return Q.reject(Error("Invalid input device"));
                     }
                 }else{
-                    return Q.reject(Error("No platform exists with id: " + platformId));
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
@@ -1921,7 +1948,7 @@ var dbPlatform = {
                     let advertistmentRecord = new dbconfig.collection_partnerPageAdvertisementInfo(newRecordData);
                     return advertistmentRecord.save();0
                 }else{
-                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId, error: error});
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
@@ -1965,6 +1992,8 @@ var dbPlatform = {
                         status: status ? status : 0
                     }
                     return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query,{status: !status});
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         )
@@ -1995,6 +2024,8 @@ var dbPlatform = {
 
                         }
                     );
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
@@ -2025,6 +2056,8 @@ var dbPlatform = {
 
                         }
                     );
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
@@ -2041,6 +2074,8 @@ var dbPlatform = {
                     };
                     return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query);
 
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
@@ -2056,6 +2091,8 @@ var dbPlatform = {
                         inputDevice: inputDevice
                     };
                     return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query);
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
@@ -2071,6 +2108,8 @@ var dbPlatform = {
                         _id: advertisementId
                     }
                     return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query);
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
@@ -2085,6 +2124,8 @@ var dbPlatform = {
                         inputDevice: inputDevice
                     }
                     return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query).sort({orderNo: -1}).limit(1);
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );

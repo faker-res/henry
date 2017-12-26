@@ -261,6 +261,10 @@ define(['js/app'], function (myApp) {
 
             // player advertisement
             vm.currentImageButtonNo = 2;
+            vm.playerAdvertisementStatus ={
+                CLOSE: 0,
+                OPEN: 1
+            };
             vm.playerAdvertisementTitle = [];
             vm.editPlayerAdvertisementList = [];
             vm.existingButtonNo = 0;
@@ -286,8 +290,12 @@ define(['js/app'], function (myApp) {
                 }
             ];
 
-            // player advertisement
+            // partner advertisement
             vm.currentPartnerImageButtonNo = 2;
+            vm.partnerAdvertisementStatus ={
+                CLOSE: 0,
+                OPEN: 1
+            };
             vm.partnerAdvertisementTitle = [];
             vm.editPartnerAdvertisementList = [];
             vm.existingPartnerButtonNo = 0;
@@ -21066,88 +21074,22 @@ define(['js/app'], function (myApp) {
             //Player advertisement
             vm.addNewPlayerAdvertisementRecord = function() {
                 if(!vm.duplicateOrderNo && !vm.duplicateAdCode) {
-                    let query = {
-                        platformId: vm.selectedPlatform.id,
-                        orderNo: vm.playerAdvertisementGroup.orderNo,
-                        advertisementCode: vm.playerAdvertisementGroup.advertisementCode,
-                        title: vm.playerAdvertisementTitle,
-                        backgroundBannerImage: {
-                            url: vm.playerAdvertisementGroup.backgroundUrl,
-                            hyperLink: vm.playerAdvertisementGroup.backgroundHyperLink
-                        },
-                        imageButton: vm.playerAdvertisementGroup.imageButton,
-                        inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
-                    }
-
-                    if(query.imageButton){
-                        query.imageButton.map(b => {
-                            if(b){
-                                if(b.url && b.url.length > 35){
-                                    b.urlDisplay = b.url.substring(0,30) + "...";
-                                }else{
-                                    b.urlDisplay = b.url || null;
-                                }
-
-                                if(b.hyperLink && b.hyperLink.length > 35){
-                                    b.hyperLinkDisplay = b.hyperLink.substring(0,30) + "...";
-                                }else{
-                                    b.hyperLinkDisplay = b.hyperLink || null;
-                                }
-                            }
-                        })
-                    }
-
-                    if(query.backgroundBannerImage){
-                        if(query.backgroundBannerImage.url && query.backgroundBannerImage.url.length > 35){
-                            query.backgroundBannerImage.urlDisplay = query.backgroundBannerImage.url.substring(0,30) + "...";
-                        }else{
-                            query.backgroundBannerImage.urlDisplay = query.backgroundBannerImage.url || null;
+                    if(vm.playerAdvertisementGroup){
+                        let query = {
+                            platformId: vm.selectedPlatform.id,
+                            orderNo: vm.playerAdvertisementGroup.orderNo ? vm.playerAdvertisementGroup.orderNo : 0,
+                            advertisementCode: vm.playerAdvertisementGroup.advertisementCode ? vm.playerAdvertisementGroup.advertisementCode : "",
+                            title: vm.playerAdvertisementTitle ? vm.playerAdvertisementTitle : [],
+                            backgroundBannerImage: {
+                                url: vm.playerAdvertisementGroup.backgroundUrl ? vm.playerAdvertisementGroup.backgroundUrl : "",
+                                hyperLink: vm.playerAdvertisementGroup.backgroundHyperLink ? vm.playerAdvertisementGroup.backgroundHyperLink : ""
+                            },
+                            imageButton: vm.playerAdvertisementGroup.imageButton ? vm.playerAdvertisementGroup.imageButton : [],
+                            inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                         }
 
-                        if(query.backgroundBannerImage.hyperLink && query.backgroundBannerImage.hyperLink.length > 35){
-                            query.backgroundBannerImage.hyperLinkDisplay = query.backgroundBannerImage.hyperLink.substring(0,30) + "...";
-                        }else{
-                            query.backgroundBannerImage.hyperLinkDisplay = query.backgroundBannerImage.hyperLink || null;
-                        }
-                    }
-
-                    socketService.$socket($scope.AppSocket, 'createNewPlayerAdvertisementRecord', query, function (data) {
-                        if (data) {
-                            //reset the adding table
-                            vm.currentImageButtonNo = 2;
-                            vm.playerAdvertisementGroup = [];
-                            vm.playerAdvertisementTitle = "";
-                            vm.playerAdvertisementGroup.imageButton = [
-                                {
-                                    buttonNo: 1,
-                                    buttonName: "activityBtn1",
-                                    url:"",
-                                    hyperLink: "",
-                                    css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                                    hoverCss: ":hover{width:500px;}"
-                                },
-                                {
-                                    buttonNo: 2,
-                                    buttonName: "activityBtn2",
-                                    url:"",
-                                    hyperLink: "",
-                                    css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                                    hoverCss: ":hover{width:500px;}"
-                                }
-                            ];
-                        }
-                    });
-                }
-            }
-
-            vm.savePlayerAdvertisementRecordChanges = function(test){
-                if(!vm.duplicateOrderNo && !vm.duplicateAdCode){
-                    vm.displayAdvertisementList.forEach(record => {
-
-                        let sendData = record;
-
-                        if(sendData.imageButton){
-                            sendData.imageButton.map(b => {
+                        if(query.imageButton){
+                            query.imageButton.map(b => {
                                 if(b){
                                     if(b.url && b.url.length > 35){
                                         b.urlDisplay = b.url.substring(0,30) + "...";
@@ -21164,44 +21106,96 @@ define(['js/app'], function (myApp) {
                             })
                         }
 
-                        if(sendData.backgroundBannerImage){
-                            if(sendData.backgroundBannerImage.url && sendData.backgroundBannerImage.url.length > 35){
-                                sendData.backgroundBannerImage.urlDisplay = sendData.backgroundBannerImage.url.substring(0,30) + "...";
+                        if(query.backgroundBannerImage){
+                            if(query.backgroundBannerImage.url && query.backgroundBannerImage.url.length > 35){
+                                query.backgroundBannerImage.urlDisplay = query.backgroundBannerImage.url.substring(0,30) + "...";
                             }else{
-                                sendData.backgroundBannerImage.urlDisplay = sendData.backgroundBannerImage.url || null;
+                                query.backgroundBannerImage.urlDisplay = query.backgroundBannerImage.url || null;
                             }
 
-                            if(sendData.backgroundBannerImage.hyperLink && sendData.backgroundBannerImage.hyperLink.length > 35){
-                                sendData.backgroundBannerImage.hyperLinkDisplay = sendData.backgroundBannerImage.hyperLink.substring(0,30) + "...";
+                            if(query.backgroundBannerImage.hyperLink && query.backgroundBannerImage.hyperLink.length > 35){
+                                query.backgroundBannerImage.hyperLinkDisplay = query.backgroundBannerImage.hyperLink.substring(0,30) + "...";
                             }else{
-                                sendData.backgroundBannerImage.hyperLinkDisplay = sendData.backgroundBannerImage.hyperLink || null;
+                                query.backgroundBannerImage.hyperLinkDisplay = query.backgroundBannerImage.hyperLink || null;
                             }
                         }
 
-                        socketService.$socket($scope.AppSocket, 'savePlayerAdvertisementRecordChanges', sendData, function (data) {
-                            //do nothing
+                        socketService.$socket($scope.AppSocket, 'createNewPlayerAdvertisementRecord', query, function (data) {
+                            if (data) {
+                                vm.resetPlayerAddTable();
+                            }
                         });
+                    }
 
-                        vm.editAdvertisementRecord=false;
-                        vm.showAdvertisementRecord=true;
-                    });
+                }
+            }
+
+            vm.savePlayerAdvertisementRecordChanges = function(){
+                if(!vm.duplicateOrderNo && !vm.duplicateAdCode){
+                    if(vm.displayAdvertisementList){
+                        vm.displayAdvertisementList.forEach(record => {
+
+                            let sendData = record;
+
+                            if(sendData.imageButton){
+                                sendData.imageButton.map(b => {
+                                    if(b){
+                                        if(b.url && b.url.length > 35){
+                                            b.urlDisplay = b.url.substring(0,30) + "...";
+                                        }else{
+                                            b.urlDisplay = b.url || null;
+                                        }
+
+                                        if(b.hyperLink && b.hyperLink.length > 35){
+                                            b.hyperLinkDisplay = b.hyperLink.substring(0,30) + "...";
+                                        }else{
+                                            b.hyperLinkDisplay = b.hyperLink || null;
+                                        }
+                                    }
+                                })
+                            }
+
+                            if(sendData.backgroundBannerImage){
+                                if(sendData.backgroundBannerImage.url && sendData.backgroundBannerImage.url.length > 35){
+                                    sendData.backgroundBannerImage.urlDisplay = sendData.backgroundBannerImage.url.substring(0,30) + "...";
+                                }else{
+                                    sendData.backgroundBannerImage.urlDisplay = sendData.backgroundBannerImage.url || null;
+                                }
+
+                                if(sendData.backgroundBannerImage.hyperLink && sendData.backgroundBannerImage.hyperLink.length > 35){
+                                    sendData.backgroundBannerImage.hyperLinkDisplay = sendData.backgroundBannerImage.hyperLink.substring(0,30) + "...";
+                                }else{
+                                    sendData.backgroundBannerImage.hyperLinkDisplay = sendData.backgroundBannerImage.hyperLink || null;
+                                }
+                            }
+
+                            socketService.$socket($scope.AppSocket, 'savePlayerAdvertisementRecordChanges', sendData, function (data) {
+                                //do nothing
+                            });
+
+                            vm.editAdvertisementRecord=false;
+                            vm.showAdvertisementRecord=true;
+                        });
+                    }
+
                 }
             }
 
             vm.deletePlayerAdvertisementRecord = function(advertisementId) {
+                if(advertisementId){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        advertisementId: advertisementId,
+                    };
 
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    advertisementId: advertisementId,
-                };
-
-                socketService.$socket($scope.AppSocket, 'deleteAdvertisementRecord', sendData);
+                    socketService.$socket($scope.AppSocket, 'deleteAdvertisementRecord', sendData);
+                }
             }
 
             vm.playerAdvertisementList = function () {
                 let sendData = {
-                            platformId: vm.selectedPlatform.id,
-                            inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
+                    platformId: vm.selectedPlatform.id,
+                    inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPlayerAdvertisementList', sendData, function (data) {
@@ -21223,26 +21217,8 @@ define(['js/app'], function (myApp) {
                                         d.backgroundBannerImage.hyperLinkDisplay = d.backgroundBannerImage.hyperLink || null;
                                     }
                                 }
-                                //
-                                // if(d.imageButton){
-                                //     d.imageButton.map(b => {
-                                //         if(b){
-                                //             if(b.url && b.url.length > 35){
-                                //                 b.urlDisplay = b.url.substring(0,30) + "...";
-                                //             }else{
-                                //                 b.urlDisplay = b.url || null;
-                                //             }
-                                //
-                                //             if(b.hyperLink && b.hyperLink.length > 35){
-                                //                 b.hyperLinkDisplay = b.hyperLink.substring(0,30) + "...";
-                                //             }else{
-                                //                 b.hyperLinkDisplay = b.hyperLink || null;
-                                //             }
-                                //         }
-                                //     })
-                                // }
-                                
-                                d.status = d.status == 0 ? d.status : 1;
+
+                                d.status = d.status == vm.playerAdvertisementStatus["OPEN"] ? d.status : vm.playerAdvertisementStatus["CLOSE"];
                             }
                         })
 
@@ -21320,61 +21296,68 @@ define(['js/app'], function (myApp) {
             };
 
             vm.changeAdvertisementStatus= function(advertisementId, advertisementStatus){
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    _id: advertisementId,
-                    status: advertisementStatus
+                if(advertisementId){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                        status: advertisementStatus ? advertisementStatus : 0
+                    }
+                    socketService.$socket($scope.AppSocket, 'changeAdvertisementStatus', sendData, function (data) {
+                        //do nothing
+                    });
                 }
-                socketService.$socket($scope.AppSocket, 'changeAdvertisementStatus', sendData, function (data) {
-                    //do nothing
-                });
             }
 
             vm.checkDuplicateOrderNoWithId = function(orderNo, advertisementId){
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    _id: advertisementId,
-                    orderNo: orderNo,
-                    inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
-                }
-                socketService.$socket($scope.AppSocket, 'checkDuplicateOrderNoWithId', sendData, function (data) {
-                    if(data && data.data){
-                        vm.duplicateOrderNo = true;
-                        vm.errMessage = "Order no is duplicated";
-                        $scope.safeApply();
-                    }else{
-                        vm.duplicateOrderNo = false;
-                        vm.errMessage = "";
-                        $scope.safeApply();
+                if(advertisementId){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                        orderNo: orderNo,
+                        inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                     }
-                });
+                    socketService.$socket($scope.AppSocket, 'checkDuplicateOrderNoWithId', sendData, function (data) {
+                        if(data && data.data){
+                            vm.duplicateOrderNo = true;
+                            vm.errMessage = "Order no is duplicated";
+                            $scope.safeApply();
+                        }else{
+                            vm.duplicateOrderNo = false;
+                            vm.errMessage = "";
+                            $scope.safeApply();
+                        }
+                    });
+                }
+
             }
             
             vm.checkDuplicateAdCodeWithId = function(advertisementCode, advertisementId){
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    _id: advertisementId,
-                    advertisementCode: advertisementCode,
-                    inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
-                }
-                socketService.$socket($scope.AppSocket, 'checkDuplicateAdCodeWithId', sendData, function (data) {
-                    if(data && data.data){
-                        vm.duplicateAdCode = true;
-                        vm.errMessage = "Advertisement code is duplicated";
-                        $scope.safeApply();
-                    }else{
-                        vm.duplicateAdCode = false;
-                        vm.errMessage = "";
-                        $scope.safeApply();
+                if(advertisementId && advertisementCode) {
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                        advertisementCode: advertisementCode,
+                        inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                     }
-                });
+                    socketService.$socket($scope.AppSocket, 'checkDuplicateAdCodeWithId', sendData, function (data) {
+                        if (data && data.data) {
+                            vm.duplicateAdCode = true;
+                            vm.errMessage = "Advertisement code is duplicated";
+                            $scope.safeApply();
+                        } else {
+                            vm.duplicateAdCode = false;
+                            vm.errMessage = "";
+                            $scope.safeApply();
+                        }
+                    });
+                }
             }
 
         vm.checkDuplicateOrderNo = function(orderNo){
             let sendData = {
                 platformId: vm.selectedPlatform.id,
                 orderNo: orderNo,
-                inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
+                inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
             }
             socketService.$socket($scope.AppSocket, 'checkDuplicateOrderNo', sendData, function (data) {
                 if(data && data.data){
@@ -21390,22 +21373,24 @@ define(['js/app'], function (myApp) {
         }
 
         vm.checkDuplicateAdCode = function(advertisementCode){
-            let sendData = {
-                platformId: vm.selectedPlatform.id,
-                advertisementCode: advertisementCode,
-                inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
-            }
-            socketService.$socket($scope.AppSocket, 'checkDuplicateAdCode', sendData, function (data) {
-                if(data && data.data){
-                    vm.duplicateAdCode = true;
-                    vm.errMessage = "Advertisement code is duplicated";
-                    $scope.safeApply();
-                }else{
-                    vm.duplicateAdCode = false;
-                    vm.errMessage = "";
-                    $scope.safeApply();
+            if(advertisementCode){
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    advertisementCode: advertisementCode,
+                    inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 }
-            });
+                socketService.$socket($scope.AppSocket, 'checkDuplicateAdCode', sendData, function (data) {
+                    if(data && data.data){
+                        vm.duplicateAdCode = true;
+                        vm.errMessage = "Advertisement code is duplicated";
+                        $scope.safeApply();
+                    }else{
+                        vm.duplicateAdCode = false;
+                        vm.errMessage = "";
+                        $scope.safeApply();
+                    }
+                });
+            }
         }
 
             vm.setNewImageButtonName = function(){
@@ -21438,35 +21423,36 @@ define(['js/app'], function (myApp) {
                 // );
                 //
                 // vm.currentImageButtonNo += 1;
-                let sendData= {
-                    platformId: vm.selectedPlatform.id,
-                    _id: advertisementId
-                }
-                vm.existingButtonNo = 1;
 
-                socketService.$socket($scope.AppSocket, 'getAdvertisementRecordById', sendData, function (data) {
-                    if(data && data.data){
-                        if(data.data.imageButton){
-                            data.data.imageButton.forEach(b => {
-                                if(b.buttonNo > vm.existingButtonNo){
-                                    vm.existingButtonNo = b.buttonNo + 1;
-                                }
-                            })
-
-                        }
+                if(advertisementId){
+                    let sendData= {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId
                     }
-                    $scope.safeApply();
-                    return vm.addedButtonName + vm.existingButtonNo;
+                    vm.existingButtonNo = 1;
 
-                });
+                    socketService.$socket($scope.AppSocket, 'getAdvertisementRecordById', sendData, function (data) {
+                        if(data && data.data){
+                            if(data.data.imageButton){
+                                data.data.imageButton.forEach(b => {
+                                    if(b.buttonNo > vm.existingButtonNo){
+                                        vm.existingButtonNo = b.buttonNo + 1;
+                                    }
+                                })
 
+                            }
+                        }
+                        $scope.safeApply();
+                        return vm.addedButtonName + vm.existingButtonNo;
 
+                    });
+                }
             },
 
             vm.getNextOrderNo = function() {
                 let sendData= {
                     platformId: vm.selectedPlatform.id,
-                    inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
+                    inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 }
 
                 socketService.$socket($scope.AppSocket, 'getNextOrderNo', sendData, function (data) {
@@ -21482,93 +21468,53 @@ define(['js/app'], function (myApp) {
 
             }
 
+            vm.resetPlayerAddTable = function(){
+                //reset the adding table
+                vm.addNewPlayerAdvertisement = false;
+                vm.currentImageButtonNo = 2;
+                vm.playerAdvertisementGroup = [];
+                vm.playerAdvertisementTitle = [];
+                vm.playerAdvertisementGroup.imageButton = [
+                    {
+                        buttonNo: 1,
+                        buttonName: "activityBtn1",
+                        url:"",
+                        hyperLink: "",
+                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                        hoverCss: ":hover{width:500px;}"
+                    },
+                    {
+                        buttonNo: 2,
+                        buttonName: "activityBtn2",
+                        url:"",
+                        hyperLink: "",
+                        css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                        hoverCss: ":hover{width:500px;}"
+                    }
+                ];
 
+                $scope.safeApply();
+            }
 
             //Partner Advertisement
             vm.addNewPartnerAdvertisementRecord = function() {
                 if(!vm.duplicatePartnerOrderNo && !vm.duplicatePartnerAdCode) {
-                    let query = {
-                        platformId: vm.selectedPlatform.id,
-                        orderNo: vm.partnerAdvertisementGroup.orderNo,
-                        advertisementCode: vm.partnerAdvertisementGroup.advertisementCode,
-                        title: vm.partnerAdvertisementTitle,
-                        backgroundBannerImage: {
-                            url: vm.partnerAdvertisementGroup.backgroundUrl,
-                            hyperLink: vm.partnerAdvertisementGroup.backgroundHyperLink
-                        },
-                        imageButton: vm.partnerAdvertisementGroup.imageButton,
-                        inputDevice: vm.partnerAdvertisementWebDevice ? 1 : 3
-                    }
-
-                    if(query.imageButton){
-                        query.imageButton.map(b => {
-                            if(b){
-                                if(b.url && b.url.length > 35){
-                                    b.urlDisplay = b.url.substring(0,30) + "...";
-                                }else{
-                                    b.urlDisplay = b.url || null;
-                                }
-
-                                if(b.hyperLink && b.hyperLink.length > 35){
-                                    b.hyperLinkDisplay = b.hyperLink.substring(0,30) + "...";
-                                }else{
-                                    b.hyperLinkDisplay = b.hyperLink || null;
-                                }
-                            }
-                        })
-                    }
-
-                    if(query.backgroundBannerImage){
-                        if(query.backgroundBannerImage.url && query.backgroundBannerImage.url.length > 35){
-                            query.backgroundBannerImage.urlDisplay = query.backgroundBannerImage.url.substring(0,30) + "...";
-                        }else{
-                            query.backgroundBannerImage.urlDisplay = query.backgroundBannerImage.url || null;
+                    if(vm.partnerAdvertisementGroup){
+                        let query = {
+                            platformId: vm.selectedPlatform.id,
+                            orderNo: vm.partnerAdvertisementGroup.orderNo ? vm.partnerAdvertisementGroup.orderNo : 0,
+                            advertisementCode: vm.partnerAdvertisementGroup.advertisementCode ? vm.partnerAdvertisementGroup.advertisementCode : "",
+                            title: vm.partnerAdvertisementTitle ? vm.partnerAdvertisementTitle : [],
+                            backgroundBannerImage: {
+                                url: vm.partnerAdvertisementGroup.backgroundUrl ? vm.partnerAdvertisementGroup.backgroundUrl : "",
+                                hyperLink: vm.partnerAdvertisementGroup.backgroundHyperLink ? vm.partnerAdvertisementGroup.backgroundHyperLink : ""
+                            },
+                            imageButton: vm.partnerAdvertisementGroup.imageButton ? vm.partnerAdvertisementGroup.imageButton : [],
+                            inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                         }
 
-                        if(query.backgroundBannerImage.hyperLink && query.backgroundBannerImage.hyperLink.length > 35){
-                            query.backgroundBannerImage.hyperLinkDisplay = query.backgroundBannerImage.hyperLink.substring(0,30) + "...";
-                        }else{
-                            query.backgroundBannerImage.hyperLinkDisplay = query.backgroundBannerImage.hyperLink || null;
-                        }
-                    }
-
-                    socketService.$socket($scope.AppSocket, 'createNewPartnerAdvertisementRecord', query, function (data) {
-                        if (data) {
-                            //reset the adding table
-                            vm.currentPartnerImageButtonNo = 2;
-                            vm.partnerAdvertisementGroup = [];
-                            vm.partnerAdvertisementTitle = "";
-                            vm.partnerAdvertisementGroup.imageButton = [
-                                {
-                                    buttonNo: 1,
-                                    buttonName: "activityBtn1",
-                                    url:"",
-                                    hyperLink: "",
-                                    css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                                    hoverCss: ":hover{width:500px;}"
-                                },
-                                {
-                                    buttonNo: 2,
-                                    buttonName: "activityBtn2",
-                                    url:"",
-                                    hyperLink: "",
-                                    css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                                    hoverCss: ":hover{width:500px;}"
-                                }
-                            ];
-                        }
-                    });
-                }
-            }
-
-            vm.savePartnerAdvertisementRecordChanges = function(test){
-                if(!vm.duplicatePartnerOrderNo && !vm.duplicatePartnerAdCode){
-                    vm.displayPartnerAdvertisementList.forEach(record => {
-
-                        let sendData = record;
-
-                        if(sendData.imageButton){
-                            sendData.imageButton.map(b => {
+                        if(query.imageButton){
+                            query.imageButton.map(b => {
                                 if(b){
                                     if(b.url && b.url.length > 35){
                                         b.urlDisplay = b.url.substring(0,30) + "...";
@@ -21585,44 +21531,95 @@ define(['js/app'], function (myApp) {
                             })
                         }
 
-                        if(sendData.backgroundBannerImage){
-                            if(sendData.backgroundBannerImage.url && sendData.backgroundBannerImage.url.length > 35){
-                                sendData.backgroundBannerImage.urlDisplay = sendData.backgroundBannerImage.url.substring(0,30) + "...";
+                        if(query.backgroundBannerImage){
+                            if(query.backgroundBannerImage.url && query.backgroundBannerImage.url.length > 35){
+                                query.backgroundBannerImage.urlDisplay = query.backgroundBannerImage.url.substring(0,30) + "...";
                             }else{
-                                sendData.backgroundBannerImage.urlDisplay = sendData.backgroundBannerImage.url || null;
+                                query.backgroundBannerImage.urlDisplay = query.backgroundBannerImage.url || null;
                             }
 
-                            if(sendData.backgroundBannerImage.hyperLink && sendData.backgroundBannerImage.hyperLink.length > 35){
-                                sendData.backgroundBannerImage.hyperLinkDisplay = sendData.backgroundBannerImage.hyperLink.substring(0,30) + "...";
+                            if(query.backgroundBannerImage.hyperLink && query.backgroundBannerImage.hyperLink.length > 35){
+                                query.backgroundBannerImage.hyperLinkDisplay = query.backgroundBannerImage.hyperLink.substring(0,30) + "...";
                             }else{
-                                sendData.backgroundBannerImage.hyperLinkDisplay = sendData.backgroundBannerImage.hyperLink || null;
+                                query.backgroundBannerImage.hyperLinkDisplay = query.backgroundBannerImage.hyperLink || null;
                             }
                         }
 
-                        socketService.$socket($scope.AppSocket, 'savePartnerAdvertisementRecordChanges', sendData, function (data) {
-                            //do nothing
+                        socketService.$socket($scope.AppSocket, 'createNewPartnerAdvertisementRecord', query, function (data) {
+                            if (data) {
+                                vm.resetPartnerAddTable();
+                            }
                         });
+                    }
 
-                        vm.editPartnerAdvertisementRecord=false;
-                        vm.showPartnerAdvertisementRecord=true;
-                    });
+                }
+            }
+
+            vm.savePartnerAdvertisementRecordChanges = function(){
+                if(!vm.duplicatePartnerOrderNo && !vm.duplicatePartnerAdCode){
+                    if(vm.displayPartnerAdvertisementList){
+                        vm.displayPartnerAdvertisementList.forEach(record => {
+
+                            let sendData = record;
+
+                            if(sendData.imageButton){
+                                sendData.imageButton.map(b => {
+                                    if(b){
+                                        if(b.url && b.url.length > 35){
+                                            b.urlDisplay = b.url.substring(0,30) + "...";
+                                        }else{
+                                            b.urlDisplay = b.url || null;
+                                        }
+
+                                        if(b.hyperLink && b.hyperLink.length > 35){
+                                            b.hyperLinkDisplay = b.hyperLink.substring(0,30) + "...";
+                                        }else{
+                                            b.hyperLinkDisplay = b.hyperLink || null;
+                                        }
+                                    }
+                                })
+                            }
+
+                            if(sendData.backgroundBannerImage){
+                                if(sendData.backgroundBannerImage.url && sendData.backgroundBannerImage.url.length > 35){
+                                    sendData.backgroundBannerImage.urlDisplay = sendData.backgroundBannerImage.url.substring(0,30) + "...";
+                                }else{
+                                    sendData.backgroundBannerImage.urlDisplay = sendData.backgroundBannerImage.url || null;
+                                }
+
+                                if(sendData.backgroundBannerImage.hyperLink && sendData.backgroundBannerImage.hyperLink.length > 35){
+                                    sendData.backgroundBannerImage.hyperLinkDisplay = sendData.backgroundBannerImage.hyperLink.substring(0,30) + "...";
+                                }else{
+                                    sendData.backgroundBannerImage.hyperLinkDisplay = sendData.backgroundBannerImage.hyperLink || null;
+                                }
+                            }
+
+                            socketService.$socket($scope.AppSocket, 'savePartnerAdvertisementRecordChanges', sendData, function (data) {
+                                //do nothing
+                            });
+
+                            vm.editPartnerAdvertisementRecord=false;
+                            vm.showPartnerAdvertisementRecord=true;
+                        });
+                    }
                 }
             }
 
             vm.deletePartnerAdvertisementRecord = function(advertisementId) {
+                if(advertisementId){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        advertisementId: advertisementId,
+                    };
 
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    advertisementId: advertisementId,
-                };
-
-                socketService.$socket($scope.AppSocket, 'deletePartnerAdvertisementRecord', sendData);
+                    socketService.$socket($scope.AppSocket, 'deletePartnerAdvertisementRecord', sendData);
+                }
             }
 
             vm.partnerAdvertisementList = function () {
                 let sendData = {
                     platformId: vm.selectedPlatform.id,
-                    inputDevice: vm.partnerAdvertisementWebDevice ? 1 : 3
+                    inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPartnerAdvertisementList', sendData, function (data) {
@@ -21644,26 +21641,8 @@ define(['js/app'], function (myApp) {
                                         d.backgroundBannerImage.hyperLinkDisplay = d.backgroundBannerImage.hyperLink || null;
                                     }
                                 }
-                                //
-                                // if(d.imageButton){
-                                //     d.imageButton.map(b => {
-                                //         if(b){
-                                //             if(b.url && b.url.length > 35){
-                                //                 b.urlDisplay = b.url.substring(0,30) + "...";
-                                //             }else{
-                                //                 b.urlDisplay = b.url || null;
-                                //             }
-                                //
-                                //             if(b.hyperLink && b.hyperLink.length > 35){
-                                //                 b.hyperLinkDisplay = b.hyperLink.substring(0,30) + "...";
-                                //             }else{
-                                //                 b.hyperLinkDisplay = b.hyperLink || null;
-                                //             }
-                                //         }
-                                //     })
-                                // }
 
-                                d.status = d.status == 0 ? d.status : 1;
+                                d.status = d.status == vm.playerAdvertisementStatus["OPEN"] ? d.status : vm.playerAdvertisementStatus["CLOSE"];
                             }
                         })
 
@@ -21675,61 +21654,67 @@ define(['js/app'], function (myApp) {
             };
 
             vm.changePartnerAdvertisementStatus= function(advertisementId, advertisementStatus){
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    _id: advertisementId,
-                    status: advertisementStatus
+                if(advertisementId){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                        status: advertisementStatus
+                    }
+                    socketService.$socket($scope.AppSocket, 'changePartnerAdvertisementStatus', sendData, function (data) {
+                        //do nothing
+                    });
                 }
-                socketService.$socket($scope.AppSocket, 'changePartnerAdvertisementStatus', sendData, function (data) {
-                    //do nothing
-                });
             }
 
             vm.checkPartnerDuplicateOrderNoWithId = function(orderNo, advertisementId){
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    _id: advertisementId,
-                    orderNo: orderNo,
-                    inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
-                }
-                socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateOrderNoWithId', sendData, function (data) {
-                    if(data && data.data){
-                        vm.duplicateOrderNo = true;
-                        vm.errMessage = "Order no is duplicated";
-                        $scope.safeApply();
-                    }else{
-                        vm.duplicateOrderNo = false;
-                        vm.errMessage = "";
-                        $scope.safeApply();
+                if(advertisementId){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                        orderNo: orderNo,
+                        inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                     }
-                });
+                    socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateOrderNoWithId', sendData, function (data) {
+                        if(data && data.data){
+                            vm.duplicateOrderNo = true;
+                            vm.errMessage = "Order no is duplicated";
+                            $scope.safeApply();
+                        }else{
+                            vm.duplicateOrderNo = false;
+                            vm.errMessage = "";
+                            $scope.safeApply();
+                        }
+                    });
+                }
             }
 
             vm.checkPartnerDuplicateAdCodeWithId = function(advertisementCode, advertisementId){
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    _id: advertisementId,
-                    advertisementCode: advertisementCode,
-                    inputDevice: vm.partnerAdvertisementWebDevice ? 1 : 3
-                }
-                socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateAdCodeWithId', sendData, function (data) {
-                    if(data && data.data){
-                        vm.duplicateAdCode = true;
-                        vm.errMessage = "Advertisement code is duplicated";
-                        $scope.safeApply();
-                    }else{
-                        vm.duplicateAdCode = false;
-                        vm.errMessage = "";
-                        $scope.safeApply();
+                if(advertisementId && advertisementCode) {
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                        advertisementCode: advertisementCode,
+                        inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                     }
-                });
+                    socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateAdCodeWithId', sendData, function (data) {
+                        if (data && data.data) {
+                            vm.duplicateAdCode = true;
+                            vm.errMessage = "Advertisement code is duplicated";
+                            $scope.safeApply();
+                        } else {
+                            vm.duplicateAdCode = false;
+                            vm.errMessage = "";
+                            $scope.safeApply();
+                        }
+                    });
+                }
             }
 
             vm.checkPartnerDuplicateOrderNo = function(orderNo){
                 let sendData = {
                     platformId: vm.selectedPlatform.id,
                     orderNo: orderNo,
-                    inputDevice: vm.partnerAdvertisementWebDevice ? 1 : 3
+                    inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 }
                 socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateOrderNo', sendData, function (data) {
                     if(data && data.data){
@@ -21750,22 +21735,24 @@ define(['js/app'], function (myApp) {
 
 
             vm.checkPartnerDuplicateAdCode = function(advertisementCode){
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    advertisementCode: advertisementCode,
-                    inputDevice: vm.partnerAdvertisementWebDevice ? 1 : 3
-                }
-                socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateAdCode', sendData, function (data) {
-                    if(data && data.data){
-                        vm.duplicateAdCode = true;
-                        vm.errMessage = "Advertisement code is duplicated";
-                        $scope.safeApply();
-                    }else{
-                        vm.duplicateAdCode = false;
-                        vm.errMessage = "";
-                        $scope.safeApply();
+                if(advertisementCode){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        advertisementCode: advertisementCode,
+                        inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                     }
-                });
+                    socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateAdCode', sendData, function (data) {
+                        if(data && data.data){
+                            vm.duplicateAdCode = true;
+                            vm.errMessage = "Advertisement code is duplicated";
+                            $scope.safeApply();
+                        }else{
+                            vm.duplicateAdCode = false;
+                            vm.errMessage = "";
+                            $scope.safeApply();
+                        }
+                    });
+                }
             }
 
             vm.setPartnerNewImageButtonName = function(){
@@ -21798,35 +21785,35 @@ define(['js/app'], function (myApp) {
                 // );
                 //
                 // vm.currentImageButtonNo += 1;
-                let sendData= {
-                    platformId: vm.selectedPlatform.id,
-                    _id: advertisementId
-                }
-                vm.existingPartnerButtonNo = 1;
-
-                socketService.$socket($scope.AppSocket, 'getPartnerAdvertisementRecordById', sendData, function (data) {
-                    if(data && data.data){
-                        if(data.data.imageButton){
-                            data.data.imageButton.forEach(b => {
-                                if(b.buttonNo > vm.existingButtonNo){
-                                    vm.existingButtonNo = b.buttonNo + 1;
-                                }
-                            })
-
-                        }
+                if(advertisementId){
+                    let sendData= {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId
                     }
-                    $scope.safeApply();
-                    return vm.addedPartnerButtonName + vm.existingPartnerButtonNo;
+                    vm.existingPartnerButtonNo = 1;
 
-                });
+                    socketService.$socket($scope.AppSocket, 'getPartnerAdvertisementRecordById', sendData, function (data) {
+                        if(data && data.data){
+                            if(data.data.imageButton){
+                                data.data.imageButton.forEach(b => {
+                                    if(b.buttonNo > vm.existingButtonNo){
+                                        vm.existingButtonNo = b.buttonNo + 1;
+                                    }
+                                })
 
+                            }
+                        }
+                        $scope.safeApply();
+                        return vm.addedPartnerButtonName + vm.existingPartnerButtonNo;
 
+                    });
+                }
             },
 
             vm.getPartnerNextOrderNo = function() {
                 let sendData= {
                     platformId: vm.selectedPlatform.id,
-                    inputDevice: vm.partnerAdvertisementWebDevice ? 1 : 3
+                    inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 }
 
                 socketService.$socket($scope.AppSocket, 'getPartnerNextOrderNo', sendData, function (data) {
@@ -21838,6 +21825,34 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 });
+            }
+
+            vm.resetPartnerAddTable = function(){
+                //reset the adding table
+                vm.addNewPartnerAdvertisement = false;
+                vm.currentPartnerImageButtonNo = 2;
+                vm.partnerAdvertisementGroup = [];
+                vm.partnerAdvertisementTitle = [];
+                vm.partnerAdvertisementGroup.imageButton = [
+                    {
+                        buttonNo: 1,
+                        buttonName: "activityBtn1",
+                        url:"",
+                        hyperLink: "",
+                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                        hoverCss: ":hover{width:500px;}"
+                    },
+                    {
+                        buttonNo: 2,
+                        buttonName: "activityBtn2",
+                        url:"",
+                        hyperLink: "",
+                        css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                        hoverCss: ":hover{width:500px;}"
+                    }
+                ];
+
+                $scope.safeApply();
             }
 
             vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);
