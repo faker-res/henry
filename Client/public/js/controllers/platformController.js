@@ -5228,7 +5228,7 @@ define(['js/app'], function (myApp) {
 
                                 if (vm.selectedPlatform.data.useProviderGroup) {
                                     vm.getRewardTaskGroupDetail(row._id, function (data) {
-                                        vm.curRewardTask = vm.curRewardTask.map(group => {
+                                        vm.rewardTaskGroupPopoverData = vm.curRewardTask.map(group => {
                                             if (group.providerGroup.name == "LOCAL_CREDIT")
                                                 group.validCredit = row.validCredit;
                                             return group;
