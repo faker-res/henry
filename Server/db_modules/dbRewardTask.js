@@ -659,6 +659,9 @@ const dbRewardTask = {
             let topUpProposal = null;
             let proposal = dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
                 pdata => {
+                    if (!pdata) {
+                        return {};
+                    }
                     if (pdata.creator.name) {
                         item.creator = pdata.creator;
                     }
