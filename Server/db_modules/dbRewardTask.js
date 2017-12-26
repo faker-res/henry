@@ -390,7 +390,7 @@ const dbRewardTask = {
     },
     getRewardTaskGroupProposal: function (query) {
         let rewardTaskGroup = null;
-        let sortCol = query.sortCol || {"createTime": -1};
+        let sortCol = query.sortCol || {"createTime": 1};
 
         var queryObj = {
             playerId: ObjectId(query.playerId),
