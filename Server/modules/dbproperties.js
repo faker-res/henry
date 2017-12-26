@@ -76,7 +76,8 @@ let rewardPointsRandomDataConfigSchema = require('./../schema/rewardPointsRandom
 let rewardPointsEventSchema = require('./../schema/rewardPointsEvent');
 let rewardPointsTaskSchema = require('./../schema/rewardPointsTask');
 
-let frontEndInfoSchema = require('./../schema/frontEndInfo');
+let playerPageAdvertisementInfoSchema = require('./../schema/playerPageAdvertisementInfo');
+let partnerPageAdvertisementInfoSchema = require('./../schema/partnerPageAdvertisementInfo');
 
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
@@ -171,7 +172,8 @@ let playerFeedbackTopicModel = db_admin.model('playerFeedbackTopic', playerFeedb
 
 let rewardPointsLvlConfigModel = db_admin.model('rewardPointsLvlConfig', rewardPointsLvlConfigSchema, 'rewardPointsLvlConfig');
 
-let frontEndInfoModel = db_admin.model('frontEndInfo', frontEndInfoSchema, 'frontEndInfo');
+let playerPageAdvertisementInfoModel = db_admin.model('playerPageAdvertisementInfo', playerPageAdvertisementInfoSchema, 'playerPageAdvertisementInfo');
+let partnerPageAdvertisementInfoModel = db_admin.model('partnerPageAdvertisementInfo', partnerPageAdvertisementInfoSchema, 'partnerPageAdvertisementInfo');
 
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
@@ -420,7 +422,8 @@ var dbProperties = {
     collection_playerFeedbackResult: playerFeedbackResultModel,
     collection_playerFeedbackTopic: playerFeedbackTopicModel,
 
-    collection_frontEndInfo: frontEndInfoModel,
+    collection_playerPageAdvertisementInfo: playerPageAdvertisementInfoModel,
+    collection_partnerPageAdvertisementInfo: partnerPageAdvertisementInfoModel,
 
     //logs
     collection_playerMail: playerMailModel,
