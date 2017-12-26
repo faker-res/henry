@@ -387,6 +387,8 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardTaskGroup.deletePlatformProviderGroup, [data.gameProviderGroupObjId], actionName, isValidData);
         },
 
+
+        //Player Advertisement
         getPlayerAdvertisementList: function getPlayerAdvertisementList(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.inputDevice);
@@ -395,8 +397,8 @@ function socketActionPlatform(socketIO, socket) {
 
         createNewPlayerAdvertisementRecord: function createNewPlayerAdvertisementRecord(data){
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId && data.adCode && data.inputDevice);
-            socketUtil.emitter(self.socket, dbPlatform.createNewPlayerAdvertisementRecord, [data.platformId, data.orderNo, data.adCode, data.title, data.backgroundBanner, data.imageButton, data.inputDevice], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformId && data.advertisementCode && data.inputDevice);
+            socketUtil.emitter(self.socket, dbPlatform.createNewPlayerAdvertisementRecord, [data.platformId, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice], actionName, isValidData);
         },
 
         deleteAdvertisementRecord: function deleteAdvertisementRecord(data){
@@ -408,7 +410,7 @@ function socketActionPlatform(socketIO, socket) {
         savePlayerAdvertisementRecordChanges: function savePlayerAdvertisementRecordChanges(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data._id);
-            socketUtil.emitter(self.socket, dbPlatform.savePlayerAdvertisementRecordChanges, [data.platformId, data._id, data.orderNo, data.adCode, data.title, data.backgroundBannerURL, data.button, data.inputDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.savePlayerAdvertisementRecordChanges, [data.platformId, data._id, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice], actionName, isValidData);
         },
 
         changeAdvertisementStatus: function changeAdvertisementStatus(data){
@@ -417,12 +419,108 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.changeAdvertisementStatus, [data.platformId, data._id, data.status], actionName, isValidData);
         },
 
+        checkDuplicateOrderNoWithId: function checkDuplicateOrderNoWithId(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id);
+            socketUtil.emitter(self.socket, dbPlatform.checkDuplicateOrderNoWithId, [data.platformId, data.orderNo, data.inputDevice, data._id], actionName, isValidData);
+        },
+
+        checkDuplicateAdCodeWithId: function checkDuplicateAdCodeWithId(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id && data.advertisementCode);
+            socketUtil.emitter(self.socket, dbPlatform.checkDuplicateAdCodeWithId, [data.platformId, data.advertisementCode, data.inputDevice, data._id], actionName, isValidData);
+        },
+
         checkDuplicateOrderNo: function checkDuplicateOrderNo(data){
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId);
+            let isValidData = Boolean(data && data.platformId );
             socketUtil.emitter(self.socket, dbPlatform.checkDuplicateOrderNo, [data.platformId, data.orderNo, data.inputDevice], actionName, isValidData);
-        }
+        },
 
+        checkDuplicateAdCode: function checkDuplicateAdCode(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.advertisementCode);
+            socketUtil.emitter(self.socket, dbPlatform.checkDuplicateAdCode, [data.platformId, data.advertisementCode, data.inputDevice], actionName, isValidData);
+        },
+
+        getAdvertisementRecordById: function getAdvertisementRecordById(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id);
+            socketUtil.emitter(self.socket, dbPlatform.getAdvertisementRecordById, [data.platformId, data._id], actionName, isValidData);
+        },
+
+        getNextOrderNo: function getNextOrderNo(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.inputDevice);
+            socketUtil.emitter(self.socket, dbPlatform.getNextOrderNo, [data.platformId, data.inputDevice], actionName, isValidData);
+        },
+
+        //Partner Advertisement
+        getPartnerAdvertisementList: function getPartnerAdvertisementList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.inputDevice);
+            socketUtil.emitter(self.socket, dbPlatform.getPartnerAdvertisementList, [data.platformId, data.inputDevice], actionName, isValidData);
+        },
+
+        createNewPartnerAdvertisementRecord: function createNewPartnerAdvertisementRecord(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.advertisementCode && data.inputDevice);
+            socketUtil.emitter(self.socket, dbPlatform.createNewPartnerAdvertisementRecord, [data.platformId, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice], actionName, isValidData);
+        },
+
+        deletePartnerAdvertisementRecord: function deletePartnerAdvertisementRecord(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.advertisementId);
+            socketUtil.emitter(self.socket, dbPlatform.deletePartnerAdvertisementRecord, [data.platformId, data.advertisementId], actionName, isValidData);
+        },
+
+        savePartnerAdvertisementRecordChanges: function savePartnerAdvertisementRecordChanges(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id);
+            socketUtil.emitter(self.socket, dbPlatform.savePartnerAdvertisementRecordChanges, [data.platformId, data._id, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice], actionName, isValidData);
+        },
+
+        changePartnerAdvertisementStatus: function changePartnerAdvertisementStatus(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id);
+            socketUtil.emitter(self.socket, dbPlatform.changePartnerAdvertisementStatus, [data.platformId, data._id, data.status], actionName, isValidData);
+        },
+
+        checkPartnerDuplicateOrderNoWithId: function checkPartnerDuplicateOrderNoWithId(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id);
+            socketUtil.emitter(self.socket, dbPlatform.checkPartnerDuplicateOrderNoWithId, [data.platformId, data.orderNo, data.inputDevice, data._id], actionName, isValidData);
+        },
+
+        checkPartnerDuplicateAdCodeWithId: function checkPartnerDuplicateAdCodeWithId(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id && data.advertisementCode);
+            socketUtil.emitter(self.socket, dbPlatform.checkPartnerDuplicateAdCodeWithId, [data.platformId, data.advertisementCode, data.inputDevice, data._id], actionName, isValidData);
+        },
+
+        checkPartnerDuplicateOrderNo: function checkPartnerDuplicateOrderNo(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId );
+            socketUtil.emitter(self.socket, dbPlatform.checkPartnerDuplicateOrderNo, [data.platformId, data.orderNo, data.inputDevice], actionName, isValidData);
+        },
+
+        checkPartnerDuplicateAdCode: function checkPartnerDuplicateAdCode(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.advertisementCode);
+            socketUtil.emitter(self.socket, dbPlatform.checkPartnerDuplicateAdCode, [data.platformId, data.advertisementCode, data.inputDevice], actionName, isValidData);
+        },
+
+        getPartnerAdvertisementRecordById: function getPartnerAdvertisementRecordById(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id);
+            socketUtil.emitter(self.socket, dbPlatform.getPartnerAdvertisementRecordById, [data.platformId, data._id], actionName, isValidData);
+        },
+
+        getPartnerNextOrderNo: function getPartnerNextOrderNo(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.inputDevice);
+            socketUtil.emitter(self.socket, dbPlatform.getPartnerNextOrderNo, [data.platformId, data.inputDevice], actionName, isValidData);
+        }
     };
     socketActionPlatform.actions = this.actions;
 }

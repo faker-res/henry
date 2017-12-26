@@ -101,7 +101,8 @@
             //define functions
             var functionNames = [
                 "getPlatformDetails",
-                "getPlatformAnnouncements"
+                "getPlatformAnnouncements",
+                "getConfig"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

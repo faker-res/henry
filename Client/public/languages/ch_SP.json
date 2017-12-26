@@ -2976,5 +2976,8 @@
   "will only show status in alipay list": "只显示有在支付宝列表的状态",
   "IS_IN_GROUP": "组内外",
   "IN_GROUP": "组内",
-  "NOT_IN_GROUP": "组外"
+  "NOT_IN_GROUP": "组外",
+  "Order no is duplicated": "展示顺序已存在",
+  "Advertisement code is duplicated": "广告代码已存在",
+  "BUTTON NAME": "按钮名字"
 }

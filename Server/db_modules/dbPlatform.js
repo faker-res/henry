@@ -1644,12 +1644,14 @@ var dbPlatform = {
     generateObjectId: function(){
         return new ObjectId();
     },
+
+    //Player Advertisement
     getPlayerAdvertisementList: function(platformId, inputDevice){
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj =>{
                 if(platformObj){
                     if(inputDevice){
-                        return dbconfig.collection_frontEndInfo.find({platformId: platformObj._id, inputDevice: inputDevice}).lean();
+                        return dbconfig.collection_playerPageAdvertisementInfo.find({platformId: platformObj._id, inputDevice: inputDevice}).lean();
                     }
                     else{
                         return Q.reject(Error("Invalid input device"));
@@ -1661,35 +1663,34 @@ var dbPlatform = {
         );
 
     },
-    createNewPlayerAdvertisementRecord: function(platformId, orderNo, adCode, title, backgroundBanner, imageButton, inputDevice){
+    createNewPlayerAdvertisementRecord: function(platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice){
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj =>{
                 if(platformObj){
                     let newRecordData = {
                         platformId: platformId,
                         orderNo: orderNo,
-                        adCode: adCode,
+                        advertisementCode: advertisementCode,
                         title: title,
-                        backgroundBannerURL: backgroundBanner,
-                        button: imageButton,
+                        backgroundBannerImage: backgroundBannerImage,
+                        imageButton: imageButton,
                         inputDevice: inputDevice,
                         status: 1
                     }
-
-                    let advertistmentRecord = new dbconfig.collection_frontEndInfo(newRecordData);
-                    return advertistmentRecord.save();
+                    let advertistmentRecord = new dbconfig.collection_playerPageAdvertisementInfo(newRecordData);
+                    return advertistmentRecord.save();0
                 }else{
-                    return Q.reject(Error("No platform exists with id: " + platformId));
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId, error: error});
                 }
             }
         );
     },
 
     deleteAdvertisementRecord: function(platformId, advertisementId){
-        return dbconfig.collection_frontEndInfo.remove({_id: advertisementId, platformId: platformId});
+        return dbconfig.collection_playerPageAdvertisementInfo.remove({_id: advertisementId, platformId: platformId});
     },
 
-    savePlayerAdvertisementRecordChanges: function(platformId, advertisementId, orderNo, adCode, title, backgroundBanner, imageButton, inputDevice){
+    savePlayerAdvertisementRecordChanges: function(platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice){
 
         let query = {
             platformId: platformId,
@@ -1698,32 +1699,17 @@ var dbPlatform = {
 
         let updateData = {
             orderNo: orderNo,
-            adCode: adCode,
+            advertisementCode: advertisementCode,
             title: title,
-            backgroundBannerURL: backgroundBanner,
-            button: imageButton,
+            backgroundBannerImage: backgroundBannerImage,
+            imageButton: imageButton,
             inputDevice: inputDevice
         }
-        return dbconfig.collection_frontEndInfo.findOneAndUpdate(query,updateData).then(
+        return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query,updateData).then(
             platformObj =>{
 
                 return platformObj;
-                // if(platformObj){
-                //     let newRecordData = {
-                //         platformId: platformId,
-                //         orderNo: orderNo,
-                //         adCode: adCode,
-                //         title: title,
-                //         backgroundBannerURL: backgroundBanner,
-                //         button: imageButton,
-                //         inputDevice: inputDevice,
-                //     }
-                //
-                //     let advertistmentRecord = new dbconfig.collection_frontEndInfo(newRecordData);
-                //     return advertistmentRecord.save();
-                // }else{
-                //     return Q.reject(Error("No platform exists with id: " + platformId));
-                // }
+
             }
         );
     },
@@ -1737,10 +1723,70 @@ var dbPlatform = {
                         _id: advertisementId,
                         status: status ? status : 0
                     }
-                    return dbconfig.collection_frontEndInfo.findOneAndUpdate(query,{status: !status});
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query,{status: !status});
                 }
             }
         )
+    },
+
+    checkDuplicateOrderNoWithId: function(platformId, orderNo, inputDevice, advertisementId){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        orderNo: orderNo,
+                        inputDevice: inputDevice,
+                        _id: advertisementId
+                    }
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOne(query).then(
+                        data => {
+                            if(data){
+                                return null;
+                            }else{
+                                let queryWithoutId = {
+                                    platformId: platformId,
+                                    orderNo: orderNo,
+                                    inputDevice: inputDevice
+                                }
+                                return dbconfig.collection_playerPageAdvertisementInfo.findOne(queryWithoutId);
+                            }
+
+                        }
+                    );
+                }
+            }
+        );
+    },
+
+    checkDuplicateAdCodeWithId: function(platformId, advertisementCode, inputDevice, advertisementId){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        advertisementCode: advertisementCode,
+                        inputDevice: inputDevice,
+                        _id: advertisementId
+                    }
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOne(query).then(
+                        data => {
+                            if(data){
+                                return null;
+                            }else{
+                                let queryWithoutId = {
+                                    platformId: platformId,
+                                    advertisementCode: advertisementCode,
+                                    inputDevice: inputDevice
+                                }
+                                return dbconfig.collection_playerPageAdvertisementInfo.findOne(queryWithoutId);
+                            }
+
+                        }
+                    );
+                }
+            }
+        );
     },
 
     checkDuplicateOrderNo: function(platformId, orderNo, inputDevice){
@@ -1751,20 +1797,330 @@ var dbPlatform = {
                         platformId: platformId,
                         orderNo: orderNo,
                         inputDevice: inputDevice
-                    }
-                    console.log("AAAAAAAAAa",query);
-                    return dbconfig.collection_frontEndInfo.findOne(query);
+                    };
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOne(query);
+
                 }
             }
-        ).then(data => {
-            if(data){
-                console.log("BBBBBBBBB",data);
-                return data;
-            }else{
-                console.log("CCCCCCCCC");
+        );
+    },
+
+    checkDuplicateAdCode: function(platformId, advertisementCode, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        advertisementCode: advertisementCode,
+                        inputDevice: inputDevice
+                    };
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOne(query);
+                }
             }
-        });
-    }
+        );
+    },
+
+
+    getAdvertisementRecordById: function(platformId, advertisementId){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        _id: advertisementId
+                    }
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOne(query);
+                }
+            }
+        );
+    },
+
+    getNextOrderNo: function(platformId, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        inputDevice: inputDevice
+                    }
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOne(query).sort({orderNo: -1}).limit(1);
+                }
+            }
+        );
+    },
+
+    //Partner Advertisement
+    getPartnerAdvertisementList: function(platformId, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj =>{
+                if(platformObj){
+                    if(inputDevice){
+                        return dbconfig.collection_partnerPageAdvertisementInfo.find({platformId: platformObj._id, inputDevice: inputDevice}).lean();
+                    }
+                    else{
+                        return Q.reject(Error("Invalid input device"));
+                    }
+                }else{
+                    return Q.reject(Error("No platform exists with id: " + platformId));
+                }
+            }
+        );
+
+    },
+    createNewPartnerAdvertisementRecord: function(platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj =>{
+                if(platformObj){
+                    let newRecordData = {
+                        platformId: platformId,
+                        orderNo: orderNo,
+                        advertisementCode: advertisementCode,
+                        title: title,
+                        backgroundBannerImage: backgroundBannerImage,
+                        imageButton: imageButton,
+                        inputDevice: inputDevice,
+                        status: 1
+                    }
+                    let advertistmentRecord = new dbconfig.collection_partnerPageAdvertisementInfo(newRecordData);
+                    return advertistmentRecord.save();0
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId, error: error});
+                }
+            }
+        );
+    },
+
+    deletePartnerAdvertisementRecord: function(platformId, advertisementId){
+        return dbconfig.collection_partnerPageAdvertisementInfo.remove({_id: advertisementId, platformId: platformId});
+    },
+
+    savePartnerAdvertisementRecordChanges: function(platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice){
+
+        let query = {
+            platformId: platformId,
+            _id: advertisementId
+        }
+
+        let updateData = {
+            orderNo: orderNo,
+            advertisementCode: advertisementCode,
+            title: title,
+            backgroundBannerImage: backgroundBannerImage,
+            imageButton: imageButton,
+            inputDevice: inputDevice
+        }
+        return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query,updateData).then(
+            platformObj =>{
+
+                return platformObj;
+
+            }
+        );
+    },
+
+    changePartnerAdvertisementStatus: function(platformId, advertisementId, status){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        _id: advertisementId,
+                        status: status ? status : 0
+                    }
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query,{status: !status});
+                }
+            }
+        )
+    },
+
+    checkPartnerDuplicateOrderNoWithId: function(platformId, orderNo, inputDevice, advertisementId){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        orderNo: orderNo,
+                        inputDevice: inputDevice,
+                        _id: advertisementId
+                    }
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query).then(
+                        data => {
+                            if(data){
+                                return null;
+                            }else{
+                                let queryWithoutId = {
+                                    platformId: platformId,
+                                    orderNo: orderNo,
+                                    inputDevice: inputDevice
+                                }
+                                return dbconfig.collection_partnerPageAdvertisementInfo.findOne(queryWithoutId);
+                            }
+
+                        }
+                    );
+                }
+            }
+        );
+    },
+
+    checkPartnerDuplicateAdCodeWithId: function(platformId, advertisementCode, inputDevice, advertisementId){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        advertisementCode: advertisementCode,
+                        inputDevice: inputDevice,
+                        _id: advertisementId
+                    }
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query).then(
+                        data => {
+                            if(data){
+                                return null;
+                            }else{
+                                let queryWithoutId = {
+                                    platformId: platformId,
+                                    advertisementCode: advertisementCode,
+                                    inputDevice: inputDevice
+                                }
+                                return dbconfig.collection_partnerPageAdvertisementInfo.findOne(queryWithoutId);
+                            }
+
+                        }
+                    );
+                }
+            }
+        );
+    },
+
+    checkPartnerDuplicateOrderNo: function(platformId, orderNo, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        orderNo: orderNo,
+                        inputDevice: inputDevice
+                    };
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query);
+
+                }
+            }
+        );
+    },
+
+    checkPartnerDuplicateAdCode: function(platformId, advertisementCode, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        advertisementCode: advertisementCode,
+                        inputDevice: inputDevice
+                    };
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query);
+                }
+            }
+        );
+    },
+
+
+    getPartnerAdvertisementRecordById: function(platformId, advertisementId){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        _id: advertisementId
+                    }
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query);
+                }
+            }
+        );
+    },
+
+    getPartnerNextOrderNo: function(platformId, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        inputDevice: inputDevice
+                    }
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query).sort({orderNo: -1}).limit(1);
+                }
+            }
+        );
+    },
+
+
+
+    getConfig: function (platformId) {
+        let returnedObj = {
+            wechatList: [],
+            qqList: [],
+            telList: [],
+            live800: "",
+            activityList: []
+        };
+        return dbconfig.collection_platform.findOne({platformId: platformId}).then(
+            data => {
+                if(data){
+                    if(data.csWeixin){
+                        returnedObj.wechatList.push({
+                            isImg: 0,
+                            value: data.csWeixin
+                        },{
+                            isImg: 1,
+                            value:  data.weixinPhotoUrl ? data.weixinPhotoUrl : 0
+                        });
+                    }
+                    if(data.platformId){
+                        return dbconfig.collection_playerPageAdvertisementInfo.find({platformId: data._id}).sort({orderNo: 1});
+                    };
+                }
+            }
+        ).then(
+            advertisementInfo => {
+                if(advertisementInfo){
+                    advertisementInfo.map(info => {
+                        let activityListObj = {};
+                        if(info.advertisementCode){
+                            activityListObj.code = info.advertisementCode;
+                        }
+
+                        if(info.title && info.title.length > 0){
+                            activityListObj.title = info.title;
+                        }
+
+                        if(info.backgroundBannerImage && info.backgroundBannerImage.url){
+                            activityListObj.bannerImg= 'getHashFile("' + info.backgroundBannerImage.url + '")';
+                        }
+
+                        if(info.imageButton && info.imageButton.length > 0){
+                            let buttonList = [];
+                            info.imageButton.forEach(b => {
+                                let buttonObj = {};
+                                if(b.buttonName){
+                                    buttonObj.btn = b.buttonName;
+                                    buttonObj.extString = "";
+                                }
+                                buttonList.push(buttonObj);
+
+                            })
+                            activityListObj.btnList = buttonList;
+                        }else{
+                            activityListObj.extString= "";
+                        }
+
+                        returnedObj.activityList.push(activityListObj);
+                    })
+
+                    return returnedObj;
+                }
+            }
+        );
+    },
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
