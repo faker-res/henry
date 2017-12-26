@@ -16901,7 +16901,7 @@ define(['js/app'], function (myApp) {
                             data: "minTopUpAmount"
                         },
                         {
-                            title: $translate('maxTopUpAmount'),
+                            title: $translate('PROMO_maxTopUpAmount'),
                             data: "maxRewardAmount"
                         },
                         {
