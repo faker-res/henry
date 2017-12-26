@@ -536,9 +536,12 @@ const dbRewardTask = {
                     if(providers){
                         queryObj.targetProviders = {$in: providers}
                     }
+
+
                     if(query.selectedProviderGroupID == 'free'){
                         queryObj.providerGroup = null;
                     }
+
                 }
 
                 let rewardTaskQuery = JSON.parse(JSON.stringify(queryObj));
@@ -608,6 +611,7 @@ const dbRewardTask = {
 
                                 let resultData = [];
                                 if(query.selectedProviderGroupID == 'free' || useProviderGroup){
+
                                     resultData = rewardTaskGroupData;
                                     resultData.map(item=>{
                                         item.data = {};
@@ -621,6 +625,9 @@ const dbRewardTask = {
                                     resultData = proposalData[0] || [];
                                 }
 
+                                if(!query.showProposal && useProviderGroup){
+                                    resultData = [];
+                                }
 
                                 return {
                                     size: size,
