@@ -526,13 +526,20 @@ define(['js/app'], function (myApp) {
                 })
             };
 
-            $scope.$on('switchPlatform', (e, cb) => {
-                vm.loadPlatformData();
-                cb("Switch complete!");
+            $scope.$on('switchPlatform', () => {
+                vm.loadPlatformData({loadAll: true, noParallelTrigger: true});
             });
 
             //get all platform data from server
             vm.loadPlatformData = function (option) {
+                if (vm.onGoingLoadPlatformData) {
+                    return;
+                }
+
+                if (option && option.noParallelTrigger) {
+                    vm.onGoingLoadPlatformData = true;
+                }
+
                 if ($('#platformRefresh').hasClass('fa-spin')) {
                     return
                 }
@@ -560,6 +567,7 @@ define(['js/app'], function (myApp) {
                     setTimeout(function () {
                         $('#platformRefresh').removeClass('fa-check');
                         $('#platformRefresh').addClass('fa-refresh').fadeIn(100);
+                        vm.onGoingLoadPlatformData = false;
                     }, 1000);
 
                     //select platform from cookies data
@@ -722,6 +730,7 @@ define(['js/app'], function (myApp) {
                         vm.rewardPointsTabClicked();
                         //     break;
                         // }
+                        vm.onGoingLoadPlatformData = false;
                         $scope.safeApply();
                     },
                     function (error) {
@@ -5228,7 +5237,7 @@ define(['js/app'], function (myApp) {
 
                                 if (vm.selectedPlatform.data.useProviderGroup) {
                                     vm.getRewardTaskGroupDetail(row._id, function (data) {
-                                        vm.curRewardTask = vm.curRewardTask.map(group => {
+                                        vm.rewardTaskGroupPopoverData = vm.curRewardTask.map(group => {
                                             if (group.providerGroup.name == "LOCAL_CREDIT")
                                                 group.validCredit = row.validCredit;
                                             return group;
@@ -10299,9 +10308,9 @@ define(['js/app'], function (myApp) {
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
                         item.topUpAmount = (item.topUpAmount);
-                        item.bonusAmount$ = (item.bonusAmount);
+                        item.bonusAmount$ = -item.data.currentAmt;
                         item.requiredBonusAmount$ = (item.requiredBonusAmount);
-                        item.currentAmount$ = (item.currentAmount);
+                        item.currentAmount$ = 0;
                         item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
                                 return pro.name + ' ';
                             }) : $translate('all')) + ')';
@@ -10337,7 +10346,6 @@ define(['js/app'], function (myApp) {
                             item.rewardType = item.data.rewardType;
                         }
 
-
                         return item;
                     }) : [];
                     var size = data.data ? data.data.size : 0;
@@ -10354,6 +10362,8 @@ define(['js/app'], function (myApp) {
                 if (vm.selectedPlatform.data.useProviderGroup) {
                     tblData = tdata && tdata.data ? tdata.data.rewardTaskGroupData.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
+                        item.currentAmount$ = item.currentAmt - item.initAmt;
+                        item.bonusAmount$ = -item.initAmt;
                         return item;
                     }) : [];
                     tblData = tblData.filter(item => {
@@ -10365,11 +10375,12 @@ define(['js/app'], function (myApp) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
+
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
                         {
-                            title: $translate('Provider group'),
+                            title: $translate('Reward Task Group(Progress)'),
                             data: "providerGroup.name",
                             advSearch: true,
                             sClass: "",
@@ -10408,7 +10419,7 @@ define(['js/app'], function (myApp) {
                             sClass: "",
                             render: function (data, type, row) {
                                 let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
-                                var text = row.currentAmt + '/ -' + row.rewardAmt;
+                                var text = row.currentAmount$ + '/' + row.bonusAmount$;
                                 var result = '<div id="' + "pgReward" + providerGroupId + '">' + text + '</div>';
                                 return result;
                             }
@@ -10605,18 +10616,17 @@ define(['js/app'], function (myApp) {
                         if(rewardTaskGroup){
                             forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt ? rewardTaskGroup.forbidXIMAAmt:0;
                         }
-                        currentMax = vm.rewardTaskProposalData[i].data.spendingAmount + forbidXIMAAmt;
+                        currentMax = vm.rewardTaskProposalData[i].data.spendingAmount;
                         spendingAmt += spendingAmount;
                     }
                 }
                 let incCurConsumption = curConsumption - spendingAmt;
 
-
-                if (incCurConsumption >= 0) {
+                if(incCurConsumption >= 0 ){
                     AmtNow = currentMax;
-                } else {
+                }else{
                     AmtNow = currentMax + incCurConsumption;
-                    if (AmtNow < 0) {
+                    if(AmtNow <= 0){
                         AmtNow = 0;
                     }
                 }
@@ -10628,10 +10638,13 @@ define(['js/app'], function (myApp) {
                 let sumRewardAmount = 0;
                 let curRewardAmount = 0;
                 let taskGroupCurrentAmt = vm.dynRewardTaskGroupId ? vm.dynRewardTaskGroupId[0].currentAmt:0;
+                let currentMax = 0;
+                let curRewardDisplay = 0;
 
                 if (rowId == '0') {
                     let applyAmount = vm.rewardTaskProposalData[0].data.applyAmount ? vm.rewardTaskProposalData[0].data.applyAmount:0;
                     let rewardAmount = vm.rewardTaskProposalData[0].data.rewardAmount ? vm.rewardTaskProposalData[0].data.rewardAmount :0;
+                    currentMax = applyAmount + rewardAmount;
                     sumRewardAmount += applyAmount + rewardAmount;
                 } else {
                     for (let i = 0; i <= rowId; i++) {
@@ -10643,10 +10656,18 @@ define(['js/app'], function (myApp) {
 
                     }
                 }
-                // should over 0
-                let finalRewardAmount = taskGroupCurrentAmt - sumRewardAmount;
-                let spendingAmt = vm.calSpendingAmt(rowId);
 
+                let finalRewardAmount = taskGroupCurrentAmt - sumRewardAmount;
+
+                if(finalRewardAmount >= 0 ){
+                    curRewardDisplay = currentMax;
+                }else{
+                    curRewardDisplay = currentMax + finalRewardAmount;
+                    if(curRewardDisplay <= 0){
+                        curRewardDisplay = 0;
+                    }
+                }
+                let spendingAmt = vm.calSpendingAmt(rowId);
 
                 //getCurrentRewardAmt
                 if(vm.rewardTaskProposalData[rowId]){
@@ -10655,12 +10676,14 @@ define(['js/app'], function (myApp) {
                     curRewardAmount = curApplyAmt + curRewardAmt;
                 }
 
-
-                if (finalRewardAmount >= 0 && spendingAmt.incCurConsumption >= 0) {
+                if(curRewardDisplay == 0  && spendingAmt.currentAmt ==  0){
+                    return {isSubmit: false, curRewardAmount: curRewardDisplay, rewardAmount: currentMax, spendingAmt: spendingAmt}
+                }
+                else if (finalRewardAmount > 0  || spendingAmt.incCurConsumption >  0) {
                     // already submit, display tick icon
-                    return {isSubmit: true, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt, curRewardAmount:curRewardAmount}
+                    return {isSubmit: true, curRewardAmount: curRewardDisplay, rewardAmount: currentMax, spendingAmt: spendingAmt}
                 } else {
-                    return {isSubmit: false, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt, curRewardAmount: curRewardAmount}
+                    return {isSubmit: false, curRewardAmount: curRewardDisplay, rewardAmount: currentMax, spendingAmt: spendingAmt}
                 }
             }
             vm.getRewardTaskGroupProposal = function (id) {
@@ -10678,6 +10701,9 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedSinglePlayer.platform,
                     from: vm.rewardTaskLog.query.startTime.data('datetimepicker').getLocalDate(),
                     to: vm.rewardTaskLog.query.endTime.data('datetimepicker').getLocalDate(),
+                    index:  vm.rewardTaskLog.index ? vm.rewardTaskLog.index: 0,
+                    limit:  vm.rewardTaskLog.limit ? vm.rewardTaskLog.limit: 0,
+                    sortCol: vm.rewardTaskLog.sortCol || null
                 }
 
                 if (!id) {
@@ -10686,21 +10712,27 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
                         vm.rewardTaskProposalData = data.data.data;
                         vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
-                        console.log(vm.simpleRewardProposalData);
+                        console.log("vm.simpleRewardProposalData", vm.simpleRewardProposalData);
                         let summary = data.data.summary;
                         let result = data.data.data;
                         result.map(item=>{
+                            item.proposalId = item.proposalId || item.data.proposalId;
                             item['createTime$'] = vm.dateReformat(item.data.createTime$);
                             item.useConsumption = item.data.useConsumption;
                             item.topUpProposal = item.data.topUpProposalId;
                             item.topUpAmount = item.data.topUpAmount;
                             item.bonusAmount = item.data.rewardAmount;
-                            item.applyAmount = item.data.applyAmount;
+                            item.applyAmount = item.data.applyAmount || item.data.amount;
                             item.requiredUnlockAmount = result[0].data.spendingAmount;
                             item['provider$'] = item.data.provider$;
                             item.rewardType = item.data.rewardType;
+
+                            item.bonusAmount$ = item.data.bonusAmount;
+                            item.requiredBonusAmount$ = item.data.requiredBonusAmount;
+                            item.currentAmount$ = item.data.currentAmount;
+
                         })
-                        vm.drawRewardTaskTable(true, result, 0, summary, 0);
+                        vm.drawRewardTaskTable(true, result, 0, summary, 0, 0);
                         // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
                         vm.curRewardTask = data;
                     })
@@ -10715,7 +10747,6 @@ define(['js/app'], function (myApp) {
                     let proposal = {
                         applyAmount:item.data.applyAmount ? item.data.applyAmount:0,
                         rewardAmount:item.data.rewardAmount ? item.data.rewardAmount:0,
-
                         //consumption
                         spendingAmount:item.data.spendingAmount ? item.data.spendingAmount:0
                     }
@@ -10735,6 +10766,7 @@ define(['js/app'], function (myApp) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
+                        // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
@@ -10829,7 +10861,7 @@ define(['js/app'], function (myApp) {
                                     let curRewardAmount = isSubmit.curRewardAmount;
                                     let spAmount = spendingAmt.currentAmt;
                                     let spCurrentMax = spendingAmt.currentMax;
-                                    var text = spAmount + '/ -' + curRewardAmount;
+                                    var text = isSubmit.curRewardAmount + '/ -' + isSubmit.rewardAmount;
                                 }else{
                                     let applyAmount = row.applyAmount ? row.applyAmount: 0
                                     var text = row.currentAmount + '/ -' + (applyAmount + row.bonusAmount);
@@ -13902,16 +13934,17 @@ define(['js/app'], function (myApp) {
                     return
                 }
                 console.log("getQuickPay", vm.selectedPlatform.id);
-                socketService.$socket($scope.AppSocket, 'getPlatformQuickPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                    console.log('QuickPayGroup', data);
-                    //provider list init
-                    vm.platformQuickPayGroupList = data.data;
-                    vm.platformQuickPayGroupListCheck = {};
-                    $.each(vm.platformQuickPayGroupList, function (i, v) {
-                        vm.platformQuickPayGroupListCheck[v._id] = true;
-                    })
-                    $scope.safeApply();
-                })
+                //todo::no need quick pay for now
+                // socketService.$socket($scope.AppSocket, 'getPlatformQuickPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                //     console.log('QuickPayGroup', data);
+                //     //provider list init
+                //     vm.platformQuickPayGroupList = data.data;
+                //     vm.platformQuickPayGroupListCheck = {};
+                //     $.each(vm.platformQuickPayGroupList, function (i, v) {
+                //         vm.platformQuickPayGroupListCheck[v._id] = true;
+                //     })
+                //     $scope.safeApply();
+                // })
             }
 
             /////////////////////////////////////// QuickPay Group end  /////////////////////////////////////////////////
@@ -14899,12 +14932,22 @@ define(['js/app'], function (myApp) {
                         if (objectId) {
                             data._id = objectId;
 
-                            if (vm.rewardParamsFilter.length == vm.rewardParams.reward.length){
-                                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
-                            }
-                            else{
-                                vm.rewardParamsFilter.push(JSON.parse(JSON.stringify(data)));
-                                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                            if (vm.rewardParams.reward){
+                                // first time create the data
+                                if (vm.rewardParams.reward.length == 0) {
+                                    vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    vm.rewardParamsFilter = vm.rewardParams.reward;
+                                }
+                                else {
+                                    if (vm.rewardParamsFilter.length == vm.rewardParams.reward.length){
+                                        vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    }
+                                    else{
+                                        vm.rewardParamsFilter.push(JSON.parse(JSON.stringify(data)));
+                                        vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    }
+                                }
+
                             }
                             $scope.safeApply();
                         }
@@ -14973,7 +15016,7 @@ define(['js/app'], function (myApp) {
 
                 vm.rewardParams.reward.map(
                     item => {
-                        if (item.repeatWeekDay === undefined) {
+                        if (item.repeatWeekDay === undefined || item.repeatWeekDay.length === 0 ) {
                             vm.rewardParamsFilter.push(item);
                         }
                         else if (item.repeatWeekDay.includes(index)){
@@ -16670,7 +16713,7 @@ define(['js/app'], function (myApp) {
                             contentToReplace = item.code;
                             break;
                         case "M":
-                            contentToReplace = item.maxTopUpAmount;
+                            contentToReplace = item.maxRewardAmount;
                             break;
                         default:
                             break;
@@ -16878,8 +16921,8 @@ define(['js/app'], function (myApp) {
                             data: "minTopUpAmount"
                         },
                         {
-                            title: $translate('maxTopUpAmount'),
-                            data: "maxTopUpAmount"
+                            title: $translate('PROMO_maxTopUpAmount'),
+                            data: "maxRewardAmount"
                         },
                         {
                             title: $translate('PROMO_CONSUMPTION'),

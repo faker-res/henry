@@ -16,6 +16,7 @@ const constPlayerRegistrationInterface = require('../const/constPlayerRegistrati
 
 let dbUtility = require('./../modules/dbutility');
 let dbProposal = require('./../db_modules/dbProposal');
+let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbRewardPoints = require('../db_modules/dbRewardPoints');
 let dbRewardPointsLog = require('../db_modules/dbRewardPointsLog');
 let dbRewardPointsLvlConfig = require('../db_modules/dbRewardPointsLvlConfig');
@@ -47,6 +48,13 @@ let dbPlayerRewardPoints = {
                 type: 'admin',
                 id: adminId
             }
+        }
+
+        if (convertRewardPointsAmount < 0) {
+            return Q.reject({
+                name: "DataError",
+                message: "Convert reward points amount must greater than 0"
+            });
         }
         return dbConfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbConfig.collection_platform})
@@ -118,34 +126,7 @@ let dbPlayerRewardPoints = {
                             });
                         }
                         let todayTime = dbUtility.getTodaySGTime();
-                        return dbConfig.collection_rewardTask.aggregate(
-                            {
-                                $match: {
-                                    createTime: {
-                                        $gte: todayTime.startTime,
-                                        $lt: todayTime.endTime
-                                    },
-                                    "data.rewardPointsObjId": ObjectId(rewardPoints._id),
-                                    "data.category": constRewardPointsLogCategory.EARLY_POINT_CONVERSION
-                                }
-                            },
-                            {
-                                $group: {
-                                    _id: "$playerId",
-                                    amount: {$sum: "$data.convertedRewardPointsAmount"}
-                                }
-                            }
-                        ).then(
-                            rewardTask => {
-                                if (rewardTask && rewardTask[0]) {
-                                    return rewardTask[0].amount;
-                                }
-                                else {
-                                    // No rewardTask
-                                    return 0;
-                                }
-                            }
-                        );
+                        return dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(rewardPoints._id);
                     }
                     else {
                         return Q.reject({

@@ -2980,9 +2980,13 @@
   "IS_IN_GROUP": "组内外",
   "IN_GROUP": "组内",
   "NOT_IN_GROUP": "组外",
+  "Reward Task Group(Progress)": "锁定大厅 (进度)",
   "LOCAL_BALANCE": "本地余额",
   "Order no is duplicated": "展示顺序已存在",
   "Advertisement code is duplicated": "广告代码已存在",
   "BUTTON NAME": "按钮名字",
+  "OPENED": "已开启",
+  "CLOSED": "已关闭",
+  "Convert reward points amount must greater than 0": "兑换积分的数量必须大于0",
   "PLATFORM_ID": "平台ID"
 }

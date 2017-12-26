@@ -870,8 +870,7 @@ include modalGameCreditLog
                         th {{'Provider group' | translate}}
                         th {{'LOCAL_BALANCE' | translate}}
                         th {{'Unlock Progress(Consumption)' | translate}}
-
-                tbody(ng-repeat="group in vm.curRewardTask | orderBy:'providerGroup.providers'")
+                tbody(ng-repeat="group in vm.rewardTaskGroupPopoverData | orderBy:'providerGroup.providers'")
                     tr
                         td {{group.providerGroup.name | translate}}
                         td {{group.providerGroup.name == "LOCAL_CREDIT" ? group.validCredit : group.rewardAmt}}
