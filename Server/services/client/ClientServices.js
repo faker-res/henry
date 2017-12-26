@@ -101,7 +101,8 @@
             //define functions
             var functionNames = [
                 "getPlatformDetails",
-                "getPlatformAnnouncements"
+                "getPlatformAnnouncements",
+                "getConfig"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -290,6 +291,7 @@
 
             //define functions
             var functionNames = [
+                "applyRewardPoint",
                 "getLoginRewardPoints",
                 "getRewardPointsRanking",
             ];

@@ -1,24 +1,21 @@
-WebSocketUtil = require("./../../server_common/WebSocketUtil");
-var RewardPointsService = require("./../../services/client/ClientServices").RewardPointsService;
-var dbRewardEvent = require('./../../db_modules/dbRewardEvent');
-var dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
-var dbRewardPoints = require('./../../db_modules/dbRewardPoints');
-var constSystemParam = require('./../../const/constSystemParam');
-var dbRewardTask = require('./../../db_modules/dbRewardTask');
-var dbPlayerConsumptionWeekSummary = require('./../../db_modules/dbPlayerConsumptionWeekSummary');
-var Q = require('q');
-var constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
-var SMSSender = require('../../modules/SMSSender');
-var constServerCode = require('./../../const/constServerCode');
-
+const WebSocketUtil = require("./../../server_common/WebSocketUtil");
+const RewardPointsService = require("./../../services/client/ClientServices").RewardPointsService;
+const dbRewardPoints = require('./../../db_modules/dbRewardPoints');
+const dbUtility = require('./../../modules/dbutility');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
-const dbPlayerReward = require('./../../db_modules/dbPlayerReward');
 const dbRewardPointsRanking = require('./../../db_modules/dbRewardPointsRanking');
 
 let RewardPointsServiceImplement = function () {
     RewardPointsService.call(this);
-    var self = this;
+    let self = this;
+
+    this.applyRewardPoint.expectsData = "eventObjectId: String";
+    this.applyRewardPoint.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.eventObjectId);
+        let userInterface = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPoints.applyRewardPoint, [conn.playerObjId, data.eventObjectId, userInterface], isValidData);
+    };
 
     this.getLoginRewardPoints.expectsData = '';
     this.getLoginRewardPoints.onRequest = function (wsFunc, conn, data) {

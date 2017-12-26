@@ -232,7 +232,7 @@
                                         option(style="display: inline-block" ng-repeat='(i,v) in vm.allGameProviders', value='{{v._id}}') {{v.name}}
                                 td(style="min-width:105px;")
                                     select.spicker.form-control(ng-model="val.target.gameType" multiple, data-width='100%' data-actions-box='true' ng-disabled='!val.isEditing')
-                                        option(style="display: inline-block" ng-repeat='(i,v) in vm.allGameType', value='{{v._id}}') {{v.name}}
+                                        option(style="display: inline-block" ng-repeat='(i,v) in vm.allGameTypes', value='{{i}}') {{v}}
                                 td(style="min-width:105px;")
                                     select.spicker.form-control(ng-model="val.target.betType" multiple, data-width='100%' data-actions-box='true' ng-disabled='!val.isEditing')
                                         option(style="display: inline-block" ng-repeat='(i,v) in vm.allGameBetType', value='{{v._id}}') {{v.name}}
