@@ -662,13 +662,13 @@ const dbRewardTask = {
                     if (!pdata) {
                         return {};
                     }
-                    if (pdata.creator.name) {
+                    if (pdata.creator && pdata.creator.name) {
                         item.creator = pdata.creator;
                     }
-                    if (pdata.data.topUpProposal) {
+                    if (pdata.data && pdata.data.topUpProposal) {
                         topUpProposal = pdata.data.topUpProposal;
                     }
-                    if (pdata.data.topUpAmount) {
+                    if (pdata.data && pdata.data.topUpAmount) {
                         topUpAmount = pdata.data.topUpAmount;
                     }
                     return item;
