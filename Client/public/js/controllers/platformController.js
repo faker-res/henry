@@ -21248,7 +21248,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                     else {
-                        Q.reject('Advertisement list is not found.');}
+                        Q.reject('Advertisement List is not found.');}
                 });
 
             };
