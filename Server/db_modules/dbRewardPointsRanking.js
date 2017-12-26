@@ -53,7 +53,7 @@ var dbRewardPointsRanking = {
                         playerLevel: 1,
                         points: 1,
                         lastUpdate: 1,
-                        createTime: 1,
+                        // createTime: 1,
                         _id: 0
                     }).sort(sortCol).limit(limit)
                         .populate({path: "playerLevel", model: dbConfig.collection_playerLevel, select: 'name'}).lean();
