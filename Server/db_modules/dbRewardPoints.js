@@ -18,7 +18,7 @@ let dbRewardPoints = {
                 if (!rewardPointsData) {
                     return dbRewardPoints.createRewardPoints(playerObjId, playerData);
                 }
-                else if (playerData && rewardPointsData.playerLevel.toString() !== playerData.playerLevel.toString()) {
+                else if (playerData && playerData.playerLevel && rewardPointsData.playerLevel && rewardPointsData.playerLevel.toString() !== playerData.playerLevel.toString()) {
                     return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, playerObjId);
                 }
 
@@ -236,6 +236,91 @@ let dbRewardPoints = {
                 }
             }
         );
+    },
+
+    updateGameRewardPointProgress: (consumptionRecord) => {
+        if (!consumptionRecord || !consumptionRecord.platformId || !consumptionRecord.providerId) {
+            return Promise.resolve();
+        }
+        let platform;
+        let relevantEvents = [];
+        let rewardPointsConfig;
+
+        return dbConfig.collection_platform.findOne({_id: consumptionRecord.platformId}).lean().then(
+            platformData => {
+                platform = platformData;
+
+                if (!platform.usePointSystem) {
+                    return Promise.resolve();
+                }
+
+                let getRewardPointEventsProm = dbRewardPointsEvent.getRewardPointsEventByCategory(platform._id, constRewardPointsTaskCategory.GAME_REWARD_POINTS);
+                let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(consumptionRecord.playerId);
+                let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platform._id);
+
+                return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm]);
+            }
+        ).then(
+            data => {
+                if (!data) {
+                    return Promise.resolve();
+                }
+
+                let events = data[0];
+                let playerRewardPoints = data[1];
+                rewardPointsConfig = data[2];
+
+                relevantEvents = events.filter(event => isRelevantGameEvent(event, consumptionRecord));
+
+                let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
+
+                let rewardProgressListChanged = false;
+                for (let i = 0; i < relevantEvents.length; i++) {
+                    let event = relevantEvents[i];
+                    let eventProgress = getEventProgress(rewardProgressList, event);
+                    let progressChanged = updateGameProgressCount(eventProgress, event, consumptionRecord);
+                    rewardProgressListChanged = rewardProgressListChanged || progressChanged;
+                }
+
+                if (rewardProgressListChanged) {
+                    return dbConfig.collection_rewardPoints.findOneAndUpdate({
+                        platformObjId: playerRewardPoints.platformObjId,
+                        playerObjId: playerRewardPoints.playerObjId
+                    }, {
+                        progress: rewardProgressList
+                    }, {new: true}).lean();
+                }
+                else {
+                    return Promise.resolve(playerRewardPoints);
+                }
+            }
+        ).then(
+            playerRewardPoints => {
+                if (rewardPointsConfig && Number(rewardPointsConfig.applyMethod) === 2) {
+                    let promResolve = Promise.resolve();
+                    // send to apply
+                    let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
+                    for (let i = 0; i < rewardProgressList.length; i++) {
+                        if (rewardProgressList[i].isApplicable && !rewardProgressList[i].isApplied) {
+                            let eventData;
+                            let rewardPointToApply = rewardProgressList[i].rewardPointsEventObjId || "";
+                            for (let j = 0; j < relevantEvents.length; j++) {
+                                if (relevantEvents[j]._id.toString() === rewardPointToApply.toString()) {
+                                    eventData = relevantEvents[j];
+                                }
+                            }
+                            let applyRewardProm = function () {
+                                return dbRewardPoints.applyRewardPoint(consumptionRecord.playerId, rewardPointToApply, 0) // user agent will update when data receive from provider updated
+                                    .catch(errorUtils.reportError);
+
+                            };
+                            promResolve = promResolve.then(applyRewardProm);
+                        }
+                    }
+                }
+                return playerRewardPoints;
+            }
+        )
     },
 
     applyRewardPoint: (playerObjId, rewardPointsEventObjId, inputDevice, rewardPointsConfig) => {
@@ -469,7 +554,7 @@ let dbRewardPoints = {
                             isApplicable: false,
                             isApplied: false,
                             count: 0
-                        }
+                        };
                         returnData = rewardPointsEvent;
                         for (let i = 0; i < returnData.length; i++) {
                             returnData[i].progress = noProgress;
@@ -488,7 +573,7 @@ let dbRewardPoints = {
                         if (rewardPointsData.progress && rewardPointsData.progress.length > 0) {
                             rewardPointsData.progress.filter(item => {
                                 for (let i = 0; i < returnData.length; i++) {
-                                    if (returnData[i]._id && item.rewardPointsEventObjId && item.rewardPointsEventObjId.toString() == returnData[i]._id.toString()
+                                    if (returnData[i]._id && item.rewardPointsEventObjId && item.rewardPointsEventObjId.toString() === returnData[i]._id.toString()
                                         && item.lastUpdateTime >= returnData[i].startTime && item.lastUpdateTime <= returnData[i].endTime) {
                                         delete item.lastUpdateTime;
                                         delete item.rewardPointsEventObjId;
@@ -505,7 +590,7 @@ let dbRewardPoints = {
                             delete returnData[i].category;
                             delete returnData[i].customPeriodStartTime;
                             delete returnData[i].customPeriodEndTime;
-                        };
+                        }
 
                         return {data: returnData};
                     }
@@ -530,7 +615,7 @@ let dbRewardPoints = {
                             isApplicable: false,
                             isApplied: false,
                             count: 0
-                        }
+                        };
                         returnData = rewardPointsEvent;
                         for (let i = 0; i < returnData.length; i++) {
                             returnData[i].progress = noProgress;
@@ -547,7 +632,7 @@ let dbRewardPoints = {
                             delete returnData[i].category;
                             delete returnData[i].customPeriodStartTime;
                             delete returnData[i].customPeriodEndTime;
-                        };
+                        }
                         return returnData;
                     }
                 }
@@ -592,9 +677,6 @@ function isRelevantLoginEventByProvider(event, provider, inputDevice) {
 }
 
 function isRelevantTopupEvent(event, topupMainType, topupProposalData) {
-    // if 'OR' flag added in, this part of the code need some adjustment
-    let eventTargetDestination = [];
-
     // customPeriodEndTime check
     if (event.customPeriodEndTime && new Date(event.customPeriodEndTime) < new Date())
         return false;
@@ -622,6 +704,41 @@ function isRelevantTopupEvent(event, topupMainType, topupProposalData) {
         event.target && event.target.bankType &&
         Number(event.target.bankType) !== Number(topupProposalData.data.bankTypeId))
         return false;
+
+    return true;
+}
+
+function isRelevantGameEvent(event, consumptionRecord) {
+    if (!event) {
+        return false;
+    }
+
+    // customPeriodEndTime check
+    if (event.customPeriodEndTime && new Date(event.customPeriodEndTime) < new Date()) {
+        return false;
+    }
+
+    if (event.customPeriodStartTime && new Date(event.customPeriodStartTime) > new Date()) {
+        return false;
+    }
+
+    // temp ignore interface/UA check, todo :: add when data is available
+
+    if (event.target && event.target.targetDestination && event.target.targetDestination.length > 0) {
+        let eventTargetDestination = event.target.targetDestination;
+        if (!consumptionRecord.providerId || eventTargetDestination.indexOf(consumptionRecord.providerId.toString()) < 0) {
+            return false;
+        }
+    }
+
+    if (event.target && event.target.gameType && event.target.gameType.length > 0) {
+        let relevantGameTypes = event.target.gameType;
+        if (!consumptionRecord.gameType || relevantGameTypes.indexOf(consumptionRecord.gameType.toString()) < 0) {
+            return false;
+        }
+    }
+
+    // temp ignore bet type check, todo :: add when data is available
 
     return true;
 }
@@ -678,6 +795,150 @@ function updateLoginProgressCount(progress, event, provider) {
         progress.isApplicable = true;
     }
     return progressUpdated;
+}
+
+function updateGameProgressCount(progress, event, consumptionRecord) {
+    progress = progress || {rewardPointsEventObjId: event._id};
+
+    if (!event.target) {
+        return false;
+    }
+
+    let progressUpdated = false;
+    let eventPeriodStartTime = getEventPeriodStartTime(event);
+
+    if (event.target.singleConsumptionAmount && event.target.dailyConsumptionCount) {
+        // case scenario 1
+        progressUpdated = updateProgressBaseOnConsumptionCount(progress, event.target.singleConsumptionAmount, event.target.dailyConsumptionCount, consumptionRecord, eventPeriodStartTime);
+    }
+    else if (event.target.dailyValidConsumptionAmount) {
+        // case scenario 2
+        progressUpdated = updateProgressBaseOnConsumptionAmount(progress, event.target.dailyValidConsumptionAmount, consumptionRecord, eventPeriodStartTime);
+    }
+    else if (event.target.dailyWinGameCount) {
+        // case scenario 3
+        progressUpdated = updateProgressBaseOnDailyWinGameCount(progress, event.target.dailyWinGameCount, consumptionRecord, eventPeriodStartTime);
+    }
+
+    if (progress.count >= event.consecutiveCount) {
+        progress.isApplicable = true;
+    }
+
+    return progressUpdated;
+}
+
+function updateProgressBaseOnConsumptionCount(progress, singleConsumptionAmount, dailyConsumptionCount, consumptionRecord, eventPeriodStartTime) {
+    if (consumptionRecord.validAmount < singleConsumptionAmount) {
+        return false;
+    }
+
+    let todayStartTime = dbUtility.getTodaySGTime().startTime;
+
+    if (!progress.lastUpdateTime || eventPeriodStartTime && progress.lastUpdateTime < eventPeriodStartTime) {
+        // a fresh start
+        progress.isApplied = false;
+        progress.isApplicable = false;
+        progress.todayConsumptionCount = 1;
+        progress.count = 0;
+    }
+    else if (progress.lastUpdateTime < todayStartTime) {
+        // not a fresh start, but a fresh day
+        if (progress.isApplicable) {
+            return false
+        }
+
+        progress.todayConsumptionCount = 1;
+    } else {
+        // not a fresh start nor a fresh day
+        if (progress.todayConsumptionCount >= dailyConsumptionCount || progress.isApplicable) {
+            return false;
+        }
+
+        progress.todayConsumptionCount++;
+    }
+
+    progress.lastUpdateTime = new Date();
+    if (progress.todayConsumptionCount >= dailyConsumptionCount) {
+        progress.count++;
+    }
+
+    return true;
+}
+
+function updateProgressBaseOnConsumptionAmount (progress, dailyValidConsumptionAmount, consumptionRecord, eventPeriodStartTime) {
+    let todayStartTime = dbUtility.getTodaySGTime().startTime;
+
+    dailyValidConsumptionAmount = Number(dailyValidConsumptionAmount);
+
+    if (!progress.lastUpdateTime || eventPeriodStartTime && progress.lastUpdateTime < eventPeriodStartTime) {
+        // a fresh start
+        progress.isApplied = false;
+        progress.isApplicable = false;
+        progress.todayConsumptionAmountProgress = consumptionRecord.validAmount;
+        progress.count = 0;
+    }
+    else if (progress.lastUpdateTime < todayStartTime) {
+        // not a fresh start, but a fresh day
+        if (progress.isApplicable) {
+            return false
+        }
+
+        progress.todayConsumptionAmountProgress = consumptionRecord.validAmount;
+    } else {
+        // not a fresh start nor a fresh day
+        if (progress.todayConsumptionAmountProgress >= dailyValidConsumptionAmount || progress.isApplicable) {
+            return false;
+        }
+
+        progress.todayConsumptionAmountProgress += consumptionRecord.validAmount;
+    }
+
+    progress.lastUpdateTime = new Date();
+    if (progress.todayConsumptionAmountProgress >= dailyValidConsumptionAmount) {
+        progress.todayConsumptionAmountProgress = dailyValidConsumptionAmount;
+        progress.count++;
+    }
+
+    return true;
+}
+
+function updateProgressBaseOnDailyWinGameCount (progress, dailyWinGameCount, consumptionRecord, eventPeriodStartTime) {
+    if (consumptionRecord.bonusAmount <= 0) {
+        return false;
+    }
+
+    dailyWinGameCount = Number(dailyWinGameCount);
+    let todayStartTime = dbUtility.getTodaySGTime().startTime;
+
+    if (!progress.lastUpdateTime || eventPeriodStartTime && progress.lastUpdateTime < eventPeriodStartTime) {
+        // a fresh start
+        progress.isApplied = false;
+        progress.isApplicable = false;
+        progress.todayWinCount = 1;
+        progress.count = 0;
+    }
+    else if (progress.lastUpdateTime < todayStartTime) {
+        // not a fresh start, but a fresh day
+        if (progress.isApplicable) {
+            return false
+        }
+
+        progress.todayWinCount = 1;
+    } else {
+        // not a fresh start nor a fresh day
+        if (progress.todayWinCount >= dailyWinGameCount || progress.isApplicable) {
+            return false;
+        }
+
+        progress.todayWinCount++;
+    }
+
+    progress.lastUpdateTime = new Date();
+    if (progress.todayWinCount >= dailyWinGameCount) {
+        progress.count++;
+    }
+
+    return true;
 }
 
 function updateTopupProgressCount(progress, event, todayTopupAmount) {
