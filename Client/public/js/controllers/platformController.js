@@ -10289,6 +10289,7 @@ define(['js/app'], function (myApp) {
                     rewardProposalId: vm.rewardProposalId,
                     topUpProposalId: vm.topUpProposalId,
                     selectedProviderGroupID: vm.selectedProviderGroupID,
+                    showProposal: false,
                     index: newSearch ? 0 : vm.rewardTaskLog.index,
                     limit: newSearch ? 10 : vm.rewardTaskLog.limit,
                     sortCol: vm.rewardTaskLog.sortCol || null,
