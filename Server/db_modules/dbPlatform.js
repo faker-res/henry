@@ -1661,6 +1661,15 @@ var dbPlatform = {
         );
 
     },
+    getSelectedAdvList: function(platformId,id){
+        if (id) {
+            return dbconfig.collection_frontEndInfo.findOne({platformId: platformId,_id: id}).lean();
+        }
+        else {
+            return Q.reject(Error("Id is NULL"));
+        }
+
+    },
     createNewPlayerAdvertisementRecord: function(platformId, orderNo, adCode, title, backgroundBanner, imageButton, inputDevice){
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj =>{
@@ -1726,6 +1735,21 @@ var dbPlatform = {
                 // }
             }
         );
+    },
+
+    updateAdvertisementRecord: function(platformId, advertisementId, orderNo, adCode, title, backgroundBanner, imageButton, inputDevice){
+
+        let query = {
+            platformId: platformId,
+            _id: advertisementId
+        }
+
+        let updateData = {
+            button: imageButton,
+        }
+
+        return dbconfig.collection_frontEndInfo.findOneAndUpdate(query,updateData);
+
     },
 
     changeAdvertisementStatus: function(platformId, advertisementId, status){

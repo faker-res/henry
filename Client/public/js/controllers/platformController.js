@@ -20982,6 +20982,67 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.selectedAdvListData = function (id) {
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    _id: id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getSelectedAdvList', sendData, function (data) {
+
+                    if(data && data.data){
+                        vm.selectedAdvList = data.data;
+                        vm.hoverStyle = document.createElement('style');
+                        vm.drawUIPlatformCSS(vm.selectedAdvList);
+                        console.log("vm.selectedAdvList", vm.selectedAdvList);
+                        vm.CSSContentEdit = false;
+                        vm.CSSContentPreview = false;
+                        $scope.safeApply();
+                    }
+                    else {
+                        Q.reject('Advertisement list is not found.');}
+                });
+
+            };
+
+            vm.drawUIPlatformCSS = function (elem) {
+                // generate the hover css
+                if (vm.hoverStyle) {
+                    vm.hoverStyle.innerHTML = "";
+
+                    if (vm.hoverStyle.styleSheet) {
+                        vm.hoverStyle.styleSheet.cssText = '';
+                    }
+                    else {
+                        vm.hoverStyle.appendChild(document.createTextNode(''));
+                    }
+
+                    let temp = '';
+                    elem.button.forEach(item => {
+                        let css = '#' + item.buttonName + "{" + item.css + "}";
+                        temp += css;
+                    });
+
+                    elem.button.forEach(item => {
+                        let css = '#' + item.buttonName + item.hoverCss;
+                        temp += css;
+
+                    });
+                    vm.hoverStyle.appendChild(document.createTextNode(temp));
+                    document.getElementsByTagName('head')[0].appendChild(vm.hoverStyle);
+                    $scope.safeApply();
+                }
+            };
+
+            vm.advSettingUpdate = function(elem){
+                if(elem){
+                    let sendData = elem;
+                    socketService.$socket($scope.AppSocket, 'updateAdvertisementRecord', sendData, function (data) {
+                    });
+                }
+            };
+
             vm.changeAdvertisementStatus= function(advertisementId, advertisementStatus){
                 let sendData = {
                     platformId: vm.selectedPlatform.id,
@@ -20991,7 +21052,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'changeAdvertisementStatus', sendData, function (data) {
 
                 });
-            }
+            };
 
             vm.checkDuplicateOrderNo = function(orderNo){
                 let sendData = {
@@ -21006,7 +21067,12 @@ define(['js/app'], function (myApp) {
                         vm.errMessage = "Order no is duplicated";
                     }
                 });
-            }
+            };
+
+
+
+
+
 
         // vm.playerAdvertisementList = function () {
         //     vm.playerAdvertisementRecords = {totalCount: 0};

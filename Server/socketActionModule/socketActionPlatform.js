@@ -393,6 +393,12 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getPlayerAdvertisementList, [data.platformId, data.inputDevice], actionName, isValidData);
         },
 
+        getSelectedAdvList: function getSelectedAdvList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id);
+            socketUtil.emitter(self.socket, dbPlatform.getSelectedAdvList, [data.platformId ,data._id], actionName, isValidData);
+        },
+
         createNewPlayerAdvertisementRecord: function createNewPlayerAdvertisementRecord(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.adCode && data.inputDevice);
@@ -409,6 +415,12 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data._id);
             socketUtil.emitter(self.socket, dbPlatform.savePlayerAdvertisementRecordChanges, [data.platformId, data._id, data.orderNo, data.adCode, data.title, data.backgroundBannerURL, data.button, data.inputDevice], actionName, isValidData);
+        },
+
+        updateAdvertisementRecord: function updateAdvertisementRecord(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id);
+            socketUtil.emitter(self.socket, dbPlatform.updateAdvertisementRecord, [data.platformId, data._id, data.orderNo, data.adCode, data.title, data.backgroundBannerURL, data.button, data.inputDevice], actionName, isValidData);
         },
 
         changeAdvertisementStatus: function changeAdvertisementStatus(data){
