@@ -10301,7 +10301,9 @@ define(['js/app'], function (myApp) {
                             sClass: "",
                             render: function (data, type, row) {
                                 let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
-                                var text = row.curConsumption + '/' + row.targetConsumption;
+                                let forbidXIMAAmt = Number(row.forbidXIMAAmt ? row.forbidXIMAAmt :0);
+                                let targetConsumption = Number(row.targetConsumption);
+                                var text = row.curConsumption + '/' + (targetConsumption + forbidXIMAAmt);
                                 var result = '<div id="' + "pgConsumpt" + providerGroupId + '">' + text + '</div>';
                                 return result;
                             }
