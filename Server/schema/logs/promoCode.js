@@ -13,7 +13,9 @@ let promoCodeSchema = new Schema({
     // promo code minimum top up amount
     minTopUpAmount: {type: Number},
     // promo code maximum top up amount
-    maxTopUpAmount: {type: Number},
+    // maxTopUpAmount: {type: Number},
+    // promo code maximum reward amount
+    maxRewardAmount: {type: Number},
     // promo code required consumption
     requiredConsumption: {type: Number, required: true},
     // Disable Withdrawal after accept promo code

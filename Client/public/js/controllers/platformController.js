@@ -16693,7 +16693,7 @@ define(['js/app'], function (myApp) {
                             contentToReplace = item.code;
                             break;
                         case "M":
-                            contentToReplace = item.maxTopUpAmount;
+                            contentToReplace = item.maxRewardAmount;
                             break;
                         default:
                             break;
@@ -16902,7 +16902,7 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('maxTopUpAmount'),
-                            data: "maxTopUpAmount"
+                            data: "maxRewardAmount"
                         },
                         {
                             title: $translate('PROMO_CONSUMPTION'),
