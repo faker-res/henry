@@ -5653,6 +5653,8 @@ let dbPlayerInfo = {
      * Check if player can level up after top up or consumption
      *
      * @param {String|ObjectId} playerObjId
+     * @param platformObjId
+     * @param topUpAmount
      * @returns {Promise.<*>}
      */
     checkFreeAmountRewardTaskGroup: function (playerObjId, platformObjId, topUpAmount) {
@@ -5673,8 +5675,8 @@ let dbPlayerInfo = {
                         return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                             {_id: rewardTaskGroup._id},
                             {$inc :{targetConsumption: topUpAmount,
-                                currentAmt: topUpAmount
-                                //rewardAmt: topUpAmount
+                                currentAmt: topUpAmount,
+                                initAmt: topUpAmount
                             }}
                         )
                     }else{
@@ -5683,10 +5685,10 @@ let dbPlayerInfo = {
                             playerId: playerObjId,
                             providerGroup: null,
                             status: constRewardTaskStatus.STARTED,
-                            //rewardAmt: topUpAmount,
+                            initAmt: topUpAmount,
                             rewardAmt: 0,
                             currentAmt: topUpAmount,
-                            forbidWithdrawIfBalanceAfterUnlock:0,
+                            forbidWithdrawIfBalanceAfterUnlock: 0,
                             forbidXIMAAmt: 0,
                             curConsumption: 0,
                             targetConsumption: topUpAmount || 0
