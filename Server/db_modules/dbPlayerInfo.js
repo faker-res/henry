@@ -1136,6 +1136,7 @@ let dbPlayerInfo = {
             model: dbconfig.collection_playerLevel
         }).lean().then(
             function (data) {
+                data.fullPhoneNumber = data.phoneNumber;
                 data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 data.email = dbUtility.encodeEmail(data.email);
                 if (data.bankAccount) {
@@ -12130,7 +12131,7 @@ let dbPlayerInfo = {
 
         let platformProm = dbconfig.collection_platform.findOne({platformId: platformId});
         let playerProm = dbconfig.collection_players.findOne({playerId:  playerId})
-            .populate({path: "playerLevel", select: 'name', model: dbconfig.collection_playerLevel}).lean();
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
 
         var date = dbUtility.getCurrentMonthSGTIme();
         var firstDay = date.startTime;
@@ -12147,7 +12148,7 @@ let dbPlayerInfo = {
                         if(playerDetails){
                             if(platformDetails.bonusSetting){
                                 for(let x in platformDetails.bonusSetting){
-                                    if(platformDetails.bonusSetting[x].name == playerDetails.playerLevel.name){
+                                    if(platformDetails.bonusSetting[x].value == playerDetails.playerLevel.value){
                                         bonusDetails = platformDetails.bonusSetting[x];
                                     }
                                 }
@@ -12155,7 +12156,7 @@ let dbPlayerInfo = {
 
                             if(bonusDetails){
                                 result.freeTimes = bonusDetails.bonusCharges;
-                                result.serviceCharge = bonusDetails.bonusPercentageCharges;
+                                result.serviceCharge = parseFloat(bonusDetails.bonusPercentageCharges * 0.01);
                             }
 
                             let bonusProm = dbconfig.collection_proposal.aggregate([
