@@ -584,6 +584,7 @@ let dbRewardPoints = {
                             });
                         }
                         for (let i = 0; i < returnData.length; i++) {
+                            returnData[i].eventObjId = returnData[i]._id;
                             delete returnData[i]._id;
                             delete returnData[i].__v;
                             delete returnData[i].platformObjId;
@@ -626,6 +627,7 @@ let dbRewardPoints = {
                             }
                         }
                         for (let i = 0; i < returnData.length; i++) {
+                            returnData[i].eventObjId = returnData[i]._id;
                             delete returnData[i]._id;
                             delete returnData[i].__v;
                             delete returnData[i].platformObjId;
