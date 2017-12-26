@@ -44,6 +44,13 @@
 
 ////////////////// End - Init Data if running on server /////////////////
 
+    proto.applyRewardPoint = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardPointsService.applyRewardPoint.request(data);
+        this.rewardPointsService.applyRewardPoint.once(callback);
+    };
+
     proto.getLoginRewardPoints = function (callback, requestData) {
         let data = requestData || {};
 

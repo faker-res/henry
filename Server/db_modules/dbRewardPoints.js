@@ -526,7 +526,7 @@ let dbRewardPoints = {
 
                 dbRewardPoints.createRewardPointsLog(logDetail).catch(errorUtils.reportError);
 
-                return updatePointProgress;
+                return logDetail;
             }
         );
     },
