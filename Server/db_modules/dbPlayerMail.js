@@ -189,7 +189,52 @@ const dbPlayerMail = {
             },
             retErr => {
                 dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr);
-                return Q.reject({message: retErr, error: retErr});
+                errorUtils.reportError(retErr);
+                return dbPlayerMail.failSMSErrorOutHandler(data.tel);
+            }
+        );
+    },
+
+    failSMSErrorOutHandler: function (tel) {
+        return dbconfig.collection_smsLog.find({tel: tel, status: 'success'}).sort({_id:-1}).limit(1).lean().then(
+            logData => {
+                let failSMSCountQuery = {
+                    tel: tel,
+                    status: 'failure'
+                };
+                if (logData && logData[0] && logData[0].createTime) {
+                    failSMSCountQuery.createTime = {
+                        $gt: logData[0].createTime
+                    }
+                }
+
+                return dbconfig.collection_smsLog.find(failSMSCountQuery).count();
+            }
+        ).then(
+            failedSMSCount => {
+                if (failedSMSCount >= 5) {
+                    return Promise.reject({
+                        status: constServerCode.SMS_RETRY_FAILS_EXCEED,
+                        name: "DataError",
+                        message: "SMS failure for more than 5 times, please contact customer service"
+                    });
+
+                }
+                else {
+                    return Promise.reject({
+                        status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
+                        name: "DataError",
+                        message: "SMS failure, please retry"
+                    });
+                }
+            },
+            err => {
+                errorUtils.reportError(err);
+                return Promise.reject({
+                    status: constServerCode.SMS_RETRY_FAILS_EXCEED,
+                    name: "DataError",
+                    message: "SMS failure for more than 5 times, please contact customer service"
+                });
             }
         );
     },

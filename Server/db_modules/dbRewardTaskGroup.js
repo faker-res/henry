@@ -22,7 +22,21 @@ let dbRewardTaskGroup = {
                         providerGroup: gameProviderGroup._id,
                         status: {$in: [constRewardTaskStatus.STARTED]},
                         createTime: {$lt: createTime}
-                    }).lean();
+                    }).lean().then(
+                        rewardTaskLog => {
+                            if (rewardTaskLog) {
+                                return rewardTaskLog;
+                            } else {
+                                return dbconfig.collection_rewardTaskGroup.findOne({
+                                    platformId: platformId,
+                                    playerId: playerId,
+                                    providerGroup: null,
+                                    status: {$in: [constRewardTaskStatus.STARTED]},
+                                    createTime: {$lt: createTime}
+                                }).lean()
+                            }
+                        }
+                    );
                 }
             }
         )
