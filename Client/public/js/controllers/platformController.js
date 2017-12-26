@@ -14188,7 +14188,7 @@ define(['js/app'], function (myApp) {
                                 case "providerGroup":
                                     if (!vm.gameProviderGroup) break;
                                     let providerGroup = {
-                                        "": "LOCAL_CREDIT"
+                                    //     "": "LOCAL_CREDIT"
                                     };
                                     for (let i = 0; i < vm.gameProviderGroup.length; i++) {
                                         let group = vm.gameProviderGroup[i];
