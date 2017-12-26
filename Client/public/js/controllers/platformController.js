@@ -526,9 +526,8 @@ define(['js/app'], function (myApp) {
                 })
             };
 
-            $scope.$on('switchPlatform', (e, cb) => {
+            $scope.$on('switchPlatform', () => {
                 vm.loadPlatformData();
-                cb("Switch complete!");
             });
 
             //get all platform data from server
