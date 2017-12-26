@@ -10271,7 +10271,7 @@ define(['js/app'], function (myApp) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
+
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
@@ -10576,8 +10576,8 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedSinglePlayer.platform,
                     from: vm.rewardTaskLog.query.startTime.data('datetimepicker').getLocalDate(),
                     to: vm.rewardTaskLog.query.endTime.data('datetimepicker').getLocalDate(),
-                    // index:  vm.rewardTaskLog.index ? vm.rewardTaskLog.index: 0,
-                    // limit:  vm.rewardTaskLog.limit ? vm.rewardTaskLog.limit: 0,
+                    index:  vm.rewardTaskLog.index ? vm.rewardTaskLog.index: 0,
+                    limit:  vm.rewardTaskLog.limit ? vm.rewardTaskLog.limit: 0,
                     sortCol: vm.rewardTaskLog.sortCol || null
                 }
 
@@ -10640,6 +10640,7 @@ define(['js/app'], function (myApp) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
+                        {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
