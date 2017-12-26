@@ -249,7 +249,7 @@
                 div(ng-if="vm.selectedPlatformDetailTab == 'system-settlement'" ng-repeat="event in vm.settlementRewardGroupEvent")
                     button.btn.btn-primary.common-button(data-dismiss='modal' ng-click="vm.startPlatformRTGEventSettlement(event);vm.setPlatformFooter(null)")
                         text {{ "Settle" | translate }} {{ event.name | translate }}
-                label(ng-show="&&vm.playerDisplayDataTab == 'advertisementPanel'") {{vm.errMessage | translate}}
+                label.colorRed(ng-show="vm.playerDisplayDataTab == 'advertisementPanel'") {{vm.errMessage | translate}}
 
 
 
