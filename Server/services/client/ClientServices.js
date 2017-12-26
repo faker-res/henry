@@ -292,6 +292,7 @@
             var functionNames = [
                 "applyRewardPoint",
                 "getLoginRewardPoints",
+                "getTopUpRewardPointsEvent",
                 "getRewardPointsRanking",
             ];
             addServiceFunctions(sinonet, this, functionNames);
