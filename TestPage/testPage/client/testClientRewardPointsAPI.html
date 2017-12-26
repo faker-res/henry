@@ -50,6 +50,21 @@
 </div>
 
 
+<h3>APPLY REWARD POINT (手动申请积分奖励)</h3>
+<div class="test-container">
+    <div>
+        <label>Event Object Id
+            <input type=text name="eventObjectId">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="applyRewardPoint" data-api-name="applyRewardPoint">Apply Reward Point</button>
+    </div>
+</div>
+
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardPointsAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientRewardPointsAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {
