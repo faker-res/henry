@@ -14899,12 +14899,22 @@ define(['js/app'], function (myApp) {
                         if (objectId) {
                             data._id = objectId;
 
-                            if (vm.rewardParamsFilter.length == vm.rewardParams.reward.length){
-                                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
-                            }
-                            else{
-                                vm.rewardParamsFilter.push(JSON.parse(JSON.stringify(data)));
-                                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                            if (vm.rewardParams.reward){
+                                // first time create the data
+                                if (vm.rewardParams.reward.length == 0) {
+                                    vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    vm.rewardParamsFilter = vm.rewardParams.reward;
+                                }
+                                else {
+                                    if (vm.rewardParamsFilter.length == vm.rewardParams.reward.length){
+                                        vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    }
+                                    else{
+                                        vm.rewardParamsFilter.push(JSON.parse(JSON.stringify(data)));
+                                        vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    }
+                                }
+
                             }
                             $scope.safeApply();
                         }
@@ -14973,7 +14983,7 @@ define(['js/app'], function (myApp) {
 
                 vm.rewardParams.reward.map(
                     item => {
-                        if (item.repeatWeekDay === undefined) {
+                        if (item.repeatWeekDay === undefined || item.repeatWeekDay.length === 0 ) {
                             vm.rewardParamsFilter.push(item);
                         }
                         else if (item.repeatWeekDay.includes(index)){
