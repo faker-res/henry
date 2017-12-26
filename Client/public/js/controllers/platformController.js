@@ -4529,14 +4529,28 @@ define(['js/app'], function (myApp) {
                                 var link = $('<div>', {
                                     'data-order': row.validCredit,
                                 })
-                                    .append($('<i class="fa fa-usd"></i>'))
-                                    .append(
+                                link.append($('<i class="fa fa-usd"></i>'));
+                                if (row.rewardGroupInfo && row.rewardGroupInfo.length > 0) {
+                                    link.append(
+                                            $('<a>', {
+                                                'class': 'rewardTaskPopover',
+                                                'ng-click': 'vm.rewardTaskPlayerName = "' + row.name + '";', // @todo: escaping issue
+                                                'data-row': JSON.stringify(row),
+                                                'href': '',
+                                                'data-toggle': 'popover',
+                                                'data-trigger': 'focus',
+                                                'data-placement': 'bottom',
+                                                'data-container': 'body'
+                                            }).text(row.validCredit.toFixed(2))
+                                        )
+                                } else {
+                                    link.append(
                                         $('<text>', {
-                                            'data-row': JSON.stringify(row),
+                                            'data-row': JSON.stringify(row)
                                         }).text(row.validCredit.toFixed(2))
                                     )
-                                    .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
-
+                                }
+                                link.append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
                                 //if (data != 0) {
                                 if (row.rewardInfo && row.rewardInfo.length > 0) {
                                     link.append($('<i class="fa fa-lock"></i>'))
@@ -5154,7 +5168,14 @@ define(['js/app'], function (myApp) {
 
                                 if (vm.selectedPlatform.data.useProviderGroup) {
                                     vm.getRewardTaskGroupDetail(row._id, function (data) {
+                                        vm.curRewardTask = vm.curRewardTask.map(group => {
+                                            if (group.providerGroup.name == "LOCAL_CREDIT")
+                                                group.validCredit = row.validCredit;
+                                            return group;
+                                        });
+                                        $scope.safeApply();
                                         showPopover(that, '#rewardTaskGroupPopover', data);
+
                                     });
                                 } else {
                                     vm.getRewardTaskDetail(row._id, function (data) {
