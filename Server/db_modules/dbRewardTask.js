@@ -1119,8 +1119,17 @@ const dbRewardTask = {
         let bDirty = false;
         let nonDirtyAmount = 0;
         let createTime = new Date(consumptionRecord.createTime);
+        let platform;
 
-        return dbRewardTaskGroup.getPlayerRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.providerId, consumptionRecord.playerId, createTime).then(
+        return dbconfig.collection_platform.findOne({_id: consumptionRecord.platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platform = platformData;
+
+                    return dbRewardTaskGroup.getPlayerRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.providerId, consumptionRecord.playerId, createTime)
+                }
+            }
+        ).then(
             rewardTaskGroup => {
                 if (rewardTaskGroup) {
                     rewardTaskGroup.curConsumption += consumptionRecord.validAmount;
@@ -1128,12 +1137,12 @@ const dbRewardTask = {
                     let remainingCurConsumption = 0;
 
                     // Check whether player has lost all credit
-                    if (rewardTaskGroup.currentAmt < 1) {
+                    if (rewardTaskGroup.currentAmt < platform.autoApproveLostThreshold) {
                         rewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
                         rewardTaskGroup.unlockTime = createTime;
                     }
                     // Consumption reached
-                    else if (rewardTaskGroup.curConsumption >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
+                    else if (rewardTaskGroup.curConsumption + platform.autoApproveConsumptionOffset >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
                         rewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
                         rewardTaskGroup.unlockTime = createTime;
                         remainingCurConsumption = rewardTaskGroup.curConsumption - (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt);
