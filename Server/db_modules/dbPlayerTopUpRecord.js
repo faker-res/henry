@@ -868,7 +868,7 @@ var dbPlayerTopUpRecord = {
                     start.setHours(0, 0, 0, 0);
                     let end = new Date();
                     end.setHours(23, 59, 59, 999);
-                    if (merchantResponseData.result.merchantNo) {
+                    if (merchantResponseData.result && merchantResponseData.result.merchantNo) {
                         queryObj['data.merchantNo'] = {'$in': [String(merchantResponseData.result.merchantNo), Number(merchantResponseData.result.merchantNo)]}
                     }
                     queryObj['data.platformId'] = ObjectId(player.platform._id);
@@ -1114,7 +1114,7 @@ var dbPlayerTopUpRecord = {
                         districtId: inputData.districtId || "",
                         groupBankcardList: player.bankCardGroup ? player.bankCardGroup.banks : [],
                         operateType: entryType == "ADMIN" ? 1 : 0,
-                        remark: inputData.remark || ''
+                        remark: inputData.depositMethod == 3 ? player.playerId : (inputData.remark || '')
                     };
                     if (fromFPMS) {
                         let cTime = inputData.createTime ? new Date(inputData.createTime) : new Date();

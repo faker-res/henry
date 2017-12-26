@@ -14,15 +14,18 @@ form(name="form_new_platform" ,novalidate)
                     label.control-label *{{"PLATFORM_CODE" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM_CODE' | translate}}", ng-model="vm.showPlatform.code", required)
                 div.form-group.col-md-6
+                    label.control-label *{{"PLATFORM_ID" | translate}}
+                    input.form-control(type="text", placeholder="{{'PLATFORM_ID' | translate}}", ng-model="vm.showPlatform.platformId", required)
+                div.form-group.col-md-6
                     label.control-label {{"PLATFORM_PREFIX" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM_PREFIX' | translate}}", ng-model="vm.showPlatform.prefix")
+                div.form-group.col-md-6
+                    label.control-label {{"PLATFORM_PARTNER_PREFIX" | translate}}
+                    input.form-control(type="text", placeholder="{{'PLATFORM_PARTNER_PREFIX' | translate}}", ng-model="vm.showPlatform.partnerPrefix")
                 div.form-group.col-md-6
                     label.control-label {{"PLATFORM_ICON" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM ICON URL' | translate}}", ng-model="vm.showPlatform.icon", style='width:calc(100% - 50px);display:inline-block')
                     img.margin-left-5(ng-if='vm.showPlatform.icon', src="{{vm.showPlatform.icon}}", style='width:40px;height:40px;top: 20px;position: absolute;')
-                div.form-group.col-md-6
-                    label.control-label {{"PLATFORM_PARTNER_PREFIX" | translate}}
-                    input.form-control(type="text", placeholder="{{'PLATFORM_PARTNER_PREFIX' | translate}}", ng-model="vm.showPlatform.partnerPrefix")
                 div.form-group.col-md-6
                     label.control-label {{"PUSH_NOTIFICATION_APP_KEY" | translate}}
                     input.form-control(type="text", ng-model="vm.showPlatform.jiguangAppKey")
@@ -284,6 +287,8 @@ form(name="form_new_platform" ,novalidate)
                                                                         tr
                                                                             td(colspan=2)
                                                                                 div(style="height: 80px;background-image: url('{{v.url}}'); background-size: cover; background-repeat: no-repeat;")
+                                                                            td(rowspan=4)
+                                                                                i.fa.fa-minus(ng-click='vm.playerAdvertisementGroup.imageButton.splice($index,1)')
                                                                         tr
                                                                             td
                                                                                 label {{'BUTTON NAME' | translate}}

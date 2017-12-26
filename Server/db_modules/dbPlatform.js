@@ -56,7 +56,14 @@ var dbPlatform = {
 
         // We give platforms a random ObjectID, so that if 5 platforms are created in quick succession, they and their
         // associated data will not all get stored on the same shard.
-        platformData._id = randomObjectId();
+
+        if(platformData){
+            platformData._id = randomObjectId();
+
+            if(platformData.platformId){
+                delete platformData.platformId;
+            }
+        }
 
         var platform = new dbconfig.collection_platform(platformData);
         platform.save().then(
@@ -2131,73 +2138,99 @@ var dbPlatform = {
         );
     },
 
-
-
     getConfig: function (platformId) {
-        let returnedObj = {
-            wechatList: [],
-            qqList: [],
-            telList: [],
-            live800: "",
-            activityList: []
-        };
-        return dbconfig.collection_platform.findOne({platformId: platformId}).then(
-            data => {
-                if(data){
-                    if(data.csWeixin){
-                        returnedObj.wechatList.push({
-                            isImg: 0,
-                            value: data.csWeixin
-                        },{
-                            isImg: 1,
-                            value:  data.weixinPhotoUrl ? data.weixinPhotoUrl : 0
-                        });
+        if(platformId){
+            let returnedObj = {
+                wechatList: [],
+                qqList: [],
+                telList: [],
+                live800: "",
+                activityList: []
+            };
+            return dbconfig.collection_platform.findOne({platformId: platformId}).then(
+                data => {
+                    if(data){
+                        if(data.csWeixin){
+                            returnedObj.wechatList.push({
+                                isImg: 0,
+                                value: data.csWeixin
+                            },{
+                                isImg: 1,
+                                value:  data.weixinPhotoUrl ? data.weixinPhotoUrl : ""
+                            });
+                        }
+
+                        if(data.csQQ){
+                            returnedObj.qqList.push({
+                                isImg: 0,
+                                value: data.csQQ
+                            });
+                        }
+
+                        if(data.csPhone){
+                            returnedObj.telList.push({
+                                isImg: 0,
+                                value: data.csPhone
+                            });
+                        }
+
+                        if(data.csUrl){
+                            returnedObj.live800 = data.csUrl;
+                        }
+                        if(data.platformId){
+                            return dbconfig.collection_playerPageAdvertisementInfo.find({platformId: data._id}).sort({orderNo: 1});
+                        };
+                    }else{
+                        return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                     }
-                    if(data.platformId){
-                        return dbconfig.collection_playerPageAdvertisementInfo.find({platformId: data._id}).sort({orderNo: 1});
-                    };
                 }
-            }
-        ).then(
-            advertisementInfo => {
-                if(advertisementInfo){
-                    advertisementInfo.map(info => {
-                        let activityListObj = {};
-                        if(info.advertisementCode){
-                            activityListObj.code = info.advertisementCode;
-                        }
+            ).then(
+                advertisementInfo => {
+                    if(advertisementInfo){
+                        advertisementInfo.map(info => {
+                            let activityListObj = {};
+                            if(info.advertisementCode){
+                                activityListObj.code = info.advertisementCode;
+                            }
 
-                        if(info.title && info.title.length > 0){
-                            activityListObj.title = info.title;
-                        }
+                            if(info.title && info.title.length > 0){
+                                activityListObj.title = info.title;
+                            }
 
-                        if(info.backgroundBannerImage && info.backgroundBannerImage.url){
-                            activityListObj.bannerImg= 'getHashFile("' + info.backgroundBannerImage.url + '")';
-                        }
+                            if(info.backgroundBannerImage && info.backgroundBannerImage.hyperLink){
+                                activityListObj.bannerImg= 'getHashFile("' + info.backgroundBannerImage.hyperLink + '")';
+                            }
 
-                        if(info.imageButton && info.imageButton.length > 0){
-                            let buttonList = [];
-                            info.imageButton.forEach(b => {
-                                let buttonObj = {};
-                                if(b.buttonName){
-                                    buttonObj.btn = b.buttonName;
-                                    buttonObj.extString = "";
+                            if(info.imageButton && info.imageButton.length > 0){
+                                let buttonList = [];
+                                info.imageButton.forEach(b => {
+                                    let buttonObj = {};
+                                    if(b.buttonName){
+                                        buttonObj.btn = b.buttonName;
+
+                                    }
+                                    if(b.css){
+                                        buttonObj.extString = "style(\"" + b.css + "\") my_href=\"" + b.hyperLink + "\"";
+                                    }
+                                    buttonList.push(buttonObj);
+
+                                })
+                                activityListObj.btnList = buttonList;
+                            }else{
+                                if(info.backgroundBannerImage && info.backgroundBannerImage.hyperLink){
+                                    activityListObj.extString= "my_href_w='" + info.backgroundBannerImage.hyperLink + "'";
                                 }
-                                buttonList.push(buttonObj);
+                            }
 
-                            })
-                            activityListObj.btnList = buttonList;
-                        }else{
-                            activityListObj.extString= "";
-                        }
-
-                        returnedObj.activityList.push(activityListObj);
-                    })
-
-                    return returnedObj;
+                            returnedObj.activityList.push(activityListObj);
+                        })
+                        return returnedObj;
+                    }
                 }
-            }
-        );
+            );
+        }else{
+            return Q.reject({name: "DBError", message: "Invalid platformId: " + platformId});
+        }
     },
 };
 
