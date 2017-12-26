@@ -479,12 +479,12 @@
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title(ng-show="true") {{"ADV SETTING" | translate}}
             .modal-body
-                div(style='background-image:url("{{vm.selectedAdvList.backgroundBannerURL.url}}"); min-height:400px; position: relative; width: 100%; background-repeat: no-repeat; background-size: 100% 100%;')
-                    div(ng-repeat= "button in vm.selectedAdvList.button")
+                div(style='background-image:url("{{vm.selectedAdvList.backgroundBannerImage.url}}"); min-height:400px; position: relative; width: 100%; background-repeat: no-repeat; background-size: 100% 100%;')
+                    div(ng-repeat= "button in vm.selectedAdvList.imageButton")
                         img(src='{{button.url}}', id='{{button.buttonName}}')
             .modal-footer
                 table.common-table.playerLvlTable
-                    tbody(ng-repeat='button in vm.selectedAdvList.button')
+                    tbody(ng-repeat='button in vm.selectedAdvList.imageButton')
                         tr
                             th.align-left 图中按钮 {{button.buttonName}} 位置与效果 (CSS)
                         tr
@@ -499,7 +499,7 @@
                                 input.form-control(type='text', value='{{button.hoverCss}}', ng-model='button.hoverCss')
                 br
                 .pull-right
-                    button.btn.btn-primary.common-button(ng-click='vm.CSSContentEdit=!vm.CSSContentEdit; vm.advSettingUpdate(vm.selectedAdvList)', data-dismiss="modal" ) {{"SAVE" | translate}}
+                    button.btn.btn-primary.common-button(ng-click='vm.CSSContentEdit=!vm.CSSContentEdit; vm.advSettingUpdate(vm.selectedAdvList, vm.subject)', data-dismiss="modal" ) {{"SAVE" | translate}}
                     button.btn.btn-primary.common-button(ng-click='vm.drawUIPlatformCSS(vm.selectedAdvList); vm.CSSContentEdit=false') {{"PREVIEW" | translate}}
                     button.btn.btn-primary.common-button(ng-if='!vm.CSSContentEdit', ng-click='vm.CSSContentEdit=!vm.CSSContentEdit;')
                         text {{'EDIT' | translate}}

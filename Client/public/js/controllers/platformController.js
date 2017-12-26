@@ -21236,11 +21236,12 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            vm.selectedAdvListData = function (id) {
+            vm.selectedAdvListData = function (id,subject) {
 
                 let sendData = {
                     platformId: vm.selectedPlatform.id,
-                    _id: id
+                    _id: id,
+                    subject: subject
                 };
 
                 socketService.$socket($scope.AppSocket, 'getSelectedAdvList', sendData, function (data) {
@@ -21251,7 +21252,6 @@ define(['js/app'], function (myApp) {
                         vm.drawUIPlatformCSS(vm.selectedAdvList);
                         console.log("vm.selectedAdvList", vm.selectedAdvList);
                         vm.CSSContentEdit = false;
-                        vm.CSSContentPreview = false;
                         $scope.safeApply();
                     }
                     else {
@@ -21261,7 +21261,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.drawUIPlatformCSS = function (elem) {
-                // generate the hover css
+                // generate the css
                 if (vm.hoverStyle) {
                     vm.hoverStyle.innerHTML = "";
 
@@ -21273,12 +21273,12 @@ define(['js/app'], function (myApp) {
                     }
 
                     let temp = '';
-                    elem.button.forEach(item => {
+                    elem.imageButton.forEach(item => {
                         let css = '#' + item.buttonName + "{" + item.css + "}";
                         temp += css;
                     });
 
-                    elem.button.forEach(item => {
+                    elem.imageButton.forEach(item => {
                         let css = '#' + item.buttonName + item.hoverCss;
                         temp += css;
 
@@ -21289,9 +21289,14 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.advSettingUpdate = function(elem){
+            vm.advSettingUpdate = function(elem, subject){
                 if(elem){
-                    let sendData = elem;
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: elem._id,
+                        imageButton: elem.imageButton,
+                        subject: subject
+                    };
                     socketService.$socket($scope.AppSocket, 'updateAdvertisementRecord', sendData, function (data) {
                     });
                 }

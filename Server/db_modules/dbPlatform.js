@@ -1664,9 +1664,15 @@ var dbPlatform = {
 
     },
 
-    getSelectedAdvList: function(platformId,id){
+    getSelectedAdvList: function(platformId,id,subject){
         if (id) {
-            return dbconfig.collection_frontEndInfo.findOne({platformId: platformId,_id: id}).lean();
+            if (subject == 'player') {
+                return dbconfig.collection_playerPageAdvertisementInfo.findOne({platformId: platformId,_id: id}).lean();
+            }
+            else if (subject == 'partner'){
+                return dbconfig.collection_partnerPageAdvertisementInfo.findOne({platformId: platformId,_id: id}).lean();
+            }
+            else {}
         }
         else {
             return Q.reject(Error("Id is NULL"));
@@ -1725,19 +1731,24 @@ var dbPlatform = {
         );
     },
 
-    updateAdvertisementRecord: function(platformId, advertisementId, orderNo, adCode, title, backgroundBanner, imageButton, inputDevice){
+    updateAdvertisementRecord: function(platformId, advertisementId, imageButton, subject){
 
         let query = {
             platformId: platformId,
             _id: advertisementId
-        }
+        };
 
         let updateData = {
-            button: imageButton,
+            imageButton: imageButton,
+        };
+
+        if (subject == 'player') {
+            return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query,updateData);
         }
-
-        return dbconfig.collection_frontEndInfo.findOneAndUpdate(query,updateData);
-
+        else if (subject == 'partner'){
+            return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query,updateData);
+        }
+        else {}
     },
 
     changeAdvertisementStatus: function(platformId, advertisementId, status){
