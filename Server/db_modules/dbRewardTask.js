@@ -513,11 +513,11 @@ const dbRewardTask = {
                 if (query.rewardProposalId) {
                     queryObj.proposalId = query.rewardProposalId;
                 }
-                if(query.selectedProviderGroupID){
 
+                if (query.selectedProviderGroupID) {
                     let selectedProviderGroup = providerGroups.filter(item=>{
-                        return item._id == query.selectedProviderGroupID
-                    })
+                        return item._id.toString() == query.selectedProviderGroupID.toString()
+                    });
 
                     let providers = selectedProviderGroup[0] ?  selectedProviderGroup[0].providers : null;
                     if(providers){
@@ -527,19 +527,26 @@ const dbRewardTask = {
                         queryObj.providerGroup = null;
                     }
                 }
+
+                let rewardTaskQuery = JSON.parse(JSON.stringify(queryObj));
+                delete rewardTaskQuery.targetProviders;
+                if (query.selectedProviderGroupID && query.selectedProviderGroupID.length === 24) {
+                    rewardTaskQuery.providerGroup = query.selectedProviderGroupID
+                }
+
                 let a, b, c, d, e, f;
                 let size;
                 let rewardTaskGroupSize;
                 let rewardTaskGroupData;
                 let rewardTaskSummary;
                 let topUpAmountSum;
-                a = dbconfig.collection_rewardTask.find(queryObj).count();
-                b = dbconfig.collection_rewardTask.find(queryObj).sort(sortCol).skip(index).limit(limit)
+                a = dbconfig.collection_rewardTask.find(rewardTaskQuery).count();
+                b = dbconfig.collection_rewardTask.find(rewardTaskQuery).sort(sortCol).skip(index).limit(limit)
                     .populate({path: "targetProviders", model: dbconfig.collection_gameProvider}).lean();
 
                 if (useProviderGroup) {
-                    c = dbconfig.collection_rewardTaskGroup.find(queryObj).count();
-                    d = dbconfig.collection_rewardTaskGroup.find(queryObj).sort(sortCol).skip(index).limit(limit)
+                    c = dbconfig.collection_rewardTaskGroup.find(rewardTaskQuery).count();
+                    d = dbconfig.collection_rewardTaskGroup.find(rewardTaskQuery).sort(sortCol).skip(index).limit(limit)
                         .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
                 }
                 // get the sum amount to display the below of table
