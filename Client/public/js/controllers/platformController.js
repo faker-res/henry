@@ -10295,7 +10295,15 @@ define(['js/app'], function (myApp) {
             }
 
             vm.unlockSearch = function(){
-                if(vm.chosenProviderGroupId){
+                if(vm.selectedProviderGroupID!='all'){
+                    let providerGroupId = vm.selectedProviderGroupID;
+                    if(providerGroupId == 'free'){
+                        vm.getRewardTaskGroupProposal();
+                    }else{
+                        vm.getRewardTaskGroupProposal(providerGroupId);
+                    }
+                }
+                else if(vm.chosenProviderGroupId){
                     if(vm.chosenProviderGroupId == 'localCredit'){
                         vm.getRewardTaskLogData(true,true);
                     }else{
