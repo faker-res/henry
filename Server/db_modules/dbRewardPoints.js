@@ -1056,10 +1056,9 @@ function updateTopupProgressCount(progress, event, todayTopupAmount) {
 
     let eventPeriodStartTime = getEventPeriodStartTime(event);
 
-    if ((!progress.lastUpdateTime || eventPeriodStartTime && progress.lastUpdateTime < eventPeriodStartTime)
-        && todayTopupAmount >= event.target.dailyTopupAmount) {
+    if (!progress.lastUpdateTime || eventPeriodStartTime && progress.lastUpdateTime < eventPeriodStartTime) {
         // new progress or expired progress setup
-        progress.count = 1;
+        progress.count = todayTopupAmount >= event.target.dailyTopupAmount ? 1 : 0;
         progress.isApplied = false;
         progress.isApplicable = false;
         progress.lastUpdateTime = new Date();
@@ -1067,7 +1066,7 @@ function updateTopupProgressCount(progress, event, todayTopupAmount) {
     }
     else {
         let today = dbUtility.getTodaySGTime();
-        if (!progress.isApplicable && progress.lastUpdateTime < today.startTime && progress.count < event.consecutiveCount
+        if (!progress.isApplicable && (progress.lastUpdateTime < today.startTime || progress.count === 0) && progress.count < event.consecutiveCount
             && todayTopupAmount >= event.target.dailyTopupAmount) {
             progress.count++;
             progress.lastUpdateTime = new Date();
