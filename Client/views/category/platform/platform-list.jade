@@ -228,7 +228,7 @@
                         include ./platform-detail-form
             .modal-footer
                 button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('create');vm.initPlatform(true);vm.clearShowPlatform();", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction&&vm.playerDisplayDataTab != 'advertisementPanel'") {{"CREATE" | translate}}
-                button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('delete')", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction&&vm.playerDisplayDataTab != 'advertisementPanel'") {{"DELETE" | translate}}
+                button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('delete')", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction && vm.playerDisplayDataTab != 'advertisementPanel' && vm.partnerDisplayDataTab != 'partnerAdvertisementPanel'") {{"DELETE" | translate}}
                 button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('edit');vm.initPlatform(true);vm.beforeUpdatePlatform();", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction&&vm.playerDisplayDataTab != 'advertisementPanel'") {{"EDIT" | translate}}
 
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='create'", ng-click="vm.createNewPlatform();vm.setPlatformFooter(null)", ng-disabled="form_new_platform.$invalid") {{"CREATE" | translate}}
@@ -249,7 +249,7 @@
                 div(ng-if="vm.selectedPlatformDetailTab == 'system-settlement'" ng-repeat="event in vm.settlementRewardGroupEvent")
                     button.btn.btn-primary.common-button(data-dismiss='modal' ng-click="vm.startPlatformRTGEventSettlement(event);vm.setPlatformFooter(null)")
                         text {{ "Settle" | translate }} {{ event.name | translate }}
-                label.colorRed(ng-show="vm.playerDisplayDataTab == 'advertisementPanel'") {{vm.errMessage | translate}}
+                label.colorRed(ng-show="vm.playerDisplayDataTab == 'advertisementPanel' || vm.partnerDisplayDataTab == 'partnerAdvertisementPanel'") {{vm.errMessage | translate}}
 
 
 

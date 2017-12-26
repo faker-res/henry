@@ -261,6 +261,10 @@ define(['js/app'], function (myApp) {
 
             // player advertisement
             vm.currentImageButtonNo = 2;
+            vm.playerAdvertisementStatus ={
+                CLOSE: 0,
+                OPEN: 1
+            };
             vm.playerAdvertisementTitle = [];
             vm.editPlayerAdvertisementList = [];
             vm.existingButtonNo = 0;
@@ -286,8 +290,12 @@ define(['js/app'], function (myApp) {
                 }
             ];
 
-            // player advertisement
+            // partner advertisement
             vm.currentPartnerImageButtonNo = 2;
+            vm.partnerAdvertisementStatus ={
+                CLOSE: 0,
+                OPEN: 1
+            };
             vm.partnerAdvertisementTitle = [];
             vm.editPartnerAdvertisementList = [];
             vm.existingPartnerButtonNo = 0;
@@ -21059,7 +21067,7 @@ define(['js/app'], function (myApp) {
                             hyperLink: vm.playerAdvertisementGroup.backgroundHyperLink
                         },
                         imageButton: vm.playerAdvertisementGroup.imageButton,
-                        inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
+                        inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                     }
 
                     if(query.imageButton){
@@ -21096,28 +21104,7 @@ define(['js/app'], function (myApp) {
 
                     socketService.$socket($scope.AppSocket, 'createNewPlayerAdvertisementRecord', query, function (data) {
                         if (data) {
-                            //reset the adding table
-                            vm.currentImageButtonNo = 2;
-                            vm.playerAdvertisementGroup = [];
-                            vm.playerAdvertisementTitle = "";
-                            vm.playerAdvertisementGroup.imageButton = [
-                                {
-                                    buttonNo: 1,
-                                    buttonName: "activityBtn1",
-                                    url:"",
-                                    hyperLink: "",
-                                    css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                                    hoverCss: ":hover{width:500px;}"
-                                },
-                                {
-                                    buttonNo: 2,
-                                    buttonName: "activityBtn2",
-                                    url:"",
-                                    hyperLink: "",
-                                    css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                                    hoverCss: ":hover{width:500px;}"
-                                }
-                            ];
+                            vm.resetPlayerAddTable();
                         }
                     });
                 }
@@ -21183,8 +21170,8 @@ define(['js/app'], function (myApp) {
 
             vm.playerAdvertisementList = function () {
                 let sendData = {
-                            platformId: vm.selectedPlatform.id,
-                            inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
+                    platformId: vm.selectedPlatform.id,
+                    inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPlayerAdvertisementList', sendData, function (data) {
@@ -21225,7 +21212,7 @@ define(['js/app'], function (myApp) {
                                 //     })
                                 // }
                                 
-                                d.status = d.status == 0 ? d.status : 1;
+                                d.status = d.status == vm.playerAdvertisementStatus["OPEN"] ? d.status : vm.playerAdvertisementStatus["CLOSE"];
                             }
                         })
 
@@ -21252,7 +21239,7 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedPlatform.id,
                     _id: advertisementId,
                     orderNo: orderNo,
-                    inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
+                    inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 }
                 socketService.$socket($scope.AppSocket, 'checkDuplicateOrderNoWithId', sendData, function (data) {
                     if(data && data.data){
@@ -21272,7 +21259,7 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedPlatform.id,
                     _id: advertisementId,
                     advertisementCode: advertisementCode,
-                    inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
+                    inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 }
                 socketService.$socket($scope.AppSocket, 'checkDuplicateAdCodeWithId', sendData, function (data) {
                     if(data && data.data){
@@ -21291,7 +21278,7 @@ define(['js/app'], function (myApp) {
             let sendData = {
                 platformId: vm.selectedPlatform.id,
                 orderNo: orderNo,
-                inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
+                inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
             }
             socketService.$socket($scope.AppSocket, 'checkDuplicateOrderNo', sendData, function (data) {
                 if(data && data.data){
@@ -21310,7 +21297,7 @@ define(['js/app'], function (myApp) {
             let sendData = {
                 platformId: vm.selectedPlatform.id,
                 advertisementCode: advertisementCode,
-                inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
+                inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
             }
             socketService.$socket($scope.AppSocket, 'checkDuplicateAdCode', sendData, function (data) {
                 if(data && data.data){
@@ -21383,7 +21370,7 @@ define(['js/app'], function (myApp) {
             vm.getNextOrderNo = function() {
                 let sendData= {
                     platformId: vm.selectedPlatform.id,
-                    inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
+                    inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 }
 
                 socketService.$socket($scope.AppSocket, 'getNextOrderNo', sendData, function (data) {
@@ -21399,7 +21386,33 @@ define(['js/app'], function (myApp) {
 
             }
 
+            vm.resetPlayerAddTable = function(){
+                //reset the adding table
+                vm.addNewPlayerAdvertisement = false;
+                vm.currentImageButtonNo = 2;
+                vm.playerAdvertisementGroup = [];
+                vm.playerAdvertisementTitle = [];
+                vm.playerAdvertisementGroup.imageButton = [
+                    {
+                        buttonNo: 1,
+                        buttonName: "activityBtn1",
+                        url:"",
+                        hyperLink: "",
+                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                        hoverCss: ":hover{width:500px;}"
+                    },
+                    {
+                        buttonNo: 2,
+                        buttonName: "activityBtn2",
+                        url:"",
+                        hyperLink: "",
+                        css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                        hoverCss: ":hover{width:500px;}"
+                    }
+                ];
 
+                $scope.safeApply();
+            }
 
             //Partner Advertisement
             vm.addNewPartnerAdvertisementRecord = function() {
@@ -21414,7 +21427,7 @@ define(['js/app'], function (myApp) {
                             hyperLink: vm.partnerAdvertisementGroup.backgroundHyperLink
                         },
                         imageButton: vm.partnerAdvertisementGroup.imageButton,
-                        inputDevice: vm.partnerAdvertisementWebDevice ? 1 : 3
+                        inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                     }
 
                     if(query.imageButton){
@@ -21451,28 +21464,7 @@ define(['js/app'], function (myApp) {
 
                     socketService.$socket($scope.AppSocket, 'createNewPartnerAdvertisementRecord', query, function (data) {
                         if (data) {
-                            //reset the adding table
-                            vm.currentPartnerImageButtonNo = 2;
-                            vm.partnerAdvertisementGroup = [];
-                            vm.partnerAdvertisementTitle = "";
-                            vm.partnerAdvertisementGroup.imageButton = [
-                                {
-                                    buttonNo: 1,
-                                    buttonName: "activityBtn1",
-                                    url:"",
-                                    hyperLink: "",
-                                    css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                                    hoverCss: ":hover{width:500px;}"
-                                },
-                                {
-                                    buttonNo: 2,
-                                    buttonName: "activityBtn2",
-                                    url:"",
-                                    hyperLink: "",
-                                    css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                                    hoverCss: ":hover{width:500px;}"
-                                }
-                            ];
+                            vm.resetPartnerAddTable();
                         }
                     });
                 }
@@ -21539,7 +21531,7 @@ define(['js/app'], function (myApp) {
             vm.partnerAdvertisementList = function () {
                 let sendData = {
                     platformId: vm.selectedPlatform.id,
-                    inputDevice: vm.partnerAdvertisementWebDevice ? 1 : 3
+                    inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPartnerAdvertisementList', sendData, function (data) {
@@ -21580,7 +21572,7 @@ define(['js/app'], function (myApp) {
                                 //     })
                                 // }
 
-                                d.status = d.status == 0 ? d.status : 1;
+                                d.status = d.status == vm.playerAdvertisementStatus["OPEN"] ? d.status : vm.playerAdvertisementStatus["CLOSE"];
                             }
                         })
 
@@ -21607,7 +21599,7 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedPlatform.id,
                     _id: advertisementId,
                     orderNo: orderNo,
-                    inputDevice: vm.playerAdvertisementWebDevice ? 1 : 3
+                    inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 }
                 socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateOrderNoWithId', sendData, function (data) {
                     if(data && data.data){
@@ -21627,7 +21619,7 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedPlatform.id,
                     _id: advertisementId,
                     advertisementCode: advertisementCode,
-                    inputDevice: vm.partnerAdvertisementWebDevice ? 1 : 3
+                    inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 }
                 socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateAdCodeWithId', sendData, function (data) {
                     if(data && data.data){
@@ -21646,7 +21638,7 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     platformId: vm.selectedPlatform.id,
                     orderNo: orderNo,
-                    inputDevice: vm.partnerAdvertisementWebDevice ? 1 : 3
+                    inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 }
                 socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateOrderNo', sendData, function (data) {
                     if(data && data.data){
@@ -21665,7 +21657,7 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     platformId: vm.selectedPlatform.id,
                     advertisementCode: advertisementCode,
-                    inputDevice: vm.partnerAdvertisementWebDevice ? 1 : 3
+                    inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 }
                 socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateAdCode', sendData, function (data) {
                     if(data && data.data){
@@ -21738,7 +21730,7 @@ define(['js/app'], function (myApp) {
             vm.getPartnerNextOrderNo = function() {
                 let sendData= {
                     platformId: vm.selectedPlatform.id,
-                    inputDevice: vm.partnerAdvertisementWebDevice ? 1 : 3
+                    inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 }
 
                 socketService.$socket($scope.AppSocket, 'getPartnerNextOrderNo', sendData, function (data) {
@@ -21750,6 +21742,34 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 });
+            }
+
+            vm.resetPartnerAddTable = function(){
+                //reset the adding table
+                vm.addNewPartnerAdvertisement = false;
+                vm.currentPartnerImageButtonNo = 2;
+                vm.partnerAdvertisementGroup = [];
+                vm.partnerAdvertisementTitle = [];
+                vm.partnerAdvertisementGroup.imageButton = [
+                    {
+                        buttonNo: 1,
+                        buttonName: "activityBtn1",
+                        url:"",
+                        hyperLink: "",
+                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                        hoverCss: ":hover{width:500px;}"
+                    },
+                    {
+                        buttonNo: 2,
+                        buttonName: "activityBtn2",
+                        url:"",
+                        hyperLink: "",
+                        css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                        hoverCss: ":hover{width:500px;}"
+                    }
+                ];
+
+                $scope.safeApply();
             }
 
             vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);
