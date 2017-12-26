@@ -2996,13 +2996,16 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                             error: error
                         })
                     );
-                    dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).catch(
-                        error => Q.reject({
-                            name: "DBError",
-                            message: "Error deduct target consumption from free amount provider group",
-                            error: error
-                        })
-                    );
+
+                    if (proposalData.data.isDynamicRewardAmount) {
+                        dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).catch(
+                            error => Q.reject({
+                                name: "DBError",
+                                message: "Error deduct target consumption from free amount provider group",
+                                error: error
+                            })
+                        );
+                    }
                 } else {
                     dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
                         data => {
