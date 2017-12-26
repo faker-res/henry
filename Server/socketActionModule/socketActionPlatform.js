@@ -395,6 +395,12 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getPlayerAdvertisementList, [data.platformId, data.inputDevice], actionName, isValidData);
         },
 
+        getSelectedAdvList: function getSelectedAdvList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id);
+            socketUtil.emitter(self.socket, dbPlatform.getSelectedAdvList, [data.platformId ,data._id, data.subject], actionName, isValidData);
+        },
+
         createNewPlayerAdvertisementRecord: function createNewPlayerAdvertisementRecord(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.advertisementCode && data.inputDevice && data.title && data.backgroundBannerImage && data.imageButton && data.hasOwnProperty("orderNo"));
@@ -411,6 +417,12 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data._id && data.advertisementCode && data.title && data.backgroundBannerImage && data.imageButton && data.inputDevice && data.hasOwnProperty("orderNo"));
             socketUtil.emitter(self.socket, dbPlatform.savePlayerAdvertisementRecordChanges, [data.platformId, data._id, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice], actionName, isValidData);
+        },
+
+        updateAdvertisementRecord: function updateAdvertisementRecord(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id);
+            socketUtil.emitter(self.socket, dbPlatform.updateAdvertisementRecord, [data.platformId, data._id, data.imageButton, data.subject], actionName, isValidData);
         },
 
         changeAdvertisementStatus: function changeAdvertisementStatus(data){

@@ -4589,14 +4589,28 @@ define(['js/app'], function (myApp) {
                                 var link = $('<div>', {
                                     'data-order': row.validCredit,
                                 })
-                                    .append($('<i class="fa fa-usd"></i>'))
-                                    .append(
+                                link.append($('<i class="fa fa-usd"></i>'));
+                                if (row.rewardGroupInfo && row.rewardGroupInfo.length > 0) {
+                                    link.append(
+                                            $('<a>', {
+                                                'class': 'rewardTaskPopover',
+                                                'ng-click': 'vm.rewardTaskPlayerName = "' + row.name + '";', // @todo: escaping issue
+                                                'data-row': JSON.stringify(row),
+                                                'href': '',
+                                                'data-toggle': 'popover',
+                                                'data-trigger': 'focus',
+                                                'data-placement': 'bottom',
+                                                'data-container': 'body'
+                                            }).text(row.validCredit.toFixed(2))
+                                        )
+                                } else {
+                                    link.append(
                                         $('<text>', {
-                                            'data-row': JSON.stringify(row),
+                                            'data-row': JSON.stringify(row)
                                         }).text(row.validCredit.toFixed(2))
                                     )
-                                    .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
-
+                                }
+                                link.append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
                                 //if (data != 0) {
                                 if (row.rewardInfo && row.rewardInfo.length > 0) {
                                     link.append($('<i class="fa fa-lock"></i>'))
@@ -5214,7 +5228,14 @@ define(['js/app'], function (myApp) {
 
                                 if (vm.selectedPlatform.data.useProviderGroup) {
                                     vm.getRewardTaskGroupDetail(row._id, function (data) {
+                                        vm.curRewardTask = vm.curRewardTask.map(group => {
+                                            if (group.providerGroup.name == "LOCAL_CREDIT")
+                                                group.validCredit = row.validCredit;
+                                            return group;
+                                        });
+                                        $scope.safeApply();
                                         showPopover(that, '#rewardTaskGroupPopover', data);
+
                                     });
                                 } else {
                                     vm.getRewardTaskDetail(row._id, function (data) {
@@ -10578,8 +10599,13 @@ define(['js/app'], function (myApp) {
                 let curConsumption = rewardTaskGroup.curConsumption ? rewardTaskGroup.curConsumption : 0;
                 for (let i = 0; i <= rowId; i++) {
                     if (vm.rewardTaskProposalData[i]) {
+                        let forbidXIMAAmt = 0;
                         let spendingAmount = vm.rewardTaskProposalData[i].data.spendingAmount;
-                        currentMax = vm.rewardTaskProposalData[i].data.spendingAmount;
+                        let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : null;
+                        if(rewardTaskGroup){
+                            forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt ? rewardTaskGroup.forbidXIMAAmt:0;
+                        }
+                        currentMax = vm.rewardTaskProposalData[i].data.spendingAmount + forbidXIMAAmt;
                         spendingAmt += spendingAmount;
                     }
                 }
@@ -21229,6 +21255,72 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.selectedAdvListData = function (id,subject) {
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    _id: id,
+                    subject: subject
+                };
+
+                socketService.$socket($scope.AppSocket, 'getSelectedAdvList', sendData, function (data) {
+
+                    if(data && data.data){
+                        vm.selectedAdvList = data.data;
+                        vm.hoverStyle = document.createElement('style');
+                        vm.drawUIPlatformCSS(vm.selectedAdvList);
+                        console.log("vm.selectedAdvList", vm.selectedAdvList);
+                        vm.CSSContentEdit = false;
+                        $scope.safeApply();
+                    }
+                    else {
+                        Q.reject('Advertisement List is not found.');}
+                });
+
+            };
+
+            vm.drawUIPlatformCSS = function (elem) {
+                // generate the css
+                if (vm.hoverStyle) {
+                    vm.hoverStyle.innerHTML = "";
+
+                    if (vm.hoverStyle.styleSheet) {
+                        vm.hoverStyle.styleSheet.cssText = '';
+                    }
+                    else {
+                        vm.hoverStyle.appendChild(document.createTextNode(''));
+                    }
+
+                    let temp = '';
+                    elem.imageButton.forEach(item => {
+                        let css = '#' + item.buttonName + "{" + item.css + "}";
+                        temp += css;
+                    });
+
+                    elem.imageButton.forEach(item => {
+                        let css = '#' + item.buttonName + item.hoverCss;
+                        temp += css;
+
+                    });
+                    vm.hoverStyle.appendChild(document.createTextNode(temp));
+                    document.getElementsByTagName('head')[0].appendChild(vm.hoverStyle);
+                    $scope.safeApply();
+                }
+            };
+
+            vm.advSettingUpdate = function(elem, subject){
+                if(elem){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: elem._id,
+                        imageButton: elem.imageButton,
+                        subject: subject
+                    };
+                    socketService.$socket($scope.AppSocket, 'updateAdvertisementRecord', sendData, function (data) {
+                    });
+                }
+            };
+
             vm.changeAdvertisementStatus= function(advertisementId, advertisementStatus){
                 if(advertisementId){
                     let sendData = {
@@ -21585,7 +21677,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                 });
-            }
+            };
 
             vm.changePartnerAdvertisementStatus= function(advertisementId, advertisementStatus){
                 if(advertisementId){
@@ -21661,7 +21753,12 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                 });
-            }
+            };
+
+
+
+
+
 
             vm.checkPartnerDuplicateAdCode = function(advertisementCode){
                 if(advertisementCode){

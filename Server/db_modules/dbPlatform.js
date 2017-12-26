@@ -1663,6 +1663,23 @@ var dbPlatform = {
         );
 
     },
+
+    getSelectedAdvList: function(platformId,id,subject){
+        if (id) {
+            if (subject == 'player') {
+                return dbconfig.collection_playerPageAdvertisementInfo.findOne({platformId: platformId,_id: id}).lean();
+            }
+            else if (subject == 'partner'){
+                return dbconfig.collection_partnerPageAdvertisementInfo.findOne({platformId: platformId,_id: id}).lean();
+            }
+            else {}
+        }
+        else {
+            return Q.reject(Error("Id is NULL"));
+        }
+
+    },
+
     createNewPlayerAdvertisementRecord: function(platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice){
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj =>{
@@ -1725,6 +1742,26 @@ var dbPlatform = {
                 }
             }
         );
+    },
+
+    updateAdvertisementRecord: function(platformId, advertisementId, imageButton, subject){
+
+        let query = {
+            platformId: platformId,
+            _id: advertisementId
+        };
+
+        let updateData = {
+            imageButton: imageButton,
+        };
+
+        if (subject == 'player') {
+            return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query,updateData);
+        }
+        else if (subject == 'partner'){
+            return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query,updateData);
+        }
+        else {}
     },
 
     changeAdvertisementStatus: function(platformId, advertisementId, status){
