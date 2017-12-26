@@ -199,7 +199,7 @@
                 button.btn.btn-primary.common-button(data-dismiss='modal',ng-click="vm.deletePlatform();") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 
-#modalUpdatePlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+#modalUpdatePlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='overflow-y: auto')
     .modal-dialog
         .modal-content
             .modal-header
@@ -472,7 +472,7 @@
                 button.btn.btn-success.common-button(ng-if='vm.platformRTGEventSettlement.status=="ready"', ng-click="vm.performPlayerConsumptionReturnSettlement()") {{'CONFIRM' | translate}}
                 i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.platformRTGEventSettlement.status=="processing"')
 
-#modalAdvPlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+#modalAdvPlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true', style= 'overflow-y: auto;')
     .modal-dialog
         .modal-content
             .modal-header

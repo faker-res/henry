@@ -284,6 +284,8 @@ form(name="form_new_platform" ,novalidate)
                                                                         tr
                                                                             td(colspan=2)
                                                                                 div(style="height: 80px;background-image: url('{{v.url}}'); background-size: cover; background-repeat: no-repeat;")
+                                                                            td(rowspan=4)
+                                                                                i.fa.fa-minus(ng-click='vm.playerAdvertisementGroup.imageButton.splice($index,1)')
                                                                         tr
                                                                             td
                                                                                 label {{'BUTTON NAME' | translate}}

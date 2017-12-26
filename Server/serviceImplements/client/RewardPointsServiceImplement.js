@@ -23,6 +23,13 @@ let RewardPointsServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPoints.getLoginRewardPoints, [conn.playerId, data.platformId], isValidData, false, false, Boolean(data.platformId));
     };
 
+
+    this.getGameRewardPoints.expectsData = '';
+    this.getGameRewardPoints.onRequest = function (wsFunc, conn, data) {
+        var isValidData = true;
+        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPoints.getGameRewardPoints, [conn.playerId, data.platformId], isValidData, false, false, Boolean(data.platformId));
+	};
+	
     this.getTopUpRewardPointsEvent.expectsData = '';
     this.getTopUpRewardPointsEvent.onRequest = function (wsFunc, conn, data) {
         let isValidData = true;
