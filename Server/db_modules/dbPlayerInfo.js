@@ -183,7 +183,7 @@ let dbPlayerInfo = {
                 let dailyLimit = null;
                 for (let i=0; i < data.params.length; i++) {
                     if (data.params[i].levelObjId.toString() === playerLevel.toString()) {
-                        dailyLimit = data.params[i].dailyMaxPoints;
+                        dailyLimit = data.params[i].pointToCreditManualMaxPoints;
                         return dailyLimit;
                     }
                 }
@@ -197,34 +197,23 @@ let dbPlayerInfo = {
     getPlayerRewardPointsDailyConvertedPoints: function (rewardPointsObjId) {
         let todayTime = dbUtility.getTodaySGTime();
         let category = constRewardPointsLogCategory.EARLY_POINT_CONVERSION;
-        return dbconfig.collection_rewardTask.aggregate(
-            {
-                $match: {
-                    createTime: {
-                        $gte: todayTime.startTime,
-                        $lt: todayTime.endTime
-                    },
-                    "data.rewardPointsObjId": ObjectId(rewardPointsObjId),
-                    "data.category": category
-                }
-            },
-            {
-                $group: {
-                    _id: "$playerId",
-                    amount: {$sum: "$data.convertedRewardPointsAmount"}
-                }
+        return dbconfig.collection_rewardPointsLog.aggregate({
+            $match: {
+                createTime: {
+                    $gte: todayTime.startTime,
+                    $lt: todayTime.endTime
+                },
+                rewardPointsObjId: ObjectId(rewardPointsObjId),
+                category: category
             }
-        ).then(
-            rewardTask => {
-                if (rewardTask && rewardTask[0]) {
-                    return rewardTask[0].amount;
-                }
-                else {
-                    // No rewardTask
-                    return 0;
-                }
+        }, {
+            $group: {
+                _id: "$rewardPointsObjId",
+                amount: {$sum: {$subtract: ["$oldPoints", "$newPoints"]}}
             }
-        );
+        }).then(
+            rewardPointsLog => rewardPointsLog && rewardPointsLog[0] ? rewardPointsLog[0].amount : 0
+        )
     },
 
     /**
@@ -4169,6 +4158,14 @@ let dbPlayerInfo = {
                     transferAmount += rewardTaskGroupData.rewardAmt;
                 }
 
+                if(providerData && providerData.status != constProviderStatus.NORMAL){
+                    deferred.reject({
+                        status: constServerCode.CP_NOT_AVAILABLE,
+                        name: "DataError",
+                        errorMessage: "Game is not available on platform"
+                    });
+                    return;
+                }
 
                 // Check if player has enough credit to play
                 if (transferAmount < 1 || amount == 0) {
@@ -5653,6 +5650,8 @@ let dbPlayerInfo = {
      * Check if player can level up after top up or consumption
      *
      * @param {String|ObjectId} playerObjId
+     * @param platformObjId
+     * @param topUpAmount
      * @returns {Promise.<*>}
      */
     checkFreeAmountRewardTaskGroup: function (playerObjId, platformObjId, topUpAmount) {
@@ -5666,15 +5665,15 @@ let dbPlayerInfo = {
                 providerGroup: null,
                 status: constRewardTaskStatus.STARTED
             };
-    
+
             return dbconfig.collection_rewardTaskGroup.findOne(query).then(
                 (rewardTaskGroup) => {
                     if(rewardTaskGroup){
                         return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                             {_id: rewardTaskGroup._id},
                             {$inc :{targetConsumption: topUpAmount,
-                                currentAmt: topUpAmount
-                                //rewardAmt: topUpAmount
+                                currentAmt: topUpAmount,
+                                initAmt: topUpAmount
                             }}
                         )
                     }else{
@@ -5683,15 +5682,15 @@ let dbPlayerInfo = {
                             playerId: playerObjId,
                             providerGroup: null,
                             status: constRewardTaskStatus.STARTED,
-                            //rewardAmt: topUpAmount,
+                            initAmt: topUpAmount,
                             rewardAmt: 0,
                             currentAmt: topUpAmount,
-                            forbidWithdrawIfBalanceAfterUnlock:0,
+                            forbidWithdrawIfBalanceAfterUnlock: 0,
                             forbidXIMAAmt: 0,
                             curConsumption: 0,
                             targetConsumption: topUpAmount || 0
                         };
-    
+
                         // create new reward group
                         return new dbconfig.collection_rewardTaskGroup(saveObj).save();
                     }

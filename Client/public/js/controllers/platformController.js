@@ -526,13 +526,20 @@ define(['js/app'], function (myApp) {
                 })
             };
 
-            $scope.$on('switchPlatform', (e, cb) => {
-                vm.loadPlatformData();
-                cb("Switch complete!");
+            $scope.$on('switchPlatform', () => {
+                vm.loadPlatformData({loadAll: true, noParallelTrigger: true});
             });
 
             //get all platform data from server
             vm.loadPlatformData = function (option) {
+                if (vm.onGoingLoadPlatformData) {
+                    return;
+                }
+
+                if (option && option.noParallelTrigger) {
+                    vm.onGoingLoadPlatformData = true;
+                }
+
                 if ($('#platformRefresh').hasClass('fa-spin')) {
                     return
                 }
@@ -560,6 +567,7 @@ define(['js/app'], function (myApp) {
                     setTimeout(function () {
                         $('#platformRefresh').removeClass('fa-check');
                         $('#platformRefresh').addClass('fa-refresh').fadeIn(100);
+                        vm.onGoingLoadPlatformData = false;
                     }, 1000);
 
                     //select platform from cookies data
@@ -722,6 +730,7 @@ define(['js/app'], function (myApp) {
                         vm.rewardPointsTabClicked();
                         //     break;
                         // }
+                        vm.onGoingLoadPlatformData = false;
                         $scope.safeApply();
                     },
                     function (error) {
@@ -5228,7 +5237,7 @@ define(['js/app'], function (myApp) {
 
                                 if (vm.selectedPlatform.data.useProviderGroup) {
                                     vm.getRewardTaskGroupDetail(row._id, function (data) {
-                                        vm.curRewardTask = vm.curRewardTask.map(group => {
+                                        vm.rewardTaskGroupPopoverData = vm.curRewardTask.map(group => {
                                             if (group.providerGroup.name == "LOCAL_CREDIT")
                                                 group.validCredit = row.validCredit;
                                             return group;
@@ -10300,9 +10309,9 @@ define(['js/app'], function (myApp) {
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
                         item.topUpAmount = (item.topUpAmount);
-                        item.bonusAmount$ = (item.bonusAmount);
+                        item.bonusAmount$ = -item.data.currentAmt;
                         item.requiredBonusAmount$ = (item.requiredBonusAmount);
-                        item.currentAmount$ = (item.currentAmount);
+                        item.currentAmount$ = 0;
                         item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
                                 return pro.name + ' ';
                             }) : $translate('all')) + ')';
@@ -10338,7 +10347,6 @@ define(['js/app'], function (myApp) {
                             item.rewardType = item.data.rewardType;
                         }
 
-
                         return item;
                     }) : [];
                     var size = data.data ? data.data.size : 0;
@@ -10355,6 +10363,8 @@ define(['js/app'], function (myApp) {
                 if (vm.selectedPlatform.data.useProviderGroup) {
                     tblData = tdata && tdata.data ? tdata.data.rewardTaskGroupData.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
+                        item.currentAmount$ = item.currentAmt - item.initAmt;
+                        item.bonusAmount$ = -item.initAmt;
                         return item;
                     }) : [];
                     tblData = tblData.filter(item => {
@@ -10410,7 +10420,7 @@ define(['js/app'], function (myApp) {
                             sClass: "",
                             render: function (data, type, row) {
                                 let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
-                                var text = row.currentAmt + '/ -' + row.rewardAmt;
+                                var text = row.currentAmount$ + '/' + row.bonusAmount$;
                                 var result = '<div id="' + "pgReward" + providerGroupId + '">' + text + '</div>';
                                 return result;
                             }
@@ -10707,16 +10717,17 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
                         vm.rewardTaskProposalData = data.data.data;
                         vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
-                        console.log(vm.simpleRewardProposalData);
+                        console.log("vm.simpleRewardProposalData", vm.simpleRewardProposalData);
                         let summary = data.data.summary;
                         let result = data.data.data;
                         result.map(item=>{
+                            item.proposalId = item.proposalId || item.data.proposalId;
                             item['createTime$'] = vm.dateReformat(item.data.createTime$);
                             item.useConsumption = item.data.useConsumption;
                             item.topUpProposal = item.data.topUpProposalId;
                             item.topUpAmount = item.data.topUpAmount;
                             item.bonusAmount = item.data.rewardAmount;
-                            item.applyAmount = item.data.applyAmount;
+                            item.applyAmount = item.data.applyAmount || item.data.amount;
                             item.requiredUnlockAmount = result[0].data.spendingAmount;
                             item['provider$'] = item.data.provider$;
                             item.rewardType = item.data.rewardType;
@@ -13928,16 +13939,17 @@ define(['js/app'], function (myApp) {
                     return
                 }
                 console.log("getQuickPay", vm.selectedPlatform.id);
-                socketService.$socket($scope.AppSocket, 'getPlatformQuickPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                    console.log('QuickPayGroup', data);
-                    //provider list init
-                    vm.platformQuickPayGroupList = data.data;
-                    vm.platformQuickPayGroupListCheck = {};
-                    $.each(vm.platformQuickPayGroupList, function (i, v) {
-                        vm.platformQuickPayGroupListCheck[v._id] = true;
-                    })
-                    $scope.safeApply();
-                })
+                //todo::no need quick pay for now
+                // socketService.$socket($scope.AppSocket, 'getPlatformQuickPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                //     console.log('QuickPayGroup', data);
+                //     //provider list init
+                //     vm.platformQuickPayGroupList = data.data;
+                //     vm.platformQuickPayGroupListCheck = {};
+                //     $.each(vm.platformQuickPayGroupList, function (i, v) {
+                //         vm.platformQuickPayGroupListCheck[v._id] = true;
+                //     })
+                //     $scope.safeApply();
+                // })
             }
 
             /////////////////////////////////////// QuickPay Group end  /////////////////////////////////////////////////
@@ -14925,12 +14937,22 @@ define(['js/app'], function (myApp) {
                         if (objectId) {
                             data._id = objectId;
 
-                            if (vm.rewardParamsFilter.length == vm.rewardParams.reward.length){
-                                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
-                            }
-                            else{
-                                vm.rewardParamsFilter.push(JSON.parse(JSON.stringify(data)));
-                                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                            if (vm.rewardParams.reward){
+                                // first time create the data
+                                if (vm.rewardParams.reward.length == 0) {
+                                    vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    vm.rewardParamsFilter = vm.rewardParams.reward;
+                                }
+                                else {
+                                    if (vm.rewardParamsFilter.length == vm.rewardParams.reward.length){
+                                        vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    }
+                                    else{
+                                        vm.rewardParamsFilter.push(JSON.parse(JSON.stringify(data)));
+                                        vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    }
+                                }
+
                             }
                             $scope.safeApply();
                         }
@@ -14999,7 +15021,7 @@ define(['js/app'], function (myApp) {
 
                 vm.rewardParams.reward.map(
                     item => {
-                        if (item.repeatWeekDay === undefined) {
+                        if (item.repeatWeekDay === undefined || item.repeatWeekDay.length === 0 ) {
                             vm.rewardParamsFilter.push(item);
                         }
                         else if (item.repeatWeekDay.includes(index)){
@@ -16696,7 +16718,7 @@ define(['js/app'], function (myApp) {
                             contentToReplace = item.code;
                             break;
                         case "M":
-                            contentToReplace = item.maxTopUpAmount;
+                            contentToReplace = item.maxRewardAmount;
                             break;
                         default:
                             break;
@@ -16904,8 +16926,8 @@ define(['js/app'], function (myApp) {
                             data: "minTopUpAmount"
                         },
                         {
-                            title: $translate('maxTopUpAmount'),
-                            data: "maxTopUpAmount"
+                            title: $translate('PROMO_maxTopUpAmount'),
+                            data: "maxRewardAmount"
                         },
                         {
                             title: $translate('PROMO_CONSUMPTION'),
