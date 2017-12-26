@@ -10631,6 +10631,10 @@ define(['js/app'], function (myApp) {
                 let currentMax = 0;
                 let curRewardDisplay = 0;
 
+
+                //getRewardTaskGroup
+                let rewardTaskGroupRewardAmt = vm.dynRewardTaskGroupId ? vm.dynRewardTaskGroupId[0].rewardAmt:0;
+
                 if (rowId == '0') {
                     let applyAmount = vm.rewardTaskProposalData[0].data.applyAmount ? vm.rewardTaskProposalData[0].data.applyAmount:0;
                     let rewardAmount = vm.rewardTaskProposalData[0].data.rewardAmount ? vm.rewardTaskProposalData[0].data.rewardAmount :0;
@@ -10671,9 +10675,9 @@ define(['js/app'], function (myApp) {
                 }
                 else if (finalRewardAmount > 0  || spendingAmt.incCurConsumption >  0) {
                     // already submit, display tick icon
-                    return {isSubmit: true, curRewardAmount: curRewardDisplay, rewardAmount: currentMax, spendingAmt: spendingAmt}
+                    return {isSubmit: true, curRewardAmount: curRewardDisplay, rewardAmount: currentMax ,rewardGroupMaxAmount: rewardTaskGroupRewardAmt ,spendingAmt: spendingAmt}
                 } else {
-                    return {isSubmit: false, curRewardAmount: curRewardDisplay, rewardAmount: currentMax, spendingAmt: spendingAmt}
+                    return {isSubmit: false, curRewardAmount: curRewardDisplay, rewardAmount: currentMax,rewardGroupMaxAmount: rewardTaskGroupRewardAmt ,spendingAmt: spendingAmt}
                 }
             }
             vm.getRewardTaskGroupProposal = function (id) {
