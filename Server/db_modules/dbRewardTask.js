@@ -432,7 +432,6 @@ const dbRewardTask = {
                             result[0].map(item => {
 
                                 if (rewardTaskGroup) {
-                                    console.log(item);
                                     item.data['createTime$'] = item.createTime;
                                     item.data.useConsumption = rewardTaskGroup.useConsumption;
                                     item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
@@ -440,6 +439,7 @@ const dbRewardTask = {
                                         item.data.provider$ = rewardTaskGroup.providerGroup ? rewardTaskGroup.providerGroup.name :"ziyouedu" ;
                                     }
                                     if(!query._id){
+
                                         item.data.topUpProposalId = item.data ? item.data.proposalId : '';
                                         item.data.topUpAmount = item.data ? item.data.amount : '';
                                         item.data.rewardAmount = 0;
