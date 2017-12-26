@@ -1643,6 +1643,23 @@ var dbPlatform = {
     },
     generateObjectId: function(){
         return new ObjectId();
+    },
+    getPlayerAdvertisementList: function(platformId, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj =>{
+                if(platformObj){
+                    if(inputDevice){
+                        return dbconfig.collection_frontEndInfo.find({platformId: platformId, inputDevice: inputDevice}).lean();
+                    }
+                    else{
+                        return Q.reject(Error("Invalid input device"));
+                    }
+                }else{
+                    return Q.reject(Error("No platform exists with id: " + platformId));
+                }
+            }
+        );
+
     }
 };
 

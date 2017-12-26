@@ -1,8 +1,12 @@
+style.
+    .bg-secondary {
+        background-color: #868E96;
+    }
 .col-sm-12(ng-if='!vm.curPlatformText')
     .text-center
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 .row(ng-if='vm.curPlatformText')
-    .col-md-3
+    .col-md-2
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
                 label {{"Bankcard Group" | translate}}
@@ -33,7 +37,7 @@
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'AddAllPlayer')", ng-disabled="!vm.selectedPlatform || !vm.SelectedBankCardGroupNode", data-toggle="modal", data-target='#modalAddAllPlayersToBankCardGroup', ng-click='vm.addAllPlayerToBankCardResult=""')
                         text {{"ADD_ALL_PLAYER" | translate}}
                         img.img-create
-    .col-md-9(style="padding-left:0;padding-right:15px")
+    .col-md-10(style="padding-left:0;padding-right:15px")
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
                 label {{"Bankcard Group" | translate}} : {{vm.SelectedBankCardGroupNode.name}} ({{vm.SelectedBankCardGroupNode.displayName}})
@@ -41,33 +45,68 @@
                 .text-center(ng-if='!vm.SelectedBankCardGroupNode')
                     label.text-danger {{"NO_BANKCARD_GROUP_MESSAGE" | translate}}
                 .well
-                    .inlineBlk.margin-right-5
-                        .control-label {{"BANK_TYPE" | translate}}
-                        select.input-sm.form-control.merchantNoList(id="selectBankType", ng-model='vm.filterBankType', ng-options="a | translate for a in vm.allBankTypeList", style='max-width:200px', ng-change='vm.BankTypeChanged();',multiple,bsp)
+                    //.inlineBlk.margin-right-5
+                    //    .control-label {{"BANK_TYPE" | translate}}
+                    //    select.input-sm.form-control.merchantNoList(id="selectBankType", ng-model='vm.filterBankType', ng-options="a | translate for a in vm.allBankTypeList", style='max-width:200px', ng-change='vm.BankTypeChanged();',multiple,bsp)
                         //select.input-sm.form-control(ng-model='vm.filterBankType', style='max-width:200px', ng-change='vm.BankTypeChanged();')
                         //    option(value='all') {{'any' | translate}}
                         //    option(ng-repeat='(i,v) in vm.allBankTypeList', value='{{i}}') {{v}}
-                    .inlineBlk.margin-right-5
-                        .control-label {{"Bank Card Name" | translate}}
-                        select.input-sm.form-control.merchantNoList(id="selectBankCardName", ng-model='vm.filterBankCardName', ng-options="a.name for a in vm.allBankCardList", style='max-width:200px', ng-init='vm.filterBankCardName="all"',ng-change='vm.BankCardNameChanged();',multiple,bsp,rddl)
+                    //.inlineBlk.margin-right-5
+                    //    .control-label {{"Bank Card Name" | translate}}
+                    //    select.input-sm.form-control.merchantNoList(id="selectBankCardName", ng-model='vm.filterBankCardName', ng-options="a.name for a in vm.allBankCardList", style='max-width:200px', ng-init='vm.filterBankCardName="all"',ng-change='vm.BankCardNameChanged();',multiple,bsp,rddl)
                         //select.input-sm.form-control(ng-model='vm.filterBankCardName', style='max-width:200px', ng-init='vm.filterBankCardName="all"',ng-change='vm.BankCardNameChanged();' )
                         //    option(value='all') {{'any' | translate}}
                         //    option(ng-repeat='(i,v) in vm.allBankCardList', value='{{i}}') {{v.name | translate}}
-                    .inlineBlk.margin-right-5
-                        .control-label {{"BANK_ACCOUNT_NUMBER" | translate}}
-                        select.input-sm.form-control.merchantNoList(id="selectBankAccountNumber", ng-model='vm.filterBankAccountNo', ng-options="a.accountNumber for a in vm.allBankCardList", style='max-width:200px',ng-init='vm.filterBankAccountNo="all"',ng-change='vm.BankAccountNumberChanged();',multiple,bsp,rddl)
+                    //.inlineBlk.margin-right-5
+                    //    .control-label {{"BANK_ACCOUNT_NUMBER" | translate}}
+                    //    select.input-sm.form-control.merchantNoList(id="selectBankAccountNumber", ng-model='vm.filterBankAccountNo', ng-options="a.accountNumber for a in vm.allBankCardList", style='max-width:200px',ng-init='vm.filterBankAccountNo="all"',ng-change='vm.BankAccountNumberChanged();',multiple,bsp,rddl)
                         //select.input-sm.form-control(ng-model='vm.filterBankAccountNo', style='max-width:200px',ng-init='vm.filterBankAccountNo="all"',ng-change='vm.BankAccountNumberChanged();')
                         //    option(value='all') {{'any' | translate}}
                         //    option(ng-repeat='(i,v) in vm.allBankCardList', value='{{i}}') {{v.accountNumber}}
-                    //.inlineBlk.margin-right-5l
-                    //    .control-label {{"TITLE" | translate}}
-                    //    input.input-sm.form-control(type='text', ng-model='vm.filterBankTitle')
-                    //.inlineBlk.margin-right-5
-                    //    .control-label {{"ACCOUNT" | translate}}
-                    //    input.input-sm.form-control(type='text', ng-model='vm.filterBankAcc')
+                    .inlineBlk.margin-right-5
+                        .control-label {{"Bank Card Name" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.bankCardFilterOptions.bankAccountName')
+                    .inlineBlk.margin-right-5
+                        .control-label {{"BANK_ACCOUNT_NUMBER" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.bankCardFilterOptions.bankAccountNumber')
+                    .inlineBlk.margin-right-5
+                        .control-label {{"IS_IN_GROUP" | translate}}
+                        select.input-sm.form-control(ng-model="vm.bankCardFilterOptions.included")
+                            option(value='all') {{'any' | translate}}
+                            option(value='yes') {{'IN_GROUP' | translate}}
+                            option(value='no') {{'NOT_IN_GROUP' | translate}}
                     .inlineBlk
-                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.bankCardFilter(1,vm.SelectedBankCardGroupNode)") {{"FILTER" | translate}}
-                #bankList.panel-group(ng-if='vm.SelectedBankCardGroupNode')
+                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.bankCardsFilter()") {{"FILTER" | translate}}
+                span {{"All Pages" | translate}}: {{vm.totalBankCardShows()}}
+                table#bankCards.table(ng-if='vm.SelectedBankCardGroupNode')
+                    thead
+                        tr
+                            th {{'SELECT' | translate}}
+                            th(data-toggle="modal", data-target="#modalFilterBankCardStatus", style="cursor: pointer")
+                                u {{'STATUS' | translate}}
+                            th(data-toggle="modal", data-target="#modalFilterBankCardType", style="cursor: pointer")
+                                u {{'bankCardType' | translate}}
+                            th {{'Bank Card Name' | translate}}
+                            th {{'BANK_ACCOUNT_NUMBER' | translate}}
+                            th {{'BANK_ACCOUNT_PROVINCE' | translate}}
+                            th {{'BANK_ACCOUNT_CITY' | translate}}
+                            th {{'BANK_ACCOUNT_BRANCH' | translate}}
+                            th {{'DAY_LIMIT' | translate}}
+                    tbody
+                        tr(ng-repeat="v in vm.allBankCards" ng-class="{'bg-secondary': !v.included}" ng-show="v.show$")
+                            td
+                                input(type="checkbox" ng-model="v.selected")
+                            td.text-center(ng-class="{'text-disabled': v.state === 'DISABLED'}") {{v.status| translate}}
+                            td {{v.bankTypeId ? vm.getBankCardTypeTextbyId(v.bankTypeId) : ("VOID" | translate)}}
+                            td {{v.name}}
+                            td {{v.accountNumber}}
+                            td {{v.provinceName}}
+                            td {{v.cityName}}
+                            td {{v.openingPoint}}
+                            td {{v.quota}}
+
+
+                //#bankList.panel-group(ng-if='vm.SelectedBankCardGroupNode')
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#bankList", href='#includedBanks', ng-click='vm.toggleBankType("include")')
                             h4.panel-title
@@ -81,7 +120,7 @@
                                         tr
                                             td.text-center
                                                 td {{'STATUS' | translate}}
-                                                td(ng-class="{'text-disabled': v.state === 'DISABLED'}").text-success {{v.state| translate}}
+                                                td(ng-class="{'text-disabled': v.state === 'DISABLED'}").text-success {{v.status| translate}}
                                         tr
                                             td.text-center
                                             td {{'bankCardType' | translate}}
@@ -97,15 +136,15 @@
                                         tr
                                             td.text-center
                                             td {{'BANK_ACCOUNT_PROVINCE' | translate}}
-                                            td.text-success {{v.province}}
+                                            td.text-success {{v.provinceName}}
                                         tr
                                             td.text-center
                                             td {{'BANK_ACCOUNT_CITY' | translate}}
-                                            td.text-success {{v.city}}
+                                            td.text-success {{v.cityName}}
                                         tr
                                             td.text-center
                                             td {{'BANK_ACCOUNT_BRANCH' | translate}}
-                                            td.text-success {{v.branch}}
+                                            td.text-success {{v.openingPoint}}
                                         tr
                                             td.text-center
                                             td {{'DAY_LIMIT' | translate}}
@@ -154,15 +193,15 @@
                                         tr
                                             td.text-center
                                             td {{'BANK_ACCOUNT_PROVINCE' | translate}}
-                                            //td.text-success {{v.name}}
+                                            td.text-success {{v.provinceName}}
                                         tr
                                             td.text-center
                                             td {{'BANK_ACCOUNT_CITY' | translate}}
-                                            //td.text-success {{v.name}}
+                                            td.text-success {{v.cityName}}
                                         tr
                                             td.text-center
                                             td {{'BANK_ACCOUNT_BRANCH' | translate}}
-                                            //td.text-success {{v.name}}
+                                            td.text-success {{v.openingPoint}}
                                         tr
                                             td.text-center
                                             td {{'DAY_LIMIT' | translate}}
@@ -188,7 +227,15 @@
                     .panel-body(style='height:80px;padding:5px')
                         .textareaDetail
                             textarea(disabled, readonly, rows="3" style="border:none") {{'BANK_TYPE' | translate}}&nbsp;:&nbsp;{{vm.curBank.bankTypeId ? vm.getBankCardTypeTextbyId(vm.curBank.bankTypeId) : ("VOID" | translate)}}
-                div(ng-if='vm.curBank')
+                div(ng-if='vm.SelectedBankCardGroupNode && checkViewPermission("Payment", "BankCardGroup", "Update")')
+                    button.btn.btn-primary.common-button.pull-right(ng-click="vm.removeBankCardFromGroup()")
+                        i.fa.fa-minus-square
+                        text {{"EXCLUDE" | translate}}
+                    button.btn.btn-primary.common-button.pull-right(ng-click="vm.addBankCardToGroup()")
+                        i.fa.fa-plus-square
+                        text {{"INCLUDE" | translate}}
+
+                //div(ng-if='vm.curBank')
                     div(ng-if='vm.showBankCate=="include"')
                         button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Update')", ng-click='vm.banktoBankCardGroup("detach")')
                             i.fa.fa-minus-square
@@ -338,3 +385,35 @@
                 button.btn.btn-warning.common-button(ng-show='!vm.addAllPlayerToBankCardResult' data-dismiss='modal') {{"CANCEL" | translate}}
                 button.btn.btn-success.common-button(ng-show='vm.addAllPlayerToBankCardResult' data-dismiss='modal') {{"CONFIRM" | translate}}
                 label(ng-show='vm.addAllPlayerToBankCardResult') {{vm.addAllPlayerToBankCardResult}}
+
+#modalFilterBankCardType.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"BANK_TYPE" | translate}} {{"Show Options" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .col-md-3(ng-repeat="(bankCardTypeId, show) in vm.bankCardFilterOptions.bankTypes")
+                            input(type="checkbox" ng-model="vm.bankCardFilterOptions.bankTypes[bankCardTypeId]")
+                            span {{vm.allBankTypeList[bankCardTypeId]}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.bankCardsFilter()") {{"FILTER" | translate}}
+                button.btn.btn-info.common-button(ng-click="vm.changeAllBankCardTypeInFilter(true)") {{"Select All" | translate}}
+                button.btn.btn-info.common-button(ng-click="vm.changeAllBankCardTypeInFilter(false)") {{"Clear All" | translate}}
+
+#modalFilterBankCardStatus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"STATUS" | translate}} {{"Show Options" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .col-md-3(ng-repeat="(status, show) in vm.bankCardFilterOptions.status")
+                            input(type="checkbox" ng-model="vm.bankCardFilterOptions.status[status]")
+                            span {{status | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.bankCardsFilter()") {{"FILTER" | translate}}

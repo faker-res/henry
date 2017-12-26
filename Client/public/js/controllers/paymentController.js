@@ -7,6 +7,7 @@ define(['js/app'], function (myApp) {
     var paymentController = function ($compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies) {
         var $translate = $filter('translate');
         var vm = this;
+        window.VM = vm;
 
         // declare constants
         vm.topUpTypeList = {
@@ -51,7 +52,12 @@ define(['js/app'], function (myApp) {
             }
             $cookies.put("paymentShowLeft", vm.showPlatformList);
             $scope.safeApply();
-        }
+        };
+
+        $scope.$on('switchPlatform', () => {
+            $scope.$evalAsync(vm.loadPlatformData());
+        });
+
         vm.loadPlatformData = function (option) {
             vm.showPlatformSpin = true;
             socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
@@ -131,6 +137,9 @@ define(['js/app'], function (myApp) {
             vm.loadWechatPayGroupData();
             vm.getAllPlayerLevels();
             vm.loadQuickPayGroupData();
+            vm.getAllBankCard();
+            vm.bankCardFilterOptions = {};
+            vm.merchantFilterOptions = {};
             $scope.safeApply();
         };
 
@@ -213,10 +222,20 @@ define(['js/app'], function (myApp) {
         };
 
         /////////////////////////////////////// bank card start  /////////////////////////////////////////////////
+        vm.bankCardFilterOptions = {};
 
         vm.bankCardGroupTabClicked = function () {
 
-        }
+        };
+
+        vm.getAllBankCard = function () {
+            return $scope.$socketPromise('getAllBankCard', {platform: vm.selectedPlatform.data.platformId}).then(data => {
+                console.log('getAllBankCard', data);
+                vm.allBankCards = data.data.data;
+
+                $scope.safeApply();
+            });
+        };
 
         vm.getBankCardTypeTextbyId = function (id) {
             if (!vm.allBankTypeList) {
@@ -225,6 +244,19 @@ define(['js/app'], function (myApp) {
                 return vm.allBankTypeList[id];
             }
         }
+
+        vm.loadBankCardGroup = () => {
+            return $scope.$socketPromise('getPlatformBankCardGroupLite', {platform: vm.selectedPlatform.id}).then(data => {
+                console.log('bankgroup', data);
+                //provider list init
+                vm.platformBankCardGroupList = data.data;
+                vm.platformBankCardGroupListCheck = {};
+                $.each(vm.platformBankCardGroupList, function (i, v) {
+                    vm.platformBankCardGroupListCheck[v._id] = true;
+                });
+                $scope.safeApply();
+            })
+        };
 
         vm.loadBankCardGroupData = function () {
             //init gametab start===============================
@@ -263,103 +295,211 @@ define(['js/app'], function (myApp) {
         }
 
         vm.bankCardGroupClicked = function (i, bankCardGroup) {
+            if (vm.platformBankCardGroupList) {
+                for (let i = 0; i < vm.platformBankCardGroupList.length; i++) {
+                    if (vm.platformBankCardGroupList[i]._id.toString() === bankCardGroup._id.toString()) {
+                        bankCardGroup = vm.platformBankCardGroupList[i];
+                    }
+                }
+            }
+
+            if (vm.allBankTypeList && vm.bankCardFilterOptions && !vm.bankCardFilterOptions.bankTypes) {
+                vm.bankCardFilterOptions.bankTypes = {};
+                for (let key in vm.allBankTypeList) {
+                    if (vm.allBankTypeList.hasOwnProperty(key)) {
+                        vm.bankCardFilterOptions.bankTypes[key] = true;
+                    }
+                }
+            }
+
+            if (vm.bankCardFilterOptions && !vm.bankCardFilterOptions.status) {
+                vm.bankCardFilterOptions.status = {
+                    "NORMAL": true,
+                    "LOCK": true
+                }
+            }
+
             vm.SelectedBankCardGroupNode = bankCardGroup;
             vm.includedBanks = null;
             vm.excludedBanks = null;
+            vm.bankCardTableLoading = true;
             console.log('bankCardGroup clicked', bankCardGroup);
-            var query = {
-                platform: vm.selectedPlatform.data.platformId,
-                bankCardGroup: bankCardGroup._id
-            }
+            // var query = {
+            //     platform: vm.selectedPlatform.data.platformId,
+            //     bankCardGroup: bankCardGroup._id
+            // }
+
+            let proms = [];
 
             vm.BankCardNameChanged = function(){
                 vm.filterBankAccountNo = vm.filterBankCardName;
-            }
+            };
 
             vm.BankAccountNumberChanged = function(){
                 vm.filterBankCardName = vm.filterBankAccountNo;
+            };
+
+            if (!vm.allBankCards) {
+                proms.push(vm.getAllBankCard());
             }
 
-            vm.BankTypeChanged = function(){
-                socketService.$socket($scope.AppSocket, 'getIncludedBankCardByBankCardGroup', query, function(data2){
-                    console.log("banks card name", data2);
-                    if (data2 && data2.data) {
-                        vm.allBankCardList = [];
-                        $.each(data2.data, function (i, v) {
-                            if (!vm.allBankTypeList[v.bankTypeId]) {
-                            } else if (vm.filterBankType && (vm.filterBankType != 'all' && vm.filterBankType != '') && (!vm.filterBankType.find(bt => bt.includes('(' + v.bankTypeId + ')')))){
-
-                            }else if(vm.filterBankType && vm.filterBankType.length == 0){
-                                vm.allBankCardList = [];
-                            } else {
-                                vm.allBankCardList.push(v);
-                            }
-                        });
-                    } else {
-                        vm.allBankCardList = [];
-                    }
-
-                    vm.filterBankCardName = 'all';
-                    vm.filterBankAccountNo = 'all';
-
-                    $scope.safeApply();
-                });
-            }
-
-            socketService.$socket($scope.AppSocket, 'getIncludedBankCardByBankCardGroup', query, function(data2){
-                console.log("banks card name", data2);
-                if (data2 && data2.data) {
-                    vm.allBankCardList = [];
-                    $.each(data2.data, function (i, v) {
-                        if (!vm.allBankTypeList[v.bankTypeId]) {
-                        } else if (vm.filterBankType && (vm.filterBankType != 'all' && vm.filterBankType != '') && (!vm.filterBankType.find(bt => bt.includes('(' + v.bankTypeId + ')')))) {
-                        } else {
-                            vm.allBankCardList.push(v);
-                        }
-                    });
-                } else {
-                    vm.allBankCardList = [];
-                }
-
+            Promise.all(proms).then(() => {
+                vm.checkIncludedBankCards();
+                vm.bankCardsFilter();
+                vm.bankCardTableLoading = false;
                 $scope.safeApply();
             });
 
-            socketService.$socket($scope.AppSocket, 'getIncludedBankCardByBankCardGroup', query, function (data2) {
-                console.log("attached bank cards", data2);
-                if (data2 && data2.data) {
-                    vm.includedBanks = [];
-                    $.each(data2.data, function (i, v) {
-                        if (!vm.allBankTypeList[v.bankTypeId]) {
-                        } else if (vm.filterBankType && (vm.filterBankType != 'all' && vm.filterBankType != '') && (!vm.filterBankType.find(bt => bt.includes('(' + v.bankTypeId + ')')))) {
+            // vm.BankTypeChanged = function(){
+            //     socketService.$socket($scope.AppSocket, 'getIncludedBankCardByBankCardGroup', query, function(data2){
+            //         console.log("banks card name", data2);
+            //         if (data2 && data2.data) {
+            //             vm.allBankCardList = [];
+            //             $.each(data2.data, function (i, v) {
+            //                 if (!vm.allBankTypeList[v.bankTypeId]) {
+            //                 } else if (vm.filterBankType && (vm.filterBankType != 'all' && vm.filterBankType != '') && (!vm.filterBankType.find(bt => bt.includes('(' + v.bankTypeId + ')')))){
+            //
+            //                 }else if(vm.filterBankType && vm.filterBankType.length == 0){
+            //                     vm.allBankCardList = [];
+            //                 } else {
+            //                     vm.allBankCardList.push(v);
+            //                 }
+            //             });
+            //         } else {
+            //             vm.allBankCardList = [];
+            //         }
+            //
+            //         vm.filterBankCardName = 'all';
+            //         vm.filterBankAccountNo = 'all';
+            //
+            //         $scope.safeApply();
+            //     });
+            // }
 
-                        } else if (vm.filterBankCardName && (vm.filterBankCardName != 'all' && vm.filterBankCardName != '') && (!vm.filterBankCardName.find(bcn => bcn.name == v.name))) {
+            // socketService.$socket($scope.AppSocket, 'getIncludedBankCardByBankCardGroup', query, function(data2){
+            //     console.log("banks card name", data2);
+            //     if (data2 && data2.data) {
+            //         vm.allBankCardList = [];
+            //         $.each(data2.data, function (i, v) {
+            //             if (!vm.allBankTypeList[v.bankTypeId]) {
+            //             } else if (vm.filterBankType && (vm.filterBankType != 'all' && vm.filterBankType != '') && (!vm.filterBankType.find(bt => bt.includes('(' + v.bankTypeId + ')')))) {
+            //             } else {
+            //                 vm.allBankCardList.push(v);
+            //             }
+            //         });
+            //     } else {
+            //         vm.allBankCardList = [];
+            //     }
+            //
+            //     $scope.safeApply();
+            // });
+            //
+            // socketService.$socket($scope.AppSocket, 'getIncludedBankCardByBankCardGroup', query, function (data2) {
+            //     console.log("attached bank cards", data2);
+            //     if (data2 && data2.data) {
+            //         vm.includedBanks = [];
+            //         $.each(data2.data, function (i, v) {
+            //             if (!vm.allBankTypeList[v.bankTypeId]) {
+            //             } else if (vm.filterBankType && (vm.filterBankType != 'all' && vm.filterBankType != '') && (!vm.filterBankType.find(bt => bt.includes('(' + v.bankTypeId + ')')))) {
+            //
+            //             } else if (vm.filterBankCardName && (vm.filterBankCardName != 'all' && vm.filterBankCardName != '') && (!vm.filterBankCardName.find(bcn => bcn.name == v.name))) {
+            //
+            //             } else if (vm.filterBankAccountNo && (vm.filterBankAccountNo != 'all' && vm.filterBankAccountNo != '') && (!vm.filterBankAccountNo.find(ban => ban.accountNumber == v.accountNumber))) {
+            //
+            //             } else {
+            //                 vm.includedBanks.push(v);
+            //             }
+            //         });
+            //
+            //         // vm.includedBanks = data2.data;
+            //     } else {
+            //         vm.includedBanks = [];
+            //     }
+            //     $scope.safeApply();
+            // })
+            //
+            // socketService.$socket($scope.AppSocket, 'getExcludedBankCardByBankCardGroup', query, function (data2) {
+            //     console.log("not attached bank cards", data2);
+            //     if (data2 && data2.data) {
+            //         vm.excludedBanks = data2.data.filter(item => {
+            //             return vm.allBankTypeList[item.bankTypeId];
+            //         });
+            //     } else {
+            //         vm.excludedBanks = [];
+            //     }
+            //     $scope.safeApply();
+            // })
+        };
 
-                        } else if (vm.filterBankAccountNo && (vm.filterBankAccountNo != 'all' && vm.filterBankAccountNo != '') && (!vm.filterBankAccountNo.find(ban => ban.accountNumber == v.accountNumber))) {
+        vm.checkIncludedBankCards = () => {
+            if (!vm.allBankCards || !vm.allBankCards.length) {
+                return;
+            }
 
-                        } else {
-                            vm.includedBanks.push(v);
+            if (vm.SelectedBankCardGroupNode && vm.SelectedBankCardGroupNode.banks) {
+                let includedBanks = vm.SelectedBankCardGroupNode.banks;
+                for (let i = 0; i < vm.allBankCards.length; i++) {
+                    let bank = vm.allBankCards[i];
+                    let cardIncluded = false;
+
+                    for (let j = 0; j < includedBanks.length; j++) {
+                        let includedBank = includedBanks[j];
+                        if (includedBank == bank.accountNumber) {
+                            cardIncluded = true;
+                            break;
                         }
-                    });
-
-                    // vm.includedBanks = data2.data;
-                } else {
-                    vm.includedBanks = [];
+                    }
+                    bank.included = cardIncluded;
                 }
-                $scope.safeApply();
-            })
+            }
+        };
 
-            socketService.$socket($scope.AppSocket, 'getExcludedBankCardByBankCardGroup', query, function (data2) {
-                console.log("not attached bank cards", data2);
-                if (data2 && data2.data) {
-                    vm.excludedBanks = data2.data.filter(item => {
-                        return vm.allBankTypeList[item.bankTypeId];
-                    });
-                } else {
-                    vm.excludedBanks = [];
+        vm.changeAllBankCardTypeInFilter = (select) => {
+            for (let key in vm.bankCardFilterOptions.bankTypes) {
+                if (vm.bankCardFilterOptions.bankTypes.hasOwnProperty(key)) {
+                    vm.bankCardFilterOptions.bankTypes[key] = Boolean(select);
                 }
+            }
+        };
+
+        vm.totalBankCardShows = () => {
+            let total = 0;
+            for (let key in vm.allBankCards) {
+                if (vm.allBankCards.hasOwnProperty(key) && vm.allBankCards[key].show$) {
+                    total++;
+                }
+            }
+            return total;
+        };
+
+        vm.bankCardsFilter = () => {
+            if (!vm.allBankCards || !vm.allBankCards.length) {
+                return;
+            }
+
+            for (let i = 0; i < vm.allBankCards.length; i++) {
+                let bank = vm.allBankCards[i];
+                let show = true;
+                if (vm.bankCardFilterOptions.bankAccountName && bank.name.indexOf(vm.bankCardFilterOptions.bankAccountName) < 0) {
+                    show = false;
+                }
+                if (vm.bankCardFilterOptions.bankAccountNumber && bank.accountNumber.indexOf(vm.bankCardFilterOptions.bankAccountNumber) < 0) {
+                    show = false;
+                }
+                if (vm.bankCardFilterOptions.included === "yes" && !bank.included || vm.bankCardFilterOptions.included === "no" && bank.included) {
+                    show = false;
+                }
+                if (vm.bankCardFilterOptions.status && vm.bankCardFilterOptions.status[bank.status] === false) {
+                    show = false;
+                }
+                if (vm.bankCardFilterOptions.bankTypes && vm.bankCardFilterOptions.bankTypes[bank.bankTypeId] === false) {
+                    show = false;
+                }
+
+                bank.show$ = show;
                 $scope.safeApply();
-            })
-        }
+            }
+        };
 
         vm.bankCardFilter = function(i, bankCardGroup){
             vm.SelectedBankCardGroupNode = bankCardGroup;
@@ -482,6 +622,82 @@ define(['js/app'], function (myApp) {
             vm.curBank = null;
             vm.showBankCate = type;
         }
+
+        vm.addBankCardToGroup = () => {
+            let bankAccountNumbers = [];
+            for (let i = 0; i < vm.allBankCards.length; i++) {
+                let account = vm.allBankCards[i];
+                if (account.selected && !account.included) {
+                    bankAccountNumbers.push(account.accountNumber)
+                }
+            }
+
+            if (!bankAccountNumbers.length) {
+                socketService.showErrorMessage($translate("There is no bank card group to be added"));
+                return;
+            }
+
+            let sendData = {
+                query: {
+                    platform: vm.selectedPlatform.id,
+                    _id: vm.SelectedBankCardGroupNode._id
+                },
+                update: {
+                    $push: {
+                        banks: {$each: bankAccountNumbers}
+                    }
+                }
+            };
+
+            return $scope.$socketPromise('updatePlatformBankCardGroup', sendData).then(data => {
+                console.log("_updatePlatformBankCardGroup", data);
+                vm.allBankCards.map(card => {
+                    card.selected = false;
+                });
+                $scope.safeApply();
+                vm.loadBankCardGroup().then(() => {
+                    vm.bankCardGroupClicked(null, vm.SelectedBankCardGroupNode);
+                });
+            });
+        };
+
+        vm.removeBankCardFromGroup = () => {
+            let bankAccountNumbers = [];
+            for (let i = 0; i < vm.allBankCards.length; i++) {
+                let account = vm.allBankCards[i];
+                if (account.selected && account.included) {
+                    bankAccountNumbers.push(account.accountNumber)
+                }
+            }
+
+            if (!bankAccountNumbers.length) {
+                socketService.showErrorMessage($translate("There is no bank card group to be added"));
+                return;
+            }
+
+            let sendData = {
+                query: {
+                    platform: vm.selectedPlatform.id,
+                    _id: vm.SelectedBankCardGroupNode._id
+                },
+                update: {
+                    $pull: {
+                        banks: {$in: bankAccountNumbers}
+                    }
+                }
+            };
+
+            return $scope.$socketPromise('updatePlatformBankCardGroup', sendData).then(data => {
+                console.log("_updatePlatformBankCardGroup", data);
+                vm.allBankCards.map(card => {
+                    card.selected = false;
+                });
+                $scope.safeApply();
+                vm.loadBankCardGroup().then(() => {
+                    vm.bankCardGroupClicked(null, vm.SelectedBankCardGroupNode);
+                });
+            });
+        };
 
         vm.banktoBankCardGroup = function (type) {
             if (!vm.curBank) return;
@@ -754,7 +970,7 @@ define(['js/app'], function (myApp) {
 
             $scope.safeApply();
             function updateNumReceipient() {
-                vm.selectMultiPlayer.numRecipient = $(id + ' tbody input:checked[type="checkbox"]').length;
+                vm.selectMultiPlayer.numRecipient = $(vm.curPlayerTableId + ' tbody input:checked[type="checkbox"]').length;
                 vm.selectMultiPlayer.numReceived = 0;
                 vm.selectMultiPlayer.numFailed = 0;
                 $scope.safeApply();
@@ -841,7 +1057,7 @@ define(['js/app'], function (myApp) {
 
         vm.merchantGroupTabClicked = function () {
             socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
-                if (data && data.data && data.data.merchantTypes) {
+                if (data && data.data && data.data.merchantTypes && data.data.merchantTypes.length > 0) {
                     vm.allMerchantTypeList = {};
                     data.data.merchantTypes.forEach(item => {
                         vm.allMerchantTypeList[item.merchantTypeId] = item;
@@ -850,7 +1066,7 @@ define(['js/app'], function (myApp) {
                 }
                 $scope.safeApply();
             })
-        }
+        };
 
         vm.loadMerchantGroupData = function () {
             //init gametab start===============================
@@ -879,101 +1095,98 @@ define(['js/app'], function (myApp) {
             vm.includedMerchants = null;
             vm.excludedMerchants = null;
             console.log('merchantGroup clicked', merchantGroup);
+
+            if (vm.merchantFilterOptions && !vm.merchantFilterOptions.status) {
+                vm.merchantFilterOptions.status = {
+                    "DISABLED": true,
+                    "ENABLED": true
+                }
+            }
+
+            if ($scope.merchantTargetDeviceJson && vm.merchantFilterOptions && !vm.merchantFilterOptions.targetDevices) {
+                vm.merchantFilterOptions.targetDevices = {};
+                for (let key in $scope.merchantTargetDeviceJson) {
+                    if ($scope.merchantTargetDeviceJson.hasOwnProperty(key)) {
+                        vm.merchantFilterOptions.targetDevices[key] = true;
+                    }
+                }
+            }
+
+            if ($scope.merchantTopupTypeJson && vm.merchantFilterOptions && !vm.merchantFilterOptions.topupType) {
+                vm.merchantFilterOptions.topupType = {};
+                for (let key in $scope.merchantTopupTypeJson) {
+                    if ($scope.merchantTopupTypeJson.hasOwnProperty(key)) {
+                        vm.merchantFilterOptions.topupType[key] = true;
+                    }
+                }
+            }
+
+            if (vm.allMerchantTypeList && vm.merchantFilterOptions && !vm.merchantFilterOptions.merchantTypeId) {
+                vm.merchantFilterOptions.merchantTypeId = {};
+                for (let key in vm.allMerchantTypeList) {
+                    if (vm.allMerchantTypeList.hasOwnProperty(key)) {
+                        vm.merchantFilterOptions.merchantTypeId[key] = true;
+                    }
+                }
+            }
+
             var query = {
                 platform: vm.selectedPlatform.data.platformId,
                 merchantGroup: merchantGroup._id
             }
 
-            socketService.$socket($scope.AppSocket, 'getIncludedMerchantByMerchantGroup', query, function(data){
+            socketService.$socket($scope.AppSocket, 'getMerchantByMerchantGroup', query, function(data){
                 console.log('MerchantGroupList', data);
                 //provider list init
                 vm.allMerchantList = data.data;
-                $.each(vm.allMerchantList, function (i, v) {
-                    vm.allMerchantList[v._id] = true;
-                })
-                $scope.safeApply();
+                $scope.$evalAsync(vm.merchantPayFilter());
             });
 
-            socketService.$socket($scope.AppSocket, 'getIncludedMerchantByMerchantGroup', query, function (data2) {
-                console.log("attached merchants", data2);
-                if (data2 && data2.data) {
-                    vm.includedMerchants = [];
-
-                    $.each(data2.data, function (i, v) {
-                        if (vm.filterTargetDeviceJson && (vm.filterTargetDeviceJson != 'all' && vm.filterTargetDeviceJson != '') && (!vm.filterTargetDeviceJson.includes($scope.merchantTargetDeviceJson[v.targetDevices]))) {
-
-                        }else if (vm.filterMerchantTopupType && (vm.filterMerchantTopupType != 'all' && vm.filterMerchantTopupType != '') && (!vm.filterMerchantTopupType.includes($scope.merchantTopupTypeJson[v.topupType]))) {
-
-                        }else if (vm.filterMerchantType && (vm.filterMerchantType != 'all' && vm.filterMerchantType != '') && (!vm.filterMerchantType.find(mt => mt.merchantTypeId == v.merchantTypeId))) {
-
-                        }else if (vm.filterMerchantName && (vm.filterMerchantName != 'all' && vm.filterMerchantName != '') && (vm.filterMerchantName != v.name)) {
-
-                        }else {
-                            vm.includedMerchants.push(v);
-                        }
-                    });
-
-                } else {
-                    vm.includedMerchants = [];
-                }
-                $scope.safeApply();
-            })
-
-            socketService.$socket($scope.AppSocket, 'getExcludedMerchantByMerchantGroup', query, function (data2) {
-                console.log("not attached merchants", data2);
-                if (data2 && data2.data) {
-                    vm.excludedMerchants = data2.data;
-                } else {
-                    vm.excludedMerchants = [];
-                }
-                $scope.safeApply();
-            })
         }
 
-        vm.merchantPayFilter = function(i, merchantGroup){
-            vm.SelectedMerchantGroupNode = merchantGroup;
-            vm.includedMerchants = null;
-            vm.excludedMerchants = null;
-            console.log('merchantGroup clicked', merchantGroup);
-            var query = {
-                platform: vm.selectedPlatform.data.platformId,
-                merchantGroup: merchantGroup._id
+        vm.changeMerchantFilter = (objKey, select) => {
+            for (let key in vm.merchantFilterOptions[objKey]) {
+                if (vm.merchantFilterOptions[objKey].hasOwnProperty(key)) {
+                    vm.merchantFilterOptions[objKey][key] = Boolean(select);
+                }
             }
+        };
 
-            socketService.$socket($scope.AppSocket, 'getIncludedMerchantByMerchantGroup', query, function (data2) {
-                console.log("attached merchants", data2);
-                if (data2 && data2.data) {
-                    vm.includedMerchants = [];
-
-                    $.each(data2.data, function (i, v) {
-                        if (vm.filterTargetDeviceJson && (vm.filterTargetDeviceJson != 'all' && vm.filterTargetDeviceJson != '') && (!vm.filterTargetDeviceJson.includes($scope.merchantTargetDeviceJson[v.targetDevices]))) {
-
-                        }else if (vm.filterMerchantTopupType && (vm.filterMerchantTopupType != 'all' && vm.filterMerchantTopupType != '') && (!vm.filterMerchantTopupType.includes($scope.merchantTopupTypeJson[v.topupType]))) {
-
-                        }else if (vm.filterMerchantType && (vm.filterMerchantType != 'all' && vm.filterMerchantType != '') && (!vm.filterMerchantType.find(mt => mt.merchantTypeId == v.merchantTypeId))) {
-
-                        }else if (vm.filterMerchantName && (vm.filterMerchantName != 'all' && vm.filterMerchantName != '') && (!vm.filterMerchantName.find(mn => mn.name == v.name))) {
-
-                        }else {
-                            vm.includedMerchants.push(v);
-                        }
-                    });
-
-                } else {
-                    vm.includedMerchants = [];
+        vm.totalMerchantShows = () => {
+            let total = 0;
+            for (let key in vm.allMerchantList) {
+                if (vm.allMerchantList.hasOwnProperty(key) && vm.allMerchantList[key].show$) {
+                    total++;
                 }
-                $scope.safeApply();
-            })
+            }
+            return total;
+        };
 
-            socketService.$socket($scope.AppSocket, 'getExcludedMerchantByMerchantGroup', query, function (data2) {
-                console.log("not attached merchants", data2);
-                if (data2 && data2.data) {
-                    vm.excludedMerchants = data2.data;
-                } else {
-                    vm.excludedMerchants = [];
+        vm.merchantPayFilter = function(){
+            console.log('merchantGroup filter');
+            for (let i = 0; i < vm.allMerchantList.length; i++) {
+                let merchant = vm.allMerchantList[i];
+                let show = true;
+                if (vm.merchantFilterOptions.backstageMerchantId && merchant.name.indexOf(vm.merchantFilterOptions.backstageMerchantId) < 0) {
+                    show = false;
                 }
-                $scope.safeApply();
-            })
+                if (vm.merchantFilterOptions.isIncluded === "yes" && !merchant.isIncluded || vm.merchantFilterOptions.isIncluded === "no" && merchant.isIncluded) {
+                    show = false;
+                }
+                if (vm.merchantFilterOptions.status && vm.merchantFilterOptions.status[merchant.status] === false) {
+                    show = false;
+                }
+                if (vm.merchantFilterOptions.targetDevices && vm.merchantFilterOptions.targetDevices[merchant.targetDevices] === false) {
+                    show = false;
+                }
+                if (vm.merchantFilterOptions.topupType && vm.merchantFilterOptions.topupType[merchant.topupType] === false) {
+                    show = false;
+                }
+                if (vm.merchantFilterOptions.merchantTypeId && vm.merchantFilterOptions.merchantTypeId[merchant.merchantTypeId] === false) {
+                    show = false;
+                }
+                merchant.show$ = show;
+            }
         };
 
 
@@ -1044,26 +1257,71 @@ define(['js/app'], function (myApp) {
             vm.curMerchant = v;
         }
 
-        vm.merchanttoMerchantGroup = function (type) {
+        vm.addmerchantToGroup = function (type) {
+            let merchantNumbers = [];
+            for (let i = 0; i < vm.allMerchantList.length; i++) {
+                let merchant = vm.allMerchantList[i];
+                if (merchant.selected && !merchant.isIncluded) {
+                    merchantNumbers.push(merchant.merchantNo)
+                }
+            }
+
+            if (!merchantNumbers.length) {
+                socketService.showErrorMessage($translate("There is no merchant group to be added"));
+                return;
+            }
+
             var sendData = {
                 query: {
                     platform: vm.selectedPlatform.id,
                     _id: vm.SelectedMerchantGroupNode._id
                 }
             }
-            if (type === 'attach') {
-                sendData.update = {
-                    "$push": {
-                        merchants: vm.curMerchant.merchantNo
-                    }
-                }
-            } else if (type === 'detach') {
-                sendData.update = {
-                    "$pull": {
-                        merchants: vm.curMerchant.merchantNo
-                    }
+
+            sendData.update = {
+                "$push": {
+                    merchants: {$each: merchantNumbers}
                 }
             }
+
+
+            console.log(sendData);
+            socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
+            function success(data) {
+                vm.curMerchant = null;
+                console.log(data);
+                vm.merchantGroupClicked(0, vm.SelectedMerchantGroupNode);
+                $scope.safeApply();
+            }
+        }
+
+        vm.removeMerchantFromGroup = function (type) {
+            let merchantNumbers = [];
+            for (let i = 0; i < vm.allMerchantList.length; i++) {
+                let merchant = vm.allMerchantList[i];
+                if (merchant.selected && merchant.isIncluded) {
+                    merchantNumbers.push(merchant.merchantNo)
+                }
+            }
+
+            if (!merchantNumbers.length) {
+                socketService.showErrorMessage($translate("There is no merchant group to be remove"));
+                return;
+            }
+
+            var sendData = {
+                query: {
+                    platform: vm.selectedPlatform.id,
+                    _id: vm.SelectedMerchantGroupNode._id
+                }
+            }
+
+            sendData.update = {
+                "$pull": {
+                    merchants: {$in: merchantNumbers}
+                }
+            }
+
 
             console.log(sendData);
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
@@ -1173,95 +1431,104 @@ define(['js/app'], function (myApp) {
             vm.SelectedAlipayGroupNode = alipayGroup;
             vm.includedAlipays = null;
             vm.excludedAlipays = null;
+            vm.allAlipayList = null;
             console.log('alipayGroup clicked', alipayGroup);
             var query = {
                 platform: vm.selectedPlatform.data.platformId,
                 alipayGroup: alipayGroup._id
             }
+            vm.alipayStatusFilterOptions = {"NORMAL": true, "CLOSE": true, "LOCK": true};
+            socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroupWithIsInGroup', query, function(data){
 
-            socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function(data){
-                console.log('AlipayList', data);
                 //provider list init
                 vm.allAlipayList = data.data;
-                $.each(vm.allAlipayList, function (i, v) {
-                    vm.allAlipayList[v._id] = true;
-                })
+                console.log('vm.allAlipayList', vm.allAlipayList);
                 $scope.safeApply();
             });
 
-            socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function (data2) {
-                console.log("attached alipays", data2);
-                if (data2 && data2.data) {
-                    vm.includedAlipays = [];
-                    $.each(data2.data, function (i, v) {
-                        if (vm.filterAlipayAccount && (vm.filterAlipayAccount != 'all' && vm.filterAlipayAccount != '') && (!vm.filterAlipayAccount.find(aa => aa.accountNumber == v.accountNumber))) {
-
-                        } else if (vm.filterAlipayName && (vm.filterAlipayName != 'all' && vm.filterAlipayName != '') && (!vm.filterAlipayName.find(an => an.name == v.name))) {
-
-                        } else {
-                            vm.includedAlipays.push(v);
-                        }
-
-                    });
-
-                } else {
-                    vm.includedAlipays = [];
-                }
-                $scope.safeApply();
-            })
-
-            socketService.$socket($scope.AppSocket, 'getExcludedAlipayByAlipayGroup', query, function (data2) {
-                console.log("not attached alipays", data2);
-                if (data2 && data2.data) {
-                    vm.excludedAlipays = data2.data;
-                } else {
-                    vm.excludedAlipays = [];
-                }
-                $scope.safeApply();
-            })
+            // socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function(data){
+            //     console.log('AlipayList', data);
+            //     //provider list init
+            //     vm.allAlipayList = data.data;
+            //     $.each(vm.allAlipayList, function (i, v) {
+            //         vm.allAlipayList[v._id] = true;
+            //     })
+            //     $scope.safeApply();
+            // });
+            //
+            // socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function (data2) {
+            //     console.log("attached alipays", data2);
+            //     if (data2 && data2.data) {
+            //         vm.includedAlipays = [];
+            //         $.each(data2.data, function (i, v) {
+            //             if (vm.filterAlipayAccount && (vm.filterAlipayAccount != 'all' && vm.filterAlipayAccount != '') && (!vm.filterAlipayAccount.find(aa => aa.accountNumber == v.accountNumber))) {
+            //
+            //             } else if (vm.filterAlipayName && (vm.filterAlipayName != 'all' && vm.filterAlipayName != '') && (!vm.filterAlipayName.find(an => an.name == v.name))) {
+            //
+            //             } else {
+            //                 vm.includedAlipays.push(v);
+            //             }
+            //
+            //         });
+            //
+            //     } else {
+            //         vm.includedAlipays = [];
+            //     }
+            //     $scope.safeApply();
+            // })
+            //
+            // socketService.$socket($scope.AppSocket, 'getExcludedAlipayByAlipayGroup', query, function (data2) {
+            //     console.log("not attached alipays", data2);
+            //     if (data2 && data2.data) {
+            //         vm.excludedAlipays = data2.data;
+            //     } else {
+            //         vm.excludedAlipays = [];
+            //     }
+            //     $scope.safeApply();
+            // })
         }
 
-        vm.alipayFilter = function(i, alipayGroup){
-            vm.SelectedAlipayGroupNode = alipayGroup;
-            vm.includedAlipays = null;
-            vm.excludedAlipays = null;
-            console.log('alipayFilter clicked', alipayGroup);
-            var query = {
-                platform: vm.selectedPlatform.data.platformId,
-                alipayGroup: alipayGroup._id
-            }
-
-            socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function (data2) {
-                console.log("attached alipays", data2);
-                if (data2 && data2.data) {
-                    vm.includedAlipays = [];
-                    $.each(data2.data, function (i, v) {
-                        if (vm.filterAlipayAccount && (vm.filterAlipayAccount != 'all' && vm.filterAlipayAccount != '') && (!vm.filterAlipayAccount.find(aa => aa.accountNumber == v.accountNumber))) {
-
-                        } else if (vm.filterAlipayName && (vm.filterAlipayName != 'all' && vm.filterAlipayName != '') && (!vm.filterAlipayName.find(an => an.name == v.name))) {
-
-                        } else {
-                            vm.includedAlipays.push(v);
-                        }
-
-                    });
-
-                } else {
-                    vm.includedAlipays = [];
-                }
-                $scope.safeApply();
-            })
-
-            socketService.$socket($scope.AppSocket, 'getExcludedAlipayByAlipayGroup', query, function (data2) {
-                console.log("not attached alipays", data2);
-                if (data2 && data2.data) {
-                    vm.excludedAlipays = data2.data;
-                } else {
-                    vm.excludedAlipays = [];
-                }
-                $scope.safeApply();
-            })
-        }
+        // vm.alipayFilter = function(i, alipayGroup){
+        //     vm.SelectedAlipayGroupNode = alipayGroup;
+        //     vm.includedAlipays = null;
+        //     vm.excludedAlipays = null;
+        //     console.log('alipayFilter clicked', alipayGroup);
+        //     var query = {
+        //         platform: vm.selectedPlatform.data.platformId,
+        //         alipayGroup: alipayGroup._id
+        //     }
+        //
+        //     socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function (data2) {
+        //         console.log("attached alipays", data2);
+        //         if (data2 && data2.data) {
+        //             vm.includedAlipays = [];
+        //             $.each(data2.data, function (i, v) {
+        //                 if (vm.filterAlipayAccount && (vm.filterAlipayAccount != 'all' && vm.filterAlipayAccount != '') && (!vm.filterAlipayAccount.find(aa => aa.accountNumber == v.accountNumber))) {
+        //
+        //                 } else if (vm.filterAlipayName && (vm.filterAlipayName != 'all' && vm.filterAlipayName != '') && (!vm.filterAlipayName.find(an => an.name == v.name))) {
+        //
+        //                 } else {
+        //                     vm.includedAlipays.push(v);
+        //                 }
+        //
+        //             });
+        //
+        //         } else {
+        //             vm.includedAlipays = [];
+        //         }
+        //         $scope.safeApply();
+        //     })
+        //
+        //     socketService.$socket($scope.AppSocket, 'getExcludedAlipayByAlipayGroup', query, function (data2) {
+        //         console.log("not attached alipays", data2);
+        //         if (data2 && data2.data) {
+        //             vm.excludedAlipays = data2.data;
+        //         } else {
+        //             vm.excludedAlipays = [];
+        //         }
+        //         $scope.safeApply();
+        //     })
+        // }
 
         vm.removeAlipayGroup = function (node) {
             console.log('to del node', node);
@@ -1315,6 +1582,24 @@ define(['js/app'], function (myApp) {
             vm.curAlipay = v;
         }
 
+        vm.alipayListUncheckDifferentGroup = (val, isInGroup) => {
+            if(!val) return; // if uncheck checkbox then do nothing
+            vm.allAlipayList = vm.allAlipayList.map(alipay => {
+                alipay.isCheck = alipay.isInGroup == isInGroup ? alipay.isCheck : false;
+                return alipay;
+            })
+        };
+
+        vm.filterAlipay = (alipay) => {
+            let isValid = true;
+            isValid = vm.filterAlipayAccount ? alipay.accountNumber.indexOf(vm.filterAlipayAccount) !== -1 : isValid;
+            isValid = vm.filterAlipayName ? alipay.name.indexOf(vm.filterAlipayName) !== -1 && isValid : isValid;
+            isValid = vm.alipayStatusFilterOptions ? vm.alipayStatusFilterOptions[alipay.state] && isValid : isValid;
+            isValid = vm.filterAlipayInGroup != "all" ? alipay.isInGroup.toString() == vm.filterAlipayInGroup && isValid : isValid;
+
+            return isValid;
+        };
+
         vm.alipaytoAlipayGroup = function (type) {
             var sendData = {
                 query: {
@@ -1322,16 +1607,27 @@ define(['js/app'], function (myApp) {
                     _id: vm.SelectedAlipayGroupNode._id
                 }
             }
+            let checkedAlipayList = vm.allAlipayList.filter(alipay => alipay.isCheck);
+            if (!checkedAlipayList || checkedAlipayList.length <= 0 || !checkedAlipayList[0] ||
+                (checkedAlipayList[0].isInGroup && type === 'attach') ||
+                (!checkedAlipayList[0].isInGroup && type === 'detach')
+            ) {
+                // situation that do nothing:
+                //      no select any alipay,
+                //      selecting inGroup alipay click add, selecting noInGroup alipay click remove
+                return;
+            }
+            let updateAlipayGroupAccNumber =checkedAlipayList.map(alipay => alipay.accountNumber);
             if (type === 'attach') {
                 sendData.update = {
                     "$push": {
-                        alipays: vm.curAlipay.accountNumber
+                        alipays:  { "$each": updateAlipayGroupAccNumber }
                     }
                 }
             } else if (type === 'detach') {
                 sendData.update = {
                     "$pull": {
-                        alipays: vm.curAlipay.accountNumber
+                        alipays: { "$in": updateAlipayGroupAccNumber }
                     }
                 }
             }
@@ -1341,7 +1637,14 @@ define(['js/app'], function (myApp) {
             function success(data) {
                 vm.curAlipay = null;
                 console.log(data);
-                vm.alipayGroupClicked(0, vm.SelectedAlipayGroupNode);
+                vm.allAlipayList = vm.allAlipayList.map(alipay => {
+                    if (alipay.isCheck) {
+                        alipay.isCheck = false;
+                        alipay.isInGroup =!alipay.isInGroup;
+                    }
+                    return alipay;
+                });
+                //vm.alipayGroupClicked(0, vm.SelectedAlipayGroupNode);
                 $scope.safeApply();
             }
         }
@@ -1632,49 +1935,81 @@ define(['js/app'], function (myApp) {
             vm.SelectedWechatPayGroupNode = wechatPayGroup;
             vm.includedWechatPays = null;
             vm.excludedWechatPays = null;
-
+            vm.allWechatList = null;
             let query = {
                 platform: vm.selectedPlatform.data.platformId,
-                alipayGroup: wechatPayGroup._id
+                wechatGroup: wechatPayGroup._id
             };
+            vm.wechatStatusFilterOptions = {"NORMAL": true, "DISABLED": true, "LOCK": true};
+            socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroupWithIsInGroup', query, function(data){
 
-            socketService.$socket($scope.AppSocket, 'getIncludedWechatsByWechatPayGroup', query, function(data){
-                console.log('WechatList', data);
                 //provider list init
                 vm.allWechatList = data.data;
-                $.each(vm.allWechatList, function (i, v) {
-                    vm.allWechatList[v._id] = true;
-                })
+                // loop get alipay status for future add extra status, no need change code
+                vm.allWechatList.forEach(wechat => {
+                    if (!vm.wechatStatusFilterOptions.hasOwnProperty(wechat.state)) {
+                        vm.wechatStatusFilterOptions[wechat.state] = true;
+                    }
+                });
+                console.log('vm.allWechatList', vm.allWechatList);
                 $scope.safeApply();
             });
 
-            $scope.$socketPromise('getIncludedWechatsByWechatPayGroup', query).then(function (data2) {
-                console.log('attached included wechat',data2);
-                if (data2 && data2.data) {
-                    vm.includedWechatPays = [];
-                    $.each(data2.data, function (i, v) {
-                        if (vm.filterWechatPayAcc && (vm.filterWechatPayAcc != 'all' && vm.filterWechatPayAcc != '') && (!vm.filterWechatPayAcc.find(wpa => wpa.accountNumber == v.accountNumber))) {
+            // socketService.$socket($scope.AppSocket, 'getIncludedWechatsByWechatPayGroup', query, function(data){
+            //     console.log('WechatList', data);
+            //     //provider list init
+            //     vm.allWechatList = data.data;
+            //     $.each(vm.allWechatList, function (i, v) {
+            //         vm.allWechatList[v._id] = true;
+            //     })
+            //     $scope.safeApply();
+            // });
+            //
+            // $scope.$socketPromise('getIncludedWechatsByWechatPayGroup', query).then(function (data2) {
+            //     console.log('attached included wechat',data2);
+            //     if (data2 && data2.data) {
+            //         vm.includedWechatPays = [];
+            //         $.each(data2.data, function (i, v) {
+            //             if (vm.filterWechatPayAcc && (vm.filterWechatPayAcc != 'all' && vm.filterWechatPayAcc != '') && (!vm.filterWechatPayAcc.find(wpa => wpa.accountNumber == v.accountNumber))) {
+            //
+            //             } else if (vm.filterWechatPayName && (vm.filterWechatPayName != 'all' && vm.filterWechatPayName != '') && (!vm.filterWechatPayName.find(wpn => wpn.name == v.name))) {
+            //
+            //             } else {
+            //                 vm.includedWechatPays.push(v);
+            //             }
+            //         });
+            //
+            //     } else {
+            //         vm.includedWechatPays = [];
+            //     }
+            //     $scope.safeApply();
+            // });
+            //
+            // socketService.$socket($scope.AppSocket, 'getExcludedWechatsByWechatPayGroup', query, function (data2) {
+            //     if (data2 && data2.data) {
+            //         vm.excludedWechatPays = data2.data;
+            //     } else {
+            //         vm.excludedWechatPays = [];
+            //     }
+            //     $scope.safeApply();
+            // })
+        };
 
-                        } else if (vm.filterWechatPayName && (vm.filterWechatPayName != 'all' && vm.filterWechatPayName != '') && (!vm.filterWechatPayName.find(wpn => wpn.name == v.name))) {
+        vm.filterWechat = (wechat) => {
+            let isValid = true;
+            isValid = vm.filterWechatAccount ? wechat.accountNumber.indexOf(vm.filterWechatAccount) !== -1 : isValid;
+            isValid = vm.filterWechatName ? wechat.name.indexOf(vm.filterWechatName) !== -1 && isValid : isValid;
+            isValid = vm.filterWechatNickname ? wechat.nickName.indexOf(vm.filterWechatNickname) !== -1 && isValid : isValid;
+            isValid = vm.wechatStatusFilterOptions ? vm.wechatStatusFilterOptions[wechat.state] && isValid : isValid;
+            isValid = vm.filterWechatInGroup != "all" ? wechat.isInGroup.toString() == vm.filterWechatInGroup && isValid : isValid;
+            return isValid;
+        };
 
-                        } else {
-                            vm.includedWechatPays.push(v);
-                        }
-                    });
-
-                } else {
-                    vm.includedWechatPays = [];
-                }
-                $scope.safeApply();
-            });
-
-            socketService.$socket($scope.AppSocket, 'getExcludedWechatsByWechatPayGroup', query, function (data2) {
-                if (data2 && data2.data) {
-                    vm.excludedWechatPays = data2.data;
-                } else {
-                    vm.excludedWechatPays = [];
-                }
-                $scope.safeApply();
+        vm.wechatListUncheckDifferentGroup = (val, isInGroup) => {
+            if(!val) return; // if uncheck checkbox then do nothing
+            vm.allWechatList = vm.allWechatList.map(wechat => {
+                wechat.isCheck = wechat.isInGroup == isInGroup ? wechat.isCheck : false;
+                return wechat;
             })
         };
 
@@ -1776,16 +2111,28 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            let checkedWechatList = vm.allWechatList.filter(wechat => wechat.isCheck);
+            if (!checkedWechatList || checkedWechatList.length <= 0 || !checkedWechatList[0] ||
+                (checkedWechatList[0].isInGroup && type === 'attach') ||
+                (!checkedWechatList[0].isInGroup && type === 'detach')
+            ) {
+                // situation that do nothing:
+                //      no select any wechat,
+                //      selecting inGroup wechat click add, selecting noInGroup wechat click remove
+                return;
+            }
+            let updateWechatGroupAccNumber =checkedWechatList.map(wechat => wechat.accountNumber);
+
             if (type === 'attach') {
                 sendData.update = {
                     "$push": {
-                        wechats: vm.curWechatPay.accountNumber
+                        wechats: { "$each": updateWechatGroupAccNumber }
                     }
                 }
             } else if (type === 'detach') {
                 sendData.update = {
                     "$pull": {
-                        wechats: vm.curWechatPay.accountNumber
+                        wechats: { "$in": updateWechatGroupAccNumber }
                     }
                 }
             }
@@ -1793,7 +2140,14 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'updatePlatformWechatPayGroup', sendData, success);
             function success(data) {
                 vm.curWechatPay = null;
-                vm.wechatPayGroupClicked(0, vm.SelectedWechatPayGroupNode);
+                vm.allWechatList = vm.allWechatList.map(wechat => {
+                    if (wechat.isCheck) {
+                        wechat.isCheck = false;
+                        wechat.isInGroup =!wechat.isInGroup;
+                    }
+                    return wechat;
+                });
+                //vm.wechatPayGroupClicked(0, vm.SelectedWechatPayGroupNode);
                 $scope.safeApply();
             }
         };

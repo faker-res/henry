@@ -61,6 +61,9 @@ var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategor
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
 
+// db_common
+const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+
 // db_modules
 let dbGeoIp = require('./../db_modules/dbGeoIp');
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
@@ -136,6 +139,29 @@ let dbPlayerInfo = {
                     }
                 }
             );
+    },
+
+    /**
+     * Remove a new reward points record based on player data
+     */
+    removePlayerRewardPointsRecord: function (platformId, playerId, rewardPointsObjId) {
+        return dbconfig.collection_players.update(
+            {
+                _id: playerId,
+                platform: platformId
+            },
+            {
+                $unset: { rewardPointsObjId: ""}
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_rewardPoints.remove({_id:rewardPointsObjId});
+
+            }
+        ).catch(err => {
+                console.error(err);
+            }
+        )
     },
 
     /**
@@ -1110,6 +1136,7 @@ let dbPlayerInfo = {
             model: dbconfig.collection_playerLevel
         }).lean().then(
             function (data) {
+                data.fullPhoneNumber = data.phoneNumber;
                 data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 data.email = dbUtility.encodeEmail(data.email);
                 if (data.bankAccount) {
@@ -2154,6 +2181,7 @@ let dbPlayerInfo = {
                     if (proposalData && proposalData.data) {
                         if (topUpType == constPlayerTopUpType.MANUAL) {
                             recordData.bankCardType = proposalData.data.bankCardType;
+                            recordData.depositMethod = proposalData.data.depositMethod;
                         }
                         else if (topUpType == constPlayerTopUpType.ONLINE) {
                             recordData.merchantTopUpType = proposalData.data.topupType;
@@ -2175,6 +2203,9 @@ let dbPlayerInfo = {
                         case constPlayerTopUpType.ALIPAY:
                             type = constPlayerCreditChangeType.ALIPAY_TOP_UP;
                             break;
+                        case constPlayerTopUpType.WECHAT:
+                            type = constPlayerCreditChangeType.WECHAT_TOP_UP;
+                            break;
                         case constPlayerTopUpType.QUICKPAY:
                             type = constPlayerCreditChangeType.QUICKPAY_TOP_UP;
                             break;
@@ -2186,76 +2217,16 @@ let dbPlayerInfo = {
                     var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform);
                     let promArr;
 
-                    if(useProviderGroup){
+                    if (useProviderGroup) {
                         var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, data.platform, amount);
                         promArr = [recordProm, logProm, levelProm, freeAmountRewardTaskGroupProm];
-                    }else{
+                    } else {
                         promArr = [recordProm, logProm, levelProm];
                     }
 
-                    if (proposalData && proposalData.data && proposalData.data.limitedOfferObjId) {
-                        let topupProposal = proposalData;
-                        let newProp;
-                        let limitedOfferProm = dbUtility.findOneAndUpdateForShard(
-                            dbconfig.collection_proposal,
-                            {_id: proposalData.data.limitedOfferObjId},
-                            {
-                                $set: {
-                                    'data.topUpProposalObjId': proposalData._id,
-                                    'data.topUpProposalId': proposalData.proposalId,
-                                    'data.topUpAmount': proposalData.data.amount
-                                },
-                                $currentDate: {settleTime: true}
-                            },
-                            constShardKeys.collection_proposal,
-                            true
-                        ).then(
-                            res => {
-                                newProp = res;
-                                return dbconfig.collection_proposalType.findOne({
-                                    platformId: newProp.data.platformObjId,
-                                    name: constProposalType.PLAYER_LIMITED_OFFER_REWARD
-                                }).lean();
-                            }
-                        ).then(
-                            proposalTypeData => {
-                                if (proposalTypeData) {
-                                    // Create reward proposal with intention data
-                                    newProp.data.eventName = newProp.data.eventName.replace(" Intention",'');
-                                    let remark = 'event name: '+ newProp.data.eventName +'('+ newProp.proposalId +') topup proposal id: ' + topupProposal.proposalId;
-                                    newProp.data.remark = remark;
-                                    let proposalData = {
-                                        type: proposalTypeData._id,
-                                        creator: newProp.creator,
-                                        data: newProp.data,
-                                        entryType: newProp.entryType,
-                                        userType: newProp.userType
-                                    };
+                    // Check any limited offer matched
+                    checkLimitedOfferToApply(proposalData);
 
-                                    return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
-                                }
-                            }
-                        ).then(
-                            res => {
-                                return dbUtility.findOneAndUpdateForShard(
-                                    dbconfig.collection_proposal,
-                                    {_id: proposalData.data.limitedOfferObjId},
-                                    {
-                                        $set: {
-                                            'data.rewardProposalObjId': res._id,
-                                            'data.rewardProposalId': res.proposalId,
-                                            'data.rewardAmount': res.data.rewardAmount
-                                        },
-                                        $currentDate: {settleTime: true}
-                                    },
-                                    constShardKeys.collection_proposal,
-                                    true
-                                )
-                            }
-                        );
-
-                        promArr.push(limitedOfferProm);
-                    }
                     //no need to check player reward task status now.
                     //var rewardTaskProm = dbRewardTask.checkPlayerRewardTaskStatus(playerId);
                     return Q.all(promArr);
@@ -8434,7 +8405,7 @@ let dbPlayerInfo = {
         ).then(
             loginData => ({gameURL: loginData.gameURL}),
             error => Q.reject({
-                status: constServerCode.TEST_GAME_REQUIRE_LOGIN,
+                status: constServerCode.INVALID_API_USER,
                 name: "DataError",
                 message: "Please login and try again"
             })
@@ -9856,13 +9827,13 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
                                 case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                                     // Check whether platform allowed for reward group
-                                    if (!playerInfo.platform.useProviderGroup) {
-                                        return Q.reject({
-                                            status: constServerCode.GROUP_REWARD_NOT_ALLOWED,
-                                            name: "DataError",
-                                            message: "This reward only applicable on platform with provider group"
-                                        });
-                                    }
+                                    // if (!playerInfo.platform.useProviderGroup) {
+                                    //     return Q.reject({
+                                    //         status: constServerCode.GROUP_REWARD_NOT_ALLOWED,
+                                    //         name: "DataError",
+                                    //         message: "This reward only applicable on platform with provider group"
+                                    //     });
+                                    // }
 
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
@@ -12151,11 +12122,16 @@ let dbPlayerInfo = {
     },
 
     getWithdrawalInfo: function(platformId, playerId){
-        let result = {};
+        let result = {
+            freeTimes: 0,
+            serviceCharge: 0,
+            currentFreeAmount: 0,
+            freeAmount: 0
+        };
 
         let platformProm = dbconfig.collection_platform.findOne({platformId: platformId});
         let playerProm = dbconfig.collection_players.findOne({playerId:  playerId})
-            .populate({path: "playerLevel", select: 'name', model: dbconfig.collection_playerLevel}).lean()
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
 
         var date = dbUtility.getCurrentMonthSGTIme();
         var firstDay = date.startTime;
@@ -12165,20 +12141,14 @@ let dbPlayerInfo = {
             if(data) {
                 let platformDetails = data[0];
                 let playerDetails = data[1];
-
-                let bonusDetails = {};
+                let bonusDetails = null;
                 if(platformDetails){
                     if(platformDetails.useProviderGroup)
                     {
                         if(playerDetails){
-                            result.freeTimes = 0;
-                            result.serviceCharge = 0;
-                            result.currentFreeAmount = 0;
-                            result.freeAmount = 0;
-
                             if(platformDetails.bonusSetting){
                                 for(let x in platformDetails.bonusSetting){
-                                    if(platformDetails.bonusSetting[x].name == playerDetails.playerLevel.name){
+                                    if(platformDetails.bonusSetting[x].value == playerDetails.playerLevel.value){
                                         bonusDetails = platformDetails.bonusSetting[x];
                                     }
                                 }
@@ -12186,13 +12156,8 @@ let dbPlayerInfo = {
 
                             if(bonusDetails){
                                 result.freeTimes = bonusDetails.bonusCharges;
-                                result.serviceCharge = bonusDetails.bonusPercentageCharges;
+                                result.serviceCharge = parseFloat(bonusDetails.bonusPercentageCharges * 0.01);
                             }
-
-                            // if(playerDetails.validCredit){
-                            //     result.currentFreeAmount = playerDetails.validCredit;
-                            //     result.freeAmount = playerDetails.validCredit;
-                            // }
 
                             let bonusProm = dbconfig.collection_proposal.aggregate([
                                 {
@@ -12241,7 +12206,7 @@ let dbPlayerInfo = {
 
                                             lockListArr.push({name: providerGroupName, lockAmount: targetCon + ximaAmt, currentLockAmount: curCon});
                                         }
-                                    })
+                                    });
 
                                     return lockListArr;
                                 });
@@ -12379,6 +12344,8 @@ let dbPlayerInfo = {
             }
         ).then(
             rewardTaskGroup => {
+                console.log(rewardTaskGroup);
+
                 if (rewardTaskGroup && rewardTaskGroup.length > 0) {
                     for (let i = 0; i < rewardTaskGroup.length; i++) {
                         returnData.lockedCreditList[i] = {
@@ -12393,6 +12360,85 @@ let dbPlayerInfo = {
     },
 
 };
+
+/**
+ * Check any limited offer intention pending for apply when top up
+ * @param proposalData
+ */
+function checkLimitedOfferToApply (proposalData) {
+    if (proposalData && proposalData.data && proposalData.data.limitedOfferObjId) {
+        let topupProposal = proposalData;
+        let newProp;
+
+        return dbUtility.findOneAndUpdateForShard(
+            dbconfig.collection_proposal,
+            {_id: proposalData.data.limitedOfferObjId},
+            {
+                $set: {
+                    'data.topUpProposalObjId': proposalData._id,
+                    'data.topUpProposalId': proposalData.proposalId,
+                    'data.topUpAmount': proposalData.data.amount
+                },
+                $currentDate: {settleTime: true}
+            },
+            constShardKeys.collection_proposal,
+            true
+        ).then(
+            res => {
+                newProp = res;
+
+                return dbPlayerUtil.tryToDeductCreditFromPlayer(res.data.playerObjId, res.data.platformId, res.data.applyAmount, res.data.limitedOfferName + ":Deduction", res.data);
+            }
+        ).then(
+            res => {
+                if (res) {
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: newProp.data.platformObjId,
+                        name: constProposalType.PLAYER_LIMITED_OFFER_REWARD
+                    }).lean();
+                }
+            }
+        ).then(
+            proposalTypeData => {
+                if (proposalTypeData) {
+                    // Create reward proposal with intention data
+                    newProp.data.eventName = newProp.data.eventName.replace(" Intention",'');
+                    newProp.data.remark = 'event name: '+ newProp.data.limitedOfferName +'('+ newProp.proposalId +') topup proposal id: ' + topupProposal.proposalId;
+
+                    let proposalData = {
+                        type: proposalTypeData._id,
+                        creator: newProp.creator,
+                        data: newProp.data,
+                        entryType: newProp.entryType,
+                        userType: newProp.userType,
+                        inputDevice: newProp.inputDevice
+                    };
+
+                    return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
+                }
+            }
+        ).then(
+            res => {
+                if (res) {
+                    return dbUtility.findOneAndUpdateForShard(
+                        dbconfig.collection_proposal,
+                        {_id: proposalData.data.limitedOfferObjId},
+                        {
+                            $set: {
+                                'data.rewardProposalObjId': res._id,
+                                'data.rewardProposalId': res.proposalId,
+                                'data.rewardAmount': res.data.rewardAmount
+                            },
+                            $currentDate: {settleTime: true}
+                        },
+                        constShardKeys.collection_proposal,
+                        true
+                    )
+                }
+            }
+        ).catch(errorUtils.reportError);
+    }
+}
 
 
 var proto = dbPlayerInfoFunc.prototype;

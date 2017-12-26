@@ -11,6 +11,7 @@ const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 const constRewardType = require('./../const/constRewardType');
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 const dbRewardTask = require('../db_modules/dbRewardTask');
+const dbRewardPoints = require('../db_modules/dbRewardPoints');
 const constShardKeys = require('../const/constShardKeys');
 const constSystemParam = require('../const/constSystemParam');
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
@@ -25,6 +26,7 @@ const constProposalStatus = require('./../const/constProposalStatus');
 const errorUtils = require('./../modules/errorUtils');
 
 let dbUtility = require('./../modules/dbutility');
+let dbPlayerReward = require('../db_modules/dbPlayerReward');
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
@@ -221,10 +223,10 @@ var dbPlayerConsumptionRecord = {
                     {
                         $group: {
                             _id: null,
-                            validAmountAll: {$sum: "$validAmount"},
-                            amountAll: {$sum: "$amount"},
-                            bonusAmountAll: {$sum: "$bonusAmount"},
-                            commissionAmountAll: {$sum: "$commissionAmount"},
+                            topUpAmount$: {$sum: "$topUpAmount$"},
+                            bonusAmount$: {$sum: "$bonusAmount$"},
+                            requiredBonusAmount$: {$sum: "$requiredBonusAmount$"},
+                            currentAmount$: {$sum: "$currentAmount$"},
                         }
                     });
                 return Q.all([a, b, c]);
@@ -233,6 +235,7 @@ var dbPlayerConsumptionRecord = {
             return {data: result[0], count: result[1], summary: result[2] ? result[2][0] : {}}
         });
     },
+
     /**
      * Upsert without shardkey
      * This function can be run on the same record asynchronously.  It will avoid race conditions by using a queue.
@@ -475,8 +478,9 @@ var dbPlayerConsumptionRecord = {
                 if (record) {
                     var creditProm = dbconfig.collection_players.findOneAndUpdate(
                         {_id: record.playerId, platform: record.platformId, creditBalance: {$lt: 0}},
-                        {creditBalance: 0}
-                    ).exec();
+                        {creditBalance: 0},
+                        {new: true}
+                    ).lean().exec();
                     var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
                         data => data,
                         error => {
@@ -495,6 +499,12 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             function (data) {
+                if (data[0]) {
+                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(data[0].platform, data[0], {}).catch(errorUtils.reportError);
+                }
+                if (record) {
+                    dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
+                }
                 deferred.resolve(record);
             },
             function (error) {
@@ -513,6 +523,7 @@ var dbPlayerConsumptionRecord = {
         let isSameDay = dbUtility.isSameDaySG(data.createTime, Date.now());
         let record = null;
         let newRecord = new dbconfig.collection_playerConsumptionRecord(data);
+        let playerData;
 
         return newRecord.save().then(
             res => {
@@ -586,7 +597,8 @@ var dbPlayerConsumptionRecord = {
                 });
             }
         ).then(
-            () => {
+            (playerUpdatedData) => {
+                playerData = playerUpdatedData;
                 // Check auto player level up
                 return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
                     data => data,
@@ -603,7 +615,15 @@ var dbPlayerConsumptionRecord = {
                 });
             }
         ).then(
-            data => record,
+            data => {
+                if (playerData) {
+                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, {}).catch(errorUtils.reportError);
+                }
+                if (record) {
+                    dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
+                }
+                return record
+            },
             error => {
                 return Q.reject({name: "DBError", message: "Error in checking player level", error: error});
             }

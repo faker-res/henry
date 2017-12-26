@@ -2,7 +2,7 @@
     .text-center
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 .row(ng-if='vm.curPlatformText')
-    .col-md-3
+    .col-md-2
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
                 label {{"Alipay Group" | translate}}
@@ -36,195 +36,53 @@
                     //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'Bank', 'DetachProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedAlipayGroupNode", ng-click='vm.confirmDetachProvider()')
                     //    text {{"DETACH" | translate}}
                     //    .fa.fa-chain-broken
-    .col-md-9(style="padding-left:0;padding-right:15px")
+    .col-md-10(style="padding-left:0;padding-right:15px")
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
                 label {{"Alipay Group" | translate}} : {{vm.SelectedAlipayGroupNode.name}} ({{vm.SelectedAlipayGroupNode.displayName}})
             .panel-body
                 .text-center(ng-if='!vm.SelectedAlipayGroupNode')
-                    label.text-danger {{"NO_MERCHANT_GROUP_MESSAGE" | translate}}
+                    label.text-danger {{"NO_ALIPAY_GROUP_MESSAGE" | translate}}
                 .well
                     .inlineBlk.margin-right-5
                         .control-label {{"alipayAccount" | translate}}
-                        select.input-sm.form-control.merchantNoList(ng-model='vm.filterAlipayAccount',ng-options="a.accountNumber for a in vm.allAlipayList", style='max-width:200px', ng-init='vm.filterAlipayAccount="all"' ng-change='vm.AlipayAccChanged();',multiple,bsp,rddl)
-                        //select.input-sm.form-control(ng-model='vm.filterAlipayAccount', style='max-width:200px', ng-init='vm.filterAlipayAccount="all"' ng-change='vm.AlipayAccChanged();')
-                            //option(value='all') {{'any' | translate}}
-                            //option(ng-repeat='(i,v) in vm.allAlipayList', value='{{i}}') {{v.accountNumber | translate}}
+                        input.input-sm.form-control.merchantNoList(ng-model='vm.filterAlipayAccount',type='text', style='max-width:200px')
                     .inlineBlk.margin-right-5
                         .control-label {{"alipayName" | translate}}
-                        select.input-sm.form-control.merchantNoList(ng-model='vm.filterAlipayName',ng-options="a.name for a in vm.allAlipayList", style='max-width:200px', ng-init='vm.filterAlipayName="all"' ng-change='vm.AlipayNameChanged();',multiple,bsp,rddl)
-                        //select.input-sm.form-control(ng-model='vm.filterAlipayName', style='max-width:200px', ng-init='vm.filterAlipayName="all"' ng-change='vm.AlipayNameChanged();')
-                        //    option(value='all') {{'any' | translate}}
-                        //    option(ng-repeat='(i,v) in vm.allAlipayList', value='{{i}}') {{v.name | translate}}
-                    //.inlineBlk.margin-right-5
-                    //    .control-label {{"alipayAccount" | translate}}
-                    //    input.input-sm.form-control(type='text', ng-model='vm.filterAlipayAcc')
-                    //.inlineBlk.margin-right-5
-                    //    .control-label {{"alipayName" | translate}}
-                    //    input.input-sm.form-control(type='text', ng-model='vm.filterAlipayTitle')
-
-                    //.inlineBlk.margin-right-5
-                        .control-label {{"Topup Type" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterAlipayTopupType', style='max-width:200px', ng-init='vm.filterAlipayTopupType="all"')
-                            option(value='all') all
-                            option(ng-repeat='(i,v) in vm.alipayTopupTypeJson', value='{{i}}') {{v | translate}}
-                    //.inlineBlk.margin-right-5
-                        .control-label {{"Alipay Use" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterAlipayUse', style='max-width:200px', ng-init='vm.filterAlipayUse="all"')
-                            option(value='all') all
-                            option(ng-repeat='(i,v) in vm.alipayUseTypeJson', value='{{i}}') {{v | translate}}
-                    //.inlineBlk.margin-right-5
-                        .control-label {{"Alipay Type ID" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterAlipayType', style='max-width:200px', ng-init='vm.filterAlipayType="all"')
-                            option(value='all') all
-                            option(ng-repeat='(i,v) in vm.allAlipayTypeList', value='{{i}}') {{v.name | translate}}
-                    .inlineBlk
-                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.alipayFilter(1,vm.SelectedAlipayGroupNode)") {{"FILTER" | translate}}
-                #AlipayList.panel-group(ng-if='vm.SelectedAlipayGroupNode')
-                    .panel.panel-default
-                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#AlipayList", href='#includedAlipays', ng-click='vm.showAlipayCate="include";vm.toggleBankType()')
-                            h4.panel-title
-                                text {{'Included Alipays' | translate}}
-                                span(ng-if='vm.includedAlipays') &nbsp;:&nbsp;({{vm.includedAlipays.length}})
-                                text.blink.margin-left-5.text-danger(ng-if='!vm.includedAlipays') {{'loading alipays' | translate}}...
-                        #includedAlipays.panel-collapse.collapse.in
-                            .panel-body(style='height:250px;overflow-y:auto')
-                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.includedAlipays', class='{{vm.highlightAlipay[v.accountNumber]}}', ng-click='vm.alipayClicked(i,v,"in")')
-                                    table.bg-pale
-                                        tr
-                                            td.text-center
-                                                td {{'STATUS' | translate}}
-                                                td(ng-class="{'text-disabled': v.state === 'DISABLED'}").text-success {{v.state| translate}}
-                                        tr
-                                            td.text-center
-                                            td {{'alipayAccount' | translate}}
-                                            td.text-success {{v.accountNumber}}
-                                        tr
-                                            td.text-center
-                                            td {{'alipayName' | translate}}
-                                            td.text-success {{v.name}}
-                                        tr
-                                            td.text-center
-                                            td {{'SINGLE_LIMIT' | translate}}
-                                            td.text-success {{v.singleLimit}}
-                                        tr
-                                            td.text-center
-                                            td {{'DAY_LIMIT' | translate}}
-                                            td.text-success {{v.quota}}
-                                        //tr
-                                        //    td.text-center(rowspan="5")
-                                        //        i.fa.fa-money.text-danger
-                                        //    td {{'TITLE' | translate}}
-                                        //    td.text-success {{v.name}}
-                                        //tr
-                                        //    td {{'ACCOUNT' | translate}}
-                                        //    td.text-success {{v.accountNumber}}
-                                        //tr
-                                        //    td {{'QUOTA' | translate}}
-                                        //    td.text-success {{v.quota}}
-                                        //tr
-                                        //    td {{'SINGLELIMIT' | translate}}
-                                        //    td.text-success {{v.singleLimit}}
-                                        //tr
-                                        //    td {{'STATE' | translate}}
-                                        //    td.text-success {{v.state | translate}}
-                                        //tr
-                                        //    td {{'Alipay Use' | translate}}
-                                        //    td.text-success {{vm.alipayUseTypeJson[v.alipayUse] | translate}}
-                                        //tr
-                                        //    td {{'Alipay Type ID' | translate}}
-                                        //    td.text-success {{vm.allAlipayTypeList[v.alipayTypeId].name | translate}}
-                                        //        img(ng-if='v.alipayTypeId', src='{{vm.allAlipayTypeList[v.alipayTypeId].showIconURL}}')
-                    .panel.panel-default
-                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#AlipayList", href='#excludedAlipays', ng-click='vm.showAlipayCate="exclude";vm.toggleBankType()')
-                            h4.panel-title
-                                text {{'Excluded Alipays' | translate}}
-                                span(ng-if='vm.excludedAlipays') &nbsp;:&nbsp;({{vm.excludedAlipays.length}})
-                                text.blink.margin-left-5.text-danger(ng-if='!vm.excludedAlipays') {{'loading alipays' | translate}}...
-                        #excludedAlipays.panel-collapse.collapse
-                            .panel-body(style='height:250px;overflow-y:auto')
-                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.excludedAlipays', class='{{vm.highlightAlipay[v.accountNumber]}}', ng-click='vm.alipayClicked(i,v,"ex")')
-                                    table.bg-pale
-                                        tr
-                                            td.text-center
-                                                td {{'STATUS' | translate}}
-                                                td(ng-class="{'text-disabled': v.state === 'DISABLED'}").text-success {{v.state| translate}}
-                                        tr
-                                             td.text-center
-                                             td {{'alipayAccount' | translate}}
-                                             td.text-success {{v.accountNumber}}
-                                        tr
-                                            td.text-center
-                                            td {{'alipayName' | translate}}
-                                            td.text-success {{v.name}}
-                                        tr
-                                            td.text-center
-                                            td {{'SINGLE_LIMIT' | translate}}
-                                            td.text-success {{v.singleLimit}}
-                                        tr
-                                            td.text-center
-                                            td {{'DAY_LIMIT' | translate}}
-                                            td.text-success {{v.quota}}
-                                        //tr
-                                        //    td.text-center(rowspan="5")
-                                        //        i.fa.fa-money.text-danger
-                                        //    td {{'TITLE' | translate}}
-                                        //    td.text-success {{v.name}}
-                                        //tr
-                                        //    td {{'ACCOUNT' | translate}}
-                                        //    td.text-success {{v.accountNumber}}
-                                        //tr
-                                        //    td {{'QUOTA' | translate}}
-                                        //    td.text-success {{v.quota}}
-                                        //tr
-                                        //    td {{'Topup Type' | translate}}
-                                        //    td.text-success {{vm.alipayTopupTypeJson[v.topupType] | translate}}
-                                        //tr
-                                        //    td {{'Alipay Use' | translate}}
-                                        //    td.text-success {{vm.alipayUseTypeJson[v.alipayUse] | translate}}
-                                        //tr
-                                        //    td {{'Alipay Type ID' | translate}}
-                                        //    td.text-success {{vm.allAlipayTypeList[v.alipayTypeId].name | translate}}
-                                        //        img(ng-if='v.alipayTypeId', src='{{vm.allAlipayTypeList[v.alipayTypeId].showIconURL}}')
-                .panel.panel-info(ng-if='vm.curAlipay')
-                    .panel-heading.panel-heading-sm
-                        h4.panel-title(style='display:inline-block') {{'Alipay' | translate}} : {{vm.curAlipay.name}}
-                    .panel-body(style='padding:5px')
-                        .alipayPropFlex
-                            .alipayPropdiv
-                                text {{'alipayAccount' | translate}}
-                                label.text-success {{vm.curAlipay.accountNumber}}
-                            .alipayPropdiv
-                                text {{'TITLE' | translate}}
-                                label.text-success {{vm.curAlipay.name}}
-                            //.alipayPropdiv
-                            //    text {{'Alipay Type ID' | translate}}
-                            //    label.text-success {{vm.allAlipayTypeList[vm.curAlipay.alipayTypeId].name | translate}}
-                            //.alipayPropdiv
-                            //    text {{'Alipay Use' | translate}}
-                            //    label.text-success {{vm.alipayUseTypeJson[vm.curAlipay.alipayUse] | translate}}
-                            //.alipayPropdiv
-                            //    text {{'REMARK' | translate}}
-                            //    label.text-success {{vm.curAlipay.remark}}
-                            //.alipayPropdiv
-                            //    text {{'Target Devices' | translate}}
-                            //    label.text-success {{vm.alipayTargetDeviceJson[vm.curAlipay.targetDevices] | translate}}
-                            //.alipayPropdiv
-                            //    text {{'Topup Type' | translate}}
-                            //    label.text-success {{vm.alipayTopupTypeJson[vm.curAlipay.topupType] | translate}}
-
-                            //.alipayPropdiv(ng-repeat='(i,v) in vm.curAlipay')
-                                text {{i}}
-                                label.text-success {{v}}
-                div(ng-if='vm.curAlipay')
-                    div(ng-if='vm.showAlipayCate=="include"')
-                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')", ng-click='vm.alipaytoAlipayGroup("detach")')
-                            i.fa.fa-minus-square
-                            text {{"EXCLUDE" | translate}}
-                    div(ng-if='vm.showAlipayCate=="exclude"')
-                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')", ng-click='vm.alipaytoAlipayGroup("attach")')
-                            i.fa.fa-plus-square
-                            text {{"INCLUDE" | translate}}
+                        input.input-sm.form-control.merchantNoList(ng-model='vm.filterAlipayName', type='text', style='max-width:200px')
+                    .inlineBlk.margin-right-5
+                        .control-label {{"isInGroup" | translate}}
+                        select.input-sm.form-control.merchantNoList(ng-model='vm.filterAlipayInGroup' style='max-width:200px', ng-init='vm.filterAlipayInGroup="all"')
+                            option(value='all') {{'any' | translate}}
+                            option(value='false') {{'noInGroup' | translate}}
+                            option(value='true') {{'inGroup' | translate}}
+                text.blink.margin-left-5.text-danger(ng-if='vm.SelectedAlipayGroupNode && !vm.allAlipayList') {{'loading alipays' | translate}}...
+                text.margin-left-5(ng-if='vm.SelectedAlipayGroupNode && vm.allAlipayList') {{'Total' | translate}}: {{filteredAlipayList.length}}
+                table#aliPayTable.simple-table.table-vertical-middle
+                    thead
+                        th {{ 'select' | translate }}
+                        th(data-toggle="modal", data-target="#modalFilterAlipayStatus", style="cursor: pointer") {{ 'STATUS' | translate }}
+                        th {{ 'alipayAccount' | translate }}
+                        th {{ 'alipayName' | translate }}
+                        th {{ 'SINGLE_LIMIT' | translate }}
+                        th {{ 'DAY_LIMIT' | translate }}
+                    tbody
+                        tr(ng-repeat="(idx,val) in vm.allAlipayList | filter: vm.filterAlipay as filteredAlipayList" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
+                            td
+                                input(type="checkbox" ng-model="val.isCheck" ng-change="vm.alipayListUncheckDifferentGroup(val.isCheck, val.isInGroup);")
+                            td {{ val.state | translate}}
+                            td {{ val.accountNumber | translate}}
+                            td {{ val.name | translate}}
+                            td {{ val.singleLimit | translate}}
+                            td {{ val.quota | translate}}
+                br
+                .div.pull-right
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')" ng-click='vm.alipaytoAlipayGroup("attach")')
+                        i.fa.fa-plus-square
+                        text {{"INCLUDE" | translate}}
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')" ng-click='vm.alipaytoAlipayGroup("detach")')
+                        i.fa.fa-minus-square
+                        text {{"EXCLUDE" | translate}}
 
 #modalAddAlipayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
@@ -365,3 +223,17 @@
                 button.btn.btn-warning.common-button(ng-show='!vm.addAllPlayerToAlipayResult' data-dismiss='modal') {{"CANCEL" | translate}}
                 button.btn.btn-success.common-button(ng-show='vm.addAllPlayerToAlipayResult' data-dismiss='modal') {{"CONFIRM" | translate}}
                 label(ng-show='vm.addAllPlayerToAlipayResult') {{vm.addAllPlayerToAlipayResult}}
+#modalFilterAlipayStatus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+        .modal-dialog
+            .modal-content
+                .modal-header
+                    a.fa.fa-times.close(type='button', data-dismiss='modal')
+                    h4.modal-title {{"Alipay" | translate}} {{"Show Options" | translate}}
+                .modal-body
+                    .panel.panel-primary
+                        .panel-body
+                            .col-md-3(ng-repeat="(status, show) in vm.alipayStatusFilterOptions")
+                                input(type="checkbox" ng-model="vm.alipayStatusFilterOptions[status]")
+                                span {{status | translate}}
+                .modal-footer
+                    button.btn.btn-primary.common-button(data-dismiss='modal') {{"CONFIRM" | translate}}

@@ -1135,10 +1135,10 @@
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('manual-reward');vm.initPlayerAddRewardTask();") {{"Add Reward Task" | translate}}
                     li(ng-class="vm.selectedRewardSettingsTab == 'system-reward' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'applyReward')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('system-reward');vm.initPlayerApplyReward();") {{"APPLY_REWARD" | translate}}
-                    li(ng-class="vm.selectedRewardSettingsTab == 'unlock-reward' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ManualUnlockRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1")
+                    //li(ng-class="vm.selectedRewardSettingsTab == 'unlock-reward' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ManualUnlockRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('unlock-reward');vm.initManualUnlockRewardTask();") {{"Manual Unlock Reward Task" | translate}}
                     li(ng-class="vm.selectedRewardSettingsTab == 'reward-progress' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'rewardTaskLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1")
-                        a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('reward-progress');vm.initRewardTaskLog();") {{"RewardTask Log" | translate}}
+                        a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('reward-progress');vm.initManualUnlockRewardTask();vm.initRewardTaskLog();") {{"RewardTask Progress Log" | translate}}
                 .panel.panel-primary(style="border-radius:0 !important;")
                     .panel-body
                         //.well(ng-show="vm.platformAction=='delete'")
@@ -1254,31 +1254,46 @@
                             .inlineBlk
                                 label {{"End date" | translate}}
                                 .endTime
+                            .inlineBlk
+                                label {{"UnlockStatus" | translate}}
+                                select.form-control(ng-model='vm.unlockStatus', ng-init='vm.unlockStatus="all"')
+                                    option(value='all') {{'any' | translate}}
+                                    option(value='Started') {{'LOCK' | translate}}
+                                    option(value='Done') {{'DONE' | translate}}
+                            .inlineBlk
+                                label {{"RewardProposalId" | translate}}
+                                input.input-sm.form-control(ng-model="vm.rewardProposalId")
+                            .inlineBlk
+                                label {{"Deposit ProposalId" | translate}}
+                                input.input-sm.form-control(ng-model="vm.topUpProposalId")
+                            .inlineBlk(ng-show='vm.selectedPlatform.data.useProviderGroup')
+                                label {{"providerGroup" | translate}}
+                                select.form-control(ng-model='vm.selectedProviderGroupID', ng-init='vm.selectedProviderGroupID="all"')
+                                    option(value='all') {{'any' | translate}}
+                                    option(value='free') {{'Valid Progress' | translate}}
+                                    option(ng-repeat='(i,v) in vm.gameProviderGroup', value='{{v._id}}') {{v.name}}
+
                             button.btn.btn-primary.common-button(ng-click='vm.getRewardTaskLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
+
                             div
-                                label {{"Total" | translate}} {{vm.rewardTaskLog.totalCount}} {{"records" | translate}}
+                                table.table.table-bordered(style='background-color:white;overflow-y:scroll')
+                                    tr
+                                        td
+                                            div {{"LOCAL_CREDIT" | translate }}
+                                            div {{vm.currentFreeAmount}}
+                                            // {{vm.freeAmount}}
+                                        td(ng-repeat='(i,v) in vm.playerCreditDetails')
+                                            div(ng-show="v.nickName!='' " ,style='display:inline-block;'){{v.nickName}} :
+                                            div(ng-show="v.nickName!='' " ,style='display:inline-block;padding-left:3px;'){{v.validCredit || '0'}}
+
+                            div(ng-show="vm.selectedPlatform.data.useProviderGroup")
+                                table#rewardTaskGroupLogTbl.common-table.display(style='min-width:100%')
+                                #rewardTaskGroupLogTblPage.height30
+
+                            div
                                 table#rewardTaskLogTbl.common-table.display(style='min-width:100%')
                                 #rewardTaskLogTblPage.height30
-
-                                table#rewardTaskGroupLogTbl.text-center.display.paddingTbl(style='width:100%;')
-                                    thead
-                                        tr
-                                            th {{'providerGroup' | translate}}
-                                            th {{'rewardAmount' | translate}}
-                                            th {{'CURRENTAMOUNT' | translate}}
-                                            th {{'spendingAmount' | translate}}
-                                            th {{'unlockedAmount' | translate}}
-                                            th {{'NON_CONSUMPTION_RETURN_AMOUNT' | translate}}
-                                            th {{'STATUS' | translate}}
-                                    tbody
-                                        tr(ng-repeat='(i,v) in vm.rewardTaskGroupDetails')
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.providerGroup.name}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.rewardAmt}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.currentAmt}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.targetConsumption}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.curConsumption}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.forbidXIMAAmt}}
-                                            td(style="text-align:center;border: 1px solid #0099CC") {{v.status | translate}}
+                                label {{"Total" | translate}} {{vm.rewardTaskLog.totalCount}} {{"records" | translate}}
 
             .modal-footer
                 //#modalPlayerAddRewardTask
@@ -1294,8 +1309,10 @@
                     button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Platform','Player','applyReward') && !vm.playerApplyEventResult",ng-disabled='form_player_reward.$invalid || form_player_reward.$pristine || !vm.playerApplyRewardPara.code || (vm.playerApplyRewardShow.showReferral && !vm.playerApplyRewardPara.referPlayer)', ng-click='vm.applyPlayerReward()') {{'APPLY' | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                 //#modalManualUnlockRewardTask
-                div(ng-show="vm.selectedRewardSettingsTab == 'unlock-reward'")
-                    button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.curRewardTask', ng-click="vm.submitManualUnlockRewardTask()") {{'Unlock Reward' | translate}}
+                div(ng-show="vm.selectedRewardSettingsTab == 'reward-progress'")
+                    //ng-disabled='!vm.rewardTaskGroupDetails',
+                    button.common-button.margin-right-5.btn.btn-success(ng-show="vm.isUnlockTaskGroup",ng-disabled="!vm.dynRewardTaskGroupIndex || vm.dynRewardTaskGroupIndex.length==0", ng-click="vm.unlockTaskGroup()") {{'Unlock Reward' | translate}}
+                    button.common-button.margin-right-5.btn.btn-success(ng-show="!vm.isUnlockTaskGroup", ng-disabled="vm.selectedRewards.length==0", ng-click="vm.submitManualUnlockRewardTask(vm.selectedRewards)") {{'Unlock Reward' | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                     label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
 
@@ -1416,11 +1433,15 @@
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{'REWARD_POINTS_ADJUSTMENT' | translate}} : {{vm.selectedSinglePlayer.name}} ({{vm.selectedSinglePlayer.realName}})
-            .modal-body(ng-show='vm.isOneSelectedPlayer().permission && !vm.isOneSelectedPlayer().permission.rewardPointsTask')
+            .modal-body(ng-show='!vm.selectedPlatform.data.usePointSystem')
+                .well
+                    label.text-danger {{'FAIL' | translate}}
+                    label.form-control {{"Point system is disabled for this platform" | translate}}
+            .modal-body(ng-show='vm.isOneSelectedPlayer().permission && !vm.isOneSelectedPlayer().permission.rewardPointsTask && vm.selectedPlatform.data.usePointSystem')
                 .well
                     label.text-danger {{'FAIL' | translate}}
                     label.form-control {{"Player does not have reward points task permission" | translate}}
-            .modal-body(ng-show='vm.isOneSelectedPlayer().permission && vm.isOneSelectedPlayer().permission.rewardPointsTask')
+            .modal-body(ng-show='vm.isOneSelectedPlayer().permission && vm.isOneSelectedPlayer().permission.rewardPointsTask && vm.selectedPlatform.data.usePointSystem')
                 ul.nav.nav-tabs.common-nav-tabs
                     li(ng-class="vm.selectedRewardPointsAdjustmentTab == 'change' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RewardPointsChange')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardPointsAdjustmentTab('change');") {{"VALID_REWARD_POINTS" | translate}}

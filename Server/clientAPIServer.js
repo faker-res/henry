@@ -10,6 +10,7 @@ var PlayerLevelServiceImplement = require("./serviceImplements/client/PlayerLeve
 var RegistrationIntentionServiceImplement = require("./serviceImplements/client/RegistrationIntentionServiceImplement");
 var TopUpIntentionServiceImplement = require("./serviceImplements/client/TopUpIntentionServiceImplement");
 var RewardServiceImplement = require("./serviceImplements/client/RewardServiceImplement");
+var RewardPointsServiceImplement = require("./serviceImplements/client/RewardPointsServiceImplement");
 var GameServiceImplement = require("./serviceImplements/client/GameServiceImplement");
 var ConsumptionServiceImplement = require("./serviceImplements/client/ConsumptionServiceImplement");
 var PaymentServiceImplement = require("./serviceImplements/client/PaymentServiceImplement");
@@ -30,7 +31,7 @@ env.messageClient = constMessageClientTypes.CLIENT;
 var ClientAPIServer = serviceUtils.buildWSServer(
     [PlayerServiceImplement, PlatformServiceImplement, RegistrationIntentionServiceImplement,
         TopUpIntentionServiceImplement, PlayerLevelServiceImplement, ConnectionServiceImplement,
-        RewardServiceImplement, GameServiceImplement, ConsumptionServiceImplement, PaymentServiceImplement, PartnerServiceImplement],
+        RewardServiceImplement, RewardPointsServiceImplement, GameServiceImplement, ConsumptionServiceImplement, PaymentServiceImplement, PartnerServiceImplement],
     process.env.USE_SSL
 );
 

@@ -15,6 +15,7 @@ const constProposalStatus = require("./../const/constProposalStatus");
 const constProposalType = require("./../const/constProposalType");
 const constProposalUserType = require("./../const/constProposalUserType");
 const constRewardApplyType = require("./../const/constRewardApplyType");
+const constRewardPeriod = require("./../const/constRewardPeriod");
 const constRewardType = require("./../const/constRewardType");
 const constServerCode = require('../const/constServerCode');
 
@@ -202,7 +203,7 @@ let dbPlayerReward = {
             }
 
             let rewardProposalQuery = {
-                "data.platformObjId": player.platform,
+                "data.platformObjId": platform._id,
                 "data.playerObjId": player._id,
                 "data.eventId": event._id,
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
@@ -2289,7 +2290,15 @@ let dbPlayerReward = {
         })
     },
 
-    getLimitedOffers: (platformId, playerId, status) => {
+    /**
+     *
+     * @param platformId
+     * @param playerId
+     * @param status
+     * @param {Number} period - In past X hours
+     * @returns {Promise<T>}
+     */
+    getLimitedOffers: (platformId, playerId, status, period) => {
         let platformObj;
         let rewardTypeData;
         let intPropTypeObj;
@@ -2301,7 +2310,6 @@ let dbPlayerReward = {
         if (status) {
             status = Number(status);
         }
-
 
         return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -2351,9 +2359,12 @@ let dbPlayerReward = {
         ).then(
             eventData => {
                 if (eventData) {
+                    let rewardPeriod = eventData.param.period;
                     rewards = eventData.param.reward;
                     timeSet = new Set();
                     let promArr = [];
+
+                    // Set reward status
                     rewards.map(e => {
                         let status = 0;
                         timeSet.add(String(e.hrs + ":" + e.min));
@@ -2374,13 +2385,37 @@ let dbPlayerReward = {
                             status = 1;
                         }
 
+                        let proposalQuery = {
+                            'data.platformObjId': platformObj._id,
+                            'data.limitedOfferObjId': e._id,
+                            type: intPropTypeObj._id
+                        };
+
+                        // Find intention within current reward period
+                        if (rewardPeriod) {
+                            let intentionTime;
+
+                            switch (Number(rewardPeriod)) {
+                                case constRewardPeriod.DAILY: intentionTime = dbUtility.getTodaySGTime(); break;
+                                case constRewardPeriod.WEEKLY: intentionTime = dbUtility.getCurrentWeekSGTime(); break;
+                                case constRewardPeriod.BIWEEKLY: intentionTime = dbUtility.getCurrentBiWeekSGTIme(); break;
+                                case constRewardPeriod.MONTHLY: intentionTime = dbUtility.getCurrentMonthSGTIme(); break;
+                            }
+
+                            if (intentionTime) {
+                                proposalQuery.createTime = {$gte: intentionTime.startTime, $lte: intentionTime.endTime};
+                            }
+                        }
+
+                        // Find player's limited offer application
+                        if (period) {
+                            let timeInPassPeriodHours = dbUtility.getSGTimeOfPassHours(period);
+                            proposalQuery.createTime = {$gte: timeInPassPeriodHours.startTime, $lte: timeInPassPeriodHours.endTime};
+                        }
+
                         promArr.push(
                             dbConfig.collection_proposal.aggregate({
-                                $match: {
-                                    'data.platformObjId': platformObj._id,
-                                    'data.limitedOfferObjId': e._id,
-                                    type: intPropTypeObj._id
-                                }
+                                $match: proposalQuery
                             }, {
                                 $project: {
                                     "data.playerId": 1,
@@ -2400,6 +2435,7 @@ let dbPlayerReward = {
                                             if (String(f._id) == String(playerId)) {
                                                 status = 2;
 
+                                                // Player paid
                                                 if (f.paidCount > 0) {
                                                     status = 3;
                                                 }
@@ -2437,6 +2473,7 @@ let dbPlayerReward = {
                             )
                         );
 
+                        // Get provider group name from object ids
                         if (e.providers && e.providers.length > 0) {
                             let providerIds = e.providers;
 
@@ -2478,10 +2515,15 @@ let dbPlayerReward = {
                     // Interpret providers
                     e.providers = e.providers && e.providers.length > 0 ? [...e.providers].join(",") : "所有平台"
                 });
+
                 // Filter by status if any
                 if (status && status !== 0) {
                     rewards = rewards.filter(e => {
-                        return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                        if (period) {
+                            return (e.status == status )
+                        } else {
+                            return (e.status == status ) && (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
+                        }
                     })
                 } else if (status === 0) {
                     rewards = rewards.filter(e => {
@@ -2492,7 +2534,6 @@ let dbPlayerReward = {
                         return (new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()) && (new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime())
                     })
                 }
-
 
                 return {
                     time: [...timeSet].join("/"),
@@ -2781,29 +2822,48 @@ let dbPlayerReward = {
             name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
         }).lean().then(
             propType => {
-                let matchQ = {
-                    "data.platformObjId": platformObjId,
-                    type: propType._id,
-                    createTime: {$gte: startTime, $lt: endTime}
-                };
+                if(propType){
+                    let levelArray = [];
+                    let matchQ = {
+                        "data.platformObjId": platformObjId,
+                        type: propType._id,
+                        createTime: {$gte: startTime, $lt: endTime}
+                    };
 
-                if (playerName) {
-                    matchQ['data.playerName'] = playerName;
+                    if (playerName) {
+                        matchQ['data.playerName'] = playerName;
+                    }
+
+                    if (promoName) {
+                        matchQ['data.limitedOfferName'] = promoName;
+                    }
+
+                    if (inputDevice && inputDevice.length > 0) {
+                        matchQ.inputDevice = {$in: inputDevice};
+                    }
+
+                    if (level && level.length > 0) {
+                        let levelName = [];
+                        let bNormal = false;
+                        for(let i = 0; i < level.length; i ++){
+                            if(level[i].value == 0){
+                                bNormal = true;
+                                //check if data.requiredLevel field is exist but no data
+                                levelName.push("");
+                            }
+                            levelName.push(level[i].name);
+                        }
+                        if(!bNormal && levelName.length > 0){
+                            matchQ['data.requiredLevel'] = {$in: levelName};
+                        }
+                        else if(bNormal && levelName.length > 0){
+                            matchQ.$or = [];
+                            matchQ.$or.push({"data.requiredLevel": {$in: levelName}});
+                            matchQ.$or.push({"data.requiredLevel": {$exists: false}});
+                        }
+                    }
+                    return dbConfig.collection_proposal.find(matchQ).lean();
                 }
-
-                if (promoName) {
-                    matchQ['data.limitedOfferName'] = promoName;
-                }
-
-                if (inputDevice && inputDevice.length > 0) {
-                    matchQ.inputDevice = {$in: inputDevice};
-                }
-
-                if (level && level.length > 0) {
-                    matchQ['data.playerLevelName'] = {$in: level};
-                }
-
-                return dbConfig.collection_proposal.find(matchQ).lean();
             }
         ).then(
             intProps => {
@@ -2898,7 +2958,7 @@ let dbPlayerReward = {
         return false;
     },
 
-    getLimitedOfferBonus: (platformId) => {
+    getLimitedOfferBonus: (platformId, period = 4) => {
         let platformObj;
         let intPropTypeObj;
 
@@ -2920,7 +2980,7 @@ let dbPlayerReward = {
             res => {
                 intPropTypeObj = res;
 
-                let startTime = moment().subtract(4, "hours");
+                let startTime = moment().subtract(period, "hours");
 
                 return dbConfig.collection_proposal.find({
                     'data.platformObjId': platformObj._id,
@@ -2933,7 +2993,7 @@ let dbPlayerReward = {
             res => {
                 return res.map(e => {
                     return {
-                        accountNo: e.data.playerName,
+                        accountNo: dbUtility.encodePlayerName(e.data.playerName),
                         bonus: e.data.applyAmount + e.data.rewardAmount,
                         time: e.createTime
                     }
@@ -3608,7 +3668,7 @@ let dbPlayerReward = {
                             isUpdateTopupRecord = true;
 
                             // Set player valid credit update flag
-                            if (eventData.condition.providerGroup) {
+                            if (eventData.condition.providerGroup && eventData.condition.isDynamicRewardAmount) {
                                 isUpdateValidCredit = true;
                             }
                         }
@@ -3907,7 +3967,7 @@ let dbPlayerReward = {
                                         message: "Player does not have enough top up"
                                     });
                                 }
-                                if(!meetConsumptionCondition){
+                                if (!meetConsumptionCondition) {
                                     return Q.reject({
                                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                         name: "DataError",
@@ -3982,10 +4042,129 @@ let dbPlayerReward = {
                         });
                 }
 
-                if (isMultiApplication) {
-                    let proms = [];
-                    for (let i = 0; i < applicationDetails.length; i++) {
-                        let applyDetail = applicationDetails[i];
+                // Decide whether deduct player credit
+                if (isUpdateValidCredit && playerData.platform.useProviderGroup) {
+                    // Decide whether player has enough free amount to apply
+                    if (playerData.validCredit >= applyAmount) {
+                        // Player has enough amount in validCredit
+                        return dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup, true);
+                    } else {
+                        // Player doesn't have enough validCredit, proceed to check in game credit
+                        return dbPlayerUtil.getProviderGroupInGameCreditByObjId(playerData._id, playerData.platform._id, eventData.condition.providerGroup).then(
+                            res => {
+                                if (res && res.totalInGameCredit >= applyAmount) {
+                                    // Player has enough credit in game provider to apply reward
+                                    let transferOutPromArr = [];
+
+                                    if (res && res.providerId && res.providerId.length > 0) {
+                                        res.providerId.map(
+                                            providerId => transferOutPromArr.push(dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, providerId, -1, null, true))
+                                        );
+
+                                        return Promise.all(transferOutPromArr);
+                                    }
+                                } else {
+                                    return Promise.reject({
+                                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                        name: "DataError",
+                                        message: "Player free amount is less than required top up amount"
+                                    })
+                                }
+                            }
+                        ).then(
+                            transferComplete => {
+                                if (transferComplete) {
+                                    // Player has enough amount in validCredit
+                                    return dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup, true);
+                                }
+                            }
+                        );
+                    }
+                } else {
+                    return true;
+                }
+            }
+        ).then(
+            amountCheckComplete => {
+                if (amountCheckComplete) {
+                    if (isMultiApplication) {
+                        let proms = [];
+                        for (let i = 0; i < applicationDetails.length; i++) {
+                            let applyDetail = applicationDetails[i];
+                            let proposalData = {
+                                type: eventData.executeProposal,
+                                creator: adminInfo ? adminInfo :
+                                    {
+                                        type: 'player',
+                                        name: playerData.name,
+                                        id: playerData._id
+                                    },
+                                data: {
+                                    playerObjId: playerData._id,
+                                    playerId: playerData.playerId,
+                                    playerName: playerData.name,
+                                    realName: playerData.realName,
+                                    platformObjId: playerData.platform._id,
+                                    rewardAmount: applyDetail.rewardAmount,
+                                    spendingAmount: applyDetail.spendingAmount,
+                                    eventId: eventData._id,
+                                    eventName: eventData.name,
+                                    eventCode: eventData.code,
+                                    eventDescription: eventData.description,
+                                    isIgnoreAudit: Boolean(eventData.condition && eventData.condition.isIgnoreAudit === true),
+                                    forbidWithdrawAfterApply: Boolean(applyDetail.forbidWithdrawAfterApply && applyDetail.forbidWithdrawAfterApply === true),
+                                    remark: applyDetail.remark,
+                                    useConsumption: Boolean(!applyDetail.isSharedWithXIMA),
+                                    providerGroup: eventData.condition.providerGroup
+                                },
+                                entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                userType: constProposalUserType.PLAYERS
+                            };
+
+                            if (applyDetail.consecutiveNumber) {
+                                proposalData.data.consecutiveNumber = applyDetail.consecutiveNumber;
+                            }
+
+                            if (applyDetail.targetDate) {
+                                proposalData.data.applyTargetDate = applyDetail.targetDate.startTime;
+                            }
+
+                            let addUsedEventToConsumptionProm = Promise.resolve([]);
+                            if (applyDetail.requiredConsumptionMet) {
+                                addUsedEventToConsumptionProm = dbPlayerConsumptionRecord.assignConsumptionUsedEvent(
+                                    playerData.platform._id, playerData._id, eventData._id, eventData.param.requiredConsumptionAmount,
+                                    applyDetail.targetDate.startTime, applyDetail.targetDate.endTime, eventData.condition.consumptionProvider
+                                )
+                            }
+
+                            let addUsedEventToTopUpProm = Promise.resolve([]);
+                            if (applyDetail.requiredTopUpMet) {
+                                addUsedEventToTopUpProm = dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(
+                                    playerData.platform._id, playerData._id, eventData._id, eventData.param.requiredTopUpMet,
+                                    applyDetail.targetDate.startTime, applyDetail.targetDate.endTime, eventData.condition.ignoreAllTopUpDirtyCheckForReward
+                                )
+                            }
+
+                            let prom = Promise.all([addUsedEventToConsumptionProm, addUsedEventToTopUpProm]).then(
+                                data => {
+                                    if (data[0] && data[0].length > 0) {
+                                        proposalData.data.usedConsumption = data[0];
+                                    }
+
+                                    if (data[1] && data[1].length > 0) {
+                                        proposalData.data.usedTopUp = data[1];
+                                    }
+
+                                    return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
+                                }
+                            );
+                            proms.push(prom);
+                        }
+
+                        return Promise.all(proms);
+                    }
+                    else {
+                        // create reward proposal
                         let proposalData = {
                             type: eventData.executeProposal,
                             creator: adminInfo ? adminInfo :
@@ -4000,195 +4179,116 @@ let dbPlayerReward = {
                                 playerName: playerData.name,
                                 realName: playerData.realName,
                                 platformObjId: playerData.platform._id,
-                                rewardAmount: applyDetail.rewardAmount,
-                                spendingAmount: applyDetail.spendingAmount,
+                                rewardAmount: rewardAmount,
+                                spendingAmount: spendingAmount,
                                 eventId: eventData._id,
                                 eventName: eventData.name,
                                 eventCode: eventData.code,
                                 eventDescription: eventData.description,
                                 isIgnoreAudit: Boolean(eventData.condition && eventData.condition.isIgnoreAudit === true),
-                                forbidWithdrawAfterApply: Boolean(applyDetail.forbidWithdrawAfterApply && applyDetail.forbidWithdrawAfterApply === true),
-                                remark: applyDetail.remark,
-                                useConsumption: Boolean(!applyDetail.isSharedWithXIMA),
-                                providerGroup: eventData.condition.providerGroup
+                                forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
+                                remark: selectedRewardParam.remark,
+                                useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),
+                                providerGroup: eventData.condition.providerGroup,
+                                // Use this flag for auto apply reward
+                                isGroupReward: true,
+                                // If player credit is more than this number after unlock reward group, will ban bonus
+                                forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0,
+                                isDynamicRewardAmount: Boolean(eventData.condition.isDynamicRewardAmount)
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS
                         };
 
-                        if (applyDetail.consecutiveNumber) {
-                            proposalData.data.consecutiveNumber = applyDetail.consecutiveNumber;
+                        // Custom proposal data field
+                        if (applyAmount > 0) {
+                            proposalData.data.applyAmount = applyAmount;
                         }
 
-                        if (applyDetail.targetDate) {
-                            proposalData.data.applyTargetDate = applyDetail.targetDate.startTime;
+                        if (consecutiveNumber) {
+                            proposalData.data.consecutiveNumber = consecutiveNumber;
                         }
 
-                        let addUsedEventToConsumptionProm = Promise.resolve([]);
-                        if (applyDetail.requiredConsumptionMet) {
-                            addUsedEventToConsumptionProm = dbPlayerConsumptionRecord.assignConsumptionUsedEvent(
-                                playerData.platform._id, playerData._id, eventData._id, eventData.param.requiredConsumptionAmount,
-                                applyDetail.targetDate.startTime, applyDetail.targetDate.endTime, eventData.condition.consumptionProvider
-                            )
+                        if (rewardData.applyTargetDate) {
+                            proposalData.data.applyTargetDate = todayTime.startTime;
                         }
 
-                        let addUsedEventToTopUpProm = Promise.resolve([]);
-                        if (applyDetail.requiredTopUpMet) {
-                            addUsedEventToTopUpProm = dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(
-                                playerData.platform._id, playerData._id, eventData._id, eventData.param.requiredTopUpMet,
-                                applyDetail.targetDate.startTime, applyDetail.targetDate.endTime, eventData.condition.ignoreAllTopUpDirtyCheckForReward
-                            )
+                        if (useTopUpAmount !== null) {
+                            proposalData.data.useTopUpAmount = useTopUpAmount;
                         }
 
-                        let prom = Promise.all([addUsedEventToConsumptionProm, addUsedEventToTopUpProm]).then(
-                            data => {
-                                if (data[0] && data[0].length > 0) {
-                                    proposalData.data.usedConsumption = data[0];
+                        if (useConsumptionAmount !== null) {
+                            proposalData.data.useConsumptionAmount = useConsumptionAmount;
+                        }
+
+                        if (selectedTopUp && selectedTopUp._id) {
+                            proposalData.data.topUpRecordId = selectedTopUp._id;
+                        }
+
+                        if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
+                            proposalData.data.lastLoginIp = playerData.lastLoginIp;
+                            proposalData.data.phoneNumber = playerData.phoneNumber;
+                        }
+
+                        return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
+                            proposalData => {
+                                if (proposalData && proposalData._id) {
+                                    let postPropPromArr = [];
+
+                                    if (isUpdateTopupRecord) {
+                                        postPropPromArr.push(dbConfig.collection_playerTopUpRecord.findOneAndUpdate(
+                                            {
+                                                _id: rewardData.selectedTopup._id,
+                                                createTime: rewardData.selectedTopup.createTime,
+                                                // bDirty: {$ne: true}
+                                            },
+                                            {
+                                                bDirty: true,
+                                                usedType: eventData.type.name,
+                                                $push: {usedEvent: eventData._id}
+                                            },
+                                            {new: true}
+                                        ));
+                                    }
+
+                                    if (isUpdateMultiTopupRecord && updateTopupRecordIds.length > 0) {
+                                        postPropPromArr.push(dbConfig.collection_playerTopUpRecord.update(
+                                            {_id: {$in: updateTopupRecordIds}},
+                                            {
+                                                bDirty: true,
+                                                usedType: eventData.type.name,
+                                                $push: {usedEvent: eventData._id}
+                                            },
+                                            {multi: true}
+                                        ));
+                                    }
+
+                                    if (isUpdateMultiConsumptionRecord && updateConsumptionRecordIds.length > 0) {
+                                        postPropPromArr.push(dbConfig.collection_playerConsumptionRecord.update(
+                                            {_id: {$in: updateConsumptionRecordIds}},
+                                            {
+                                                bDirty: true,
+                                            },
+                                            {multi: true}
+                                        ));
+                                    }
+
+                                    if (isSetUsedTopUpRecord) {
+                                        if (intervalTime) {
+                                            postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount, null, null, ignoreTopUpBdirtyEvent));
+                                        } else {
+                                            postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount, intervalTime.startTime, intervalTime.endTime, ignoreTopUpBdirtyEvent));
+                                        }
+                                    }
+
+                                    return Promise.all(postPropPromArr);
                                 }
-
-                                if (data[1] && data[1].length > 0) {
-                                    proposalData.data.usedTopUp = data[1];
+                                else {
+                                    return proposalData;
                                 }
-
-                                return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
                             }
                         );
-                        proms.push(prom);
                     }
-
-                    return Promise.all(proms);
-                }
-                else {
-                    // create reward proposal
-                    let proposalData = {
-                        type: eventData.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: playerData.name,
-                                id: playerData._id
-                            },
-                        data: {
-                            playerObjId: playerData._id,
-                            playerId: playerData.playerId,
-                            playerName: playerData.name,
-                            realName: playerData.realName,
-                            platformObjId: playerData.platform._id,
-                            rewardAmount: rewardAmount,
-                            spendingAmount: spendingAmount,
-                            eventId: eventData._id,
-                            eventName: eventData.name,
-                            eventCode: eventData.code,
-                            eventDescription: eventData.description,
-                            isIgnoreAudit: Boolean(eventData.condition && eventData.condition.isIgnoreAudit === true),
-                            forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
-                            remark: selectedRewardParam.remark,
-                            useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),
-                            providerGroup: eventData.condition.providerGroup,
-                            // Use this flag for auto apply reward
-                            isGroupReward: true,
-                            // If player credit is more than this number after unlock reward group, will ban bonus
-                            forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0
-                        },
-                        entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-                        userType: constProposalUserType.PLAYERS
-                    };
-
-                    // Custom proposal data field
-                    if (applyAmount > 0) {
-                        proposalData.data.applyAmount = applyAmount;
-                    }
-
-                    if (consecutiveNumber) {
-                        proposalData.data.consecutiveNumber = consecutiveNumber;
-                    }
-
-                    if (rewardData.applyTargetDate) {
-                        proposalData.data.applyTargetDate = todayTime.startTime;
-                    }
-
-                    if (useTopUpAmount !== null) {
-                        proposalData.data.useTopUpAmount = useTopUpAmount;
-                    }
-
-                    if (useConsumptionAmount !== null) {
-                        proposalData.data.useConsumptionAmount = useConsumptionAmount;
-                    }
-
-                    if (selectedTopUp && selectedTopUp._id) {
-                        proposalData.data.topUpRecordId = selectedTopUp._id;
-                    }
-
-                    if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
-                        proposalData.data.lastLoginIp = playerData.lastLoginIp;
-                        proposalData.data.phoneNumber = playerData.phoneNumber;
-                    }
-
-                    return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
-                        proposalData => {
-                            if (proposalData && proposalData._id) {
-                                let postPropPromArr = [];
-
-                                if (isUpdateTopupRecord) {
-                                    postPropPromArr.push(dbConfig.collection_playerTopUpRecord.findOneAndUpdate(
-                                        {
-                                            _id: rewardData.selectedTopup._id,
-                                            createTime: rewardData.selectedTopup.createTime,
-                                            // bDirty: {$ne: true}
-                                        },
-                                        {
-                                            bDirty: true,
-                                            usedType: eventData.type.name,
-                                            $push: {usedEvent: eventData._id}
-                                        },
-                                        {new: true}
-                                    ));
-                                }
-
-                                if (isUpdateMultiTopupRecord && updateTopupRecordIds.length > 0) {
-                                    postPropPromArr.push(dbConfig.collection_playerTopUpRecord.update(
-                                        {_id: {$in: updateTopupRecordIds}},
-                                        {
-                                            bDirty: true,
-                                            usedType: eventData.type.name,
-                                            $push: {usedEvent: eventData._id}
-                                        },
-                                        {multi: true}
-                                    ));
-                                }
-
-                                if (isUpdateMultiConsumptionRecord && updateConsumptionRecordIds.length > 0) {
-                                    postPropPromArr.push(dbConfig.collection_playerConsumptionRecord.update(
-                                        {_id: {$in: updateConsumptionRecordIds}},
-                                        {
-                                            bDirty: true,
-                                        },
-                                        {multi: true}
-                                    ));
-                                }
-
-                                if (isUpdateValidCredit) {
-                                    postPropPromArr.push(dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup));
-                                }
-
-                                // Create credit change log for this reward
-                                dbLogger.createCreditChangeLogWithLockedCredit(playerData._id, playerData.platform._id, 0, eventData.name, 0, rewardAmount, rewardAmount, null, proposalData.data);
-
-                                if (isSetUsedTopUpRecord) {
-                                    if (intervalTime) {
-                                        postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount, null, null, ignoreTopUpBdirtyEvent));
-                                    } else {
-                                        postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount, intervalTime.startTime, intervalTime.endTime, ignoreTopUpBdirtyEvent));
-                                    }
-                                }
-
-                                return Promise.all(postPropPromArr);
-                            }
-                            else {
-                                return proposalData;
-                            }
-                        }
-                    );
                 }
             }
         );

@@ -54,6 +54,16 @@ function socketActionWechatPayGroup(socketIO, socket) {
         },
 
         /**
+         * Get all the alipay account by platform with isInGroup field
+         * @param {json} data - query data
+         */
+        getAllWechatpaysByWechatpayGroupWithIsInGroup: function getAllWechatpaysByWechatpayGroupWithIsInGroup(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform && data.wechatGroup);
+            socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.getAllWechatpaysByWechatpayGroupWithIsInGroup, [data.platform, data.wechatGroup], actionName, isValidData);
+        },
+
+        /**
          * Get all the games by platform and the WechatPayGroup
          * @param {json} data - query data
          */

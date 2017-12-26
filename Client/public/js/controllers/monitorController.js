@@ -103,6 +103,10 @@ define(['js/app'], function (myApp) {
                 vm.getPlatformByAdminId(authService.adminId).then(vm.selectStoredPlatform);
             }
         })
+
+        $scope.$on("switchPlatform", () => {
+            $scope.$evalAsync(vm.getPlatformByAdminId(authService.adminId).then(vm.selectStoredPlatform));
+        });
     };
 
     monitorController.$inject = injectParams;

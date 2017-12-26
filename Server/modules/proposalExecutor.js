@@ -39,7 +39,9 @@ const constRewardPointsLogCategory = require("../const/constRewardPointsLogCateg
 const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus");
 let dbRewardPoints = require("../db_modules/dbRewardPoints.js");
 let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
+let dbRewardPointsLog = require("../db_modules/dbRewardPointsLog.js");
 const moment = require('moment-timezone');
+const ObjectId = mongoose.Types.ObjectId;
 
 /**
  * Proposal executor
@@ -283,7 +285,7 @@ var proposalExecutor = {
                             recordObjId => dbUtil.findOneAndUpdateForShard(
                                 dbconfig.collection_playerTopUpRecord,
                                 {_id: recordObjId},
-                                {bDirty: false},
+                                {bDirty: false, $pull: {usedEvent: ObjectId(proposalData.data.eventId)}},
                                 constShardKeys.collection_playerTopUpRecord
                             )
                         );
@@ -901,6 +903,7 @@ var proposalExecutor = {
                                 }
                             );
                         }
+                        dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ONLINE);
                         let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData);
                         let applyPromoCode = null;
                         if (proposalData.data.bonusCode) {
@@ -941,6 +944,7 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
+                        dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ALIPAY);
                         let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
                         let applyPromoCode = null;
                         if (proposalData.data.bonusCode) {
@@ -1008,6 +1012,7 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
+                        dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.WECHAT);
                         let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'weChat');
                         let applyPromoCode = null;
                         if (proposalData.data.bonusCode) {
@@ -1052,6 +1057,7 @@ var proposalExecutor = {
                             }
                             // DEBUG: Reward sometime not applied issue
                             console.log('applyForPlatformTransactionReward - Start', proposalData.proposalId);
+                            dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL);
                             // return dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
                             let applyforTransactionReward = dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
                             let applyPromoCode = null;
@@ -1400,7 +1406,7 @@ var proposalExecutor = {
                             });
                         }
 
-                        if( proposalData.status == constProposalStatus.CANCEL || proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.FAIL ){
+                        if (proposalData.status == constProposalStatus.CANCEL || proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.FAIL) {
                             return Q.reject({
                                 name: "DataError",
                                 message: "Invalid proposal status",
@@ -2018,12 +2024,16 @@ var proposalExecutor = {
                         rewardType: constRewardType.PLAYER_LIMITED_OFFERS_REWARD,
                         platformId: proposalData.data.platformId,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
-                        currentAmount: proposalData.data.applyAmount,
-                        initAmount: proposalData.data.applyAmount,
+                        applyAmount: proposalData.data.applyAmount,
+                        currentAmount: proposalData.data.applyAmount + proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.applyAmount + proposalData.data.rewardAmount,
                         eventId: proposalData.data.eventId
                     };
+
                     if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;
+                    } else {
+                        taskData.providerGroup = proposalData.data.providerGroup;
                     }
 
                     createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_LIMITED_OFFERS_REWARD, proposalData);
@@ -2043,8 +2053,8 @@ var proposalExecutor = {
                         rewardType: constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
                         platformId: proposalData.data.platformId,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
-                        currentAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
-                        initAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
+                        currentAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + proposalData.data.applyAmount : proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + proposalData.data.applyAmount : proposalData.data.rewardAmount,
                         useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
                         applyAmount: proposalData.data.applyAmount,
@@ -2316,6 +2326,7 @@ var proposalExecutor = {
                         initAmount: proposalData.data.convertCredit,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
                         providerGroup: proposalData.data.providerGroup,
+                        applyAmount: 0,
                         data: {
                             category: isPeriodPointConversion ? constRewardPointsLogCategory.PERIOD_POINT_CONVERSION : constRewardPointsLogCategory.EARLY_POINT_CONVERSION,
                             convertedRewardPointsAmount: proposalData.data.convertedRewardPoints,
@@ -2900,9 +2911,14 @@ var proposalExecutor = {
             },
 
             rejectPlayerTopUpReturnGroup: function (proposalData, deferred) {
-                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_PLAYER_TOP_UP_RETURN_GROUP).then(
-                    () => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject)
-                );
+                //clean top up records that are used for application
+                let refundProm = Promise.resolve();
+
+                if (proposalData.data.isDynamicRewardAmount) {
+                    refundProm = proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_PLAYER_TOP_UP_RETURN);
+                }
+
+                refundProm.then(() => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject));
             },
 
             rejectPlayerRandomRewardGroup: function (proposalData, deferred) {
@@ -2926,6 +2942,7 @@ var proposalExecutor = {
             },
 
             rejectPlayerConvertRewardPoints: function (proposalData, deferred) {
+                dbRewardPointsLog.updateConvertRewardPointsLog(proposalData.proposalId, constRewardPointsLogStatus.CANCELLED, null);
                 deferred.resolve("Proposal is rejected");
             },
         }
@@ -2971,7 +2988,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
             // Create different process flow for lock provider group reward
             if (platform.useProviderGroup) {
-                if(proposalData.data.providerGroup && gameProviderGroup){
+                if (proposalData.data.providerGroup && gameProviderGroup) {
                     dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).catch(
                         error => Q.reject({
                             name: "DBError",
@@ -2979,13 +2996,16 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                             error: error
                         })
                     );
-                    dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).catch(
-                        error => Q.reject({
-                            name: "DBError",
-                            message: "Error deduct target consumption from free amount provider group",
-                            error: error
-                        })
-                    );
+
+                    if (proposalData.data.isDynamicRewardAmount) {
+                        dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).catch(
+                            error => Q.reject({
+                                name: "DBError",
+                                message: "Error deduct target consumption from free amount provider group",
+                                error: error
+                            })
+                        );
+                    }
                 } else {
                     dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
                         data => {
@@ -2997,11 +3017,11 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         }
                     ).catch(
                         error => errorUtils.reportError(error)
-                         //    Q.reject({
-                         //    name: "DBError",
-                         //    message: "Error adding consumption value into free amount provider group",
-                         //    error: error
-                         // })
+                        //    Q.reject({
+                        //    name: "DBError",
+                        //    message: "Error adding consumption value into free amount provider group",
+                        //    error: error
+                        // })
                     );
                 }
             } else {
@@ -3196,12 +3216,21 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
             platform = res[2];
             let createRewardTaskProm = Promise.resolve();
 
-            if (platform.useProviderGroup && proposalData.data.providerGroup && gameProviderGroup) {
-                createRewardTaskProm = dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData);
+            if (platform.useProviderGroup) {
+                if (proposalData.data.providerGroup && gameProviderGroup) {
+                    createRewardTaskProm = dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(
+                        (data) => {
+                            dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData);
+                            return data;
+                        }
+                    )
+                } else {
+                    createRewardTaskProm = dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardPointsType);
+                }
             } else {
                 createRewardTaskProm = dbRewardTask.createRewardTask(taskData).then(
                     (data) => {
-                        return dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.convertCredit, rewardPointsType, proposalData.data).then(
+                        return dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.convertCredit, rewardPointsType, proposalData).then(
                             () => data
                         )
                     }

@@ -250,6 +250,16 @@ var ProposalServiceImplement = function () {
             }
         );
     };
+
+    this.addTestTopUp.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.platformId && data.name && data.type && data.amount && data.amount > 0 && data.clientType);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addTestTopUp, [data.platformId, data.name, data.type, data, data.amount, data.createTime], isValidData);
+    };
+
+    this.requestProposalSuccessPMS.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.proposalId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestProposalSuccessPMS, [data.proposalId, data.status], isValidData);
+    };
 };
 
 var proto = ProposalServiceImplement.prototype = Object.create(ProposalService.prototype);
