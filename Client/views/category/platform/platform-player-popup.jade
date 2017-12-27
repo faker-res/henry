@@ -1279,8 +1279,8 @@
                                 table.table.table-bordered(style='background-color:white;overflow-y:scroll')
                                     tr
                                         td
-                                            div(style='display:inline-block') {{"LOCAL_CREDIT" | translate }} :
-                                            div(style='display:inline-block') {{vm.currentFreeAmount}}
+                                            div(style='display:inline-block;') {{"LOCAL_CREDIT" | translate }} :
+                                            div(style='display:inline-block;padding-left:3px;') {{vm.currentFreeAmount}}
                                             // {{vm.freeAmount}}
                                         td(ng-repeat='(i,v) in vm.playerCreditDetails', ng-if="v.nickName!=''")
                                             div(style='display:inline-block;') {{v.nickName}} :

@@ -10266,6 +10266,42 @@ define(['js/app'], function (myApp) {
                             d.validCredit = '';
                         }
                     })
+                    vm.getPlatformProviderGroup().then(
+                        allProviderGroup => {
+                            let allGameProviderGroup = [];
+                            for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                                allGameProviderGroup.push({
+                                    nickName: vm.gameProviderGroup[i].name? vm.gameProviderGroup[i].name: "",
+                                    validCredit: 0
+                                })
+                            }
+                            if (vm.playerCreditDetails.length > 0) {
+                                allGameProviderGroup = allGameProviderGroup.filter(a => {
+                                    let isFound = false;
+                                    for (let j = 0; j < vm.playerCreditDetails.length; j++) {
+                                        if (vm.playerCreditDetails[j].nickName == a.nickName) {
+                                            isFound = true;
+                                        }
+                                        ;
+                                    }
+                                    ;
+                                    if (!isFound) {
+                                        return a;
+                                    }
+                                });
+                            }
+                            vm.playerCreditDetails = vm.playerCreditDetails.concat(allGameProviderGroup);
+                            function compare(a,b) {
+                                if (a.nickName < b.nickName)
+                                    return -1;
+                                if (a.nickName > b.nickName)
+                                    return 1;
+                                return 0;
+                            }
+                            vm.playerCreditDetails.sort(compare);
+                            $scope.safeApply();
+                        }
+                    )
                 })
                 socketService.$socket($scope.AppSocket, 'getWithdrawalInfo', {'platformId': platformId , 'playerId': playerId}, function (data) {
                     vm.freeAmount = data.data ? data.data.freeAmount : '';
@@ -18337,7 +18373,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlatformProviderGroup = () => {
-                $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+                return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
                     vm.gameProviderGroup = data.data;
                     $scope.safeApply();
                 });
