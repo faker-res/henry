@@ -10283,7 +10283,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(vm.getRewardTaskLogData(true));
                 });
 
-                vm.displayProviderGroupCredit();
+                $scope.$evalAsync(vm.displayProviderGroupCredit());
             }
             vm.displayProviderGroupCredit = function(){
                 console.log('displayProviderGroupCredit');
@@ -10293,6 +10293,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getCreditDetail', {playerObjId: vm.selectedSinglePlayer._id}, function (data) {
                     console.log('getCreditDetail', data);
                     vm.playerCreditDetails = data.data.lockedCreditList;
+                    vm.currentFreeAmount = data.data ? data.data.credit : '';
                     vm.playerCreditDetails.map(d=>{
                         if(d.validCredit == 'unknown'){
                             d.validCredit = '';
@@ -10334,10 +10335,6 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }
                     )
-                })
-                socketService.$socket($scope.AppSocket, 'getWithdrawalInfo', {'platformId': platformId , 'playerId': playerId}, function (data) {
-                    vm.freeAmount = data.data ? data.data.freeAmount : '';
-                    vm.currentFreeAmount = data.data ? data.data.currentFreeAmount : '';
                 })
             }
             vm.setDisplayTaskGroup = function(status){
