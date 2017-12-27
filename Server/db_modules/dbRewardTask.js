@@ -278,7 +278,7 @@ const dbRewardTask = {
                         if (proposalData.data.isDynamicRewardAmount === false) {
                             amountToUpdate = proposalData.data.rewardAmount;
                         } else if (proposalData.data.rewardAmount && proposalData.data.applyAmount) {
-                            amountToUpdate = proposalData.data.rewardAmount + proposalData.data.applyAmount;
+                            amountToUpdate = proposalData.data.rewardAmount; //+ proposalData.data.applyAmount;
                         } else if (proposalData.data.rewardAmount) {
                             amountToUpdate = proposalData.data.rewardAmount;
                         }
@@ -380,11 +380,11 @@ const dbRewardTask = {
         var queryObj = {
             playerId: ObjectId(query.playerId),
             providerGroup: query._id,
-            status: 'Started'
-            // createTime: {
-            //     $gte: new Date(query.from),
-            //     $lt: new Date(query.to)
-            // }
+            status: 'Started',
+            createTime: {
+                $gte: new Date(query.from),
+                $lt: new Date(query.to)
+            }
         }
 
         return dbconfig.collection_rewardTaskGroup.find(queryObj)
@@ -399,6 +399,10 @@ const dbRewardTask = {
                     'data.platformId': ObjectId(query.platformId),
                     'data.providerGroup': query._id
                 }
+
+                if(!query._id){
+                    rewardTaskProposalQuery.mainType = 'TopUp';
+                }
                 return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
                     path: "type",
                     model: dbconfig.collection_proposalType
@@ -406,7 +410,6 @@ const dbRewardTask = {
                 .then(udata => {
                     udata.map(item => {
                         item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
-
                         if (item.type.name) {
                             item.data.rewardType = item.type.name;
                         }
@@ -432,9 +435,20 @@ const dbRewardTask = {
                                     item.data['createTime$'] = item.createTime;
                                     item.data.useConsumption = rewardTaskGroup.useConsumption;
                                     item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
-                                    if (rewardTaskGroup.providerGroup.name) {
-                                        item.data.provider$ = rewardTaskGroup.providerGroup.name;
+                                    if (rewardTaskGroup.providerGroup) {
+                                        item.data.provider$ = rewardTaskGroup.providerGroup ? rewardTaskGroup.providerGroup.name :"ziyouedu" ;
                                     }
+                                    if(!query._id){
+
+                                        item.data.topUpProposalId = item.data ? item.data.proposalId : '';
+                                        item.data.topUpAmount = item.data ? item.data.amount : '';
+                                        item.data.rewardAmount = 0;
+                                        item.data.bonusAmount = 0;
+                                        item.data.currentAmount = item.data.currentAmt;
+                                        item.data.requiredBonusAmount = 0;
+                                        item.data['provider$'] = 'LOCAL_CREDIT'
+                                    }
+
                                     return item;
                                 }
                             })
@@ -536,9 +550,12 @@ const dbRewardTask = {
                     if(providers){
                         queryObj.targetProviders = {$in: providers}
                     }
+
+
                     if(query.selectedProviderGroupID == 'free'){
                         queryObj.providerGroup = null;
                     }
+
                 }
 
                 let rewardTaskQuery = JSON.parse(JSON.stringify(queryObj));
@@ -547,12 +564,13 @@ const dbRewardTask = {
                     rewardTaskQuery.providerGroup = query.selectedProviderGroupID
                 }
 
-                let a, b, c, d, e, f;
+                let a, b, c, d, e, f, g;
                 let size;
                 let rewardTaskGroupSize;
                 let rewardTaskGroupData;
                 let rewardTaskSummary;
                 let topUpAmountSum;
+                let displayRewardTaskGroup;
                 a = dbconfig.collection_rewardTask.find(rewardTaskQuery).count();
                 b = dbconfig.collection_rewardTask.find(rewardTaskQuery).sort(sortCol).skip(index).limit(limit)
                     .populate({path: "targetProviders", model: dbconfig.collection_gameProvider}).lean();
@@ -560,13 +578,18 @@ const dbRewardTask = {
                 if (useProviderGroup) {
                     let rewardTaskGroupData;
 
-                    c = dbconfig.collection_rewardTaskGroup.find(rewardTaskQuery).count();
-                    d = dbconfig.collection_rewardTaskGroup.find(rewardTaskQuery).sort(sortCol).skip(index).limit(limit)
+
+                    let rewardGroupQuery = JSON.parse(JSON.stringify(rewardTaskQuery));
+                    if(query.selectedProviderGroupID == 'free'){
+                        delete rewardGroupQuery.providerGroup;
+                    }
+                    c = dbconfig.collection_rewardTaskGroup.find(rewardGroupQuery).count();
+
+                    d = dbconfig.collection_rewardTaskGroup.find(rewardGroupQuery).sort(sortCol).skip(index).limit(limit)
                         .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
                         .then(
                             res => {
                                 rewardTaskGroupData = res;
-
                                 if (res && res.length > 0) {
                                     let validCreditPromArr = [];
 
@@ -594,7 +617,17 @@ const dbRewardTask = {
                         }
                     });
                 f = dbRewardTask.getTopUpAmountSum(queryObj, sortCol);
-                return Q.all([a, b, c, d, e, f]).then(
+
+                // if status use $ne = status , then the rewardGroup will disappear
+                let displayRewardGroupQuery = JSON.parse(JSON.stringify(queryObj));
+                delete displayRewardGroupQuery.status;
+                if(query.selectedProviderGroupID == 'free'){
+                    delete displayRewardGroupQuery.providerGroup;
+                }
+                g = dbconfig.collection_rewardTaskGroup.find(displayRewardGroupQuery).populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
+
+
+                return Q.all([a, b, c, d, e, f, g]).then(
                     data => {
                         size = data[0];
 
@@ -602,12 +635,14 @@ const dbRewardTask = {
                         rewardTaskGroupData = data[3];
                         rewardTaskSummary = data[4][0] ? data[4][0] : [];
                         topUpAmountSum = data[5] ? data[5].topUpAmountSum : 0;
+                        displayRewardTaskGroup = data[6] ? data[6] : [];
                         let prom = dbRewardTask.getProposalInfo(data[1]);
                         return Q.all([prom])
                             .then(proposalData => {
 
                                 let resultData = [];
                                 if(query.selectedProviderGroupID == 'free' || useProviderGroup){
+
                                     resultData = rewardTaskGroupData;
                                     resultData.map(item=>{
                                         item.data = {};
@@ -621,12 +656,16 @@ const dbRewardTask = {
                                     resultData = proposalData[0] || [];
                                 }
 
+                                if(!query.showProposal && useProviderGroup){
+                                    resultData = [];
+                                }
 
                                 return {
                                     size: size,
                                     data: resultData,
                                     rewardTaskGroupSize: rewardTaskGroupSize,
                                     rewardTaskGroupData: rewardTaskGroupData,
+                                    displayRewardTaskGroup : displayRewardTaskGroup,
                                     summary: rewardTaskSummary,
                                     topUpAmountSum:topUpAmountSum
                                 }
@@ -1169,7 +1208,7 @@ const dbRewardTask = {
                     let remainingCurConsumption = 0;
 
                     // Check whether player has lost all credit
-                    if (rewardTaskGroup.currentAmt < platform.autoApproveLostThreshold) {
+                    if (rewardTaskGroup.currentAmt <= platform.autoApproveLostThreshold) {
                         rewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
                         rewardTaskGroup.unlockTime = createTime;
                     }

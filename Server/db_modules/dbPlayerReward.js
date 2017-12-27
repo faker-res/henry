@@ -1590,8 +1590,8 @@ let dbPlayerReward = {
                                             "isViewed": promocode.isViewed,
                                             "usedTime": usedTime
                                         };
-                                        if (promocode.maxTopUpAmount) {
-                                            promo.bonusLimit = promocode.maxTopUpAmount;
+                                        if (promocode.maxRewardAmount) {
+                                            promo.bonusLimit = promocode.maxRewardAmount;
                                         }
                                         if (status == "1") {
                                             noUseListArr.push(promo);
@@ -2008,6 +2008,9 @@ let dbPlayerReward = {
                     // Process amount and requiredConsumption for type 3 promo code
                     if (promoCodeObj.promoCodeTypeObjId.type == 3) {
                         promoCodeObj.amount = topUpProp.data.amount * promoCodeObj.amount * 0.01;
+                        if (promoCodeObj.amount > promoCodeObj.maxRewardAmount) {
+                            promoCodeObj.amount = promoCodeObj.maxRewardAmount;
+                        }
                         promoCodeObj.requiredConsumption = (topUpProp.data.amount + promoCodeObj.amount) * promoCodeObj.requiredConsumption;
                     }
 
