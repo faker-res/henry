@@ -10284,6 +10284,7 @@ define(['js/app'], function (myApp) {
             }
             vm.displayProviderGroupCredit = function(){
                 console.log('displayProviderGroupCredit');
+                vm.playerCreditDetails = [];
                 let playerId = vm.selectedSinglePlayer.playerId;
                 let platformId = vm.selectedPlatform.data.platformId;
                 socketService.$socket($scope.AppSocket, 'getCreditDetail', {playerObjId: vm.selectedSinglePlayer._id}, function (data) {
@@ -10756,15 +10757,31 @@ define(['js/app'], function (myApp) {
                 let rewardTaskGroupRewardAmt = rewardTaskGroup.rewardAmt ? rewardTaskGroup.rewardAmt:0;
 
                 if (rowId == '0') {
-                    let applyAmount = vm.rewardTaskProposalData[0].data.applyAmount ? vm.rewardTaskProposalData[0].data.applyAmount:0;
-                    let rewardAmount = vm.rewardTaskProposalData[0].data.rewardAmount ? vm.rewardTaskProposalData[0].data.rewardAmount :0;
+                    let applyAmount =
+                        vm.rewardTaskProposalData[0]
+                        && vm.rewardTaskProposalData[0].data
+                        && vm.rewardTaskProposalData[0].data.applyAmount
+                            ? vm.rewardTaskProposalData[0].data.applyAmount : 0;
+                    let rewardAmount =
+                        vm.rewardTaskProposalData[0]
+                        && vm.rewardTaskProposalData[0].data
+                        && vm.rewardTaskProposalData[0].data.rewardAmount
+                            ? vm.rewardTaskProposalData[0].data.rewardAmount : 0;
                     currentMax = applyAmount + rewardAmount;
                     sumRewardAmount += applyAmount + rewardAmount;
                 } else {
                     for (let i = 0; i <= rowId; i++) {
                         if(vm.rewardTaskProposalData[i]){
-                            let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount :0;
-                            let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount:0 ;
+                            let applyAmount =
+                                    vm.rewardTaskProposalData[i]
+                                    && vm.rewardTaskProposalData[i].data
+                                    && vm.rewardTaskProposalData[i].data.applyAmount
+                                            ? vm.rewardTaskProposalData[i].data.applyAmount : 0;
+                            let rewardAmount =
+                                vm.rewardTaskProposalData[i]
+                                && vm.rewardTaskProposalData[i].data
+                                && vm.rewardTaskProposalData[i].data.rewardAmount
+                                        ? vm.rewardTaskProposalData[i].data.rewardAmount : 0;
                             currentMax = applyAmount + rewardAmount;
                             sumRewardAmount += applyAmount + rewardAmount;
                         }
@@ -10810,6 +10827,13 @@ define(['js/app'], function (myApp) {
                         return item.providerGroup._id == id;
                     }
                 });
+
+                if(!id){
+                    vm.dynRewardTaskGroupId = vm.rewardTaskGroupDetails.filter(item => {
+                            return !item.providerGroup && item.status == 'Started';
+                    });
+                }
+
                 vm.chosenProviderGroupId = id;
                 var sendQuery = {
                     _id: id,
@@ -10983,7 +11007,7 @@ define(['js/app'], function (myApp) {
                                     let curRewardAmount = isSubmit.curRewardAmount;
                                     let spAmount = spendingAmt.currentAmt;
                                     let spCurrentMax = spendingAmt.currentMax;
-                                    var text = isSubmit.curRewardAmount + '/ -' + isSubmit.rewardAmount;
+                                    var text = isSubmit.curRewardAmount - isSubmit.rewardAmount + '/ -' + isSubmit.rewardAmount;
                                 }else if(vm.isUnlockTaskGroup && !vm.chosenProviderGroupId) {
                                     let applyAmount = row.applyAmount ? row.applyAmount: 0;
                                     let currentAmount = row.currentAmount ? row.currentAmount :0;
@@ -18238,7 +18262,7 @@ define(['js/app'], function (myApp) {
                 for (var d in vm.allPlayerLvl) {
                     let val = Object.keys(vm.allPlayerLvl)[d];
 
-                    if (Object.keys(vm.bonusSetting).length === 0) {
+                    if (Object.keys(vm.bonusSetting).length <= d) {
 
                         vm.bonusSetting[d] = {};
                         vm.bonusSetting[d].platform = vm.allPlayerLvl[d].platform;

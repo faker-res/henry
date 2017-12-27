@@ -15,6 +15,7 @@ var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 var constPlayerCreditChangeType = require('./../const/constPlayerCreditChangeType');
 const constPlayerSMSSetting = require("./../const/constPlayerSMSSetting");
 var constServerCode = require('../const/constServerCode');
+var constMainType = require('../const/constProposalMainType');
 var dbLogger = require("./../modules/dbLogger");
 var constSystemParam = require('../const/constSystemParam');
 var constShardKeys = require("../const/constShardKeys");
@@ -388,7 +389,6 @@ const dbRewardTask = {
                 $lt: new Date(query.to)
             }
         }
-
         return dbconfig.collection_rewardTaskGroup.find(queryObj)
             .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
             .then(data => {
@@ -396,14 +396,28 @@ const dbRewardTask = {
                 return data;
             })
             .then(data => {
+                let createTime = data[0].createTime ? data[0].createTime :null;
+                if(!createTime){
+                    createTime = new Date(query.from);
+                }
                 var rewardTaskProposalQuery = {
                     'data.playerObjId': ObjectId(query.playerId),
                     'data.platformId': ObjectId(query.platformId),
                     'data.providerGroup': query._id
                 }
 
-                if(!query._id){
-                    rewardTaskProposalQuery.mainType = 'TopUp';
+                if (!query._id) {
+
+                    rewardTaskProposalQuery.mainType = {$in: ["TopUp","Reward"]};
+                    //selected the new period from 30ms  to endData;
+                    let lastSecond = new Date(createTime).getTime() - (1 * 30);
+                    rewardTaskProposalQuery.createTime = {
+                        $gte: new Date(lastSecond),
+                        $lt: new Date(query.to)
+                    }
+                    if(!query._id){
+                        rewardTaskProposalQuery['data.providerGroup'] = null;
+                    }
                 }
                 return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
                     path: "type",
