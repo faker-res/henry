@@ -1116,6 +1116,8 @@ define(['js/app'], function (myApp) {
                     status: 'ready'
                 };
 
+                vm.selectedSettlementRewardEvent = event;
+
                 let socketName;
 
                 switch (event.condition.interval) {
@@ -1146,6 +1148,32 @@ define(['js/app'], function (myApp) {
 
                 $('#platformRTGEventSettlementModal').modal('show');
                 $scope.safeApply();
+            };
+
+            vm.performRTGApplySettlement = function (event) {
+                if (!event) {
+                    return;
+                }
+
+                vm.platformRTGEventSettlement.status = 'processing';
+                let eventCode = event.code;
+
+                $scope.$socketPromise('startPlatformRTGEventSettlement', {
+                    platformId: vm.selectedPlatform.id,
+                    eventCode: eventCode
+                }).then(
+                    data => {
+                        vm.platformRTGEventSettlement.status = 'completed';
+                        vm.platformRTGEventSettlement.result = $translate('Success');
+                        $scope.safeApply();
+                    },
+                    err => {
+                        console.log('err', err);
+                        vm.platformRTGEventSettlement.status = 'completed';
+                        vm.platformRTGEventSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
+                        $scope.safeApply();
+                    }
+                );
             };
 
             vm.performPlayerConsumptionReturnSettlement = function () {
