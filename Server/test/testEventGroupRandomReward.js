@@ -258,14 +258,18 @@ describe("Test random reward group reward", function () {
 
     /* Test 9 - apply random reward event*/
     it('Should apply random reward event', function (done) {
-        dbPlayerInfo.applyRewardEvent("", testPlayer.playerId, createRandomRewardEventData.code, "").then(
+        let proms = [];
+        for (let a = 0; a < 10; a++) {
+            proms.push(dbPlayerInfo.applyRewardEvent("", testPlayer.playerId, createRandomRewardEventData.code, ""));
+        }
+        Q.all(proms).then(
             () => {
                 done();
             },
             (error) => {
                 done(error);
             }
-        )
+        );
     });
 
     /* Test 10 - check apply reward event proposal data */
@@ -314,6 +318,7 @@ describe("Test random reward group reward", function () {
     it('Should check is credit add to user', function (done) {
         dbConfig.collection_players.findOne({_id: testPlayerObjId}).lean().then(
             (player) => {
+                console.log(player.validCredit);
                 if (player.validCredit - testPlayer.validCredit === randomRewardProposal.data.rewardAmount) {
                     testPlayer = player;
                     done();
@@ -326,6 +331,7 @@ describe("Test random reward group reward", function () {
             }
         )
     });
+
 
     /* Test 99 - remove all test Data */
     it('Should remove all test Data', function (done) {
