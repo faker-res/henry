@@ -18218,7 +18218,7 @@ define(['js/app'], function (myApp) {
                 for (var d in vm.allPlayerLvl) {
                     let val = Object.keys(vm.allPlayerLvl)[d];
 
-                    if (Object.keys(vm.bonusSetting).length === 0) {
+                    if (Object.keys(vm.bonusSetting).length <= d) {
 
                         vm.bonusSetting[d] = {};
                         vm.bonusSetting[d].platform = vm.allPlayerLvl[d].platform;
