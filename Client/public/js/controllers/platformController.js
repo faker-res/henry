@@ -10771,7 +10771,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardTaskProposalData = data.data.data;
                     vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
                     console.log("vm.simpleRewardProposalData", vm.simpleRewardProposalData);
-                    let summary = data.data.summary; 
+                    let summary = data.data.summary;
                     let result = data.data.data;
                     result.map((item,index)=>{
                         item.proposalId = item.proposalId || item.data.proposalId;
@@ -10905,20 +10905,6 @@ define(['js/app'], function (myApp) {
                         {
                             //解锁进度（投注额）
                             "title": $translate('Unlock Progress(Consumption)'),data:"curConsumption$",
-                            // render: function (data, type, row, meta) {
-                            //     var rowId = String(meta.row);
-                            //
-                            //     if(vm.isUnlockTaskGroup){
-                            //         let spendingAmt = vm.calSpendingAmt(rowId);
-                            //
-                            //         let spAmount = spendingAmt.currentAmt;
-                            //         let spCurrentMax = spendingAmt.currentMax;
-                            //         var text = spAmount + '/' + spCurrentMax;
-                            //     }else{
-                            //         var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
-                            //     }
-                            //     return "<div>" + text + "</div>";
-                            // },
                             render: function (data, type, row, meta) {
                                 let text = row.curConsumption$ +"/"+row.maxConsumption$;
                                 return "<div>" + text + "</div>";
