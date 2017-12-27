@@ -405,7 +405,7 @@ const dbRewardTask = {
                 }
 
                 if (!query._id) {
-                    rewardTaskProposalQuery.mainType = {$in: [constMainType.TOP_UP, constMainType.REWARD]};
+                    rewardTaskProposalQuery.mainType = {$in: ["TopUp", "Reward"]};
                     //selected the new period from 30ms  to endData;
                     let lastSecond = new Date(createTime).getTime() - (1 * 30);
                     rewardTaskProposalQuery.createTime = {
