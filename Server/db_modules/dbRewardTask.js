@@ -209,8 +209,10 @@ const dbRewardTask = {
                     let updObj = {
                         $inc: {
                             //rewardAmt: rewardData.initAmount,
-                            initAmt: rewardData.initAmount,
-                            currentAmt: rewardData.initAmount,
+                            // initAmt: rewardData.initAmount,
+                            // currentAmt: rewardData.initAmount,
+                            initAmt: proposalData.data.rewardAmount,
+                            currentAmt: proposalData.data.rewardAmount,
                             forbidWithdrawIfBalanceAfterUnlock:
                                 proposalData && proposalData.data && proposalData.data.forbidWithdrawIfBalanceAfterUnlock
                                     ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
