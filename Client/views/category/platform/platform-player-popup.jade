@@ -1273,7 +1273,7 @@
                                     option(value='free') {{'Valid Progress' | translate}}
                                     option(ng-repeat='(i,v) in vm.gameProviderGroup', value='{{v._id}}') {{v.name}}
 
-                            button.btn.btn-primary.common-button(ng-click='vm.getRewardTaskLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
+                            button.btn.btn-primary.common-button(ng-click='vm.unlockSearch()', style='vertical-align: bottom') {{"SEARCH" | translate}}
 
                             div
                                 table.table.table-bordered(style='background-color:white;overflow-y:scroll')
@@ -1282,9 +1282,9 @@
                                             div(style='display:inline-block;') {{"LOCAL_CREDIT" | translate }} :
                                             div(style='display:inline-block;padding-left:3px;') {{vm.currentFreeAmount}}
                                             // {{vm.freeAmount}}
-                                        td(ng-repeat='(i,v) in vm.playerCreditDetails')
-                                            div(ng-show="v.nickName!='' " ,style='display:inline-block;') {{v.nickName}} :
-                                            div(ng-show="v.nickName!='' " ,style='display:inline-block;padding-left:3px;') {{v.validCredit || '0'}}
+                                        td(ng-repeat='(i,v) in vm.playerCreditDetails', ng-if="v.nickName!=''")
+                                            div(style='display:inline-block;') {{v.nickName}} :
+                                            div(style='display:inline-block;padding-left:3px;') {{v.validCredit || '0'}}
 
                             div(ng-show="vm.selectedPlatform.data.useProviderGroup")
                                 table#rewardTaskGroupLogTbl.common-table.display(style='min-width:100%')

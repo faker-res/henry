@@ -267,13 +267,11 @@ define(['js/app'], function (myApp) {
             };
             vm.playerAdvertisementTitle = [];
             vm.editPlayerAdvertisementList = [];
-            vm.existingButtonNo = 0;
             vm.addedButtonName = "activityBtn";
             vm.playerAdvertisementGroup = {};
             vm.playerAdvertisementGroup.orderNo = 0;
             vm.playerAdvertisementGroup.imageButton = [
                 {
-                    buttonNo: 1,
                     buttonName: "activityBtn1",
                     url:"",
                     hyperLink: "",
@@ -281,7 +279,6 @@ define(['js/app'], function (myApp) {
                     hoverCss: ":hover{width:500px;}"
                 },
                 {
-                    buttonNo: 2,
                     buttonName: "activityBtn2",
                     url:"",
                     hyperLink: "",
@@ -298,13 +295,11 @@ define(['js/app'], function (myApp) {
             };
             vm.partnerAdvertisementTitle = [];
             vm.editPartnerAdvertisementList = [];
-            vm.existingPartnerButtonNo = 0;
             vm.addedPartnerButtonName = "activityBtn";
             vm.partnerAdvertisementGroup = {};
             vm.partnerAdvertisementGroup.orderNo = 0;
             vm.partnerAdvertisementGroup.imageButton = [
                 {
-                    buttonNo: 1,
                     buttonName: "activityBtn1",
                     url:"",
                     hyperLink: "",
@@ -312,7 +307,6 @@ define(['js/app'], function (myApp) {
                     hoverCss: ":hover{width:500px;}"
                 },
                 {
-                    buttonNo: 2,
                     buttonName: "activityBtn2",
                     url:"",
                     hyperLink: "",
@@ -527,11 +521,19 @@ define(['js/app'], function (myApp) {
             };
 
             $scope.$on('switchPlatform', () => {
-                vm.loadPlatformData();
+                vm.loadPlatformData({loadAll: true, noParallelTrigger: true});
             });
 
             //get all platform data from server
             vm.loadPlatformData = function (option) {
+                if (vm.onGoingLoadPlatformData) {
+                    return;
+                }
+
+                if (option && option.noParallelTrigger) {
+                    vm.onGoingLoadPlatformData = true;
+                }
+
                 if ($('#platformRefresh').hasClass('fa-spin')) {
                     return
                 }
@@ -559,6 +561,7 @@ define(['js/app'], function (myApp) {
                     setTimeout(function () {
                         $('#platformRefresh').removeClass('fa-check');
                         $('#platformRefresh').addClass('fa-refresh').fadeIn(100);
+                        vm.onGoingLoadPlatformData = false;
                     }, 1000);
 
                     //select platform from cookies data
@@ -721,6 +724,7 @@ define(['js/app'], function (myApp) {
                         vm.rewardPointsTabClicked();
                         //     break;
                         // }
+                        vm.onGoingLoadPlatformData = false;
                         $scope.safeApply();
                     },
                     function (error) {
@@ -10234,6 +10238,7 @@ define(['js/app'], function (myApp) {
             vm.initRewardTaskLog = function () {
                 vm.rewardTaskLog = vm.rewardTaskLog || {totalCount: 0, limit: 10, index: 0, query: {}};
                 vm.isUnlockTaskGroup = false;
+                vm.chosenProviderGroupId = null;
                 // utilService.actionAfterLoaded('#modalRewardTaskLog.in #rewardTaskLogQuery .endTime', function () {
                 utilService.actionAfterLoaded('#rewardTaskLogQuery .endTime', function () {
                     vm.rewardTaskLog.query.startTime = utilService.createDatePicker('#rewardTaskLogQuery .startTime');
@@ -10313,7 +10318,32 @@ define(['js/app'], function (myApp) {
                 }, 0);
                 $scope.safeApply();
             }
-            vm.getRewardTaskLogData = function (newSearch) {
+
+            vm.getRewardTaskFreeAmount = function(){
+                vm.chosenProviderGroupId = 'localCredit';
+                vm.getRewardTaskLogData(true, true);
+            }
+
+            vm.unlockSearch = function(){
+                if(vm.selectedProviderGroupID!='all'){
+                    let providerGroupId = vm.selectedProviderGroupID;
+                    if(providerGroupId == 'free'){
+                        vm.getRewardTaskGroupProposal();
+                    }else{
+                        vm.getRewardTaskGroupProposal(providerGroupId);
+                    }
+                }
+                else if(vm.chosenProviderGroupId){
+                    if(vm.chosenProviderGroupId == 'localCredit'){
+                        vm.getRewardTaskLogData(true,true);
+                    }else{
+                        vm.getRewardTaskGroupProposal(vm.chosenProviderGroupId);
+                    }
+                }else{
+                    vm.getRewardTaskLogData(true);
+                }
+            }
+            vm.getRewardTaskLogData = function (newSearch, isFreeAmt) {
                 vm.isUnlockTaskGroup = false;
                 var sendQuery = {
                     playerId: vm.selectedSinglePlayer._id,
@@ -10324,13 +10354,20 @@ define(['js/app'], function (myApp) {
                     rewardProposalId: vm.rewardProposalId,
                     topUpProposalId: vm.topUpProposalId,
                     selectedProviderGroupID: vm.selectedProviderGroupID,
+                    showProposal: false,
                     index: newSearch ? 0 : vm.rewardTaskLog.index,
                     limit: newSearch ? 10 : vm.rewardTaskLog.limit,
                     sortCol: vm.rewardTaskLog.sortCol || null,
                     useProviderGroup: vm.selectedPlatform.data.useProviderGroup
                 };
+                if(isFreeAmt){
+                    sendQuery.selectedProviderGroupID = 'free';
+                    sendQuery.showProposal = true;
+
+                }
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardTask', sendQuery, function (data) {
                     vm.curRewardTask = data.data;
+                    console.log('Player reward task log:', vm.curRewardTask);
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
                         item.topUpAmount = (item.topUpAmount);
@@ -10364,7 +10401,7 @@ define(['js/app'], function (myApp) {
                         }
                         if (item.data) {
                             item.currentAmount = item.data.currentAmount;
-                            item.bonusAmount = item.data.bonusAmount;
+                            item.bonusAmount = item.data.currentAmt;
                             item.requiredBonusAmount = item.data.requiredBonusAmount;
                             item.bonusAmount$ = item.data.bonusAmount;
                             item.requiredBonusAmount$ = item.data.requiredBonusAmount;
@@ -10386,7 +10423,7 @@ define(['js/app'], function (myApp) {
             vm.drawRewardTaskGroupTable = function (newSearch, tdata, size, summary, topUpAmountSum) {
                 let tblData = null;
                 if (vm.selectedPlatform.data.useProviderGroup) {
-                    tblData = tdata && tdata.data ? tdata.data.rewardTaskGroupData.map(item => {
+                    tblData = tdata && tdata.data ? tdata.data.displayRewardTaskGroup.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
                         item.currentAmount$ = item.currentAmt - item.initAmt;
                         item.bonusAmount$ = -item.initAmt;
@@ -10421,7 +10458,11 @@ define(['js/app'], function (myApp) {
                                     }).text(data ? data : 0));
                                 }
                                 else {
-                                    link.append($('<div>', {}).text(data ? data : $translate('Valid Progress')));
+
+                                    link.append($('<a>', {
+                                        'ng-click': 'vm.getRewardTaskGroupProposal();'
+                                    }).text(data ? data : $translate('Valid Progress')));
+                                    // link.append($('<div>', {}).text(data ? data : $translate('Valid Progress')));
                                 }
                                 return link.prop('outerHTML')
                             }
@@ -10626,46 +10667,65 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
             vm.calSpendingAmt = function (rowId) {
-                let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
-                let spendingAmt = 0;
+                let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] :null;
 
-                //calculate the value between this rowId
-                let currentMax = 0;
-                let currentAmt = 0;
-                let AmtNow = 0;
-                let curConsumption = rewardTaskGroup.curConsumption ? rewardTaskGroup.curConsumption : 0;
-                for (let i = 0; i <= rowId; i++) {
-                    if (vm.rewardTaskProposalData[i]) {
-                        let forbidXIMAAmt = 0;
-                        let spendingAmount = vm.rewardTaskProposalData[i].data.spendingAmount;
-                        let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : null;
-                        if(rewardTaskGroup){
-                            forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt ? rewardTaskGroup.forbidXIMAAmt:0;
-                        }
-                        currentMax = vm.rewardTaskProposalData[i].data.spendingAmount;
-                        spendingAmt += spendingAmount;
-                    }
-                }
-                let incCurConsumption = curConsumption - spendingAmt;
-
-                if(incCurConsumption >= 0 ){
-                    AmtNow = currentMax;
+                if(!rewardTaskGroup){
+                    return {'incCurConsumption': 0, 'currentAmt': 0, 'currentMax': 0}
                 }else{
-                    AmtNow = currentMax + incCurConsumption;
-                    if(AmtNow <= 0){
-                        AmtNow = 0;
+                    let spendingAmt = 0;
+
+                    //calculate the value between this rowId
+                    let currentMax = 0;
+                    let currentAmt = 0;
+                    let AmtNow = 0;
+                    let curConsumption = rewardTaskGroup.curConsumption ? rewardTaskGroup.curConsumption : 0;
+                    for (let i = 0; i <= rowId; i++) {
+                        if (vm.rewardTaskProposalData[i]) {
+                            let forbidXIMAAmt = 0;
+                            let spendingAmount = vm.rewardTaskProposalData[i].data.spendingAmount;
+                            let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : null;
+                            if(rewardTaskGroup){
+                                forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt ? rewardTaskGroup.forbidXIMAAmt:0;
+                            }
+                            currentMax = vm.rewardTaskProposalData[i].data.spendingAmount;
+                            spendingAmt += spendingAmount;
+                        }
                     }
+                    let incCurConsumption = curConsumption - spendingAmt;
+
+                    if(incCurConsumption >= 0 ){
+                        AmtNow = currentMax;
+                    }else{
+                        AmtNow = currentMax + incCurConsumption;
+                        if(AmtNow <= 0){
+                            AmtNow = 0;
+                        }
+                    }
+
+                    return {'incCurConsumption': incCurConsumption, 'currentAmt': AmtNow, 'currentMax': currentMax}
                 }
 
-                return {'incCurConsumption': incCurConsumption, 'currentAmt': AmtNow, 'currentMax': currentMax}
+
+
             }
             vm.isSubmitProposal = function (rowId) {
 
                 let sumRewardAmount = 0;
                 let curRewardAmount = 0;
-                let taskGroupCurrentAmt = vm.dynRewardTaskGroupId ? vm.dynRewardTaskGroupId[0].currentAmt:0;
+                // let taskGroupCurrentAmt = vm.dynRewardTaskGroupId ? vm.dynRewardTaskGroupId[0].currentAmt:0;
                 let currentMax = 0;
                 let curRewardDisplay = 0;
+
+
+                //getRewardTaskGroup
+                let rewardTaskGroup = vm.dynRewardTaskGroupId ? vm.dynRewardTaskGroupId[0]:null;
+
+                if(!rewardTaskGroup){
+                    rewardTaskGroup = {currentAmt:0, rewardAmt:0}
+                }
+
+                let taskGroupCurrentAmt = rewardTaskGroup ? rewardTaskGroup.currentAmt:0;
+                let rewardTaskGroupRewardAmt = rewardTaskGroup.rewardAmt ? rewardTaskGroup.rewardAmt:0;
 
                 if (rowId == '0') {
                     let applyAmount = vm.rewardTaskProposalData[0].data.applyAmount ? vm.rewardTaskProposalData[0].data.applyAmount:0;
@@ -10677,10 +10737,12 @@ define(['js/app'], function (myApp) {
                         if(vm.rewardTaskProposalData[i]){
                             let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount :0;
                             let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount:0 ;
+                            currentMax = applyAmount + rewardAmount;
                             sumRewardAmount += applyAmount + rewardAmount;
                         }
-
                     }
+
+
                 }
 
                 let finalRewardAmount = taskGroupCurrentAmt - sumRewardAmount;
@@ -10707,9 +10769,9 @@ define(['js/app'], function (myApp) {
                 }
                 else if (finalRewardAmount > 0  || spendingAmt.incCurConsumption >  0) {
                     // already submit, display tick icon
-                    return {isSubmit: true, curRewardAmount: curRewardDisplay, rewardAmount: currentMax, spendingAmt: spendingAmt}
+                    return {isSubmit: true, curRewardAmount: curRewardDisplay, rewardAmount: currentMax ,rewardGroupMaxAmount: rewardTaskGroupRewardAmt ,spendingAmt: spendingAmt}
                 } else {
-                    return {isSubmit: false, curRewardAmount: curRewardDisplay, rewardAmount: currentMax, spendingAmt: spendingAmt}
+                    return {isSubmit: false, curRewardAmount: curRewardDisplay, rewardAmount: currentMax,rewardGroupMaxAmount: rewardTaskGroupRewardAmt ,spendingAmt: spendingAmt}
                 }
             }
             vm.getRewardTaskGroupProposal = function (id) {
@@ -10720,7 +10782,7 @@ define(['js/app'], function (myApp) {
                         return item.providerGroup._id == id;
                     }
                 });
-
+                vm.chosenProviderGroupId = id;
                 var sendQuery = {
                     _id: id,
                     playerId: vm.selectedSinglePlayer._id,
@@ -10734,35 +10796,48 @@ define(['js/app'], function (myApp) {
 
                 if (!id) {
                     $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
-                } else {
-                    socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
-                        vm.rewardTaskProposalData = data.data.data;
-                        vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
-                        console.log("vm.simpleRewardProposalData", vm.simpleRewardProposalData);
-                        let summary = data.data.summary;
-                        let result = data.data.data;
-                        result.map(item=>{
-                            item.proposalId = item.proposalId || item.data.proposalId;
-                            item['createTime$'] = vm.dateReformat(item.data.createTime$);
-                            item.useConsumption = item.data.useConsumption;
-                            item.topUpProposal = item.data.topUpProposalId;
-                            item.topUpAmount = item.data.topUpAmount;
-                            item.bonusAmount = item.data.rewardAmount;
-                            item.applyAmount = item.data.applyAmount || item.data.amount;
-                            item.requiredUnlockAmount = result[0].data.spendingAmount;
-                            item['provider$'] = item.data.provider$;
-                            item.rewardType = item.data.rewardType;
-
-                            item.bonusAmount$ = item.data.bonusAmount;
-                            item.requiredBonusAmount$ = item.data.requiredBonusAmount;
-                            item.currentAmount$ = item.data.currentAmount;
-
-                        })
-                        vm.drawRewardTaskTable(true, result, 0, summary, 0, 0);
-                        // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
-                        vm.curRewardTask = data;
-                    })
                 }
+
+                socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
+                    vm.rewardTaskProposalData = data.data.data;
+                    vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
+                    console.log("vm.simpleRewardProposalData", vm.simpleRewardProposalData);
+                    let summary = data.data.summary;
+                    let result = data.data.data;
+                    result.map((item,index)=>{
+                        item.proposalId = item.proposalId || item.data.proposalId;
+                        item['createTime$'] = vm.dateReformat(item.data.createTime$);
+                        item.useConsumption = item.data.useConsumption;
+                        item.topUpProposal = item.data.topUpProposalId;
+                        item.topUpAmount = item.data.topUpAmount;
+                        item.bonusAmount = item.data.rewardAmount;
+                        item.applyAmount = item.data.applyAmount || item.data.amount;
+                        item.requiredUnlockAmount = item.data.spendingAmount;
+                        item.requiredBonusAmount = item.data.requiredBonusAmount;
+                        item['provider$'] = $translate(item.data.provider$);
+                        item.rewardType = item.data.rewardType;
+
+                        item.requiredUnlockAmount$ = item.requiredUnlockAmount;
+                        // item.curConsumption$ = item.curConsumption;
+                        if(vm.isUnlockTaskGroup){
+                            let spendingAmt = vm.calSpendingAmt(index);
+
+                            item.curConsumption$ = spendingAmt.currentAmt;
+                            item.maxConsumption$ = spendingAmt.currentMax;
+                        }else{
+                            item.curConsumption$ = item.requiredBonusAmount;
+                            item.maxConsumption$ = item.requiredUnlockAmount;
+                        }
+                        item.bonusAmount$ = item.data.bonusAmount;
+                        item.requiredBonusAmount$ = item.requiredBonusAmount;
+                        item.currentAmount$ = item.data.currentAmount;
+                        console.log(item);
+
+                    })
+                    vm.drawRewardTaskTable(true, result, 0, summary, 0, 0);
+                    // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
+                    vm.curRewardTask = data;
+                })
 
 
             }
@@ -10787,7 +10862,7 @@ define(['js/app'], function (myApp) {
                     vm.selectedRewards.push($(this).val())
                 })
             }
-            vm.drawRewardTaskTable = function (newSearch, tblData, size, summary, topUpAmountSum) {
+            vm.drawRewardTaskTable = function (newSearch, tblData, size, summary, topUpAmountSum) {console.log("tblData",tblData);
 
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
@@ -10860,41 +10935,39 @@ define(['js/app'], function (myApp) {
                         {title: $translate('REWARD_AMOUNT'), data: "bonusAmount", sClass: 'sumFloat textRight'},
                         {
                             //解锁进度（投注额）
-                            "title": $translate('Unlock Progress(Consumption)'),data:"requiredBonusAmount",
+                            "title": $translate('Unlock Progress(Consumption)'),data:"curConsumption$",
                             render: function (data, type, row, meta) {
-                                var rowId = String(meta.row);
-
-                                if(vm.isUnlockTaskGroup){
-                                    let spendingAmt = vm.calSpendingAmt(rowId);
-
-                                    let spAmount = spendingAmt.currentAmt;
-                                    let spCurrentMax = spendingAmt.currentMax;
-                                    var text = spAmount + '/' + spCurrentMax;
-                                }else{
-                                    var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
-                                }
+                                let text = row.curConsumption$ +"/"+row.maxConsumption$;
                                 return "<div>" + text + "</div>";
-                            }, sClass: 'sumFloat textRight'
+                            },
+                            sClass: 'sumFloat textRight'
                         },
+                        // {title: $translate('Unlock Progress(Consumption)'), data: "requiredUnlockAmount$", sClass: 'sumFloat textRight'},
+
                         // 解鎖進度
                         {
                             //解锁进度（输赢值）
                             "title": $translate('Unlock Progress(WinLose)'),data:"currentAmount",
                             render: function (data, type, row ,meta){
-                                if(vm.isUnlockTaskGroup){
+                                if(vm.isUnlockTaskGroup && vm.chosenProviderGroupId){
                                     let spendingAmt = vm.calSpendingAmt(meta.row);
                                     let isSubmit = vm.isSubmitProposal(meta.row);
                                     let curRewardAmount = isSubmit.curRewardAmount;
                                     let spAmount = spendingAmt.currentAmt;
                                     let spCurrentMax = spendingAmt.currentMax;
                                     var text = isSubmit.curRewardAmount + '/ -' + isSubmit.rewardAmount;
+                                }else if(vm.isUnlockTaskGroup && !vm.chosenProviderGroupId) {
+                                    let applyAmount = row.applyAmount ? row.applyAmount: 0;
+                                    let currentAmount = row.currentAmount ? row.currentAmount :0;
+                                    var text = currentAmount + '/ -' + (applyAmount + row.bonusAmount);
                                 }else{
                                     let applyAmount = row.applyAmount ? row.applyAmount: 0
-                                    var text = row.currentAmount + '/ -' + (applyAmount + row.bonusAmount);
+                                    var text = row.currentAmount - row.initAmt + '/ -' + (applyAmount + row.bonusAmount);
                                 }
 
                                 return "<div>" + text + "</div>";
-                            }, sClass: 'sumFloat textRight'
+                            },
+                            sClass: 'sumFloat textRight'
                         },
                         {title: $translate('GAME LOBBY / REWARD TASK GROUP'), data: "provider$"},
                         {
@@ -14958,12 +15031,22 @@ define(['js/app'], function (myApp) {
                         if (objectId) {
                             data._id = objectId;
 
-                            if (vm.rewardParamsFilter.length == vm.rewardParams.reward.length){
-                                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
-                            }
-                            else{
-                                vm.rewardParamsFilter.push(JSON.parse(JSON.stringify(data)));
-                                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                            if (vm.rewardParams.reward){
+                                // first time create the data
+                                if (vm.rewardParams.reward.length == 0) {
+                                    vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    vm.rewardParamsFilter = vm.rewardParams.reward;
+                                }
+                                else {
+                                    if (vm.rewardParamsFilter.length == vm.rewardParams.reward.length){
+                                        vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    }
+                                    else{
+                                        vm.rewardParamsFilter.push(JSON.parse(JSON.stringify(data)));
+                                        vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    }
+                                }
+
                             }
                             $scope.safeApply();
                         }
@@ -15032,7 +15115,7 @@ define(['js/app'], function (myApp) {
 
                 vm.rewardParams.reward.map(
                     item => {
-                        if (item.repeatWeekDay === undefined) {
+                        if (item.repeatWeekDay === undefined || item.repeatWeekDay.length === 0 ) {
                             vm.rewardParamsFilter.push(item);
                         }
                         else if (item.repeatWeekDay.includes(index)){
@@ -21266,14 +21349,25 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            vm.deletePlayerAdvertisementRecord = function(advertisementId) {
+            vm.deletePlayerAdvertisementRecord = function(advertisementId, index) {
                 if(advertisementId){
                     let sendData = {
                         platformId: vm.selectedPlatform.id,
                         advertisementId: advertisementId,
                     };
 
-                    socketService.$socket($scope.AppSocket, 'deleteAdvertisementRecord', sendData);
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate('Confirm to delete advertisement ?')
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'deleteAdvertisementRecord', sendData, function (data) {
+                            if(data){
+                                if(typeof index !== "undefined"){
+                                    vm.displayAdvertisementList.splice(index,1);
+                                }
+                            }
+                        });
+                    });
                 }
             }
 
@@ -21387,8 +21481,24 @@ define(['js/app'], function (myApp) {
                         _id: advertisementId,
                         status: advertisementStatus ? advertisementStatus : 0
                     }
-                    socketService.$socket($scope.AppSocket, 'changeAdvertisementStatus', sendData, function (data) {
-                        //do nothing
+
+                    let statusChangeConfirmText = "";
+
+                    if(advertisementStatus == vm.playerAdvertisementStatus["CLOSE"]){
+                        statusChangeConfirmText = "Confirm to turn advertisement on ?";
+                    }else{
+                        statusChangeConfirmText = "Confirm to turn advertisement off ?";
+                    }
+
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate(statusChangeConfirmText)
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'changeAdvertisementStatus', sendData, function (data) {
+                            if(data){
+                                vm.playerAdvertisementList();
+                            }
+                        });
                     });
                 }
             }
@@ -21482,7 +21592,6 @@ define(['js/app'], function (myApp) {
                 let buttonNo = vm.currentImageButtonNo + 1;
                 vm.playerAdvertisementGroup.imageButton.push(
                     {
-                        buttonNo: buttonNo,
                         buttonName: 'activityBtn' + buttonNo,
                         url: '',
                         hyperLink: '',
@@ -21493,46 +21602,6 @@ define(['js/app'], function (myApp) {
 
                 vm.currentImageButtonNo += 1;
             }
-
-            vm.getExistingMaxButonNo = function(advertisementId){
-                // let buttonNo = vm.currentImageButtonNo + 1;
-                // vm.playerAdvertisementGroup.imageButton.push(
-                //     {
-                //         buttonNo: buttonNo,
-                //         buttonName: 'activityBtn' + buttonNo,
-                //         url: '',
-                //         hyperLink: '',
-                //         css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                //         hoverCss: ":hover{width:500px;}"
-                //     }
-                // );
-                //
-                // vm.currentImageButtonNo += 1;
-
-                if(advertisementId){
-                    let sendData= {
-                        platformId: vm.selectedPlatform.id,
-                        _id: advertisementId
-                    }
-                    vm.existingButtonNo = 1;
-
-                    socketService.$socket($scope.AppSocket, 'getAdvertisementRecordById', sendData, function (data) {
-                        if(data && data.data){
-                            if(data.data.imageButton){
-                                data.data.imageButton.forEach(b => {
-                                    if(b.buttonNo > vm.existingButtonNo){
-                                        vm.existingButtonNo = b.buttonNo + 1;
-                                    }
-                                })
-
-                            }
-                        }
-                        $scope.safeApply();
-                        return vm.addedButtonName + vm.existingButtonNo;
-
-                    });
-                }
-            },
 
             vm.getNextOrderNo = function() {
                 let sendData= {
@@ -21561,7 +21630,6 @@ define(['js/app'], function (myApp) {
                 vm.playerAdvertisementTitle = [];
                 vm.playerAdvertisementGroup.imageButton = [
                     {
-                        buttonNo: 1,
                         buttonName: "activityBtn1",
                         url:"",
                         hyperLink: "",
@@ -21569,7 +21637,6 @@ define(['js/app'], function (myApp) {
                         hoverCss: ":hover{width:500px;}"
                     },
                     {
-                        buttonNo: 2,
                         buttonName: "activityBtn2",
                         url:"",
                         hyperLink: "",
@@ -21690,14 +21757,25 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            vm.deletePartnerAdvertisementRecord = function(advertisementId) {
+            vm.deletePartnerAdvertisementRecord = function(advertisementId, index) {
                 if(advertisementId){
                     let sendData = {
                         platformId: vm.selectedPlatform.id,
                         advertisementId: advertisementId,
                     };
 
-                    socketService.$socket($scope.AppSocket, 'deletePartnerAdvertisementRecord', sendData);
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate('Confirm to delete advertisement ?')
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'deletePartnerAdvertisementRecord', sendData, function (data) {
+                            if(data){
+                                if(typeof index !== "undefined"){
+                                    vm.displayPartnerAdvertisementList.splice(index,1);
+                                }
+                            }
+                        });
+                    });
                 }
             }
 
@@ -21745,8 +21823,25 @@ define(['js/app'], function (myApp) {
                         _id: advertisementId,
                         status: advertisementStatus
                     }
-                    socketService.$socket($scope.AppSocket, 'changePartnerAdvertisementStatus', sendData, function (data) {
-                        //do nothing
+
+
+                    let statusChangeConfirmText = "";
+
+                    if(advertisementStatus == vm.playerAdvertisementStatus["CLOSE"]){
+                        statusChangeConfirmText = "Confirm to turn advertisement on ?";
+                    }else{
+                        statusChangeConfirmText = "Confirm to turn advertisement off ?";
+                    }
+
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate(statusChangeConfirmText)
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'changePartnerAdvertisementStatus', sendData, function (data) {
+                            if(data){
+                                vm.partnerAdvertisementList();
+                            }
+                        });
                     });
                 }
             }
@@ -21856,45 +21951,6 @@ define(['js/app'], function (myApp) {
                 vm.currentImageButtonNo += 1;
             }
 
-            vm.getPartnerExistingMaxButonNo = function(advertisementId){
-                // let buttonNo = vm.currentImageButtonNo + 1;
-                // vm.playerAdvertisementGroup.imageButton.push(
-                //     {
-                //         buttonNo: buttonNo,
-                //         buttonName: 'activityBtn' + buttonNo,
-                //         url: '',
-                //         hyperLink: '',
-                //         css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                //         hoverCss: ":hover{width:500px;}"
-                //     }
-                // );
-                //
-                // vm.currentImageButtonNo += 1;
-                if(advertisementId){
-                    let sendData= {
-                        platformId: vm.selectedPlatform.id,
-                        _id: advertisementId
-                    }
-                    vm.existingPartnerButtonNo = 1;
-
-                    socketService.$socket($scope.AppSocket, 'getPartnerAdvertisementRecordById', sendData, function (data) {
-                        if(data && data.data){
-                            if(data.data.imageButton){
-                                data.data.imageButton.forEach(b => {
-                                    if(b.buttonNo > vm.existingButtonNo){
-                                        vm.existingButtonNo = b.buttonNo + 1;
-                                    }
-                                })
-
-                            }
-                        }
-                        $scope.safeApply();
-                        return vm.addedPartnerButtonName + vm.existingPartnerButtonNo;
-
-                    });
-                }
-            },
-
             vm.getPartnerNextOrderNo = function() {
                 let sendData= {
                     platformId: vm.selectedPlatform.id,
@@ -21920,7 +21976,6 @@ define(['js/app'], function (myApp) {
                 vm.partnerAdvertisementTitle = [];
                 vm.partnerAdvertisementGroup.imageButton = [
                     {
-                        buttonNo: 1,
                         buttonName: "activityBtn1",
                         url:"",
                         hyperLink: "",
@@ -21928,7 +21983,6 @@ define(['js/app'], function (myApp) {
                         hoverCss: ":hover{width:500px;}"
                     },
                     {
-                        buttonNo: 2,
                         buttonName: "activityBtn2",
                         url:"",
                         hyperLink: "",
