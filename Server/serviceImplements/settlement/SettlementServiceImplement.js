@@ -248,6 +248,12 @@ var SettlementServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerRewardPoints.autoConvertPlayerRewardPoints, args, isValidData);
     };
 
+    this.bulkPlayerApplyReward.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.playerIdArray && data.eventCode && data.applyTargetDate);
+        let args = [data.playerIdArray, data.eventCode, data.applyTargetDate];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardEvent.bulkPlayerApplyReward, args, isValidData);
+    };
+
     this.batchCreditTransferOut.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.playerId && data.providerId && data.platformObjId && data.adminName);
         data.credit = -1;
