@@ -427,6 +427,31 @@ var dbUtility = {
         };
     },
 
+    getBiWeekSGTIme: function (inputDate) {
+        let startTime = moment(inputDate).tz('Asia/Singapore').startOf('month').toDate();
+        let endTime = moment(startTime).add(14, 'days').toDate();
+        let todayDay = moment(inputDate).tz('Asia/Singapore').date();
+
+        if (todayDay >= 15) {
+            startTime = endTime;
+            endTime = moment(inputDate).tz('Asia/Singapore').endOf('month').toDate();
+        }
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getMonthSGTIme: function (inputDate) {
+        var startTime = moment(inputDate).tz('Asia/Singapore').startOf('month').toDate();
+        var endTime = moment(inputDate).tz('Asia/Singapore').endOf('month').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getSGTimeOfPassHours: function (hours) {
         let endTime = moment().tz('Asia/Singapore').toDate();
         let startTime = moment(endTime).tz('Asia/Singapore').subtract(hours, "hours").toDate();

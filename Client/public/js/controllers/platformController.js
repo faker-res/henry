@@ -267,26 +267,23 @@ define(['js/app'], function (myApp) {
             };
             vm.playerAdvertisementTitle = [];
             vm.editPlayerAdvertisementList = [];
-            vm.existingButtonNo = 0;
             vm.addedButtonName = "activityBtn";
             vm.playerAdvertisementGroup = {};
             vm.playerAdvertisementGroup.orderNo = 0;
             vm.playerAdvertisementGroup.imageButton = [
                 {
-                    buttonNo: 1,
                     buttonName: "activityBtn1",
                     url:"",
                     hyperLink: "",
-                    css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                    hoverCss: ":hover{width:500px;}"
+                    css:"position:absolute; width: auto; height: auto; top:87%; left: 20%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
                 },
                 {
-                    buttonNo: 2,
                     buttonName: "activityBtn2",
                     url:"",
                     hyperLink: "",
-                    css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                    hoverCss: ":hover{width:500px;}"
+                    css: "position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
                 }
             ];
 
@@ -298,26 +295,23 @@ define(['js/app'], function (myApp) {
             };
             vm.partnerAdvertisementTitle = [];
             vm.editPartnerAdvertisementList = [];
-            vm.existingPartnerButtonNo = 0;
             vm.addedPartnerButtonName = "activityBtn";
             vm.partnerAdvertisementGroup = {};
             vm.partnerAdvertisementGroup.orderNo = 0;
             vm.partnerAdvertisementGroup.imageButton = [
                 {
-                    buttonNo: 1,
                     buttonName: "activityBtn1",
                     url:"",
                     hyperLink: "",
-                    css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                    hoverCss: ":hover{width:500px;}"
+                    css:"position:absolute; width: auto; height: auto; top:87%; left: 20%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
                 },
                 {
-                    buttonNo: 2,
                     buttonName: "activityBtn2",
                     url:"",
                     hyperLink: "",
-                    css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                    hoverCss: ":hover{width:500px;}"
+                    css: "position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
                 }
             ];
 
@@ -10262,6 +10256,7 @@ define(['js/app'], function (myApp) {
             }
             vm.displayProviderGroupCredit = function(){
                 console.log('displayProviderGroupCredit');
+                vm.playerCreditDetails = [];
                 let playerId = vm.selectedSinglePlayer.playerId;
                 let platformId = vm.selectedPlatform.data.platformId;
                 socketService.$socket($scope.AppSocket, 'getCreditDetail', {playerObjId: vm.selectedSinglePlayer._id}, function (data) {
@@ -10272,6 +10267,42 @@ define(['js/app'], function (myApp) {
                             d.validCredit = '';
                         }
                     })
+                    vm.getPlatformProviderGroup().then(
+                        allProviderGroup => {
+                            let allGameProviderGroup = [];
+                            for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                                allGameProviderGroup.push({
+                                    nickName: vm.gameProviderGroup[i].name? vm.gameProviderGroup[i].name: "",
+                                    validCredit: 0
+                                })
+                            }
+                            if (vm.playerCreditDetails.length > 0) {
+                                allGameProviderGroup = allGameProviderGroup.filter(a => {
+                                    let isFound = false;
+                                    for (let j = 0; j < vm.playerCreditDetails.length; j++) {
+                                        if (vm.playerCreditDetails[j].nickName == a.nickName) {
+                                            isFound = true;
+                                        }
+                                        ;
+                                    }
+                                    ;
+                                    if (!isFound) {
+                                        return a;
+                                    }
+                                });
+                            }
+                            vm.playerCreditDetails = vm.playerCreditDetails.concat(allGameProviderGroup);
+                            function compare(a,b) {
+                                if (a.nickName < b.nickName)
+                                    return -1;
+                                if (a.nickName > b.nickName)
+                                    return 1;
+                                return 0;
+                            }
+                            vm.playerCreditDetails.sort(compare);
+                            $scope.safeApply();
+                        }
+                    )
                 })
                 socketService.$socket($scope.AppSocket, 'getWithdrawalInfo', {'platformId': platformId , 'playerId': playerId}, function (data) {
                     vm.freeAmount = data.data ? data.data.freeAmount : '';
@@ -10752,6 +10783,13 @@ define(['js/app'], function (myApp) {
                         return item.providerGroup._id == id;
                     }
                 });
+
+                if(!id){
+                    vm.dynRewardTaskGroupId = vm.rewardTaskGroupDetails.filter(item => {
+                            return !item.providerGroup && item.status == 'Started';
+                    });
+                }
+
                 vm.chosenProviderGroupId = id;
                 var sendQuery = {
                     _id: id,
@@ -10774,7 +10812,7 @@ define(['js/app'], function (myApp) {
                     console.log("vm.simpleRewardProposalData", vm.simpleRewardProposalData);
                     let summary = data.data.summary;
                     let result = data.data.data;
-                    result.map(item=>{
+                    result.map((item,index)=>{
                         item.proposalId = item.proposalId || item.data.proposalId;
                         item['createTime$'] = vm.dateReformat(item.data.createTime$);
                         item.useConsumption = item.data.useConsumption;
@@ -10782,12 +10820,24 @@ define(['js/app'], function (myApp) {
                         item.topUpAmount = item.data.topUpAmount;
                         item.bonusAmount = item.data.rewardAmount;
                         item.applyAmount = item.data.applyAmount || item.data.amount;
-                        item.requiredUnlockAmount = result[0].data.spendingAmount;
+                        item.requiredUnlockAmount = item.data.spendingAmount;
+                        item.requiredBonusAmount = item.data.requiredBonusAmount;
                         item['provider$'] = $translate(item.data.provider$);
                         item.rewardType = item.data.rewardType;
 
+                        item.requiredUnlockAmount$ = item.requiredUnlockAmount;
+                        // item.curConsumption$ = item.curConsumption;
+                        if(vm.isUnlockTaskGroup){
+                            let spendingAmt = vm.calSpendingAmt(index);
+
+                            item.curConsumption$ = spendingAmt.currentAmt;
+                            item.maxConsumption$ = spendingAmt.currentMax;
+                        }else{
+                            item.curConsumption$ = item.requiredBonusAmount;
+                            item.maxConsumption$ = item.requiredUnlockAmount;
+                        }
                         item.bonusAmount$ = item.data.bonusAmount;
-                        item.requiredBonusAmount$ = item.data.requiredBonusAmount;
+                        item.requiredBonusAmount$ = item.requiredBonusAmount;
                         item.currentAmount$ = item.data.currentAmount;
                         console.log(item);
 
@@ -10820,7 +10870,7 @@ define(['js/app'], function (myApp) {
                     vm.selectedRewards.push($(this).val())
                 })
             }
-            vm.drawRewardTaskTable = function (newSearch, tblData, size, summary, topUpAmountSum) {
+            vm.drawRewardTaskTable = function (newSearch, tblData, size, summary, topUpAmountSum) {console.log("tblData",tblData);
 
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
@@ -10893,22 +10943,15 @@ define(['js/app'], function (myApp) {
                         {title: $translate('REWARD_AMOUNT'), data: "bonusAmount", sClass: 'sumFloat textRight'},
                         {
                             //解锁进度（投注额）
-                            "title": $translate('Unlock Progress(Consumption)'),data:"requiredBonusAmount",
+                            "title": $translate('Unlock Progress(Consumption)'),data:"curConsumption$",
                             render: function (data, type, row, meta) {
-                                var rowId = String(meta.row);
-
-                                if(vm.isUnlockTaskGroup){
-                                    let spendingAmt = vm.calSpendingAmt(rowId);
-
-                                    let spAmount = spendingAmt.currentAmt;
-                                    let spCurrentMax = spendingAmt.currentMax;
-                                    var text = spAmount + '/' + spCurrentMax;
-                                }else{
-                                    var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
-                                }
+                                let text = row.curConsumption$ +"/"+row.maxConsumption$;
                                 return "<div>" + text + "</div>";
-                            }, sClass: 'sumFloat textRight'
+                            },
+                            sClass: 'sumFloat textRight'
                         },
+                        // {title: $translate('Unlock Progress(Consumption)'), data: "requiredUnlockAmount$", sClass: 'sumFloat textRight'},
+
                         // 解鎖進度
                         {
                             //解锁进度（输赢值）
@@ -10931,7 +10974,8 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 return "<div>" + text + "</div>";
-                            }, sClass: 'sumFloat textRight'
+                            },
+                            sClass: 'sumFloat textRight'
                         },
                         {title: $translate('GAME LOBBY / REWARD TASK GROUP'), data: "provider$"},
                         {
@@ -18174,7 +18218,7 @@ define(['js/app'], function (myApp) {
                 for (var d in vm.allPlayerLvl) {
                     let val = Object.keys(vm.allPlayerLvl)[d];
 
-                    if (Object.keys(vm.bonusSetting).length === 0) {
+                    if (Object.keys(vm.bonusSetting).length <= d) {
 
                         vm.bonusSetting[d] = {};
                         vm.bonusSetting[d].platform = vm.allPlayerLvl[d].platform;
@@ -18337,7 +18381,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlatformProviderGroup = () => {
-                $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+                return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
                     vm.gameProviderGroup = data.data;
                     $scope.safeApply();
                 });
@@ -21313,14 +21357,25 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            vm.deletePlayerAdvertisementRecord = function(advertisementId) {
+            vm.deletePlayerAdvertisementRecord = function(advertisementId, index) {
                 if(advertisementId){
                     let sendData = {
                         platformId: vm.selectedPlatform.id,
                         advertisementId: advertisementId,
                     };
 
-                    socketService.$socket($scope.AppSocket, 'deleteAdvertisementRecord', sendData);
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate('Confirm to delete advertisement ?')
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'deleteAdvertisementRecord', sendData, function (data) {
+                            if(data){
+                                if(typeof index !== "undefined"){
+                                    vm.displayAdvertisementList.splice(index,1);
+                                }
+                            }
+                        });
+                    });
                 }
             }
 
@@ -21380,7 +21435,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                     else {
-                        Q.reject('Advertisement List is not found.');}
+                        Q.reject('Advertisement list is not found.');}
                 });
 
             };
@@ -21414,6 +21469,11 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.clearStyle = function (){
+                document.getElementsByTagName('head')[0].removeChild(vm.hoverStyle);
+                $scope.safeApply();
+            };
+
             vm.advSettingUpdate = function(elem, subject){
                 if(elem){
                     let sendData = {
@@ -21434,8 +21494,24 @@ define(['js/app'], function (myApp) {
                         _id: advertisementId,
                         status: advertisementStatus ? advertisementStatus : 0
                     }
-                    socketService.$socket($scope.AppSocket, 'changeAdvertisementStatus', sendData, function (data) {
-                        //do nothing
+
+                    let statusChangeConfirmText = "";
+
+                    if(advertisementStatus == vm.playerAdvertisementStatus["CLOSE"]){
+                        statusChangeConfirmText = "Confirm to turn advertisement on ?";
+                    }else{
+                        statusChangeConfirmText = "Confirm to turn advertisement off ?";
+                    }
+
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate(statusChangeConfirmText)
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'changeAdvertisementStatus', sendData, function (data) {
+                            if(data){
+                                vm.playerAdvertisementList();
+                            }
+                        });
                     });
                 }
             }
@@ -21529,57 +21605,16 @@ define(['js/app'], function (myApp) {
                 let buttonNo = vm.currentImageButtonNo + 1;
                 vm.playerAdvertisementGroup.imageButton.push(
                     {
-                        buttonNo: buttonNo,
                         buttonName: 'activityBtn' + buttonNo,
                         url: '',
                         hyperLink: '',
-                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css:"position:absolute; width: auto; height: auto; top:50%; left: 50%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     }
                 );
 
                 vm.currentImageButtonNo += 1;
             }
-
-            vm.getExistingMaxButonNo = function(advertisementId){
-                // let buttonNo = vm.currentImageButtonNo + 1;
-                // vm.playerAdvertisementGroup.imageButton.push(
-                //     {
-                //         buttonNo: buttonNo,
-                //         buttonName: 'activityBtn' + buttonNo,
-                //         url: '',
-                //         hyperLink: '',
-                //         css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                //         hoverCss: ":hover{width:500px;}"
-                //     }
-                // );
-                //
-                // vm.currentImageButtonNo += 1;
-
-                if(advertisementId){
-                    let sendData= {
-                        platformId: vm.selectedPlatform.id,
-                        _id: advertisementId
-                    }
-                    vm.existingButtonNo = 1;
-
-                    socketService.$socket($scope.AppSocket, 'getAdvertisementRecordById', sendData, function (data) {
-                        if(data && data.data){
-                            if(data.data.imageButton){
-                                data.data.imageButton.forEach(b => {
-                                    if(b.buttonNo > vm.existingButtonNo){
-                                        vm.existingButtonNo = b.buttonNo + 1;
-                                    }
-                                })
-
-                            }
-                        }
-                        $scope.safeApply();
-                        return vm.addedButtonName + vm.existingButtonNo;
-
-                    });
-                }
-            },
 
             vm.getNextOrderNo = function() {
                 let sendData= {
@@ -21608,20 +21643,18 @@ define(['js/app'], function (myApp) {
                 vm.playerAdvertisementTitle = [];
                 vm.playerAdvertisementGroup.imageButton = [
                     {
-                        buttonNo: 1,
                         buttonName: "activityBtn1",
                         url:"",
                         hyperLink: "",
-                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css:"position:absolute; width: auto; height: auto; top:87%; left: 20%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     },
                     {
-                        buttonNo: 2,
                         buttonName: "activityBtn2",
                         url:"",
                         hyperLink: "",
-                        css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css: "position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     }
                 ];
 
@@ -21737,14 +21770,25 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            vm.deletePartnerAdvertisementRecord = function(advertisementId) {
+            vm.deletePartnerAdvertisementRecord = function(advertisementId, index) {
                 if(advertisementId){
                     let sendData = {
                         platformId: vm.selectedPlatform.id,
                         advertisementId: advertisementId,
                     };
 
-                    socketService.$socket($scope.AppSocket, 'deletePartnerAdvertisementRecord', sendData);
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate('Confirm to delete advertisement ?')
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'deletePartnerAdvertisementRecord', sendData, function (data) {
+                            if(data){
+                                if(typeof index !== "undefined"){
+                                    vm.displayPartnerAdvertisementList.splice(index,1);
+                                }
+                            }
+                        });
+                    });
                 }
             }
 
@@ -21792,8 +21836,25 @@ define(['js/app'], function (myApp) {
                         _id: advertisementId,
                         status: advertisementStatus
                     }
-                    socketService.$socket($scope.AppSocket, 'changePartnerAdvertisementStatus', sendData, function (data) {
-                        //do nothing
+
+
+                    let statusChangeConfirmText = "";
+
+                    if(advertisementStatus == vm.playerAdvertisementStatus["CLOSE"]){
+                        statusChangeConfirmText = "Confirm to turn advertisement on ?";
+                    }else{
+                        statusChangeConfirmText = "Confirm to turn advertisement off ?";
+                    }
+
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate(statusChangeConfirmText)
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'changePartnerAdvertisementStatus', sendData, function (data) {
+                            if(data){
+                                vm.partnerAdvertisementList();
+                            }
+                        });
                     });
                 }
             }
@@ -21895,52 +21956,13 @@ define(['js/app'], function (myApp) {
                         buttonName: 'activityBtn' + buttonNo,
                         url: '',
                         hyperLink: '',
-                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css:"position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                        hoverCss:":hover{filter: contrast(200%);}"
                     }
                 );
 
                 vm.currentImageButtonNo += 1;
             }
-
-            vm.getPartnerExistingMaxButonNo = function(advertisementId){
-                // let buttonNo = vm.currentImageButtonNo + 1;
-                // vm.playerAdvertisementGroup.imageButton.push(
-                //     {
-                //         buttonNo: buttonNo,
-                //         buttonName: 'activityBtn' + buttonNo,
-                //         url: '',
-                //         hyperLink: '',
-                //         css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                //         hoverCss: ":hover{width:500px;}"
-                //     }
-                // );
-                //
-                // vm.currentImageButtonNo += 1;
-                if(advertisementId){
-                    let sendData= {
-                        platformId: vm.selectedPlatform.id,
-                        _id: advertisementId
-                    }
-                    vm.existingPartnerButtonNo = 1;
-
-                    socketService.$socket($scope.AppSocket, 'getPartnerAdvertisementRecordById', sendData, function (data) {
-                        if(data && data.data){
-                            if(data.data.imageButton){
-                                data.data.imageButton.forEach(b => {
-                                    if(b.buttonNo > vm.existingButtonNo){
-                                        vm.existingButtonNo = b.buttonNo + 1;
-                                    }
-                                })
-
-                            }
-                        }
-                        $scope.safeApply();
-                        return vm.addedPartnerButtonName + vm.existingPartnerButtonNo;
-
-                    });
-                }
-            },
 
             vm.getPartnerNextOrderNo = function() {
                 let sendData= {
@@ -21967,20 +21989,18 @@ define(['js/app'], function (myApp) {
                 vm.partnerAdvertisementTitle = [];
                 vm.partnerAdvertisementGroup.imageButton = [
                     {
-                        buttonNo: 1,
                         buttonName: "activityBtn1",
                         url:"",
                         hyperLink: "",
-                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css:"position:absolute; width: auto; height: auto; top:87%; left: 20%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     },
                     {
-                        buttonNo: 2,
                         buttonName: "activityBtn2",
                         url:"",
                         hyperLink: "",
-                        css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css: "position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     }
                 ];
 

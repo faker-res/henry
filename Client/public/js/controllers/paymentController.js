@@ -1258,15 +1258,15 @@ define(['js/app'], function (myApp) {
         }
 
         vm.addmerchantToGroup = function (type) {
-            let merchantNumbers = [];
+            let merchantName = [];
             for (let i = 0; i < vm.allMerchantList.length; i++) {
                 let merchant = vm.allMerchantList[i];
                 if (merchant.selected && !merchant.isIncluded) {
-                    merchantNumbers.push(merchant.merchantNo)
+                    merchantName.push(merchant.name)
                 }
             }
 
-            if (!merchantNumbers.length) {
+            if (!merchantName.length) {
                 socketService.showErrorMessage($translate("There is no merchant group to be added"));
                 return;
             }
@@ -1280,7 +1280,7 @@ define(['js/app'], function (myApp) {
 
             sendData.update = {
                 "$push": {
-                    merchants: {$each: merchantNumbers}
+                    merchants: {$each: merchantName}
                 }
             }
 
@@ -1296,15 +1296,15 @@ define(['js/app'], function (myApp) {
         }
 
         vm.removeMerchantFromGroup = function (type) {
-            let merchantNumbers = [];
+            let merchantName = [];
             for (let i = 0; i < vm.allMerchantList.length; i++) {
                 let merchant = vm.allMerchantList[i];
                 if (merchant.selected && merchant.isIncluded) {
-                    merchantNumbers.push(merchant.merchantNo)
+                    merchantName.push(merchant.name)
                 }
             }
 
-            if (!merchantNumbers.length) {
+            if (!merchantName.length) {
                 socketService.showErrorMessage($translate("There is no merchant group to be remove"));
                 return;
             }
@@ -1318,7 +1318,7 @@ define(['js/app'], function (myApp) {
 
             sendData.update = {
                 "$pull": {
-                    merchants: {$in: merchantNumbers}
+                    merchants: {$in: merchantName}
                 }
             }
 
