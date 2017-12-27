@@ -243,7 +243,7 @@
                             status: 430,
                             errorMessage: "Service:" + serviceName + " functionName:" + funcName + " Request timeout!"
                         });
-                    }, 30*1000//1 minute timeout
+                    }, 60*1000//1 minute timeout
                 );
             }
             else {
