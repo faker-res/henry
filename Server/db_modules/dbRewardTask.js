@@ -15,6 +15,7 @@ var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 var constPlayerCreditChangeType = require('./../const/constPlayerCreditChangeType');
 const constPlayerSMSSetting = require("./../const/constPlayerSMSSetting");
 var constServerCode = require('../const/constServerCode');
+var constMainType = require('../const/constProposalMainType');
 var dbLogger = require("./../modules/dbLogger");
 var constSystemParam = require('../const/constSystemParam');
 var constShardKeys = require("../const/constShardKeys");
@@ -209,8 +210,10 @@ const dbRewardTask = {
                     let updObj = {
                         $inc: {
                             //rewardAmt: rewardData.initAmount,
-                            initAmt: rewardData.initAmount,
-                            currentAmt: rewardData.initAmount,
+                            // initAmt: rewardData.initAmount,
+                            // currentAmt: rewardData.initAmount,
+                            initAmt: proposalData.data.rewardAmount,
+                            currentAmt: proposalData.data.rewardAmount,
                             forbidWithdrawIfBalanceAfterUnlock:
                                 proposalData && proposalData.data && proposalData.data.forbidWithdrawIfBalanceAfterUnlock
                                     ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
@@ -386,7 +389,6 @@ const dbRewardTask = {
                 $lt: new Date(query.to)
             }
         }
-
         return dbconfig.collection_rewardTaskGroup.find(queryObj)
             .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
             .then(data => {
@@ -394,14 +396,31 @@ const dbRewardTask = {
                 return data;
             })
             .then(data => {
-                var rewardTaskProposalQuery = {
-                    'data.playerObjId': ObjectId(query.playerId),
-                    'data.platformId': ObjectId(query.platformId),
-                    'data.providerGroup': query._id
+                let createTime = data[0].createTime ? data[0].createTime :null;
+                if(!createTime){
+                    createTime = new Date(query.from);
                 }
 
-                if(!query._id){
-                    rewardTaskProposalQuery.mainType = 'TopUp';
+                let rewardTaskProposalQuery = {
+                    'data.playerObjId': ObjectId(query.playerId),
+                    'data.platformId': ObjectId(query.platformId)
+                };
+
+                if (!query._id) {
+                    rewardTaskProposalQuery.mainType = {$in: ["TopUp","Reward"]};
+                    //selected the new period from 30ms  to endData;
+                    let lastSecond = new Date(createTime).getTime();
+                    rewardTaskProposalQuery.settleTime = {
+                        $gte: new Date(lastSecond),
+                        $lt: new Date(query.to)
+                    };
+
+                    // rewardTaskProposalQuery.$or = [
+                    //     {'data.providerGroup': {$exists: true, $eq: null}},
+                    //     {'data.providerGroup': {$exists: false}}
+                    // ]
+                } else {
+                    rewardTaskProposalQuery['data.providerGroup'] = query._id;
                 }
                 return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
                     path: "type",
@@ -430,13 +449,14 @@ const dbRewardTask = {
                     return Q.all([prom, propCount])
                         .then(result => {
                             result[0].map(item => {
-
                                 if (rewardTaskGroup) {
                                     item.data['createTime$'] = item.createTime;
                                     item.data.useConsumption = rewardTaskGroup.useConsumption;
                                     item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                                    item.data.spendingAmount = item.data.spendingAmount;
+                                    item.data.curConsumption = rewardTaskGroup.curConsumption;
                                     if (rewardTaskGroup.providerGroup) {
-                                        item.data.provider$ = rewardTaskGroup.providerGroup ? rewardTaskGroup.providerGroup.name :"ziyouedu" ;
+                                        item.data.provider$ = rewardTaskGroup.providerGroup ? rewardTaskGroup.providerGroup.name :"" ;
                                     }
                                     if(!query._id){
 
