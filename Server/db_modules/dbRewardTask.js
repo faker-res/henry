@@ -393,11 +393,8 @@ const dbRewardTask = {
             .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
             .then(data => {
                 rewardTaskGroup = data[0];
-                return data;
-            })
-            .then(data => {
                 let createTime = data[0].createTime ? data[0].createTime :null;
-                if(!createTime){
+                if (!createTime) {
                     createTime = new Date(query.from);
                 }
 
@@ -422,6 +419,7 @@ const dbRewardTask = {
                 } else {
                     rewardTaskProposalQuery['data.providerGroup'] = query._id;
                 }
+
                 return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
                     path: "type",
                     model: dbconfig.collection_proposalType
