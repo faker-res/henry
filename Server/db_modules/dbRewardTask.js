@@ -15,6 +15,7 @@ var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 var constPlayerCreditChangeType = require('./../const/constPlayerCreditChangeType');
 const constPlayerSMSSetting = require("./../const/constPlayerSMSSetting");
 var constServerCode = require('../const/constServerCode');
+var constMainType = require('../const/constProposalMainType');
 var dbLogger = require("./../modules/dbLogger");
 var constSystemParam = require('../const/constSystemParam');
 var constShardKeys = require("../const/constShardKeys");
