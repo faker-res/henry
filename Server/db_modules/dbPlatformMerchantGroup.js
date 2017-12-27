@@ -140,7 +140,6 @@ var dbPlatformMerchantGroup = {
         ).then(
             data=> {
                 allMerchants = data.merchants || [];
-                console.log("walao",allMerchants)
                 return dbconfig.collection_platformMerchantGroup.findOne({_id: merchantGroupId})
             }
         ).then(
