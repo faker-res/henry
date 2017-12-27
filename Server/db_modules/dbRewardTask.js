@@ -430,13 +430,14 @@ const dbRewardTask = {
                     return Q.all([prom, propCount])
                         .then(result => {
                             result[0].map(item => {
-
                                 if (rewardTaskGroup) {
                                     item.data['createTime$'] = item.createTime;
                                     item.data.useConsumption = rewardTaskGroup.useConsumption;
                                     item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                                    item.data.spendingAmount = item.data.spendingAmount;
+                                    item.data.curConsumption = rewardTaskGroup.curConsumption;
                                     if (rewardTaskGroup.providerGroup) {
-                                        item.data.provider$ = rewardTaskGroup.providerGroup ? rewardTaskGroup.providerGroup.name :"ziyouedu" ;
+                                        item.data.provider$ = rewardTaskGroup.providerGroup ? rewardTaskGroup.providerGroup.name :"" ;
                                     }
                                     if(!query._id){
 

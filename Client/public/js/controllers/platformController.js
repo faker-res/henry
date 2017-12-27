@@ -10455,7 +10455,7 @@ define(['js/app'], function (myApp) {
                             sClass: "",
                             render: function (data, type, row) {
                                 let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
-                                var text = row.currentAmount$ + '/' + row.rewardAmt;
+                                var text = row.currentAmount$ + '/' + -(row.rewardAmt);
                                 var result = '<div id="' + "pgReward" + providerGroupId + '">' + text + '</div>';
                                 return result;
                             }
@@ -10771,9 +10771,9 @@ define(['js/app'], function (myApp) {
                     vm.rewardTaskProposalData = data.data.data;
                     vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
                     console.log("vm.simpleRewardProposalData", vm.simpleRewardProposalData);
-                    let summary = data.data.summary;
+                    let summary = data.data.summary; 
                     let result = data.data.data;
-                    result.map(item=>{
+                    result.map((item,index)=>{
                         item.proposalId = item.proposalId || item.data.proposalId;
                         item['createTime$'] = vm.dateReformat(item.data.createTime$);
                         item.useConsumption = item.data.useConsumption;
@@ -10781,12 +10781,24 @@ define(['js/app'], function (myApp) {
                         item.topUpAmount = item.data.topUpAmount;
                         item.bonusAmount = item.data.rewardAmount;
                         item.applyAmount = item.data.applyAmount || item.data.amount;
-                        item.requiredUnlockAmount = result[0].data.spendingAmount;
+                        item.requiredUnlockAmount = item.data.spendingAmount;
+                        item.requiredBonusAmount = item.data.requiredBonusAmount;
                         item['provider$'] = $translate(item.data.provider$);
                         item.rewardType = item.data.rewardType;
 
+                        item.requiredUnlockAmount$ = item.requiredUnlockAmount;
+                        // item.curConsumption$ = item.curConsumption;
+                        if(vm.isUnlockTaskGroup){
+                            let spendingAmt = vm.calSpendingAmt(index);
+
+                            item.curConsumption$ = spendingAmt.currentAmt;
+                            item.maxConsumption$ = spendingAmt.currentMax;
+                        }else{
+                            item.curConsumption$ = item.requiredBonusAmount;
+                            item.maxConsumption$ = item.requiredUnlockAmount;
+                        }
                         item.bonusAmount$ = item.data.bonusAmount;
-                        item.requiredBonusAmount$ = item.data.requiredBonusAmount;
+                        item.requiredBonusAmount$ = item.requiredBonusAmount;
                         item.currentAmount$ = item.data.currentAmount;
                         console.log(item);
 
@@ -10819,7 +10831,7 @@ define(['js/app'], function (myApp) {
                     vm.selectedRewards.push($(this).val())
                 })
             }
-            vm.drawRewardTaskTable = function (newSearch, tblData, size, summary, topUpAmountSum) {
+            vm.drawRewardTaskTable = function (newSearch, tblData, size, summary, topUpAmountSum) {console.log("tblData",tblData);
 
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
@@ -10892,22 +10904,29 @@ define(['js/app'], function (myApp) {
                         {title: $translate('REWARD_AMOUNT'), data: "bonusAmount", sClass: 'sumFloat textRight'},
                         {
                             //解锁进度（投注额）
-                            "title": $translate('Unlock Progress(Consumption)'),data:"requiredBonusAmount",
+                            "title": $translate('Unlock Progress(Consumption)'),data:"curConsumption$",
+                            // render: function (data, type, row, meta) {
+                            //     var rowId = String(meta.row);
+                            //
+                            //     if(vm.isUnlockTaskGroup){
+                            //         let spendingAmt = vm.calSpendingAmt(rowId);
+                            //
+                            //         let spAmount = spendingAmt.currentAmt;
+                            //         let spCurrentMax = spendingAmt.currentMax;
+                            //         var text = spAmount + '/' + spCurrentMax;
+                            //     }else{
+                            //         var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
+                            //     }
+                            //     return "<div>" + text + "</div>";
+                            // },
                             render: function (data, type, row, meta) {
-                                var rowId = String(meta.row);
-
-                                if(vm.isUnlockTaskGroup){
-                                    let spendingAmt = vm.calSpendingAmt(rowId);
-
-                                    let spAmount = spendingAmt.currentAmt;
-                                    let spCurrentMax = spendingAmt.currentMax;
-                                    var text = spAmount + '/' + spCurrentMax;
-                                }else{
-                                    var text = row.requiredBonusAmount + '/' + row.requiredUnlockAmount;
-                                }
+                                let text = row.curConsumption$ +"/"+row.maxConsumption$;
                                 return "<div>" + text + "</div>";
-                            }, sClass: 'sumFloat textRight'
+                            },
+                            sClass: 'sumFloat textRight'
                         },
+                        // {title: $translate('Unlock Progress(Consumption)'), data: "requiredUnlockAmount$", sClass: 'sumFloat textRight'},
+
                         // 解鎖進度
                         {
                             //解锁进度（输赢值）
@@ -10930,7 +10949,8 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 return "<div>" + text + "</div>";
-                            }, sClass: 'sumFloat textRight'
+                            },
+                            sClass: 'sumFloat textRight'
                         },
                         {title: $translate('GAME LOBBY / REWARD TASK GROUP'), data: "provider$"},
                         {
