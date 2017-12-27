@@ -460,7 +460,7 @@
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"Player Consumption Return Settlement" | translate}} : {{vm.selectedPlatform.text}}
+                h4.modal-title {{"PlayerReward" | translate}}{{"SETTLEMENT" | translate}} : {{vm.selectedPlatform.text}}
             .modal-body
                 label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
                 br
@@ -469,17 +469,18 @@
                 .form-control.inlineBlk(style='width:initial', ng-if='vm.platformRTGEventSettlement.status=="completed"')
                     .text-danger {{vm.platformRTGEventSettlement.result | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{'CLOSE' | translate}}
-                button.btn.btn-success.common-button(ng-if='vm.platformRTGEventSettlement.status=="ready"', ng-click="vm.performPlayerConsumptionReturnSettlement()") {{'CONFIRM' | translate}}
+                button.btn.btn-success.common-button(ng-if='vm.platformRTGEventSettlement.status=="ready"', ng-click="vm.performRTGApplySettlement(vm.selectedSettlementRewardEvent)") {{'CONFIRM' | translate}}
                 i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.platformRTGEventSettlement.status=="processing"')
 
-#modalAdvPlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true', style= 'overflow-y: auto;')
+#modalAdvPlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true', style= 'overflow: auto;')
     .modal-dialog
         .modal-content
             .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                a.fa.fa-times.close(type='button',ng-click='vm.clearStyle()', data-dismiss='modal')
                 h4.modal-title(ng-show="true") {{"ADV SETTING" | translate}}
-            .modal-body
-                div(style='background-image:url("{{vm.selectedAdvList.backgroundBannerImage.url}}"); min-height:400px; position: relative; width: 100%; background-repeat: no-repeat; background-size: 100% 100%;')
+            .modal-body(style='overflow:auto;')
+                div(style='position: relative; display: inline-block;')
+                    img(src="{{vm.selectedAdvList.backgroundBannerImage.url}}", style='height: auto; width: auto;')
                     div(ng-repeat= "button in vm.selectedAdvList.imageButton")
                         img(src='{{button.url}}', id='{{button.buttonName}}')
             .modal-footer
@@ -499,7 +500,7 @@
                                 input.form-control(type='text', value='{{button.hoverCss}}', ng-model='button.hoverCss')
                 br
                 .pull-right
-                    button.btn.btn-primary.common-button(ng-click='vm.CSSContentEdit=!vm.CSSContentEdit; vm.advSettingUpdate(vm.selectedAdvList, vm.subject)', data-dismiss="modal" ) {{"SAVE" | translate}}
+                    button.btn.btn-primary.common-button(ng-click='vm.CSSContentEdit=!vm.CSSContentEdit; vm.advSettingUpdate(vm.selectedAdvList, vm.subject); vm.clearStyle()', data-dismiss="modal" ) {{"SAVE" | translate}}
                     button.btn.btn-primary.common-button(ng-click='vm.drawUIPlatformCSS(vm.selectedAdvList); vm.CSSContentEdit=false') {{"PREVIEW" | translate}}
                     button.btn.btn-primary.common-button(ng-if='!vm.CSSContentEdit', ng-click='vm.CSSContentEdit=!vm.CSSContentEdit;')
                         text {{'EDIT' | translate}}

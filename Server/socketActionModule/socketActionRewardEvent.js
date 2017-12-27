@@ -89,6 +89,12 @@ function socketActionRewardEvent(socketIO, socket) {
             var actionName = arguments.callee.name;
             self.socket.emit("_" + actionName, {success: true, data: constSettlementPeriod});
         },
+
+        startPlatformRTGEventSettlement: function startPlatformRTGEventSettlement(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.eventCode);
+            socketUtil.emitter(self.socket, dbRewardEvent.startPlatformRTGEventSettlement, [data.platformId, data.eventCode], actionName, isValidData);
+        },
     };
     socketActionRewardEvent.actions = this.actions;
 };

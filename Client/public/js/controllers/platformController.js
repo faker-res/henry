@@ -275,15 +275,15 @@ define(['js/app'], function (myApp) {
                     buttonName: "activityBtn1",
                     url:"",
                     hyperLink: "",
-                    css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                    hoverCss: ":hover{width:500px;}"
+                    css:"position:absolute; width: auto; height: auto; top:87%; left: 20%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
                 },
                 {
                     buttonName: "activityBtn2",
                     url:"",
                     hyperLink: "",
-                    css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                    hoverCss: ":hover{width:500px;}"
+                    css: "position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
                 }
             ];
 
@@ -303,15 +303,15 @@ define(['js/app'], function (myApp) {
                     buttonName: "activityBtn1",
                     url:"",
                     hyperLink: "",
-                    css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                    hoverCss: ":hover{width:500px;}"
+                    css:"position:absolute; width: auto; height: auto; top:87%; left: 20%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
                 },
                 {
                     buttonName: "activityBtn2",
                     url:"",
                     hyperLink: "",
-                    css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                    hoverCss: ":hover{width:500px;}"
+                    css: "position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
                 }
             ];
 
@@ -1116,6 +1116,8 @@ define(['js/app'], function (myApp) {
                     status: 'ready'
                 };
 
+                vm.selectedSettlementRewardEvent = event;
+
                 let socketName;
 
                 switch (event.condition.interval) {
@@ -1146,6 +1148,32 @@ define(['js/app'], function (myApp) {
 
                 $('#platformRTGEventSettlementModal').modal('show');
                 $scope.safeApply();
+            };
+
+            vm.performRTGApplySettlement = function (event) {
+                if (!event) {
+                    return;
+                }
+
+                vm.platformRTGEventSettlement.status = 'processing';
+                let eventCode = event.code;
+
+                $scope.$socketPromise('startPlatformRTGEventSettlement', {
+                    platformId: vm.selectedPlatform.id,
+                    eventCode: eventCode
+                }).then(
+                    data => {
+                        vm.platformRTGEventSettlement.status = 'completed';
+                        vm.platformRTGEventSettlement.result = $translate('Success');
+                        $scope.safeApply();
+                    },
+                    err => {
+                        console.log('err', err);
+                        vm.platformRTGEventSettlement.status = 'completed';
+                        vm.platformRTGEventSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
+                        $scope.safeApply();
+                    }
+                );
             };
 
             vm.performPlayerConsumptionReturnSettlement = function () {
@@ -10256,7 +10284,6 @@ define(['js/app'], function (myApp) {
             }
             vm.displayProviderGroupCredit = function(){
                 console.log('displayProviderGroupCredit');
-                vm.playerCreditDetails = [];
                 let playerId = vm.selectedSinglePlayer.playerId;
                 let platformId = vm.selectedPlatform.data.platformId;
                 socketService.$socket($scope.AppSocket, 'getCreditDetail', {playerObjId: vm.selectedSinglePlayer._id}, function (data) {
@@ -10682,13 +10709,18 @@ define(['js/app'], function (myApp) {
                     let curConsumption = rewardTaskGroup.curConsumption ? rewardTaskGroup.curConsumption : 0;
                     for (let i = 0; i <= rowId; i++) {
                         if (vm.rewardTaskProposalData[i]) {
+                            let proposalSpendingAmt =
+                                vm.rewardTaskProposalData[i].data.spendingAmount
+                                    ? vm.rewardTaskProposalData[i].data.spendingAmount
+                                    : vm.rewardTaskProposalData[i].data.amount;
+
                             let forbidXIMAAmt = 0;
-                            let spendingAmount = vm.rewardTaskProposalData[i].data.spendingAmount;
+                            let spendingAmount = proposalSpendingAmt;
                             let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : null;
                             if(rewardTaskGroup){
                                 forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt ? rewardTaskGroup.forbidXIMAAmt:0;
                             }
-                            currentMax = vm.rewardTaskProposalData[i].data.spendingAmount;
+                            currentMax = proposalSpendingAmt;
                             spendingAmt += spendingAmount;
                         }
                     }
@@ -10729,15 +10761,31 @@ define(['js/app'], function (myApp) {
                 let rewardTaskGroupRewardAmt = rewardTaskGroup.rewardAmt ? rewardTaskGroup.rewardAmt:0;
 
                 if (rowId == '0') {
-                    let applyAmount = vm.rewardTaskProposalData[0].data.applyAmount ? vm.rewardTaskProposalData[0].data.applyAmount:0;
-                    let rewardAmount = vm.rewardTaskProposalData[0].data.rewardAmount ? vm.rewardTaskProposalData[0].data.rewardAmount :0;
+                    let applyAmount =
+                        vm.rewardTaskProposalData[0]
+                        && vm.rewardTaskProposalData[0].data
+                        && vm.rewardTaskProposalData[0].data.applyAmount
+                            ? vm.rewardTaskProposalData[0].data.applyAmount : 0;
+                    let rewardAmount =
+                        vm.rewardTaskProposalData[0]
+                        && vm.rewardTaskProposalData[0].data
+                        && vm.rewardTaskProposalData[0].data.rewardAmount
+                            ? vm.rewardTaskProposalData[0].data.rewardAmount : 0;
                     currentMax = applyAmount + rewardAmount;
                     sumRewardAmount += applyAmount + rewardAmount;
                 } else {
                     for (let i = 0; i <= rowId; i++) {
                         if(vm.rewardTaskProposalData[i]){
-                            let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount :0;
-                            let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount:0 ;
+                            let applyAmount =
+                                    vm.rewardTaskProposalData[i]
+                                    && vm.rewardTaskProposalData[i].data
+                                    && vm.rewardTaskProposalData[i].data.applyAmount
+                                            ? vm.rewardTaskProposalData[i].data.applyAmount : 0;
+                            let rewardAmount =
+                                vm.rewardTaskProposalData[i]
+                                && vm.rewardTaskProposalData[i].data
+                                && vm.rewardTaskProposalData[i].data.rewardAmount
+                                        ? vm.rewardTaskProposalData[i].data.rewardAmount : 0;
                             currentMax = applyAmount + rewardAmount;
                             sumRewardAmount += applyAmount + rewardAmount;
                         }
@@ -10783,6 +10831,13 @@ define(['js/app'], function (myApp) {
                         return item.providerGroup._id == id;
                     }
                 });
+
+                if(!id){
+                    vm.dynRewardTaskGroupId = vm.rewardTaskGroupDetails.filter(item => {
+                            return !item.providerGroup && item.status == 'Started';
+                    });
+                }
+
                 vm.chosenProviderGroupId = id;
                 var sendQuery = {
                     _id: id,
@@ -10956,7 +11011,7 @@ define(['js/app'], function (myApp) {
                                     let curRewardAmount = isSubmit.curRewardAmount;
                                     let spAmount = spendingAmt.currentAmt;
                                     let spCurrentMax = spendingAmt.currentMax;
-                                    var text = isSubmit.curRewardAmount + '/ -' + isSubmit.rewardAmount;
+                                    var text = isSubmit.curRewardAmount - isSubmit.rewardAmount + '/ -' + isSubmit.rewardAmount;
                                 }else if(vm.isUnlockTaskGroup && !vm.chosenProviderGroupId) {
                                     let applyAmount = row.applyAmount ? row.applyAmount: 0;
                                     let currentAmount = row.currentAmount ? row.currentAmount :0;
@@ -18211,7 +18266,7 @@ define(['js/app'], function (myApp) {
                 for (var d in vm.allPlayerLvl) {
                     let val = Object.keys(vm.allPlayerLvl)[d];
 
-                    if (Object.keys(vm.bonusSetting).length === 0) {
+                    if (Object.keys(vm.bonusSetting).length <= d) {
 
                         vm.bonusSetting[d] = {};
                         vm.bonusSetting[d].platform = vm.allPlayerLvl[d].platform;
@@ -21428,7 +21483,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                     else {
-                        Q.reject('Advertisement List is not found.');}
+                        Q.reject('Advertisement list is not found.');}
                 });
 
             };
@@ -21460,6 +21515,11 @@ define(['js/app'], function (myApp) {
                     document.getElementsByTagName('head')[0].appendChild(vm.hoverStyle);
                     $scope.safeApply();
                 }
+            };
+
+            vm.clearStyle = function (){
+                document.getElementsByTagName('head')[0].removeChild(vm.hoverStyle);
+                $scope.safeApply();
             };
 
             vm.advSettingUpdate = function(elem, subject){
@@ -21596,8 +21656,8 @@ define(['js/app'], function (myApp) {
                         buttonName: 'activityBtn' + buttonNo,
                         url: '',
                         hyperLink: '',
-                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css:"position:absolute; width: auto; height: auto; top:50%; left: 50%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     }
                 );
 
@@ -21634,15 +21694,15 @@ define(['js/app'], function (myApp) {
                         buttonName: "activityBtn1",
                         url:"",
                         hyperLink: "",
-                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css:"position:absolute; width: auto; height: auto; top:87%; left: 20%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     },
                     {
                         buttonName: "activityBtn2",
                         url:"",
                         hyperLink: "",
-                        css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css: "position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     }
                 ];
 
@@ -21944,8 +22004,8 @@ define(['js/app'], function (myApp) {
                         buttonName: 'activityBtn' + buttonNo,
                         url: '',
                         hyperLink: '',
-                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css:"position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                        hoverCss:":hover{filter: contrast(200%);}"
                     }
                 );
 
@@ -21980,15 +22040,15 @@ define(['js/app'], function (myApp) {
                         buttonName: "activityBtn1",
                         url:"",
                         hyperLink: "",
-                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css:"position:absolute; width: auto; height: auto; top:87%; left: 20%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     },
                     {
                         buttonName: "activityBtn2",
                         url:"",
                         hyperLink: "",
-                        css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css: "position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     }
                 ];
 
