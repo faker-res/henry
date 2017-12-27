@@ -10965,9 +10965,9 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 if(!vm.isUnlockTaskGroup){
-                                    if(data!='Started'){
+                                    if (data!='Started') {
                                         text = '<a class="fa fa-check margin-right-5"></a><span>(' + adminName +')</span>';
-                                    }else{
+                                    } else {
                                         text = '<input type="checkbox" class="unlockList" name="unlockList[]" value="'+rowId+'"  ng-click="vm.selectReward($event)"/>';
                                     }
                                 }

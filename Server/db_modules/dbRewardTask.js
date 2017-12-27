@@ -128,6 +128,7 @@ const dbRewardTask = {
                 if (providerGroup) {
                     let updObj = {
                         $inc: {
+                            initAmt: rewardData.initAmount,
                             rewardAmt: rewardData.initAmount,
                             currentAmt: rewardData.initAmount,
                             forbidWithdrawIfBalanceAfterUnlock:
@@ -150,6 +151,7 @@ const dbRewardTask = {
                 }
                 else {
                     let saveObj = {
+                        initAmt: rewardData.initAmount,
                         platformId: rewardData.platformId,
                         playerId: rewardData.playerId,
                         lastProposalId: proposalData._id,
