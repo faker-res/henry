@@ -1116,6 +1116,8 @@ define(['js/app'], function (myApp) {
                     status: 'ready'
                 };
 
+                vm.selectedSettlementRewardEvent = event;
+
                 let socketName;
 
                 switch (event.condition.interval) {
@@ -1146,6 +1148,32 @@ define(['js/app'], function (myApp) {
 
                 $('#platformRTGEventSettlementModal').modal('show');
                 $scope.safeApply();
+            };
+
+            vm.performRTGApplySettlement = function (event) {
+                if (!event) {
+                    return;
+                }
+
+                vm.platformRTGEventSettlement.status = 'processing';
+                let eventCode = event.code;
+
+                $scope.$socketPromise('startPlatformRTGEventSettlement', {
+                    platformId: vm.selectedPlatform.id,
+                    eventCode: eventCode
+                }).then(
+                    data => {
+                        vm.platformRTGEventSettlement.status = 'completed';
+                        vm.platformRTGEventSettlement.result = $translate('Success');
+                        $scope.safeApply();
+                    },
+                    err => {
+                        console.log('err', err);
+                        vm.platformRTGEventSettlement.status = 'completed';
+                        vm.platformRTGEventSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
+                        $scope.safeApply();
+                    }
+                );
             };
 
             vm.performPlayerConsumptionReturnSettlement = function () {
@@ -10256,6 +10284,7 @@ define(['js/app'], function (myApp) {
             }
             vm.displayProviderGroupCredit = function(){
                 console.log('displayProviderGroupCredit');
+                vm.playerCreditDetails = [];
                 let playerId = vm.selectedSinglePlayer.playerId;
                 let platformId = vm.selectedPlatform.data.platformId;
                 socketService.$socket($scope.AppSocket, 'getCreditDetail', {playerObjId: vm.selectedSinglePlayer._id}, function (data) {
@@ -10266,6 +10295,42 @@ define(['js/app'], function (myApp) {
                             d.validCredit = '';
                         }
                     })
+                    vm.getPlatformProviderGroup().then(
+                        allProviderGroup => {
+                            let allGameProviderGroup = [];
+                            for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                                allGameProviderGroup.push({
+                                    nickName: vm.gameProviderGroup[i].name? vm.gameProviderGroup[i].name: "",
+                                    validCredit: 0
+                                })
+                            }
+                            if (vm.playerCreditDetails.length > 0) {
+                                allGameProviderGroup = allGameProviderGroup.filter(a => {
+                                    let isFound = false;
+                                    for (let j = 0; j < vm.playerCreditDetails.length; j++) {
+                                        if (vm.playerCreditDetails[j].nickName == a.nickName) {
+                                            isFound = true;
+                                        }
+                                        ;
+                                    }
+                                    ;
+                                    if (!isFound) {
+                                        return a;
+                                    }
+                                });
+                            }
+                            vm.playerCreditDetails = vm.playerCreditDetails.concat(allGameProviderGroup);
+                            function compare(a,b) {
+                                if (a.nickName < b.nickName)
+                                    return -1;
+                                if (a.nickName > b.nickName)
+                                    return 1;
+                                return 0;
+                            }
+                            vm.playerCreditDetails.sort(compare);
+                            $scope.safeApply();
+                        }
+                    )
                 })
                 socketService.$socket($scope.AppSocket, 'getWithdrawalInfo', {'platformId': platformId , 'playerId': playerId}, function (data) {
                     vm.freeAmount = data.data ? data.data.freeAmount : '';
@@ -10645,13 +10710,18 @@ define(['js/app'], function (myApp) {
                     let curConsumption = rewardTaskGroup.curConsumption ? rewardTaskGroup.curConsumption : 0;
                     for (let i = 0; i <= rowId; i++) {
                         if (vm.rewardTaskProposalData[i]) {
+                            let proposalSpendingAmt =
+                                vm.rewardTaskProposalData[i].data.spendingAmount
+                                    ? vm.rewardTaskProposalData[i].data.spendingAmount
+                                    : vm.rewardTaskProposalData[i].data.amount;
+
                             let forbidXIMAAmt = 0;
-                            let spendingAmount = vm.rewardTaskProposalData[i].data.spendingAmount;
+                            let spendingAmount = proposalSpendingAmt;
                             let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : null;
                             if(rewardTaskGroup){
                                 forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt ? rewardTaskGroup.forbidXIMAAmt:0;
                             }
-                            currentMax = vm.rewardTaskProposalData[i].data.spendingAmount;
+                            currentMax = proposalSpendingAmt;
                             spendingAmt += spendingAmount;
                         }
                     }
@@ -10692,15 +10762,31 @@ define(['js/app'], function (myApp) {
                 let rewardTaskGroupRewardAmt = rewardTaskGroup.rewardAmt ? rewardTaskGroup.rewardAmt:0;
 
                 if (rowId == '0') {
-                    let applyAmount = vm.rewardTaskProposalData[0].data.applyAmount ? vm.rewardTaskProposalData[0].data.applyAmount:0;
-                    let rewardAmount = vm.rewardTaskProposalData[0].data.rewardAmount ? vm.rewardTaskProposalData[0].data.rewardAmount :0;
+                    let applyAmount =
+                        vm.rewardTaskProposalData[0]
+                        && vm.rewardTaskProposalData[0].data
+                        && vm.rewardTaskProposalData[0].data.applyAmount
+                            ? vm.rewardTaskProposalData[0].data.applyAmount : 0;
+                    let rewardAmount =
+                        vm.rewardTaskProposalData[0]
+                        && vm.rewardTaskProposalData[0].data
+                        && vm.rewardTaskProposalData[0].data.rewardAmount
+                            ? vm.rewardTaskProposalData[0].data.rewardAmount : 0;
                     currentMax = applyAmount + rewardAmount;
                     sumRewardAmount += applyAmount + rewardAmount;
                 } else {
                     for (let i = 0; i <= rowId; i++) {
                         if(vm.rewardTaskProposalData[i]){
-                            let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount :0;
-                            let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount:0 ;
+                            let applyAmount =
+                                    vm.rewardTaskProposalData[i]
+                                    && vm.rewardTaskProposalData[i].data
+                                    && vm.rewardTaskProposalData[i].data.applyAmount
+                                            ? vm.rewardTaskProposalData[i].data.applyAmount : 0;
+                            let rewardAmount =
+                                vm.rewardTaskProposalData[i]
+                                && vm.rewardTaskProposalData[i].data
+                                && vm.rewardTaskProposalData[i].data.rewardAmount
+                                        ? vm.rewardTaskProposalData[i].data.rewardAmount : 0;
                             currentMax = applyAmount + rewardAmount;
                             sumRewardAmount += applyAmount + rewardAmount;
                         }
@@ -10746,6 +10832,13 @@ define(['js/app'], function (myApp) {
                         return item.providerGroup._id == id;
                     }
                 });
+
+                if(!id){
+                    vm.dynRewardTaskGroupId = vm.rewardTaskGroupDetails.filter(item => {
+                            return !item.providerGroup && item.status == 'Started';
+                    });
+                }
+
                 vm.chosenProviderGroupId = id;
                 var sendQuery = {
                     _id: id,
@@ -10919,7 +11012,7 @@ define(['js/app'], function (myApp) {
                                     let curRewardAmount = isSubmit.curRewardAmount;
                                     let spAmount = spendingAmt.currentAmt;
                                     let spCurrentMax = spendingAmt.currentMax;
-                                    var text = isSubmit.curRewardAmount + '/ -' + isSubmit.rewardAmount;
+                                    var text = isSubmit.curRewardAmount - isSubmit.rewardAmount + '/ -' + isSubmit.rewardAmount;
                                 }else if(vm.isUnlockTaskGroup && !vm.chosenProviderGroupId) {
                                     let applyAmount = row.applyAmount ? row.applyAmount: 0;
                                     let currentAmount = row.currentAmount ? row.currentAmount :0;
@@ -18174,7 +18267,7 @@ define(['js/app'], function (myApp) {
                 for (var d in vm.allPlayerLvl) {
                     let val = Object.keys(vm.allPlayerLvl)[d];
 
-                    if (Object.keys(vm.bonusSetting).length === 0) {
+                    if (Object.keys(vm.bonusSetting).length <= d) {
 
                         vm.bonusSetting[d] = {};
                         vm.bonusSetting[d].platform = vm.allPlayerLvl[d].platform;
@@ -18337,7 +18430,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlatformProviderGroup = () => {
-                $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+                return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
                     vm.gameProviderGroup = data.data;
                     $scope.safeApply();
                 });

@@ -290,7 +290,7 @@ let dbPlayerCredibility = {
                     let topUpTimesScore = calculateTopUpTimesScore(platform.playerValueConfig.topUpTimesScores, player.topUpTimes);//) * platform.playerValueConfig.criteriaScoreRatio.topUpTimes;
                     let gameTypeScore = calculateGameTypeCountScore(platform.playerValueConfig.gameTypeCountScores, numProviderPlayed);
                     let remarkScore = calculateRemarksScore(platform.playerValueConfig.credibilityScoreDefault, playerRemarks);
-                    let playerLevelScore = playerLevel.playerValueScore || 2;
+                    let playerLevelScore = playerLevel && playerLevel.playerValueScore ? playerLevel.playerValueScore : 2;
                     let winRatioScore = consumptionSummary
                         ? calculateWinRatioScore(platform.playerValueConfig.winRatioScores, consumptionSummary.totalConsumption, consumptionSummary.totalBonus)
                         : calculateWinRatioScore(platform.playerValueConfig.winRatioScores, 0, 0);
