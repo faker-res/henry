@@ -431,6 +431,10 @@ define(['js/app'], function (myApp) {
 
             vm.showRewardSettingsTab = function (tabName) {
                 vm.selectedRewardSettingsTab = tabName == null ? "manual-reward" : tabName;
+
+                if (tabName == "reward-progress") {
+                    $('#rewardTaskLogTbl').empty();
+                }
             };
 
             vm.showReapplyLostOrderTab = function (tabName) {
@@ -10277,7 +10281,6 @@ define(['js/app'], function (myApp) {
                         vm.commonPageChangeHandler(curP, pageSize, "rewardTaskLog", vm.getRewardTaskLogData)
                     });
                     $scope.$evalAsync(vm.getRewardTaskLogData(true));
-
                 });
 
                 vm.displayProviderGroupCredit();
