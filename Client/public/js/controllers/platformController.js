@@ -258,10 +258,68 @@ define(['js/app'], function (myApp) {
                 MANUAL: 5,
             };
 
-            vm.noOfPlayerAdvertisementImageButton = {
-              1: "1",
-                2: "2",
+
+            // player advertisement
+            vm.currentImageButtonNo = 2;
+            vm.playerAdvertisementStatus ={
+                CLOSE: 0,
+                OPEN: 1
             };
+            vm.playerAdvertisementTitle = [];
+            vm.editPlayerAdvertisementList = [];
+            vm.existingButtonNo = 0;
+            vm.addedButtonName = "activityBtn";
+            vm.playerAdvertisementGroup = {};
+            vm.playerAdvertisementGroup.orderNo = 0;
+            vm.playerAdvertisementGroup.imageButton = [
+                {
+                    buttonNo: 1,
+                    buttonName: "activityBtn1",
+                    url:"",
+                    hyperLink: "",
+                    css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                    hoverCss: ":hover{width:500px;}"
+                },
+                {
+                    buttonNo: 2,
+                    buttonName: "activityBtn2",
+                    url:"",
+                    hyperLink: "",
+                    css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                    hoverCss: ":hover{width:500px;}"
+                }
+            ];
+
+            // partner advertisement
+            vm.currentPartnerImageButtonNo = 2;
+            vm.partnerAdvertisementStatus ={
+                CLOSE: 0,
+                OPEN: 1
+            };
+            vm.partnerAdvertisementTitle = [];
+            vm.editPartnerAdvertisementList = [];
+            vm.existingPartnerButtonNo = 0;
+            vm.addedPartnerButtonName = "activityBtn";
+            vm.partnerAdvertisementGroup = {};
+            vm.partnerAdvertisementGroup.orderNo = 0;
+            vm.partnerAdvertisementGroup.imageButton = [
+                {
+                    buttonNo: 1,
+                    buttonName: "activityBtn1",
+                    url:"",
+                    hyperLink: "",
+                    css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                    hoverCss: ":hover{width:500px;}"
+                },
+                {
+                    buttonNo: 2,
+                    buttonName: "activityBtn2",
+                    url:"",
+                    hyperLink: "",
+                    css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                    hoverCss: ":hover{width:500px;}"
+                }
+            ];
 
             // Basic library functions
             var Lodash = {
@@ -294,6 +352,8 @@ define(['js/app'], function (myApp) {
                 vm.selectedPlatformDetailTab = tabName == null ? "backstage-settings" : tabName;
                 if(tabName && tabName == "player-display-data"){
                     vm.initPlayerDisplayDataModal();
+                }else if(tabName && tabName == "partner-display-data"){
+                    vm.initPartnerDisplayDataModal();
                 }
             };
 
@@ -466,13 +526,20 @@ define(['js/app'], function (myApp) {
                 })
             };
 
-            $scope.$on('switchPlatform', (e, cb) => {
-                vm.loadPlatformData();
-                cb("Switch complete!");
+            $scope.$on('switchPlatform', () => {
+                vm.loadPlatformData({loadAll: true, noParallelTrigger: true});
             });
 
             //get all platform data from server
             vm.loadPlatformData = function (option) {
+                if (vm.onGoingLoadPlatformData) {
+                    return;
+                }
+
+                if (option && option.noParallelTrigger) {
+                    vm.onGoingLoadPlatformData = true;
+                }
+
                 if ($('#platformRefresh').hasClass('fa-spin')) {
                     return
                 }
@@ -500,6 +567,7 @@ define(['js/app'], function (myApp) {
                     setTimeout(function () {
                         $('#platformRefresh').removeClass('fa-check');
                         $('#platformRefresh').addClass('fa-refresh').fadeIn(100);
+                        vm.onGoingLoadPlatformData = false;
                     }, 1000);
 
                     //select platform from cookies data
@@ -662,6 +730,7 @@ define(['js/app'], function (myApp) {
                         vm.rewardPointsTabClicked();
                         //     break;
                         // }
+                        vm.onGoingLoadPlatformData = false;
                         $scope.safeApply();
                     },
                     function (error) {
@@ -4529,14 +4598,28 @@ define(['js/app'], function (myApp) {
                                 var link = $('<div>', {
                                     'data-order': row.validCredit,
                                 })
-                                    .append($('<i class="fa fa-usd"></i>'))
-                                    .append(
+                                link.append($('<i class="fa fa-usd"></i>'));
+                                if (row.rewardGroupInfo && row.rewardGroupInfo.length > 0) {
+                                    link.append(
+                                            $('<a>', {
+                                                'class': 'rewardTaskPopover',
+                                                'ng-click': 'vm.rewardTaskPlayerName = "' + row.name + '";', // @todo: escaping issue
+                                                'data-row': JSON.stringify(row),
+                                                'href': '',
+                                                'data-toggle': 'popover',
+                                                'data-trigger': 'focus',
+                                                'data-placement': 'bottom',
+                                                'data-container': 'body'
+                                            }).text(row.validCredit.toFixed(2))
+                                        )
+                                } else {
+                                    link.append(
                                         $('<text>', {
-                                            'data-row': JSON.stringify(row),
+                                            'data-row': JSON.stringify(row)
                                         }).text(row.validCredit.toFixed(2))
                                     )
-                                    .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
-
+                                }
+                                link.append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
                                 //if (data != 0) {
                                 if (row.rewardInfo && row.rewardInfo.length > 0) {
                                     link.append($('<i class="fa fa-lock"></i>'))
@@ -5154,7 +5237,14 @@ define(['js/app'], function (myApp) {
 
                                 if (vm.selectedPlatform.data.useProviderGroup) {
                                     vm.getRewardTaskGroupDetail(row._id, function (data) {
+                                        vm.rewardTaskGroupPopoverData = vm.curRewardTask.map(group => {
+                                            if (group.providerGroup.name == "LOCAL_CREDIT")
+                                                group.validCredit = row.validCredit;
+                                            return group;
+                                        });
+                                        $scope.safeApply();
                                         showPopover(that, '#rewardTaskGroupPopover', data);
+
                                     });
                                 } else {
                                     vm.getRewardTaskDetail(row._id, function (data) {
@@ -7741,6 +7831,19 @@ define(['js/app'], function (myApp) {
             $('#advertisementTab').removeClass('active');
             $scope.safeApply();
             vm.playerDisplayDataTab = "customerServicePanel";
+            vm.showAdvertisementRecord = true;
+            vm.editAdvertisementRecord = false;
+            vm.playerAdvertisementWebDevice = true;
+        }
+
+        vm.initPartnerDisplayDataModal = function() {
+            $('#partnerTab').addClass('active');
+            $('#partnerAdvertisementTab').removeClass('active');
+            $scope.safeApply();
+            vm.partnerDisplayDataTab = "partnerPanel";
+            vm.showPartnerAdvertisementRecord = true;
+            vm.editPartnerAdvertisementRecord = false;
+            vm.partnerAdvertisementWebDevice = true;
         }
 
         vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
@@ -10141,6 +10244,7 @@ define(['js/app'], function (myApp) {
             vm.initRewardTaskLog = function () {
                 vm.rewardTaskLog = vm.rewardTaskLog || {totalCount: 0, limit: 10, index: 0, query: {}};
                 vm.isUnlockTaskGroup = false;
+                vm.chosenProviderGroupId = null;
                 // utilService.actionAfterLoaded('#modalRewardTaskLog.in #rewardTaskLogQuery .endTime', function () {
                 utilService.actionAfterLoaded('#rewardTaskLogQuery .endTime', function () {
                     vm.rewardTaskLog.query.startTime = utilService.createDatePicker('#rewardTaskLogQuery .startTime');
@@ -10184,7 +10288,32 @@ define(['js/app'], function (myApp) {
                 }, 0);
                 $scope.safeApply();
             }
-            vm.getRewardTaskLogData = function (newSearch) {
+
+            vm.getRewardTaskFreeAmount = function(){
+                vm.chosenProviderGroupId = 'localCredit';
+                vm.getRewardTaskLogData(true, true);
+            }
+
+            vm.unlockSearch = function(){
+                if(vm.selectedProviderGroupID!='all'){
+                    let providerGroupId = vm.selectedProviderGroupID;
+                    if(providerGroupId == 'free'){
+                        vm.getRewardTaskGroupProposal();
+                    }else{
+                        vm.getRewardTaskGroupProposal(providerGroupId);
+                    }
+                }
+                else if(vm.chosenProviderGroupId){
+                    if(vm.chosenProviderGroupId == 'localCredit'){
+                        vm.getRewardTaskLogData(true,true);
+                    }else{
+                        vm.getRewardTaskGroupProposal(vm.chosenProviderGroupId);
+                    }
+                }else{
+                    vm.getRewardTaskLogData(true);
+                }
+            }
+            vm.getRewardTaskLogData = function (newSearch, isFreeAmt) {
                 vm.isUnlockTaskGroup = false;
                 var sendQuery = {
                     playerId: vm.selectedSinglePlayer._id,
@@ -10195,19 +10324,26 @@ define(['js/app'], function (myApp) {
                     rewardProposalId: vm.rewardProposalId,
                     topUpProposalId: vm.topUpProposalId,
                     selectedProviderGroupID: vm.selectedProviderGroupID,
+                    showProposal: false,
                     index: newSearch ? 0 : vm.rewardTaskLog.index,
                     limit: newSearch ? 10 : vm.rewardTaskLog.limit,
                     sortCol: vm.rewardTaskLog.sortCol || null,
                     useProviderGroup: vm.selectedPlatform.data.useProviderGroup
                 };
+                if(isFreeAmt){
+                    sendQuery.selectedProviderGroupID = 'free';
+                    sendQuery.showProposal = true;
+
+                }
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardTask', sendQuery, function (data) {
                     vm.curRewardTask = data.data;
+                    console.log('Player reward task log:', vm.curRewardTask);
                     var tblData = data && data.data ? data.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
                         item.topUpAmount = (item.topUpAmount);
-                        item.bonusAmount$ = (item.bonusAmount);
+                        item.bonusAmount$ = -item.data.currentAmt;
                         item.requiredBonusAmount$ = (item.requiredBonusAmount);
-                        item.currentAmount$ = (item.currentAmount);
+                        item.currentAmount$ = 0;
                         item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
                                 return pro.name + ' ';
                             }) : $translate('all')) + ')';
@@ -10235,14 +10371,13 @@ define(['js/app'], function (myApp) {
                         }
                         if (item.data) {
                             item.currentAmount = item.data.currentAmount;
-                            item.bonusAmount = item.data.bonusAmount;
+                            item.bonusAmount = item.data.currentAmt;
                             item.requiredBonusAmount = item.data.requiredBonusAmount;
                             item.bonusAmount$ = item.data.bonusAmount;
                             item.requiredBonusAmount$ = item.data.requiredBonusAmount;
                             item.requiredUnlockAmount = item.data.requiredUnlockAmount;
                             item.rewardType = item.data.rewardType;
                         }
-
 
                         return item;
                     }) : [];
@@ -10258,8 +10393,10 @@ define(['js/app'], function (myApp) {
             vm.drawRewardTaskGroupTable = function (newSearch, tdata, size, summary, topUpAmountSum) {
                 let tblData = null;
                 if (vm.selectedPlatform.data.useProviderGroup) {
-                    tblData = tdata && tdata.data ? tdata.data.rewardTaskGroupData.map(item => {
+                    tblData = tdata && tdata.data ? tdata.data.displayRewardTaskGroup.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
+                        item.currentAmount$ = item.currentAmt - item.initAmt;
+                        item.bonusAmount$ = -item.initAmt;
                         return item;
                     }) : [];
                     tblData = tblData.filter(item => {
@@ -10271,11 +10408,12 @@ define(['js/app'], function (myApp) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
+
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
                         {
-                            title: $translate('Provider group'),
+                            title: $translate('Reward Task Group(Progress)'),
                             data: "providerGroup.name",
                             advSearch: true,
                             sClass: "",
@@ -10290,7 +10428,11 @@ define(['js/app'], function (myApp) {
                                     }).text(data ? data : 0));
                                 }
                                 else {
-                                    link.append($('<div>', {}).text(data ? data : $translate('Valid Progress')));
+
+                                    link.append($('<a>', {
+                                        'ng-click': 'vm.getRewardTaskGroupProposal();'
+                                    }).text(data ? data : $translate('Valid Progress')));
+                                    // link.append($('<div>', {}).text(data ? data : $translate('Valid Progress')));
                                 }
                                 return link.prop('outerHTML')
                             }
@@ -10301,7 +10443,9 @@ define(['js/app'], function (myApp) {
                             sClass: "",
                             render: function (data, type, row) {
                                 let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
-                                var text = row.curConsumption + '/' + row.targetConsumption;
+                                let forbidXIMAAmt = Number(row.forbidXIMAAmt ? row.forbidXIMAAmt :0);
+                                let targetConsumption = Number(row.targetConsumption);
+                                var text = row.curConsumption + '/' + (targetConsumption + forbidXIMAAmt);
                                 var result = '<div id="' + "pgConsumpt" + providerGroupId + '">' + text + '</div>';
                                 return result;
                             }
@@ -10312,7 +10456,7 @@ define(['js/app'], function (myApp) {
                             sClass: "",
                             render: function (data, type, row) {
                                 let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
-                                var text = row.currentAmt + '/ -' + row.rewardAmt;
+                                var text = row.currentAmount$ + '/' + row.bonusAmount$;
                                 var result = '<div id="' + "pgReward" + providerGroupId + '">' + text + '</div>';
                                 return result;
                             }
@@ -10493,57 +10637,95 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
             vm.calSpendingAmt = function (rowId) {
-                let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
-                let spendingAmt = 0;
+                let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] :null;
 
-                //calculate the value between this rowId
-                let currentMax = 0;
-                let currentAmt = 0;
-                let AmtNow = 0;
-                let curConsumption = rewardTaskGroup.curConsumption ? rewardTaskGroup.curConsumption : 0;
-                for (let i = 0; i <= rowId; i++) {
-                    let spendingAmount = vm.rewardTaskProposalData[i].data.spendingAmount;
-                    currentMax = vm.rewardTaskProposalData[i].data.spendingAmount;
-                    spendingAmt += spendingAmount;
-                }
-                let incCurConsumption = curConsumption - spendingAmt;
+                if(!rewardTaskGroup){
+                    return {'incCurConsumption': 0, 'currentAmt': 0, 'currentMax': 0}
+                }else{
+                    let spendingAmt = 0;
 
-
-                if (incCurConsumption >= 0) {
-                    AmtNow = currentMax;
-                } else {
-                    AmtNow = currentMax + incCurConsumption;
-                    if (AmtNow < 0) {
-                        AmtNow = 0;
+                    //calculate the value between this rowId
+                    let currentMax = 0;
+                    let currentAmt = 0;
+                    let AmtNow = 0;
+                    let curConsumption = rewardTaskGroup.curConsumption ? rewardTaskGroup.curConsumption : 0;
+                    for (let i = 0; i <= rowId; i++) {
+                        if (vm.rewardTaskProposalData[i]) {
+                            let forbidXIMAAmt = 0;
+                            let spendingAmount = vm.rewardTaskProposalData[i].data.spendingAmount;
+                            let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : null;
+                            if(rewardTaskGroup){
+                                forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt ? rewardTaskGroup.forbidXIMAAmt:0;
+                            }
+                            currentMax = vm.rewardTaskProposalData[i].data.spendingAmount;
+                            spendingAmt += spendingAmount;
+                        }
                     }
+                    let incCurConsumption = curConsumption - spendingAmt;
+
+                    if(incCurConsumption >= 0 ){
+                        AmtNow = currentMax;
+                    }else{
+                        AmtNow = currentMax + incCurConsumption;
+                        if(AmtNow <= 0){
+                            AmtNow = 0;
+                        }
+                    }
+
+                    return {'incCurConsumption': incCurConsumption, 'currentAmt': AmtNow, 'currentMax': currentMax}
                 }
 
-                return {'incCurConsumption': incCurConsumption, 'currentAmt': AmtNow, 'currentMax': currentMax}
+
+
             }
             vm.isSubmitProposal = function (rowId) {
 
                 let sumRewardAmount = 0;
                 let curRewardAmount = 0;
-                let taskGroupCurrentAmt = vm.dynRewardTaskGroupId ? vm.dynRewardTaskGroupId[0].currentAmt:0;
+                // let taskGroupCurrentAmt = vm.dynRewardTaskGroupId ? vm.dynRewardTaskGroupId[0].currentAmt:0;
+                let currentMax = 0;
+                let curRewardDisplay = 0;
+
+
+                //getRewardTaskGroup
+                let rewardTaskGroup = vm.dynRewardTaskGroupId ? vm.dynRewardTaskGroupId[0]:null;
+
+                if(!rewardTaskGroup){
+                    rewardTaskGroup = {currentAmt:0, rewardAmt:0}
+                }
+
+                let taskGroupCurrentAmt = rewardTaskGroup ? rewardTaskGroup.currentAmt:0;
+                let rewardTaskGroupRewardAmt = rewardTaskGroup.rewardAmt ? rewardTaskGroup.rewardAmt:0;
 
                 if (rowId == '0') {
                     let applyAmount = vm.rewardTaskProposalData[0].data.applyAmount ? vm.rewardTaskProposalData[0].data.applyAmount:0;
                     let rewardAmount = vm.rewardTaskProposalData[0].data.rewardAmount ? vm.rewardTaskProposalData[0].data.rewardAmount :0;
+                    currentMax = applyAmount + rewardAmount;
                     sumRewardAmount += applyAmount + rewardAmount;
                 } else {
                     for (let i = 0; i <= rowId; i++) {
                         if(vm.rewardTaskProposalData[i]){
                             let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount :0;
                             let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount:0 ;
+                            currentMax = applyAmount + rewardAmount;
                             sumRewardAmount += applyAmount + rewardAmount;
                         }
+                    }
 
+
+                }
+
+                let finalRewardAmount = taskGroupCurrentAmt - sumRewardAmount;
+
+                if(finalRewardAmount >= 0 ){
+                    curRewardDisplay = currentMax;
+                }else{
+                    curRewardDisplay = currentMax + finalRewardAmount;
+                    if(curRewardDisplay <= 0){
+                        curRewardDisplay = 0;
                     }
                 }
-                // should over 0
-                let finalRewardAmount = taskGroupCurrentAmt - sumRewardAmount;
                 let spendingAmt = vm.calSpendingAmt(rowId);
-
 
                 //getCurrentRewardAmt
                 if(vm.rewardTaskProposalData[rowId]){
@@ -10552,12 +10734,14 @@ define(['js/app'], function (myApp) {
                     curRewardAmount = curApplyAmt + curRewardAmt;
                 }
 
-
-                if (finalRewardAmount >= 0 && spendingAmt.incCurConsumption >= 0) {
+                if(curRewardDisplay == 0  && spendingAmt.currentAmt ==  0){
+                    return {isSubmit: false, curRewardAmount: curRewardDisplay, rewardAmount: currentMax, spendingAmt: spendingAmt}
+                }
+                else if (finalRewardAmount > 0  || spendingAmt.incCurConsumption >  0) {
                     // already submit, display tick icon
-                    return {isSubmit: true, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt, curRewardAmount:curRewardAmount}
+                    return {isSubmit: true, curRewardAmount: curRewardDisplay, rewardAmount: currentMax ,rewardGroupMaxAmount: rewardTaskGroupRewardAmt ,spendingAmt: spendingAmt}
                 } else {
-                    return {isSubmit: false, rewardAmount: finalRewardAmount, spendingAmt: spendingAmt, curRewardAmount: curRewardAmount}
+                    return {isSubmit: false, curRewardAmount: curRewardDisplay, rewardAmount: currentMax,rewardGroupMaxAmount: rewardTaskGroupRewardAmt ,spendingAmt: spendingAmt}
                 }
             }
             vm.getRewardTaskGroupProposal = function (id) {
@@ -10568,40 +10752,50 @@ define(['js/app'], function (myApp) {
                         return item.providerGroup._id == id;
                     }
                 });
-
+                vm.chosenProviderGroupId = id;
                 var sendQuery = {
                     _id: id,
                     playerId: vm.selectedSinglePlayer._id,
                     platformId: vm.selectedSinglePlayer.platform,
                     from: vm.rewardTaskLog.query.startTime.data('datetimepicker').getLocalDate(),
                     to: vm.rewardTaskLog.query.endTime.data('datetimepicker').getLocalDate(),
+                    index:  vm.rewardTaskLog.index ? vm.rewardTaskLog.index: 0,
+                    limit:  vm.rewardTaskLog.limit ? vm.rewardTaskLog.limit: 0,
+                    sortCol: vm.rewardTaskLog.sortCol || null
                 }
 
                 if (!id) {
                     $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
-                } else {
-                    socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
-                        vm.rewardTaskProposalData = data.data.data;
-                        vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
-                        console.log(vm.simpleRewardProposalData);
-                        let summary = data.data.summary;
-                        let result = data.data.data;
-                        result.map(item=>{
-                            item['createTime$'] = vm.dateReformat(item.data.createTime$);
-                            item.useConsumption = item.data.useConsumption;
-                            item.topUpProposal = item.data.topUpProposalId;
-                            item.topUpAmount = item.data.topUpAmount;
-                            item.bonusAmount = item.data.rewardAmount;
-                            item.applyAmount = item.data.applyAmount;
-                            item.requiredUnlockAmount = result[0].data.spendingAmount;
-                            item['provider$'] = item.data.provider$;
-                            item.rewardType = item.data.rewardType;
-                        })
-                        vm.drawRewardTaskTable(true, result, 0, summary, 0);
-                        // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
-                        vm.curRewardTask = data;
-                    })
                 }
+
+                socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
+                    vm.rewardTaskProposalData = data.data.data;
+                    vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
+                    console.log("vm.simpleRewardProposalData", vm.simpleRewardProposalData);
+                    let summary = data.data.summary;
+                    let result = data.data.data;
+                    result.map(item=>{
+                        item.proposalId = item.proposalId || item.data.proposalId;
+                        item['createTime$'] = vm.dateReformat(item.data.createTime$);
+                        item.useConsumption = item.data.useConsumption;
+                        item.topUpProposal = item.data.topUpProposalId;
+                        item.topUpAmount = item.data.topUpAmount;
+                        item.bonusAmount = item.data.rewardAmount;
+                        item.applyAmount = item.data.applyAmount || item.data.amount;
+                        item.requiredUnlockAmount = result[0].data.spendingAmount;
+                        item['provider$'] = $translate(item.data.provider$);
+                        item.rewardType = item.data.rewardType;
+
+                        item.bonusAmount$ = item.data.bonusAmount;
+                        item.requiredBonusAmount$ = item.data.requiredBonusAmount;
+                        item.currentAmount$ = item.data.currentAmount;
+                        console.log(item);
+
+                    })
+                    vm.drawRewardTaskTable(true, result, 0, summary, 0, 0);
+                    // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
+                    vm.curRewardTask = data;
+                })
 
 
             }
@@ -10612,7 +10806,6 @@ define(['js/app'], function (myApp) {
                     let proposal = {
                         applyAmount:item.data.applyAmount ? item.data.applyAmount:0,
                         rewardAmount:item.data.rewardAmount ? item.data.rewardAmount:0,
-
                         //consumption
                         spendingAmount:item.data.spendingAmount ? item.data.spendingAmount:0
                     }
@@ -10632,6 +10825,7 @@ define(['js/app'], function (myApp) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
+                        // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
@@ -10720,16 +10914,20 @@ define(['js/app'], function (myApp) {
                             //解锁进度（输赢值）
                             "title": $translate('Unlock Progress(WinLose)'),data:"currentAmount",
                             render: function (data, type, row ,meta){
-                                if(vm.isUnlockTaskGroup){
+                                if(vm.isUnlockTaskGroup && vm.chosenProviderGroupId){
                                     let spendingAmt = vm.calSpendingAmt(meta.row);
                                     let isSubmit = vm.isSubmitProposal(meta.row);
                                     let curRewardAmount = isSubmit.curRewardAmount;
                                     let spAmount = spendingAmt.currentAmt;
                                     let spCurrentMax = spendingAmt.currentMax;
-                                    var text = spAmount + '/ -' + curRewardAmount;
+                                    var text = isSubmit.curRewardAmount + '/ -' + isSubmit.rewardAmount;
+                                }else if(vm.isUnlockTaskGroup && !vm.chosenProviderGroupId) {
+                                    let applyAmount = row.applyAmount ? row.applyAmount: 0;
+                                    let currentAmount = row.currentAmount ? row.currentAmount :0;
+                                    var text = currentAmount + '/ -' + (applyAmount + row.bonusAmount);
                                 }else{
                                     let applyAmount = row.applyAmount ? row.applyAmount: 0
-                                    var text = row.currentAmount + '/ -' + (applyAmount + row.bonusAmount);
+                                    var text = row.currentAmount - row.initAmt + '/ -' + (applyAmount + row.bonusAmount);
                                 }
 
                                 return "<div>" + text + "</div>";
@@ -13799,16 +13997,17 @@ define(['js/app'], function (myApp) {
                     return
                 }
                 console.log("getQuickPay", vm.selectedPlatform.id);
-                socketService.$socket($scope.AppSocket, 'getPlatformQuickPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                    console.log('QuickPayGroup', data);
-                    //provider list init
-                    vm.platformQuickPayGroupList = data.data;
-                    vm.platformQuickPayGroupListCheck = {};
-                    $.each(vm.platformQuickPayGroupList, function (i, v) {
-                        vm.platformQuickPayGroupListCheck[v._id] = true;
-                    })
-                    $scope.safeApply();
-                })
+                //todo::no need quick pay for now
+                // socketService.$socket($scope.AppSocket, 'getPlatformQuickPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                //     console.log('QuickPayGroup', data);
+                //     //provider list init
+                //     vm.platformQuickPayGroupList = data.data;
+                //     vm.platformQuickPayGroupListCheck = {};
+                //     $.each(vm.platformQuickPayGroupList, function (i, v) {
+                //         vm.platformQuickPayGroupListCheck[v._id] = true;
+                //     })
+                //     $scope.safeApply();
+                // })
             }
 
             /////////////////////////////////////// QuickPay Group end  /////////////////////////////////////////////////
@@ -14085,7 +14284,7 @@ define(['js/app'], function (myApp) {
                                 case "providerGroup":
                                     if (!vm.gameProviderGroup) break;
                                     let providerGroup = {
-                                        "": "LOCAL_CREDIT"
+                                    //     "": "LOCAL_CREDIT"
                                     };
                                     for (let i = 0; i < vm.gameProviderGroup.length; i++) {
                                         let group = vm.gameProviderGroup[i];
@@ -14796,12 +14995,22 @@ define(['js/app'], function (myApp) {
                         if (objectId) {
                             data._id = objectId;
 
-                            if (vm.rewardParamsFilter.length == vm.rewardParams.reward.length){
-                                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
-                            }
-                            else{
-                                vm.rewardParamsFilter.push(JSON.parse(JSON.stringify(data)));
-                                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                            if (vm.rewardParams.reward){
+                                // first time create the data
+                                if (vm.rewardParams.reward.length == 0) {
+                                    vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    vm.rewardParamsFilter = vm.rewardParams.reward;
+                                }
+                                else {
+                                    if (vm.rewardParamsFilter.length == vm.rewardParams.reward.length){
+                                        vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    }
+                                    else{
+                                        vm.rewardParamsFilter.push(JSON.parse(JSON.stringify(data)));
+                                        vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                                    }
+                                }
+
                             }
                             $scope.safeApply();
                         }
@@ -14870,7 +15079,7 @@ define(['js/app'], function (myApp) {
 
                 vm.rewardParams.reward.map(
                     item => {
-                        if (item.repeatWeekDay === undefined) {
+                        if (item.repeatWeekDay === undefined || item.repeatWeekDay.length === 0 ) {
                             vm.rewardParamsFilter.push(item);
                         }
                         else if (item.repeatWeekDay.includes(index)){
@@ -16567,7 +16776,7 @@ define(['js/app'], function (myApp) {
                             contentToReplace = item.code;
                             break;
                         case "M":
-                            contentToReplace = item.maxTopUpAmount;
+                            contentToReplace = item.maxRewardAmount;
                             break;
                         default:
                             break;
@@ -16775,8 +16984,8 @@ define(['js/app'], function (myApp) {
                             data: "minTopUpAmount"
                         },
                         {
-                            title: $translate('maxTopUpAmount'),
-                            data: "maxTopUpAmount"
+                            title: $translate('PROMO_maxTopUpAmount'),
+                            data: "maxRewardAmount"
                         },
                         {
                             title: $translate('PROMO_CONSUMPTION'),
@@ -20994,303 +21203,789 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-        vm.playerAdvertisementList = function () {
-            vm.playerAdvertisementRecords = {totalCount: 0};
-            utilService.actionAfterLoaded('#playerAdvertisementListTable', function () {
-                    vm.playerAdvertisementRecords.pageObj = utilService.createPageForPagingTable("#playerAdvertisementListTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "playerAdvertisementRecords", vm.getPlayerAdvertisementListByDevice)
-                    });
+            //Player advertisement
+            vm.addNewPlayerAdvertisementRecord = function() {
+                if(!vm.duplicateOrderNo && !vm.duplicateAdCode) {
+                    if(vm.playerAdvertisementGroup){
+                        let query = {
+                            platformId: vm.selectedPlatform.id,
+                            orderNo: vm.playerAdvertisementGroup.orderNo ? vm.playerAdvertisementGroup.orderNo : 0,
+                            advertisementCode: vm.playerAdvertisementGroup.advertisementCode ? vm.playerAdvertisementGroup.advertisementCode : "",
+                            title: vm.playerAdvertisementTitle ? vm.playerAdvertisementTitle : [],
+                            backgroundBannerImage: {
+                                url: vm.playerAdvertisementGroup.backgroundUrl ? vm.playerAdvertisementGroup.backgroundUrl : "",
+                                hyperLink: vm.playerAdvertisementGroup.backgroundHyperLink ? vm.playerAdvertisementGroup.backgroundHyperLink : ""
+                            },
+                            imageButton: vm.playerAdvertisementGroup.imageButton ? vm.playerAdvertisementGroup.imageButton : [],
+                            inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                        }
 
-                    vm.getPlayerAdvertisementListByDevice(true);
-            })
-        }
+                        if(query.imageButton){
+                            query.imageButton.map(b => {
+                                if(b){
+                                    if(b.url && b.url.length > 35){
+                                        b.urlDisplay = b.url.substring(0,30) + "...";
+                                    }else{
+                                        b.urlDisplay = b.url || null;
+                                    }
 
-        vm.getPlayerAdvertisementListByDevice = function (newSearch) {
-            vm.playerAdvertisementRecords.loading = true;
-            let sendData = {
-                        platformId: vm.selectedPlatform.id,
-                        inputDevice: 1
-                    };
-            console.log("Query to get player advertisement list", sendData);
-            vm.preparePlayerAdvertisementListRecords(sendData, newSearch);
-            $("#playerAdvertisementListTable").off('order.dt');
-            $("#playerAdvertisementListTable").on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'playerAdvertisementRecords', vm.getPlayerAdvertisementListByDevice);
-            });
-        };
-
-        vm.preparePlayerAdvertisementListRecords = function (queryData, newSearch) {
-            vm.playerAdvertisementListRecords = [];
-            socketService.$socket($scope.AppSocket, 'getPlayerAdvertisementList', queryData, function (data) {
-                if(data && data.length > 0){
-                    vm.playerAdvertisementListRecords = data.data.data;
-                    vm.playerAdvertisementRecords.totalCount = data.data.size;
-                    vm.playerAdvertisementRecords.loading = false;
-                    console.log('Player advertisement list record', data);
-
-                    var tableData = vm.playerAdvertisementListRecords.map(
-                        record => {
-                            record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
-                            //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                            if (record.status) {
-                                if (record.status == vm.constProposalStatus.SUCCESS) {
-                                    record.statusName = record.status ? $translate("Success") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                    if(b.hyperLink && b.hyperLink.length > 35){
+                                        b.hyperLinkDisplay = b.hyperLink.substring(0,30) + "...";
+                                    }else{
+                                        b.hyperLinkDisplay = b.hyperLink || null;
+                                    }
                                 }
-                                else if (record.status == vm.constProposalStatus.MANUAL) {
-                                    //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                                    record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                                } else {
-                                    record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                            })
+                        }
+
+                        if(query.backgroundBannerImage){
+                            if(query.backgroundBannerImage.url && query.backgroundBannerImage.url.length > 35){
+                                query.backgroundBannerImage.urlDisplay = query.backgroundBannerImage.url.substring(0,30) + "...";
+                            }else{
+                                query.backgroundBannerImage.urlDisplay = query.backgroundBannerImage.url || null;
+                            }
+
+                            if(query.backgroundBannerImage.hyperLink && query.backgroundBannerImage.hyperLink.length > 35){
+                                query.backgroundBannerImage.hyperLinkDisplay = query.backgroundBannerImage.hyperLink.substring(0,30) + "...";
+                            }else{
+                                query.backgroundBannerImage.hyperLinkDisplay = query.backgroundBannerImage.hyperLink || null;
+                            }
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'createNewPlayerAdvertisementRecord', query, function (data) {
+                            if (data) {
+                                vm.resetPlayerAddTable();
+                            }
+                        });
+                    }
+
+                }
+            }
+
+            vm.savePlayerAdvertisementRecordChanges = function(){
+                if(!vm.duplicateOrderNo && !vm.duplicateAdCode){
+                    if(vm.displayAdvertisementList){
+                        vm.displayAdvertisementList.forEach(record => {
+
+                            let sendData = record;
+
+                            if(sendData.imageButton){
+                                sendData.imageButton.map(b => {
+                                    if(b){
+                                        if(b.url && b.url.length > 35){
+                                            b.urlDisplay = b.url.substring(0,30) + "...";
+                                        }else{
+                                            b.urlDisplay = b.url || null;
+                                        }
+
+                                        if(b.hyperLink && b.hyperLink.length > 35){
+                                            b.hyperLinkDisplay = b.hyperLink.substring(0,30) + "...";
+                                        }else{
+                                            b.hyperLinkDisplay = b.hyperLink || null;
+                                        }
+                                    }
+                                })
+                            }
+
+                            if(sendData.backgroundBannerImage){
+                                if(sendData.backgroundBannerImage.url && sendData.backgroundBannerImage.url.length > 35){
+                                    sendData.backgroundBannerImage.urlDisplay = sendData.backgroundBannerImage.url.substring(0,30) + "...";
+                                }else{
+                                    sendData.backgroundBannerImage.urlDisplay = sendData.backgroundBannerImage.url || null;
+                                }
+
+                                if(sendData.backgroundBannerImage.hyperLink && sendData.backgroundBannerImage.hyperLink.length > 35){
+                                    sendData.backgroundBannerImage.hyperLinkDisplay = sendData.backgroundBannerImage.hyperLink.substring(0,30) + "...";
+                                }else{
+                                    sendData.backgroundBannerImage.hyperLinkDisplay = sendData.backgroundBannerImage.hyperLink || null;
                                 }
                             }
-                            record.playerId = (record.data && record.data.playerId) ? record.data.playerId : "";
-                            record.name = (record.data && record.data.name) ? record.data.name : "";
-                            record.realName = (record.data && record.data.realName) ? record.data.realName : "";
-                            record.combinedArea = (record.data && (record.data.phoneProvince && record.data.phoneCity)) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
-                            record.topUpTimes = (record.data && record.data.topUpTimes) ? record.data.topUpTimes : 0;
-                            record.smsCode = (record.data && record.data.smsCode) ? record.data.smsCode : "";
-                            record.remarks = (record.data && record.data.remarks) ? record.data.remarks : "";
-                            record.device = (record.inputDevice != "undefined" && record.inputDevice != "null") ? $translate($scope.constPlayerRegistrationInterface[record.inputDevice]) : "";
-                            record.promoteWay = (record.data && record.data.promoteWay) ? record.data.promoteWay : "";
-                            record.csOfficer = (record.data && record.data.csOfficer) ? record.data.csOfficer : "";
-                            record.registrationTime = (record.data && record.data.registrationTime) ? vm.dateReformat(record.data.registrationTime) : "";
-                            record.proposalId = (record.data && record.proposalId) ? record.proposalId : "";
-                            record.ipAreaName = (record.data && record.data.ipArea) ? vm.getIpAreaName(record.data.ipArea) : '';
-                            return record
+
+                            socketService.$socket($scope.AppSocket, 'savePlayerAdvertisementRecordChanges', sendData, function (data) {
+                                //do nothing
+                            });
+
+                            vm.editAdvertisementRecord=false;
+                            vm.showAdvertisementRecord=true;
+                        });
+                    }
+
+                }
+            }
+
+            vm.deletePlayerAdvertisementRecord = function(advertisementId) {
+                if(advertisementId){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        advertisementId: advertisementId,
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'deleteAdvertisementRecord', sendData);
+                }
+            }
+
+            vm.playerAdvertisementList = function () {
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlayerAdvertisementList', sendData, function (data) {
+                    console.log("player advertisement list",data);
+                    if(data && data.data){
+
+                        data.data.map(d => {
+                            if(d){
+                                if(d.backgroundBannerImage){
+                                    if(d.backgroundBannerImage.url && d.backgroundBannerImage.url.length > 35){
+                                        d.backgroundBannerImage.urlDisplay = d.backgroundBannerImage.url.substring(0,30) + "...";
+                                    }else{
+                                        d.backgroundBannerImage.urlDisplay = d.backgroundBannerImage.url || null;
+                                    }
+
+                                    if(d.backgroundBannerImage.hyperLink && d.backgroundBannerImage.hyperLink.length > 35){
+                                        d.backgroundBannerImage.hyperLinkDisplay = d.backgroundBannerImage.hyperLink.substring(0,30) + "...";
+                                    }else{
+                                        d.backgroundBannerImage.hyperLinkDisplay = d.backgroundBannerImage.hyperLink || null;
+                                    }
+                                }
+
+                                d.status = d.status == vm.playerAdvertisementStatus["OPEN"] ? d.status : vm.playerAdvertisementStatus["CLOSE"];
+                            }
+                        })
+
+                        vm.displayAdvertisementList = data.data;
+
+                        $scope.safeApply();
+                    }
+                });
+            }
+
+            vm.selectedAdvListData = function (id,subject) {
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    _id: id,
+                    subject: subject
+                };
+
+                socketService.$socket($scope.AppSocket, 'getSelectedAdvList', sendData, function (data) {
+
+                    if(data && data.data){
+                        vm.selectedAdvList = data.data;
+                        vm.hoverStyle = document.createElement('style');
+                        vm.drawUIPlatformCSS(vm.selectedAdvList);
+                        console.log("vm.selectedAdvList", vm.selectedAdvList);
+                        vm.CSSContentEdit = false;
+                        $scope.safeApply();
+                    }
+                    else {
+                        Q.reject('Advertisement List is not found.');}
+                });
+
+            };
+
+            vm.drawUIPlatformCSS = function (elem) {
+                // generate the css
+                if (vm.hoverStyle) {
+                    vm.hoverStyle.innerHTML = "";
+
+                    if (vm.hoverStyle.styleSheet) {
+                        vm.hoverStyle.styleSheet.cssText = '';
+                    }
+                    else {
+                        vm.hoverStyle.appendChild(document.createTextNode(''));
+                    }
+
+                    let temp = '';
+                    elem.imageButton.forEach(item => {
+                        let css = '#' + item.buttonName + "{" + item.css + "}";
+                        temp += css;
+                    });
+
+                    elem.imageButton.forEach(item => {
+                        let css = '#' + item.buttonName + item.hoverCss;
+                        temp += css;
+
+                    });
+                    vm.hoverStyle.appendChild(document.createTextNode(temp));
+                    document.getElementsByTagName('head')[0].appendChild(vm.hoverStyle);
+                    $scope.safeApply();
+                }
+            };
+
+            vm.advSettingUpdate = function(elem, subject){
+                if(elem){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: elem._id,
+                        imageButton: elem.imageButton,
+                        subject: subject
+                    };
+                    socketService.$socket($scope.AppSocket, 'updateAdvertisementRecord', sendData, function (data) {
+                    });
+                }
+            };
+
+            vm.changeAdvertisementStatus= function(advertisementId, advertisementStatus){
+                if(advertisementId){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                        status: advertisementStatus ? advertisementStatus : 0
+                    }
+                    socketService.$socket($scope.AppSocket, 'changeAdvertisementStatus', sendData, function (data) {
+                        //do nothing
+                    });
+                }
+            }
+
+            vm.checkDuplicateOrderNoWithId = function(orderNo, advertisementId){
+                if(advertisementId){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                        orderNo: orderNo,
+                        inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                    }
+                    socketService.$socket($scope.AppSocket, 'checkDuplicateOrderNoWithId', sendData, function (data) {
+                        if(data && data.data){
+                            vm.duplicateOrderNo = true;
+                            vm.errMessage = "Order no is duplicated";
+                            $scope.safeApply();
+                        }else{
+                            vm.duplicateOrderNo = false;
+                            vm.errMessage = "";
+                            $scope.safeApply();
                         }
-                    );
-                    var tableData = vm.playerAdvertisementListRecords;
-                    var option = $.extend({}, vm.generalDataTableOptions, {
-                        data: tableData,
-                        aoColumnDefs: [
-                            {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                            {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
-                            {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
-                            {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
-                            {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
-                            {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
-                            {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
-                            {'sortCol': 'remarks', bSortable: true, 'aTargets': [9]},
-                            {'sortCol': 'device', bSortable: true, 'aTargets': [10]},
-                            {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [12]},
-                            {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
-                        ],
-                        columns: [
-                            // {title: $translate('PROPOSAL_ID'), data: "proposalId"},
-                            {
-                                title: $translate('proposalId'),
-                                data: "proposalId",
-                                render: function (data, type, row) {
-
-                                    var link = $('<a>', {
-                                        'ng-click': 'vm.editNewplayerRemark=false;vm.showNewPlayerModal(' + JSON.stringify(row) + ',2)'
-                                    }).text(data);
-                                    return link.prop('outerHTML');
-                                }
-                            },
-                            {title: $translate('PLAYERNAME'), data: "name"},
-                            {title: $translate('STATUS'), data: "statusName"},
-                            {title: $translate('SENT TIME'), data: "createTime"},
-                            {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
-                            {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
-                            {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
-                            {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
-                            {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
-                            {title: $translate('REMARKS'), data: "remarks"},
-                            {title: $translate('DEVICE'), data: "device"},
-                            {
-                                title: $translate('Function'),
-                                data: "data.phoneNumber",
-                                advSearch: true,
-                                "sClass": "",
-                                render: function (data, type, row) {
-                                    data = data || '';
-                                    //var playerObjId = row.data._id ? row.data._id : "";
-                                    let displayTXT = '';
-                                    let action = '';
-                                    var link = $('<div>', {});
-
-                                    if (row.data.phoneNumber && row.data.phoneNumber != "") {
-                                        link.append($('<div>', {
-                                            'class': 'fa fa-volume-control-phone',
-                                            'ng-click': 'vm.callNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
-                                            'title': $translate("PHONE")
-                                        }));
-                                        link.append($('<div>', {
-                                            'class': 'fa fa-comment',
-                                            'style': 'padding-left:15px',
-                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');vm.initSMSModal();',
-                                            'title': $translate("SMS")
-                                        }));
-                                    }
-
-                                    if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL) {
-                                        displayTXT = $translate('CREATE_NEW_PLAYER');
-                                        action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
-                                        link.append($('<div>', {
-                                            'class': 'fa fa-user-plus',
-                                            'style': 'padding-left:15px',
-                                            'ng-click': action,
-                                            'title': $translate(displayTXT)
-                                        }));
-
-                                    } else {
-                                        displayTXT = $translate('FEEDBACK');
-                                        action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
-                                        $('#modalAddPlayerFeedback').css('z-Index', 1051);
-                                        link.append($('<div>', {
-                                            'class': 'fa fa-commenting',
-                                            'style': 'padding-left:15px',
-                                            'data-row': JSON.stringify(row),
-                                            'data-toggle': 'modal',
-                                            'data-target': '#modalAddPlayerFeedback',
-                                            'ng-click': action,
-                                            'title': $translate(displayTXT)
-                                        }));
-                                    }
-
-                                    return link.prop('outerHTML')
-                                }
-                            },
-
-                            {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
-                            {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
-                        ],
-                        bSortClasses: false,
-                        destroy: true,
-                        paging: false,
-                        autoWidth: true,
-                        initComplete: function (data, type, row) {
-                            $scope.safeApply();
-                        },
-                        createdRow: function (row, data, dataIndex) {
-                            $compile(angular.element(row).contents())($scope);
-
-                        },
-                        fnRowCallback: vm.playerListTableRow
                     });
-                    var a = utilService.createDatatableWithFooter('#playerAdvertisementListTable', option, {});
-                    vm.playerAdvertisementRecords.pageObj.init({maxCount: vm.playerAdvertisementRecords.totalCount}, newSearch);
-                    setTimeout(function () {
-                        $('#playerAdvertisementListTable').resize();
-                    }, 300);
+                }
+
+            }
+            
+            vm.checkDuplicateAdCodeWithId = function(advertisementCode, advertisementId){
+                if(advertisementId && advertisementCode) {
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                        advertisementCode: advertisementCode,
+                        inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                    }
+                    socketService.$socket($scope.AppSocket, 'checkDuplicateAdCodeWithId', sendData, function (data) {
+                        if (data && data.data) {
+                            vm.duplicateAdCode = true;
+                            vm.errMessage = "Advertisement code is duplicated";
+                            $scope.safeApply();
+                        } else {
+                            vm.duplicateAdCode = false;
+                            vm.errMessage = "";
+                            $scope.safeApply();
+                        }
+                    });
+                }
+            }
+
+        vm.checkDuplicateOrderNo = function(orderNo){
+            let sendData = {
+                platformId: vm.selectedPlatform.id,
+                orderNo: orderNo,
+                inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+            }
+            socketService.$socket($scope.AppSocket, 'checkDuplicateOrderNo', sendData, function (data) {
+                if(data && data.data){
+                    vm.duplicateOrderNo = true;
+                    vm.errMessage = "Order no is duplicated";
+                    $scope.safeApply();
                 }else{
-                    vm.playerAdvertisementRecords.totalCount = 0;
-                    vm.playerAdvertisementRecords.loading = false;
-                    var option = $.extend({}, vm.generalDataTableOptions, {
-                        //data: tableData,
-                        aoColumnDefs: [
-                            {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                            {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
-                            {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
-                            {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
-                        ],
-                        columns: [
-                            // {title: $translate('PROPOSAL_ID'), data: "proposalId"},
-                            {
-                                title: $translate('Display Order'),
-                                data: "proposalId",
-                                render: function (data, type, row) {
-
-                                    var link = $('<a>', {
-                                        'ng-click': 'vm.editNewplayerRemark=false;vm.showNewPlayerModal(' + JSON.stringify(row) + ',2)'
-                                    }).text(data);
-                                    return link.prop('outerHTML');
-                                }
-                            },
-                            {title: $translate('ADVERTISEMENT CODE (CANNOT REPEAT)'), data: "name"},
-                            {title: $translate('BANNER TITLE'), data: "statusName"},
-                            {title: $translate('DISPLAY BACKGROUND IMAGE'), data: "createTime"},
-                            {title: $translate('BANNER LINK BUTTON'), data: "registrationTime"},
-                            {title: $translate('ACTION_BUTTON'), data: "ipAreaName"},
-                            // {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
-                            // {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
-                            // {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
-                            // {title: $translate('REMARKS'), data: "remarks"},
-                            // {title: $translate('DEVICE'), data: "device"},
-                            // {
-                            //     title: $translate('Function'),
-                            //     data: "data.phoneNumber",
-                            //     advSearch: true,
-                            //     "sClass": "",
-                            //     render: function (data, type, row) {
-                            //         data = data || '';
-                            //         //var playerObjId = row.data._id ? row.data._id : "";
-                            //         let displayTXT = '';
-                            //         let action = '';
-                            //         var link = $('<div>', {});
-                            //
-                            //         if (row.data.phoneNumber && row.data.phoneNumber != "") {
-                            //             link.append($('<div>', {
-                            //                 'class': 'fa fa-volume-control-phone',
-                            //                 'ng-click': 'vm.callNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
-                            //                 'title': $translate("PHONE")
-                            //             }));
-                            //             link.append($('<div>', {
-                            //                 'class': 'fa fa-comment',
-                            //                 'style': 'padding-left:15px',
-                            //                 'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');vm.initSMSModal();',
-                            //                 'title': $translate("SMS")
-                            //             }));
-                            //         }
-                            //
-                            //         if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL) {
-                            //             displayTXT = $translate('CREATE_NEW_PLAYER');
-                            //             action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
-                            //             link.append($('<div>', {
-                            //                 'class': 'fa fa-user-plus',
-                            //                 'style': 'padding-left:15px',
-                            //                 'ng-click': action,
-                            //                 'title': $translate(displayTXT)
-                            //             }));
-                            //
-                            //         } else {
-                            //             displayTXT = $translate('FEEDBACK');
-                            //             action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
-                            //             $('#modalAddPlayerFeedback').css('z-Index', 1051);
-                            //             link.append($('<div>', {
-                            //                 'class': 'fa fa-commenting',
-                            //                 'style': 'padding-left:15px',
-                            //                 'data-row': JSON.stringify(row),
-                            //                 'data-toggle': 'modal',
-                            //                 'data-target': '#modalAddPlayerFeedback',
-                            //                 'ng-click': action,
-                            //                 'title': $translate(displayTXT)
-                            //             }));
-                            //         }
-                            //
-                            //         return link.prop('outerHTML')
-                            //     }
-                            // },
-                            //
-                            // {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
-                            // {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
-                        ],
-                        bSortClasses: false,
-                        destroy: true,
-                        paging: false,
-                        autoWidth: true,
-                        initComplete: function (data, type, row) {
-                            $scope.safeApply();
-                        },
-                        createdRow: function (row, data, dataIndex) {
-                            $compile(angular.element(row).contents())($scope);
-
-                        },
-                        fnRowCallback: vm.playerListTableRow
-                    });
-                    var a = utilService.createDatatableWithFooter('#playerAdvertisementListTable', option, {});
-                    vm.playerAdvertisementRecords.pageObj.init({maxCount: vm.playerAdvertisementRecords.totalCount}, newSearch);
-                    setTimeout(function () {
-                        $('#playerAdvertisementListTable').resize();
-                    }, 300);
+                    vm.duplicateOrderNo = false;
+                    vm.errMessage = "";
+                    $scope.safeApply();
                 }
             });
-        };
+        }
+
+        vm.checkDuplicateAdCode = function(advertisementCode){
+            if(advertisementCode){
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    advertisementCode: advertisementCode,
+                    inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                }
+                socketService.$socket($scope.AppSocket, 'checkDuplicateAdCode', sendData, function (data) {
+                    if(data && data.data){
+                        vm.duplicateAdCode = true;
+                        vm.errMessage = "Advertisement code is duplicated";
+                        $scope.safeApply();
+                    }else{
+                        vm.duplicateAdCode = false;
+                        vm.errMessage = "";
+                        $scope.safeApply();
+                    }
+                });
+            }
+        }
+
+            vm.setNewImageButtonName = function(){
+                let buttonNo = vm.currentImageButtonNo + 1;
+                vm.playerAdvertisementGroup.imageButton.push(
+                    {
+                        buttonNo: buttonNo,
+                        buttonName: 'activityBtn' + buttonNo,
+                        url: '',
+                        hyperLink: '',
+                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                        hoverCss: ":hover{width:500px;}"
+                    }
+                );
+
+                vm.currentImageButtonNo += 1;
+            }
+
+            vm.getExistingMaxButonNo = function(advertisementId){
+                // let buttonNo = vm.currentImageButtonNo + 1;
+                // vm.playerAdvertisementGroup.imageButton.push(
+                //     {
+                //         buttonNo: buttonNo,
+                //         buttonName: 'activityBtn' + buttonNo,
+                //         url: '',
+                //         hyperLink: '',
+                //         css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                //         hoverCss: ":hover{width:500px;}"
+                //     }
+                // );
+                //
+                // vm.currentImageButtonNo += 1;
+
+                if(advertisementId){
+                    let sendData= {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId
+                    }
+                    vm.existingButtonNo = 1;
+
+                    socketService.$socket($scope.AppSocket, 'getAdvertisementRecordById', sendData, function (data) {
+                        if(data && data.data){
+                            if(data.data.imageButton){
+                                data.data.imageButton.forEach(b => {
+                                    if(b.buttonNo > vm.existingButtonNo){
+                                        vm.existingButtonNo = b.buttonNo + 1;
+                                    }
+                                })
+
+                            }
+                        }
+                        $scope.safeApply();
+                        return vm.addedButtonName + vm.existingButtonNo;
+
+                    });
+                }
+            },
+
+            vm.getNextOrderNo = function() {
+                let sendData= {
+                    platformId: vm.selectedPlatform.id,
+                    inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                }
+
+                socketService.$socket($scope.AppSocket, 'getNextOrderNo', sendData, function (data) {
+                    if(data && data.data){
+                        if(data.data.hasOwnProperty("orderNo")){
+                            vm.playerAdvertisementGroup.orderNo = data.data.orderNo + 1;
+
+                            $scope.safeApply();
+                        }
+                    }
+                });
+
+
+            }
+
+            vm.resetPlayerAddTable = function(){
+                //reset the adding table
+                vm.addNewPlayerAdvertisement = false;
+                vm.currentImageButtonNo = 2;
+                vm.playerAdvertisementGroup = [];
+                vm.playerAdvertisementTitle = [];
+                vm.playerAdvertisementGroup.imageButton = [
+                    {
+                        buttonNo: 1,
+                        buttonName: "activityBtn1",
+                        url:"",
+                        hyperLink: "",
+                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                        hoverCss: ":hover{width:500px;}"
+                    },
+                    {
+                        buttonNo: 2,
+                        buttonName: "activityBtn2",
+                        url:"",
+                        hyperLink: "",
+                        css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                        hoverCss: ":hover{width:500px;}"
+                    }
+                ];
+
+                $scope.safeApply();
+            }
+
+            //Partner Advertisement
+            vm.addNewPartnerAdvertisementRecord = function() {
+                if(!vm.duplicatePartnerOrderNo && !vm.duplicatePartnerAdCode) {
+                    if(vm.partnerAdvertisementGroup){
+                        let query = {
+                            platformId: vm.selectedPlatform.id,
+                            orderNo: vm.partnerAdvertisementGroup.orderNo ? vm.partnerAdvertisementGroup.orderNo : 0,
+                            advertisementCode: vm.partnerAdvertisementGroup.advertisementCode ? vm.partnerAdvertisementGroup.advertisementCode : "",
+                            title: vm.partnerAdvertisementTitle ? vm.partnerAdvertisementTitle : [],
+                            backgroundBannerImage: {
+                                url: vm.partnerAdvertisementGroup.backgroundUrl ? vm.partnerAdvertisementGroup.backgroundUrl : "",
+                                hyperLink: vm.partnerAdvertisementGroup.backgroundHyperLink ? vm.partnerAdvertisementGroup.backgroundHyperLink : ""
+                            },
+                            imageButton: vm.partnerAdvertisementGroup.imageButton ? vm.partnerAdvertisementGroup.imageButton : [],
+                            inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                        }
+
+                        if(query.imageButton){
+                            query.imageButton.map(b => {
+                                if(b){
+                                    if(b.url && b.url.length > 35){
+                                        b.urlDisplay = b.url.substring(0,30) + "...";
+                                    }else{
+                                        b.urlDisplay = b.url || null;
+                                    }
+
+                                    if(b.hyperLink && b.hyperLink.length > 35){
+                                        b.hyperLinkDisplay = b.hyperLink.substring(0,30) + "...";
+                                    }else{
+                                        b.hyperLinkDisplay = b.hyperLink || null;
+                                    }
+                                }
+                            })
+                        }
+
+                        if(query.backgroundBannerImage){
+                            if(query.backgroundBannerImage.url && query.backgroundBannerImage.url.length > 35){
+                                query.backgroundBannerImage.urlDisplay = query.backgroundBannerImage.url.substring(0,30) + "...";
+                            }else{
+                                query.backgroundBannerImage.urlDisplay = query.backgroundBannerImage.url || null;
+                            }
+
+                            if(query.backgroundBannerImage.hyperLink && query.backgroundBannerImage.hyperLink.length > 35){
+                                query.backgroundBannerImage.hyperLinkDisplay = query.backgroundBannerImage.hyperLink.substring(0,30) + "...";
+                            }else{
+                                query.backgroundBannerImage.hyperLinkDisplay = query.backgroundBannerImage.hyperLink || null;
+                            }
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'createNewPartnerAdvertisementRecord', query, function (data) {
+                            if (data) {
+                                vm.resetPartnerAddTable();
+                            }
+                        });
+                    }
+
+                }
+            }
+
+            vm.savePartnerAdvertisementRecordChanges = function(){
+                if(!vm.duplicatePartnerOrderNo && !vm.duplicatePartnerAdCode){
+                    if(vm.displayPartnerAdvertisementList){
+                        vm.displayPartnerAdvertisementList.forEach(record => {
+
+                            let sendData = record;
+
+                            if(sendData.imageButton){
+                                sendData.imageButton.map(b => {
+                                    if(b){
+                                        if(b.url && b.url.length > 35){
+                                            b.urlDisplay = b.url.substring(0,30) + "...";
+                                        }else{
+                                            b.urlDisplay = b.url || null;
+                                        }
+
+                                        if(b.hyperLink && b.hyperLink.length > 35){
+                                            b.hyperLinkDisplay = b.hyperLink.substring(0,30) + "...";
+                                        }else{
+                                            b.hyperLinkDisplay = b.hyperLink || null;
+                                        }
+                                    }
+                                })
+                            }
+
+                            if(sendData.backgroundBannerImage){
+                                if(sendData.backgroundBannerImage.url && sendData.backgroundBannerImage.url.length > 35){
+                                    sendData.backgroundBannerImage.urlDisplay = sendData.backgroundBannerImage.url.substring(0,30) + "...";
+                                }else{
+                                    sendData.backgroundBannerImage.urlDisplay = sendData.backgroundBannerImage.url || null;
+                                }
+
+                                if(sendData.backgroundBannerImage.hyperLink && sendData.backgroundBannerImage.hyperLink.length > 35){
+                                    sendData.backgroundBannerImage.hyperLinkDisplay = sendData.backgroundBannerImage.hyperLink.substring(0,30) + "...";
+                                }else{
+                                    sendData.backgroundBannerImage.hyperLinkDisplay = sendData.backgroundBannerImage.hyperLink || null;
+                                }
+                            }
+
+                            socketService.$socket($scope.AppSocket, 'savePartnerAdvertisementRecordChanges', sendData, function (data) {
+                                //do nothing
+                            });
+
+                            vm.editPartnerAdvertisementRecord=false;
+                            vm.showPartnerAdvertisementRecord=true;
+                        });
+                    }
+                }
+            }
+
+            vm.deletePartnerAdvertisementRecord = function(advertisementId) {
+                if(advertisementId){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        advertisementId: advertisementId,
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'deletePartnerAdvertisementRecord', sendData);
+                }
+            }
+
+            vm.partnerAdvertisementList = function () {
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPartnerAdvertisementList', sendData, function (data) {
+                    console.log("partner advertisement list",data);
+                    if(data && data.data){
+
+                        data.data.map(d => {
+                            if(d){
+                                if(d.backgroundBannerImage){
+                                    if(d.backgroundBannerImage.url && d.backgroundBannerImage.url.length > 35){
+                                        d.backgroundBannerImage.urlDisplay = d.backgroundBannerImage.url.substring(0,30) + "...";
+                                    }else{
+                                        d.backgroundBannerImage.urlDisplay = d.backgroundBannerImage.url || null;
+                                    }
+
+                                    if(d.backgroundBannerImage.hyperLink && d.backgroundBannerImage.hyperLink.length > 35){
+                                        d.backgroundBannerImage.hyperLinkDisplay = d.backgroundBannerImage.hyperLink.substring(0,30) + "...";
+                                    }else{
+                                        d.backgroundBannerImage.hyperLinkDisplay = d.backgroundBannerImage.hyperLink || null;
+                                    }
+                                }
+
+                                d.status = d.status == vm.playerAdvertisementStatus["OPEN"] ? d.status : vm.playerAdvertisementStatus["CLOSE"];
+                            }
+                        })
+
+                        vm.displayPartnerAdvertisementList = data.data;
+
+                        $scope.safeApply();
+                    }
+                });
+            };
+
+            vm.changePartnerAdvertisementStatus= function(advertisementId, advertisementStatus){
+                if(advertisementId){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                        status: advertisementStatus
+                    }
+                    socketService.$socket($scope.AppSocket, 'changePartnerAdvertisementStatus', sendData, function (data) {
+                        //do nothing
+                    });
+                }
+            }
+
+            vm.checkPartnerDuplicateOrderNoWithId = function(orderNo, advertisementId){
+                if(advertisementId){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                        orderNo: orderNo,
+                        inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                    }
+                    socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateOrderNoWithId', sendData, function (data) {
+                        if(data && data.data){
+                            vm.duplicateOrderNo = true;
+                            vm.errMessage = "Order no is duplicated";
+                            $scope.safeApply();
+                        }else{
+                            vm.duplicateOrderNo = false;
+                            vm.errMessage = "";
+                            $scope.safeApply();
+                        }
+                    });
+                }
+            }
+
+            vm.checkPartnerDuplicateAdCodeWithId = function(advertisementCode, advertisementId){
+                if(advertisementId && advertisementCode) {
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                        advertisementCode: advertisementCode,
+                        inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                    }
+                    socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateAdCodeWithId', sendData, function (data) {
+                        if (data && data.data) {
+                            vm.duplicateAdCode = true;
+                            vm.errMessage = "Advertisement code is duplicated";
+                            $scope.safeApply();
+                        } else {
+                            vm.duplicateAdCode = false;
+                            vm.errMessage = "";
+                            $scope.safeApply();
+                        }
+                    });
+                }
+            }
+
+            vm.checkPartnerDuplicateOrderNo = function(orderNo){
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    orderNo: orderNo,
+                    inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                }
+                socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateOrderNo', sendData, function (data) {
+                    if(data && data.data){
+                        vm.duplicateOrderNo = true;
+                        vm.errMessage = "Order no is duplicated";
+                        $scope.safeApply();
+                    }else{
+                        vm.duplicateOrderNo = false;
+                        vm.errMessage = "";
+                        $scope.safeApply();
+                    }
+                });
+            };
+
+
+
+
+
+
+            vm.checkPartnerDuplicateAdCode = function(advertisementCode){
+                if(advertisementCode){
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        advertisementCode: advertisementCode,
+                        inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                    }
+                    socketService.$socket($scope.AppSocket, 'checkPartnerDuplicateAdCode', sendData, function (data) {
+                        if(data && data.data){
+                            vm.duplicateAdCode = true;
+                            vm.errMessage = "Advertisement code is duplicated";
+                            $scope.safeApply();
+                        }else{
+                            vm.duplicateAdCode = false;
+                            vm.errMessage = "";
+                            $scope.safeApply();
+                        }
+                    });
+                }
+            }
+
+            vm.setPartnerNewImageButtonName = function(){
+                let buttonNo = vm.currentImageButtonNo + 1;
+                vm.partnerAdvertisementGroup.imageButton.push(
+                    {
+                        buttonNo: buttonNo,
+                        buttonName: 'activityBtn' + buttonNo,
+                        url: '',
+                        hyperLink: '',
+                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                        hoverCss: ":hover{width:500px;}"
+                    }
+                );
+
+                vm.currentImageButtonNo += 1;
+            }
+
+            vm.getPartnerExistingMaxButonNo = function(advertisementId){
+                // let buttonNo = vm.currentImageButtonNo + 1;
+                // vm.playerAdvertisementGroup.imageButton.push(
+                //     {
+                //         buttonNo: buttonNo,
+                //         buttonName: 'activityBtn' + buttonNo,
+                //         url: '',
+                //         hyperLink: '',
+                //         css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                //         hoverCss: ":hover{width:500px;}"
+                //     }
+                // );
+                //
+                // vm.currentImageButtonNo += 1;
+                if(advertisementId){
+                    let sendData= {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId
+                    }
+                    vm.existingPartnerButtonNo = 1;
+
+                    socketService.$socket($scope.AppSocket, 'getPartnerAdvertisementRecordById', sendData, function (data) {
+                        if(data && data.data){
+                            if(data.data.imageButton){
+                                data.data.imageButton.forEach(b => {
+                                    if(b.buttonNo > vm.existingButtonNo){
+                                        vm.existingButtonNo = b.buttonNo + 1;
+                                    }
+                                })
+
+                            }
+                        }
+                        $scope.safeApply();
+                        return vm.addedPartnerButtonName + vm.existingPartnerButtonNo;
+
+                    });
+                }
+            },
+
+            vm.getPartnerNextOrderNo = function() {
+                let sendData= {
+                    platformId: vm.selectedPlatform.id,
+                    inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                }
+
+                socketService.$socket($scope.AppSocket, 'getPartnerNextOrderNo', sendData, function (data) {
+                    if(data && data.data){
+                        if(data.data.hasOwnProperty("orderNo")){
+                            vm.partnerAdvertisementGroup.orderNo = data.data.orderNo + 1;
+
+                            $scope.safeApply();
+                        }
+                    }
+                });
+            }
+
+            vm.resetPartnerAddTable = function(){
+                //reset the adding table
+                vm.addNewPartnerAdvertisement = false;
+                vm.currentPartnerImageButtonNo = 2;
+                vm.partnerAdvertisementGroup = [];
+                vm.partnerAdvertisementTitle = [];
+                vm.partnerAdvertisementGroup.imageButton = [
+                    {
+                        buttonNo: 1,
+                        buttonName: "activityBtn1",
+                        url:"",
+                        hyperLink: "",
+                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                        hoverCss: ":hover{width:500px;}"
+                    },
+                    {
+                        buttonNo: 2,
+                        buttonName: "activityBtn2",
+                        url:"",
+                        hyperLink: "",
+                        css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
+                        hoverCss: ":hover{width:500px;}"
+                    }
+                ];
+
+                $scope.safeApply();
+            }
 
             vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);
 

@@ -44,11 +44,33 @@
 
 ////////////////// End - Init Data if running on server /////////////////
 
+    proto.applyRewardPoint = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardPointsService.applyRewardPoint.request(data);
+        this.rewardPointsService.applyRewardPoint.once(callback);
+    };
+
     proto.getLoginRewardPoints = function (callback, requestData) {
         let data = requestData || {};
 
         this.rewardPointsService.getLoginRewardPoints.request(data);
         this.rewardPointsService.getLoginRewardPoints.once(callback);
+    };
+
+
+    proto.getGameRewardPoints = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardPointsService.getGameRewardPoints.request(data);
+        this.rewardPointsService.getGameRewardPoints.once(callback);
+	};
+	
+    proto.getTopUpRewardPointsEvent = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardPointsService.getTopUpRewardPointsEvent.request(data);
+        this.rewardPointsService.getTopUpRewardPointsEvent.once(callback);
     };
 
     proto.getRewardPointsRanking = function (callback, requestData) {
