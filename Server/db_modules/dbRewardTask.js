@@ -394,16 +394,19 @@ const dbRewardTask = {
             })
             .then(data => {
                 let createTime = data[0].createTime ? data[0].createTime :null;
+                if(!createTime){
+                    createTime = new Date(query.from);
+                }
                 var rewardTaskProposalQuery = {
                     'data.playerObjId': ObjectId(query.playerId),
                     'data.platformId': ObjectId(query.platformId),
                     'data.providerGroup': query._id
                 }
 
-                if(!query._id){
-                    rewardTaskProposalQuery.mainType = 'TopUp';
-                    //selected the new period from last second to endData;
-                    let lastSecond = new Date(createTime).getTime() - (1*1000);
+                if (!query._id) {
+                    rewardTaskProposalQuery.mainType = {$in: [constMainType.TOP_UP, constMainType.REWARD]};
+                    //selected the new period from 30ms  to endData;
+                    let lastSecond = new Date(createTime).getTime() - (1 * 30);
                     rewardTaskProposalQuery.createTime = {
                         $gte: new Date(lastSecond),
                         $lt: new Date(query.to)
