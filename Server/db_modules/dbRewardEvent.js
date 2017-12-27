@@ -3,12 +3,15 @@ var Q = require("q");
 var constRewardPriority = require('./../const/constRewardPriority');
 var constRewardType = require('./../const/constRewardType');
 var constProposalType = require('./../const/constProposalType');
+const constSystemParam = require("./../const/constSystemParam");
 const constGameStatus = require('./../const/constGameStatus');
 
 let cpmsAPI = require("../externalAPI/cpmsAPI");
 let SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 let dbUtil = require('../modules/dbutility');
+let dbPlayerInfo = require("../db_modules/dbPlayerInfo");
+let errorUtils = require("../modules/errorUtils");
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -463,8 +466,113 @@ var dbRewardEvent = {
                 }
             }
         );
-    }
+    },
+
+    startPlatformRTGEventSettlement: function (platformObjId, eventCode) {
+        let applyTargetDate;
+
+        let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+ 
+        let eventProm = dbconfig.collection_rewardEvent.findOne({code: eventCode}).lean();
+
+        return Promise.all([platformProm, eventProm]).then(
+            data => {
+                if (!data) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Error in getting ID"
+                    });
+                }
+
+                let platform = data[0];
+                let event = data[1];
+
+                if (!platform) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Cannot find platform"
+                    });
+                }
+
+                if (!event) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Error in getting rewardEvent"
+                    });
+                }
+
+                if (event && event.condition && ["1", "2", "3", "4"].includes(event.condition.interval)) {
+                    let currentPeriodStartTime = getIntervalPeriodFromEvent(event).startTime;
+                    applyTargetDate = currentPeriodStartTime.setMinutes(currentPeriodStartTime.getMinutes() - 10);
+                }
+                else if (event.validStartTime && event.validEndTime) {
+                    let validEndTime = new Date(event.validEndTime);
+                    applyTargetDate = validEndTime.setMinutes(validEndTime.getMinutes() - 10);
+                }
+
+                let stream = dbconfig.collection_players.find({platform: platformObjId}).cursor({batchSize: 10});
+
+                let balancer = new SettlementBalancer();
+                return balancer.initConns().then(function () {
+                    return Q(
+                        balancer.processStream(
+                            {
+                                stream: stream,
+                                batchSize: constSystemParam.BATCH_SIZE,
+                                makeRequest: function (players, request) {
+                                    request("player", "bulkPlayerApplyReward", {
+                                        playerIdArray: players.map(function (playerIdObj) {
+                                            return playerIdObj.playerId;
+                                        }),
+                                        eventCode,
+                                        applyTargetDate
+                                    });
+                                }
+                            }
+                        )
+                    );
+                });
+            }
+        );
+    },
+
+    bulkPlayerApplyReward: function (playerIdArray, eventCode, applyTargetDate) {
+        let proms = [];
+        for (let i = 0; i < playerIdArray.length; i++) {
+            let prom = dbPlayerInfo.applyRewardEvent(0, playerIdArray[i], eventCode, {applyTargetDate}).catch(errorUtils.reportError);
+            proms.push(prom);
+        }
+
+        return Promise.all(proms);
+    },
 
 };
 
 module.exports = dbRewardEvent;
+
+function getIntervalPeriodFromEvent(event, applyTargetTime) {
+    let intervalTime = dbUtil.getTodaySGTime();
+    if (event && event.condition) {
+        switch (event.condition.interval) {
+            case "1":
+                intervalTime = applyTargetTime ? dbUtil.getDayTime(applyTargetTime) : dbUtil.getTodaySGTime();
+                break;
+            case "2":
+                intervalTime = applyTargetTime ? dbUtil.getWeekTime(applyTargetTime) : dbUtil.getCurrentWeekSGTime();
+                break;
+            case "3":
+                intervalTime = applyTargetTime ? dbUtil.getBiWeekSGTIme(applyTargetTime) : dbUtil.getCurrentBiWeekSGTIme();
+                break;
+            case "4":
+                intervalTime = applyTargetTime ? dbUtil.getMonthSGTIme(applyTargetTime) : dbUtil.getCurrentMonthSGTIme();
+                break;
+            default:
+                if (event.validStartTime && event.validEndTime) {
+                    intervalTime = {startTime: event.validStartTime, endTime: event.validEndTime};
+                }
+                break;
+        }
+    }
+
+    return intervalTime;
+}
