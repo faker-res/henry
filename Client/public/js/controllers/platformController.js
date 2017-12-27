@@ -10783,6 +10783,13 @@ define(['js/app'], function (myApp) {
                         return item.providerGroup._id == id;
                     }
                 });
+
+                if(!id){
+                    vm.dynRewardTaskGroupId = vm.rewardTaskGroupDetails.filter(item => {
+                            return !item.providerGroup && item.status == 'Started';
+                    });
+                }
+
                 vm.chosenProviderGroupId = id;
                 var sendQuery = {
                     _id: id,
