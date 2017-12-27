@@ -500,7 +500,7 @@
                                 input.form-control(type='text', value='{{button.hoverCss}}', ng-model='button.hoverCss')
                 br
                 .pull-right
-                    button.btn.btn-primary.common-button(ng-click='vm.CSSContentEdit=!vm.CSSContentEdit; vm.advSettingUpdate(vm.selectedAdvList, vm.subject)', data-dismiss="modal" ) {{"SAVE" | translate}}
+                    button.btn.btn-primary.common-button(ng-click='vm.CSSContentEdit=!vm.CSSContentEdit; vm.advSettingUpdate(vm.selectedAdvList, vm.subject); vm.clearStyle()', data-dismiss="modal" ) {{"SAVE" | translate}}
                     button.btn.btn-primary.common-button(ng-click='vm.drawUIPlatformCSS(vm.selectedAdvList); vm.CSSContentEdit=false') {{"PREVIEW" | translate}}
                     button.btn.btn-primary.common-button(ng-if='!vm.CSSContentEdit', ng-click='vm.CSSContentEdit=!vm.CSSContentEdit;')
                         text {{'EDIT' | translate}}
