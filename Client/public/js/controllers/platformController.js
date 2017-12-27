@@ -275,15 +275,15 @@ define(['js/app'], function (myApp) {
                     buttonName: "activityBtn1",
                     url:"",
                     hyperLink: "",
-                    css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                    hoverCss: ":hover{width:500px;}"
+                    css:"position:absolute; width: auto; height: auto; top:87%; left: 20%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
                 },
                 {
                     buttonName: "activityBtn2",
                     url:"",
                     hyperLink: "",
-                    css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                    hoverCss: ":hover{width:500px;}"
+                    css: "position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
                 }
             ];
 
@@ -303,15 +303,15 @@ define(['js/app'], function (myApp) {
                     buttonName: "activityBtn1",
                     url:"",
                     hyperLink: "",
-                    css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                    hoverCss: ":hover{width:500px;}"
+                    css:"position:absolute; width: auto; height: auto; top:87%; left: 20%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
                 },
                 {
                     buttonName: "activityBtn2",
                     url:"",
                     hyperLink: "",
-                    css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                    hoverCss: ":hover{width:500px;}"
+                    css: "position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
                 }
             ];
 
@@ -21391,7 +21391,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                     else {
-                        Q.reject('Advertisement List is not found.');}
+                        Q.reject('Advertisement list is not found.');}
                 });
 
             };
@@ -21423,6 +21423,11 @@ define(['js/app'], function (myApp) {
                     document.getElementsByTagName('head')[0].appendChild(vm.hoverStyle);
                     $scope.safeApply();
                 }
+            };
+
+            vm.clearStyle = function (){
+                document.getElementsByTagName('head')[0].removeChild(vm.hoverStyle);
+                $scope.safeApply();
             };
 
             vm.advSettingUpdate = function(elem, subject){
@@ -21559,8 +21564,8 @@ define(['js/app'], function (myApp) {
                         buttonName: 'activityBtn' + buttonNo,
                         url: '',
                         hyperLink: '',
-                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css:"position:absolute; width: auto; height: auto; top:50%; left: 50%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     }
                 );
 
@@ -21597,15 +21602,15 @@ define(['js/app'], function (myApp) {
                         buttonName: "activityBtn1",
                         url:"",
                         hyperLink: "",
-                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css:"position:absolute; width: auto; height: auto; top:87%; left: 20%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     },
                     {
                         buttonName: "activityBtn2",
                         url:"",
                         hyperLink: "",
-                        css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css: "position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     }
                 ];
 
@@ -21907,8 +21912,8 @@ define(['js/app'], function (myApp) {
                         buttonName: 'activityBtn' + buttonNo,
                         url: '',
                         hyperLink: '',
-                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css:"position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                        hoverCss:":hover{filter: contrast(200%);}"
                     }
                 );
 
@@ -21943,15 +21948,15 @@ define(['js/app'], function (myApp) {
                         buttonName: "activityBtn1",
                         url:"",
                         hyperLink: "",
-                        css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css:"position:absolute; width: auto; height: auto; top:87%; left: 20%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     },
                     {
                         buttonName: "activityBtn2",
                         url:"",
                         hyperLink: "",
-                        css: "position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                        hoverCss: ":hover{width:500px;}"
+                        css: "position:absolute; width: auto; height: auto; top:87%; left: 70%",
+                        hoverCss: ":hover{filter: contrast(200%);}"
                     }
                 ];
 
