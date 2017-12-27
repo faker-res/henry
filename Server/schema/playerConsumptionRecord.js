@@ -50,6 +50,8 @@ var playerConsumptionRecordSchema = new Schema({
     isDuplicate: {type: Boolean, default: false, index: true},
     // record insert time
     insertTime: {type: Date, default: Date.now},
+    // source for dba
+    source: {type: String, index: true}
 });
 
 //record is unique by playerId platformId and date
