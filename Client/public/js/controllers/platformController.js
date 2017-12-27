@@ -10284,6 +10284,7 @@ define(['js/app'], function (myApp) {
             }
             vm.displayProviderGroupCredit = function(){
                 console.log('displayProviderGroupCredit');
+                vm.playerCreditDetails = [];
                 let playerId = vm.selectedSinglePlayer.playerId;
                 let platformId = vm.selectedPlatform.data.platformId;
                 socketService.$socket($scope.AppSocket, 'getCreditDetail', {playerObjId: vm.selectedSinglePlayer._id}, function (data) {
