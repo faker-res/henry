@@ -2525,7 +2525,7 @@ var dbPlayerTopUpRecord = {
                         }).lean().then(
                             proposalData => {
                                 if (proposalData) {
-                                    dbconfig.collection_proposal.remove({_id: proposalData._id});
+                                    dbconfig.collection_proposal.remove({_id: proposalData._id}).then();
                                     delete proposalData._id;
                                     delete proposalData.proposalId;
                                     proposalData.createTime = new Date(createTime);
@@ -2543,7 +2543,7 @@ var dbPlayerTopUpRecord = {
                         }).sort({createTime: -1}).limit(1).lean().then(
                             recordData => {
                                 if (recordData && recordData[0]) {
-                                    dbconfig.collection_playerTopUpRecord.remove({_id: recordData[0]._id});
+                                    dbconfig.collection_playerTopUpRecord.remove({_id: recordData[0]._id}).then();
                                     delete recordData[0]._id;
                                     recordData[0].createTime = new Date(createTime);
                                     recordData[0].settlementTime = new Date(createTime);
