@@ -386,7 +386,6 @@ const dbRewardTask = {
                 $lt: new Date(query.to)
             }
         }
-
         return dbconfig.collection_rewardTaskGroup.find(queryObj)
             .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
             .then(data => {
@@ -394,6 +393,7 @@ const dbRewardTask = {
                 return data;
             })
             .then(data => {
+                let createTime = data[0].createTime ? data[0].createTime :null;
                 var rewardTaskProposalQuery = {
                     'data.playerObjId': ObjectId(query.playerId),
                     'data.platformId': ObjectId(query.platformId),
@@ -402,6 +402,12 @@ const dbRewardTask = {
 
                 if(!query._id){
                     rewardTaskProposalQuery.mainType = 'TopUp';
+                    //selected the new period from last second to endData;
+                    let lastSecond = new Date(createTime).getTime() - (1*1000);
+                    rewardTaskProposalQuery.createTime = {
+                        $gte: new Date(lastSecond),
+                        $lt: new Date(query.to)
+                    }
                 }
                 return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
                     path: "type",
