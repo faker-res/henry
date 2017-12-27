@@ -407,12 +407,16 @@ const dbRewardTask = {
                 }
 
                 if (!query._id) {
-                    rewardTaskProposalQuery.mainType = {$in: ["TopUp", "Reward"]};
+
+                    rewardTaskProposalQuery.mainType = {$in: ["TopUp","Reward"]};
                     //selected the new period from 30ms  to endData;
                     let lastSecond = new Date(createTime).getTime() - (1 * 30);
                     rewardTaskProposalQuery.createTime = {
                         $gte: new Date(lastSecond),
                         $lt: new Date(query.to)
+                    }
+                    if(!query._id){
+                        rewardTaskProposalQuery['data.providerGroup'] = null;
                     }
                 }
                 return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
