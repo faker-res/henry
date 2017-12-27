@@ -267,13 +267,11 @@ define(['js/app'], function (myApp) {
             };
             vm.playerAdvertisementTitle = [];
             vm.editPlayerAdvertisementList = [];
-            vm.existingButtonNo = 0;
             vm.addedButtonName = "activityBtn";
             vm.playerAdvertisementGroup = {};
             vm.playerAdvertisementGroup.orderNo = 0;
             vm.playerAdvertisementGroup.imageButton = [
                 {
-                    buttonNo: 1,
                     buttonName: "activityBtn1",
                     url:"",
                     hyperLink: "",
@@ -281,7 +279,6 @@ define(['js/app'], function (myApp) {
                     hoverCss: ":hover{width:500px;}"
                 },
                 {
-                    buttonNo: 2,
                     buttonName: "activityBtn2",
                     url:"",
                     hyperLink: "",
@@ -298,13 +295,11 @@ define(['js/app'], function (myApp) {
             };
             vm.partnerAdvertisementTitle = [];
             vm.editPartnerAdvertisementList = [];
-            vm.existingPartnerButtonNo = 0;
             vm.addedPartnerButtonName = "activityBtn";
             vm.partnerAdvertisementGroup = {};
             vm.partnerAdvertisementGroup.orderNo = 0;
             vm.partnerAdvertisementGroup.imageButton = [
                 {
-                    buttonNo: 1,
                     buttonName: "activityBtn1",
                     url:"",
                     hyperLink: "",
@@ -312,7 +307,6 @@ define(['js/app'], function (myApp) {
                     hoverCss: ":hover{width:500px;}"
                 },
                 {
-                    buttonNo: 2,
                     buttonName: "activityBtn2",
                     url:"",
                     hyperLink: "",
@@ -21319,14 +21313,25 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            vm.deletePlayerAdvertisementRecord = function(advertisementId) {
+            vm.deletePlayerAdvertisementRecord = function(advertisementId, index) {
                 if(advertisementId){
                     let sendData = {
                         platformId: vm.selectedPlatform.id,
                         advertisementId: advertisementId,
                     };
 
-                    socketService.$socket($scope.AppSocket, 'deleteAdvertisementRecord', sendData);
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate('Confirm to delete advertisement ?')
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'deleteAdvertisementRecord', sendData, function (data) {
+                            if(data){
+                                if(typeof index !== "undefined"){
+                                    vm.displayAdvertisementList.splice(index,1);
+                                }
+                            }
+                        });
+                    });
                 }
             }
 
@@ -21440,8 +21445,24 @@ define(['js/app'], function (myApp) {
                         _id: advertisementId,
                         status: advertisementStatus ? advertisementStatus : 0
                     }
-                    socketService.$socket($scope.AppSocket, 'changeAdvertisementStatus', sendData, function (data) {
-                        //do nothing
+
+                    let statusChangeConfirmText = "";
+
+                    if(advertisementStatus == vm.playerAdvertisementStatus["CLOSE"]){
+                        statusChangeConfirmText = "Confirm to turn advertisement on ?";
+                    }else{
+                        statusChangeConfirmText = "Confirm to turn advertisement off ?";
+                    }
+
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate(statusChangeConfirmText)
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'changeAdvertisementStatus', sendData, function (data) {
+                            if(data){
+                                vm.playerAdvertisementList();
+                            }
+                        });
                     });
                 }
             }
@@ -21535,7 +21556,6 @@ define(['js/app'], function (myApp) {
                 let buttonNo = vm.currentImageButtonNo + 1;
                 vm.playerAdvertisementGroup.imageButton.push(
                     {
-                        buttonNo: buttonNo,
                         buttonName: 'activityBtn' + buttonNo,
                         url: '',
                         hyperLink: '',
@@ -21546,46 +21566,6 @@ define(['js/app'], function (myApp) {
 
                 vm.currentImageButtonNo += 1;
             }
-
-            vm.getExistingMaxButonNo = function(advertisementId){
-                // let buttonNo = vm.currentImageButtonNo + 1;
-                // vm.playerAdvertisementGroup.imageButton.push(
-                //     {
-                //         buttonNo: buttonNo,
-                //         buttonName: 'activityBtn' + buttonNo,
-                //         url: '',
-                //         hyperLink: '',
-                //         css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                //         hoverCss: ":hover{width:500px;}"
-                //     }
-                // );
-                //
-                // vm.currentImageButtonNo += 1;
-
-                if(advertisementId){
-                    let sendData= {
-                        platformId: vm.selectedPlatform.id,
-                        _id: advertisementId
-                    }
-                    vm.existingButtonNo = 1;
-
-                    socketService.$socket($scope.AppSocket, 'getAdvertisementRecordById', sendData, function (data) {
-                        if(data && data.data){
-                            if(data.data.imageButton){
-                                data.data.imageButton.forEach(b => {
-                                    if(b.buttonNo > vm.existingButtonNo){
-                                        vm.existingButtonNo = b.buttonNo + 1;
-                                    }
-                                })
-
-                            }
-                        }
-                        $scope.safeApply();
-                        return vm.addedButtonName + vm.existingButtonNo;
-
-                    });
-                }
-            },
 
             vm.getNextOrderNo = function() {
                 let sendData= {
@@ -21614,7 +21594,6 @@ define(['js/app'], function (myApp) {
                 vm.playerAdvertisementTitle = [];
                 vm.playerAdvertisementGroup.imageButton = [
                     {
-                        buttonNo: 1,
                         buttonName: "activityBtn1",
                         url:"",
                         hyperLink: "",
@@ -21622,7 +21601,6 @@ define(['js/app'], function (myApp) {
                         hoverCss: ":hover{width:500px;}"
                     },
                     {
-                        buttonNo: 2,
                         buttonName: "activityBtn2",
                         url:"",
                         hyperLink: "",
@@ -21743,14 +21721,25 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            vm.deletePartnerAdvertisementRecord = function(advertisementId) {
+            vm.deletePartnerAdvertisementRecord = function(advertisementId, index) {
                 if(advertisementId){
                     let sendData = {
                         platformId: vm.selectedPlatform.id,
                         advertisementId: advertisementId,
                     };
 
-                    socketService.$socket($scope.AppSocket, 'deletePartnerAdvertisementRecord', sendData);
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate('Confirm to delete advertisement ?')
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'deletePartnerAdvertisementRecord', sendData, function (data) {
+                            if(data){
+                                if(typeof index !== "undefined"){
+                                    vm.displayPartnerAdvertisementList.splice(index,1);
+                                }
+                            }
+                        });
+                    });
                 }
             }
 
@@ -21798,8 +21787,25 @@ define(['js/app'], function (myApp) {
                         _id: advertisementId,
                         status: advertisementStatus
                     }
-                    socketService.$socket($scope.AppSocket, 'changePartnerAdvertisementStatus', sendData, function (data) {
-                        //do nothing
+
+
+                    let statusChangeConfirmText = "";
+
+                    if(advertisementStatus == vm.playerAdvertisementStatus["CLOSE"]){
+                        statusChangeConfirmText = "Confirm to turn advertisement on ?";
+                    }else{
+                        statusChangeConfirmText = "Confirm to turn advertisement off ?";
+                    }
+
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate(statusChangeConfirmText)
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'changePartnerAdvertisementStatus', sendData, function (data) {
+                            if(data){
+                                vm.partnerAdvertisementList();
+                            }
+                        });
                     });
                 }
             }
@@ -21909,45 +21915,6 @@ define(['js/app'], function (myApp) {
                 vm.currentImageButtonNo += 1;
             }
 
-            vm.getPartnerExistingMaxButonNo = function(advertisementId){
-                // let buttonNo = vm.currentImageButtonNo + 1;
-                // vm.playerAdvertisementGroup.imageButton.push(
-                //     {
-                //         buttonNo: buttonNo,
-                //         buttonName: 'activityBtn' + buttonNo,
-                //         url: '',
-                //         hyperLink: '',
-                //         css:"position:absolute; width: 195px; height: 80px; top:150px; left: 500px",
-                //         hoverCss: ":hover{width:500px;}"
-                //     }
-                // );
-                //
-                // vm.currentImageButtonNo += 1;
-                if(advertisementId){
-                    let sendData= {
-                        platformId: vm.selectedPlatform.id,
-                        _id: advertisementId
-                    }
-                    vm.existingPartnerButtonNo = 1;
-
-                    socketService.$socket($scope.AppSocket, 'getPartnerAdvertisementRecordById', sendData, function (data) {
-                        if(data && data.data){
-                            if(data.data.imageButton){
-                                data.data.imageButton.forEach(b => {
-                                    if(b.buttonNo > vm.existingButtonNo){
-                                        vm.existingButtonNo = b.buttonNo + 1;
-                                    }
-                                })
-
-                            }
-                        }
-                        $scope.safeApply();
-                        return vm.addedPartnerButtonName + vm.existingPartnerButtonNo;
-
-                    });
-                }
-            },
-
             vm.getPartnerNextOrderNo = function() {
                 let sendData= {
                     platformId: vm.selectedPlatform.id,
@@ -21973,7 +21940,6 @@ define(['js/app'], function (myApp) {
                 vm.partnerAdvertisementTitle = [];
                 vm.partnerAdvertisementGroup.imageButton = [
                     {
-                        buttonNo: 1,
                         buttonName: "activityBtn1",
                         url:"",
                         hyperLink: "",
@@ -21981,7 +21947,6 @@ define(['js/app'], function (myApp) {
                         hoverCss: ":hover{width:500px;}"
                     },
                     {
-                        buttonNo: 2,
                         buttonName: "activityBtn2",
                         url:"",
                         hyperLink: "",
