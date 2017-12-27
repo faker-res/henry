@@ -10736,8 +10736,16 @@ define(['js/app'], function (myApp) {
                 } else {
                     for (let i = 0; i <= rowId; i++) {
                         if(vm.rewardTaskProposalData[i]){
-                            let applyAmount = vm.rewardTaskProposalData[i].data.applyAmount ? vm.rewardTaskProposalData[i].data.applyAmount :0;
-                            let rewardAmount = vm.rewardTaskProposalData[i].data.rewardAmount ? vm.rewardTaskProposalData[i].data.rewardAmount:0 ;
+                            let applyAmount =
+                                    vm.rewardTaskProposalData[i]
+                                    && vm.rewardTaskProposalData[i].data
+                                    && vm.rewardTaskProposalData[i].data.applyAmount
+                                            ? vm.rewardTaskProposalData[i].data.applyAmount : 0;
+                            let rewardAmount =
+                                vm.rewardTaskProposalData[i]
+                                && vm.rewardTaskProposalData[i].data
+                                && vm.rewardTaskProposalData[i].data.rewardAmount
+                                        ? vm.rewardTaskProposalData[i].data.rewardAmount : 0;
                             currentMax = applyAmount + rewardAmount;
                             sumRewardAmount += applyAmount + rewardAmount;
                         }
