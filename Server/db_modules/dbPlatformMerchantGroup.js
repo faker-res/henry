@@ -140,6 +140,7 @@ var dbPlatformMerchantGroup = {
         ).then(
             data=> {
                 allMerchants = data.merchants || [];
+                console.log("walao",allMerchants)
                 return dbconfig.collection_platformMerchantGroup.findOne({_id: merchantGroupId})
             }
         ).then(
@@ -147,7 +148,7 @@ var dbPlatformMerchantGroup = {
                 var merchantsArr = data.merchants || [];
                 for (let i = 0; i < allMerchants.length; i++) {
 
-                    if (merchantsArr.indexOf(allMerchants[i].merchantNo) != -1) {
+                    if (merchantsArr.indexOf(allMerchants[i].name) != -1) {
                         allMerchants[i].isIncluded = true;
                     } else {
                         allMerchants[i].isIncluded = false;
