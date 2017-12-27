@@ -1488,7 +1488,8 @@ let dbPlayerReward = {
                 message: "用户未登录!"
             })
         }
-        return dbConfig.collection_platform.findOne({platformId: platformId}).exec()
+        return expirePromoCode()
+            .then(() => dbConfig.collection_platform.findOne({platformId: platformId}).lean())
             .then(
                 platformRecord => {
                     if (platformRecord) {
