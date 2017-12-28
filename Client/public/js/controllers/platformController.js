@@ -10315,10 +10315,8 @@ define(['js/app'], function (myApp) {
                                     for (let j = 0; j < vm.playerCreditDetails.length; j++) {
                                         if (vm.playerCreditDetails[j].nickName == a.nickName) {
                                             isFound = true;
-                                        }
-                                        ;
-                                    }
-                                    ;
+                                        };
+                                    };
                                     if (!isFound) {
                                         return a;
                                     }
@@ -18475,6 +18473,12 @@ define(['js/app'], function (myApp) {
             vm.getPlatformProviderGroup = () => {
                 return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
                     vm.gameProviderGroup = data.data;
+                    vm.gameProviderGroupNames = {};
+                    for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                        let providerGroup = vm.gameProviderGroup[i];
+                        vm.gameProviderGroupNames[providerGroup._id] = providerGroup.name;
+                    }
+
                     $scope.safeApply();
                 });
             };
@@ -18970,6 +18974,17 @@ define(['js/app'], function (myApp) {
                 var submitWithoutCollision = (callback) => updatePlayerLevels(vm.playerIDArr, 0, +1000, callback);
                 var submitNormally = (callback) => updatePlayerLevels(vm.playerIDArr, 0, +0, callback);
                 submitWithoutCollision(submitNormally);
+            };
+
+            vm.playerLevelChangeIsRewardTask = level => {
+                if (level && level.reward) {
+                    if (level.reward.requiredUnlockTimes) {
+                        level.reward.isRewardTask = true;
+                    }
+                    else {
+                        level.reward.isRewardTask = false;
+                    }
+                }
             };
 
             vm.configTableDeleteLevelConfirm = function (choice, level) {
