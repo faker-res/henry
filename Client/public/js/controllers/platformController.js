@@ -10315,10 +10315,8 @@ define(['js/app'], function (myApp) {
                                     for (let j = 0; j < vm.playerCreditDetails.length; j++) {
                                         if (vm.playerCreditDetails[j].nickName == a.nickName) {
                                             isFound = true;
-                                        }
-                                        ;
-                                    }
-                                    ;
+                                        };
+                                    };
                                     if (!isFound) {
                                         return a;
                                     }
