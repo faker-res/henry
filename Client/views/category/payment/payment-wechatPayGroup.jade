@@ -204,6 +204,8 @@
                             td {{ val.quota | translate}}
                 br
                 .div.pull-right
+                    button.btn.btn-info.common-button.pull-right(ng-click="vm.selectWechatGroup(true)") {{"Select All" | translate}}
+                    button.btn.btn-info.common-button.pull-right(ng-click="vm.selectWechatGroup(false)") {{"Clear All" | translate}}
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Update')" ng-click='vm.wechatPaytoWechatPayGroup("attach")')
                         i.fa.fa-plus-square
                         text {{"INCLUDE" | translate}}

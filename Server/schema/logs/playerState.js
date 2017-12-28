@@ -9,9 +9,7 @@ let playerStateSchema = new Schema({
     // Last apply top up return date
     lastApplyTopUpReturnReward: {type: Date, default: new Date()},
     // last apply levelup reward
-    lastApplyLevelUpReward: {type: Date, default: new Date()},
-    // last apply reward group
-    lastApplyRewardGroup: {type: Date, default: new Date()},
+    lastApplyLevelUpReward: {type: Date, default: new Date()}
 });
 
 module.exports = playerStateSchema;
