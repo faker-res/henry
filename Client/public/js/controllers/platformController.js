@@ -433,6 +433,8 @@ define(['js/app'], function (myApp) {
                 vm.selectedRewardSettingsTab = tabName == null ? "manual-reward" : tabName;
 
                 if (tabName == "reward-progress") {
+                    vm.currentFreeAmount = null;
+                    vm.playerCreditDetails = null;
                     $('#rewardTaskLogTbl').empty();
                 }
             };
