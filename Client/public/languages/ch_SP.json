@@ -771,6 +771,7 @@
   "weekly": "每周",
   "WEEKLY": "每周",
   "Biweekly": "每半个月",
+  "Yearly": "每年",
   "LEVELDAY": "日",
   "LEVELWEEK": "周",
   "LEVELMONTH": "月",
@@ -2992,5 +2993,6 @@
   "DELETE_ADVERTISEMENT": "删除广告",
   "Confirm to delete advertisement ?": "确定删除广告？",
   "Confirm to turn advertisement on ?": "确定开启广告？",
-  "Confirm to turn advertisement off ?": "确定关闭广告？"
+  "Confirm to turn advertisement off ?": "确定关闭广告？",
+  "ANY_PAGE": "任一页面"
 }

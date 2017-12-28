@@ -236,7 +236,7 @@ var roleChecker = {
                 Edit: ['updatePlatform'],
                 DailySettlement: ['startPlatformDailySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformDailySettlement'],
                 WeeklySettlement: ['startPlatformWeeklySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformWeeklySettlement'],
-                RewardSettlement: ['startPlatformRewardEventSettlement'],
+                RewardSettlement: ['startPlatformRewardEventSettlement', 'startPlatformRTGEventSettlement'],
                 SettlementHistory: ['getSettlementHistory'],
                 PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement'],
                 transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider'],

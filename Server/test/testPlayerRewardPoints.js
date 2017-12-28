@@ -1,4 +1,5 @@
 let should = require('should');
+let dbConfig = require('./../modules/dbproperties');
 let socketConnection = require('../test_modules/socketConnection');
 let commonTestFunc = require('../test_modules/commonTestFunc');
 
@@ -15,6 +16,10 @@ describe("Test player reward points", function () {
     let testPlatformObjId = null;
     let testPlatformId = null;
 
+    let testUpdateAmount = 500;
+    let testRemark = "this is test remark";
+    let testRewardPointsObjId = null;
+
     /* Test 1 - create a new platform before the creation of a new player */
     it('Should create a random user name', function () {
         for (let i = 0; i < 10; i++) {
@@ -29,7 +34,7 @@ describe("Test player reward points", function () {
             function (data) {
                 testPlatform = data;
                 testPlatformObjId = data._id;
-                testPlatformId=data.platformId;
+                testPlatformId = data.platformId;
                 done();
             },
             function (error) {
@@ -133,30 +138,45 @@ describe("Test player reward points", function () {
         });
     });
 
-    /* Test 9 - update player reward points record */
-    it('Should update player reward points record', function (done) {
+    /* Test 9 - update player reward points record and create reward points log*/
+    it('Should update player reward points record and create reward points log', function (done) {
         socketConnection.createConnection().then(function (socket) {
             socket.connected.should.equal(true);
             let updateData = {
                 playerObjId: testPlayer._id,
                 platformObjId: testPlayer.platform,
-                updateAmount: 500,
-                remark: "this is test remark"
+                updateAmount: testUpdateAmount,
+                remark: testRemark
             };
 
             socket.emit('updatePlayerRewardPointsRecord', updateData);
             socket.once('_updatePlayerRewardPointsRecord', function (data) {
                 socket.close();
                 if (data.success && data.data) {
+                    testRewardPointsObjId = data.data._id;
                     done();
                 }
             });
         });
     });
 
-    /* Test 99 - remove all test Data */
+    /* Test 98 - remove all test Data */
     it('Should remove all test Data', function(done){
-        commonTestFunc.removeTestData(testPlatformObjId, [testPlayerObjId]).then(function(data){
+        commonTestFunc.removeTestData(testPlatformObjId, [testPlayerObjId]).then(function () {
+            done();
+        })
+    });
+
+    /* Test 99 - remove all reward points Data */
+    it('Should remove all reward points Data', function(done){
+        dbConfig.collection_rewardPoints.remove({rewardPointsObjId: testRewardPointsObjId}).then(function () {
+            done();
+        })
+    });
+
+    /* Test 100 - remove all reward points log Data */
+    it('Should remove all reward points log Data', function(done){
+        dbConfig.collection_rewardPointsLog.remove({rewardPointsObjId: testRewardPointsObjId}).then(function () {
             done();
         })
     });

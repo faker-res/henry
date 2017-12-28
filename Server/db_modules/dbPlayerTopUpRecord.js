@@ -1114,7 +1114,7 @@ var dbPlayerTopUpRecord = {
                         districtId: inputData.districtId || "",
                         groupBankcardList: player.bankCardGroup ? player.bankCardGroup.banks : [],
                         operateType: entryType == "ADMIN" ? 1 : 0,
-                        remark: inputData.depositMethod == 3 ? player.playerId : (inputData.remark || '')
+                        remark: inputData.remark || ''
                     };
                     if (fromFPMS) {
                         let cTime = inputData.createTime ? new Date(inputData.createTime) : new Date();
@@ -1916,6 +1916,7 @@ var dbPlayerTopUpRecord = {
                         updateData.data.alipayName = pmsData.result.alipayName;
                         pmsData.result.alipayQRCode = pmsData.result.alipayQRCode || "";
                         updateData.data.alipayQRCode = pmsData.result.alipayQRCode;
+                        updateData.data.qrcodeAddress = pmsData.result.qrcodeAddress;
                         if (pmsData.result.validTime) {
                             updateData.data.validTime = new Date(pmsData.result.validTime);
                         }
@@ -2525,7 +2526,7 @@ var dbPlayerTopUpRecord = {
                         }).lean().then(
                             proposalData => {
                                 if (proposalData) {
-                                    dbconfig.collection_proposal.remove({_id: proposalData._id});
+                                    dbconfig.collection_proposal.remove({_id: proposalData._id}).then();
                                     delete proposalData._id;
                                     delete proposalData.proposalId;
                                     proposalData.createTime = new Date(createTime);
@@ -2543,7 +2544,7 @@ var dbPlayerTopUpRecord = {
                         }).sort({createTime: -1}).limit(1).lean().then(
                             recordData => {
                                 if (recordData && recordData[0]) {
-                                    dbconfig.collection_playerTopUpRecord.remove({_id: recordData[0]._id});
+                                    dbconfig.collection_playerTopUpRecord.remove({_id: recordData[0]._id}).then();
                                     delete recordData[0]._id;
                                     recordData[0].createTime = new Date(createTime);
                                     recordData[0].settlementTime = new Date(createTime);

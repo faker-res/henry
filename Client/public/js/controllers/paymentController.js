@@ -1152,6 +1152,12 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.selectMerchant = (select) => {
+            for (let i = 0; i < vm.allMerchantList.length; i++) {
+                vm.allMerchantList[i].selected = Boolean(select);
+            }
+        };
+
         vm.totalMerchantShows = () => {
             let total = 0;
             for (let key in vm.allMerchantList) {
@@ -1549,7 +1555,7 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 query: {
                     platform: vm.selectedPlatform.id,
-                    name: vm.SelectedAlipayGroupNode.groupId
+                    _id: vm.SelectedAlipayGroupNode._id
                 },
                 update: {
                     name: vm.newAlipayGroup.name,

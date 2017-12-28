@@ -15,6 +15,7 @@ var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 var constPlayerCreditChangeType = require('./../const/constPlayerCreditChangeType');
 const constPlayerSMSSetting = require("./../const/constPlayerSMSSetting");
 var constServerCode = require('../const/constServerCode');
+var constMainType = require('../const/constProposalMainType');
 var dbLogger = require("./../modules/dbLogger");
 var constSystemParam = require('../const/constSystemParam');
 var constShardKeys = require("../const/constShardKeys");
@@ -127,6 +128,7 @@ const dbRewardTask = {
                 if (providerGroup) {
                     let updObj = {
                         $inc: {
+                            initAmt: rewardData.initAmount,
                             rewardAmt: rewardData.initAmount,
                             currentAmt: rewardData.initAmount,
                             forbidWithdrawIfBalanceAfterUnlock:
@@ -149,6 +151,7 @@ const dbRewardTask = {
                 }
                 else {
                     let saveObj = {
+                        initAmt: rewardData.initAmount,
                         platformId: rewardData.platformId,
                         playerId: rewardData.playerId,
                         lastProposalId: proposalData._id,
@@ -209,8 +212,10 @@ const dbRewardTask = {
                     let updObj = {
                         $inc: {
                             //rewardAmt: rewardData.initAmount,
-                            initAmt: rewardData.initAmount,
-                            currentAmt: rewardData.initAmount,
+                            // initAmt: rewardData.initAmount,
+                            // currentAmt: rewardData.initAmount,
+                            initAmt: proposalData.data.rewardAmount,
+                            currentAmt: proposalData.data.rewardAmount,
                             forbidWithdrawIfBalanceAfterUnlock:
                                 proposalData && proposalData.data && proposalData.data.forbidWithdrawIfBalanceAfterUnlock
                                     ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
@@ -377,7 +382,7 @@ const dbRewardTask = {
         let rewardTaskGroup = null;
         let sortCol = query.sortCol || {"createTime": 1};
 
-        var queryObj = {
+        let queryObj = {
             playerId: ObjectId(query.playerId),
             providerGroup: query._id,
             status: 'Started',
@@ -385,24 +390,37 @@ const dbRewardTask = {
                 $gte: new Date(query.from),
                 $lt: new Date(query.to)
             }
-        }
+        };
 
         return dbconfig.collection_rewardTaskGroup.find(queryObj)
             .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
             .then(data => {
                 rewardTaskGroup = data[0];
-                return data;
-            })
-            .then(data => {
-                var rewardTaskProposalQuery = {
-                    'data.playerObjId': ObjectId(query.playerId),
-                    'data.platformId': ObjectId(query.platformId),
-                    'data.providerGroup': query._id
+                let createTime = data[0].createTime ? data[0].createTime :null;
+                if (!createTime) {
+                    createTime = new Date(query.from);
                 }
 
-                if(!query._id){
-                    rewardTaskProposalQuery.mainType = 'TopUp';
+                let lastSecond = new Date(createTime).getTime();
+                let rewardTaskProposalQuery = {
+                    'data.playerObjId': ObjectId(query.playerId),
+                    'data.platformId': ObjectId(query.platformId),
+                    settleTime: {
+                        $gte: new Date(lastSecond),
+                        $lt: new Date(query.to)
+                    }
+                };
+
+                if (!query._id) {
+                    rewardTaskProposalQuery.mainType = {$in: ["TopUp","Reward"]};
+                    rewardTaskProposalQuery.$or = [
+                        {'data.providerGroup': {$exists: true, $eq: null}},
+                        {'data.providerGroup': {$exists: false}}
+                    ]
+                } else {
+                    rewardTaskProposalQuery['data.providerGroup'] = query._id;
                 }
+
                 return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
                     path: "type",
                     model: dbconfig.collection_proposalType

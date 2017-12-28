@@ -310,8 +310,10 @@ let dbPlayerReward = {
         });
     },
 
-    getPlayerConsecutiveRewardDetail: (playerId, code, isApply, platform) => {
+    getPlayerConsecutiveRewardDetail: (playerId, code, isApply, platform, applyTargetTime) => {
         // reward event code is an optional value, getting the latest relevant event by default
+        let currentTime = applyTargetTime || new Date();
+        let today = applyTargetTime ? dbUtility.getDayTime(applyTargetTime) : dbUtility.getTodaySGTime();
         let platformId = null;
         let player, event, selectedParam, intervalTime, paramOfLevel;
         let outputList = [];
@@ -375,7 +377,7 @@ let dbPlayerReward = {
             }
         }).then(eventData => {
             event = eventData;
-            let currentTime = new Date();
+            // let currentTime = new Date();
             // check if reward valid for targetDate
             if (event.validStartTime && event.validStartTime > currentTime || event.validEndTime && event.validEndTime < currentTime) {
                 return Q.reject({
@@ -385,7 +387,7 @@ let dbPlayerReward = {
                 });
             }
 
-            intervalTime = getIntervalPeriodFromEvent(event);
+            intervalTime = getIntervalPeriodFromEvent(event, applyTargetTime);
 
             let similarRewardProposalProm = Promise.resolve([]);
 
@@ -450,7 +452,7 @@ let dbPlayerReward = {
 
             let checkRequirementMeetProms = [];
 
-            let today = dbUtility.getTodaySGTime();
+            // let today = dbUtility.getTodaySGTime();
             let currentDay = dbUtility.getTargetSGTime(startCheckTime);
             while (currentDay.startTime <= today.startTime && player) {
                 checkRequirementMeetProms.push(isDayMeetRequirement(event, player, currentDay, requiredBet, requiredDeposit, requireBoth));
@@ -1486,7 +1488,8 @@ let dbPlayerReward = {
                 message: "用户未登录!"
             })
         }
-        return dbConfig.collection_platform.findOne({platformId: platformId}).exec()
+        return expirePromoCode()
+            .then(() => dbConfig.collection_platform.findOne({platformId: platformId}).lean())
             .then(
                 platformRecord => {
                     if (platformRecord) {
@@ -3028,6 +3031,7 @@ let dbPlayerReward = {
      * @returns {Promise.<TResult>}
      */
     applyGroupReward: (playerData, eventData, adminInfo, rewardData) => {
+        rewardData = rewardData || {};
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
         let rewardAmount = 0, spendingAmount = 0, applyAmount = 0;
@@ -3066,13 +3070,13 @@ let dbPlayerReward = {
                     intervalTime = todayTime;
                     break;
                 case "2":
-                    intervalTime = dbUtility.getCurrentWeekSGTime();
+                    intervalTime = rewardData.applyTargetDate ? dbUtility.getWeekTime(rewardData.applyTargetDate) : dbUtility.getCurrentWeekSGTime();
                     break;
                 case "3":
-                    intervalTime = dbUtility.getCurrentBiWeekSGTIme();
+                    intervalTime = rewardData.applyTargetDate ? dbUtility.getBiWeekSGTIme(rewardData.applyTargetDate) : dbUtility.getCurrentBiWeekSGTIme();
                     break;
                 case "4":
-                    intervalTime = dbUtility.getCurrentMonthSGTIme();
+                    intervalTime = rewardData.applyTargetDate ? dbUtility.getMonthSGTIme(rewardData.applyTargetDate) : dbUtility.getCurrentMonthSGTIme();
                     break;
                 default:
                     if (eventData.validStartTime && eventData.validEndTime) {
@@ -3148,7 +3152,7 @@ let dbPlayerReward = {
 
         // reward specific promise
         if (eventData.type.name === constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP) {
-            let playerRewardDetailProm = dbPlayerReward.getPlayerConsecutiveRewardDetail(playerData.playerId, eventData.code, true);
+            let playerRewardDetailProm = dbPlayerReward.getPlayerConsecutiveRewardDetail(playerData.playerId, eventData.code, true, null, rewardData.applyTargetDate);
             promArr.push(playerRewardDetailProm);
         }
 
@@ -4582,21 +4586,21 @@ function isDateWithinPeriod(date, period) {
     return false;
 }
 
-function getIntervalPeriodFromEvent(event) {
+function getIntervalPeriodFromEvent(event, applyTargetTime) {
     let intervalTime = dbUtility.getTodaySGTime();
     if (event && event.condition) {
         switch (event.condition.interval) {
             case "1":
-                intervalTime = dbUtility.getTodaySGTime();
+                intervalTime = applyTargetTime ? dbUtility.getDayTime(applyTargetTime) : dbUtility.getTodaySGTime();
                 break;
             case "2":
-                intervalTime = dbUtility.getCurrentWeekSGTime();
+                intervalTime = applyTargetTime ? dbUtility.getWeekTime(applyTargetTime) : dbUtility.getCurrentWeekSGTime();
                 break;
             case "3":
-                intervalTime = dbUtility.getCurrentBiWeekSGTIme();
+                intervalTime = applyTargetTime ? dbUtility.getBiWeekSGTIme(applyTargetTime) : dbUtility.getCurrentBiWeekSGTIme();
                 break;
             case "4":
-                intervalTime = dbUtility.getCurrentMonthSGTIme();
+                intervalTime = applyTargetTime ? dbUtility.getMonthSGTIme(applyTargetTime) : dbUtility.getCurrentMonthSGTIme();
                 break;
             default:
                 if (event.validStartTime && event.validEndTime) {
