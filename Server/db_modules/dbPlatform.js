@@ -1484,6 +1484,7 @@ var dbPlatform = {
         data.recipientName ? query.recipientName = data.recipientName : "";
         data.inputDevice ? query.inputDevice = data.inputDevice : "";
         data.purpose ? query.purpose = data.purpose : "";
+        data.platformObjId ? query.platform = data.platformObjId : "";
 
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
