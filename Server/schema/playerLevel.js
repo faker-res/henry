@@ -36,7 +36,9 @@ var playerLevelSchema = new Schema({
         _id: false,
         bonusCredit: {type: Number, default: 20},
         isRewardTask: {type: Boolean, default: false},
-        requiredUnlockAmount: {type: Number, default: 0}
+        providerGroup: {type: String, default: 'free'},
+        requiredUnlockTimes: {type: Number, default: 0},
+        requiredUnlockAmount: {type: Number, default: 0} // unlock amount is deprecated, use times instead
     },
 
     // used for player value calculation

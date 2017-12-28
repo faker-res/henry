@@ -433,6 +433,8 @@ define(['js/app'], function (myApp) {
                 vm.selectedRewardSettingsTab = tabName == null ? "manual-reward" : tabName;
 
                 if (tabName == "reward-progress") {
+                    vm.currentFreeAmount = null;
+                    vm.playerCreditDetails = null;
                     $('#rewardTaskLogTbl').empty();
                 }
             };
@@ -10891,13 +10893,12 @@ define(['js/app'], function (myApp) {
                             item.currentAmount$ = item.data.currentAmount;
 
                             item.availableAmt$ = item.applyAmount + item.bonusAmount;
-
                             item.archivedAmt$ = 0;
                             if (vm.rewardTaskGroupCurrentAmt <= -(item.availableAmt$)) {
                                 vm.rewardTaskGroupCurrentAmt -= -(item.availableAmt$);
                                 item.archivedAmt$ = item.availableAmt$
                             } else if (vm.rewardTaskGroupCurrentAmt != 0) {
-                                item.archivedAmt$ = vm.rewardTaskGroupCurrentAmt;
+                                item.archivedAmt$ = -vm.rewardTaskGroupCurrentAmt;
                                 vm.rewardTaskGroupCurrentAmt = 0;
                             }
 
@@ -11017,7 +11018,7 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('CREATETIME'), data: "createTime$"},
                         //相關存款金額
-                        {title: $translate('Deposit Amount'), data: "topUpAmount" , sClass: 'sumFloat textRight'},
+                        {title: $translate('Deposit Amount'), data: "topUpAmount"},
                         {title: $translate('Deposit ProposalId'),
                             data: "topUpProposal",
                             render: function (data, type, row) {
@@ -11028,15 +11029,14 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         //相關存款提案號
-                        {title: $translate('REWARD_AMOUNT'), data: "bonusAmount", sClass: 'sumFloat textRight'},
+                        {title: $translate('REWARD_AMOUNT'), data: "bonusAmount"},
                         {
                             //解锁进度（投注额）
                             "title": $translate('Unlock Progress(Consumption)'),data:"curConsumption$",
                             render: function (data, type, row, meta) {
                                 let text = row.curConsumption$ +"/"+row.maxConsumption$;
                                 return "<div>" + text + "</div>";
-                            },
-                            sClass: 'sumFloat textRight'
+                            }
                         },
                         // {title: $translate('Unlock Progress(Consumption)'), data: "requiredUnlockAmount$", sClass: 'sumFloat textRight'},
 
@@ -11045,28 +11045,27 @@ define(['js/app'], function (myApp) {
                             //解锁进度（输赢值）
                             "title": $translate('Unlock Progress(WinLose)'),data:"currentAmount",
                             render: function (data, type, row ,meta) {
-                                let spendingAmt = vm.calSpendingAmt(meta.row);
-                                let isSubmit = vm.isSubmitProposal(meta.row);
-                                let text = "";
-
-                                if (vm.isUnlockTaskGroup && vm.chosenProviderGroupId) {
-                                    let curRewardAmount = isSubmit.curRewardAmount;
-                                    let spAmount = spendingAmt.currentAmt;
-                                    let spCurrentMax = spendingAmt.currentMax;
-                                    text = isSubmit.curRewardAmount - isSubmit.rewardAmount + '/ -' + isSubmit.rewardAmount;
-                                } else if (vm.isUnlockTaskGroup && !vm.chosenProviderGroupId) {
-                                    let applyAmount = row.applyAmount ? row.applyAmount: 0;
-                                    let currentAmount = row.currentAmount ? row.currentAmount :0;
-                                    let rewardAmount = applyAmount + row.bonusAmount;
-                                    text = row.archivedAmt$ + '/ -' + rewardAmount;
-                                } else {
-                                    let applyAmount = row.applyAmount ? row.applyAmount: 0;
-                                    text = row.currentAmount - row.initAmt + '/ -' + (applyAmount + row.bonusAmount);
-                                }
+                                // let spendingAmt = vm.calSpendingAmt(meta.row);
+                                // let isSubmit = vm.isSubmitProposal(meta.row);
+                                let text = -row.archivedAmt$ + "/-" + row.availableAmt$;
+                                //
+                                // if (vm.isUnlockTaskGroup && vm.chosenProviderGroupId) {
+                                //     let curRewardAmount = isSubmit.curRewardAmount;
+                                //     let spAmount = spendingAmt.currentAmt;
+                                //     let spCurrentMax = spendingAmt.currentMax;
+                                //     text = isSubmit.curRewardAmount - isSubmit.rewardAmount + '/ -' + isSubmit.rewardAmount;
+                                // } else if (vm.isUnlockTaskGroup && !vm.chosenProviderGroupId) {
+                                //     let applyAmount = row.applyAmount ? row.applyAmount: 0;
+                                //     let currentAmount = row.currentAmount ? row.currentAmount :0;
+                                //     let rewardAmount = applyAmount + row.bonusAmount;
+                                //     text = row.archivedAmt$ + '/ -' + rewardAmount;
+                                // } else {
+                                //     let applyAmount = row.applyAmount ? row.applyAmount: 0;
+                                //     text = row.currentAmount - row.initAmt + '/ -' + (applyAmount + row.bonusAmount);
+                                // }
 
                                 return "<div>" + text + "</div>";
-                            },
-                            sClass: 'sumFloat textRight'
+                            }
                         },
                         {title: $translate('GAME LOBBY / REWARD TASK GROUP'), data: "provider$"},
                         {
@@ -18474,6 +18473,12 @@ define(['js/app'], function (myApp) {
             vm.getPlatformProviderGroup = () => {
                 return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
                     vm.gameProviderGroup = data.data;
+                    vm.gameProviderGroupNames = {};
+                    for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                        let providerGroup = vm.gameProviderGroup[i];
+                        vm.gameProviderGroupNames[providerGroup._id] = providerGroup.name;
+                    }
+
                     $scope.safeApply();
                 });
             };
@@ -18969,6 +18974,17 @@ define(['js/app'], function (myApp) {
                 var submitWithoutCollision = (callback) => updatePlayerLevels(vm.playerIDArr, 0, +1000, callback);
                 var submitNormally = (callback) => updatePlayerLevels(vm.playerIDArr, 0, +0, callback);
                 submitWithoutCollision(submitNormally);
+            };
+
+            vm.playerLevelChangeIsRewardTask = level => {
+                if (level && level.reward) {
+                    if (level.reward.requiredUnlockTimes) {
+                        level.reward.isRewardTask = true;
+                    }
+                    else {
+                        level.reward.isRewardTask = false;
+                    }
+                }
             };
 
             vm.configTableDeleteLevelConfirm = function (choice, level) {

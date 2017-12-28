@@ -187,7 +187,7 @@ let dbRewardTaskGroup = {
             new: true
         }).then(
             updatedData => {
-                if (updatedData && (updatedData.currentAmt <= 0 || updatedData.curConsumption >= updatedData.targetConsumption)) {
+                if (updatedData && (updatedData.currentAmt <= 0 || updatedData.curConsumption >= updatedData.targetConsumption + updatedData.forbidXIMAAmt)) {
                     return dbRewardTask.completeRewardTaskGroup(updatedData, constRewardTaskStatus.MANUAL_UNLOCK);
                 }
             }
