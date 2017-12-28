@@ -18929,6 +18929,17 @@ define(['js/app'], function (myApp) {
                 submitWithoutCollision(submitNormally);
             };
 
+            vm.playerLevelChangeIsRewardTask = level => {
+                if (level && level.reward) {
+                    if (level.reward.requiredUnlockAmount) {
+                        level.reward.isRewardTask = true;
+                    }
+                    else {
+                        level.reward.isRewardTask = false;
+                    }
+                }
+            };
+
             vm.configTableDeleteLevelConfirm = function (choice, level) {
                 switch (choice) {
                     case 'player':

@@ -135,8 +135,7 @@
                                             i.fa.fa-square-o(ng-show='!vm.configTableEdit && !level.reward.isRewardTask')
                                             i.fa.fa-check-square-o(ng-show='!vm.configTableEdit && level.reward.isRewardTask')
                                         td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
-                                            input(ng-show='vm.configTableEdit && level.reward.isRewardTask', type='number', style='width:100px', ng-model='level.reward.requiredUnlockAmount')
-                                            text(ng-show='vm.configTableEdit && !level.reward.isRewardTask') {{'Required Task' | translate}}
+                                            input(ng-show='vm.configTableEdit', type='number', style='width:100px', ng-model='level.reward.requiredUnlockAmount', ng-change='vm.playerLevelChangeIsRewardTask(level)')
                                             text(ng-show='!vm.configTableEdit') {{level.reward.requiredUnlockAmount | number}}
                                         td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
                                             input(ng-show='vm.configTableEdit', type='checkbox', ng-model='level.canApplyConsumptionReturn')
@@ -219,7 +218,7 @@
                                         td(rowspan='4')
                                             input(type='checkbox', ng-model='vm.newPlayerLvl.reward.isRewardTask', required)
                                         td(rowspan='4')
-                                            input.form-control(type='number', ng-model='vm.newPlayerLvl.reward.requiredUnlockAmount', ng-disabled='!vm.newPlayerLvl.reward.isRewardTask')
+                                            input.form-control(type='number', ng-model='vm.newPlayerLvl.reward.requiredUnlockAmount')
                                     tr
                                         td
                                             input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelUpConfig[0].topupLimit', required)
