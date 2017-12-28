@@ -173,7 +173,10 @@ describe("Test player free trial reward group", function () {
 
     /* Test 6 - get platform player level */
     it('Should get player level on platform', function (done) {
-        dbConfig.collection_playerLevel.findOne({platform: testPlatformObjId, value: 0}).lean().then(
+        dbConfig.collection_playerLevel.findOne({
+            platform: testPlatformObjId,
+            value: 0
+        }).lean().then(
             (playerLevel) => {
                 if (playerLevel) {
                     testPlatformPlayerLevelId = playerLevel._id;
@@ -206,7 +209,10 @@ describe("Test player free trial reward group", function () {
 
     /* Test 8 - get free trial reward event */
     it('Should get free trial reward event', function (done) {
-        dbRewardEvent.getRewardEvent({platform: testPlatformObjId, type: freeTrialRewardType._id}).then(
+        dbRewardEvent.getRewardEvent({
+            platform: testPlatformObjId,
+            type: freeTrialRewardType._id
+        }).then(
             (rewardEvent) => {
                 if (rewardEvent) {
                     freeTrialRewardEvent = rewardEvent;
@@ -251,7 +257,10 @@ describe("Test player free trial reward group", function () {
 
     /* Test 10 - check apply reward event proposal data */
     it('Should check is add reward event proposal data', function (done) {
-        dbProposal.getProposal({"data.platformId": testPlatformObjId, "data.playerObjId": testPlayerObjId}).then(
+        dbProposal.getProposal({
+            "data.platformId": testPlatformObjId,
+            "data.playerObjId": testPlayerObjId
+        }).then(
             (proposal) => {
                 if (proposal) {
                     // check reward credit output
@@ -270,7 +279,10 @@ describe("Test player free trial reward group", function () {
 
     /* Test 11 - check is add reward task and data match proposal */
     it('Should check is add reward task and data match proposal', function (done) {
-        dbRewardTask.getRewardTask({playerId: testPlayerObjId, platformId: testPlatformObjId}).then(
+        dbRewardTask.getRewardTask({
+            playerId: testPlayerObjId,
+            platformId: testPlatformObjId
+        }).then(
             (rewardTask) => {
                 if (rewardTask) {
                     freeTrialRewardRewardTask = rewardTask;
@@ -315,7 +327,7 @@ describe("Test player free trial reward group", function () {
 
     /* Test 100 - remove all proposal test Data */
     it('Should remove all proposal test Data', function(done){
-        commonTestFunc.removeTestProposalData([],testPlatformObjId, [], [testPlayerObjId]).then(function(data){
+        commonTestFunc.removeTestProposalData([],testPlatformObjId, [], [testPlayerObjId]).then(function(){
             done();
         })
     });
