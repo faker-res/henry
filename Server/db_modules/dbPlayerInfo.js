@@ -9646,52 +9646,20 @@ let dbPlayerInfo = {
             playerData => {
                 if (playerData) {
                     playerInfo = playerData;
-
-                    return dbconfig.collection_playerState.findOne({player: playerData._id}).lean().then(
-                        stateRec => {
-                            if (!stateRec) {
-                                return new dbconfig.collection_playerState({
-                                    player: playerData._id,
-                                    lastApplyRewardGroup: Date.now()
-                                }).save();
-                            } else {
-                                return dbconfig.collection_playerState.findOneAndUpdate({
-                                    player: playerData._id,
-                                    lastApplyRewardGroup: {$lt: new Date() - 1000}
-                                }, {
-                                    $currentDate: {lastApplyLevelUpReward: true}
-                                }, {
-                                    new: true
-                                });
-                            }
-                        }
-                    ).then(
-                        playerState => {
-                            if (playerState) {
-                                if (playerData.permission && playerData.permission.banReward) {
-                                    return Q.reject({
-                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                        name: "DataError",
-                                        message: "Player do not have permission for reward"
-                                    });
-                                }
-                                //check if player's reward task is no credit now
-                                return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
-                                    taskStatus => {
-                                        return dbconfig.collection_rewardEvent.findOne({
-                                            platform: playerData.platform,
-                                            code: code
-                                        })
-                                            .populate({path: "type", model: dbconfig.collection_rewardType}).lean();
-                                    }
-                                );
-                            } else {
-                                return Promise.reject({
-                                    name: "DBError",
-                                    message: "apply reward fail, please contact cs"
-                                })
-                            }
+                    if (playerData.permission && playerData.permission.banReward) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            name: "DataError",
+                            message: "Player do not have permission for reward"
                         });
+                    }
+                    //check if player's reward task is no credit now
+                    return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
+                        taskStatus => {
+                            return dbconfig.collection_rewardEvent.findOne({platform: playerData.platform, code: code})
+                                .populate({path: "type", model: dbconfig.collection_rewardType}).lean();
+                        }
+                    );
                 }
                 else {
                     return Q.reject({
