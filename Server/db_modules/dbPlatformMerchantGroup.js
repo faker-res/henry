@@ -221,7 +221,7 @@ var dbPlatformMerchantGroup = {
         ).then(
             data => {
                 if (data && data.merchants && data.merchants.length > 0) {
-                    var merchants = data.merchants.map(merchant => merchant.name);
+                    var merchants = data.merchants.map(merchant => merchant.merchantNo);
                     return dbconfig.collection_platformMerchantGroup.update(
                         {platform: platformObjId},
                         {$pull: {merchants: {$nin: merchants}}},

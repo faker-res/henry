@@ -139,6 +139,8 @@ style.
                             td {{v.permerchantLimits}}
                             td {{v.transactionForPlayerOneDay}}
 
+                button.btn.btn-info.common-button.pull-right(style='margin-top:20px;' ng-click="vm.selectMerchant(true)") {{"Select All" | translate}}
+                button.btn.btn-info.common-button.pull-right(style='margin-top:20px;' ng-click="vm.selectMerchant(false)") {{"Clear All" | translate}}
                 button.btn.btn-primary.common-button.pull-right(style='margin-top:20px;' ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update')", ng-click='vm.removeMerchantFromGroup()')
                         i.fa.fa-minus-square
                         text {{"EXCLUDE" | translate}}
