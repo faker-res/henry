@@ -5932,6 +5932,10 @@ let dbPlayerInfo = {
                                 if (levelUpObjArr[index] && levelUpObjArr[index].reward && levelUpObjArr[index].reward.bonusCredit) {
                                     proposal.rewardAmount = levelUpObjArr[index].reward.bonusCredit;
                                     proposal.isRewardTask = levelUpObjArr[index].reward.isRewardTask;
+                                    if (proposal.isRewardTask) {
+                                        proposal.providerGroup = levelUpObjArr[index].reward.providerGroup;
+                                        proposal.requiredUnlockAmount = levelUpObjArr[index].reward.requiredUnlockTimes * levelUpObjArr[index].reward.bonusCredit;
+                                    }
 
                                 }
                                 return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposal});

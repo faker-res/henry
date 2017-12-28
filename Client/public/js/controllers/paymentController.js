@@ -661,6 +661,13 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.selectBankCard = (select) => {
+            for (let i = 0; i < vm.allBankCards.length; i++) {
+                if (vm.allBankCards[i].show$)
+                    vm.allBankCards[i].selected = Boolean(select);
+            }
+        };
+
         vm.removeBankCardFromGroup = () => {
             let bankAccountNumbers = [];
             for (let i = 0; i < vm.allBankCards.length; i++) {
@@ -1154,7 +1161,8 @@ define(['js/app'], function (myApp) {
 
         vm.selectMerchant = (select) => {
             for (let i = 0; i < vm.allMerchantList.length; i++) {
-                vm.allMerchantList[i].selected = Boolean(select);
+                if (vm.allMerchantList[i].show$)
+                    vm.allMerchantList[i].selected = Boolean(select);
             }
         };
 
@@ -1555,7 +1563,7 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 query: {
                     platform: vm.selectedPlatform.id,
-                    name: vm.SelectedAlipayGroupNode.groupId
+                    _id: vm.SelectedAlipayGroupNode._id
                 },
                 update: {
                     name: vm.newAlipayGroup.name,
@@ -1605,6 +1613,14 @@ define(['js/app'], function (myApp) {
 
             return isValid;
         };
+
+        vm.selectAlipay = (select) => {
+            for (let i = 0; i < vm.allAlipayList.length; i++) {
+                if (vm.filterAlipay(vm.allAlipayList[i])) {
+                    vm.allAlipayList[i].isCheck = select;
+                }
+            }
+        }
 
         vm.alipaytoAlipayGroup = function (type) {
             var sendData = {
@@ -2058,6 +2074,14 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             })
         };
+
+        vm.selectWechatGroup = (select) => {
+            for (let i = 0; i < vm.allWechatList.length; i++) {
+                if (vm.filterWechat(vm.allWechatList[i])) {
+                    vm.allWechatList[i].isCheck = select;
+                }
+            }
+        }
 
         vm.removeWechatPayGroup = function (node) {
             socketService.$socket($scope.AppSocket, 'deleteWechatPayGroup', {_id: node._id}, function (data) {

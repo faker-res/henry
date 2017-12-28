@@ -914,6 +914,10 @@ function isRelevantLoginEventByProvider(event, provider, inputDevice) {
     // if 'OR' flag added in, this part of the code need some adjustment
     let eventTargetDestination = [];
 
+    if (!event.status) {
+        return false
+    }
+
     // customPeriodEndTime check
     if (event.customPeriodEndTime && new Date(event.customPeriodEndTime) < new Date()) {
         return false;
@@ -935,6 +939,9 @@ function isRelevantLoginEventByProvider(event, provider, inputDevice) {
 }
 
 function isRelevantTopupEvent(event, topupMainType, topupProposalData) {
+    if (!event.status) {
+        return false
+    }
     // customPeriodEndTime check
     if (event.customPeriodEndTime && new Date(event.customPeriodEndTime) < new Date())
         return false;
@@ -969,6 +976,10 @@ function isRelevantTopupEvent(event, topupMainType, topupProposalData) {
 function isRelevantGameEvent(event, consumptionRecord) {
     if (!event) {
         return false;
+    }
+
+    if (!event.status) {
+        return false
     }
 
     // customPeriodEndTime check
