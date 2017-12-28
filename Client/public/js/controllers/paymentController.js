@@ -1152,6 +1152,12 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.selectMerchant = (select) => {
+            for (let i = 0; i < vm.allMerchantList.length; i++) {
+                vm.allMerchantList[i].selected = Boolean(select);
+            }
+        };
+
         vm.totalMerchantShows = () => {
             let total = 0;
             for (let key in vm.allMerchantList) {
@@ -1258,15 +1264,15 @@ define(['js/app'], function (myApp) {
         }
 
         vm.addmerchantToGroup = function (type) {
-            let merchantName = [];
+            let merchantNumbers = [];
             for (let i = 0; i < vm.allMerchantList.length; i++) {
                 let merchant = vm.allMerchantList[i];
                 if (merchant.selected && !merchant.isIncluded) {
-                    merchantName.push(merchant.name)
+                    merchantNumbers.push(merchant.merchantNo)
                 }
             }
 
-            if (!merchantName.length) {
+            if (!merchantNumbers.length) {
                 socketService.showErrorMessage($translate("There is no merchant group to be added"));
                 return;
             }
@@ -1280,7 +1286,7 @@ define(['js/app'], function (myApp) {
 
             sendData.update = {
                 "$push": {
-                    merchants: {$each: merchantName}
+                    merchants: {$each: merchantNumbers}
                 }
             }
 
@@ -1296,15 +1302,15 @@ define(['js/app'], function (myApp) {
         }
 
         vm.removeMerchantFromGroup = function (type) {
-            let merchantName = [];
+            let merchantNumbers = [];
             for (let i = 0; i < vm.allMerchantList.length; i++) {
                 let merchant = vm.allMerchantList[i];
                 if (merchant.selected && merchant.isIncluded) {
-                    merchantName.push(merchant.name)
+                    merchantNumbers.push(merchant.merchantNo)
                 }
             }
 
-            if (!merchantName.length) {
+            if (!merchantNumbers.length) {
                 socketService.showErrorMessage($translate("There is no merchant group to be remove"));
                 return;
             }
@@ -1318,7 +1324,7 @@ define(['js/app'], function (myApp) {
 
             sendData.update = {
                 "$pull": {
-                    merchants: {$in: merchantName}
+                    merchants: {$in: merchantNumbers}
                 }
             }
 

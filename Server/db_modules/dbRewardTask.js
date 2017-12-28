@@ -128,6 +128,7 @@ const dbRewardTask = {
                 if (providerGroup) {
                     let updObj = {
                         $inc: {
+                            initAmt: rewardData.initAmount,
                             rewardAmt: rewardData.initAmount,
                             currentAmt: rewardData.initAmount,
                             forbidWithdrawIfBalanceAfterUnlock:
@@ -150,6 +151,7 @@ const dbRewardTask = {
                 }
                 else {
                     let saveObj = {
+                        initAmt: rewardData.initAmount,
                         platformId: rewardData.platformId,
                         playerId: rewardData.playerId,
                         lastProposalId: proposalData._id,
@@ -380,7 +382,7 @@ const dbRewardTask = {
         let rewardTaskGroup = null;
         let sortCol = query.sortCol || {"createTime": 1};
 
-        var queryObj = {
+        let queryObj = {
             playerId: ObjectId(query.playerId),
             providerGroup: query._id,
             status: 'Started',
@@ -388,40 +390,37 @@ const dbRewardTask = {
                 $gte: new Date(query.from),
                 $lt: new Date(query.to)
             }
-        }
+        };
+
         return dbconfig.collection_rewardTaskGroup.find(queryObj)
             .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
             .then(data => {
                 rewardTaskGroup = data[0];
-                return data;
-            })
-            .then(data => {
                 let createTime = data[0].createTime ? data[0].createTime :null;
-                if(!createTime){
+                if (!createTime) {
                     createTime = new Date(query.from);
                 }
 
+                let lastSecond = new Date(createTime).getTime();
                 let rewardTaskProposalQuery = {
                     'data.playerObjId': ObjectId(query.playerId),
-                    'data.platformId': ObjectId(query.platformId)
+                    'data.platformId': ObjectId(query.platformId),
+                    settleTime: {
+                        $gte: new Date(lastSecond),
+                        $lt: new Date(query.to)
+                    }
                 };
 
                 if (!query._id) {
                     rewardTaskProposalQuery.mainType = {$in: ["TopUp","Reward"]};
-                    //selected the new period from 30ms  to endData;
-                    let lastSecond = new Date(createTime).getTime();
-                    rewardTaskProposalQuery.settleTime = {
-                        $gte: new Date(lastSecond),
-                        $lt: new Date(query.to)
-                    };
-
-                    // rewardTaskProposalQuery.$or = [
-                    //     {'data.providerGroup': {$exists: true, $eq: null}},
-                    //     {'data.providerGroup': {$exists: false}}
-                    // ]
+                    rewardTaskProposalQuery.$or = [
+                        {'data.providerGroup': {$exists: true, $eq: null}},
+                        {'data.providerGroup': {$exists: false}}
+                    ]
                 } else {
                     rewardTaskProposalQuery['data.providerGroup'] = query._id;
                 }
+
                 return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
                     path: "type",
                     model: dbconfig.collection_proposalType
