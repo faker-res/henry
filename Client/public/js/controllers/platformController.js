@@ -10898,7 +10898,7 @@ define(['js/app'], function (myApp) {
                                 vm.rewardTaskGroupCurrentAmt -= -(item.availableAmt$);
                                 item.archivedAmt$ = item.availableAmt$
                             } else if (vm.rewardTaskGroupCurrentAmt != 0) {
-                                item.archivedAmt$ = vm.rewardTaskGroupCurrentAmt;
+                                item.archivedAmt$ = -vm.rewardTaskGroupCurrentAmt;
                                 vm.rewardTaskGroupCurrentAmt = 0;
                             }
 
