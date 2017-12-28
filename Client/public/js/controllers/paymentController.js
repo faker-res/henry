@@ -1152,6 +1152,12 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.selectMerchant = (select) => {
+            for (let i = 0; i < vm.allMerchantList.length; i++) {
+                vm.allMerchantList[i].selected = Boolean(select);
+            }
+        };
+
         vm.totalMerchantShows = () => {
             let total = 0;
             for (let key in vm.allMerchantList) {
