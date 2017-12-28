@@ -10572,6 +10572,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'unlockRewardTaskInRewardTaskGroup', sendQuery, function (data) {
                     vm.getRewardTaskLogData(true);
                     $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
+                    $('#rewardTaskLogTbl').DataTable().clear().draw();
                 })
             }
 
