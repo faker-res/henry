@@ -1921,7 +1921,7 @@ define(['js/app'], function (myApp) {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.status$ = $translate(item.status);
                         item.merchantName = vm.getMerchantName(item.data.merchantNo);
-                        item.merchantNo$ = item.data.merchantNo != null ? item.data.merchantNo
+                        item.merchantNoDisplay = item.data.merchantNo != null ? item.data.merchantNo
                             : item.data.bankCardNo != null ? item.data.bankCardNo
                             : item.data.wechatAccount != null ? item.data.wechatAccount
                             : item.data.weChatAccount != null ? item.data.weChatAccount
@@ -2062,7 +2062,7 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     },
-                    {title: $translate('Business Acc/ Bank Acc'), data: "merchantNo$"},
+                    {title: $translate('Business Acc/ Bank Acc'), data: "merchantNoDisplay"},
                     {title: $translate('Total Business Acc'), data: "merchantCount$"},
                     {title: $translate('STATUS'), data: "status$"},
                     {title: $translate('PLAYER_NAME'), data: "data.playerName"},

@@ -431,6 +431,10 @@ define(['js/app'], function (myApp) {
 
             vm.showRewardSettingsTab = function (tabName) {
                 vm.selectedRewardSettingsTab = tabName == null ? "manual-reward" : tabName;
+
+                if (tabName == "reward-progress") {
+                    $('#rewardTaskLogTbl').empty();
+                }
             };
 
             vm.showReapplyLostOrderTab = function (tabName) {
@@ -10277,10 +10281,9 @@ define(['js/app'], function (myApp) {
                         vm.commonPageChangeHandler(curP, pageSize, "rewardTaskLog", vm.getRewardTaskLogData)
                     });
                     $scope.$evalAsync(vm.getRewardTaskLogData(true));
-
                 });
 
-                vm.displayProviderGroupCredit();
+                $scope.$evalAsync(vm.displayProviderGroupCredit());
             }
             vm.displayProviderGroupCredit = function(){
                 console.log('displayProviderGroupCredit');
@@ -10289,6 +10292,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getCreditDetail', {playerObjId: vm.selectedSinglePlayer._id}, function (data) {
                     console.log('getCreditDetail', data);
                     vm.playerCreditDetails = data.data.lockedCreditList;
+                    vm.currentFreeAmount = data.data ? data.data.credit : '';
                     vm.playerCreditDetails.map(d=>{
                         if(d.validCredit == 'unknown'){
                             d.validCredit = '';
@@ -10328,10 +10332,6 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }
                     )
-                })
-                socketService.$socket($scope.AppSocket, 'getWithdrawalInfo', {'platformId': platformId , 'playerId': playerId}, function (data) {
-                    vm.freeAmount = data.data ? data.data.freeAmount : '';
-                    vm.currentFreeAmount = data.data ? data.data.currentFreeAmount : '';
                 })
             }
             vm.setDisplayTaskGroup = function(status){
@@ -10546,35 +10546,32 @@ define(['js/app'], function (myApp) {
                 vm.dynRewardTaskGroupIndex = [];
                 $('.unlockTaskGroupProposal:checked').each(function () {
                     let result = $(this).val().split(',');
-                    vm.dynRewardTaskGroupIndex.push(result[2]);
+                    vm.dynRewardTaskGroupIndex.push(result);
                 })
             }
 
 
-            vm.unlockTaskGroup = function(){
-                let indexArr = vm.dynRewardTaskGroupIndex;
-                let firstIndex = indexArr.sort()[0];
-                let lastIndex = indexArr.sort()[indexArr.length - 1];
-
+            vm.unlockTaskGroup = () => {
                 let incRewardAmt = 0;
                 let incConsumptAmt = 0;
                 let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
 
-                for (let i = firstIndex; i <= lastIndex; i++) {
-                    let prop = vm.simpleRewardProposalData[i];
-                    incRewardAmt = prop.applyAmount + prop.rewardAmount;
-                    incConsumptAmt = prop.spendingAmount;
+                vm.dynRewardTaskGroupIndex.forEach(item => {
+                    incRewardAmt += item[0];
+                    incConsumptAmt += item[1];
+                });
 
-                    let sendQuery = {
-                        'rewardTaskGroupId': rewardTaskGroup._id,
-                        'incRewardAmount': incRewardAmt,
-                        'incConsumptionAmount': incConsumptAmt
-                    }
-                    socketService.$socket($scope.AppSocket, 'unlockRewardTaskInRewardTaskGroup', sendQuery, function (data) {
-                        vm.getRewardTaskLogData(true);
-                        $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
-                    })
-                }
+                let sendQuery = {
+                    'rewardTaskGroupId': rewardTaskGroup._id,
+                    'incRewardAmount': incRewardAmt,
+                    'incConsumptionAmount': incConsumptAmt
+                };
+
+                socketService.$socket($scope.AppSocket, 'unlockRewardTaskInRewardTaskGroup', sendQuery, function (data) {
+                    vm.getRewardTaskLogData(true);
+                    $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
+                    $('#rewardTaskLogTbl').DataTable().clear().draw();
+                })
             }
 
             vm.getIncReward = function(currentAmt,rewardAmt,firstIdx, lastIdx){
@@ -10885,7 +10882,7 @@ define(['js/app'], function (myApp) {
 
                                 item.curConsumption$ = spendingAmt.currentAmt;
                                 item.maxConsumption$ = spendingAmt.currentMax;
-                            }else{
+                            } else {
                                 item.curConsumption$ = item.requiredBonusAmount;
                                 item.maxConsumption$ = item.requiredUnlockAmount;
                             }
@@ -10893,16 +10890,19 @@ define(['js/app'], function (myApp) {
                             item.requiredBonusAmount$ = item.requiredBonusAmount;
                             item.currentAmount$ = item.data.currentAmount;
 
+                            item.availableAmt$ = item.applyAmount + item.bonusAmount;
+
                             item.archivedAmt$ = 0;
-                            if (vm.rewardTaskGroupCurrentAmt <= -(item.applyAmount + item.bonusAmount)) {
-                                vm.rewardTaskGroupCurrentAmt -= -(item.applyAmount + item.bonusAmount);
-                                item.archivedAmt$ = item.applyAmount + item.bonusAmount
+                            if (vm.rewardTaskGroupCurrentAmt <= -(item.availableAmt$)) {
+                                vm.rewardTaskGroupCurrentAmt -= -(item.availableAmt$);
+                                item.archivedAmt$ = item.availableAmt$
                             } else if (vm.rewardTaskGroupCurrentAmt != 0) {
                                 item.archivedAmt$ = vm.rewardTaskGroupCurrentAmt;
                                 vm.rewardTaskGroupCurrentAmt = 0;
                             }
 
-                            console.log(item);
+                            item.isArchived =
+                                item.archivedAmt$ == item.availableAmt$
 
                         });
 
@@ -10939,6 +10939,7 @@ define(['js/app'], function (myApp) {
 
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
+                    "aaSorting": vm.rewardTaskLog.aaSorting || [[3, 'desc']],
                     aoColumnDefs: [
                         // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
@@ -10947,28 +10948,50 @@ define(['js/app'], function (myApp) {
                         {
                             "title": $translate('UnlockStatus'),data:"status",
                             render: function (data, type, row, meta) {
-                                var text;
-                                var rowId = String(meta.row);
-                                var adminName = row.creator ? row.creator.name : '';
+                                let text;
+                                let rowId = String(meta.row);
+                                let adminName = row.creator ? row.creator.name : '';
 
-                                if(vm.isUnlockTaskGroup){
-                                    let isSubmit = vm.isSubmitProposal(rowId);
-                                    var adminName = row.creator ? row.creator.name : '';
-
-                                    if (isSubmit.isSubmit) {
-                                        text = '<a class="fa fa-check margin-right-5"></a><span>(' + adminName + ')</span>';
-                                    } else {
-                                        text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.data.applyAmount, row.data.spendingAmount, rowId] + '" ng-click="vm.setUnlockTaskGroup(\'' + rowId + '\')">';
-                                    }
+                                if (row.isArchived) {
+                                    text = '<a class="fa fa-check margin-right-5"></a><span>(' + adminName + ')</span>';
+                                } else {
+                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.availableAmt$ + row.archivedAmt$, row.maxConsumption$ - row.curConsumption$, rowId] + '" ng-click="vm.setUnlockTaskGroup(\'' + rowId + '\')">';
                                 }
 
-                                if(!vm.isUnlockTaskGroup){
-                                    if (data!='Started') {
-                                        text = '<a class="fa fa-check margin-right-5"></a><span>(' + adminName +')</span>';
-                                    } else {
-                                        text = '<input type="checkbox" class="unlockList" name="unlockList[]" value="'+rowId+'"  ng-click="vm.selectReward($event)"/>';
-                                    }
-                                }
+                                //
+                                // let isSubmit = vm.isSubmitProposal(meta.row);
+                                // let archived;
+                                //
+                                // if (vm.isUnlockTaskGroup && vm.chosenProviderGroupId) {
+                                //     console.log('case 1');
+                                //
+                                //     archived = isSubmit.curRewardAmount <= 0;
+                                // } else if (vm.isUnlockTaskGroup && !vm.chosenProviderGroupId) {
+                                //
+                                //
+                                //     let applyAmount = row.applyAmount ? row.applyAmount: 0;
+                                //     let rewardAmount = applyAmount + row.bonusAmount;
+                                //
+                                //     console.log('case 2', row.archivedAmt$, rewardAmount);
+                                //
+                                //     archived = row.archivedAmt$ == rewardAmount;
+                                // }
+                                //
+                                // if (archived) {
+                                //     console.log('case 3');
+                                //     if (isSubmit.isSubmit) {
+                                //         text = '<a class="fa fa-check margin-right-5"></a><span>(' + adminName + ')</span>';
+                                //     } else {
+                                //         text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.data.applyAmount, row.data.spendingAmount, rowId] + '" ng-click="vm.setUnlockTaskGroup(\'' + rowId + '\')">';
+                                //     }
+                                // } else {
+                                //     console.log('case 4');
+                                //     if (data != 'Started') {
+                                //         text = '<a class="fa fa-check margin-right-5"></a><span>(' + adminName +')</span>';
+                                //     } else {
+                                //         text = '<input type="checkbox" class="unlockList" name="unlockList[]" value="'+rowId+'"  ng-click="vm.selectReward($event)"/>';
+                                //     }
+                                // }
 
                                 return "<div>" + text + "</div>";
                             }
@@ -11087,7 +11110,7 @@ define(['js/app'], function (myApp) {
                     vm.commonSortChangeHandler(a, 'rewardTaskLog', vm.getRewardTaskLogData);
                 });
                 // $('#rewardTaskLogTbl').resize();
-                $scope.safeApply();
+                // $scope.safeApply();
             }
 
             //////////////////////////// reward task log end
@@ -21496,7 +21519,6 @@ define(['js/app'], function (myApp) {
 
                     if(data && data.data){
                         vm.selectedAdvList = data.data;
-                        vm.hoverStyle = document.createElement('style');
                         vm.drawUIPlatformCSS(vm.selectedAdvList);
                         console.log("vm.selectedAdvList", vm.selectedAdvList);
                         vm.CSSContentEdit = false;
@@ -21509,10 +21531,13 @@ define(['js/app'], function (myApp) {
             };
 
             vm.drawUIPlatformCSS = function (elem) {
-                // generate the css
                 if (vm.hoverStyle) {
-                    vm.hoverStyle.innerHTML = "";
+                    vm.clearStyle();
+                }
 
+                // generate the css
+                setTimeout(function () {
+                    vm.hoverStyle = document.createElement('style');
                     if (vm.hoverStyle.styleSheet) {
                         vm.hoverStyle.styleSheet.cssText = '';
                     }
@@ -21534,11 +21559,12 @@ define(['js/app'], function (myApp) {
                     vm.hoverStyle.appendChild(document.createTextNode(temp));
                     document.getElementsByTagName('head')[0].appendChild(vm.hoverStyle);
                     $scope.safeApply();
-                }
+                },0);
             };
 
             vm.clearStyle = function (){
                 document.getElementsByTagName('head')[0].removeChild(vm.hoverStyle);
+                vm.hoverStyle= null;
                 $scope.safeApply();
             };
 
