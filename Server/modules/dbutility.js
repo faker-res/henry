@@ -185,6 +185,20 @@ var dbUtility = {
         };
     },
 
+    /**
+     *  1 = monday , 2= tuesday , ...,7 = sunday
+     */
+    getDayOfWeek: function () {
+        return moment(new Date()).tz('Asia/Singapore').day();
+    },
+
+    /**
+     *   get current hour (0-23)
+     */
+    getHourOfDay: function () {
+        return moment(new Date()).tz('Asia/Singapore').hours();
+    },
+
     getCurrentBiWeekSGTIme: function () {
         let startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
         let endTime = moment(startTime).add(14, 'days').toDate();

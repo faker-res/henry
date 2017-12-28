@@ -1555,7 +1555,7 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 query: {
                     platform: vm.selectedPlatform.id,
-                    name: vm.SelectedAlipayGroupNode.groupId
+                    _id: vm.SelectedAlipayGroupNode._id
                 },
                 update: {
                     name: vm.newAlipayGroup.name,

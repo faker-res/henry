@@ -1588,8 +1588,22 @@ const dbRewardTask = {
                             let lockedCredit = player.lockedCredit;
                             let providerCredit = 0, totalCredit = 0;
                             let platformProm = dbconfig.collection_platform.findOne({_id: rewardGroupData.platformId});
-                            let providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rewardGroupData.providerGroup})
-                                .populate({path: "providers", model: dbconfig.collection_gameProvider});
+                            let providerGroupProm;
+
+                            if(rewardGroupData.providerGroup) {
+                                providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rewardGroupData.providerGroup})
+                                    .populate({path: "providers", model: dbconfig.collection_gameProvider});
+                            } else {
+                                providerGroupProm = dbconfig.collection_platform.findOne({_id: rewardGroupData.platformId})
+                                    .populate({path: "gameProviders", model: dbconfig.collection_gameProvider})
+                                    .then(
+                                        platform => {
+                                            if(platform) {
+                                                return {providers: platform.gameProviders};
+                                            }
+                                        }
+                                    );
+                            }
 
                             let rewardType = rewardGroupData && rewardGroupData.type ? rewardGroupData.type : "Free amount";
 
@@ -1625,7 +1639,9 @@ const dbRewardTask = {
                             ).then(
                                 (queryResult) => {
                                     queryResult.forEach(provider => {
-                                        providerCredit += provider ? parseFloat(provider.credit) : 0;
+                                        if(provider && provider.hasOwnProperty("credit")) {
+                                            providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
+                                        }
                                     });
                                     totalCredit = validCredit + lockedCredit + providerCredit;
 
