@@ -1916,6 +1916,7 @@ var dbPlayerTopUpRecord = {
                         updateData.data.alipayName = pmsData.result.alipayName;
                         pmsData.result.alipayQRCode = pmsData.result.alipayQRCode || "";
                         updateData.data.alipayQRCode = pmsData.result.alipayQRCode;
+                        updateData.data.qrcodeAddress = pmsData.result.qrcodeAddress;
                         if (pmsData.result.validTime) {
                             updateData.data.validTime = new Date(pmsData.result.validTime);
                         }
