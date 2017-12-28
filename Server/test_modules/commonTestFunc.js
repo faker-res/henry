@@ -17,6 +17,7 @@ var dbAdminInfo = require('../db_modules/dbAdminInfo');
 var dbDepartment = require('../db_modules/dbDepartment');
 var dbRole = require('../db_modules/dbRole');
 var dbPartner = require('../db_modules/dbPartner');
+var dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
 var constProposalStepStatus = require('../const/constProposalStepStatus');
 var clientApiInstances = require("../modules/clientApiInstances.js");
 
@@ -190,6 +191,20 @@ var commonTestFunc = {
         return dbPlayerTopUpRecord.createPlayerTopUpRecord(topUpData);
     },
 
+    createConsumptionRecord: function (data) {
+        var consumptionData = {
+            playerId: data.playerObjId,
+            platformId: data.platformObjId,
+            providerId: data.providerObjId,
+            gameId: data.gameId,
+            gameType: data.gameType,
+            amount: data.amount,
+            orderNo: new Date().getTime() + Math.random(),
+            createTime: data.curTime ? data.curTime : new Date().getTime()
+        }
+        return dbPlayerConsumptionRecord.createPlayerConsumptionRecord(consumptionData);
+
+    },
     createTestProposal: function (proposalData) {
         return new dbconfig.collection_proposal(proposalData).save();
     },
