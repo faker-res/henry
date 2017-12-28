@@ -186,7 +186,7 @@ describe("Test player reward points", function () {
         )
     });
 
-    /* Test 7 - find player'level at the platform */
+    /* Test 7 - find player's level at the platform */
     it('should find player level at the platform', function (done){
         dbConfig.collection_playerLevel.findOne({platform: testPlatformObjId, value: 0}).lean().then(
             (playerLevel) => {
@@ -273,8 +273,8 @@ describe("Test player reward points", function () {
         );
     });
 
-    /* Test 13 - check the availability of the applyRewardEvent proposal data */
-    it('Should contain the applyRewardEvent proposal  and the spendingamout is correct', function (done){
+    /* Test 13 - check the availability of the applyRewardEvent proposal data and ensure the spendingAmount is correct */
+    it('Should contain the applyRewardEvent proposal and the spendingAmount is correct', function (done){
         dbProposal.getProposal({"data.platformId": testPlatformObjId, "data.playerObjId": testPlayerObjId}).then(
             (proposal) => {
                 if (proposal){
@@ -294,7 +294,7 @@ describe("Test player reward points", function () {
         )
     });
 
-    /* Test 14 - */
+    /* Test 14 - ensure the spending amount in proposal and in rewardTask is matched */
         it('Should ensure the spending amount in proposal and in rewardTask is matched', function (done) {
          dbRewardTask.getRewardTask({playerId: testPlayerObjId, platformId: testPlatformObjId}).then(
              (rewardTask) => {
