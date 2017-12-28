@@ -13,6 +13,7 @@ var dbRewardEvent = require('./../db_modules/dbRewardEvent');
 var dbRewardRule = require('./../db_modules/dbRewardRule');
 var dbRewardTask = require('./../db_modules/dbRewardTask');
 var dbProposalProcess = require('./../db_modules/dbProposalProcess');
+var dbProposalTypeProcess = require('./../db_modules/dbProposalTypeProcess');
 var dbAdminInfo = require('../db_modules/dbAdminInfo');
 var dbDepartment = require('../db_modules/dbDepartment');
 var dbRole = require('../db_modules/dbRole');
@@ -216,6 +217,16 @@ var commonTestFunc = {
         return dbProposalProcess.createProposalProcess(inputProposalProcess);
     },
 
+    createTestProposalTypeProcess: function (data) {
+        return dbProposalTypeProcess.createProposalTypeProcess(data);
+    },
+
+    createTestProposalType: function (data) {
+        let proposalType = new dbconfig.collection_proposalType(data);
+        return proposalType.save()
+    },
+
+
     createRewardEvent: function (data) {
         return dbRewardEvent.createRewardEvent(data);
     },
@@ -343,7 +354,9 @@ var commonTestFunc = {
         var pm_P1 = dbconfig.collection_proposal.remove({"proposalId": {$regex: proposalQuery}});
         var pm_P2 = dbconfig.collection_proposal.remove({"playerId": playerObjId});
 
-        return Q.all([pm_P_ProcessStep, pm_P_Process, pm_P_Type, pm_P, pm_P1, pm_P2]);
+        var pm_P3 = dbconfig.collection_proposalTypeProcess.remove({platformId: platformObjId});
+
+        return Q.all([pm_P_ProcessStep, pm_P_Process, pm_P_Type, pm_P, pm_P1, pm_P2, pm_P3]);
     },
 
     removeAllTestProposalData: function () {

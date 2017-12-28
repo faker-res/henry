@@ -1128,44 +1128,6 @@ include modalGameCreditLog
             button.btn.btn-primary.submit {{'CONFIRM' | translate}}
             button#permissionRecordButton.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog')
                 text {{"Permission History" | translate}}
-#modalPlayerPermissionChangeLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
-        #playerPermissionHistory.modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{'Player' | translate}} : {{vm.popOverPlayerPermission.name}}
-            .modal-body
-                .well.searchDiv
-                    .inlineBlk
-                        label {{"Start date"|translate}}
-                        .startTime
-                    .inlineBlk
-                        label {{"End date"|translate}}
-                        .endTime
-                    .inlineBlk
-                        button.common-button.btn.btn-primary(ng-click='vm.getPlayerPermissionChange("update")') {{'FILTER' | translate}}
-                        i.fa.fa-spinner.fa-spin(ng-if='vm.playerPermissionQuery.searching')
-                label(ng-if='!vm.playerPermissionQuery.searching') {{'total' | translate}} {{vm.playerPermissionHistory.length || 0}} {{'records' | translate}}
-                .panel.panel-primary
-                    .panel-head
-                        .panel-title
-                            .col-md-2 {{"date" | translate}}
-                            .col-md-5 {{"CONTENT" | translate}}
-                            .col-md-2 {{"Admin" | translate}}
-                            .col-md-3 {{"remark" | translate}}
-                    .panel-body(style='max-height:400px;overflow-y:auto')
-                        .row(ng-repeat='(i,v) in vm.playerPermissionHistory', class='{{i%2==0 ? "bg-grey":""}}')
-                            .col-md-2 {{vm.dateReformat(v.createTime)}}
-                            .col-md-5
-                                ul.list-unstyled(ng-repeat='(k,l) in v.oldData', style='margin-bottom:0;')
-                                    li
-                                        label {{k | translate}}
-                                        .pull-right
-                                            text(class='{{l ? "text-primary" : "text-danger"}}') {{l}}
-                                            text &nbsp;-->&nbsp;
-                                            text(class='{{v.newData[k] ? "text-primary" : "text-danger"}}') {{v.newData[k]}}
-                            .col-md-2.text-center {{v.admin.adminName || ' '}}
-                            .col-md-3.text-center {{v.remark}}
 
 #modalForbidRewardLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')

@@ -147,7 +147,7 @@ var dbPlatformMerchantGroup = {
                 var merchantsArr = data.merchants || [];
                 for (let i = 0; i < allMerchants.length; i++) {
 
-                    if (merchantsArr.indexOf(allMerchants[i].name) != -1) {
+                    if (merchantsArr.indexOf(allMerchants[i].merchantNo) != -1) {
                         allMerchants[i].isIncluded = true;
                     } else {
                         allMerchants[i].isIncluded = false;
