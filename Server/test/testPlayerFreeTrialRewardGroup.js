@@ -195,7 +195,7 @@ describe("Test player free trial reward group", function () {
         createFreeTrialRewardEventData.param.rewardParam[0].levelId = testPlatformPlayerLevelId;
         createFreeTrialRewardEventData.platform = testPlatformObjId;
         commonTestFunc.createRewardEvent(createFreeTrialRewardEventData).then(
-            (data) => {
+            () => {
                 done();
             },
             (error) => {
@@ -213,6 +213,91 @@ describe("Test player free trial reward group", function () {
                     done();
                 } else {
                     done('Free trial reward event not found');
+                }
+            },
+            (error) => {
+                done(error);
+            }
+        )
+    });
+
+    /* Test 9 - apply free trial reward event*/
+    it('Should apply free trial reward event', function (done) {
+        let proms = [];
+        // 10 concurrent apply situation
+        for (let a = 0; a < 10; a++) {
+            proms.push(dbPlayerInfo.applyRewardEvent("", testPlayer.playerId, createFreeTrialRewardEventData.code, "").then(
+                data => {
+                    return true;
+                },
+                err => {
+                    return false
+                }
+            ));
+        }
+        Promise.all(proms).then(
+            (data) => {
+                if (data.indexOf(true) > -1) {
+                    done();
+                } else {
+                    done('All promise failed');
+                }
+            },
+            (error) => {
+                done(error);
+            }
+        );
+    });
+
+    /* Test 10 - check apply reward event proposal data */
+    it('Should check is add reward event proposal data', function (done) {
+        dbProposal.getProposal({"data.platformId": testPlatformObjId, "data.playerObjId": testPlayerObjId}).then(
+            (proposal) => {
+                if (proposal) {
+                    // check reward credit output
+                    freeTrialRewardProposal = proposal;
+                    freeTrialRewardProposal.data.rewardAmount.should.equal(rewardEventAmount);
+                    done();
+                } else {
+                    done('Reward event proposal not found');
+                }
+            },
+            (error) => {
+                done(error);
+            }
+        )
+    });
+
+    /* Test 11 - check is add reward task and data match proposal */
+    it('Should check is add reward task and data match proposal', function (done) {
+        dbRewardTask.getRewardTask({playerId: testPlayerObjId, platformId: testPlatformObjId}).then(
+            (rewardTask) => {
+                if (rewardTask) {
+                    freeTrialRewardRewardTask = rewardTask;
+                    if (freeTrialRewardProposal.data.spendingAmount === freeTrialRewardRewardTask.requiredUnlockAmount) {
+                        done();
+                    } else {
+                        done('Free trial reward event proposal data and reward task not match');
+                    }
+                } else {
+                    done('Free trial reward event reward task not found');
+                }
+            },
+            (error) => {
+                done(error);
+            }
+        )
+    });
+
+    /* Test 12 - check is credit add to user */
+    it('Should check is credit add to user', function (done) {
+        dbConfig.collection_players.findOne({_id: testPlayerObjId}).lean().then(
+            (player) => {
+                if (player.validCredit - testPlayer.validCredit === freeTrialRewardProposal.data.rewardAmount) {
+                    testPlayer = player;
+                    done();
+                } else {
+                    done('Player validCredit not match');
                 }
             },
             (error) => {
