@@ -165,10 +165,13 @@
                                     select.form-control(ng-model='val.target.merchantTopupMainType' ng-options="+(i) as v | translate for (i,v) in topUpTypeList" ng-disabled='!val.isEditing')
                                 td(style="min-width:140px;")
                                     select.form-control(ng-model='val.target.merchantTopupType' ng-options="+(i) as v | translate for (i,v) in merchantTopupTypeJson" ng-disabled='!val.isEditing')
+                                        option(value='') {{'EMPTY'|translate}}
                                 td(style="min-width:180px;")
                                     select.form-control(ng-model='val.target.depositMethod' ng-options="+(i) as v | translate for (i,v) in depositMethod" ng-disabled='!val.isEditing')
+                                        option(value='') {{'EMPTY'|translate}}
                                 td(style="min-width:200px;")
                                     select.form-control(ng-model='val.target.bankType' ng-options="+(i) as v | translate for (i,v) in vm.allBankTypeList" ng-disabled='!val.isEditing')
+                                        option(value='') {{'EMPTY'|translate}}
                                 td(style="min-width:80px;")
                                     input.form-control(type='number' ng-model='val.target.dailyTopupAmount' ng-disabled='!val.isEditing')
                                 td(style="min-width:80px;")
@@ -201,7 +204,7 @@
                                 th {{'refreshPeriod' | translate}}
                                 th {{'displayOrder' | translate}}
                                 th {{'userAgent' | translate}}
-                                th {{'targetDestination' | translate}}
+                                th {{'GAME_LOBBY' | translate}}
                                 th {{'gameType' | translate}}
                                 th {{'betType' | translate}}
 
@@ -229,7 +232,7 @@
                                 td(style="min-width:105px;")
                                     select.form-control(ng-model='val.userAgent' ng-options="+(i) as v | translate for (i,v) in constPlayerRegistrationInterface" ng-disabled='!val.isEditing')
                                 td(style="min-width:105px;")
-                                    select.spicker.form-control(ng-model="val.target.targetDestination" multiple, data-width='100%' data-actions-box='true' ng-disabled='!val.isEditing')
+                                    select.spicker.form-control(data-container="body" ng-model="val.target.targetDestination" multiple, data-width='100%' data-actions-box='true' ng-disabled='!val.isEditing')
                                         option(style="display: inline-block" ng-repeat='(i,v) in vm.allGameProviders', value='{{v._id}}') {{v.name}}
                                 td(style="min-width:105px;")
                                     select.spicker.form-control(ng-model="val.target.gameType" multiple, data-width='100%' data-actions-box='true' ng-disabled='!val.isEditing')
