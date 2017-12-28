@@ -341,6 +341,9 @@ var commonTestFunc = {
 
         let pmO = dbconfig.collection_rewardTask.remove({platformId: platformObjId});
         let pmO1 = dbconfig.collection_rewardTask.remove({playerId: {$in: playerObjIds}});
+        let pmO2 = dbconfig.collection_rewardTaskGroup.remove({platformId: platformObjId});
+        let pmO3 = dbconfig.collection_rewardTaskGroup.remove({playerId: {$in: playerObjIds}});
+
 
         let pmP = dbconfig.collection_partnerCommissionRecord.remove({platform: platformObjId});
         let pmQ = dbconfig.collection_partnerCommissionConfig.remove({platform: platformObjId});
@@ -355,8 +358,10 @@ var commonTestFunc = {
 
         let pmS = dbconfig.collection_proposal.remove({"data.platformId":platformObjId});
 
+        let pmS1 = dbconfig.collection_gameProviderGroup.remove({platform:platformObjId});
+
         return Q.all([pm1, pm2, pm3, pm4, pm5, pm6, pm7, pm8, pm9, pmA, pmB, pmC, pmC1, pmD, pmD1,
-            pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ, pmK, pmL, pmM, pmN, pmO, pmO1, pmP, pmQ, pmR, pmR1, pmS]);
+            pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ, pmK, pmL, pmM, pmN, pmO, pmO1, pmO2, pmO3, pmP, pmQ, pmR, pmR1, pmS, pmS1]);
     },
 
     removeTestProposalData: function (adminRoleObjIds, platformObjId, proposalTypeObjIds, playerObjId) {
