@@ -1692,7 +1692,7 @@ var dbPlatform = {
             platformObj =>{
                 if(platformObj){
                     if(advertisementCode){
-                        return dbconfig.collection_playerPageAdvertisementInfo.findOne({advertisementCode: advertisementCode})
+                        return dbconfig.collection_playerPageAdvertisementInfo.findOne({platformId: platformId, advertisementCode: advertisementCode})
                     }else{
                         return Q.reject({name: "DBError", message: "Advertisement code not valid"});
                     }
