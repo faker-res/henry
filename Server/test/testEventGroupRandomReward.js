@@ -47,7 +47,7 @@ describe("Test random reward group reward", function () {
     let randomRewardRewardTask = null;
 
     let randomRewardEventName = commonTestFunc.testRewardEventName + new Date().getTime();
-    const rewardEventUseProviderGroup = true;
+    const rewardEventUseProviderGroup = false;
 
     const rewardEventRequiredConsumptionAmount = 10000;
     const rewardEventRequiredTopUpAmount = 1000;
@@ -324,15 +324,26 @@ describe("Test random reward group reward", function () {
     /* Test 9 - apply random reward event*/
     it('Should apply random reward event', function (done) {
         let proms = [];
-        for (let a = 0; a < 1; a++) {
-            proms.push(dbPlayerInfo.applyRewardEvent("", testPlayer.playerId, createRandomRewardEventData.code, ""));
+        for (let a = 0; a < 5; a++) {
+            proms.push(dbPlayerInfo.applyRewardEvent("", testPlayer.playerId, createRandomRewardEventData.code, "").then(
+                data => {
+                    return true;
+                },
+                err => {
+                    return false
+                }
+            ));
         }
         Q.all(proms).then(
             (data) => {
-                done();
+                if (data.indexOf(true) > -1){
+                    done();
+                }else {
+                    done(new Error("all promise failed"));
+                }
             },
             (error) => {
-                done(error);
+                done();
             }
         );
     });
