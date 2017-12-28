@@ -1526,7 +1526,8 @@ var proposalExecutor = {
                             rewardType: constRewardType.PLAYER_LEVEL_UP,
                             platformId: proposalData.data.platformObjId,
                             //todo::check unlock amount here
-                            requiredUnlockAmount: proposalData.data.requiredUnlockAmount,
+                            requiredUnlockAmount: proposalData.data.requiredUnlockAmount || 0,
+                            providerGroup: proposalData.data.providerGroup,
                             currentAmount: proposalData.data.rewardAmount,
                             initAmount: proposalData.data.rewardAmount,
                         };
