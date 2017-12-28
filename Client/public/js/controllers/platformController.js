@@ -21520,7 +21520,6 @@ define(['js/app'], function (myApp) {
 
                     if(data && data.data){
                         vm.selectedAdvList = data.data;
-                        vm.hoverStyle = document.createElement('style');
                         vm.drawUIPlatformCSS(vm.selectedAdvList);
                         console.log("vm.selectedAdvList", vm.selectedAdvList);
                         vm.CSSContentEdit = false;
@@ -21533,10 +21532,13 @@ define(['js/app'], function (myApp) {
             };
 
             vm.drawUIPlatformCSS = function (elem) {
-                // generate the css
                 if (vm.hoverStyle) {
-                    vm.hoverStyle.innerHTML = "";
+                    vm.clearStyle();
+                }
 
+                // generate the css
+                setTimeout(function () {
+                    vm.hoverStyle = document.createElement('style');
                     if (vm.hoverStyle.styleSheet) {
                         vm.hoverStyle.styleSheet.cssText = '';
                     }
@@ -21558,11 +21560,12 @@ define(['js/app'], function (myApp) {
                     vm.hoverStyle.appendChild(document.createTextNode(temp));
                     document.getElementsByTagName('head')[0].appendChild(vm.hoverStyle);
                     $scope.safeApply();
-                }
+                },0);
             };
 
             vm.clearStyle = function (){
                 document.getElementsByTagName('head')[0].removeChild(vm.hoverStyle);
+                vm.hoverStyle= null;
                 $scope.safeApply();
             };
 
