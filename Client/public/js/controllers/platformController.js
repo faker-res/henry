@@ -10942,6 +10942,7 @@ define(['js/app'], function (myApp) {
 
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
+                    "aaSorting": vm.rewardTaskLog.aaSorting || [[3, 'desc']],
                     aoColumnDefs: [
                         // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
