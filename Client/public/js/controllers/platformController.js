@@ -11018,7 +11018,7 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('CREATETIME'), data: "createTime$"},
                         //相關存款金額
-                        {title: $translate('Deposit Amount'), data: "topUpAmount" , sClass: 'sumFloat textRight'},
+                        {title: $translate('Deposit Amount'), data: "topUpAmount"},
                         {title: $translate('Deposit ProposalId'),
                             data: "topUpProposal",
                             render: function (data, type, row) {
@@ -11029,15 +11029,14 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         //相關存款提案號
-                        {title: $translate('REWARD_AMOUNT'), data: "bonusAmount", sClass: 'sumFloat textRight'},
+                        {title: $translate('REWARD_AMOUNT'), data: "bonusAmount"},
                         {
                             //解锁进度（投注额）
                             "title": $translate('Unlock Progress(Consumption)'),data:"curConsumption$",
                             render: function (data, type, row, meta) {
                                 let text = row.curConsumption$ +"/"+row.maxConsumption$;
                                 return "<div>" + text + "</div>";
-                            },
-                            sClass: 'sumFloat textRight'
+                            }
                         },
                         // {title: $translate('Unlock Progress(Consumption)'), data: "requiredUnlockAmount$", sClass: 'sumFloat textRight'},
 
@@ -11066,8 +11065,7 @@ define(['js/app'], function (myApp) {
                                 // }
 
                                 return "<div>" + text + "</div>";
-                            },
-                            sClass: 'sumFloat textRight'
+                            }
                         },
                         {title: $translate('GAME LOBBY / REWARD TASK GROUP'), data: "provider$"},
                         {
