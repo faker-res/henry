@@ -10893,7 +10893,6 @@ define(['js/app'], function (myApp) {
                             item.currentAmount$ = item.data.currentAmount;
 
                             item.availableAmt$ = item.applyAmount + item.bonusAmount;
-
                             item.archivedAmt$ = 0;
                             if (vm.rewardTaskGroupCurrentAmt <= -(item.availableAmt$)) {
                                 vm.rewardTaskGroupCurrentAmt -= -(item.availableAmt$);
@@ -11047,24 +11046,24 @@ define(['js/app'], function (myApp) {
                             //解锁进度（输赢值）
                             "title": $translate('Unlock Progress(WinLose)'),data:"currentAmount",
                             render: function (data, type, row ,meta) {
-                                let spendingAmt = vm.calSpendingAmt(meta.row);
-                                let isSubmit = vm.isSubmitProposal(meta.row);
-                                let text = "";
-
-                                if (vm.isUnlockTaskGroup && vm.chosenProviderGroupId) {
-                                    let curRewardAmount = isSubmit.curRewardAmount;
-                                    let spAmount = spendingAmt.currentAmt;
-                                    let spCurrentMax = spendingAmt.currentMax;
-                                    text = isSubmit.curRewardAmount - isSubmit.rewardAmount + '/ -' + isSubmit.rewardAmount;
-                                } else if (vm.isUnlockTaskGroup && !vm.chosenProviderGroupId) {
-                                    let applyAmount = row.applyAmount ? row.applyAmount: 0;
-                                    let currentAmount = row.currentAmount ? row.currentAmount :0;
-                                    let rewardAmount = applyAmount + row.bonusAmount;
-                                    text = row.archivedAmt$ + '/ -' + rewardAmount;
-                                } else {
-                                    let applyAmount = row.applyAmount ? row.applyAmount: 0;
-                                    text = row.currentAmount - row.initAmt + '/ -' + (applyAmount + row.bonusAmount);
-                                }
+                                // let spendingAmt = vm.calSpendingAmt(meta.row);
+                                // let isSubmit = vm.isSubmitProposal(meta.row);
+                                let text = -row.archivedAmt$ + "/-" + row.availableAmt$;
+                                //
+                                // if (vm.isUnlockTaskGroup && vm.chosenProviderGroupId) {
+                                //     let curRewardAmount = isSubmit.curRewardAmount;
+                                //     let spAmount = spendingAmt.currentAmt;
+                                //     let spCurrentMax = spendingAmt.currentMax;
+                                //     text = isSubmit.curRewardAmount - isSubmit.rewardAmount + '/ -' + isSubmit.rewardAmount;
+                                // } else if (vm.isUnlockTaskGroup && !vm.chosenProviderGroupId) {
+                                //     let applyAmount = row.applyAmount ? row.applyAmount: 0;
+                                //     let currentAmount = row.currentAmount ? row.currentAmount :0;
+                                //     let rewardAmount = applyAmount + row.bonusAmount;
+                                //     text = row.archivedAmt$ + '/ -' + rewardAmount;
+                                // } else {
+                                //     let applyAmount = row.applyAmount ? row.applyAmount: 0;
+                                //     text = row.currentAmount - row.initAmt + '/ -' + (applyAmount + row.bonusAmount);
+                                // }
 
                                 return "<div>" + text + "</div>";
                             },
