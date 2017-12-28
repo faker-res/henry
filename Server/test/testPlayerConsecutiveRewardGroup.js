@@ -198,7 +198,7 @@ describe("Test player consecutive reward group", function () {
     });
 
     it('Should apply consecutive reward event', function (done) {
-        for(let i = 0; i < 1; i ++){
+        for(let i = 0; i < 10; i ++){
             proms.push(dbPlayerInfo.applyRewardEvent("", testPlayer.playerId, rewardCreationData.code, "").then(
                 data => {
                     return true;
