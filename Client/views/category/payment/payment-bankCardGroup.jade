@@ -228,6 +228,8 @@ style.
                         .textareaDetail
                             textarea(disabled, readonly, rows="3" style="border:none") {{'BANK_TYPE' | translate}}&nbsp;:&nbsp;{{vm.curBank.bankTypeId ? vm.getBankCardTypeTextbyId(vm.curBank.bankTypeId) : ("VOID" | translate)}}
                 div(ng-if='vm.SelectedBankCardGroupNode && checkViewPermission("Payment", "BankCardGroup", "Update")')
+                    button.btn.btn-info.common-button.pull-right(ng-click="vm.selectBankCard(true)") {{"Select All" | translate}}
+                    button.btn.btn-info.common-button.pull-right(ng-click="vm.selectBankCard(false)") {{"Clear All" | translate}}
                     button.btn.btn-primary.common-button.pull-right(ng-click="vm.removeBankCardFromGroup()")
                         i.fa.fa-minus-square
                         text {{"EXCLUDE" | translate}}
