@@ -1305,28 +1305,25 @@ var proposal = {
                     // var processes = data[1];
                     if (types && types.length > 0) {
                         var proposalTypesId = [];
+
                         for (var i = 0; i < types.length; i++) {
-                            if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
+                            if ((!typeArr || (typeArr && typeArr.length == 0)) || typeArr.indexOf(types[i].name) != -1) {
                                 proposalTypesId.push(types[i]._id);
                             }
                         }
+
                         // var processIds = [];
                         // for (var j = 0; j < processes.length; j++) {
                         //     processIds.push(processes[j]._id);
                         // }
                         var queryObj = {
-                            //type: {$in: proposalTypesId},
-                            'data.platformId': {$in: platformIds},
+                            type: {$in: proposalTypesId},
                             createTime: {
                                 $gte: new Date(startTime),
                                 $lt: new Date(endTime)
                             },
                             status: {$in: statusArr}
                         };
-
-                        if(proposalTypesId && proposalTypesId.length > 0){
-                            queryObj.type = {$in: proposalTypesId};
-                        }
 
                         if (userName) {
                             queryObj['data.name'] = userName;
