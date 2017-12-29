@@ -9045,10 +9045,16 @@ define(['js/app'], function (myApp) {
                     sortCol: vm.playerProposal.sortCol,
                     status: newproposalQuery.status,
                     playerId: vm.selectedSinglePlayer._id,
-                    eventName: newproposalQuery.eventName,
+                    // eventName: newproposalQuery.eventName,
                     promoTypeName: newproposalQuery.promoTypeName
                 };
-
+                
+                if(newproposalQuery.eventName.length === vm.rewardList.length){
+                    sendData.eventName = [];
+                }else{
+                    sendData.eventName = newproposalQuery.eventName;
+                }
+                
                 socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
                     console.log('playerproposal', data);
                     vm.playerProposal.loading = false;
