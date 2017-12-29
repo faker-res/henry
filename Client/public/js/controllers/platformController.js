@@ -1103,8 +1103,8 @@ define(['js/app'], function (myApp) {
             function getRewardPeriodTime (event) {
                 return $scope.$socketPromise('getRewardPeriodTime', {period: event.settlementPeriod}).then(res => {
                     $scope.$evalAsync(() => {
-                        event.settlementStartTime = res.data.startTime;
-                        event.settlementEndTime = res.data.endTime;
+                        event.settlementStartTime = vm.dateReformat(res.data.startTime);
+                        event.settlementEndTime = vm.dateReformat(res.data.endTime);
                     })
                 })
             };
