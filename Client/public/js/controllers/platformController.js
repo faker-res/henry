@@ -10301,6 +10301,7 @@ define(['js/app'], function (myApp) {
                 vm.rewardTaskLog = vm.rewardTaskLog || {totalCount: 0, limit: 10, index: 0, query: {}};
                 vm.isUnlockTaskGroup = false;
                 vm.chosenProviderGroupId = null;
+                vm.rtgBonusAmt = {};
                 // utilService.actionAfterLoaded('#modalRewardTaskLog.in #rewardTaskLogQuery .endTime', function () {
                 utilService.actionAfterLoaded('#rewardTaskLogQuery .endTime', function () {
                     vm.rewardTaskLog.query.startTime = utilService.createDatePicker('#rewardTaskLogQuery .startTime');
@@ -10544,8 +10545,14 @@ define(['js/app'], function (myApp) {
                             advSearch: true,
                             sClass: "",
                             render: function (data, type, row) {
-                                let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
-                                var text = row.currentAmount$ + '/' + row.bonusAmount$;
+                                let providerGroupId;
+
+                                if (row.providerGroup) {
+                                    providerGroupId = row.providerGroup._id;
+                                };
+
+                                let text = row.currentAmount$ + '/' + row.bonusAmount$;
+                                vm.rtgBonusAmt[providerGroupId] = row.currentAmount$;
                                 vm.rewardTaskGroupCurrentAmt = row.currentAmount$;
                                 var result = '<div id="' + "pgReward" + providerGroupId + '">' + text + '</div>';
                                 return result;
@@ -10925,12 +10932,12 @@ define(['js/app'], function (myApp) {
 
                             item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
                             item.archivedAmt$ = 0;
-                            if (vm.rewardTaskGroupCurrentAmt <= -(item.availableAmt$)) {
-                                vm.rewardTaskGroupCurrentAmt -= -(item.availableAmt$);
+                            if (vm.rtgBonusAmt[item.data.providerGroup] <= -(item.availableAmt$)) {
+                                vm.rtgBonusAmt[item.data.providerGroup] -= -(item.availableAmt$);
                                 item.archivedAmt$ = item.availableAmt$
-                            } else if (vm.rewardTaskGroupCurrentAmt != 0) {
-                                item.archivedAmt$ = -vm.rewardTaskGroupCurrentAmt;
-                                vm.rewardTaskGroupCurrentAmt = 0;
+                            } else if (vm.rtgBonusAmt[item.data.providerGroup] != 0) {
+                                item.archivedAmt$ = -vm.rtgBonusAmt[item.data.providerGroup];
+                                vm.rtgBonusAmt[item.data.providerGroup] = 0;
                             }
 
                             item.isArchived =
