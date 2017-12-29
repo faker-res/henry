@@ -418,12 +418,12 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            let proposalTypeIds = [];
+            let proposalTypeNames = [];
 
             if (vm.allProposalType.length != vm.proposalTypeSelected.length) {
                 vm.allProposalType.filter(item => {
                     if (vm.proposalTypeSelected.indexOf(item.name) > -1) {
-                        proposalTypeIds.push(item.name);
+                        proposalTypeNames.push(item.name);
                     }
                 });
             }
@@ -440,7 +440,7 @@ define(['js/app'], function (myApp) {
                 eventName: rewardEventName,
                 promoTypeName: promoType,
                 //type: vm.proposalTypeSelected,
-                type: proposalTypeIds,
+                type: proposalTypeNames,
                 startDate: startTime,
                 endDate: endTime,
                 entryType: vm.queryProposalEntryType,
