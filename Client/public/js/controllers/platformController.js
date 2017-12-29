@@ -1100,8 +1100,8 @@ define(['js/app'], function (myApp) {
                     });
             };
 
-            function getRewardPeriodTime (event) {
-                return $scope.$socketPromise('getRewardPeriodTime', {period: event.settlementPeriod}).then(res => {
+            function getConsumptionReturnPeriodTime (event) {
+                return $scope.$socketPromise('getConsumptionReturnPeriodTime', {period: event.settlementPeriod}).then(res => {
                     $scope.$evalAsync(() => {
                         event.settlementStartTime = vm.dateReformat(res.data.startTime);
                         event.settlementEndTime = vm.dateReformat(res.data.endTime);
@@ -1119,7 +1119,7 @@ define(['js/app'], function (myApp) {
 
                 vm.allRewardEvent.map(event => {
                     if (event && event.settlementPeriod && event.type.name == "PlayerConsumptionReturn") {
-                        p = p.then(() => getRewardPeriodTime(event))
+                        p = p.then(() => getConsumptionReturnPeriodTime(event))
                     }
                 });
 

@@ -120,10 +120,10 @@ function socketActionRewardTask(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardTaskGroup.unlockRewardTaskInRewardTaskGroup, [data.rewardTaskGroupId, data.incRewardAmount, data.incConsumptionAmount], actionName, isValidData);
         },
 
-        getRewardPeriodTime: function getRewardPeriodTime(data) {
+        getConsumptionReturnPeriodTime: function getRewardPeriodTime(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.period);
-            socketUtil.emitter(self.socket, dbRewardTask.getRewardPeriodTime, [data.period], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardTask.getConsumptionReturnPeriodTime, [data.period], actionName, isValidData);
         }
     };
     socketActionRewardTask.actions = this.actions;

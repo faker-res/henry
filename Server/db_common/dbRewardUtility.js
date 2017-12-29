@@ -9,21 +9,21 @@ const dbRewardUtility = {
      * @param period - refer constRewardPeriod
      * @returns {Query}
      */
-    getRewardPeriodTime: (period) => {
+    getConsumptionReturnPeriodTime: (period) => {
         let intervalTime;
         if (period) {
             switch (period) {
                 case "1":
-                    intervalTime = dbUtil.getTodaySGTime();
+                    intervalTime = dbUtil.getYesterdayConsumptionReturnSGTime();
                     break;
                 case "2":
-                    intervalTime = dbUtil.getCurrentWeekSGTime();
+                    intervalTime = dbUtil.getLastWeekConsumptionReturnSGTime();
                     break;
                 case "3":
-                    intervalTime = dbUtil.getCurrentBiWeekSGTIme();
+                    intervalTime = dbUtil.getLastBiWeekConsumptionReturnSGTime();
                     break;
                 case "4":
-                    intervalTime = dbUtil.getCurrentMonthSGTIme();
+                    intervalTime = dbUtil.getLastMonthConsumptionReturnSGTime();
                     break;
                 default:
                     // No interval time. Will return undefined
