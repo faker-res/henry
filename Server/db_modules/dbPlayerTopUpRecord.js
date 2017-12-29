@@ -2529,8 +2529,8 @@ var dbPlayerTopUpRecord = {
                                     dbconfig.collection_proposal.remove({_id: proposalData._id}).then();
                                     delete proposalData._id;
                                     delete proposalData.proposalId;
-                                    proposalData.createTime = createTime;
-                                    proposalData.settleTime = createTime;
+                                    proposalData.createTime = dbUtility.getSGTimeOf(createTime);
+                                    proposalData.settleTime = dbUtility.getSGTimeOf(createTime);
                                     let newProposal = new dbconfig.collection_proposal(proposalData);
                                     return newProposal.save();
                                 }
