@@ -17,7 +17,9 @@ describe("Test player free trial reward group", function () {
     let date = new Date().getTime();
 
     let testPlayer = null;
+    let testPlayer2 = null;
     let testPlayerObjId = null;
+    let testPlayerObjId2 = null;
 
     let testPlatform = null;
     let testPlatformObjId = null;
@@ -317,6 +319,65 @@ describe("Test player free trial reward group", function () {
                 done(error);
             }
         )
+    });
+
+    /* Test 13 - create a second test player for IP and phone number testing  */
+    it('Should create a second test player for IP and phone number testing', function (done) {
+        commonTestFunc.createTestPlayer(testPlatformObjId).then(
+            (data) => {
+                testPlayer2 = data;
+                testPlayerObjId2 = data._id;
+                done();
+            },
+            (error) => {
+                done(error);
+            }
+        )
+    });
+
+    /* Test 14 - apply free trial reward event and fail due to same login IP*/
+    it('Should apply free trial reward event and fail due to same login IP', function (done) {
+        dbPlayerInfo.applyRewardEvent("", testPlayer2.playerId, createFreeTrialRewardEventData.code, "").then(
+            (data) => {
+                done('Apply reward should fail due to same login IP');
+            },
+            (err) => {
+                console.log('ERROR_14',err); // Should display: This IP address has applied for max reward times in event period
+                done();
+            }
+        );
+    });
+
+    /* Test 15 - update second test player with different login IP and proceed with phone number testing  */
+    it('Should update second test player with different login IP and proceed with phone number testing', function (done) {
+        dbConfig.collection_players.findOneAndUpdate(
+            {
+                _id: testPlayerObjId2,
+                platform: testPlatformObjId
+            },
+            {
+                lastLoginIp: '199.199.199.199' //different IP from testPlayer (188.188.188.188)
+            },
+            {new: true}
+        ).then(
+            (data) => {
+                testPlayer2 = data;
+                done();
+            }
+        )
+    });
+
+    /* Test 16 - apply free trial reward event and fail due to same phone number*/
+    it('Should apply free trial reward event and fail due to same phone number', function (done) {
+        dbPlayerInfo.applyRewardEvent("", testPlayer2.playerId, createFreeTrialRewardEventData.code, "").then(
+            (data) => {
+                done('Apply reward should fail due to same phone number');
+            },
+            (err) => {
+                console.log('ERROR_16',err); // Should display: This phone number has applied for max reward times in event period
+                done();
+            }
+        );
     });
 
     /* Test 99 - remove all test Data */
