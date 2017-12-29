@@ -823,7 +823,7 @@ define(['js/app'], function (myApp) {
                 //For limitedOffer intention
                 vm.rewardList.forEach(
                     reward => {
-                        if (reward.type.name == "PlayerLimitedOfferReward") {
+                        if (reward.type && reward.type.name == "PlayerLimitedOfferReward") {
                             vm.rewardList.push({name:reward.name +" " + $translate('Intention')});
                         }
                     }
