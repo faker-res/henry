@@ -10889,9 +10889,9 @@ define(['js/app'], function (myApp) {
                 if (!vm.getRewardTaskGroupProposalLoading) {
                     vm.getRewardTaskGroupProposalLoading = true;
                     socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
+                        console.log("vm.getRewardTaskGroupProposal data", data);
                         vm.rewardTaskProposalData = data.data.data;
                         vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
-                        console.log("vm.simpleRewardProposalData", vm.simpleRewardProposalData);
                         let summary = data.data.summary;
                         let result = data.data.data;
                         result.forEach((item,index) => {
@@ -10936,6 +10936,8 @@ define(['js/app'], function (myApp) {
                                 item.archivedAmt$ == item.availableAmt$
 
                         });
+
+                        console.log("vm.getRewardTaskGroupProposal", result);
 
                         $scope.$evalAsync(vm.drawRewardTaskTable(true, result, 0, summary, 0, 0));
                         // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
