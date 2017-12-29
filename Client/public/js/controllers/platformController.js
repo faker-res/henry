@@ -10712,8 +10712,8 @@ define(['js/app'], function (myApp) {
                         if (vm.rewardTaskProposalData[i]) {
                             let proposalSpendingAmt =
                                 vm.rewardTaskProposalData[i].data.spendingAmount
-                                    ? vm.rewardTaskProposalData[i].data.spendingAmount
-                                    : vm.rewardTaskProposalData[i].data.amount;
+                                    || vm.rewardTaskProposalData[i].data.requiredUnlockAmount
+                                    || vm.rewardTaskProposalData[i].data.amount;
 
                             let forbidXIMAAmt = 0;
                             let spendingAmount = proposalSpendingAmt;
@@ -10894,7 +10894,7 @@ define(['js/app'], function (myApp) {
                             item.requiredBonusAmount$ = item.requiredBonusAmount;
                             item.currentAmount$ = item.data.currentAmount;
 
-                            item.availableAmt$ = item.applyAmount + item.bonusAmount;
+                            item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
                             item.archivedAmt$ = 0;
                             if (vm.rewardTaskGroupCurrentAmt <= -(item.availableAmt$)) {
                                 vm.rewardTaskGroupCurrentAmt -= -(item.availableAmt$);
