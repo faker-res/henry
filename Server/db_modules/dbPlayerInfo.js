@@ -5933,7 +5933,9 @@ let dbPlayerInfo = {
                                     proposal.rewardAmount = levelUpObjArr[index].reward.bonusCredit;
                                     proposal.isRewardTask = levelUpObjArr[index].reward.isRewardTask;
                                     if (proposal.isRewardTask) {
-                                        proposal.providerGroup = levelUpObjArr[index].reward.providerGroup;
+                                        if (levelUpObjArr[index].reward.providerGroup && levelUpObjArr[index].reward.providerGroup !== "free") {
+                                            proposal.providerGroup = levelUpObjArr[index].reward.providerGroup;
+                                        }
                                         proposal.requiredUnlockAmount = levelUpObjArr[index].reward.requiredUnlockTimes * levelUpObjArr[index].reward.bonusCredit;
                                     }
 
