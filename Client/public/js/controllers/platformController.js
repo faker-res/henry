@@ -9047,10 +9047,16 @@ define(['js/app'], function (myApp) {
                     sortCol: vm.playerProposal.sortCol,
                     status: newproposalQuery.status,
                     playerId: vm.selectedSinglePlayer._id,
-                    eventName: newproposalQuery.eventName,
+                    // eventName: newproposalQuery.eventName,
                     promoTypeName: newproposalQuery.promoTypeName
                 };
-
+                
+                if(newproposalQuery.eventName.length === vm.rewardList.length){
+                    sendData.eventName = [];
+                }else{
+                    sendData.eventName = newproposalQuery.eventName;
+                }
+                
                 socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
                     console.log('playerproposal', data);
                     vm.playerProposal.loading = false;
@@ -10714,8 +10720,8 @@ define(['js/app'], function (myApp) {
                         if (vm.rewardTaskProposalData[i]) {
                             let proposalSpendingAmt =
                                 vm.rewardTaskProposalData[i].data.spendingAmount
-                                    ? vm.rewardTaskProposalData[i].data.spendingAmount
-                                    : vm.rewardTaskProposalData[i].data.amount;
+                                    || vm.rewardTaskProposalData[i].data.requiredUnlockAmount
+                                    || vm.rewardTaskProposalData[i].data.amount;
 
                             let forbidXIMAAmt = 0;
                             let spendingAmount = proposalSpendingAmt;
@@ -10896,7 +10902,7 @@ define(['js/app'], function (myApp) {
                             item.requiredBonusAmount$ = item.requiredBonusAmount;
                             item.currentAmount$ = item.data.currentAmount;
 
-                            item.availableAmt$ = item.applyAmount + item.bonusAmount;
+                            item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
                             item.archivedAmt$ = 0;
                             if (vm.rewardTaskGroupCurrentAmt <= -(item.availableAmt$)) {
                                 vm.rewardTaskGroupCurrentAmt -= -(item.availableAmt$);
