@@ -124,7 +124,7 @@ style.
                                     button.btn.btn-danger(ng-if='val.isEditing' ng-click='vm.rewardPointsTabClicked("loginRewardPoints");' style='margin: 0 5px;') {{'CANCEL' | translate}}
                                     button.btn.btn-primary(ng-if='!val.isEditing' ng-click='vm.rewardPointsEventSetDisable(idx,val,false);' style='margin: 0 5px;') {{'EDIT' | translate}}
                                     button.btn.btn-danger(ng-if='!val.isEditing' data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click="vm.deletingRewardPointsEvent=val" style='margin: 0 5px;') {{'DELETE' | translate}}
-                                    button.btn(class="{{val.status? 'btn-success':'btn-warning'}}" ng-if='!val.isEditing' ng-click='val.status = !val.status; vm.updateRewardPointsEvent(idx,val);' style='margin: 0px 5px;') {{val.status? 'OPENED':'CLOSED' | translate}}
+                                    button.btn(class="{{val.status? 'btn-danger':'btn-success'}}" ng-if='!val.isEditing' ng-click='val.status = !val.status; vm.updateRewardPointsEvent(idx,val);' style='margin: 0px 5px;') {{val.status? 'Closed':'Open' | translate}}
 
                     br
                     .pull-right
@@ -192,7 +192,7 @@ style.
                                     button.btn.btn-danger(ng-if='val.isEditing' ng-click='vm.rewardPointsTabClicked("topupRewardPoints");' style='margin: 1px 1px;') {{'CANCEL' | translate}}
                                     button.btn.btn-primary(ng-if='!val.isEditing' ng-click='vm.rewardPointsEventSetDisable(idx,val,false);' style='margin: 1px 1px;') {{'EDIT' | translate}}
                                     button.btn.btn-danger(ng-if='!val.isEditing' data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click="vm.deletingRewardPointsEvent=val" style='margin: 1px 1px;') {{'DELETE' | translate}}
-                                    button.btn(class="{{val.status? 'btn-success':'btn-warning'}}" ng-if='!val.isEditing' ng-click='val.status = !val.status; vm.updateRewardPointsEvent(idx,val);' style='margin: 1px 1px;') {{val.status? 'OPENED':'CLOSED' | translate}}
+                                    button.btn(class="{{val.status? 'btn-danger':'btn-success'}}" ng-if='!val.isEditing' ng-click='val.status = !val.status; vm.updateRewardPointsEvent(idx,val);' style='margin: 1px 1px;') {{val.status? 'Closed':'Open' | translate}}
                     br
                     .pull-right
                         button.btn.btn-primary.common-button(ng-click='vm.rewardPointsEventAddNewRow(constRewardPointsTaskCategory.TOPUP_REWARD_POINTS);vm.endLoadWeekDay();')
@@ -217,7 +217,7 @@ style.
                                 th {{'dailyValidConsumptionAmount' | translate}}
                                 th {{'dailyWinGameCount' | translate}}
 
-                                th {{'consecutiveCount' | translate}}
+                                th {{'consecutiveBet' | translate}}
                                 th {{'rewardPoints' | translate}}
                                 th {{'rewardTitle' | translate}}
                                 th {{'rewardContent' | translate}}
@@ -266,7 +266,7 @@ style.
                                     button.btn.btn-danger(ng-if='val.isEditing' ng-click='vm.rewardPointsTabClicked("gameRewardPoints");' style='margin: 1px 1px;') {{'CANCEL' | translate}}
                                     button.btn.btn-primary(ng-if='!val.isEditing' ng-click='vm.rewardPointsEventSetDisable(idx,val,false);' style='margin: 1px 1px;') {{'EDIT' | translate}}
                                     button.btn.btn-danger(ng-if='!val.isEditing' data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click="vm.deletingRewardPointsEvent=val" style='margin: 1px 1px;') {{'DELETE' | translate}}
-                                    button.btn(class="{{val.status? 'btn-success':'btn-warning'}}" ng-if='!val.isEditing' ng-click='val.status = !val.status; vm.updateRewardPointsEvent(idx,val);' style='margin: 1px 1px;') {{val.status? 'OPENED':'CLOSED' | translate}}
+                                    button.btn(class="{{val.status? 'btn-danger':'btn-success'}}" ng-if='!val.isEditing' ng-click='val.status = !val.status; vm.updateRewardPointsEvent(idx,val);' style='margin: 0px 5px;') {{val.status? 'Closed':'Open' | translate}}
 
                     br
                     .pull-right

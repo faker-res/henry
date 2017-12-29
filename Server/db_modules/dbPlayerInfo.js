@@ -7488,10 +7488,10 @@ let dbPlayerInfo = {
 
                         return creditProm.then(
                             () => {
-                                return dbconfig.collection_players.findOne({playerId: playerId}).populate({
-                                    path: "platform",
-                                    model: dbconfig.collection_platform
-                                }).lean();
+                                return dbconfig.collection_players.findOne({playerId: playerId})
+                                    .populate({path: "platform", model: dbconfig.collection_platform})
+                                    .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
+                                    .lean();
                             }
                         ).then(
                             playerData => {
