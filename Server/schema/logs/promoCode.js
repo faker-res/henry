@@ -13,7 +13,9 @@ let promoCodeSchema = new Schema({
     // promo code minimum top up amount
     minTopUpAmount: {type: Number},
     // promo code maximum top up amount
-    maxTopUpAmount: {type: Number},
+    // maxTopUpAmount: {type: Number},
+    // promo code maximum reward amount
+    maxRewardAmount: {type: Number},
     // promo code required consumption
     requiredConsumption: {type: Number, required: true},
     // Disable Withdrawal after accept promo code
@@ -47,7 +49,12 @@ let promoCodeSchema = new Schema({
     // Promo Code Top Up Amount
     topUpAmount: {type: Number, default: 0},
     // Reward amount shared with XIMA
-    isSharedWithXIMA: {type: Boolean, default: true}
+    isSharedWithXIMA: {type: Boolean, default: true},
+    // set to true if the inherited promoCodeType is deleted
+    isDeleted: {type: Boolean, default: false},
+    // Mark as viewed
+    isViewed: {type: Boolean, default: false}
+
 });
 
 module.exports = promoCodeSchema;

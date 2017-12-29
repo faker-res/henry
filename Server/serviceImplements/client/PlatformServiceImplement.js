@@ -20,6 +20,13 @@ var PlatformServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformAnnouncement.getPlatformAnnouncementsByPlatformId, [{platformId: data.platformId}], isValidData, null, null, true);
     };
 
+    this.getConfig.expectsData = 'platformId: String';
+    this.getConfig.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.platformId);
+        data = data || {};
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getConfig, [data.platformId], isValidData, null, null, true);
+    };
+
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);

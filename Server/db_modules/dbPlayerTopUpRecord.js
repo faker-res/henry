@@ -29,6 +29,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const moment = require('moment-timezone');
 const serverInstance = require("../modules/serverInstance");
 const constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
+const dbPromoCode = require("../db_modules/dbPromoCode");
 
 var dbPlayerTopUpRecord = {
     /**
@@ -223,7 +224,7 @@ var dbPlayerTopUpRecord = {
                 if ((!query.merchantNo || query.merchantNo.length == 0) && query.merchantGroup && query.merchantGroup.length > 0) {
                     let mGroupList = [];
                     query.merchantGroup.forEach(item => {
-                        if(item.list.length > 0){
+                        if (item.list.length > 0) {
                             item.list.forEach(sItem => {
                                 mGroupList.push(sItem)
                             })
@@ -246,9 +247,9 @@ var dbPlayerTopUpRecord = {
                             });
                         });
 
-                        if(query.merchantNo.length > 0){
+                        if (query.merchantNo.length > 0) {
                             queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupC)};
-                        }else if(query.merchantGroup.length > 0 && query.merchantNo.length == 0){
+                        } else if (query.merchantGroup.length > 0 && query.merchantNo.length == 0) {
                             queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupD)}
                         }
 
@@ -726,8 +727,14 @@ var dbPlayerTopUpRecord = {
 
                     let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
                     let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount);
+                    let proms = [firstTopUpProm, limitedOfferProm];
 
-                    return Promise.all([firstTopUpProm, limitedOfferProm]);
+                    if (topupRequest.bonusCode) {
+                        let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
+                        proms.push(bonusCodeCheckProm)
+                    }
+
+                    return Promise.all(proms);
                 }
                 else {
                     return Q.reject({
@@ -742,11 +749,21 @@ var dbPlayerTopUpRecord = {
                 let minTopUpAmount;
                 let isPlayerFirstTopUp = res[0];
                 let limitedOfferTopUp = res[1];
+                let bonusCodeValidity = res[2];
 
                 if (isPlayerFirstTopUp) {
                     minTopUpAmount = 1;
                 } else {
                     minTopUpAmount = player.platform.minTopUpAmount || 0;
+                }
+
+                // check bonus code validity if exist
+                if (topupRequest.bonusCode && !bonusCodeValidity) {
+                    return Promise.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "DataError",
+                        errorMessage: "Wrong promo code has entered"
+                    });
                 }
 
                 if (topupRequest.amount < minTopUpAmount) {
@@ -851,8 +868,8 @@ var dbPlayerTopUpRecord = {
                     start.setHours(0, 0, 0, 0);
                     let end = new Date();
                     end.setHours(23, 59, 59, 999);
-                    if (merchantResponseData.result.merchantNo) {
-                        queryObj['data.merchantNo'] = {'$in': [String(merchantResponseData.result.merchantNo),Number(merchantResponseData.result.merchantNo)]}
+                    if (merchantResponseData.result && merchantResponseData.result.merchantNo) {
+                        queryObj['data.merchantNo'] = {'$in': [String(merchantResponseData.result.merchantNo), Number(merchantResponseData.result.merchantNo)]}
                     }
                     queryObj['data.platformId'] = ObjectId(player.platform._id);
                     queryObj['mainType'] = 'TopUp';
@@ -951,8 +968,14 @@ var dbPlayerTopUpRecord = {
 
                     let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
                     let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, inputData.amount);
+                    let proms = [firstTopUpProm, limitedOfferProm];
 
-                    return Promise.all([firstTopUpProm, limitedOfferProm]);
+                    if (inputData.bonusCode) {
+                        let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, inputData.bonusCode, inputData.amount);
+                        proms.push(bonusCodeCheckProm)
+                    }
+
+                    return Promise.all(proms);
                 } else {
                     return Q.reject({
                         status: constServerCode.INVALID_DATA,
@@ -961,7 +984,6 @@ var dbPlayerTopUpRecord = {
                     });
                 }
             }
-
         ).then(
             res => {
                 //disable bankaccount check for now
@@ -980,6 +1002,15 @@ var dbPlayerTopUpRecord = {
                 let minTopUpAmount;
                 let isPlayerFirstTopUp = res[0];
                 let limitedOfferTopUp = res[1];
+                let bonusCodeValidity = res[2];
+
+                if (inputData.bonusCode && !bonusCodeValidity) {
+                    return Promise.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "DataError",
+                        errorMessage: "Wrong promo code has entered"
+                    });
+                }
 
                 if (isPlayerFirstTopUp) {
                     minTopUpAmount = 1;
@@ -1105,7 +1136,7 @@ var dbPlayerTopUpRecord = {
         ).then(
             topupResult => {
 
-                if(topupResult.result){
+                if (topupResult.result) {
                     request = topupResult;
                     var queryObj = {};
                     let start = new Date();
@@ -1267,10 +1298,10 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             },
             error => {
-                if(adminName && error.code == 408){
+                if (adminName && error.status == 408) {
                     return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
                 }
-                else{
+                else {
                     return Q.reject(error);
                 }
             }
@@ -1312,10 +1343,10 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             },
             error => {
-                if(adminName && error.code == 408){
+                if (adminName && error.status == 408) {
                     return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
                 }
-                else{
+                else {
                     return Q.reject(error);
                 }
             }
@@ -1358,10 +1389,10 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             },
             error => {
-                if(adminName && error.code == 408){
+                if (adminName && error.status == 408) {
                     return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
                 }
-                else{
+                else {
                     return Q.reject(error);
                 }
             }
@@ -1713,8 +1744,14 @@ var dbPlayerTopUpRecord = {
 
                         let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
                         let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                        let proms = [firstTopUpProm, limitedOfferProm];
 
-                        return Promise.all([firstTopUpProm, limitedOfferProm]);
+                        if (bonusCode) {
+                            let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode, amount);
+                            proms.push(bonusCodeCheckProm)
+                        }
+
+                        return Promise.all(proms);
                     }
                     else {
                         return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
@@ -1726,6 +1763,8 @@ var dbPlayerTopUpRecord = {
                     let minTopUpAmount = player.platform.minTopUpAmount || 0;
                     let isPlayerFirstTopUp = res[0];
                     let limitedOfferTopUp = res[1];
+                    let bonusCodeValidity = res[2];
+
                     if (isPlayerFirstTopUp) {
                         minTopUpAmount = 1;
                     }
@@ -1766,8 +1805,17 @@ var dbPlayerTopUpRecord = {
                     if (createTime) {
                         proposalData.depositeTime = new Date(createTime);
                     }
-                    if (bonusCode){
-                        proposalData.bonusCode = bonusCode;
+                    if (bonusCode) {
+                        if (bonusCodeValidity) {
+                            proposalData.bonusCode = bonusCode;
+                        }
+                        else {
+                            return Promise.reject({
+                                status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                                name: "DataError",
+                                errorMessage: "Wrong promo code has entered"
+                            });
+                        }
                     }
                     proposalData.creator = entryType === "ADMIN" ? {
                         type: 'admin',
@@ -1822,7 +1870,6 @@ var dbPlayerTopUpRecord = {
                         return Q.reject({name: "DataError", errorMessage: "Cannot create alipay top up proposal"});
                     }
                 }
-
             ).then(
                 pmsResult => {
                     pmsData = pmsResult;
@@ -1869,6 +1916,7 @@ var dbPlayerTopUpRecord = {
                         updateData.data.alipayName = pmsData.result.alipayName;
                         pmsData.result.alipayQRCode = pmsData.result.alipayQRCode || "";
                         updateData.data.alipayQRCode = pmsData.result.alipayQRCode;
+                        updateData.data.qrcodeAddress = pmsData.result.qrcodeAddress;
                         if (pmsData.result.validTime) {
                             updateData.data.validTime = new Date(pmsData.result.validTime);
                         }
@@ -1950,9 +1998,9 @@ var dbPlayerTopUpRecord = {
     getPlayerAliPayStatus: playerId => {
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "aliPayGroup", model: dbconfig.collection_platformAliPayGroup}).then(
+            .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
-                    if (playerData && playerData.platform && playerData.aliPayGroup && playerData.aliPayGroup.alipays && playerData.aliPayGroup.alipays.length > 0) {
+                    if (playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) {
                         return pmsAPI.alipay_getAlipayList({
                             platformId: playerData.platform.platformId,
                             queryId: serverInstance.getQueryId()
@@ -1962,7 +2010,7 @@ var dbPlayerTopUpRecord = {
                                 if (alipays.data && alipays.data.length > 0) {
                                     alipays.data.forEach(
                                         alipay => {
-                                            playerData.aliPayGroup.alipays.forEach(
+                                            playerData.alipayGroup.alipays.forEach(
                                                 pAlipay => {
                                                     if (pAlipay == alipay.accountNumber && alipay.state == "NORMAL") {
                                                         bValid = true;
@@ -2007,14 +2055,25 @@ var dbPlayerTopUpRecord = {
                 playerData => {
                     if (playerData) {
                         player = playerData;
-                        return checkLimitedOfferIntention(player.platform._id, player._id, amount);
+
+                        let checkLimitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                        let proms = [checkLimitedOfferProm];
+
+                        if (bonusCode) {
+                            let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode, amount);
+                            proms.push(bonusCodeCheckProm)
+                        }
+
+                        return Promise.all(proms);
                     } else {
                         return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
                     }
                 }
             ).then(
-                intentionProp => {
-                    let limitedOfferTopUp = intentionProp;
+                data => {
+                    let limitedOfferTopUp = data[0];
+                    let bonusCodeValidity = data[1];
+
                     if (player && player.platform && player.wechatPayGroup && player.wechatPayGroup.wechats && player.wechatPayGroup.wechats.length > 0) {
                         let minTopUpAmount = player.platform.minTopUpAmount || 0;
                         if (amount < minTopUpAmount) {
@@ -2051,8 +2110,17 @@ var dbPlayerTopUpRecord = {
                         if (createTime) {
                             proposalData.depositeTime = new Date(createTime);
                         }
-                        if(bonusCode){
-                            proposalData.bonusCode = bonusCode;
+                        if (bonusCode) {
+                            if (bonusCodeValidity) {
+                                proposalData.bonusCode = bonusCode;
+                            }
+                            else {
+                                return Promise.reject({
+                                    status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                                    name: "DataError",
+                                    errorMessage: "Wrong promo code has entered"
+                                });
+                            }
                         }
                         proposalData.creator = entryType === "ADMIN" ? {
                             type: 'admin',
@@ -2396,6 +2464,116 @@ var dbPlayerTopUpRecord = {
                 }
                 else {
                     return false;
+                }
+            }
+        );
+    },
+
+    addTestTopUp: function (platformId, name, type, requestData, amount, createTime) {
+        let proposalType = null;
+        let playerObj = {};
+        let currentTime = new Date();
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    return dbconfig.collection_players.findOne({platform: platformData._id, name: name}).lean();
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    playerObj = playerData;
+                    switch (type) {
+                        case 1: //online
+                            proposalType = constProposalType.PLAYER_TOP_UP;
+                            return dbPlayerTopUpRecord.addOnlineTopupRequest(null, playerData.playerId, requestData, 1, requestData.clientType);
+                            break;
+                        case 2: //bankcard
+                            proposalType = constProposalType.PLAYER_MANUAL_TOP_UP;
+                            return dbPlayerTopUpRecord.addManualTopupRequest(null, playerData.playerId, requestData, "CLIENT");
+                            break;
+                        case 3: //alipay
+                            proposalType = constProposalType.PLAYER_ALIPAY_TOP_UP;
+                            return dbPlayerTopUpRecord.requestAlipayTopup(null, playerData.playerId, amount, "test", "test", data.bonusCode, "CLIENT");
+                            break;
+                        case 4: //wechat
+                            proposalType = constProposalType.PLAYER_WECHAT_TOP_UP;
+                            return dbPlayerTopUpRecord.requestWechatTopup(null, playerData.playerId, amount, "test", "test", data.bonusCode, "CLIENT");
+                            break;
+                    }
+                }
+            }
+        ).then(
+            topUpResult => {
+                if (topUpResult && topUpResult.proposalId) {
+                    return dbconfig.collection_proposal.findOne({proposalId: topUpResult.proposalId}).lean().then(
+                        pData => {
+                            if (pData) {
+                                return dbProposal.updateTopupProposal(pData.proposalId, constProposalStatus.SUCCESS, pData.data.requestId, 1);
+                            }
+                        }
+                    ).then(
+                        data => topUpResult
+                    );
+                }
+            }
+        ).then(
+            topUpResult => {
+                if (topUpResult) {
+                    if (createTime) {
+                        let proposalProm = dbconfig.collection_proposal.findOne({
+                            proposalId: topUpResult.proposalId
+                        }).lean().then(
+                            proposalData => {
+                                if (proposalData) {
+                                    dbconfig.collection_proposal.remove({_id: proposalData._id}).then();
+                                    delete proposalData._id;
+                                    delete proposalData.proposalId;
+                                    proposalData.createTime = new Date(createTime);
+                                    proposalData.settleTime = new Date(createTime);
+                                    let newProposal = new dbconfig.collection_proposal(proposalData);
+                                    return newProposal.save();
+                                }
+                            }
+                        );
+                        let recordProm = dbconfig.collection_playerTopUpRecord.find({
+                            playerId: playerObj._id,
+                            platformId: playerObj.platform,
+                            amount: amount,
+                            createTime: {$gte: currentTime}
+                        }).sort({createTime: -1}).limit(1).lean().then(
+                            recordData => {
+                                if (recordData && recordData[0]) {
+                                    dbconfig.collection_playerTopUpRecord.remove({_id: recordData[0]._id}).then();
+                                    delete recordData[0]._id;
+                                    recordData[0].createTime = new Date(createTime);
+                                    recordData[0].settlementTime = new Date(createTime);
+                                    let newRecord = new dbconfig.collection_playerTopUpRecord(recordData[0]);
+                                    return newRecord.save();
+                                }
+                            }
+                        );
+                        return Q.all([proposalProm, recordProm]);
+                    }
+                    else {
+                        return topUpResult;
+                    }
+                }
+            }
+        );
+    },
+
+    requestProposalSuccessPMS: function (proposalId, status) {
+        return pmsAPI.payment_requestProposalSuccess({proposalId: proposalId, status: status}).then(
+            topUpResult => {
+                if (topUpResult) {
+                    return dbconfig.collection_proposal.findOne({proposalId: proposalId}).lean().then(
+                        pData => {
+                            if (pData) {
+                                return dbProposal.updateTopupProposal(pData.proposalId, constProposalStatus.SUCCESS, pData.data.requestId, 1);
+                            }
+                        }
+                    );
                 }
             }
         );
@@ -2755,6 +2933,7 @@ function getTopUpProposalTypeIds(platformId) {
         }
     );
 }
+
 function asyncLoop(count, func, callback) {
     let i = -1;
 
@@ -2800,9 +2979,9 @@ function convertStringNumber(Arr) {
     Arrs.forEach(item => {
         result.push(String(item));
     })
-    Arrs.forEach(item=>{
+    Arrs.forEach(item => {
         let currentNum = Number(item);
-        if(isNaN(currentNum)==false){
+        if (isNaN(currentNum) == false) {
             result.push(currentNum);
         }
     })

@@ -55,9 +55,13 @@ function socketActionRewardTask(socketIO, socket) {
         getPlayerRewardTask: function getPlayerRewardTask(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId);
-            socketUtil.emitter(self.socket, dbRewardTask.getPlayerRewardTask, [data.playerId, data.from, data.to, data.index, data.limit, data.sortCol, data.useProviderGroup], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardTask.getPlayerRewardTask, [data, data.index, data.limit, data.sortCol, data.useProviderGroup], actionName, isValidData);
         },
-
+        getRewardTaskGroupProposal: function getRewardTaskGroupProposal(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbRewardTask.getRewardTaskGroupProposal, [data], actionName, isValidData);
+        },
         manualUnlockRewardTask: function manualUnlockRewardTask(data) {
             // [0]: TaskData, [1]: PlayerData
             var actionName = arguments.callee.name;
@@ -104,6 +108,17 @@ function socketActionRewardTask(socketIO, socket) {
             let isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId, [data], actionName, isValidData);
         },
+
+        /**
+         *
+         * @param {Object} data
+         */
+        unlockRewardTaskInRewardTaskGroup: function unlockRewardTaskInRewardTaskGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.rewardTaskGroupId);
+            // let isValidData = Boolean(data && data.rewardTaskGroupId && data.incRewardAmount && data.incConsumptionAmount);
+            socketUtil.emitter(self.socket, dbRewardTaskGroup.unlockRewardTaskInRewardTaskGroup, [data.rewardTaskGroupId, data.incRewardAmount, data.incConsumptionAmount], actionName, isValidData);
+        }
     };
     socketActionRewardTask.actions = this.actions;
 };

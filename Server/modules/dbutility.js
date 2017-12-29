@@ -185,6 +185,20 @@ var dbUtility = {
         };
     },
 
+    /**
+     *  1 = monday , 2= tuesday , ...,7 = sunday
+     */
+    getDayOfWeek: function () {
+        return moment(new Date()).tz('Asia/Singapore').day();
+    },
+
+    /**
+     *   get current hour (0-23)
+     */
+    getHourOfDay: function () {
+        return moment(new Date()).tz('Asia/Singapore').hours();
+    },
+
     getCurrentBiWeekSGTIme: function () {
         let startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
         let endTime = moment(startTime).add(14, 'days').toDate();
@@ -427,6 +441,41 @@ var dbUtility = {
         };
     },
 
+    getBiWeekSGTIme: function (inputDate) {
+        let startTime = moment(inputDate).tz('Asia/Singapore').startOf('month').toDate();
+        let endTime = moment(startTime).add(14, 'days').toDate();
+        let todayDay = moment(inputDate).tz('Asia/Singapore').date();
+
+        if (todayDay >= 15) {
+            startTime = endTime;
+            endTime = moment(inputDate).tz('Asia/Singapore').endOf('month').toDate();
+        }
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getMonthSGTIme: function (inputDate) {
+        var startTime = moment(inputDate).tz('Asia/Singapore').startOf('month').toDate();
+        var endTime = moment(inputDate).tz('Asia/Singapore').endOf('month').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getSGTimeOfPassHours: function (hours) {
+        let endTime = moment().tz('Asia/Singapore').toDate();
+        let startTime = moment(endTime).tz('Asia/Singapore').subtract(hours, "hours").toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        }
+    },
+
     /*
      * if today is the first day of the week based on SG time
      */
@@ -440,7 +489,6 @@ var dbUtility = {
      */
     isFirstDayOfMonthSG: function () {
         var day = moment().tz('Asia/Singapore').toDate().getDate();
-        console.log("isFirstDayOfMonthSG:", day);
         return day == 1;
     },
 
@@ -454,6 +502,11 @@ var dbUtility = {
     isHalfMonthDaySG: function () {
         var day = moment().tz('Asia/Singapore').toDate().getDate();
         return day == 1 || day == 16;
+    },
+
+    isFirstDayOfYearSG: function () {
+        var day = moment().tz('Asia/Singapore').dayOfYear();
+        return day == 1;
     },
 
     getPastHalfMonthPeriodSG: function () {
@@ -723,6 +776,15 @@ var dbUtility = {
         return encodedStr;
     },
 
+    /**
+     * Covered third to fifth, maybe parameterize
+     * @param str
+     * @returns {string}
+     */
+    encodePlayerName: (str = "") => {
+        return str.substring(0, 2) + "***" + str.slice(-5);
+    },
+
     getParameterByName: function (name, url) {
         if( !url ){
             return url;
@@ -736,12 +798,20 @@ var dbUtility = {
     },
 
     getInputDevice: function (inputUserAgent, isPartnerProposal) {
-        let ua = uaParser(inputUserAgent);
+        let ua;
+        // userAgent string already parse outside if parse again will always set to WEB
+        if (inputUserAgent && (inputUserAgent.browser || inputUserAgent.device || inputUserAgent.os)) {
+            ua = inputUserAgent;
+        } else {
+            ua = uaParser(inputUserAgent);
+        }
+
         let userAgentInput = [{
             browser: ua.browser.name || '',
             device: ua.device.name || '',
             os: ua.os.name || ''
         }];
+        
         let inputDevice="";
 
         if (userAgentInput && userAgentInput[0] && inputUserAgent) {
@@ -773,7 +843,6 @@ var dbUtility = {
         } else {
             inputDevice = constPlayerRegistrationInterface.BACKSTAGE;
         }
-        console.log("input device", inputDevice);
         return inputDevice;
     }
 

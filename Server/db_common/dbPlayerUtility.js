@@ -12,7 +12,40 @@ const dbconfig = require('./../modules/dbproperties');
 const dbLogger = require("./../modules/dbLogger");
 const errorUtils = require("./../modules/errorUtils.js");
 
+const dbProviderUtil = require("./../db_common/dbProviderUtility");
+
 const dbPlayerUtility = {
+    //region State
+
+    /**
+     * Enforce some API calls can only be execute once concurrently, typically when applying rewards
+     * @param playerObjId
+     * @param stateName
+     * @returns {Promise|Promise.<TResult>}
+     */
+    setPlayerState: (playerObjId, stateName) => {
+        let matchQ = {player: playerObjId};
+
+        return dbconfig.collection_playerState.findOne({player: playerObjId}).then(
+            stateRec => {
+                if (!stateRec) {
+                    return new dbconfig.collection_playerState(matchQ).save();
+                } else {
+                    matchQ[stateName] = {$lt: new Date() - 1000};
+                    let updateQChild = {};
+                    updateQChild[stateName] = true;
+                    let updateQ = {$currentDate: updateQChild};
+
+                    return dbconfig.collection_playerState.findOneAndUpdate(matchQ, updateQ, {new: true});
+                }
+            }
+        )
+    },
+
+    //endregion
+
+    //region Credit
+
     getPlayerCreditByObjId: function (playerObjId) {
         let returnObj = {gameCredit: 0};
         return dbconfig.collection_players.findOne({_id: playerObjId}).populate(
@@ -79,36 +112,19 @@ const dbPlayerUtility = {
     },
 
     /**
-     * Enforce some API calls can only be execute once concurrently, typically when applying rewards
+     *
      * @param playerObjId
-     * @param stateName
-     * @returns {Promise|Promise.<TResult>}
+     * @param platformObjId
+     * @param updateAmount
+     * @param reasonType
+     * @param data
      */
-    setPlayerState: (playerObjId, stateName) => {
-        let matchQ = {player: playerObjId};
-
-        return dbconfig.collection_playerState.findOne({player: playerObjId}).then(
-            stateRec => {
-                if (!stateRec) {
-                    return new dbconfig.collection_playerState(matchQ).save();
-                } else {
-                    matchQ[stateName] = {$lt: new Date() - 1000};
-                    let updateQChild = {};
-                    updateQChild[stateName] = true;
-                    let updateQ = {$currentDate: updateQChild};
-
-                    return dbconfig.collection_playerState.findOneAndUpdate(matchQ, updateQ, {new: true});
-                }
-            }
-        )
-    },
-
     tryToDeductCreditFromPlayer: (playerObjId, platformObjId, updateAmount, reasonType, data) => {
         let playerCreditBeforeDeduct = 0;
 
         return Q.resolve().then(
             () => {
-                if (updateAmount < 0) {
+                if (updateAmount < 0 || !Number.isInteger(updateAmount)) {
                     return Promise.reject({
                         name: "DataError",
                         message: "tryToDeductCreditFromPlayer expects a positive value to deduct",
@@ -194,6 +210,119 @@ const dbPlayerUtility = {
 
     /**
      *
+     * @param playerObjId
+     * @param platformObjId
+     * @param {ObjectID} providerGroupId - True: check providers in provider group, false: all providers
+     * @returns {Promise<T>}
+     */
+    getProviderGroupInGameCreditByObjId: function (playerObjId, platformObjId, providerGroupId) {
+        let providersCreditProm = Promise.resolve();
+
+        if (providerGroupId) {
+            providersCreditProm = dbProviderUtil.getProvidersDetailInProviderGroup(providerGroupId).then(
+                providerGroup => {
+                    if (providerGroup && providerGroup.providers && providerGroup.providers.length > 0) {
+                        let promArr = [];
+
+                        providerGroup.providers.map(provider => {
+                            promArr.push(dbPlayerUtility.getProviderCreditByObjId(playerObjId, provider.providerId));
+                        });
+
+                        return Promise.all(promArr);
+                    }
+                }
+            );
+        } else {
+            // Check credit in all providers
+            providersCreditProm = dbconfig.collection_platform.find({_id: platformObjId})
+                    .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().then(
+                platform => {
+                    if (platform && platform.gameProviders && platform.gameProviders.length > 0) {
+                        let promArr = [];
+
+                        platform.gameProviders.map(provider => {
+                            promArr.push(dbPlayerUtility.getProviderCreditByObjId(playerObjId, provider.providerId));
+                        });
+
+                        return Promise.all(promArr);
+                    }
+                }
+            )
+        }
+
+        return providersCreditProm.then(
+            res => {
+                let retData = {
+                    providerId: [],
+                    totalInGameCredit: 0
+                };
+
+                if (res && res.length > 0) {
+                    res.map(
+                        data => {
+                            if (data && data.credit) {
+                                retData.providerId.push(data.providerId);
+                                retData.totalInGameCredit += data.credit;
+                            }
+                        }
+                    )
+                }
+
+                return retData;
+            }
+        );
+    },
+
+    getProviderCreditByObjId: (playerObjId, providerId) => {
+        return dbconfig.collection_players.findOne({_id: playerObjId}).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        }).then(
+            data => {
+                if (data) {
+                    return cpmsAPI.player_queryCredit(
+                        {
+                            username: data.name,
+                            platformId: data.platform.platformId,
+                            providerId: providerId
+                        }
+                    );
+                }
+            }
+        ).then(
+            data => {
+                if (data) {
+                    return {
+                        providerId: providerId,
+                        credit: Math.floor(parseFloat(data.credit))
+                    }
+                }
+                else {
+                    return {
+                        providerId: providerId,
+                        credit: 0
+                    }
+                }
+            }
+        ).catch(
+            error => {
+                // Don't care what happened to provider, just return 0
+                return {
+                    providerId: providerId,
+                    credit: 0
+                };
+            }
+        );
+    },
+
+    getPlayerValidCredit: (playerObjId) => dbconfig.collection_players.findOne({_id: playerObjId}, {_id: 0, validCredit: 1}).lean().then(res => res.validCredit),
+
+    //endregion
+
+    //region Permission
+
+    /**
+     *
      * @param platformObjId
      * @param playerObjId
      * @param permissionArr - Permission in player.permission, [[name in string, on/off]. ...[,]]
@@ -215,7 +344,31 @@ const dbPlayerUtility = {
             {_id: playerObjId, platform: platformObjId},
             updateData
         );
-    }
+    },
+
+    /**
+     * @param adminObjId
+     * @param platformObjId
+     * @param playerObjId
+     * @param remark
+     * @param oldPermissionObj - Permission in player.permission, [[name in string, on/off]. ...[,]]
+     * @param newPermissionObj - Permission in player.permission, [[name in string, on/off]. ...[,]]
+     */
+    addPlayerPermissionLog: (adminObjId, platformObjId, playerObjId, remark, oldPermissionObj, newPermissionObj) => {
+        let isSystem = !(adminObjId);
+        let query = {
+            admin: adminObjId,
+            platform: platformObjId,
+            player: playerObjId,
+            remark: remark,
+            oldData: oldPermissionObj,
+            newData: newPermissionObj,
+            isSystem: isSystem
+        };
+        return dbconfig.collection_playerPermissionLog(query).save();
+    },
+
+    //endregion
 };
 
 module.exports = dbPlayerUtility;

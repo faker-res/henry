@@ -1,6 +1,16 @@
 nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bottom: 0;height: 100px')
-    .navbar-header.nav-header.visible-lg(style='max-width:150px;min-width:150px;')
-        img(ng-src="{{companyLogo}}")
+    .navbar-header.nav-header.visible-lg(style='min-width:150px;')
+        div.inlineBlk(style="border-radius: 9px;border: 1px;color:white;margin-top:40px;background-color:rgba(0,0,0,0.5)")
+            img(ng-if="companyLogo" ng-src="{{companyLogo}}" width="100px" height="100px" style="position:absolute;left:20px;top:10px;z-index:-1;")
+            div.inlineBlk(ng-if='checkViewPermission("Platform","Platform", "Read")',
+                data-toggle="modal",
+                data-target='#modalUpdatePlatform')
+                .fa.fa-2x(style='margin:5px 10px;')
+                    img(src="images/icon/websiteBusiness_hover.png" width="30" )
+                div.inlineBlk.text.shadow(style='font-size:20px' ng-click='vm.initPlatform(false);vm.showPlatformDetailTab(null);vm.setPlatformFooter(null);vm.getAllDepartmentData();vm.prepareSettlementHistory();vm.populatePlatformData();') {{curPlatformText}}
+                //div#platformTree(style="height: 400px;")
+            .fa.fa-2x.fa-caret-down(style='margin:5px 10px; margin-top:8px;' ng-click='switchPlatform()')
+            #platformTreeHeader(ng-show='showPlatformDropDownList', style="min-width: 200px; position: absolute; color: black; z-index: 9;")
     #cssmenu
         ul.navibar.navbar-header.nav-header.navbar-brand
             li(style="{{ checkViewPermission('Platform')? 'display:block' : 'display:none'}}" class="wbLogo")

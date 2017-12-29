@@ -272,6 +272,12 @@ describe("Test Client API - Player service", function () {
         }, {playerId: testPlayerId});
     });
 
+    it('Should show player withdrawal info', function (done) {
+        clientPlayerAPITest.getWithdrawalInfo(function (data) {
+            done();
+        }, {platformId: testPlatformId});
+    });
+
     it('Should remove all test Data', function(done){
         commonTestFun.removeTestData(testPlatformObjId, [testPlayerObjId]).then(function(data){
             done();

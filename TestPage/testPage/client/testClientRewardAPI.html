@@ -287,6 +287,19 @@
         <textarea></textarea>
     </div>
 </div>
+<h3>MARK PROMO CODE AS VIEWED (标记优惠代码已读)</h3>
+<div class="test-container">
+    <div>
+        <label>PromoCode
+            <input name="promoCode">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="markPromoCodeAsViewed">Mark Promo Code As Viewed</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
 <h3>GET LIMITED OFFERS (获取秒杀礼包)</h3>
 <div class="test-container">
     <div>
@@ -297,6 +310,11 @@
     <div>
         <label>Status
             <input name="status">
+        </label>
+    </div>
+    <div>
+        <label>Period
+            <input name="period">
         </label>
     </div>
     <p></p>
@@ -323,6 +341,11 @@
     <div>
         <label>Platform ID
             <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Period
+            <input name="period">
         </label>
     </div>
     <p></p>
@@ -380,13 +403,28 @@
 <div class="test-container">
     <div>
         <label>Platform Id
-            <input id="platformId" type=text name="platformId">
+            <input type=text name="platformId">
         </label>
     </div>
     <p></p>
 
     <div>
         <button id="getSignBonus" data-api-name="getSignBonus">Get Sign Bonus</button>
+    </div>
+</div>
+
+<h3>GET SLOT INFO (获取存送金信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getSlotInfo" data-api-name="getSlotInfo">Get Slot Info</button>
     </div>
 </div>
 

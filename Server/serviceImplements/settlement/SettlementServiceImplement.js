@@ -17,6 +17,7 @@ const dbPartner = require('./../../db_modules/dbPartner');
 const dbRewardTask = require('./../../db_modules/dbRewardTask');
 const dbRewardEvent = require('./../../db_modules/dbRewardEvent');
 const dbPlayerMail = require("./../../db_modules/dbPlayerMail");
+const dbPlayerRewardPoints = require('./../../db_modules/dbPlayerRewardPoints');
 
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
@@ -239,6 +240,18 @@ var SettlementServiceImplement = function () {
         let isValidData = Boolean(data && data.recSummary && data.eventData);
         let args = [data.recSummary, data.eventData];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.calculatePlatformConsecutiveConsumptionForPlayers, args, isValidData);
+    };
+
+    this.autoConvertPlayerRewardPoints.onRequest = function(wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.playerObjIds);
+        let args = [data.playerObjIds];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerRewardPoints.autoConvertPlayerRewardPoints, args, isValidData);
+    };
+
+    this.bulkPlayerApplyReward.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.playerIdArray && data.eventCode && data.applyTargetDate);
+        let args = [data.playerIdArray, data.eventCode, data.applyTargetDate];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardEvent.bulkPlayerApplyReward, args, isValidData);
     };
 
     this.batchCreditTransferOut.onRequest = function (wsFunc, conn, data) {

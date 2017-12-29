@@ -1,5 +1,7 @@
 // https://gist.github.com/soplakanets/980737 --> see for hashing
 var crypto = require('crypto');
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
 
 var encrypt = {
 
@@ -234,24 +236,44 @@ var encrypt = {
             if (data.status) {
                 query["status"] = data.status;
             }
-            if (data.proposalTypeId) {
-                query["type"] = data.proposalTypeId;
+
+            if (data.proposalTypeId && data.proposalTypeId.length > 0) {
+                data.proposalTypeId = data.proposalTypeId.map(id => ObjectId(id));
+                query["type"] = {$in: data.proposalTypeId};
             }
             else {
                 query["platformId"] = data.platformId;
             }
-            if (data.rewardTypeName) {
-                query["data.eventName"] = data.rewardTypeName;
+
+            if (data.rewardTypeName && data.rewardTypeName.length > 0) {
+                query["data.eventName"] = {$in: data.rewardTypeName};
             }
-            if (data.promoTypeName) {
-                query["data.PROMO_CODE_TYPE"] = data.promoTypeName;
+
+            if (data.promoTypeName && data.promoTypeName.length > 0) {
+                query["data.PROMO_CODE_TYPE"] = {$in: data.promoTypeName};
             }
-            if (data.relatedAccount) {
-                query["data.playerName"] = data.relatedAccount;
-                query["data.partnerName"] = data.relatedAccount;
-            }
+
             if (data.inputDevice) {
                 query.inputDevice = data.inputDevice;
+            }
+
+            if (data.relatedAccount) {
+                switch (data.inputDevice) {
+                    case 1:
+                    case 3:
+                    case 5:
+                        query["data.playerName"] = data.relatedAccount;
+                        break;
+                    case 2:
+                    case 4:
+                    case 6:
+                        query["data.partnerName"] = data.relatedAccount;
+                        break;
+                    default:
+                        query.$or = query.$or ? query.$or : [];
+                        query.$or.push({"data.playerName": data.relatedAccount});
+                        query.$or.push({"data.partnerName": data.relatedAccount});
+                }
             }
         }
         return query;

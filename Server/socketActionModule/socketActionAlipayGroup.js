@@ -56,6 +56,15 @@ function socketActionAlipayGroup(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatformAlipayGroup.getAllAlipaysByAlipayGroup, [data.platform], actionName, isValidData);
         },
 
+        /**
+         * Get all the alipay account by platform with isInGroup field
+         * @param {json} data - query data
+         */
+        getAllAlipaysByAlipayGroupWithIsInGroup: function getAllAlipaysByAlipayGroupWithIsInGroup(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform && data.alipayGroup);
+            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.getAllAlipaysByAlipayGroupWithIsInGroup, [data.platform, data.alipayGroup], actionName, isValidData);
+        },
 
         /**
          * Get all the games by platform and the BankCardGroup

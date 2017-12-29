@@ -27,11 +27,14 @@ var smsLogSchema = new Schema ({
     proposalId: String,
     // Date of creation
     createTime: {type: Date, default: Date.now, index: true},
-    //sms sending status: success or fail
+    // sms sending status: success or fail
     status: {type: String, required: true, enum: ['success', 'failure']},
+    // sms sending error
     error: {type: Schema.Types.Mixed, required: false},
     // is this sms code used
-    used: {type: Boolean, default: false}
+    used: {type: Boolean, default: false},
+    // sms code invalidated (due to exceeding amount of failing tries)
+    invalidated: {type: Boolean, default: false},
 });
 
 module.exports = smsLogSchema;

@@ -15,6 +15,7 @@ var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 var constPlayerCreditChangeType = require('./../const/constPlayerCreditChangeType');
 const constPlayerSMSSetting = require("./../const/constPlayerSMSSetting");
 var constServerCode = require('../const/constServerCode');
+var constMainType = require('../const/constProposalMainType');
 var dbLogger = require("./../modules/dbLogger");
 var constSystemParam = require('../const/constSystemParam');
 var constShardKeys = require("../const/constShardKeys");
@@ -26,7 +27,7 @@ var SettlementBalancer = require('../settlementModule/settlementBalancer');
 var dbProposal = require('../db_modules/dbProposal');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var dbGameProvider = require('../db_modules/dbGameProvider');
-
+const ObjectId = mongoose.Types.ObjectId;
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 
 const dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
@@ -127,6 +128,7 @@ const dbRewardTask = {
                 if (providerGroup) {
                     let updObj = {
                         $inc: {
+                            initAmt: rewardData.initAmount,
                             rewardAmt: rewardData.initAmount,
                             currentAmt: rewardData.initAmount,
                             forbidWithdrawIfBalanceAfterUnlock:
@@ -149,8 +151,10 @@ const dbRewardTask = {
                 }
                 else {
                     let saveObj = {
+                        initAmt: rewardData.initAmount,
                         platformId: rewardData.platformId,
                         playerId: rewardData.playerId,
+                        lastProposalId: proposalData._id,
                         providerGroup: rewardData.providerGroup,
                         status: constRewardTaskStatus.STARTED,
                         rewardAmt: rewardData.initAmount,
@@ -161,7 +165,7 @@ const dbRewardTask = {
                                 : 0
                     };
 
-                    if (rewardData.useConsumption) {
+                    if (rewardData.useConsumption && rewardData.requiredUnlockAmount) {
                         saveObj.forbidXIMAAmt = rewardData.requiredUnlockAmount;
                     } else {
                         saveObj.targetConsumption = rewardData.requiredUnlockAmount;
@@ -174,8 +178,168 @@ const dbRewardTask = {
         ).then(
             providerGroup2 => {
                 if (providerGroup2) {
+                    let eventName = proposalData && proposalData.data && proposalData.data.eventName ? proposalData.data.eventName : "";
+
+                    // Create credit change log for this reward
+                    dbLogger.createCreditChangeLogWithLockedCredit(rewardData.playerId, rewardData.platformId, 0, eventName, 0, rewardData.initAmount, rewardData.initAmount, null, proposalData.data);
+
                     // Successfully created reward task
                     return providerGroup2;
+                }
+                else {
+                    // Failed create reward task group or increase amount
+                    return Q.reject({name: "DBError", message: "Error creating reward task", error: error})
+                }
+            }
+        )
+    },
+
+    insertConsumptionValueIntoFreeAmountProviderGroup: (rewardData, proposalData, rewardType) => {
+        let consumptionAmt = 0;
+
+        // Search available reward task group for this reward & this player
+        return dbconfig.collection_rewardTaskGroup.findOne({
+            platformId: rewardData.platformId,
+            playerId: rewardData.playerId,
+            providerGroup: null,
+            status: {$in: [constRewardTaskStatus.STARTED]}
+        }).then(
+            providerGroup => {
+                if(isNaN(rewardData.applyAmount)) {
+                    rewardData.applyAmount = 0;
+                }
+                if (providerGroup) {
+                    let updObj = {
+                        $inc: {
+                            //rewardAmt: rewardData.initAmount,
+                            // initAmt: rewardData.initAmount,
+                            // currentAmt: rewardData.initAmount,
+                            initAmt: proposalData.data.rewardAmount,
+                            currentAmt: proposalData.data.rewardAmount,
+                            forbidWithdrawIfBalanceAfterUnlock:
+                                proposalData && proposalData.data && proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                                    ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                                    : 0
+                        }
+                    };
+
+                    if (proposalData.data.isDynamicRewardAmount === false) {
+                        consumptionAmt = rewardData.requiredUnlockAmount;
+                    } else {
+                        consumptionAmt = rewardData.requiredUnlockAmount - rewardData.applyAmount;
+                    }
+
+                    if (rewardData.useConsumption) {
+                        updObj.$inc.forbidXIMAAmt = consumptionAmt;
+                    } else {
+                        updObj.$inc.targetConsumption = consumptionAmt;
+                    }
+    
+                    // There are on-going reward task for this provider group
+                    return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                        _id: providerGroup._id
+                    }, updObj);
+                }
+                else {
+                    let saveObj = {
+                        platformId: rewardData.platformId,
+                        playerId: rewardData.playerId,
+                        providerGroup: null,
+                        lastProposalId: proposalData._id,
+                        status: constRewardTaskStatus.STARTED,
+                        initAmt: rewardData.initAmount,
+                        rewardAmt: 0,
+                        currentAmt: rewardData.initAmount,
+                        forbidWithdrawIfBalanceAfterUnlock:
+                            proposalData && proposalData.data && proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                                ? proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                                : 0
+                    };
+                    if (rewardData.useConsumption && rewardData.requiredUnlockAmount) {
+                        saveObj.forbidXIMAAmt = rewardData.requiredUnlockAmount;
+                    } else {
+                        saveObj.targetConsumption = rewardData.requiredUnlockAmount;
+                    }
+                    // create new reward group
+                    return new dbconfig.collection_rewardTaskGroup(saveObj).save();
+                }
+            }
+        ).then(
+            providerGroup2 => {
+                if (providerGroup2) {
+                    // Successfully created reward task
+                    return providerGroup2;
+                }
+                else {
+                    // Failed create reward task group or increase amount
+                    return Q.reject({name: "DBError", message: "Error creating reward task", error: error})
+                }
+            }
+        ).then(
+            (returnData) => {
+                if (rewardData && !rewardData.useLockedCredit) {
+                    let amountToUpdate = 0;
+                    if (proposalData && proposalData.data) {
+                        if (proposalData.data.isDynamicRewardAmount === false) {
+                            amountToUpdate = proposalData.data.rewardAmount;
+                        } else if (proposalData.data.rewardAmount && proposalData.data.applyAmount) {
+                            amountToUpdate = proposalData.data.rewardAmount; //+ proposalData.data.applyAmount;
+                        } else if (proposalData.data.rewardAmount) {
+                            amountToUpdate = proposalData.data.rewardAmount;
+                        }
+
+                        return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
+                            playerData => {
+                                dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, amountToUpdate, rewardType, proposalData);
+                            }
+                        ).then(
+                            () => {
+                                return returnData;
+                            }
+                        );
+                    }
+                }
+            }
+        )
+    },
+    
+    deductTargetConsumptionFromFreeAmountProviderGroup: (rewardData, proposalData) => {
+        // Search available reward task group for this reward & this player
+        return dbconfig.collection_rewardTaskGroup.findOne({
+            platformId: rewardData.platformId,
+            playerId: rewardData.playerId,
+            providerGroup: null,
+            status: {$in: [constRewardTaskStatus.STARTED]}
+        }).then(
+            freeProviderGroup => {
+                if (freeProviderGroup) {
+                    let updObj = {
+                        $inc: {
+                            currentAmt: -rewardData.applyAmount
+                        }
+                    };
+    
+                    if (rewardData.useConsumption) {
+                        updObj.$inc.forbidXIMAAmt = -rewardData.applyAmount;
+                    } else {
+                        updObj.$inc.targetConsumption = -rewardData.applyAmount;
+                    }
+
+                    if(freeProviderGroup.targetConsumption && freeProviderGroup.targetConsumption - rewardData.applyAmount <= 0){
+                        updObj.status = constRewardTaskStatus.ACHIEVED;
+                    }
+
+                    // There are on-going reward task for this provider group
+                    return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                        _id: freeProviderGroup._id
+                    }, updObj);
+                }
+            }
+        ).then(
+            freeProviderGroup2 => {
+                if (freeProviderGroup2) {
+                    // Successfully created reward task
+                    return freeProviderGroup2;
                 }
                 else {
                     // Failed create reward task group or increase amount
@@ -194,38 +358,452 @@ const dbRewardTask = {
             .findOne(query)
             .exec();
     },
-
-    getPlayerRewardTask: function (playerId, from, to, index, limit, sortCol, useProviderGroup) {
+    getPlayerRewardTask: function (query, index, limit, sortCol, useProviderGroup) {
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'createTime': -1};
+        let result = null;
+        let providerGroups = [];
         var queryObj = {
-            playerId: playerId,
+            playerId: ObjectId(query.playerId),
             createTime: {
-                $gte: new Date(from),
-                $lt: new Date(to)
+                $gte: new Date(query.from),
+                $lt: new Date(query.to)
             }
         }
-
-        let a,b,c,d;
-
-        a = dbconfig.collection_rewardTask.find(queryObj).count();
-        b = dbconfig.collection_rewardTask.find(queryObj).sort(sortCol).skip(index).limit(limit)
-            .populate({path: "targetProviders", model: dbconfig.collection_gameProvider}).lean();
-
-        if(useProviderGroup) {
-            c = dbconfig.collection_rewardTaskGroup.find(queryObj).count();
-            d = dbconfig.collection_rewardTaskGroup.find(queryObj).sort(sortCol).skip(index).limit(limit)
-                .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
+        if (query.topUpProposalId) {
+            queryObj = {playerId: ObjectId(query.playerId)};
+            return dbRewardTask.getRewardProposalId(query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj);
+        } else {
+            return dbRewardTask.getRewardTaskList( query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj);
         }
+    },
+    getRewardTaskGroupProposal: function (query) {
+        let rewardTaskGroup = null;
+        let sortCol = query.sortCol || {"createTime": 1};
 
-        return Q.all([a, b, c, d]).then(
+        let queryObj = {
+            playerId: ObjectId(query.playerId),
+            providerGroup: query._id,
+            status: 'Started',
+            createTime: {
+                $gte: new Date(query.from),
+                $lt: new Date(query.to)
+            }
+        };
+
+        return dbconfig.collection_rewardTaskGroup.find(queryObj)
+            .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
+            .then(data => {
+                rewardTaskGroup = data[0];
+                let createTime = data[0].createTime ? data[0].createTime :null;
+                if (!createTime) {
+                    createTime = new Date(query.from);
+                }
+
+                let lastSecond = new Date(createTime).getTime();
+                let rewardTaskProposalQuery = {
+                    'data.playerObjId': ObjectId(query.playerId),
+                    'data.platformId': ObjectId(query.platformId),
+                    settleTime: {
+                        $gte: new Date(lastSecond),
+                        $lt: new Date(query.to)
+                    }
+                };
+
+                if (!query._id) {
+                    rewardTaskProposalQuery.mainType = {$in: ["TopUp","Reward"]};
+                    rewardTaskProposalQuery.$or = [
+                        {'data.providerGroup': {$exists: true, $eq: null}},
+                        {'data.providerGroup': {$exists: false}}
+                    ]
+                } else {
+                    rewardTaskProposalQuery['data.providerGroup'] = query._id;
+                }
+
+                return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
+                    path: "type",
+                    model: dbconfig.collection_proposalType
+                }).sort(sortCol)
+                .then(udata => {
+                    udata.map(item => {
+                        item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                        if (item.type.name) {
+                            item.data.rewardType = item.type.name;
+                        }
+                    })
+
+                    let prom = dbRewardTask.getTopUpProposal(udata);
+                    let propCount = dbconfig.collection_proposal.aggregate({
+                            $match: rewardTaskProposalQuery
+                        },
+                        {
+                            $group: {
+                                '_id': null,
+                                bonusAmountSum: {$sum: "$data.rewardAmount"},
+                                requiredBonusAmountSum: {$sum: "$data.spendingAmount"},
+                                currentAmountSum: {$sum: "$data.rewardAmount"},
+                            }
+                        });
+                    return Q.all([prom, propCount])
+                        .then(result => {
+                            result[0].map(item => {
+                                if (rewardTaskGroup) {
+                                    item.data['createTime$'] = item.createTime;
+                                    item.data.useConsumption = rewardTaskGroup.useConsumption;
+                                    item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                                    item.data.spendingAmount = item.data.spendingAmount;
+                                    item.data.curConsumption = rewardTaskGroup.curConsumption;
+                                    if (rewardTaskGroup.providerGroup) {
+                                        item.data.provider$ = rewardTaskGroup.providerGroup ? rewardTaskGroup.providerGroup.name :"" ;
+                                    }
+                                    if(!query._id){
+
+                                        item.data.topUpProposalId = item.data ? item.data.proposalId : '';
+                                        item.data.topUpAmount = item.data ? item.data.amount : '';
+                                        item.data.rewardAmount = 0;
+                                        item.data.bonusAmount = 0;
+                                        item.data.currentAmount = item.data.currentAmt;
+                                        item.data.requiredBonusAmount = 0;
+                                        item.data['provider$'] = 'LOCAL_CREDIT'
+                                    }
+
+                                    return item;
+                                }
+                            })
+
+                            return {
+                                size: 0,
+                                data: result[0] ? result[0] : [],
+                                summary: result[1][0] ? result[1][0] : {}
+                            }
+                        })
+                })
+            })
+
+    },
+    getRewardProposalId: function(query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj){
+        let topUpProposal = null;
+        let rewardTaskGroupSize;
+        let rewardTaskGroupData;
+        let rewardTaskData;
+        let rewardTask = null;
+        let proposal = null;
+        let creator = null;
+        let isTopUpInProposal = false;
+        let topUpProposalId = null;
+        // let rewardTaskSummary;
+
+        return dbconfig.collection_proposal.findOne({'proposalId':query.topUpProposalId})
+            .then(data=>{
+                    topUpProposal = data;
+                    if(data.data.topUpProposalId){
+                        isTopUpInProposal = true;
+                        topUpProposalId = data.proposalId;
+                        topUpProposal.data.amount = data.data.topUpAmount;
+                    }
+                    return data;
+            })
+            .then(data=>{
+
+                return dbconfig.collection_proposal.findOne({'data.topUpProposal':query.topUpProposalId})
+                    .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
+                    .then(data=>{
+                        if(data){
+                            proposal = data.data;
+                            if(isTopUpInProposal){
+                                queryObj.proposalId = topUpProposalId;
+                            }else{
+                                queryObj.proposalId = data.proposalId;
+                            }
+                            creator = data.creator;
+                            return dbconfig.collection_rewardTask.find(queryObj)
+                        }
+                    })
+            })
+            .then(rewardTask=>{
+                rewardTaskData = rewardTask[0] ?  rewardTask[0] :[];
+                console.log(rewardTaskData);
+                return {
+                    size: rewardTaskData.length,
+                    data: [rewardTaskData],
+                    rewardTaskGroupSize: 1,
+                    rewardTaskGroupData: [],
+                    summary: {},
+                    topUpAmountSum:topUpProposal.data ?topUpProposal.data.amount:0,
+                    topUpProposal:topUpProposal.proposalId,
+                    proposal:proposal,
+                    creator:creator
+                }
+            })
+    },
+    getRewardTaskList: function(query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj){
+        return dbGameProvider.getPlatformProviderGroup(query.platformId).then(
             data => {
-                return {size: data[0], data: data[1], rewardTaskGroupSize: data[2], rewardTaskGroupData: data[3]}
+                providerGroups = data;
+            }
+        ).then(
+            data => {
+                if (query.unlockStatus) {
+                    if (query.unlockStatus == 'Started') {
+                        queryObj.status = 'Started'
+                    } else if (query.unlockStatus == 'Done') {
+                        queryObj.status = {$ne: 'Started'}
+                    } else {
+                        // query all result;
+                    }
+                }
+                if (query.topUpProposalId) {
+                    queryObj.topUpProposal = query.topUpProposalId;
+                }
+                if (query.rewardProposalId) {
+                    queryObj.proposalId = query.rewardProposalId;
+                }
+
+                if (query.selectedProviderGroupID) {
+                    let selectedProviderGroup = providerGroups.filter(item=>{
+                        return item._id.toString() == query.selectedProviderGroupID.toString()
+                    });
+
+                    let providers = selectedProviderGroup[0] ?  selectedProviderGroup[0].providers : null;
+                    if(providers){
+                        queryObj.targetProviders = {$in: providers}
+                    }
+
+
+                    if(query.selectedProviderGroupID == 'free'){
+                        queryObj.providerGroup = null;
+                    }
+
+                }
+
+                let rewardTaskQuery = JSON.parse(JSON.stringify(queryObj));
+                delete rewardTaskQuery.targetProviders;
+                if (query.selectedProviderGroupID && query.selectedProviderGroupID.length === 24) {
+                    rewardTaskQuery.providerGroup = query.selectedProviderGroupID
+                }
+
+                let a, b, c, d, e, f, g;
+                let size;
+                let rewardTaskGroupSize;
+                let rewardTaskGroupData;
+                let rewardTaskSummary;
+                let topUpAmountSum;
+                let displayRewardTaskGroup;
+                a = dbconfig.collection_rewardTask.find(rewardTaskQuery).count();
+                b = dbconfig.collection_rewardTask.find(rewardTaskQuery).sort(sortCol).skip(index).limit(limit)
+                    .populate({path: "targetProviders", model: dbconfig.collection_gameProvider}).lean();
+
+                if (useProviderGroup) {
+                    let rewardTaskGroupData;
+
+
+                    let rewardGroupQuery = JSON.parse(JSON.stringify(rewardTaskQuery));
+                    if(query.selectedProviderGroupID == 'free'){
+                        delete rewardGroupQuery.providerGroup;
+                    }
+                    c = dbconfig.collection_rewardTaskGroup.find(rewardGroupQuery).count();
+
+                    d = dbconfig.collection_rewardTaskGroup.find(rewardGroupQuery).sort(sortCol).skip(index).limit(limit)
+                        .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
+                        .then(
+                            res => {
+                                rewardTaskGroupData = res;
+                                if (res && res.length > 0) {
+                                    let validCreditPromArr = [];
+
+                                    rewardTaskGroupData.map(grp => {
+                                        if (!grp.providerGroup) {
+                                            validCreditPromArr.push(dbPlayerUtil.getPlayerValidCredit(query.playerId).then(validCredit => grp.currentAmt = validCredit));
+                                        }
+                                    });
+
+                                    return Promise.all(validCreditPromArr);
+                                }
+                            }
+                        ).then(() => rewardTaskGroupData);
+                }
+                // get the sum amount to display the below of table
+                e = dbconfig.collection_rewardTask.aggregate({
+                        $match: queryObj
+                    },
+                    {
+                        $group: {
+                            '_id': null,
+                            bonusAmountSum: {$sum: "$bonusAmount"},
+                            requiredBonusAmountSum: {$sum: "$requiredBonusAmount"},
+                            currentAmountSum: {$sum: "$currentAmount"},
+                        }
+                    });
+                f = dbRewardTask.getTopUpAmountSum(queryObj, sortCol);
+
+                // if status use $ne = status , then the rewardGroup will disappear
+                let displayRewardGroupQuery = JSON.parse(JSON.stringify(queryObj));
+                delete displayRewardGroupQuery.status;
+                if(query.selectedProviderGroupID == 'free'){
+                    delete displayRewardGroupQuery.providerGroup;
+                }
+                g = dbconfig.collection_rewardTaskGroup.find(displayRewardGroupQuery).populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
+
+
+                return Q.all([a, b, c, d, e, f, g]).then(
+                    data => {
+                        size = data[0];
+
+                        rewardTaskGroupSize = data[2];
+                        rewardTaskGroupData = data[3];
+                        rewardTaskSummary = data[4][0] ? data[4][0] : [];
+                        topUpAmountSum = data[5] ? data[5].topUpAmountSum : 0;
+                        displayRewardTaskGroup = data[6] ? data[6] : [];
+                        let prom = dbRewardTask.getProposalInfo(data[1]);
+                        return Q.all([prom])
+                            .then(proposalData => {
+
+                                let resultData = [];
+                                if(query.selectedProviderGroupID == 'free' || useProviderGroup){
+
+                                    resultData = rewardTaskGroupData;
+                                    resultData.map(item=>{
+                                        item.data = {};
+                                        item.data.currentAmount = item.currentAmt;
+                                        item.data.bonusAmount = item.rewardAmt;
+                                        item.data.requiredBonusAmount = item.curConsumption;
+                                        item.data.requiredUnlockAmount = item.targetConsumption;
+                                        return item;
+                                    })
+                                }else{
+                                    resultData = proposalData[0] || [];
+                                }
+
+                                if(!query.showProposal && useProviderGroup){
+                                    resultData = [];
+                                }
+
+                                return {
+                                    size: size,
+                                    data: resultData,
+                                    rewardTaskGroupSize: rewardTaskGroupSize,
+                                    rewardTaskGroupData: rewardTaskGroupData,
+                                    displayRewardTaskGroup : displayRewardTaskGroup,
+                                    summary: rewardTaskSummary,
+                                    topUpAmountSum:topUpAmountSum
+                                }
+
+                            })
+                    }
+                )
             }
         )
-    },
 
+    },
+    getTopUpAmountSum: function(queryObj,sortCol){
+        let prom = [];
+        let topUpAmountSum = 0;
+        return dbconfig.collection_rewardTask.find(queryObj) //.sort(sortCol)
+            .then(data=> {
+                let proposalResult = dbRewardTask.getProposalInfo(data);
+                return Q.all([proposalResult])
+            })
+            .then(pData=>{
+                pData[0].map(item=>{
+                        if(item.topUpAmount){
+                            topUpAmountSum += item.topUpAmount;
+                        }
+                    })
+                return {topUpAmountSum}
+            })
+
+    },
+    getTopUpProposal:function(data){
+        let prom = [];
+        data.map(item => {
+            let proposalId = item.data.topUpProposal;
+            let topUpRecordId = item.data.topUpRecordId ? item.data.topUpRecordId : null;
+            let sendQuery = {};
+            if (topUpRecordId) {
+                sendQuery = {proposalId: proposalId};
+            } else {
+                sendQuery = {proposalId: proposalId};
+            }
+
+            let proposal = dbconfig.collection_proposal.findOne(sendQuery).then(
+                pdata => {
+                    if (pdata) {
+                        if (pdata.creator.name) {
+                            item.creator = pdata.creator;
+                        }
+                        if (pdata.data.amount) {
+                            item.data.topUpAmount = pdata.data.amount;
+                        }
+                    }
+                    return item;
+                },
+                error => {
+                    console.log(error);
+                }
+            )
+            prom.push(proposal);
+        })
+        return Promise.all(prom)
+    },
+    getProposalInfo: function (data) {
+        let prom = [];
+        let topUpAmountSum = 0;
+        let topUpAmount = 0;
+        let count = 0;
+        data.map(item => {
+            let proposalId = item.proposalId;
+            let topUpProposal = null;
+            let proposal = dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+                pdata => {
+                    if (!pdata) {
+                        return {};
+                    }
+                    if (pdata.creator && pdata.creator.name) {
+                        item.creator = pdata.creator;
+                    }
+                    if (pdata.data && pdata.data.topUpProposal) {
+                        topUpProposal = pdata.data.topUpProposal;
+                    }
+                    if (pdata.data && pdata.data.topUpAmount) {
+                        topUpAmount = pdata.data.topUpAmount;
+                    }
+                    return item;
+                },
+                error => {
+                    console.log(error);
+                }
+            ).then(
+                data => {
+
+                    if (topUpProposal) {
+                        return dbconfig.collection_proposal.findOne({proposalId: topUpProposal})
+                    } else {
+                        return item;
+                    }
+                }
+            )
+                .then(
+                    topup => {
+                        // calculate the sum of topUp
+                        if (topup) {
+                            if (topup.proposalId) {
+                                item.topUpProposal = topup.proposalId;
+                            }
+                            if (topup.data) {
+                                item.topUpAmount = topup.data.amount;
+                                topUpAmountSum += item.topUpAmount;
+                            } else {
+                                item.topUpAmount = topUpAmount ? topUpAmount : '';
+                            }
+
+                        }
+                        return item;
+                    })
+            prom.push(proposal);
+        });
+        return Promise.all(prom)
+    },
     /**
      * Get total count of specific user's pending proposal
      */
@@ -570,6 +1148,54 @@ const dbRewardTask = {
             function (error) {
                 deferred.reject({name: "DBError", message: "Error completing reward task", error: error});
             }
+        // ).then(() => {
+        //     return dbRewardTaskGroup.getFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime).then(
+        //         freeRewardTaskGroup => {
+        //             freeRewardTaskGroup.curConsumption += consumptionRecord.validAmount;
+        //             freeRewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
+        //
+        //             // Check whether player has lost all credit
+        //             if (freeRewardTaskGroup.currentAmt < 1) {
+        //                 freeRewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
+        //                 freeRewardTaskGroup.unlockTime = createTime;
+        //             }
+        //             // Consumption reached
+        //             else if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
+        //                 freeRewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
+        //                 freeRewardTaskGroup.unlockTime = createTime;
+        //             }
+        //
+        //             let updObj = {
+        //                 $inc: {
+        //                     currentAmt: consumptionRecord.bonusAmount,
+        //                     curConsumption: consumptionRecord.validAmount
+        //                 },
+        //                 status: freeRewardTaskGroup.status,
+        //                 unlockTime: freeRewardTaskGroup.unlockTime
+        //             };
+        //
+        //             return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+        //                 {_id: freeRewardTaskGroup._id},
+        //                 updObj,
+        //                 {new: true}
+        //             );
+        //         });
+        // }).then(
+        //     updatedData => {
+        //         if (updatedData) {
+        //             // Transfer amount to player if reward is achieved
+        //             if (updatedData.status == constRewardTaskStatus.ACHIEVED) {
+        //                 return dbRewardTask.completeRewardTaskGroup(updatedData);
+        //             }
+        //         }
+        //     },
+        //     error => {
+        //         return Q.reject({
+        //             name: "DBError",
+        //             message: "Error updating reward task group",
+        //             error: error
+        //         });
+        //     }
         );
 
         return deferred.promise;
@@ -583,22 +1209,33 @@ const dbRewardTask = {
         let bDirty = false;
         let nonDirtyAmount = 0;
         let createTime = new Date(consumptionRecord.createTime);
+        let platform;
 
-        return dbRewardTaskGroup.getPlayerRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.providerId, consumptionRecord.playerId, createTime).then(
+        return dbconfig.collection_platform.findOne({_id: consumptionRecord.platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platform = platformData;
+
+                    return dbRewardTaskGroup.getPlayerRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.providerId, consumptionRecord.playerId, createTime)
+                }
+            }
+        ).then(
             rewardTaskGroup => {
                 if (rewardTaskGroup) {
                     rewardTaskGroup.curConsumption += consumptionRecord.validAmount;
                     rewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
+                    let remainingCurConsumption = 0;
 
                     // Check whether player has lost all credit
-                    if (rewardTaskGroup.currentAmt < 1) {
+                    if (rewardTaskGroup.currentAmt <= platform.autoApproveLostThreshold) {
                         rewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
                         rewardTaskGroup.unlockTime = createTime;
                     }
                     // Consumption reached
-                    else if (rewardTaskGroup.curConsumption >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
+                    else if (rewardTaskGroup.curConsumption + platform.autoApproveConsumptionOffset >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
                         rewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
                         rewardTaskGroup.unlockTime = createTime;
+                        remainingCurConsumption = rewardTaskGroup.curConsumption - (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt);
                     }
 
                     let updObj = {
@@ -636,10 +1273,61 @@ const dbRewardTask = {
                     //     updObj.$inc.curConsumption = consumptionRecord.validAmount;
                     // }
 
+                    if (remainingCurConsumption > 0) {
+                        dbRewardTaskGroup.addRemainingConsumptionToFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime, remainingCurConsumption);
+                    }
+
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                         {_id: rewardTaskGroup._id},
                         updObj,
                         {new: true}
+                    );
+                } else {
+                    return dbRewardTaskGroup.getFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime).then(
+                        freeRewardTaskGroup => {
+                            if(freeRewardTaskGroup){
+                                freeRewardTaskGroup.curConsumption += consumptionRecord.validAmount ? consumptionRecord.validAmount : 0;
+
+                                freeRewardTaskGroup.currentAmt += consumptionRecord.bonusAmount ? consumptionRecord.bonusAmount : 0;
+
+                                // Check whether player has lost all credit
+                                if (freeRewardTaskGroup.currentAmt && freeRewardTaskGroup.currentAmt < 1) {
+                                    freeRewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
+                                    freeRewardTaskGroup.unlockTime = createTime;
+                                }
+                                // Consumption reached
+                                else {
+                                    if(freeRewardTaskGroup.hasOwnProperty("targetConsumption") && freeRewardTaskGroup.hasOwnProperty("forbidXIMAAmt")){
+                                        if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
+                                            freeRewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
+                                            freeRewardTaskGroup.unlockTime = createTime;
+                                        }
+                                    }
+                                }
+
+                                let updObj = {
+                                    $inc: {
+                                        currentAmt: consumptionRecord.bonusAmount ? consumptionRecord.bonusAmount : 0,
+                                        curConsumption: consumptionRecord.validAmount ? consumptionRecord.validAmount : 0
+                                    },
+                                };
+
+                                if(freeRewardTaskGroup.status){
+                                    updObj.status = freeRewardTaskGroup.status;
+                                }
+
+                                if(freeRewardTaskGroup.unlockTime){
+                                    updObj.unlockTime = freeRewardTaskGroup.unlockTime;
+                                }
+
+                                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                    {_id: freeRewardTaskGroup._id},
+                                    updObj,
+                                    {new: true}
+                                );
+                            }
+
+                        }
                     );
                 }
             }
@@ -647,8 +1335,9 @@ const dbRewardTask = {
             updatedData => {
                 if (updatedData) {
                     // Transfer amount to player if reward is achieved
-                    if (updatedData.status == constRewardTaskStatus.ACHIEVED) {
-                        return dbRewardTask.completeRewardTaskGroup(updatedData);
+                    // Also transfer to player (amount = 0) when reward is no credit
+                    if (updatedData.status == constRewardTaskStatus.ACHIEVED || updatedData.status == constRewardTaskStatus.NO_CREDIT) {
+                        return dbRewardTask.completeRewardTaskGroup(updatedData, updatedData.status);
                     }
                 }
             },
@@ -854,52 +1543,170 @@ const dbRewardTask = {
 
     /**
      * TODO:: WORK IN PROGRESS
+     * Add manual unlock support
+     * NO_CREDIT will also trigger this function now
      * @param rewardGroupData
+     * @param {String} unlockType
      */
-    completeRewardTaskGroup: rewardGroupData => {
+    completeRewardTaskGroup: (rewardGroupData, unlockType) => {
+        rewardGroupData = JSON.parse(JSON.stringify(rewardGroupData));
         let playerCreditChange;
+
+        // Set transfer amount
         let rewardAmount = rewardGroupData.rewardAmt;
 
-        // Check if player is in game when reward group completed
-        if (!rewardGroupData.inProvider) {
-            // If player has left game, add the rewardAmt to player's credit
-            playerCreditChange = {
-                $inc: {validCredit: rewardAmount}
-            };
+        // Mark the provider group as complete if it is manual unlocked
+        let taskGroupProm = Promise.resolve();
 
-            return dbRewardTask.findOneAndUpdateWithRetry(
-                dbconfig.collection_players,
-                {_id: rewardGroupData.playerId, platform: rewardGroupData.platformId},
-                playerCreditChange,
-                {new: true}
-            ).then(
-                data => {
-                    if (data) {
-                        dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardGroupData.type + ":unlock", data.validCredit, 0, -rewardAmount, null, rewardGroupData);
+        let prohibitWithdrawal = function (player) {
+            if (player) {
+                let validCredit = player.validCredit;
+                let lockedCredit = player.lockedCredit;
+                let providerCredit = 0, totalCredit = 0;
+                let platformProm = dbconfig.collection_platform.findOne({_id: rewardGroupData.platformId});
+                let providerGroupProm;
+
+                if(rewardGroupData.providerGroup) {
+                    providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rewardGroupData.providerGroup})
+                        .populate({path: "providers", model: dbconfig.collection_gameProvider});
+                } else {
+                    providerGroupProm = dbconfig.collection_platform.findOne({_id: rewardGroupData.platformId})
+                        .populate({path: "gameProviders", model: dbconfig.collection_gameProvider})
+                        .then(
+                            platform => {
+                                if(platform) {
+                                    return {providers: platform.gameProviders};
+                                }
+                            }
+                        );
+                }
+
+                Promise.all([platformProm,providerGroupProm]).then(
+                    data => {
+                        let platform = data[0];
+                        let providerGroup = data[1];
+                        let promArr = [];
+                        if(providerGroup && providerGroup.providers && providerGroup.providers.length > 0) {
+                            providerGroup.providers.forEach(provider => {
+                                if(provider) {
+                                    promArr.push(
+                                        cpmsAPI.player_queryCredit(
+                                            {
+                                                username: player.name,
+                                                platformId: platform.platformId,
+                                                providerId: provider.providerId
+                                            }
+                                        ).then(
+                                            data => data,
+                                            error => {
+                                                return {credit: 0};
+                                            }
+                                        )
+                                    );
+                                }
+                            });
+                        }
+                        return Promise.all(promArr);
+                    }
+                ).then(
+                    (queryResult) => {
+                        queryResult.forEach(provider => {
+                            if(provider && provider.hasOwnProperty("credit")) {
+                                providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
+                            }
+                        });
+                        totalCredit = validCredit + lockedCredit + providerCredit;
 
                         // Set player bonus permission to off if there's still credit available after unlock reward
-                        if (rewardGroupData && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock > 0) {
-                            dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).catch(errorUtils.reportError);
+                        if (rewardGroupData
+                            && rewardGroupData.hasOwnProperty("forbidWithdrawIfBalanceAfterUnlock")
+                            && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock > 0
+                            && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
+                            dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).then(
+                                () => {
+                                    return dbconfig.collection_proposal.findOne({_id: rewardGroupData.lastProposalId})
+                                }
+                            ).then(
+                                proposal => {
+                                    let proposalId = proposal ? proposal.proposalId : "unknown ID";
+                                    let remark = "优惠提案："+proposalId+"（流水解锁馀额高于"+rewardGroupData.forbidWithdrawIfBalanceAfterUnlock+"元）";
+                                    let oldPermissionObj = {applyBonus: player.permission.applyBonus};
+                                    let newPermissionObj = {applyBonus: false};
+                                    dbPlayerUtil.addPlayerPermissionLog(null, rewardGroupData.platformId, rewardGroupData.playerId, remark, oldPermissionObj, newPermissionObj);
+                                }
+                            ).catch(errorUtils.reportError);
+                        }
+                    },
+                    error => {console.log(error);}
+                );
+            }
+            else {
+                return Q.reject({name: "DataError", message: "Can't proceed with player prohibit withdrawal"});
+            }
+        };
+
+        if (unlockType == constRewardTaskStatus.MANUAL_UNLOCK) {
+            taskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                platformId: rewardGroupData.platformId,
+                playerId: rewardGroupData.playerId,
+                providerGroup: rewardGroupData.providerGroup
+            }, {
+                status: constRewardTaskStatus.MANUAL_UNLOCK
+            });
+        }
+
+        return taskGroupProm.then(() => {
+            // Check if player is in game when reward group completed
+            if (!rewardGroupData.inProvider) {
+                // If player has left game, add the rewardAmt to player's credit
+                playerCreditChange = {
+                    $inc: {validCredit: rewardAmount}
+                };
+
+                return dbRewardTask.findOneAndUpdateWithRetry(
+                    dbconfig.collection_players,
+                    {_id: rewardGroupData.playerId, platform: rewardGroupData.platformId},
+                    playerCreditChange,
+                    {new: true}
+                ).then(
+                    player => {
+                        if (player) {
+                            let rewardType = rewardGroupData && rewardGroupData.type ? rewardGroupData.type : "Free amount";
+
+                            dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardType + ":unlock", player.validCredit, 0, -rewardAmount, null, rewardGroupData);
+
+                            prohibitWithdrawal(player);
+                        }
+                        else {
+                            return Q.reject({name: "DataError", message: "Can't update reward task and player credit"});
+                        }
+                    },
+                    error => {
+                        console.log("Update player credit failed when complete reward task", error, rewardGroupData);
+                        return Q.reject({
+                            name: "DBError",
+                            message: "Error updating reward task and player credit",
+                            error: error
+                        });
+                    }
+                );
+            } else {
+                // Do nothing first if player is still in game
+                // This will be triggered again when player transfer out
+                dbconfig.collection_players.findOne({
+                    _id: rewardGroupData.playerId,
+                    platform: rewardGroupData.platformId
+                }).then(
+                    player => {
+                        if (player) {
+                            prohibitWithdrawal(player);
+                        } else {
+                            //
                         }
                     }
-                    else {
-                        return Q.reject({name: "DataError", message: "Can't update reward task and player credit"});
-                    }
-                },
-                error => {
-                    console.log("Update player credit failed when complete reward task", error, rewardGroupData);
-                    return Q.reject({
-                        name: "DBError",
-                        message: "Error updating reward task and player credit",
-                        error: error
-                    });
-                }
-            );
-        } else {
-            // Do nothing first if player is still in game
-            // This will be triggered again when player transfer out
-            return true;
-        }
+                );
+            }
+        });
     },
 
     findOneAndUpdateWithRetry: function (model, query, update, options) {

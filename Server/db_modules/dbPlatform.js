@@ -56,7 +56,14 @@ var dbPlatform = {
 
         // We give platforms a random ObjectID, so that if 5 platforms are created in quick succession, they and their
         // associated data will not all get stored on the same shard.
-        platformData._id = randomObjectId();
+
+        if(platformData){
+            platformData._id = randomObjectId();
+
+            if(platformData.platformId){
+                delete platformData.platformId;
+            }
+        }
 
         var platform = new dbconfig.collection_platform(platformData);
         platform.save().then(
@@ -1477,6 +1484,7 @@ var dbPlatform = {
         data.recipientName ? query.recipientName = data.recipientName : "";
         data.inputDevice ? query.inputDevice = data.inputDevice : "";
         data.purpose ? query.purpose = data.purpose : "";
+        data.platformObjId ? query.platform = data.platformObjId : "";
 
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
@@ -1585,7 +1593,7 @@ var dbPlatform = {
 
                     if (isUsed)
                         nextSMSCountProm = Promise.resolve(-1);
-                    else if (nextUsedTime || createTime < smsVerificationExpireDate)
+                    else if (nextUsedTime || createTime < smsVerificationExpireDate || log.invalidated)
                         nextSMSCountProm = Promise.resolve(1);
                     else
                         nextSMSCountProm = dbconfig.collection_smsLog.find({
@@ -1643,7 +1651,588 @@ var dbPlatform = {
     },
     generateObjectId: function(){
         return new ObjectId();
-    }
+    },
+
+    //Player Advertisement
+    getPlayerAdvertisementList: function(platformId, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj =>{
+                if(platformObj){
+                    if(inputDevice){
+                        return dbconfig.collection_playerPageAdvertisementInfo.find({platformId: platformObj._id, inputDevice: inputDevice}).lean();
+                    }
+                    else{
+                        return Q.reject({name: "DBError", message: "Invalid input device"});
+                    }
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+
+    },
+
+    getSelectedAdvList: function(platformId,id,subject){
+        if (id) {
+            if (subject == 'player') {
+                return dbconfig.collection_playerPageAdvertisementInfo.findOne({platformId: platformId,_id: id}).lean();
+            }
+            else if (subject == 'partner'){
+                return dbconfig.collection_partnerPageAdvertisementInfo.findOne({platformId: platformId,_id: id}).lean();
+            }
+            else {}
+        }
+        else {
+            return Q.reject(Error("Id is NULL"));
+        }
+
+    },
+
+    createNewPlayerAdvertisementRecord: function(platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj =>{
+                if(platformObj){
+                    if(advertisementCode){
+                        return dbconfig.collection_playerPageAdvertisementInfo.findOne({platformId: platformId, advertisementCode: advertisementCode})
+                    }else{
+                        return Q.reject({name: "DBError", message: "Advertisement code not valid"});
+                    }
+
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        ).then(
+            existingAdvertisementCodeData => {
+                if(existingAdvertisementCodeData){
+                    return Q.reject({name: "DBError", message: "Advertisement code already exists."});
+                }else{
+                    let newRecordData = {
+                        platformId: platformId,
+                        orderNo: orderNo,
+                        advertisementCode: advertisementCode,
+                        title: title,
+                        backgroundBannerImage: backgroundBannerImage,
+                        imageButton: imageButton,
+                        inputDevice: inputDevice,
+                        status: 1
+                    }
+                    let advertistmentRecord = new dbconfig.collection_playerPageAdvertisementInfo(newRecordData);
+                    return advertistmentRecord.save();
+                }
+            }
+        );
+    },
+
+    deleteAdvertisementRecord: function(platformId, advertisementId){
+        return dbconfig.collection_playerPageAdvertisementInfo.remove({_id: advertisementId, platformId: platformId});
+    },
+
+    savePlayerAdvertisementRecordChanges: function(platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice){
+
+        let query = {
+            platformId: platformId,
+            _id: advertisementId
+        }
+
+        let updateData = {
+            orderNo: orderNo,
+            advertisementCode: advertisementCode,
+            title: title,
+            backgroundBannerImage: backgroundBannerImage,
+            imageButton: imageButton,
+            inputDevice: inputDevice
+        }
+        return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query,updateData).then(
+            platformObj =>{
+                if(platformObj){
+                    return platformObj;
+                }
+            }
+        );
+    },
+
+    updateAdvertisementRecord: function(platformId, advertisementId, imageButton, subject){
+
+        let query = {
+            platformId: platformId,
+            _id: advertisementId
+        };
+
+        let updateData = {
+            imageButton: imageButton,
+        };
+
+        if (subject == 'player') {
+            return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query,updateData);
+        }
+        else if (subject == 'partner'){
+            return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query,updateData);
+        }
+        else {}
+    },
+
+    changeAdvertisementStatus: function(platformId, advertisementId, status){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        _id: advertisementId,
+                        status: status ? status : 0
+                    }
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query,{status: !status});
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        )
+    },
+
+    checkDuplicateOrderNoWithId: function(platformId, orderNo, inputDevice, advertisementId){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        orderNo: orderNo,
+                        inputDevice: inputDevice,
+                        _id: advertisementId
+                    }
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOne(query).then(
+                        data => {
+                            if(data){
+                                return null;
+                            }else{
+                                let queryWithoutId = {
+                                    platformId: platformId,
+                                    orderNo: orderNo,
+                                    inputDevice: inputDevice
+                                }
+                                return dbconfig.collection_playerPageAdvertisementInfo.findOne(queryWithoutId);
+                            }
+
+                        }
+                    );
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+    },
+
+    checkDuplicateAdCodeWithId: function(platformId, advertisementCode, inputDevice, advertisementId){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        advertisementCode: advertisementCode,
+                        inputDevice: inputDevice,
+                        _id: advertisementId
+                    }
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOne(query).then(
+                        data => {
+                            if(data){
+                                return null;
+                            }else{
+                                let queryWithoutId = {
+                                    platformId: platformId,
+                                    advertisementCode: advertisementCode,
+                                    inputDevice: inputDevice
+                                }
+                                return dbconfig.collection_playerPageAdvertisementInfo.findOne(queryWithoutId);
+                            }
+
+                        }
+                    );
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+    },
+
+    checkDuplicateOrderNo: function(platformId, orderNo, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        orderNo: orderNo,
+                        inputDevice: inputDevice
+                    };
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOne(query);
+
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+    },
+
+    checkDuplicateAdCode: function(platformId, advertisementCode, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        advertisementCode: advertisementCode,
+                        inputDevice: inputDevice
+                    };
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOne(query);
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+    },
+
+
+    getAdvertisementRecordById: function(platformId, advertisementId){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        _id: advertisementId
+                    }
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOne(query);
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+    },
+
+    getNextOrderNo: function(platformId, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        inputDevice: inputDevice
+                    }
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOne(query).sort({orderNo: -1}).limit(1);
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+    },
+
+    //Partner Advertisement
+    getPartnerAdvertisementList: function(platformId, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj =>{
+                if(platformObj){
+                    if(inputDevice){
+                        return dbconfig.collection_partnerPageAdvertisementInfo.find({platformId: platformObj._id, inputDevice: inputDevice}).lean();
+                    }
+                    else{
+                        return Q.reject(Error("Invalid input device"));
+                    }
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+
+    },
+    createNewPartnerAdvertisementRecord: function(platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj =>{
+                if(platformObj){
+                    let newRecordData = {
+                        platformId: platformId,
+                        orderNo: orderNo,
+                        advertisementCode: advertisementCode,
+                        title: title,
+                        backgroundBannerImage: backgroundBannerImage,
+                        imageButton: imageButton,
+                        inputDevice: inputDevice,
+                        status: 1
+                    }
+                    let advertistmentRecord = new dbconfig.collection_partnerPageAdvertisementInfo(newRecordData);
+                    return advertistmentRecord.save();0
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+    },
+
+    deletePartnerAdvertisementRecord: function(platformId, advertisementId){
+        return dbconfig.collection_partnerPageAdvertisementInfo.remove({_id: advertisementId, platformId: platformId});
+    },
+
+    savePartnerAdvertisementRecordChanges: function(platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice){
+
+        let query = {
+            platformId: platformId,
+            _id: advertisementId
+        }
+
+        let updateData = {
+            orderNo: orderNo,
+            advertisementCode: advertisementCode,
+            title: title,
+            backgroundBannerImage: backgroundBannerImage,
+            imageButton: imageButton,
+            inputDevice: inputDevice
+        }
+        return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query,updateData).then(
+            platformObj =>{
+
+                return platformObj;
+
+            }
+        );
+    },
+
+    changePartnerAdvertisementStatus: function(platformId, advertisementId, status){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        _id: advertisementId,
+                        status: status ? status : 0
+                    }
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query,{status: !status});
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        )
+    },
+
+    checkPartnerDuplicateOrderNoWithId: function(platformId, orderNo, inputDevice, advertisementId){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        orderNo: orderNo,
+                        inputDevice: inputDevice,
+                        _id: advertisementId
+                    }
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query).then(
+                        data => {
+                            if(data){
+                                return null;
+                            }else{
+                                let queryWithoutId = {
+                                    platformId: platformId,
+                                    orderNo: orderNo,
+                                    inputDevice: inputDevice
+                                }
+                                return dbconfig.collection_partnerPageAdvertisementInfo.findOne(queryWithoutId);
+                            }
+
+                        }
+                    );
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+    },
+
+    checkPartnerDuplicateAdCodeWithId: function(platformId, advertisementCode, inputDevice, advertisementId){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        advertisementCode: advertisementCode,
+                        inputDevice: inputDevice,
+                        _id: advertisementId
+                    }
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query).then(
+                        data => {
+                            if(data){
+                                return null;
+                            }else{
+                                let queryWithoutId = {
+                                    platformId: platformId,
+                                    advertisementCode: advertisementCode,
+                                    inputDevice: inputDevice
+                                }
+                                return dbconfig.collection_partnerPageAdvertisementInfo.findOne(queryWithoutId);
+                            }
+
+                        }
+                    );
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+    },
+
+    checkPartnerDuplicateOrderNo: function(platformId, orderNo, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        orderNo: orderNo,
+                        inputDevice: inputDevice
+                    };
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query);
+
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+    },
+
+    checkPartnerDuplicateAdCode: function(platformId, advertisementCode, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        advertisementCode: advertisementCode,
+                        inputDevice: inputDevice
+                    };
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query);
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+    },
+
+
+    getPartnerAdvertisementRecordById: function(platformId, advertisementId){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        _id: advertisementId
+                    }
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query);
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+    },
+
+    getPartnerNextOrderNo: function(platformId, inputDevice){
+        return dbconfig.collection_platform.findOne({_id: platformId}).then(
+            platformObj => {
+                if(platformObj){
+                    let query = {
+                        platformId: platformId,
+                        inputDevice: inputDevice
+                    }
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query).sort({orderNo: -1}).limit(1);
+                }else{
+                    return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                }
+            }
+        );
+    },
+
+    getConfig: function (platformId) {
+        if(platformId){
+            let returnedObj = {
+                wechatList: [],
+                qqList: [],
+                telList: [],
+                live800: "",
+                activityList: []
+            };
+            return dbconfig.collection_platform.findOne({platformId: platformId}).then(
+                data => {
+                    if(data){
+                        if(data.csWeixin){
+                            returnedObj.wechatList.push({
+                                isImg: 0,
+                                value: data.csWeixin
+                            },{
+                                isImg: 1,
+                                value:  data.weixinPhotoUrl ? data.weixinPhotoUrl : ""
+                            });
+                        }
+
+                        if(data.csQQ){
+                            returnedObj.qqList.push({
+                                isImg: 0,
+                                value: data.csQQ
+                            });
+                        }
+
+                        if(data.csPhone){
+                            returnedObj.telList.push({
+                                isImg: 0,
+                                value: data.csPhone
+                            });
+                        }
+
+                        if(data.csUrl){
+                            returnedObj.live800 = data.csUrl;
+                        }
+                        if(data.platformId){
+                            return dbconfig.collection_playerPageAdvertisementInfo.find({platformId: data._id}).sort({orderNo: 1});
+                        };
+                    }else{
+                        return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+                    }
+                }
+            ).then(
+                advertisementInfo => {
+                    if(advertisementInfo){
+                        advertisementInfo.map(info => {
+                            let activityListObj = {};
+                            if(info.advertisementCode){
+                                activityListObj.code = info.advertisementCode;
+                            }
+
+                            if(info.title && info.title.length > 0){
+                                activityListObj.title = info.title;
+                            }
+
+                            if(info.backgroundBannerImage && info.backgroundBannerImage.hyperLink){
+                                activityListObj.bannerImg= 'getHashFile("' + info.backgroundBannerImage.hyperLink + '")';
+                            }
+
+                            if(info.imageButton && info.imageButton.length > 0){
+                                let buttonList = [];
+                                info.imageButton.forEach(b => {
+                                    let buttonObj = {};
+                                    if(b.buttonName){
+                                        buttonObj.btn = b.buttonName;
+
+                                    }
+                                    if(b.css){
+                                        buttonObj.extString = "style(\"" + b.css + "\") my_href=\"" + b.hyperLink + "\"";
+                                    }
+                                    buttonList.push(buttonObj);
+
+                                })
+                                activityListObj.btnList = buttonList;
+                            }else{
+                                if(info.backgroundBannerImage && info.backgroundBannerImage.hyperLink){
+                                    activityListObj.extString= "my_href_w='" + info.backgroundBannerImage.hyperLink + "'";
+                                }
+                            }
+
+                            returnedObj.activityList.push(activityListObj);
+                        })
+                        return returnedObj;
+                    }
+                }
+            );
+        }else{
+            return Q.reject({name: "DBError", message: "Invalid platformId: " + platformId});
+        }
+    },
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {

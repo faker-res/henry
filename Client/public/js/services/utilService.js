@@ -424,11 +424,17 @@ define([], function () {
                 return $.isNumeric(a) ? a : 0;
             }
 
-            function gethtmlStr(a, b) {
+            function gethtmlStr(a, b, extraLinesArr, hasExtraLines) {
                 a = a || 0, b = b || 0;
                 var line1 = $('<label>', {class: 'margin-bottom-5 label-value alignRight'}).text(a);
                 var line2 = $('<label>', {class: 'margin-bottom-5 label-value alignRight'}).text(b);
-                return showPageOnly ? line1 : line1.append(line2);
+                let sumLines = showPageOnly ? line1 : line1.append(line2);
+                if(hasExtraLines) {
+                    extraLinesArr.forEach(data=>{
+                        sumLines = sumLines.append($('<label>', {class: 'margin-bottom-5 label-value alignRight'}).text(data));
+                    })
+                }
+                return sumLines;
             }
 
             var finalStr = $('<tr>');
@@ -523,6 +529,23 @@ define([], function () {
                         totalValue = getFloat(totalValue).toFixed(2);
                         pageValue = getFloat(pageValue).toFixed(2);
                         htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
+                    } else if(classes.indexOf("limitedOfferSumLabel") > -1) {
+                        htmlStr = gethtmlStr($trans('Page Total'), $trans('All Pages'));
+                    }  else if(classes.indexOf("limitedOfferClaimStatusLabel") > -1) {
+                        htmlStr = gethtmlStr($trans('STILL VALID')+":", $trans('ACCEPTED')+":", [$trans('EXPIRED')+":", $trans('TOTAL_SUM')+":"], true);
+                    } else if(classes.indexOf("limitedOfferClaimStatusAmount") > -1) {
+                        htmlStr = gethtmlStr(sumData.claimStatus.stillValid, sumData.claimStatus.accepted, [sumData.claimStatus.expired, sumData.total], true);
+                    } else if(classes.indexOf("limitedOfferClaimStatusPercentage") > -1) {
+                        let stillValidPercentage = "("+parseFloat(sumData.claimStatus.stillValid/sumData.total*100).toFixed(2)+"%)";
+                        let acceptedPercentage = "("+parseFloat(sumData.claimStatus.accepted/sumData.total*100).toFixed(2)+"%)";
+                        let expiredPercentage = "("+parseFloat(sumData.claimStatus.expired/sumData.total*100).toFixed(2)+"%)";
+                        let totalPercentage = "("+parseFloat(100).toFixed(2)+"%)";
+                        htmlStr = gethtmlStr(stillValidPercentage, acceptedPercentage, [expiredPercentage, totalPercentage], true);
+                    } else if(classes.indexOf("limitedOfferDevice") > -1) {
+                        let web = $trans('WEB_PLAYER')+": "+sumData.device.webPlayer+" ("+parseFloat(sumData.device.webPlayer/sumData.total*100).toFixed(2)+"%)";
+                        let h5 = $trans('H5_PLAYER')+": "+sumData.device.h5Player+" ("+parseFloat(sumData.device.h5Player/sumData.total*100).toFixed(2)+"%)";
+                        let app = $trans('APP_PLAYER')+": "+sumData.device.appPlayer+" ("+parseFloat(sumData.device.appPlayer/sumData.total*100).toFixed(2)+"%)";
+                        htmlStr = gethtmlStr(web, h5, [app], true);
                     } else if (classes.indexOf('sumInt') > -1) {
                         if (sumData && sumData[i]) {
                             totalValue = sumData[i]
