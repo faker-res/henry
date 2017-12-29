@@ -714,7 +714,6 @@ const dbRewardTask = {
     },
     getTopUpProposal:function(data){
         let prom = [];
-        console.log('just wtfits', data)
         data.map(item => {
             let proposalId = item.data.topUpProposal;
             let topUpRecordId = item.data.topUpRecordId ? item.data.topUpRecordId : null;
