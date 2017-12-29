@@ -10719,7 +10719,8 @@ define(['js/app'], function (myApp) {
                             let proposalSpendingAmt =
                                 vm.rewardTaskProposalData[i].data.spendingAmount
                                     || vm.rewardTaskProposalData[i].data.requiredUnlockAmount
-                                    || vm.rewardTaskProposalData[i].data.amount;
+                                    || vm.rewardTaskProposalData[i].data.amount
+                                    || 0;
 
                             let forbidXIMAAmt = 0;
                             let spendingAmount = proposalSpendingAmt;
