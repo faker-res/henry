@@ -2844,6 +2844,7 @@
   "displayOrder": "展示顺序",
   "targetDestination": "登入目标",
   "consecutiveCount": "累积登入天数",
+  "consecutiveBet": "累积投注天数",
   "rewardPoints": "获得积分",
   "rewardTitle": "文字标题",
   "rewardContent": "内文说明",
