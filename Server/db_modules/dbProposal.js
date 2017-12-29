@@ -1346,7 +1346,7 @@ var proposal = {
                             ];
                         }
 
-                        if (eventName) {
+                        if (eventName && eventName.length > 0) {
                             queryObj["$and"] = queryObj["$and"] || [];
                             let dataCheck = {"data.eventName": {$in: eventName}};
                             let existCheck = {"data.eventName": {$exists: false}};
