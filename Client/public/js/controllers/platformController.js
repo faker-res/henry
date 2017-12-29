@@ -9021,27 +9021,33 @@ define(['js/app'], function (myApp) {
                 var newproposalQuery = {};
                 var proposalNames = $('select#selectProposalType').multipleSelect("getSelects");
                 newproposalQuery.proposalTypeName = [];
-                vm.allProposalType.filter(item => {
-                    if (proposalNames.indexOf(item.name) > -1) {
-                        newproposalQuery.proposalTypeName.push(item.name);
-                    }
-                });
+                if (vm.allProposalType.length != proposalNames.length) {
+                    vm.allProposalType.filter(item => {
+                        if (proposalNames.indexOf(item.name) > -1) {
+                            newproposalQuery.proposalTypeName.push(item.name);
+                        }
+                    });
+                }
 
                 var rewardTypes = $('select#selectRewardType').multipleSelect("getSelects");
                 newproposalQuery.eventName = [];
-                vm.rewardList.filter(item => {
-                    if (rewardTypes.indexOf(item.name) > -1) {
-                        newproposalQuery.eventName.push(item.name);
-                    }
-                });
+                if (vm.rewardList.length != rewardTypes.length) {
+                    vm.rewardList.filter(item => {
+                        if (rewardTypes.indexOf(item.name) > -1) {
+                            newproposalQuery.eventName.push(item.name);
+                        }
+                    });
+                }
 
                 var promoType = $('select#selectPromoType').multipleSelect("getSelects");
                 newproposalQuery.promoTypeName = [];
-                vm.promoTypeList.filter(item => {
-                    if (promoType.indexOf(item.name) > -1) {
-                        newproposalQuery.promoTypeName.push(item.name);
-                    }
-                });
+                if (vm.promoTypeList.length != promoType.length) {
+                    vm.promoTypeList.filter(item => {
+                        if (promoType.indexOf(item.name) > -1) {
+                            newproposalQuery.promoTypeName.push(item.name);
+                        }
+                    });
+                }
 
                 newproposalQuery.status = [];
                 if (vm.proposalFilterstatus == "all") {
@@ -9067,15 +9073,9 @@ define(['js/app'], function (myApp) {
                     sortCol: vm.playerProposal.sortCol,
                     status: newproposalQuery.status,
                     playerId: vm.selectedSinglePlayer._id,
-                    // eventName: newproposalQuery.eventName,
+                    eventName: newproposalQuery.eventName,
                     promoTypeName: newproposalQuery.promoTypeName
                 };
-                
-                if(newproposalQuery.eventName.length === vm.rewardList.length){
-                    sendData.eventName = [];
-                }else{
-                    sendData.eventName = newproposalQuery.eventName;
-                }
                 
                 socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
                     console.log('playerproposal', data);
