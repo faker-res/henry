@@ -12138,7 +12138,7 @@ let dbPlayerInfo = {
         let playerProm = dbconfig.collection_players.findOne({playerId:  playerId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
 
-        var date = dbUtility.getCurrentMonthSGTIme();
+        var date = dbUtility.getTodaySGTime();
         var firstDay = date.startTime;
         var lastDay = date.endTime;
 
