@@ -12,6 +12,8 @@ let dbProposal = require('./../db_modules/dbProposal');
 let dbProposalType = require('./../db_modules/dbProposalType');
 let dbProposalTypeProcess = require('./../db_modules/dbProposalTypeProcess');
 let dbRewardTask = require('./../db_modules/dbRewardTask');
+let dbPlatform = require('./../db_modules/dbPlatform');
+let dbGameProvider = require('./../db_modules/dbGameProvider');
 var constRewardType = require('./../const/constRewardType');
 
 describe("Test player consecutive reward group", function () {
@@ -31,6 +33,11 @@ describe("Test player consecutive reward group", function () {
     let consecutiveRewardProposal;
     let consecutiveRewardRewardTask;
     let consecutiveRewardSpendingTimes = 5;
+    let isUseProviderGroup = true;
+    let testPlatformGame;
+    let testPlatformGameProvider;
+    let testPlatformGameProviderGroup;
+    let testPlatform;
 
     let date = new Date();
     let rewardCreationData = {
@@ -80,12 +87,61 @@ describe("Test player consecutive reward group", function () {
     it('Should create test API platform', function (done) {
 
         commonTestFunc.createTestPlatform().then(
-            function (data) {
+            data => {
                 testPlatformId = data._id;
+                return dbPlatform.updatePlatform({_id: testPlatformId}, {useProviderGroup: isUseProviderGroup});
+            },
+            error => {
+                console.error(error);
+            }
+        ).then(
+            data =>{
+                testPlatform = data;
                 done();
             },
-            function (error) {
-                console.error(error);
+            error => {
+                done(error);
+            }
+        );
+    });
+
+    it('Should create game provider and game for platform', function (done) {
+        commonTestFunc.createTestGameProvider().then(
+            (gameProvider) => {
+                testPlatformGameProvider = gameProvider;
+                return commonTestFunc.createGame(testPlatformGameProvider._id);
+            },
+            (error) => {
+                done(error);
+            }
+        ).then(
+            (game) => {
+                testPlatformGame = game;
+                done();
+            },
+            (error) => {
+                done(error);
+            }
+        );
+    });
+
+    it('Should create game provider group', function (done) {
+        let providerGroup = [{
+            name: 'asdas',
+            providers: [testPlatformGameProvider._id]
+        }];
+        dbGameProvider.updatePlatformProviderGroup(testPlatformId, providerGroup).then(
+            (gameProvider) => dbGameProvider.getPlatformProviderGroup(testPlatformId),
+            (error) => {
+                done(error);
+            }
+        ).then(
+            (gameProviderGroup) => {
+                testPlatformGameProviderGroup = gameProviderGroup[0];
+                done();
+            },
+            (error) => {
+                done(error);
             }
         );
     });
@@ -150,6 +206,9 @@ describe("Test player consecutive reward group", function () {
     it('creates PlayerConsecutiveRewardGroup reward', function (done) {
         rewardCreationData.platform = testPlatformId;
         rewardCreationData.type = consecutiveRewardType._id;
+        if (isUseProviderGroup) {
+            rewardCreationData.condition.providerGroup = testPlatformGameProviderGroup._id.toString();
+        }
         dbRewardEvent.createRewardEvent(rewardCreationData).then(
             () => {
                 done();
@@ -198,7 +257,7 @@ describe("Test player consecutive reward group", function () {
     });
 
     it('Should apply consecutive reward event', function (done) {
-        for(let i = 0; i < 10; i ++){
+        for(let i = 0; i < 1; i ++){
             proms.push(dbPlayerInfo.applyRewardEvent("", testPlayer.playerId, rewardCreationData.code, "").then(
                 data => {
                     return true;
@@ -245,23 +304,40 @@ describe("Test player consecutive reward group", function () {
     });
 
     it('Should check is add reward task and data match proposal', function (done) {
-        dbRewardTask.getRewardTask({playerId: testPlayerId, platformId: testPlatformId}).then(
-            (rewardTask) => {
-                if (rewardTask) {
+        let getTaskProm = [];
+
+        if(isUseProviderGroup){
+            getTaskProm = dbconfig.collection_rewardTaskGroup.findOne({
+                playerId: testPlayerId,
+                platformId: testPlatformId,
+                providerGroup: {$ne:null}
+            })
+        }else{
+            getTaskProm = dbconfig.collection_rewardTask.findOne({
+                playerId: testPlayerId,
+                platformId: testPlatformId
+            })
+        }
+
+        getTaskProm.then(
+            rewardTask => {
+                if(rewardTask){
                     consecutiveRewardRewardTask = rewardTask;
-                    if (consecutiveRewardProposal.data.spendingAmount === consecutiveRewardRewardTask.requiredUnlockAmount) {
+                    if(!isUseProviderGroup && consecutiveRewardProposal.data.spendingAmount === consecutiveRewardRewardTask.requiredUnlockAmount){
                         done();
-                    } else {
+                    }else if(isUseProviderGroup && consecutiveRewardProposal.data.spendingAmount === (consecutiveRewardRewardTask.targetConsumption + consecutiveRewardRewardTask.forbidXIMAAmt)){
+                        done();
+                    }else{
                         done('Consecutive reward event proposal data and reward task no match');
                     }
-                } else {
-                    done('Consecutive reward event reward task no found');
+                }else{
+                    done('Consecutive reward event reward task no found')
                 }
             },
-            (error) => {
+            error => {
                 done(error);
             }
-        )
+        );
     });
 
     it('Should check is credit add to user', function (done) {
@@ -269,10 +345,12 @@ describe("Test player consecutive reward group", function () {
             (player) => {
                 if(player && testPlayer){
 
-                    if (player.validCredit - testPlayer.validCredit === consecutiveRewardProposal.data.rewardAmount) {
+                    if (!isUseProviderGroup && player.validCredit - testPlayer.validCredit === consecutiveRewardProposal.data.rewardAmount) {
                         testPlayer = player;
                         done();
-                    } else {
+                    }else if(isUseProviderGroup && player.validCredit === testPlayer.validCredit){
+                        done();
+                    }else {
                         done('Player validCredit no match');
                     }
                 }
@@ -288,7 +366,7 @@ describe("Test player consecutive reward group", function () {
             done();
         })
     });
-
+    
     it('Should remove all test Data', function(done){
         commonTestFunc.removeTestProposalData([], testPlatformId, [], [testPlayerId]).then(function(data){
             done();
