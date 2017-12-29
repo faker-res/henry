@@ -463,7 +463,6 @@ const dbRewardTask = {
 
                             item.data.topUpProposalId = item.data ? item.data.proposalId : '';
                             item.data.topUpAmount = item.data ? item.data.amount : '';
-                            item.data.rewardAmount = 0;
                             item.data.bonusAmount = 0;
                             item.data.currentAmount = item.data.currentAmt;
                             item.data.requiredBonusAmount = 0;
