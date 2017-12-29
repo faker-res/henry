@@ -408,6 +408,26 @@ define(['js/app'], function (myApp) {
                 rewardNames[idx] = rewardNames[idx].replace(" "+$translate('Intention')," Intention");
             });
 
+            let rewardEventName = [];
+
+            if (vm.rewardList.length != rewardNames.length) {
+                vm.rewardList.filter(item => {
+                    if (rewardNames.indexOf(item.name) > -1) {
+                        rewardEventName.push(item.name);
+                    }
+                });
+            }
+
+            let proposalTypeIds = [];
+
+            if (vm.allProposalType.length != vm.proposalTypeSelected.length) {
+                vm.allProposalType.filter(item => {
+                    if (vm.proposalTypeSelected.indexOf(item.name) > -1) {
+                        proposalTypeIds.push(item.name);
+                    }
+                });
+            }
+
             let promoType = $('select#selectPromoType').multipleSelect("getSelects");
 
             let startTime = $('#datetimepicker').data('datetimepicker').getLocalDate();
@@ -416,9 +436,11 @@ define(['js/app'], function (myApp) {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
                 inputDevice: vm.proposalInputDevice,
-                eventName: rewardNames,
+                //eventName: rewardNames,
+                eventName: rewardEventName,
                 promoTypeName: promoType,
-                type: vm.proposalTypeSelected,
+                //type: vm.proposalTypeSelected,
+                type: proposalTypeIds,
                 startDate: startTime,
                 endDate: endTime,
                 entryType: vm.queryProposalEntryType,

@@ -1269,6 +1269,12 @@ var proposal = {
     getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName, inputDevice) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
 
+        let platformIds = platformId.map(p => {
+            if(p && typeof p != "object"){
+                return ObjectId(p);
+            }
+        })
+
         //check proposal without process
         var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
 
@@ -1309,13 +1315,19 @@ var proposal = {
                         //     processIds.push(processes[j]._id);
                         // }
                         var queryObj = {
-                            type: {$in: proposalTypesId},
+                            //type: {$in: proposalTypesId},
+                            'data.platformId': {$in: platformIds},
                             createTime: {
                                 $gte: new Date(startTime),
                                 $lt: new Date(endTime)
                             },
                             status: {$in: statusArr}
                         };
+
+                        if(proposalTypesId && proposalTypesId.length > 0){
+                            queryObj.type = {$in: proposalTypesId};
+                        }
+
                         if (userName) {
                             queryObj['data.name'] = userName;
                         }
@@ -1347,14 +1359,16 @@ var proposal = {
                         }
 
                         if (eventName && eventName.length > 0) {
-                            queryObj["$and"] = queryObj["$and"] || [];
-                            let dataCheck = {"data.eventName": {$in: eventName}};
-                            let existCheck = {"data.eventName": {$exists: false}};
-                            let orQuery = [dataCheck, existCheck];
-                            queryObj["$and"].push({$or: orQuery});
+                            // queryObj["$and"] = queryObj["$and"] || [];
+                            // let dataCheck = {"data.eventName": {$in: eventName}};
+                            // let existCheck = {"data.eventName": {$exists: false}};
+                            // let orQuery = [dataCheck, existCheck];
+                            // queryObj["$and"].push({$or: orQuery});
+
+                            queryObj["data.eventName"] = {$in: eventName};
                         }
 
-                        if (promoTypeName) {
+                        if (promoTypeName && promoTypeName.length > 0) {
                             queryObj["$and"] = queryObj["$and"] || [];
                             let dataCheck = {"data.PROMO_CODE_TYPE": {$in: promoTypeName}};
                             let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
@@ -1376,7 +1390,6 @@ var proposal = {
                         }
 
                         inputDevice ? queryObj.inputDevice = inputDevice : null;
-
                         var sortKey = (Object.keys(sortCol))[0];
                         var a = sortKey != 'relatedAmount' ?
                             dbconfig.collection_proposal.find(queryObj)
