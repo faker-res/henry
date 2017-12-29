@@ -348,6 +348,8 @@ define(['js/app'], function (myApp) {
                     vm.initPlayerDisplayDataModal();
                 }else if(tabName && tabName == "partner-display-data"){
                     vm.initPartnerDisplayDataModal();
+                }else if(tabName && tabName == "system-settlement"){
+                    vm.prepareSettlementHistory();
                 }
             };
 
@@ -1098,22 +1100,30 @@ define(['js/app'], function (myApp) {
                     });
             };
 
+            function getRewardPeriodTime (event) {
+                return $scope.$socketPromise('getRewardPeriodTime', {period: event.settlementPeriod}).then(res => {
+                    $scope.$evalAsync(() => {
+                        event.settlementStartTime = res.data.startTime;
+                        event.settlementEndTime = res.data.endTime;
+                    })
+                })
+            };
+
             vm.startPlatformPlayerConsumptionReturnSettlement = function ($event) {
                 vm.playerConsumptionReturnSettlement = {
                     result: false,
                     status: 'ready'
                 };
 
-                socketService.$socket($scope.AppSocket, 'getYesterdayConsumptionReturnSGTime',
-                    {},
-                    ret => {
-                        vm.playerConsumptionReturnSettlement.startTime = vm.dateReformat(ret.data.startTime);
-                        vm.playerConsumptionReturnSettlement.endTime = vm.dateReformat(ret.data.endTime);
-                        $scope.safeApply();
-                    });
+                let p = Promise.resolve();
+
+                vm.allRewardEvent.map(event => {
+                    if (event && event.settlementPeriod && event.type.name == "PlayerConsumptionReturn") {
+                        p = p.then(() => getRewardPeriodTime(event))
+                    }
+                });
 
                 $('#playerConsumptionReturnSettlementModal').modal('show');
-                $scope.safeApply();
             };
 
             vm.startPlatformRTGEventSettlement = function (event) {
@@ -1183,9 +1193,21 @@ define(['js/app'], function (myApp) {
             };
 
             vm.performPlayerConsumptionReturnSettlement = function () {
+                let eventArr = [];
+                let socketParam = {platformId: vm.selectedPlatform.id};
+
                 vm.playerConsumptionReturnSettlement.status = 'processing';
+
+                $('#playerConsumptionReturnSettlementTbl tbody input[type="checkbox"]:checked').each((i, v) => {
+                    eventArr.push(v.value);
+                })
+
+                if (eventArr.length > 0) {
+                    socketParam.selectedEvent = eventArr;
+                }
+
                 socketService.$socket($scope.AppSocket, 'startPlatformPlayerConsumptionReturnSettlement',
-                    {platformId: vm.selectedPlatform.id},
+                    socketParam,
                     function (data) {
                         console.log('playerConsumptionReturn', data);
                         vm.playerConsumptionReturnSettlement.status = 'completed';

@@ -82,6 +82,7 @@ var commonTestFunc = {
                     realName: "Test Player",
                     phoneNumber: '80808080',
                     email: 'testPlayer@sinonet.com.sg',
+                    lastLoginIp: '188.188.188.188',
 
                     //Add in new details
                     viewInfo: {showInfoState: true, limitedOfferInfo:1},
