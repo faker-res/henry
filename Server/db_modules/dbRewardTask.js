@@ -1558,6 +1558,93 @@ const dbRewardTask = {
         // Mark the provider group as complete if it is manual unlocked
         let taskGroupProm = Promise.resolve();
 
+        let prohibitWithdrawal = function (player) {
+            if (player) {
+                let validCredit = player.validCredit;
+                let lockedCredit = player.lockedCredit;
+                let providerCredit = 0, totalCredit = 0;
+                let platformProm = dbconfig.collection_platform.findOne({_id: rewardGroupData.platformId});
+                let providerGroupProm;
+
+                if(rewardGroupData.providerGroup) {
+                    providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rewardGroupData.providerGroup})
+                        .populate({path: "providers", model: dbconfig.collection_gameProvider});
+                } else {
+                    providerGroupProm = dbconfig.collection_platform.findOne({_id: rewardGroupData.platformId})
+                        .populate({path: "gameProviders", model: dbconfig.collection_gameProvider})
+                        .then(
+                            platform => {
+                                if(platform) {
+                                    return {providers: platform.gameProviders};
+                                }
+                            }
+                        );
+                }
+
+                Promise.all([platformProm,providerGroupProm]).then(
+                    data => {
+                        let platform = data[0];
+                        let providerGroup = data[1];
+                        let promArr = [];
+                        if(providerGroup && providerGroup.providers && providerGroup.providers.length > 0) {
+                            providerGroup.providers.forEach(provider => {
+                                if(provider) {
+                                    promArr.push(
+                                        cpmsAPI.player_queryCredit(
+                                            {
+                                                username: player.name,
+                                                platformId: platform.platformId,
+                                                providerId: provider.providerId
+                                            }
+                                        ).then(
+                                            data => data,
+                                            error => {
+                                                return {credit: 0};
+                                            }
+                                        )
+                                    );
+                                }
+                            });
+                        }
+                        return Promise.all(promArr);
+                    }
+                ).then(
+                    (queryResult) => {
+                        queryResult.forEach(provider => {
+                            if(provider && provider.hasOwnProperty("credit")) {
+                                providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
+                            }
+                        });
+                        totalCredit = validCredit + lockedCredit + providerCredit;
+
+                        // Set player bonus permission to off if there's still credit available after unlock reward
+                        if (rewardGroupData
+                            && rewardGroupData.hasOwnProperty("forbidWithdrawIfBalanceAfterUnlock")
+                            && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock > 0
+                            && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
+                            dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).then(
+                                () => {
+                                    return dbconfig.collection_proposal.findOne({_id: rewardGroupData.lastProposalId})
+                                }
+                            ).then(
+                                proposal => {
+                                    let proposalId = proposal ? proposal.proposalId : "unknown ID";
+                                    let remark = "优惠提案："+proposalId+"（流水解锁馀额高于"+rewardGroupData.forbidWithdrawIfBalanceAfterUnlock+"元）";
+                                    let oldPermissionObj = {applyBonus: player.permission.applyBonus};
+                                    let newPermissionObj = {applyBonus: false};
+                                    dbPlayerUtil.addPlayerPermissionLog(null, rewardGroupData.platformId, rewardGroupData.playerId, remark, oldPermissionObj, newPermissionObj);
+                                }
+                            ).catch(errorUtils.reportError);
+                        }
+                    },
+                    error => {console.log(error);}
+                );
+            }
+            else {
+                return Q.reject({name: "DataError", message: "Can't proceed with player prohibit withdrawal"});
+            }
+        };
+
         if (unlockType == constRewardTaskStatus.MANUAL_UNLOCK) {
             taskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                 platformId: rewardGroupData.platformId,
@@ -1584,89 +1671,11 @@ const dbRewardTask = {
                 ).then(
                     player => {
                         if (player) {
-                            let validCredit = player.validCredit;
-                            let lockedCredit = player.lockedCredit;
-                            let providerCredit = 0, totalCredit = 0;
-                            let platformProm = dbconfig.collection_platform.findOne({_id: rewardGroupData.platformId});
-                            let providerGroupProm;
-
-                            if(rewardGroupData.providerGroup) {
-                                providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rewardGroupData.providerGroup})
-                                    .populate({path: "providers", model: dbconfig.collection_gameProvider});
-                            } else {
-                                providerGroupProm = dbconfig.collection_platform.findOne({_id: rewardGroupData.platformId})
-                                    .populate({path: "gameProviders", model: dbconfig.collection_gameProvider})
-                                    .then(
-                                        platform => {
-                                            if(platform) {
-                                                return {providers: platform.gameProviders};
-                                            }
-                                        }
-                                    );
-                            }
-
                             let rewardType = rewardGroupData && rewardGroupData.type ? rewardGroupData.type : "Free amount";
 
                             dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardType + ":unlock", player.validCredit, 0, -rewardAmount, null, rewardGroupData);
 
-                            Promise.all([platformProm,providerGroupProm]).then(
-                                data => {
-                                    let platform = data[0];
-                                    let providerGroup = data[1];
-                                    let promArr = [];
-                                    if(providerGroup && providerGroup.providers && providerGroup.providers.length > 0) {
-                                        providerGroup.providers.forEach(provider => {
-                                            if(provider) {
-                                                promArr.push(
-                                                    cpmsAPI.player_queryCredit(
-                                                        {
-                                                            username: player.name,
-                                                            platformId: platform.platformId,
-                                                            providerId: provider.providerId
-                                                        }
-                                                    ).then(
-                                                        data => data,
-                                                        error => {
-                                                            return {credit: 0};
-                                                        }
-                                                    )
-                                                );
-                                            }
-                                        });
-                                    }
-                                    return Promise.all(promArr);
-                                }
-                            ).then(
-                                (queryResult) => {
-                                    queryResult.forEach(provider => {
-                                        if(provider && provider.hasOwnProperty("credit")) {
-                                            providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
-                                        }
-                                    });
-                                    totalCredit = validCredit + lockedCredit + providerCredit;
-
-                                    // Set player bonus permission to off if there's still credit available after unlock reward
-                                    if (rewardGroupData
-                                            && rewardGroupData.hasOwnProperty("forbidWithdrawIfBalanceAfterUnlock")
-                                            && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock > 0
-                                            && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
-                                        dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).then(
-                                            () => {
-                                                return dbconfig.collection_proposal.findOne({_id: rewardGroupData.lastProposalId})
-                                            }
-                                        ).then(
-                                            proposal => {
-                                                let proposalId = proposal ? proposal.proposalId : "unknown ID";
-                                                let remark = "优惠提案："+proposalId+"（流水解锁馀额高于"+rewardGroupData.forbidWithdrawIfBalanceAfterUnlock+"元）";
-                                                let oldPermissionObj = {applyBonus: player.permission.applyBonus};
-                                                let newPermissionObj = {applyBonus: false};
-                                                dbPlayerUtil.addPlayerPermissionLog(null, rewardGroupData.platformId, rewardGroupData.playerId, remark, oldPermissionObj, newPermissionObj);
-                                            }
-                                        ).catch(errorUtils.reportError);
-                                    }
-                                },
-                                error => {console.log(error);}
-                            );
+                            prohibitWithdrawal(player);
                         }
                         else {
                             return Q.reject({name: "DataError", message: "Can't update reward task and player credit"});
@@ -1684,7 +1693,18 @@ const dbRewardTask = {
             } else {
                 // Do nothing first if player is still in game
                 // This will be triggered again when player transfer out
-                return true;
+                dbconfig.collection_players.findOne({
+                    _id: rewardGroupData.playerId,
+                    platform: rewardGroupData.platformId
+                }).then(
+                    player => {
+                        if (player) {
+                            prohibitWithdrawal(player);
+                        } else {
+                            //
+                        }
+                    }
+                );
             }
         });
     },
