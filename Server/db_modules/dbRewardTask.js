@@ -28,7 +28,9 @@ var dbProposal = require('../db_modules/dbProposal');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var dbGameProvider = require('../db_modules/dbGameProvider');
 const ObjectId = mongoose.Types.ObjectId;
+
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+const dbRewardUtil = require("../db_common/dbRewardUtility");
 
 const dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
 
@@ -2119,7 +2121,9 @@ const dbRewardTask = {
                 deferred.reject(error);
             }
         );
-    }
+    },
+
+    getRewardPeriodTime: (period) => dbRewardUtil.getRewardPeriodTime(period)
 
 };
 
