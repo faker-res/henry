@@ -424,11 +424,14 @@ const dbRewardTask = {
                     rewardTaskProposalQuery['data.providerGroup'] = {$in: [ObjectId(query._id), String(query._id)]};
                 }
 
+                console.log("rewardTaskProposalQuery", rewardTaskProposalQuery)
+
                 return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
                     path: "type",
                     model: dbconfig.collection_proposalType
                 }).lean().sort(sortCol);
             }).then(udata => {
+                console.log('udata', udata)
                 udata.map(item => {
                     item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
                     if (item.type.name) {
