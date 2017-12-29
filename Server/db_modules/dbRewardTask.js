@@ -381,6 +381,7 @@ const dbRewardTask = {
     getRewardTaskGroupProposal: function (query) {
         let rewardTaskGroup = null;
         let sortCol = query.sortCol || {"createTime": 1};
+        let rewardTaskProposalQuery = {};
 
         let queryObj = {
             playerId: ObjectId(query.playerId),
@@ -401,10 +402,10 @@ const dbRewardTask = {
                     createTime = new Date(query.from);
                 }
 
-                let lastSecond = new Date(createTime).getTime();
-                let rewardTaskProposalQuery = {
-                    'data.playerObjId': ObjectId(query.playerId),
-                    'data.platformId': ObjectId(query.platformId),
+                let lastSecond = new Date(createTime);
+                lastSecond.setSeconds(lastSecond.getSeconds()-1);
+                rewardTaskProposalQuery = {
+                    'data.playerObjId': {$in: [ObjectId(query.playerId), String(query.playerId)]},
                     settleTime: {
                         $gte: new Date(lastSecond),
                         $lt: new Date(query.to)
@@ -418,70 +419,67 @@ const dbRewardTask = {
                         {'data.providerGroup': {$exists: false}}
                     ]
                 } else {
-                    rewardTaskProposalQuery['data.providerGroup'] = query._id;
+                    rewardTaskProposalQuery['data.providerGroup'] = {$in: [ObjectId(query._id), String(query._id)]};
                 }
 
                 return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
                     path: "type",
                     model: dbconfig.collection_proposalType
-                }).sort(sortCol)
-                .then(udata => {
-                    udata.map(item => {
-                        item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
-                        if (item.type.name) {
-                            item.data.rewardType = item.type.name;
+                }).lean().sort(sortCol);
+            }).then(udata => {
+                udata.map(item => {
+                    item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                    if (item.type.name) {
+                        item.data.rewardType = item.type.name;
+                    }
+                });
+
+                let prom = dbRewardTask.getTopUpProposal(udata);
+                let propCount = dbconfig.collection_proposal.aggregate({
+                        $match: rewardTaskProposalQuery
+                    },
+                    {
+                        $group: {
+                            '_id': null,
+                            bonusAmountSum: {$sum: "$data.rewardAmount"},
+                            requiredBonusAmountSum: {$sum: "$data.spendingAmount"},
+                            currentAmountSum: {$sum: "$data.rewardAmount"},
                         }
-                    })
+                    });
+                return Q.all([prom, propCount]);
+            }).then(result => {
+                result[0].map(item => {
+                    if (rewardTaskGroup) {
+                        item.data['createTime$'] = item.createTime;
+                        item.data.useConsumption = rewardTaskGroup.useConsumption;
+                        item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                        item.data.curConsumption = rewardTaskGroup.curConsumption;
+                        if (rewardTaskGroup.providerGroup) {
+                            item.data.provider$ = rewardTaskGroup.providerGroup ? rewardTaskGroup.providerGroup.name :"" ;
+                        }
+                        if(!query._id){
 
-                    let prom = dbRewardTask.getTopUpProposal(udata);
-                    let propCount = dbconfig.collection_proposal.aggregate({
-                            $match: rewardTaskProposalQuery
-                        },
-                        {
-                            $group: {
-                                '_id': null,
-                                bonusAmountSum: {$sum: "$data.rewardAmount"},
-                                requiredBonusAmountSum: {$sum: "$data.spendingAmount"},
-                                currentAmountSum: {$sum: "$data.rewardAmount"},
-                            }
-                        });
-                    return Q.all([prom, propCount])
-                        .then(result => {
-                            result[0].map(item => {
-                                if (rewardTaskGroup) {
-                                    item.data['createTime$'] = item.createTime;
-                                    item.data.useConsumption = rewardTaskGroup.useConsumption;
-                                    item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
-                                    item.data.spendingAmount = item.data.spendingAmount;
-                                    item.data.curConsumption = rewardTaskGroup.curConsumption;
-                                    if (rewardTaskGroup.providerGroup) {
-                                        item.data.provider$ = rewardTaskGroup.providerGroup ? rewardTaskGroup.providerGroup.name :"" ;
-                                    }
-                                    if(!query._id){
+                            item.data.topUpProposalId = item.data ? item.data.proposalId : '';
+                            item.data.topUpAmount = item.data ? item.data.amount : '';
+                            item.data.rewardAmount = 0;
+                            item.data.bonusAmount = 0;
+                            item.data.currentAmount = item.data.currentAmt;
+                            item.data.requiredBonusAmount = 0;
+                            item.data['provider$'] = 'LOCAL_CREDIT'
+                        }
 
-                                        item.data.topUpProposalId = item.data ? item.data.proposalId : '';
-                                        item.data.topUpAmount = item.data ? item.data.amount : '';
-                                        item.data.rewardAmount = 0;
-                                        item.data.bonusAmount = 0;
-                                        item.data.currentAmount = item.data.currentAmt;
-                                        item.data.requiredBonusAmount = 0;
-                                        item.data['provider$'] = 'LOCAL_CREDIT'
-                                    }
+                        return item;
+                    }
+                });
 
-                                    return item;
-                                }
-                            })
-
-                            return {
-                                size: 0,
-                                data: result[0] ? result[0] : [],
-                                summary: result[1][0] ? result[1][0] : {}
-                            }
-                        })
-                })
-            })
-
+                return {
+                    size: 0,
+                    data: result[0] ? result[0] : [],
+                    summary: result[1][0] ? result[1][0] : {}
+                };
+            });
     },
+
     getRewardProposalId: function(query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj){
         let topUpProposal = null;
         let rewardTaskGroupSize;
@@ -716,6 +714,7 @@ const dbRewardTask = {
     },
     getTopUpProposal:function(data){
         let prom = [];
+        console.log('just wtfits', data)
         data.map(item => {
             let proposalId = item.data.topUpProposal;
             let topUpRecordId = item.data.topUpRecordId ? item.data.topUpRecordId : null;
