@@ -243,6 +243,17 @@ var dbUtility = {
         };
     },
 
+    getLastWeekConsumptionReturnSGTime: function () {
+        var endTime = dbUtility.getPreviousSGMonday();
+        endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
+        let startTime = moment(endTime).subtract(1, 'week').toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getLastMonthConsumptionReturnSGTime: function () {
         let endTime = moment().tz('Asia/Singapore').startOf('month').toDate();
         endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
@@ -439,6 +450,20 @@ var dbUtility = {
             startTime: startTime,
             endTime: endTime
         };
+    },
+
+    getLastBiWeekConsumptionReturnSGTime: function (inputData) {
+        let lastBiWeekTime = dbUtility.getLastBiWeekSGTime();
+        let startTime = lastBiWeekTime.startTime;
+        let endTime = lastBiWeekTime.endTime;
+        startTime = new Date(startTime.getTime() + 12 * 60 * 60 * 1000);
+        endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+
     },
 
     getBiWeekSGTIme: function (inputDate) {

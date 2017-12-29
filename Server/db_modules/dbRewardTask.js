@@ -2125,7 +2125,7 @@ const dbRewardTask = {
         );
     },
 
-    getRewardPeriodTime: (period) => dbRewardUtil.getRewardPeriodTime(period)
+    getConsumptionReturnPeriodTime: (period) => dbRewardUtil.getConsumptionReturnPeriodTime(period)
 
 };
 
