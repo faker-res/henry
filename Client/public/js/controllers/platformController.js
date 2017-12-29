@@ -10315,8 +10315,10 @@ define(['js/app'], function (myApp) {
                                     for (let j = 0; j < vm.playerCreditDetails.length; j++) {
                                         if (vm.playerCreditDetails[j].nickName == a.nickName) {
                                             isFound = true;
-                                        };
-                                    };
+                                        }
+                                        ;
+                                    }
+                                    ;
                                     if (!isFound) {
                                         return a;
                                     }
@@ -16402,6 +16404,15 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updateRewardPointsEvent = (idx, rewardPointsEvent) => {
+                if (rewardPointsEvent.target && !rewardPointsEvent.target.bankType) {
+                    delete rewardPointsEvent.target.bankType;
+                }
+                if (rewardPointsEvent.target && !rewardPointsEvent.target.merchantTopupType) {
+                    delete rewardPointsEvent.target.merchantTopupType;
+                }
+                if (rewardPointsEvent.target && !rewardPointsEvent.target.depositMethod) {
+                    delete rewardPointsEvent.target.depositMethod;
+                }
                 delete rewardPointsEvent.isEditing;
                 if(rewardPointsEvent.period == 6 ){
                     rewardPointsEvent.customPeriodStartTime = rewardPointsEvent.customPeriodStartTime.data('datetimepicker').getLocalDate();

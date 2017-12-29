@@ -193,7 +193,7 @@ let dbPlayerRewardPoints = {
      * @param {Number} category
      * @param {String} remark
      * @param {Number} userAgent based on constPlayerRegistrationInterface
-     * @param {ObjectId} creatorName  creator name
+     * @param {String} creatorName  creator name
      * @param {Number} [status]
      * @param {Number}  [currentDayAppliedAmount]  RP(reward point) to credit: daily pointToCredit Points / Apply RP event: daily get Points
      * @param {Number} [maxDayApplyAmount]        RP(reward point) to credit: pointToCreditMaxPoints / Apply RP event: dailyMaxPoints
@@ -250,6 +250,7 @@ let dbPlayerRewardPoints = {
             ).then(
                 (rewardPoints) => {
                     //proposalId not null mean proposal already create log, just need update status && rewardPointsTaskObjId
+
                     if (proposalId) {
                         dbRewardPointsLog.updateConvertRewardPointsLog(proposalId, constRewardPointsLogStatus.PROCESSED, rewardPointsTaskObjId);
                     } else {
@@ -270,6 +271,7 @@ let dbPlayerRewardPoints = {
                             proposalId: proposalId,
                             creator: creatorName
                         };
+
                         dbLogger.createRewardPointsLog(logData);
                     }
                     return rewardPoints;
@@ -288,7 +290,7 @@ let dbPlayerRewardPoints = {
      * @param {Number} category
      * @param {String} remark
      * @param {Number} userAgent based on constPlayerRegistrationInterface
-     * @param {ObjectId} creatorName  creator name
+     * @param {String} creatorName  creator name
      * @param {Number} [status]
      * @param {Number}  [currentDayAppliedAmount]  RP(reward point) to credit: daily pointToCredit Points / Apply RP event: daily get Points
      * @param {Number} [maxDayApplyAmount]        RP(reward point) to credit: pointToCreditMaxPoints / Apply RP event: dailyMaxPoints
