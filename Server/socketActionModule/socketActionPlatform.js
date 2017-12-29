@@ -245,12 +245,12 @@ function socketActionPlatform(socketIO, socket) {
 
          /**
          * Start Player Consumption Return Settlement
-         * @param {json} data - It has to contain platformId
+         * @param {Object} data - It has to contain platformId
          */
         startPlatformPlayerConsumptionReturnSettlement: function startPlatformPlayerConsumptionReturnSettlement(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
-            socketUtil.emitter(self.socket, consumptionReturnEvent.checkPlatformWeeklyConsumptionReturnEvent, [ObjectId(data.platformId)], actionName, isValidData);
+            socketUtil.emitter(self.socket, consumptionReturnEvent.checkPlatformWeeklyConsumptionReturnEvent, [ObjectId(data.platformId), data.selectedEvent], actionName, isValidData);
         },
 
         /**

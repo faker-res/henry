@@ -7,41 +7,45 @@ var constRewardType = require('../const/constRewardType');
 var dbRewardEvent = require('../db_modules/dbRewardEvent');
 var dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
 
-var consumptionReturnEvent = {
+let consumptionReturnEvent = {
 
     /*
      * start weekly consumption return event check for platform
      */
-    checkPlatformWeeklyConsumptionReturnEvent: function (platformId) {
-        var deferred = Q.defer();
+    checkPlatformWeeklyConsumptionReturnEvent: function (platformId, selectedEvent) {
+        if (selectedEvent && selectedEvent.length > 0) {
+            let promArr = [];
 
-        //get platform consecutive top up reward event data and rule data
-        dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_CONSUMPTION_RETURN).then(
-            function (eventData) {
-                //check if reward event has the correct data for consecutive top up event
-                //todo::add rate range check here later
+            selectedEvent.map(eventData => {
                 if (eventData && eventData.param && eventData.param.ratio && eventData.executeProposal) {
                     //get all the players has top up for more than min amount yesterday
-                    return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturn(platformId, eventData, eventData.executeProposal, eventData.settlementPeriod);
+                    promArr.push(dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturn(platformId, eventData, eventData.executeProposal, eventData.settlementPeriod));
                 }
-                else {
-                    //platform doesn't have this reward event
-                    deferred.resolve(false);
-                }
-            },
-            function (error) {
-                deferred.reject({name: "DBError", message: "Error finding reward events for platform.", error: error});
-            }
-        ).then(
-            function (data) {
-                deferred.resolve(data);
-            },
-            function (error) {
-                deferred.reject({name: "DBError", message: "Error checking weekly player consumption return for platform.", error: error});
-            }
-        );
+            });
 
-        return deferred.promise;
+            return Promise.all(promArr);
+        } else {
+            return dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_CONSUMPTION_RETURN).then(
+                eventData => {
+                    //check if reward event has the correct data for consecutive top up event
+                    //todo::add rate range check here later
+                    if (eventData && eventData.param && eventData.param.ratio && eventData.executeProposal) {
+                        //get all the players has top up for more than min amount yesterday
+                        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturn(platformId, eventData, eventData.executeProposal, eventData.settlementPeriod);
+                    }
+                    else {
+                        //platform doesn't have this reward event
+                        return Promise.resolve(false);
+                    }
+                },
+                error => {
+                    return Promise.reject({name: "DBError", message: "Error finding reward events for platform.", error: error});
+                }
+            ).then(
+                data => data,
+                error => Promise.reject({name: "DBError", message: "Error checking weekly player consumption return for platform.", error: error})
+            );
+        }
     }
 
 };
