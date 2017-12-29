@@ -10930,7 +10930,6 @@ define(['js/app'], function (myApp) {
                             item.requiredBonusAmount$ = item.requiredBonusAmount;
                             item.currentAmount$ = item.data.currentAmount;
 
-                            item.data.providerGroup = item.data.providerGroup ? item.data.providerGroup : "";
                             item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
                             item.archivedAmt$ = 0;
                             if (vm.rtgBonusAmt[item.data.providerGroup] <= -(item.availableAmt$)) {
