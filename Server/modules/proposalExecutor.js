@@ -3219,12 +3219,7 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
 
             if (platform.useProviderGroup) {
                 if (proposalData.data.providerGroup && gameProviderGroup) {
-                    createRewardTaskProm = dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(
-                        (data) => {
-                            dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData);
-                            return data;
-                        }
-                    )
+                    createRewardTaskProm = dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData);
                 } else {
                     createRewardTaskProm = dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardPointsType);
                 }

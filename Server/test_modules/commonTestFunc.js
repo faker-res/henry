@@ -133,7 +133,7 @@ var commonTestFunc = {
     },
 
     getTestBankCardGroup: function (platformObjId) {
-        return new dbconfig.collection_platformMerchantGroup({
+        return new dbconfig.collection_platformBankCardGroup({
             groupId: String(commonTestFunc.getRandomInt()),
             code: String(commonTestFunc.getRandomInt()),
             name: 'TestBankCardGroup:' + commonTestFunc.getRandomInt(),
@@ -293,6 +293,8 @@ var commonTestFunc = {
         let departmentQuery = ".*" + commonTestFunc.testDepartName + "*.";
         let roleQuery = ".*" + commonTestFunc.testRoleName + "*.";
         let partnerQuery = ".*" + commonTestFunc.testPartnerName + "*.";
+        let merchantGroupQuery = ".*TestMerchantGroup*.";
+        let bankCardGroupQuery = ".*TestBankCardGroup*.";
 
         let pm1 = dbconfig.collection_platform.find({name: {$regex: platformNameQuery}}, {_id: 1}).then(
             platforms => {
@@ -309,8 +311,8 @@ var commonTestFunc = {
         let pm9 = dbconfig.collection_department.remove({departmentName: {$regex: departmentQuery}});
         let pm10 = dbconfig.collection_partner.remove({name: {$regex: partnerQuery}});
 
-        let pmA = dbconfig.collection_platformMerchantGroup.remove({name: 'TestMerchantGroup.*'});
-        let pmB = dbconfig.collection_platformBankCardGroup.remove({name: 'TestBankCardGroup.*'});
+        let pmA = dbconfig.collection_platformMerchantGroup.remove({name: {$regex: merchantGroupQuery}});
+        let pmB = dbconfig.collection_platformBankCardGroup.remove({name: {$regex: bankCardGroupQuery}});
 
         let pmC = dbconfig.collection_playerConsumptionRecord.remove({platformId: platformObjId});
         let pmC1 = dbconfig.collection_playerConsumptionRecord.remove({playerId: {$in: playerObjIds}});
@@ -355,13 +357,15 @@ var commonTestFunc = {
             }
         );
         let pmR1 = dbconfig.collection_rewardPoints.remove({playerObjId:playerObjIds});
+        let pmR2 = dbconfig.collection_rewardPointsEvent.remove({platformObjId:platformObjId});
 
         let pmS = dbconfig.collection_proposal.remove({"data.platformId":platformObjId});
 
         let pmS1 = dbconfig.collection_gameProviderGroup.remove({platform:platformObjId});
 
         return Q.all([pm1, pm2, pm3, pm4, pm5, pm6, pm7, pm8, pm9, pmA, pmB, pmC, pmC1, pmD, pmD1,
-            pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ, pmK, pmL, pmM, pmN, pmO, pmO1, pmO2, pmO3, pmP, pmQ, pmR, pmR1, pmS, pmS1]);
+            pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ, pmK, pmL, pmM, pmN, pmO, pmO1, pmO2, pmO3,
+            pmP, pmQ, pmR, pmR2, pmR1, pmS, pmS1]);
     },
 
     removeTestProposalData: function (adminRoleObjIds, platformObjId, proposalTypeObjIds, playerObjId) {
