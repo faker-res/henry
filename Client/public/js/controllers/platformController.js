@@ -1103,8 +1103,8 @@ define(['js/app'], function (myApp) {
             function getRewardPeriodTime (event) {
                 return $scope.$socketPromise('getRewardPeriodTime', {period: event.settlementPeriod}).then(res => {
                     $scope.$evalAsync(() => {
-                        event.settlementStartTime = res.data.startTime;
-                        event.settlementEndTime = res.data.endTime;
+                        event.settlementStartTime = vm.dateReformat(res.data.startTime);
+                        event.settlementEndTime = vm.dateReformat(res.data.endTime);
                     })
                 })
             };
@@ -10549,7 +10549,7 @@ define(['js/app'], function (myApp) {
 
                                 if (row.providerGroup) {
                                     providerGroupId = row.providerGroup._id;
-                                };
+                                }
 
                                 let text = row.currentAmount$ + '/' + row.bonusAmount$;
                                 vm.rtgBonusAmt[providerGroupId] = row.currentAmount$;
@@ -10930,6 +10930,7 @@ define(['js/app'], function (myApp) {
                             item.requiredBonusAmount$ = item.requiredBonusAmount;
                             item.currentAmount$ = item.data.currentAmount;
 
+                            item.data.providerGroup = item.data.providerGroup ? item.data.providerGroup : "";
                             item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
                             item.archivedAmt$ = 0;
                             if (vm.rtgBonusAmt[item.data.providerGroup] <= -(item.availableAmt$)) {
