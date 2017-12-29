@@ -3,8 +3,8 @@ let dbConfig = require('./../modules/dbproperties');
 let socketConnection = require('../test_modules/socketConnection');
 let commonTestFunc = require('../test_modules/commonTestFunc');
 
-let Chance = require('chance');
-let chance = new Chance();
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 describe("Test player reward points", function () {
 
@@ -21,33 +21,46 @@ describe("Test player reward points", function () {
     let testRewardPointsObjId = null;
 
     /* Test 1 - create a new platform before the creation of a new player */
-    it('Should create a random user name', function () {
-        for (let i = 0; i < 10; i++) {
-            let randomName = chance.name().replace(/\s+/g, '');
-            let randomPSW = chance.hash({length: 12});
-        }
-    });
-
-    /* Test 2 - create a new platform before the creation of a new player */
     it('Should create test API platform', function (done) {
         commonTestFunc.createTestPlatform().then(
-            function (data) {
+            (data) => {
                 testPlatform = data;
                 testPlatformObjId = data._id;
                 testPlatformId = data.platformId;
                 done();
             },
-            function (error) {
+            (error) => {
                 console.error(error);
                 done(error);
             }
         );
     });
 
-    /* Test 3 - disable to use reward points system by default for new platform */
-    it('Should disable to use reward points system by default for new platform', function (done) {
+    /* Test 2 - is disable to use reward points system by default for new platform */
+    it('Check is disable to use reward points system by default for new platform', function (done) {
         if (testPlatform.usePointSystem === false) {
             done();
+        }
+    });
+
+    /* Test 3 - enable reward points system for unit test purpose */
+    it('Should enable reward points system for unit test purpose', function (done) {
+        if (testPlatform.usePointSystem === false) {
+            dbConfig.collection_platform.findOneAndUpdate(
+                {_id: ObjectId(testPlatformObjId)},
+                {usePointSystem: true},
+                {new: true}).lean().then(
+                (data) => {
+                    testPlatform = data;
+                    if (testPlatform.usePointSystem !== true) {
+                        done('new platform reward points system should be enable');
+                    }
+                    done();
+                },
+                (error) => {
+                    done(error);
+                }
+            );
         }
     });
 
@@ -57,7 +70,7 @@ describe("Test player reward points", function () {
             socket.connected.should.equal(true);
 
             let date = new Date().getTime();
-            testPlayerName = "testplayer" + date;
+            testPlayerName = "testPlayer" + date;
 
             let createPlayer = {
                 "name": testPlayerName,
@@ -82,14 +95,14 @@ describe("Test player reward points", function () {
     });
 
     /* Test 5 - create a reward points that is zero by default */
-    it('Should create a reward points that is zero by default', function (done) {
+    it('Check is create a reward points that is zero by default', function (done) {
         if (testPlayer.rewardPointsObjId.points === 0) {
             done();
         }
     });
 
     /* Test 6 - create a reward points task that is true by default */
-    it('Should create a reward points task that is true by default', function (done) {
+    it('Check is create a reward points task that is true by default', function (done) {
         if (testPlayer.permission.rewardPointsTask === true) {
             done();
         }
@@ -109,9 +122,7 @@ describe("Test player reward points", function () {
             socket.once('_removePlayerRewardPointsRecord', function (data) {
                 socket.close();
                 if (data.success && data.data) {
-                    if (data.success) {
-                        done();
-                    }
+                    done();
                 }
             });
         });
@@ -160,23 +171,26 @@ describe("Test player reward points", function () {
         });
     });
 
-    /* Test 98 - remove all test Data */
+    /* Test 10 - check is log match when add reward points to player*/
+    it('Should create log when add reward points to player', function (done) {
+        dbConfig.collection_rewardPointsLog.findOne({rewardPointsObjId: testRewardPointsObjId})
+            .sort({'createTime':-1}).lean().then(
+            (data) => {
+                if (data && data.amount === testUpdateAmount) {
+                    done();
+                } else {
+                    done('Log no match');
+                }
+            },
+            (error) => {
+                done(error);
+            }
+        );
+    });
+
+    /* Test 100 - remove all test Data */
     it('Should remove all test Data', function(done){
         commonTestFunc.removeTestData(testPlatformObjId, [testPlayerObjId]).then(function () {
-            done();
-        })
-    });
-
-    /* Test 99 - remove all reward points Data */
-    it('Should remove all reward points Data', function(done){
-        dbConfig.collection_rewardPoints.remove({rewardPointsObjId: testRewardPointsObjId}).then(function () {
-            done();
-        })
-    });
-
-    /* Test 100 - remove all reward points log Data */
-    it('Should remove all reward points log Data', function(done){
-        dbConfig.collection_rewardPointsLog.remove({rewardPointsObjId: testRewardPointsObjId}).then(function () {
             done();
         })
     });
