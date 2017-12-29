@@ -2529,8 +2529,8 @@ var dbPlayerTopUpRecord = {
                                     dbconfig.collection_proposal.remove({_id: proposalData._id}).then();
                                     delete proposalData._id;
                                     delete proposalData.proposalId;
-                                    proposalData.createTime = createTime;
-                                    proposalData.settleTime = createTime;
+                                    proposalData.createTime = dbUtility.getSGTimeOf(createTime);
+                                    proposalData.settleTime = dbUtility.getSGTimeOf(createTime);
                                     let newProposal = new dbconfig.collection_proposal(proposalData);
                                     return newProposal.save();
                                 }
@@ -2546,8 +2546,8 @@ var dbPlayerTopUpRecord = {
                                 if (recordData && recordData[0]) {
                                     dbconfig.collection_playerTopUpRecord.remove({_id: recordData[0]._id}).then();
                                     delete recordData[0]._id;
-                                    recordData[0].createTime = createTime;
-                                    recordData[0].settlementTime = createTime;
+                                    recordData[0].createTime = dbUtility.getSGTimeOf(createTime);
+                                    recordData[0].settlementTime = dbUtility.getSGTimeOf(createTime);
                                     let newRecord = new dbconfig.collection_playerTopUpRecord(recordData[0]);
                                     return newRecord.save();
                                 }
