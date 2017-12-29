@@ -348,6 +348,8 @@ define(['js/app'], function (myApp) {
                     vm.initPlayerDisplayDataModal();
                 }else if(tabName && tabName == "partner-display-data"){
                     vm.initPartnerDisplayDataModal();
+                }else if(tabName && tabName == "system-settlement"){
+                    vm.prepareSettlementHistory();
                 }
             };
 
