@@ -163,7 +163,6 @@ describe("Test player reward points", function () {
             socket.emit('updatePlayerRewardPointsRecord', updateData);
             socket.once('_updatePlayerRewardPointsRecord', function (data) {
                 socket.close();
-                console.log('DATA',data);
                 if (data.success && data.data) {
                     testRewardPointsObjId = data.data._id;
                     done();
@@ -177,7 +176,6 @@ describe("Test player reward points", function () {
         dbConfig.collection_rewardPointsLog.findOne({rewardPointsObjId: testRewardPointsObjId})
             .sort({'createTime':-1}).lean().then(
             (data) => {
-                console.log('DATA',data);
                 if (data && data.amount === testUpdateAmount) {
                     done();
                 } else {
