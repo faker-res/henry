@@ -185,6 +185,20 @@ var dbUtility = {
         };
     },
 
+    /**
+     *  1 = monday , 2= tuesday , ...,7 = sunday
+     */
+    getDayOfWeek: function () {
+        return moment(new Date()).tz('Asia/Singapore').day();
+    },
+
+    /**
+     *   get current hour (0-23)
+     */
+    getHourOfDay: function () {
+        return moment(new Date()).tz('Asia/Singapore').hours();
+    },
+
     getCurrentBiWeekSGTIme: function () {
         let startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
         let endTime = moment(startTime).add(14, 'days').toDate();
@@ -223,6 +237,17 @@ var dbUtility = {
     getLastMonthSGTime: function () {
         var startTime = moment().tz('Asia/Singapore').subtract(1, 'months').startOf('month').toDate();
         let endTime = moment(startTime).add(1, 'months').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getLastWeekConsumptionReturnSGTime: function () {
+        var endTime = dbUtility.getPreviousSGMonday();
+        endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
+        let startTime = moment(endTime).subtract(1, 'week').toDate();
+
         return {
             startTime: startTime,
             endTime: endTime
@@ -425,6 +450,20 @@ var dbUtility = {
             startTime: startTime,
             endTime: endTime
         };
+    },
+
+    getLastBiWeekConsumptionReturnSGTime: function (inputData) {
+        let lastBiWeekTime = dbUtility.getLastBiWeekSGTime();
+        let startTime = lastBiWeekTime.startTime;
+        let endTime = lastBiWeekTime.endTime;
+        startTime = new Date(startTime.getTime() + 12 * 60 * 60 * 1000);
+        endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+
     },
 
     getBiWeekSGTIme: function (inputDate) {

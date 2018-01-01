@@ -771,6 +771,7 @@
   "weekly": "每周",
   "WEEKLY": "每周",
   "Biweekly": "每半个月",
+  "Yearly": "每年",
   "LEVELDAY": "日",
   "LEVELWEEK": "周",
   "LEVELMONTH": "月",
@@ -1779,7 +1780,7 @@
   "bonusTaskId": "优惠任务ID",
   "playerId": "玩家ID",
   "playerObjId": "玩家数据库ID",
-  "creditCharge": "抽取费用",
+  "creditCharge": "提款手续费",
   "Code": "代码",
   "Mail Log": "站内信记录",
   "platformId": "平台ID",
@@ -2843,6 +2844,7 @@
   "displayOrder": "展示顺序",
   "targetDestination": "登入目标",
   "consecutiveCount": "累积登入天数",
+  "consecutiveBet": "累积投注天数",
   "rewardPoints": "获得积分",
   "rewardTitle": "文字标题",
   "rewardContent": "内文说明",
@@ -2992,5 +2994,7 @@
   "DELETE_ADVERTISEMENT": "删除广告",
   "Confirm to delete advertisement ?": "确定删除广告？",
   "Confirm to turn advertisement on ?": "确定开启广告？",
-  "Confirm to turn advertisement off ?": "确定关闭广告？"
+  "Confirm to turn advertisement off ?": "确定关闭广告？",
+  "ANY_PAGE": "任一页面",
+  "EMPTY": "空白（无）"
 }

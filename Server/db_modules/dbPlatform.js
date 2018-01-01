@@ -1484,6 +1484,7 @@ var dbPlatform = {
         data.recipientName ? query.recipientName = data.recipientName : "";
         data.inputDevice ? query.inputDevice = data.inputDevice : "";
         data.purpose ? query.purpose = data.purpose : "";
+        data.platformObjId ? query.platform = data.platformObjId : "";
 
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
@@ -1692,7 +1693,7 @@ var dbPlatform = {
             platformObj =>{
                 if(platformObj){
                     if(advertisementCode){
-                        return dbconfig.collection_playerPageAdvertisementInfo.findOne({advertisementCode: advertisementCode})
+                        return dbconfig.collection_playerPageAdvertisementInfo.findOne({platformId: platformId, advertisementCode: advertisementCode})
                     }else{
                         return Q.reject({name: "DBError", message: "Advertisement code not valid"});
                     }

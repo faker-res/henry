@@ -5932,6 +5932,12 @@ let dbPlayerInfo = {
                                 if (levelUpObjArr[index] && levelUpObjArr[index].reward && levelUpObjArr[index].reward.bonusCredit) {
                                     proposal.rewardAmount = levelUpObjArr[index].reward.bonusCredit;
                                     proposal.isRewardTask = levelUpObjArr[index].reward.isRewardTask;
+                                    if (proposal.isRewardTask) {
+                                        if (levelUpObjArr[index].reward.providerGroup && levelUpObjArr[index].reward.providerGroup !== "free") {
+                                            proposal.providerGroup = levelUpObjArr[index].reward.providerGroup;
+                                        }
+                                        proposal.requiredUnlockAmount = levelUpObjArr[index].reward.requiredUnlockTimes * levelUpObjArr[index].reward.bonusCredit;
+                                    }
 
                                 }
                                 return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposal});
@@ -7482,10 +7488,10 @@ let dbPlayerInfo = {
 
                         return creditProm.then(
                             () => {
-                                return dbconfig.collection_players.findOne({playerId: playerId}).populate({
-                                    path: "platform",
-                                    model: dbconfig.collection_platform
-                                }).lean();
+                                return dbconfig.collection_players.findOne({playerId: playerId})
+                                    .populate({path: "platform", model: dbconfig.collection_platform})
+                                    .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
+                                    .lean();
                             }
                         ).then(
                             playerData => {
@@ -12132,7 +12138,7 @@ let dbPlayerInfo = {
         let playerProm = dbconfig.collection_players.findOne({playerId:  playerId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
 
-        var date = dbUtility.getCurrentMonthSGTIme();
+        var date = dbUtility.getTodaySGTime();
         var firstDay = date.startTime;
         var lastDay = date.endTime;
 
@@ -12167,7 +12173,7 @@ let dbPlayerInfo = {
                                             "$lt": lastDay
                                         },
                                         "mainType": "PlayerBonus",
-                                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
                                     }
                                 },
                                 {

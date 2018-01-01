@@ -208,17 +208,7 @@ describe("Test Player Consumption Reward Group", function () {
     })
     it("creating consumption record", function(done){
         let curTime = new Date();
-        let consumptionData = {
-            playerId:testPlayer._id,
-            platformId: testPlatformObjId,
-            providerId:testGameProviderObjId,
-            gameId:testGameId,
-            gameType:testGameType,
-            amount:0,
-            validAmount: 150,
-            curTime:curTime
-        }
-        commonTestFun.createConsumptionRecord(consumptionData).then(
+        commonTestFun.createConsumptionRecord(testPlayer._id, testPlatformObjId, 100).then(
             function (data) {
                 done();
             },
