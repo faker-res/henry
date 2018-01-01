@@ -147,7 +147,7 @@ const dbRewardTask = {
                     // There are on-going reward task for this provider group
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                         _id: providerGroup._id
-                    }, updObj);
+                    }, updObj, {new: true});
                 }
                 else {
                     let saveObj = {
@@ -178,6 +178,7 @@ const dbRewardTask = {
         ).then(
             providerGroup2 => {
                 if (providerGroup2) {
+                    console.log("walaoprovider",providerGroup2);
                     let eventName = proposalData && proposalData.data && proposalData.data.eventName ? proposalData.data.eventName : "";
 
                     // Create credit change log for this reward

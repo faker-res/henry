@@ -7574,6 +7574,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.drawPagedCreditChangeQueryTable = function (data, size, totalChangedAmount, newSearch) {
+                console.log("walaohere",data)
                 let tableData = data.map(item => {
                     item.createTime$ = vm.dateReformat(item.operationTime);
                     item.operationType$ = $translate(item.operationType);
