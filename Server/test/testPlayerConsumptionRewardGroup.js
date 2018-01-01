@@ -38,6 +38,7 @@ var dbUtility = require("../modules/dbutility");
 
 
 const constProposalType = require('./../const/constProposalType');
+const constRewardTaskStatus = require('./../const/constRewardTaskStatus')
 const consumptionRewardGroupType = constProposalType.PLAYER_CONSUMPTION_REWARD_GROUP;
 
 describe("Test Player Consumption Reward Group", function () {
@@ -48,12 +49,14 @@ describe("Test Player Consumption Reward Group", function () {
     let testPlatformId = null;
     let testPlatform = null;
     let testPlatformObjId = null;
-    let topUp = {};
+    let proposal = null;
 
     let playerConsumptionRewardType = null;
     let playerConsumptionEvent = null;
     // create a test platform
     let testGameProviderObjId = null;
+
+    let testGameProviderId = null;
     let testGameId = null;
     let testGameType = null;
     let rewardEventData = null;
@@ -64,7 +67,7 @@ describe("Test Player Consumption Reward Group", function () {
     //********************
 
     it('Should create test API platform', function (done) {
-        commonTestFun.createTestPlatform().then(
+        commonTestFun.createTestPlatform({'useProviderGroup':true}).then(
             function (data) {
                 testPlatform = data;
                 testPlatformObjId = data._id;
@@ -83,9 +86,8 @@ describe("Test Player Consumption Reward Group", function () {
              data=>{
                 if(data){
                     testPlayer = data;
-                    // console.log(data);
                 }else{
-                    // console.log('nothing left');
+                    console.log('Failed at create player');
                 }
                 done()
              },
@@ -100,6 +102,8 @@ describe("Test Player Consumption Reward Group", function () {
         commonTestFun.createTestGameProvider().then(
             function (data) {
                 testGameProviderObjId = data._id;
+                testGameProviderId = data.providerId;
+
                 return commonTestFun.createGame(testGameProviderObjId);
             },
             function (error) {
@@ -123,7 +127,6 @@ describe("Test Player Consumption Reward Group", function () {
             rewardType => {
                 if (rewardType) {
                     playerConsumptionRewardType = rewardType;
-                    console.log(playerConsumptionRewardType)
                     done();
                 } else {
                     done('player consumption rewardType is not found');
@@ -163,8 +166,8 @@ describe("Test Player Consumption Reward Group", function () {
             },
             "condition" : {
                 "providerGroup" : null,
-                "validEndTime" : dbUtility.getTodaySGTime().startTime,
-                "validStartTime" : dbUtility.getTodaySGTime().endTime,
+                "validStartTime" : dbUtility.getTodaySGTime().startTime,
+                "validEndTime" : dbUtility.getTodaySGTime().endTime,
                 "applyType" : "1",
                 "code" : "TZE1"+new Date().getTime(),
                 "name" : "TZE1"+new Date().getTime(),
@@ -179,7 +182,6 @@ describe("Test Player Consumption Reward Group", function () {
 
         // generatedData.rewardTaskId = rewardEventData._id;
         dbRewardEvent.createRewardEvent(rewardEventData).then(data => {
-            // console.log(data.code);
             done();
         },
             error=>{
@@ -188,8 +190,6 @@ describe("Test Player Consumption Reward Group", function () {
             }
         );
     });
-
-
 
     it("get the player consumption reward group", function (done) {
         let data = {
@@ -200,7 +200,6 @@ describe("Test Player Consumption Reward Group", function () {
         .then(rewardEvent => {
             if (rewardEvent) {
                 playerConsumptionEvent = rewardEvent;
-                // console.log(playerConsumptionEvent);
                 done();
             } else {
                 done('Player Consumption Event Not Found')
@@ -210,16 +209,15 @@ describe("Test Player Consumption Reward Group", function () {
     it("creating consumption record", function(done){
         let curTime = new Date();
         let consumptionData = {
-            playerObjId:testPlayer._id,
-            platformObjId:testPlatformObjId,
-            providerObjId:testGameProviderObjId,
+            playerId:testPlayer._id,
+            platformId: testPlatformObjId,
+            providerId:testGameProviderObjId,
             gameId:testGameId,
             gameType:testGameType,
-            amount:150,
+            amount:0,
+            validAmount: 150,
             curTime:curTime
-
         }
-
         commonTestFun.createConsumptionRecord(consumptionData).then(
             function (data) {
                 done();
@@ -231,72 +229,28 @@ describe("Test Player Consumption Reward Group", function () {
         );
     })
 
-
     /* apply reward */
-    it("apply player consumption reward for the player", function(done){
-        let data = {};
-        console.log(playerConsumptionEvent.code);
-        dbPlayerInfo.applyRewardEvent('', testPlayer.playerId, playerConsumptionEvent.code, topUp,"")
+    it("Apply player consumption reward for the player", function(done){
+        dbPlayerInfo.applyRewardEvent('', testPlayer.playerId, playerConsumptionEvent.code, rewardEventData,"")
             .then(data=>{
-                console.log(data);
                 done();
             },error=>{
                 console.log(error);
                 done();
             })
-    })
-
-
-    it("creating consumption record", function(done){
-        let curTime = new Date();
-        console.log(testPlayer._id);
-        let consumptionData = {
-            playerObjId:testPlayer._id,
-            platformObjId:testPlatformObjId,
-            providerObjId:testGameProviderObjId,
-            gameId:testGameId,
-            gameType:testGameType,
-            amount:350,
-            curTime:curTime
-
-        }
-        commonTestFun.createConsumptionRecord(consumptionData).then(
-            function (data) {
-                // console.log(data);
-                done();
-            },
-            function (error) {
-                console.error(error);
-                done(error);
-            }
-        );
     });
-
-
-    it("creating topup record", function(done){
-        commonTestFun.createTopUpRecord(testPlayer._id , testPlatformObjId, topUpAmount).then(
-            record=>{
-                if(record){
-                    topUp.topUpRecordId = record._id;
-                    done();
-                }else{
-                    done('Fail topup')
-                }
-            },
-            error=>{
-                console.log(error);
-                done();
-            }
-        )
-    })
-
-
 
     it("check the proposal",function(done){
         dbconfig.collection_proposal.findOne({'data.platformId':testPlatformObjId ,'data.playerObjId':testPlayer._id}).then(data=>{
             if(data){
-                console.log(data);
-                done();
+                if(data){
+                    proposal = data ? data:[];
+                    if(data.data.rewardAmount ==rewardEventData.param.rewardParam[0].value[0].rewardAmount ){
+                        done();
+                    }else{
+                        done('Reward Amount is not correct!');
+                    }
+                }
             }
         },
         error=>{
@@ -304,6 +258,50 @@ describe("Test Player Consumption Reward Group", function () {
                 done();
         })
     });
+
+    it("check if the reward group established or not",function(done){
+        let sendQuery = {
+            'status':constRewardTaskStatus.STARTED,
+            'platformId':testPlatformObjId,
+            'playerId':testPlayer._id,
+            'providerGroup':null
+        }
+        dbconfig.collection_rewardTaskGroup.findOne(sendQuery).then(data=>{
+                if(data){
+                    console.log(data);
+                    if(data){
+
+                        done();
+                    }
+                }else{
+                    console.log('Reward Group didnt established')
+                    done();
+                }
+            },
+            error=>{
+                console.log(error);
+                done();
+            })
+    });
+
+    it("check if the player credit is valid",function(done){
+        dbconfig.collection_players.findOne({'_id':testPlayer._id}).then(data=>{
+                if(data){
+                    if(data){
+                        if((data.validCredit - testPlayer.validCredit) == proposal.data.rewardAmount ){
+                            done();
+                        }else{
+                            done('Reward Amount is not correct!');
+                        }
+                    }
+                }
+            },
+            error=>{
+                console.log(error);
+                done();
+            })
+    });
+
 
     var generatedData = {};
 
@@ -319,11 +317,13 @@ describe("Test Player Consumption Reward Group", function () {
         commonTestFun.removeTestData(testPlatformObjId,  [testPlayer._id]).then(function(data){
             done();
         })
+        // done();
     });
 
     it('Should remove all test Data', function(done){
         commonTestFun.removeTestProposalData([], testPlatformObjId, [], [testPlayer._id]).then(function(data){
             done();
         })
+        // done();
     });
 });

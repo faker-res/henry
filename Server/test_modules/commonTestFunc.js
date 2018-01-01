@@ -193,15 +193,18 @@ var commonTestFunc = {
 
     createConsumptionRecord: function (data) {
         var consumptionData = {
-            playerId: data.playerObjId,
-            platformId: data.platformObjId,
-            providerId: data.providerObjId,
+            playerId: data.playerId,
+            platformId: data.platformId,
+            providerId: data.providerId,
             gameId: data.gameId,
             gameType: data.gameType,
             amount: data.amount,
+            validAmount:data.validAmount,
+
             orderNo: new Date().getTime() + Math.random(),
             createTime: data.curTime ? data.curTime : new Date().getTime()
         }
+        // console.log(consumptionData);
         return dbPlayerConsumptionRecord.createPlayerConsumptionRecord(consumptionData);
 
     },
