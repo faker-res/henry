@@ -38,7 +38,7 @@ var dbUtility = require("../modules/dbutility");
 
 
 const constProposalType = require('./../const/constProposalType');
-const constRewardTaskStatus = require('./../const/constRewardTaskStatus')
+const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 const consumptionRewardGroupType = constProposalType.PLAYER_CONSUMPTION_REWARD_GROUP;
 
 describe("Test Player Consumption Reward Group", function () {
@@ -67,7 +67,7 @@ describe("Test Player Consumption Reward Group", function () {
     //********************
 
     it('Should create test API platform', function (done) {
-        commonTestFun.createTestPlatform({'useProviderGroup':true}).then(
+        commonTestFun.createTestPlatform({'useProviderGroup': true}).then(
             function (data) {
                 testPlatform = data;
                 testPlatformObjId = data._id;
@@ -82,17 +82,17 @@ describe("Test Player Consumption Reward Group", function () {
     });
     //
     it('Should create a player', function (done) {
-         commonTestFun.createTestPlayer(testPlatformObjId).then(
-             data=>{
-                if(data){
+        commonTestFun.createTestPlayer(testPlatformObjId).then(
+            data => {
+                if (data) {
                     testPlayer = data;
-                }else{
+                } else {
                     console.log('Failed at create player');
                 }
                 done()
-             },
-            err=>{
-                 done(err);
+            },
+            err => {
+                done(err);
             }
         );
     });
@@ -140,53 +140,51 @@ describe("Test Player Consumption Reward Group", function () {
     // *****************
 
     it("create player consumption reward group", function (done) {
-        //create a test player without credit
         rewardEventData = {
-            "platform" : testPlatformObjId,
-            "type" : playerConsumptionRewardType._id,
-            "name" : "TZE1"+new Date().getTime(),
-            "code" : "TZE1"+new Date().getTime(),
-            "validStartTime" : dbUtility.getTodaySGTime().startTime,
-            "validEndTime" :dbUtility.getTodaySGTime().endTime,
+            "platform": testPlatformObjId,
+            "type": playerConsumptionRewardType._id,
+            "name": "TZE1" + new Date().getTime(),
+            "code": "TZE1" + new Date().getTime(),
+            "validStartTime": dbUtility.getTodaySGTime().startTime,
+            "validEndTime": dbUtility.getTodaySGTime().endTime,
             // "executeProposal" : ObjectId("5a3b1b5c39ecb9e663158ea5"),
-            "settlementPeriod" : "2",
-            "needSettlement" : false,
-            "param" : {
-                "rewardParam" : [
+            "settlementPeriod": "2",
+            "needSettlement": false,
+            "param": {
+                "rewardParam": [
                     {
-                        "value" : [
+                        "value": [
                             {
-                                "spendingTimes" : 1,
-                                "rewardAmount" : 25,
-                                "minConsumptionAmount" : 30
+                                "spendingTimes": 1,
+                                "rewardAmount": 25,
+                                "minConsumptionAmount": 30
                             }
                         ]
                     }
                 ]
             },
-            "condition" : {
-                "providerGroup" : null,
-                "validStartTime" : dbUtility.getTodaySGTime().startTime,
-                "validEndTime" : dbUtility.getTodaySGTime().endTime,
-                "applyType" : "1",
-                "code" : "TZE1"+new Date().getTime(),
-                "name" : "TZE1"+new Date().getTime(),
+            "condition": {
+                "providerGroup": null,
+                "validStartTime": dbUtility.getTodaySGTime().startTime,
+                "validEndTime": dbUtility.getTodaySGTime().endTime,
+                "applyType": "1",
+                "code": "TZE1" + new Date().getTime(),
+                "name": "TZE1" + new Date().getTime(),
                 "isIgnoreAudit": true
             },
-            "canApplyFromClient" : false,
-            "needApply" : false,
-            "priority" : 0,
-            "__v" : 0
+            "canApplyFromClient": false,
+            "needApply": false,
+            "priority": 0,
+            "__v": 0
         }
 
 
-        // generatedData.rewardTaskId = rewardEventData._id;
         dbRewardEvent.createRewardEvent(rewardEventData).then(data => {
-            done();
-        },
-            error=>{
-            console.log(error);
-            done();
+                done();
+            },
+            error => {
+                console.log(error);
+                done();
             }
         );
     });
@@ -197,16 +195,16 @@ describe("Test Player Consumption Reward Group", function () {
             name: rewardEventData.name
         }
         dbRewardEvent.getRewardEvent(data)
-        .then(rewardEvent => {
-            if (rewardEvent) {
-                playerConsumptionEvent = rewardEvent;
-                done();
-            } else {
-                done('Player Consumption Event Not Found')
-            }
-        })
+            .then(rewardEvent => {
+                if (rewardEvent) {
+                    playerConsumptionEvent = rewardEvent;
+                    done();
+                } else {
+                    done('Player Consumption Event Not Found')
+                }
+            })
     })
-    it("creating consumption record", function(done){
+    it("creating consumption record", function (done) {
         let curTime = new Date();
         commonTestFun.createConsumptionRecord(testPlayer._id, testPlatformObjId, 100).then(
             function (data) {
@@ -220,73 +218,71 @@ describe("Test Player Consumption Reward Group", function () {
     })
 
     /* apply reward */
-    it("Apply player consumption reward for the player", function(done){
-        dbPlayerInfo.applyRewardEvent('', testPlayer.playerId, playerConsumptionEvent.code, rewardEventData,"")
-            .then(data=>{
+    it("Apply player consumption reward for the player", function (done) {
+        dbPlayerInfo.applyRewardEvent('', testPlayer.playerId, playerConsumptionEvent.code, rewardEventData, "")
+            .then(data => {
                 done();
-            },error=>{
+            }, error => {
                 console.log(error);
                 done();
             })
     });
 
-    it("check the proposal",function(done){
-        dbconfig.collection_proposal.findOne({'data.platformId':testPlatformObjId ,'data.playerObjId':testPlayer._id}).then(data=>{
-            if(data){
-                if(data){
-                    proposal = data ? data:[];
-                    if(data.data.rewardAmount ==rewardEventData.param.rewardParam[0].value[0].rewardAmount ){
-                        done();
-                    }else{
-                        done('Reward Amount is not correct!');
-                    }
-                }
-            }
-        },
-        error=>{
-                console.log(error);
-                done();
-        })
-    });
-
-    it("check if the reward group established or not",function(done){
-        let sendQuery = {
-            'status':constRewardTaskStatus.STARTED,
-            'platformId':testPlatformObjId,
-            'playerId':testPlayer._id,
-            'providerGroup':null
-        }
-        dbconfig.collection_rewardTaskGroup.findOne(sendQuery).then(data=>{
-                if(data){
-                    console.log(data);
-                    if(data){
-
-                        done();
-                    }
-                }else{
-                    console.log('Reward Group didnt established')
-                    done();
-                }
-            },
-            error=>{
-                console.log(error);
-                done();
-            })
-    });
-
-    it("check if the player credit is valid",function(done){
-        dbconfig.collection_players.findOne({'_id':testPlayer._id}).then(data=>{
-                if(data){
-                    if(data){
-                        if((data.validCredit - testPlayer.validCredit) == proposal.data.rewardAmount ){
+    it("check the proposal", function (done) {
+        dbconfig.collection_proposal.findOne({
+            'data.platformId': testPlatformObjId,
+            'data.playerObjId': testPlayer._id
+        }).then(data => {
+                if (data) {
+                    if (data) {
+                        proposal = data ? data : [];
+                        if (data.data.rewardAmount == rewardEventData.param.rewardParam[0].value[0].rewardAmount) {
                             done();
-                        }else{
+                        } else {
                             done('Reward Amount is not correct!');
                         }
                     }
                 }
             },
-            error=>{
+            error => {
+                console.log(error);
+                done();
+            })
+    });
+
+    it("check if the reward group established or not", function (done) {
+        let sendQuery = {
+            'status': constRewardTaskStatus.STARTED,
+            'platformId': testPlatformObjId,
+            'playerId': testPlayer._id,
+            'providerGroup': null
+        }
+        dbconfig.collection_rewardTaskGroup.findOne(sendQuery).then(data => {
+                if (data) {
+                    done();
+                } else {
+                    done('Reward Group didnt established');
+                }
+            },
+            error => {
+                console.log(error);
+                done();
+            })
+    });
+
+    it("check if the player credit is valid", function (done) {
+        dbconfig.collection_players.findOne({'_id': testPlayer._id}).then(data => {
+                if (data) {
+                    if (data) {
+                        if ((data.validCredit - testPlayer.validCredit) == proposal.data.rewardAmount) {
+                            done();
+                        } else {
+                            done('Reward Amount is not correct!');
+                        }
+                    }
+                }
+            },
+            error => {
                 console.log(error);
                 done();
             })
@@ -303,15 +299,15 @@ describe("Test Player Consumption Reward Group", function () {
         done();
     });
 
-    it('Should remove all test Data', function(done){
-        commonTestFun.removeTestData(testPlatformObjId,  [testPlayer._id]).then(function(data){
+    it('Should remove all test Data', function (done) {
+        commonTestFun.removeTestData(testPlatformObjId, [testPlayer._id]).then(function (data) {
             done();
         })
         // done();
     });
 
-    it('Should remove all test Data', function(done){
-        commonTestFun.removeTestProposalData([], testPlatformObjId, [], [testPlayer._id]).then(function(data){
+    it('Should remove all test Data', function (done) {
+        commonTestFun.removeTestProposalData([], testPlatformObjId, [], [testPlayer._id]).then(function (data) {
             done();
         })
         // done();
