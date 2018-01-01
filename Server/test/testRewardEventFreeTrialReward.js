@@ -17,7 +17,9 @@ describe("Test player free trial reward group", function () {
     let date = new Date().getTime();
 
     let testPlayer = null;
+    let testPlayer2 = null;
     let testPlayerObjId = null;
+    let testPlayerObjId2 = null;
 
     let testPlatform = null;
     let testPlatformObjId = null;
@@ -32,6 +34,7 @@ describe("Test player free trial reward group", function () {
     let freeTrialRewardProposal = null;
     let freeTrialRewardRewardTask = null;
 
+    let concurrentApplyNum = 10;
     let rewardEventSpendingTimes = 5;
     let rewardEventAmount = 1000;
     let rewardEventRemark = "1000 multiply 5 = 5000 ok";
@@ -89,13 +92,13 @@ describe("Test player free trial reward group", function () {
     /* Test 1 - create a new platform before the creation of a new player */
     it('Should create test API platform', function (done) {
         commonTestFunc.createTestPlatform().then(
-            function (data) {
+            (data) => {
                 testPlatform = data;
                 testPlatformObjId = data._id;
                 testPlatformId = data.platformId;
                 done();
             },
-            function (error) {
+            (error) => {
                 console.error(error);
                 done(error);
             }
@@ -135,7 +138,7 @@ describe("Test player free trial reward group", function () {
         });
 
         Promise.all([typeProm, typeProcessProm]).then(
-            function (data) {
+            (data) => {
                 if (data && data[0] && data[1]) {
                     data[0].name.should.equal(eventTypeName);
                     data[1].name.should.equal(eventTypeName);
@@ -148,7 +151,7 @@ describe("Test player free trial reward group", function () {
                 }
             }
         ).catch(
-            function (error) {
+            (error) => {
                 done(error);
             }
         );
@@ -231,13 +234,13 @@ describe("Test player free trial reward group", function () {
     it('Should apply free trial reward event', function (done) {
         let proms = [];
         // 10 concurrent apply situation
-        for (let a = 0; a < 10; a++) {
+        for (let a = 0; a < concurrentApplyNum; a++) {
             proms.push(dbPlayerInfo.applyRewardEvent("", testPlayer.playerId, createFreeTrialRewardEventData.code, "").then(
-                data => {
-                    return true;
+                (data) => {
+                    return true; //only 1 true, 1 player can only apply reward once
                 },
-                err => {
-                    return false
+                (err) => {
+                    return false //9 false, same player fail to apply reward more than once
                 }
             ));
         }
@@ -277,8 +280,8 @@ describe("Test player free trial reward group", function () {
         )
     });
 
-    /* Test 11 - check is add reward task and data match proposal */
-    it('Should check is add reward task and data match proposal', function (done) {
+    /* Test 11 - check the spendingAmount in proposal and requiredUnlockAmount in rewardTask is matched */
+    it('Should check the spendingAmount in proposal and requiredUnlockAmount in rewardTask is matched', function (done) {
         dbRewardTask.getRewardTask({
             playerId: testPlayerObjId,
             platformId: testPlatformObjId
@@ -289,10 +292,10 @@ describe("Test player free trial reward group", function () {
                     if (freeTrialRewardProposal.data.spendingAmount === freeTrialRewardRewardTask.requiredUnlockAmount) {
                         done();
                     } else {
-                        done('Free trial reward event proposal data and reward task not match');
+                        done('The spending amount does not match with the required unlock amount');
                     }
                 } else {
-                    done('Free trial reward event reward task not found');
+                    done('Free trial reward event rewardTask is not found');
                 }
             },
             (error) => {
@@ -301,8 +304,8 @@ describe("Test player free trial reward group", function () {
         )
     });
 
-    /* Test 12 - check is credit add to user */
-    it('Should check is credit add to user', function (done) {
+    /* Test 12 - check the rewardAmount is added correctly to the player */
+    it('Should check the rewardAmount is added correctly to the player', function (done) {
         dbConfig.collection_players.findOne({_id: testPlayerObjId}).lean().then(
             (player) => {
                 if (player.validCredit - testPlayer.validCredit === freeTrialRewardProposal.data.rewardAmount) {
@@ -316,6 +319,65 @@ describe("Test player free trial reward group", function () {
                 done(error);
             }
         )
+    });
+
+    /* Test 13 - create a second test player for IP and phone number testing  */
+    it('Should create a second test player for IP and phone number testing', function (done) {
+        commonTestFunc.createTestPlayer(testPlatformObjId).then(
+            (data) => {
+                testPlayer2 = data;
+                testPlayerObjId2 = data._id;
+                done();
+            },
+            (error) => {
+                done(error);
+            }
+        )
+    });
+
+    /* Test 14 - apply free trial reward event and fail due to same login IP*/
+    it('Should apply free trial reward event and fail due to same login IP', function (done) {
+        dbPlayerInfo.applyRewardEvent("", testPlayer2.playerId, createFreeTrialRewardEventData.code, "").then(
+            (data) => {
+                done('Apply reward should fail due to same login IP');
+            },
+            (err) => {
+                console.log('ERROR_14',err); // Should display: This IP address has applied for max reward times in event period
+                done();
+            }
+        );
+    });
+
+    /* Test 15 - update second test player with different login IP and proceed with phone number testing  */
+    it('Should update second test player with different login IP and proceed with phone number testing', function (done) {
+        dbConfig.collection_players.findOneAndUpdate(
+            {
+                _id: testPlayerObjId2,
+                platform: testPlatformObjId
+            },
+            {
+                lastLoginIp: '199.199.199.199' //different IP from testPlayer (188.188.188.188)
+            },
+            {new: true}
+        ).then(
+            (data) => {
+                testPlayer2 = data;
+                done();
+            }
+        )
+    });
+
+    /* Test 16 - apply free trial reward event and fail due to same phone number*/
+    it('Should apply free trial reward event and fail due to same phone number', function (done) {
+        dbPlayerInfo.applyRewardEvent("", testPlayer2.playerId, createFreeTrialRewardEventData.code, "").then(
+            (data) => {
+                done('Apply reward should fail due to same phone number');
+            },
+            (err) => {
+                console.log('ERROR_16',err); // Should display: This phone number has applied for max reward times in event period
+                done();
+            }
+        );
     });
 
     /* Test 99 - remove all test Data */
