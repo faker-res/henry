@@ -208,6 +208,24 @@
         });
     };
 
+    proto.addTestTopUp = function (callback, requestData) {
+        this._service.addTestTopUp.request(requestData);
+        this._service.addTestTopUp.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.requestProposalSuccessPMS = function (callback, requestData) {
+        this._service.requestProposalSuccessPMS.request(requestData);
+        this._service.requestProposalSuccessPMS.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = ProposalAPITest;
     } else {

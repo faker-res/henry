@@ -82,7 +82,8 @@
                 "deleteMail",
                 "manualPlayerLevelUp",
                 "getWithdrawalInfo",
-                "getCardTypeList"
+                "getCardTypeList",
+                "getCreditDetail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -100,7 +101,8 @@
             //define functions
             var functionNames = [
                 "getPlatformDetails",
-                "getPlatformAnnouncements"
+                "getPlatformAnnouncements",
+                "getConfig"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -261,13 +263,15 @@
                 "getTopUpPromoList",
                 "getPromoCode",
                 "applyPromoCode",
+                "markPromoCodeAsViewed",
                 "getLimitedOffers",
                 "applyLimitedOffers",
                 "getLimitedOfferBonus",
                 "setLimitedOfferShowInfo",
                 "setBonusShowInfo",
                 "getSignInfo",
-                "getSignBonus"
+                "getSignBonus",
+                "getSlotInfo",
             ];
             addServiceFunctions(sinonet, this, functionNames);
 
@@ -279,6 +283,30 @@
         RewardService.prototype.constructor = RewardService;
 
         rootObj.RewardService = RewardService;
+    };
+
+    var defineRewardPointsService = function (sinonet) {
+        var RewardPointsService = function (connection) {
+            sinonet.WebSocketService.call(this, "rewardPoints", connection);
+
+            //define functions
+            var functionNames = [
+                "applyRewardPoint",
+                "getLoginRewardPoints",
+                "getTopUpRewardPointsEvent",
+                "getRewardPointsRanking",
+                "getGameRewardPoints",
+            ];
+            addServiceFunctions(sinonet, this, functionNames);
+
+            // this.consumeRebateNotify = new sinonet.WebSocketNotification("consumeRebateNotify");
+            // this.addFunction(this.consumeRebateNotify);
+        };
+
+        RewardPointsService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        RewardPointsService.prototype.constructor = RewardPointsService;
+
+        rootObj.RewardPointsService = RewardPointsService;
     };
 
     var defineGameService = function (sinonet) {
@@ -374,6 +402,7 @@
         defineTopUpIntentionService(sinonet);
         defineConsumptionService(sinonet);
         defineRewardService(sinonet);
+        defineRewardPointsService(sinonet);
         defineGameService(sinonet);
         definePartnerService(sinonet);
     };

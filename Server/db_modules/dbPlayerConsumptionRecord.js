@@ -11,7 +11,7 @@ const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 const constRewardType = require('./../const/constRewardType');
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 const dbRewardTask = require('../db_modules/dbRewardTask');
-const dbRewardPointsTask = require('../db_modules/dbRewardPointsTask');
+const dbRewardPoints = require('../db_modules/dbRewardPoints');
 const constShardKeys = require('../const/constShardKeys');
 const constSystemParam = require('../const/constSystemParam');
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
@@ -23,8 +23,10 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const constProposalType = require('./../const/constProposalType');
 const constProposalStatus = require('./../const/constProposalStatus');
+const errorUtils = require('./../modules/errorUtils');
 
 let dbUtility = require('./../modules/dbutility');
+let dbPlayerReward = require('../db_modules/dbPlayerReward');
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
@@ -221,10 +223,10 @@ var dbPlayerConsumptionRecord = {
                     {
                         $group: {
                             _id: null,
-                            validAmountAll: {$sum: "$validAmount"},
-                            amountAll: {$sum: "$amount"},
-                            bonusAmountAll: {$sum: "$bonusAmount"},
-                            commissionAmountAll: {$sum: "$commissionAmount"},
+                            topUpAmount$: {$sum: "$topUpAmount$"},
+                            bonusAmount$: {$sum: "$bonusAmount$"},
+                            requiredBonusAmount$: {$sum: "$requiredBonusAmount$"},
+                            currentAmount$: {$sum: "$currentAmount$"},
                         }
                     });
                 return Q.all([a, b, c]);
@@ -233,6 +235,7 @@ var dbPlayerConsumptionRecord = {
             return {data: result[0], count: result[1], summary: result[2] ? result[2][0] : {}}
         });
     },
+
     /**
      * Upsert without shardkey
      * This function can be run on the same record asynchronously.  It will avoid race conditions by using a queue.
@@ -359,14 +362,7 @@ var dbPlayerConsumptionRecord = {
                 record = data;
                 if (record && !record.bDirty) {
                     //check player's reward task
-                    return dbRewardTask.checkPlayerRewardTaskForConsumption(record).then(
-                        bDirty =>  {
-                            if (!bDirty) {
-                                return dbRewardPointsTask.checkPlayerRewardPointsTaskForConsumption(record);
-                            }
-                            return bDirty;
-                        }
-                    );
+                    return dbRewardTask.checkPlayerRewardTaskForConsumption(record);
                 }
                 else {
                     return true;
@@ -482,10 +478,15 @@ var dbPlayerConsumptionRecord = {
                 if (record) {
                     var creditProm = dbconfig.collection_players.findOneAndUpdate(
                         {_id: record.playerId, platform: record.platformId, creditBalance: {$lt: 0}},
-                        {creditBalance: 0}
-                    ).exec();
-                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId);
-
+                        {creditBalance: 0},
+                        {new: true}
+                    ).lean().exec();
+                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
+                        data => data,
+                        error => {
+                            errorUtils.reportError(error);
+                        }
+                    );
                     return Q.all([creditProm, levelProm]);
                 }
             },
@@ -498,6 +499,12 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             function (data) {
+                if (data[0]) {
+                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(data[0].platform, data[0], {}).catch(errorUtils.reportError);
+                }
+                if (record) {
+                    dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
+                }
                 deferred.resolve(record);
             },
             function (error) {
@@ -516,6 +523,7 @@ var dbPlayerConsumptionRecord = {
         let isSameDay = dbUtility.isSameDaySG(data.createTime, Date.now());
         let record = null;
         let newRecord = new dbconfig.collection_playerConsumptionRecord(data);
+        let playerData;
 
         return newRecord.save().then(
             res => {
@@ -589,9 +597,15 @@ var dbPlayerConsumptionRecord = {
                 });
             }
         ).then(
-            () => {
+            (playerUpdatedData) => {
+                playerData = playerUpdatedData;
                 // Check auto player level up
-                return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId);
+                return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
+                    data => data,
+                    error => {
+                        errorUtils.reportError(error);
+                    }
+                );
             },
             error => {
                 return Q.reject({
@@ -601,7 +615,15 @@ var dbPlayerConsumptionRecord = {
                 });
             }
         ).then(
-            data => record,
+            data => {
+                if (playerData) {
+                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, {}).catch(errorUtils.reportError);
+                }
+                if (record) {
+                    dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
+                }
+                return record
+            },
             error => {
                 return Q.reject({name: "DBError", message: "Error in checking player level", error: error});
             }
@@ -615,7 +637,8 @@ var dbPlayerConsumptionRecord = {
                     return Q.reject({
                         status: constServerCode.CONSUMPTION_ORDERNO_ERROR,
                         name: "DataError",
-                        message: "orderNo exists"
+                        message: "orderNo exists",
+                        data: recordData
                     });
                 }
                 else {
@@ -740,7 +763,8 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             newRecord => {
-                if (newRecord) {
+                if (newRecord && newRecord.toObject) {
+                    newRecord = newRecord.toObject();
                     newRecord.providerId = providerId;
                 }
                 return newRecord;
@@ -828,13 +852,15 @@ var dbPlayerConsumptionRecord = {
                     console.error("updateExternalPlayerConsumptionRecordData", "Can't find platform");
                     return resolveError ? Q.resolve(null) : Q.reject({
                         name: "DataError",
-                        message: "Can't find platform"
+                        message: "Can't find platform",
+                        data: updateData
                     });
                 }
             }
         ).then(
             data => {
                 if (data && data[0] && data[1] && data[2]) {
+                    let providerId = recordData.providerId;
                     recordData.playerId = data[0]._id;
                     recordData.platformId = data[0].platform;
                     recordData.gameId = data[1]._id;
@@ -845,7 +871,15 @@ var dbPlayerConsumptionRecord = {
                     return dbconfig.collection_playerConsumptionRecord.findOneAndUpdate({
                         _id: oldData._id,
                         createTime: oldData.createTime
-                    }, recordData, {new: true});
+                    }, recordData, {new: true}).then(
+                        newRecord => {
+                            if (newRecord && newRecord.toObject) {
+                                newRecord = newRecord.toObject();
+                                newRecord.providerId = providerId;
+                            }
+                            return newRecord;
+                        }
+                    );
                 } else {
                     const missingList = [];
                     if (!data[0]) {
@@ -861,7 +895,7 @@ var dbPlayerConsumptionRecord = {
                     return resolveError ? Q.resolve(null) : Q.reject({
                         name: "DataError",
                         message: "Could not find documents matching: " + missingList.join(', '),
-                        data: data
+                        data: updateData
                     });
                 }
             }
@@ -871,7 +905,8 @@ var dbPlayerConsumptionRecord = {
                 return resolveError ? Q.resolve(null) : Q.reject({
                     name: "DBError",
                     message: "Error in updating player consumption record",
-                    error: error
+                    error: error,
+                    data: updateData
                 });
             }
         );

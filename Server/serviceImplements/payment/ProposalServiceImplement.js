@@ -13,11 +13,13 @@ const localization = require("../../modules/localization").localization;
 const lang = require("../../modules/localization").lang;
 
 var resLogHandler = function (conn, wsFunc, data, res, functionName) {
-    var resObj = {status: constServerCode.SUCCESS, data: res};
-    var ip = conn.upgradeReq.connection.remoteAddress || '';
-    var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+    let resObj = {status: constServerCode.SUCCESS, data: res};
+    let ip = conn.upgradeReq.connection.remoteAddress || '';
+    let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
     if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-        ip = forwardedIp[0].trim();
+        if(forwardedIp[0].trim() != "undefined"){
+            ip = forwardedIp[0].trim();
+        }
     }
     dbLogger.createPaymentAPILog({
         service: "payment",
@@ -38,17 +40,19 @@ var errorLogHandler = function (conn, wsFunc, data, err, functionName) {
         wsFunc.response(conn, err, data);
     }
     else {
-        var errorCode = err && err.code || constServerCode.COMMON_ERROR;
-        var resObj = {
+        let errorCode = err && err.code || constServerCode.COMMON_ERROR;
+        let resObj = {
             status: errorCode,
             errorMessage: localization.translate(err.message || err.errorMessage, conn.lang),
             data: null
         };
         resObj.errorMessage = err.errMessage || resObj.errorMessage;
-        var ip = conn.upgradeReq.connection.remoteAddress || '';
-        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        let ip = conn.upgradeReq.connection.remoteAddress || '';
+        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            ip = forwardedIp[0].trim();
+            if(forwardedIp[0].trim() != "undefined"){
+                ip = forwardedIp[0].trim();
+            }
         }
         dbLogger.createPaymentAPILog({
             service: "payment",
@@ -245,6 +249,16 @@ var ProposalServiceImplement = function () {
                 errorLogHandler(conn, wsFunc, data, err, "setBonusProposalStatus");
             }
         );
+    };
+
+    this.addTestTopUp.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.platformId && data.name && data.type && data.amount && data.amount > 0 && data.clientType);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addTestTopUp, [data.platformId, data.name, data.type, data, data.amount, data.createTime], isValidData);
+    };
+
+    this.requestProposalSuccessPMS.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.proposalId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestProposalSuccessPMS, [data.proposalId, data.status], isValidData);
     };
 };
 

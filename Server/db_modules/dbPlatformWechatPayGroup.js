@@ -120,6 +120,36 @@ let dbPlatformWechatPayGroup = {
             }
         );
     },
+
+    getAllWechatpaysByWechatpayGroupWithIsInGroup: function(platformId, wechatPayGroupId){
+        let allWechats = [];
+        return pmsAPI.weChat_getWechatList(
+            {
+                platformId: platformId,
+                queryId: serverInstance.getQueryId()
+            }
+        ).then(
+            data => {
+                allWechats = data.data || [];
+                return dbconfig.collection_platformWechatPayGroup.findOne({_id: wechatPayGroupId})
+            }
+        ).then(
+            data => {
+                let wechatsGroup = data.wechats || [];
+                return allWechats.map(a=> {
+                    if (wechatsGroup.indexOf(a.accountNumber) != -1) {
+                        //in group
+                        a.isInGroup = true;
+                    } else {
+                        //not in group
+                        a.isInGroup = false;
+                    }
+                    return a;
+                })
+            }
+        )
+    },
+
     getIncludedWechatsByWechatPayGroup: function (platformId, wechatPayGroupId) {
         let allWechats = [];
         return pmsAPI.weChat_getWechatList(

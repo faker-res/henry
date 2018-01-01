@@ -30,29 +30,6 @@ var dbLogger = {
     },
 
     /**
-     * Create the log  of reward points update action to the player
-     */
-    createRewardPointsChangeLog: function (rewardPointsObjId, playerName, playerLevel, newPoints, data, category, userAgent) {
-        let logData = {
-            rewardPointsObjId: rewardPointsObjId,
-            playerName: playerName,
-            playerLevelName: playerLevel,
-            category: category,
-            userAgent: userAgent,
-            oldPoints: data.oldPoints,
-            newPoints: newPoints,
-            amount: data.amount,
-            creator: data.creator,
-            remark: data.remark ? data.remark : null,
-            status: data.status,
-            createTime: Date.now()
-        };
-
-        let record = new dbconfig.collection_rewardPointsLog(logData);
-        record.save().then().catch(err => errorSavingLog(err, logData));
-    },
-
-    /**
      * Create the log  of credit transfer action to the player
      * @param {objectId} playerId
      * @param {number} amount
@@ -356,6 +333,18 @@ var dbLogger = {
                     let smsLog = smsLogArr[0];
 
                     dbconfig.collection_smsLog.update({_id: smsLog._id}, {used: true}).exec();
+                }
+            }
+        ).catch(errorUtils.reportError);
+    },
+
+    logInvalidatedVerificationSMS: (tel, message) => {
+        dbconfig.collection_smsLog.find({tel, message}).sort({createTime: -1}).limit(1).lean().exec().then(
+            smsLogArr => {
+                if (smsLogArr && smsLogArr[0]) {
+                    let smsLog = smsLogArr[0];
+
+                    dbconfig.collection_smsLog.update({_id: smsLog._id}, {invalidated: true}).exec();
                 }
             }
         ).catch(errorUtils.reportError);

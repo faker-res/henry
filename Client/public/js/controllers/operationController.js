@@ -403,18 +403,44 @@ define(['js/app'], function (myApp) {
                 );
             }
             let rewardNames = $('select#selectRewardType').multipleSelect("getSelects");
+            //For limitedOffer intention
+            $.each(rewardNames, function(idx,val){
+                rewardNames[idx] = rewardNames[idx].replace(" "+$translate('Intention')," Intention");
+            });
+
+            let rewardEventName = [];
+
+            if (vm.rewardList.length != rewardNames.length) {
+                vm.rewardList.filter(item => {
+                    if (rewardNames.indexOf(item.name) > -1) {
+                        rewardEventName.push(item.name);
+                    }
+                });
+            }
+
+            let proposalTypeNames = [];
+
+            if (vm.allProposalType.length != vm.proposalTypeSelected.length) {
+                vm.allProposalType.filter(item => {
+                    if (vm.proposalTypeSelected.indexOf(item.name) > -1) {
+                        proposalTypeNames.push(item.name);
+                    }
+                });
+            }
+
             let promoType = $('select#selectPromoType').multipleSelect("getSelects");
 
             let startTime = $('#datetimepicker').data('datetimepicker').getLocalDate();
             let endTime = $('#datetimepicker2').data('datetimepicker').getLocalDate();
-
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
                 inputDevice: vm.proposalInputDevice,
-                eventName: rewardNames,
+                //eventName: rewardNames,
+                eventName: rewardEventName,
                 promoTypeName: promoType,
-                type: vm.proposalTypeSelected,
+                //type: vm.proposalTypeSelected,
+                type: proposalTypeNames,
                 startDate: startTime,
                 endDate: endTime,
                 entryType: vm.queryProposalEntryType,
@@ -816,6 +842,14 @@ define(['js/app'], function (myApp) {
             vm.rewardList = [];
             socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: {$in: vm.allPlatformId}}, function (data) {
                 vm.rewardList = data.data;
+                //For limitedOffer intention
+                vm.rewardList.forEach(
+                    reward => {
+                        if (reward.type && reward.type.name == "PlayerLimitedOfferReward") {
+                            vm.rewardList.push({name:reward.name +" " + $translate('Intention')});
+                        }
+                    }
+                );
                 console.log('vm.rewardList', vm.rewardList);
                 $scope.safeApply();
                 if (callback) {
@@ -825,7 +859,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPromotionTypeList = function (callback) {
-            socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: {$in: vm.allPlatformId}}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: {$in: vm.allPlatformId}, deleteFlag: false}, function (data) {
                 console.log('getPromoCodeTypes', data);
                 vm.promoTypeList = data.data;
                 $scope.safeApply();
@@ -877,6 +911,9 @@ define(['js/app'], function (myApp) {
                     if (v.mainType == 'Reward') {
                         v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
                     }
+                    if (v.mainType == 'Others')
+                        v.data.eventName = v.data && v.data.eventName ? v.data.eventName.replace('Intention',$translate('Intention')) : v.data.eventName;
+
                     v.mainType$ = $translate(v.mainType);
                     if (v.mainType === "PlayerBonus")
                         v.mainType$ = $translate("Bonus");
@@ -912,7 +949,7 @@ define(['js/app'], function (myApp) {
                     //     return item ? item.content : '';
                     // });
                     if (v.data && v.data.remark) {
-                        v.remark$ = v.data.remark;
+                        v.remark$ = v.data.remark.replace('event name',$translate('event name')).replace('topup proposal id',$translate('topup proposal id'));
                     }
                     v.playerLevel$ = v.data.playerLevelName ? $translate(v.data.playerLevelName) : '';
                     v.merchantNo$ = v.data.merchantNo != null
@@ -2554,6 +2591,150 @@ define(['js/app'], function (myApp) {
                 }
             })
             return result;
+        };
+
+        function loadPlatform () {
+            vm.blinkAllProposal = false;
+            vm.blinkNewAccount = false;
+            vm.blinkTopUp = false;
+            vm.showOperationList = true;
+            vm.needRefreshTable = false;
+            vm.allBankTypeList = {};
+            vm.queryProposal = {};
+            vm.queryAuditProposal = {};
+            //todo::check why need to use timeOut here
+            vm.proposalTypeIdtoText = {};
+            $.fn.dataTable.ext.search = [];
+            vm.rightPanelTitle = $translate('ALL_PROPOSAL');
+            vm.chartViewModel = new flowchart.ChartViewModel();
+
+            utilService.actionAfterLoaded('#operPlayerList', function () {
+                $("#operPlayerList").off('scroll');
+                $("#operPlayerList").scroll(function () {
+                    var scrll = $("#operPlayerList").scrollTop();
+                    var height = $("#operPlayerList").prop('scrollHeight');
+                    var wheight = $("#operPlayerList").height();
+                    if (height - scrll - wheight < 50) {
+                        vm.playerCountLimit += 20;
+                        if (vm.loggedInPlayerCount && vm.loggedPlayers.length < vm.loggedInPlayerCount) {
+                            vm.getLoggedInPlayer(true);
+                        } else {
+                            vm.playerCountLimit = vm.loggedInPlayerCount;
+                        }
+                    }
+                });
+            });
+
+            setTimeout(function () {
+                utilService.actionAfterLoaded("#proposalDataTablePage", function () {
+                    vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
+                    });
+                });
+            }, 0);
+
+            // for some reason, the pagination wont translate when it does not put inside setTimeout
+            setTimeout(function() {
+                utilService.actionAfterLoaded("#proposalAuditDataTablePage", function () {
+                    vm.queryAuditProposal.pageObj = utilService.createPageForPagingTable("#proposalAuditDataTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "queryAuditProposal", vm.loadProposalAuditQueryData)
+                    });
+                });
+            }, 0);
+
+
+            // Q.all([vm.getAllPlatforms(), vm.getProposalEntryTypeList(), vm.getProposalPriorityList(),
+            //     vm.getProposalUserTypeList(), vm.getAllProposalStatus()])
+            Q.all([vm.getAllPlatforms()])
+            //removed vm.getPlayerTopUpIntentRecordStatusList()
+                .then(
+                    function (data) {
+                        //todo::refactor the process here
+                        socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+                            if (data && data.data && data.data.data) {
+                                console.log('banktype', data.data.data);
+                                data.data.data.forEach(item => {
+                                    if (item && item.bankTypeId) {
+                                        vm.allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
+                                    }
+                                })
+                            }
+                            // $scope.safeApply();
+                        });
+
+                        // socketService.$socket($scope.AppSocket, 'getDepositMethodList', {}, function (data) {
+                        //     console.log("vm.depositMethodList", data.data);
+                        //     vm.depositMethodList = data.data;
+                        //     vm.getDepositMethodbyId = {};
+                        //     $.each(data.data, function (i, v) {
+                        //         vm.getDepositMethodbyId[v] = i;
+                        //     })
+                        //     // $scope.safeApply();
+                        // });
+                        socketService.$socket($scope.AppSocket, 'getAllGameProviders', '', function (data) {
+                            vm.allGameProviderById = {};
+                            data.data.map(item => {
+                                vm.allGameProviderById[item._id] = item;
+                            });
+                            console.log("vm.allGameProviderById", vm.allGameProviderById);
+                            // $scope.safeApply();
+                        }, function (data) {
+                        });
+
+                    },
+                    function (error) {
+                    }
+                ).then(
+                function (data) {
+                    // vm.updateProposalData();
+                    $scope.AppSocket.removeAllListeners('notifyNewProposal');
+                    $scope.AppSocket.on('notifyNewProposal', function (message) {
+                        console.log("notifyNewProposal event", message);
+                        vm.newProposalNum++;
+                        vm.updateProposalData();
+                    });
+                    var showLeft = $cookies.get("operationShowLeft");
+                    if (showLeft === 'true') {
+                        vm.toggleShowOperationList(true);
+                    }
+                    else {
+                        vm.toggleShowOperationList(false);
+                    }
+                    vm.initQueryPara();
+                }
+            );
+
+            var blinkFreq = 600;
+            setInterval(function () {
+                if (vm.blinkAllProposal) {
+                    $('#operPlatform a.list-group-item[href="#proposalDataTableDiv"] .badge').fadeOut(blinkFreq / 2).fadeIn(blinkFreq / 2);
+                }
+            }, blinkFreq);
+            var countDown = -1;
+            clearInterval(vm.refreshInterval);
+            vm.refreshInterval = setInterval(function () {
+                var item = $('#autoRefreshProposalFlag');
+                var isRefresh = item && item.length > 0 && item[0].checked;
+                var mark = $('.timeLeftRefreshOperation');
+                $(mark).parent().toggleClass('hidden', countDown < 0);
+                if (isRefresh) {
+                    if (countDown < 0) {
+                        countDown = 11
+                    }
+                    if (countDown == 0) {
+                        if (vm.rightPanelTitle === 'ALL_PROPOSAL') vm.loadProposalQueryData();
+                        if (vm.rightPanelTitle === 'APPROVAL_PROPOSAL') vm.loadProposalAuditQueryData();
+                        countDown = 11;
+                    }
+                    if (window.location.pathname != '/operation') {
+                        clearInterval(vm.refreshInterval);
+                    }
+                    countDown--;
+                    mark.text(countDown);
+                } else {
+                    countDown = -1;
+                }
+            }, 1000);
         }
 
         // $scope.$on('$viewContentLoaded', function () {
@@ -2562,154 +2743,15 @@ define(['js/app'], function (myApp) {
             eventName = "socketConnected";
             $scope.$emit('childControllerLoaded', 'operationControllerLoaded');
         }
+
         $scope.$on(eventName, function (e, d) {
-            setTimeout(
-                function () {
-                    vm.blinkAllProposal = false;
-                    vm.blinkNewAccount = false;
-                    vm.blinkTopUp = false;
-                    vm.showOperationList = true;
-                    vm.needRefreshTable = false;
-                    vm.allBankTypeList = {};
-                    vm.queryProposal = {};
-                    vm.queryAuditProposal = {};
-                    //todo::check why need to use timeOut here
-                    vm.proposalTypeIdtoText = {};
-                    $.fn.dataTable.ext.search = [];
-                    vm.rightPanelTitle = $translate('ALL_PROPOSAL');
-                    vm.chartViewModel = new flowchart.ChartViewModel();
-
-                    utilService.actionAfterLoaded('#operPlayerList', function () {
-                        $("#operPlayerList").off('scroll');
-                        $("#operPlayerList").scroll(function () {
-                            var scrll = $("#operPlayerList").scrollTop();
-                            var height = $("#operPlayerList").prop('scrollHeight');
-                            var wheight = $("#operPlayerList").height();
-                            if (height - scrll - wheight < 50) {
-                                vm.playerCountLimit += 20;
-                                if (vm.loggedInPlayerCount && vm.loggedPlayers.length < vm.loggedInPlayerCount) {
-                                    vm.getLoggedInPlayer(true);
-                                } else {
-                                    vm.playerCountLimit = vm.loggedInPlayerCount;
-                                }
-                            }
-                        });
-                    });
-
-                    setTimeout(function () {
-                        utilService.actionAfterLoaded("#proposalDataTablePage", function () {
-                            vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
-                                vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
-                            });
-                        });
-                    }, 0);
-
-                    // for some reason, the pagination wont translate when it does not put inside setTimeout
-                    setTimeout(function() {
-                        utilService.actionAfterLoaded("#proposalAuditDataTablePage", function () {
-                            vm.queryAuditProposal.pageObj = utilService.createPageForPagingTable("#proposalAuditDataTablePage", {}, $translate, function (curP, pageSize) {
-                                vm.commonPageChangeHandler(curP, pageSize, "queryAuditProposal", vm.loadProposalAuditQueryData)
-                            });
-                        });
-                    }, 0);
-
-
-                    // Q.all([vm.getAllPlatforms(), vm.getProposalEntryTypeList(), vm.getProposalPriorityList(),
-                    //     vm.getProposalUserTypeList(), vm.getAllProposalStatus()])
-                    Q.all([vm.getAllPlatforms()])
-                    //removed vm.getPlayerTopUpIntentRecordStatusList()
-                        .then(
-                            function (data) {
-                                //todo::refactor the process here
-                                socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
-                                    if (data && data.data && data.data.data) {
-                                        console.log('banktype', data.data.data);
-                                        data.data.data.forEach(item => {
-                                            if (item && item.bankTypeId) {
-                                                vm.allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
-                                            }
-                                        })
-                                    }
-                                    // $scope.safeApply();
-                                });
-
-                                // socketService.$socket($scope.AppSocket, 'getDepositMethodList', {}, function (data) {
-                                //     console.log("vm.depositMethodList", data.data);
-                                //     vm.depositMethodList = data.data;
-                                //     vm.getDepositMethodbyId = {};
-                                //     $.each(data.data, function (i, v) {
-                                //         vm.getDepositMethodbyId[v] = i;
-                                //     })
-                                //     // $scope.safeApply();
-                                // });
-                                socketService.$socket($scope.AppSocket, 'getAllGameProviders', '', function (data) {
-                                    vm.allGameProviderById = {};
-                                    data.data.map(item => {
-                                        vm.allGameProviderById[item._id] = item;
-                                    });
-                                    console.log("vm.allGameProviderById", vm.allGameProviderById);
-                                    // $scope.safeApply();
-                                }, function (data) {
-                                });
-
-                            },
-                            function (error) {
-                            }
-                        ).then(
-                        function (data) {
-                            // vm.updateProposalData();
-                            $scope.AppSocket.removeAllListeners('notifyNewProposal');
-                            $scope.AppSocket.on('notifyNewProposal', function (message) {
-                                console.log("notifyNewProposal event", message);
-                                vm.newProposalNum++;
-                                vm.updateProposalData();
-                            });
-                            var showLeft = $cookies.get("operationShowLeft");
-                            if (showLeft === 'true') {
-                                vm.toggleShowOperationList(true);
-                            }
-                            else {
-                                vm.toggleShowOperationList(false);
-                            }
-                            vm.initQueryPara();
-                        }
-                    );
-
-                    var blinkFreq = 600;
-                    setInterval(function () {
-                        if (vm.blinkAllProposal) {
-                            $('#operPlatform a.list-group-item[href="#proposalDataTableDiv"] .badge').fadeOut(blinkFreq / 2).fadeIn(blinkFreq / 2);
-                        }
-                    }, blinkFreq);
-                    var countDown = -1;
-                    clearInterval(vm.refreshInterval);
-                    vm.refreshInterval = setInterval(function () {
-                        var item = $('#autoRefreshProposalFlag');
-                        var isRefresh = item && item.length > 0 && item[0].checked;
-                        var mark = $('.timeLeftRefreshOperation');
-                        $(mark).parent().toggleClass('hidden', countDown < 0);
-                        if (isRefresh) {
-                            if (countDown < 0) {
-                                countDown = 11
-                            }
-                            if (countDown == 0) {
-                                if (vm.rightPanelTitle === 'ALL_PROPOSAL') vm.loadProposalQueryData();
-                                if (vm.rightPanelTitle === 'APPROVAL_PROPOSAL') vm.loadProposalAuditQueryData();
-                                countDown = 11;
-                            }
-                            if (window.location.pathname != '/operation') {
-                                clearInterval(vm.refreshInterval);
-                            }
-                            countDown--;
-                            mark.text(countDown);
-                        } else {
-                            countDown = -1;
-                        }
-                    }, 1000);
-                }
-            );
-
+            $scope.$evalAsync(loadPlatform());
         });
+
+        $scope.$on('switchPlatform', function (e, d) {
+            $scope.$evalAsync(loadPlatform());
+        });
+
         $scope.$on('$destroy', function () {
             // clearInterval(vm.intentionInterval);
             $scope.AppSocket.removeAllListeners('notifyNewProposal');

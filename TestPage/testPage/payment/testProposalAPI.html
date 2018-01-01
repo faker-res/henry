@@ -224,13 +224,108 @@
 </div>
 
 
+<h3>addTestTopUp (添加测试充值)</h3>
+<div class="test-container">
+    <div><label>Platform Id
+        <input name="platformId">
+    </label>
+    </div>
 
+    <div><label>Player name
+        <input name="name">
+    </label>
+    </div>
 
+    <div>
+        <label>Top up Time
+            <input name="createTime" type="datetime-local"> (example format: "2011-04-11T11:51:00")
+        </label>
+    </div>
 
+    <div><label>Top up type 1在线 2银行卡 3支付宝 4微信
+        <input name="type" type="number">
+    </label>
+    </div>
 
+    <div><label>Online top up type
+        <input name="topupType">
+    </label></div>
 
+    <div><label>Client Type 1pc 2h5 3app
+        <input name="clientType" type="number">
+    </label></div>
 
+    <div><label>Amount
+        <input name="amount" type="number">
+    </label></div>
 
+    <div>
+        <label>lastBankcardNo
+            <input name="lastBankcardNo">
+        </label>
+        <p>
+    </div>
+    <div>
+        <label>bankTypeId
+            <input name="bankTypeId">
+        </label>
+        <p>
+    </div>
+    <div>
+        <label>depositMethod
+            <input name="depositMethod">
+        </label>
+        <p>
+    </div>
+    <div>
+        <label>provinceId
+            <input name="provinceId">
+        </label>
+        <p>
+    </div>
+    <div>
+        <label>cityId
+            <input name="cityId">
+        </label>
+        <p>
+    </div>
+    <div>
+        <label>districtId
+            <input name="districtId">
+        </label>
+        <p>
+    </div>
+    <div>
+        <label>bonusCode
+            <input name="bonusCode">
+        </label>
+        <p>
+    </div>
+
+    <button data-api-name="addTestTopUp">Add</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Request proposal success (通过PMS支付提案)</h3>
+<div class="test-container">
+    <div>
+        <label>*Proposal Id
+            <input name="proposalId">
+        </label>
+    </div>
+    <div>
+        <label>*status  1:在线 0：其他
+            <input name="status",  type="number">
+        </label>
+    </div>
+    <p>
+        <button id="requestProposalSuccessPMS" data-api-name="requestProposalSuccessPMS">Request</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
 
 
 

@@ -189,7 +189,52 @@ const dbPlayerMail = {
             },
             retErr => {
                 dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr);
-                return Q.reject({message: retErr, error: retErr});
+                errorUtils.reportError(retErr);
+                return dbPlayerMail.failSMSErrorOutHandler(data.tel);
+            }
+        );
+    },
+
+    failSMSErrorOutHandler: function (tel) {
+        return dbconfig.collection_smsLog.find({tel: tel, status: 'success'}).sort({_id:-1}).limit(1).lean().then(
+            logData => {
+                let failSMSCountQuery = {
+                    tel: tel,
+                    status: 'failure'
+                };
+                if (logData && logData[0] && logData[0].createTime) {
+                    failSMSCountQuery.createTime = {
+                        $gt: logData[0].createTime
+                    }
+                }
+
+                return dbconfig.collection_smsLog.find(failSMSCountQuery).count();
+            }
+        ).then(
+            failedSMSCount => {
+                if (failedSMSCount >= 5) {
+                    return Promise.reject({
+                        status: constServerCode.SMS_RETRY_FAILS_EXCEED,
+                        name: "DataError",
+                        message: "SMS failure for more than 5 times, please contact customer service"
+                    });
+
+                }
+                else {
+                    return Promise.reject({
+                        status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
+                        name: "DataError",
+                        message: "SMS failure, please retry"
+                    });
+                }
+            },
+            err => {
+                errorUtils.reportError(err);
+                return Promise.reject({
+                    status: constServerCode.SMS_RETRY_FAILS_EXCEED,
+                    name: "DataError",
+                    message: "SMS failure for more than 5 times, please contact customer service"
+                });
             }
         );
     },
@@ -270,7 +315,7 @@ const dbPlayerMail = {
         ).then(
             function (data) {
                 if (data) {
-                    channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : 2;
+                    channel = data[0] && data[0].channels && data[0].channels[0] ? 1 : 2;
                     lastMinuteHistory = data[1];
                     template = data[2];
                     phoneValidation = data[3];
@@ -440,41 +485,79 @@ const dbPlayerMail = {
                 let playerData = data;
                 let platformData = data.platform;
 
-                platformData.smsVerificationExpireTime = platformData.smsVerificationExpireTime || 5;
-                let smsExpiredDate = new Date();
-                smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
-
-                return dbconfig.collection_smsVerificationLog.findOne({
-                    platformObjId: platformData._id,
-                    tel: playerData.phoneNumber,
-                    createTime: {$gte: smsExpiredDate}
-                }).sort({createTime: -1})
+                return dbPlayerMail.verifySMSValidationCode(playerData.phoneNumber, platformData, smsCode);
             }
         ).then(
+            isVerify => {
+                return Boolean(isVerify);
+            }
+        );
+    },
+
+    verifySMSValidationCode: function (phoneNumber, platformData, smsCode) {
+        if (!platformData) {
+            platformData = {};
+        }
+
+        let expireTime = platformData.smsVerificationExpireTime || 5;
+        let smsExpiredDate = new Date();
+        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - expireTime);
+
+        let smsVerificationLogQuery = {
+            platformObjId: platformData._id,
+            tel: phoneNumber,
+            createTime: {$gte: smsExpiredDate}
+        };
+
+        let smsProm = dbconfig.collection_smsVerificationLog.find(smsVerificationLogQuery).sort({createTime: -1}).limit(1).lean();
+
+        return smsProm.then(
             verificationSMS => {
-                // Check verification SMS code
-                if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
-                    verificationSMS = verificationSMS || {};
-                    smsDetail = verificationSMS;
-                    return dbconfig.collection_smsVerificationLog.remove(
-                        {_id: verificationSMS._id}
+                if (!verificationSMS || !verificationSMS[0] || !verificationSMS[0].code) {
+                    return Promise.reject({
+                        status: constServerCode.VALIDATION_CODE_EXPIRED,
+                        name: "ValidationError",
+                        message: "There is no valid SMS Code. Please get another one."
+                    });
+                }
+
+                verificationSMS = verificationSMS[0];
+
+                if (verificationSMS.code == smsCode) {
+                    return dbconfig.collection_smsVerificationLog.remove({
+                        _id: verificationSMS._id
+                    }).then(
+                        () => {
+                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
+                            return verificationSMS;
+                        }
                     );
                 }
-                else {
-                    let errorMessage = verificationSMS ? "Incorrect SMS Validation Code" : "Invalid SMS Validation Code";
+
+                if (verificationSMS.loginAttempts > 3) {
+                    // Safety - remove sms verification code after 5 attempts to prevent brute force attack
+                    return dbconfig.collection_smsVerificationLog.remove(
+                        {_id: verificationSMS._id}
+                    ).then(() => {
+                        dbLogger.logInvalidatedVerificationSMS(verificationSMS.tel, verificationSMS.code);
+                        return Promise.reject({
+                            status: constServerCode.VALIDATION_CODE_EXCEED_ATTEMPT,
+                            name: "ValidationError",
+                            message: "SMS validation code invalidated. Please get another one."
+                        });
+                    });
+                }
+
+                return dbconfig.collection_smsVerificationLog.findOneAndUpdate(
+                    {_id: verificationSMS._id},
+                    {$inc: {loginAttempts: 1}}
+                ).then(() => {
                     return Promise.reject({
                         status: constServerCode.VALIDATION_CODE_INVALID,
                         name: "ValidationError",
-                        message: errorMessage
+                        message: "Incorrect SMS Validation Code"
                     });
-                }
-            }
-        ).then(
-            () => {
-                if (smsDetail && smsDetail.tel && smsDetail.code) {
-                    dbLogger.logUsedVerificationSMS(smsDetail.tel, smsDetail.code);
-                }
-                return Promise.resolve(true);
+                });
             }
         );
     }

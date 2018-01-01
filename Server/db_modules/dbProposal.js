@@ -19,6 +19,7 @@ var dbPlatform = require('./../db_modules/dbPlatform');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var dbPartner = require('./../db_modules/dbPartner');
+var dbRewardPointsLog = require('./../db_modules/dbRewardPointsLog');
 var dbLogger = require('./../modules/dbLogger');
 var proposalExecutor = require('./../modules/proposalExecutor');
 var mongoose = require('mongoose');
@@ -318,6 +319,10 @@ var proposal = {
         ).then(
             function (data) {
                 if (data && data[0] && data[1] && data[2] != null) {
+                    if(data[0].mainType == constProposalMainType.PlayerConvertRewardPoints){
+                        dbRewardPointsLog.createRewardPointsLogByProposalData(data[0]);
+                    }
+
                     //notify the corresponding clients with new proposal
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     let expiredDate = null;
@@ -463,7 +468,7 @@ var proposal = {
                         errorMessage = "Invalid requestId";
                     }
                     return Q.reject({
-                        status: constServerCode.INVALID_PROPOSAL,
+                        status: proposalData && proposalData.status == constProposalStatus.SUCCESS ?  constServerCode.INVALID_PROPOSAL : constServerCode.INVALID_PARAM,
                         name: "DataError",
                         message: errorMessage,
                         data: {
@@ -1264,6 +1269,12 @@ var proposal = {
     getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName, inputDevice) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
 
+        let platformIds = platformId.map(p => {
+            if(p && typeof p != "object"){
+                return ObjectId(p);
+            }
+        })
+
         //check proposal without process
         var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
 
@@ -1294,11 +1305,13 @@ var proposal = {
                     // var processes = data[1];
                     if (types && types.length > 0) {
                         var proposalTypesId = [];
+
                         for (var i = 0; i < types.length; i++) {
-                            if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
+                            if ((!typeArr || (typeArr && typeArr.length == 0)) || typeArr.indexOf(types[i].name) != -1) {
                                 proposalTypesId.push(types[i]._id);
                             }
                         }
+
                         // var processIds = [];
                         // for (var j = 0; j < processes.length; j++) {
                         //     processIds.push(processes[j]._id);
@@ -1311,6 +1324,7 @@ var proposal = {
                             },
                             status: {$in: statusArr}
                         };
+
                         if (userName) {
                             queryObj['data.name'] = userName;
                         }
@@ -1341,15 +1355,17 @@ var proposal = {
                             ];
                         }
 
-                        if (eventName) {
-                            queryObj["$and"] = queryObj["$and"] || [];
-                            let dataCheck = {"data.eventName": {$in: eventName}};
-                            let existCheck = {"data.eventName": {$exists: false}};
-                            let orQuery = [dataCheck, existCheck];
-                            queryObj["$and"].push({$or: orQuery});
+                        if (eventName && eventName.length > 0) {
+                            // queryObj["$and"] = queryObj["$and"] || [];
+                            // let dataCheck = {"data.eventName": {$in: eventName}};
+                            // let existCheck = {"data.eventName": {$exists: false}};
+                            // let orQuery = [dataCheck, existCheck];
+                            // queryObj["$and"].push({$or: orQuery});
+
+                            queryObj["data.eventName"] = {$in: eventName};
                         }
 
-                        if (promoTypeName) {
+                        if (promoTypeName && promoTypeName.length > 0) {
                             queryObj["$and"] = queryObj["$and"] || [];
                             let dataCheck = {"data.PROMO_CODE_TYPE": {$in: promoTypeName}};
                             let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
@@ -1371,7 +1387,6 @@ var proposal = {
                         }
 
                         inputDevice ? queryObj.inputDevice = inputDevice : null;
-
                         var sortKey = (Object.keys(sortCol))[0];
                         var a = sortKey != 'relatedAmount' ?
                             dbconfig.collection_proposal.find(queryObj)
@@ -2058,7 +2073,6 @@ var proposal = {
             details.map(data => {
                 let currentArrNo = 1;
                 data.map(d => {
-                    console.log("LH Check 尝试次数分布 SELF - data before filtered into array",d);
                     if (!recordArr.find(r => r.phoneNumber == d.data.phoneNumber)) {
                         recordArr.push({phoneNumber: d.data.phoneNumber, status: d.status, attemptNo: 1, arrNo: 1});
                         currentArrNo = 1;
@@ -2080,7 +2094,6 @@ var proposal = {
                     }
                 })
             })
-            console.log("LH Check 尝试次数分布 SELF - record array",recordArr);
             return recordArr;
         }).then(playerAttemptNumber => {
             var firstFail = playerAttemptNumber.filter(function (event) {
@@ -2204,7 +2217,6 @@ var proposal = {
                 return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
                     dataList.map(phoneNumber => {
                         prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: proposalTypesId, data: {$exists: true, $ne: null}}).lean().sort({createTime: 1}));
-                        //totalHeadCount += 1;
                     })
                     return Q.all(prom);
                 })
@@ -2230,7 +2242,6 @@ var proposal = {
                             });
                             currentArrNo = currentArrNo + 1;
                         } else {
-                            //recordArr[indexNo].status = recordArr[indexNo].status != constProposalStatus.SUCCESS ? d.status : recordArr[indexNo].status;
                             recordArr[indexNo].status = d.status;
                             recordArr[indexNo].attemptNo = recordArr[indexNo].attemptNo + 1;
                         }
@@ -2326,7 +2337,6 @@ var proposal = {
                 return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
                     dataList.map(phoneNumber => {
                         prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: proposalTypesId, data: {$exists: true, $ne: null}}).lean().sort({createTime: 1}));
-                        //totalHeadCount += 1;
                     })
                     return Q.all(prom);
                 })
@@ -2373,21 +2383,10 @@ var proposal = {
                     return statusArr.includes(event.status) && event.attemptNo == attemptNo
                 });
             }
-        // }).then( data => {
-        //     // to filter out the duplicate phonenumber generated when getting proposal of different player account with same phone number.
-        //     return data.filter((data, index, self) =>
-        //         index === self.findIndex((t) => (
-        //             t.phoneNumber === data.phoneNumber
-        //         ))
-        //     );
         }).then(data => {
             data.map(d => {
-                //userName = d.name;
                 phoneNumber = d.phoneNumber
-                // if(statusArr && statusArr.includes("Pending")){
-                //     unlockSizeLimit = false;
-                //     size = 1;
-                // }
+
                 let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo, unlockSizeLimit);
                 returnArr.push(p);
             })
@@ -2546,45 +2545,17 @@ var proposal = {
         }
         else {
             if (reqData.type && reqData.type.length > 0) {
-                var arr = reqData.type.map(item => {
+                let arr = reqData.type.map(item => {
                     return ObjectId(item);
                 });
                 reqData.type = {$in: arr}
             }
 
-            if (reqData["data.eventName"] || reqData["data.PROMO_CODE_TYPE"] || reqData["data.playerName"] || reqData["data.partnerName"]) {
-                reqData["$and"] = [];
-            }
-
-            if (reqData["data.eventName"]) {
-                let dataCheck = {"data.eventName": {$in: reqData["data.eventName"]}};
-                let existCheck = {"data.eventName": {$exists: false}};
-                let orQuery = [dataCheck, existCheck];
-                reqData["$and"].push({$or: orQuery});
-                delete reqData["data.eventName"];
-            }
-
-            if (reqData["data.PROMO_CODE_TYPE"]) {
-                let dataCheck = {"data.PROMO_CODE_TYPE": {$in: reqData["data.PROMO_CODE_TYPE"]}};
-                let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
-                let orQuery = [dataCheck, existCheck];
-                reqData["$and"].push({$or: orQuery});
-                delete reqData["data.PROMO_CODE_TYPE"];
-            }
-            if (reqData["data.playerName"] || reqData["data.partnerName"]) {
-                let playerNameCheck = {"data.playerName": reqData["data.playerName"]};
-                let partnerNameCheck = {"data.partnerName": reqData["data.partnerName"]};
-                let orQuery = [playerNameCheck, partnerNameCheck];
-                reqData["$and"].push({$or: orQuery});
-                delete reqData["data.playerName"];
-                delete reqData["data.partnerName"];
-            }
-
-            var a = dbconfig.collection_proposal.find(reqData).count();
-            var b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
+            let a = dbconfig.collection_proposal.find(reqData).lean().count();
+            let b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                 .populate({path: "type", model: dbconfig.collection_proposalType})
-                .populate({path: "process", model: dbconfig.collection_proposalProcess});
-            var c = dbconfig.collection_proposal.aggregate([
+                .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
+            let c = dbconfig.collection_proposal.aggregate([
                 {
                     $match: reqData
                 },
@@ -2684,6 +2655,7 @@ var proposal = {
                 })
             }
         );
+
         return deferred.promise;
     },
     /**

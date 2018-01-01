@@ -1,3 +1,7 @@
+/**
+ *  Can remove, replace by rewardTask
+ *
+ * */
 let Q = require('q');
 let errorUtils = require('../modules/errorUtils');
 let dbConfig = require('../modules/dbproperties');

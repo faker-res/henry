@@ -236,7 +236,7 @@ var playerSchema = new Schema({
         content: {type: String},
     }],
     //referral player
-    referral: {type: Schema.ObjectId},
+    referral: {type: Schema.ObjectId, index: true},
     //has been used for referral reward
     isReferralReward: {type: Boolean, default: false},
     //if this player is from online registration

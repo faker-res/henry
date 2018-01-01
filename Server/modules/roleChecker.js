@@ -168,7 +168,8 @@ var roleChecker = {
         "getPlayerRetention": true,
         "getAllActions": true,
         "getAdminInfo": true,
-        "updateProposalTypeExpiryDuration": true
+        "updateProposalTypeExpiryDuration": true,
+        "getRewardPeriodTime": true,
     },
 
     /**
@@ -236,7 +237,7 @@ var roleChecker = {
                 Edit: ['updatePlatform'],
                 DailySettlement: ['startPlatformDailySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformDailySettlement'],
                 WeeklySettlement: ['startPlatformWeeklySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformWeeklySettlement'],
-                RewardSettlement: ['startPlatformRewardEventSettlement'],
+                RewardSettlement: ['startPlatformRewardEventSettlement', 'startPlatformRTGEventSettlement'],
                 SettlementHistory: ['getSettlementHistory'],
                 PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement'],
                 transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider'],
@@ -270,9 +271,9 @@ var roleChecker = {
                 applyBonus: ['applyBonusRequest'],
                 BonusHistory: [],
                 CreditAdjustment: ['createUpdatePlayerCreditProposal'],
-                RewardPointsChange: [],
-                RewardPointsExchange: [],
                 CreditChangeLog: ['getPlayerCreditChangeLogsByQuery', 'getPagedPlayerCreditChangeLogs'],
+                RewardPointsChange: ['createPlayerRewardPointsRecord', 'updatePlayerRewardPointsRecord'],
+                RewardPointsConvert: ['getPlayerRewardPointsDailyLimit', 'getPlayerRewardPointsDailyConvertedPoints', 'convertRewardPointsToCredit'],
                 PlayerExpenses: ['getPlayerConsumptionRecords', 'getPlayerTotalConsumptionForTimeFrame', 'playerPurchase'],
                 AddRewardTask: ['createPlayerRewardTask'],
                 applyReward: ['applyPreviousConsecutiveLoginReward'],

@@ -189,6 +189,12 @@
         this.rewardService.applyPromoCode.once(callback);
     };
 
+    proto.markPromoCodeAsViewed = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.markPromoCodeAsViewed.request(data);
+        this.rewardService.markPromoCodeAsViewed.once(callback);
+    };
+
     proto.getLimitedOffers = function (callback, requestData) {
         let data = requestData || {};
         this.rewardService.getLimitedOffers.request(data);
@@ -231,6 +237,13 @@
 
         this.rewardService.getSignBonus.request(data);
         this.rewardService.getSignBonus.once(callback);
+    };
+
+    proto.getSlotInfo = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardService.getSlotInfo.request(data);
+        this.rewardService.getSlotInfo.once(callback);
     };
 
     if (isNode) {

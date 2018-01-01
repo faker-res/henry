@@ -14,6 +14,7 @@ let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbPartner = require('./../db_modules/dbPartner');
 let dbProposal = require('./../db_modules/dbProposal');
 let dbLogger = require('./../modules/dbLogger');
+let dbPlayerMail = require('../db_modules/dbPlayerMail');
 let errorUtils = require('./../modules/errorUtils');
 
 let dbPlayerPartner = {
@@ -62,42 +63,12 @@ let dbPlayerPartner = {
                         return Promise.all([plyProm, partnerProm]);
                     }
                     else {
-                        platformObj.smsVerificationExpireTime = platformObj.smsVerificationExpireTime || 5;
-                        let smsExpiredDate = new Date();
-                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformObj.smsVerificationExpireTime);
-                        let smsProm = dbConfig.collection_smsVerificationLog.findOne({
-                            platformId: registerData.platformId,
-                            tel: registerData.phoneNumber,
-                            createTime: {$gte: smsExpiredDate}
-                        }).sort({createTime: -1});
+                        return dbPlayerMail.verifySMSValidationCode(registerData.phoneNumber, platformObj, registerData.smsCode).then(() => {
+                            let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData, true);
+                            let partnerProm = dbPartner.createPartnerAPI(pRegisterData);
 
-                        return smsProm.then(
-                            verificationSMS => {
-                                // Check verification SMS code
-                                if ((registerData.captcha && !registerData.smsCode) || (verificationSMS && verificationSMS.code && verificationSMS.code == registerData.smsCode)) {
-                                    verificationSMS = verificationSMS || {};
-                                    return dbConfig.collection_smsVerificationLog.remove({
-                                        _id: verificationSMS._id
-                                    }).then(
-                                        retData => {
-                                            let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData, true);
-                                            let partnerProm = dbPartner.createPartnerAPI(pRegisterData);
-                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
-
-                                            return Promise.all([plyProm, partnerProm]);
-                                        }
-                                    );
-                                }
-                                else {
-                                    // Verification code is invalid
-                                    return Q.reject({
-                                        status: constServerCode.VALIDATION_CODE_INVALID,
-                                        name: "ValidationError",
-                                        message: "Invalid SMS Validation Code"
-                                    });
-                                }
-                            }
-                        )
+                            return Promise.all([plyProm, partnerProm]);
+                        });
                     }
                 }
                 else {
@@ -464,60 +435,80 @@ let dbPlayerPartner = {
                     });
                 }
 
-                platform.smsVerificationExpireTime = platform.smsVerificationExpireTime || 5;
-                let smsExpiredDate = new Date();
-                smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platform.smsVerificationExpireTime);
-
-                let smsVerificationLogQuery = {
-                    platformObjId: platformObjId,
-                    tel: curPhoneNumber,
-                    createTime: {$gte: smsExpiredDate}
-                };
+                let verificationPhone = curPhoneNumber;
 
                 if (!newPhoneNumber) {
                     if (data[1] && data[1][0] && data[1][0].tel) {
                         newPhoneNumber = data[1][0].tel;
-                        smsVerificationLogQuery.tel = data[1][0].tel;
+                        verificationPhone = data[1][0].tel;
                         newEncrpytedPhoneNumber = rsaCrypto.encrypt(String(data[1][0].tel));
                     }
                     else {
-                        return Q.reject({
+                        return Promise.reject({
                             status: constServerCode.INVALID_PHONE_NUMBER,
                             name: "ValidationError",
                             message: "Phone number already registered on platform"
                         });
                     }
                 }
-                // 4. Check if smsCode is matched
-                return dbConfig.collection_smsVerificationLog.findOne(smsVerificationLogQuery).sort({createTime: -1}).then(
-                    verificationSMS => {
-                        verificationSmsDetail = verificationSMS;
-                        // Check verification SMS code
-                        if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
-                            verificationSMS = verificationSMS || {};
-                            return dbConfig.collection_smsVerificationLog.remove(
-                                {_id: verificationSMS._id}
-                            ).then(
-                                () => {
-                                    smsLogDetail = {tel: verificationSMS.tel, message: verificationSMS.code};
-                                    dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
-                                    return Q.resolve(true);
-                                }
-                            )
-                        }
-                        else {
-                            return Q.reject({
-                                status: constServerCode.VALIDATION_CODE_INVALID,
-                                name: "ValidationError",
-                                message: "Invalid SMS Validation Code"
-                            });
-                        }
-                    }
-                )
+
+                return dbPlayerMail.verifySMSValidationCode(verificationPhone, platform, smsCode);
+
+                // platform.smsVerificationExpireTime = platform.smsVerificationExpireTime || 5;
+                // let smsExpiredDate = new Date();
+                // smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platform.smsVerificationExpireTime);
+                //
+                // let smsVerificationLogQuery = {
+                //     platformObjId: platformObjId,
+                //     tel: curPhoneNumber,
+                //     createTime: {$gte: smsExpiredDate}
+                // };
+                //
+                // if (!newPhoneNumber) {
+                //     if (data[1] && data[1][0] && data[1][0].tel) {
+                //         newPhoneNumber = data[1][0].tel;
+                //         smsVerificationLogQuery.tel = data[1][0].tel; // WARNING, IT HAD CHANGED SMSVLOG.TEL
+                //         newEncrpytedPhoneNumber = rsaCrypto.encrypt(String(data[1][0].tel));
+                //     }
+                //     else {
+                //         return Q.reject({
+                //             status: constServerCode.INVALID_PHONE_NUMBER,
+                //             name: "ValidationError",
+                //             message: "Phone number already registered on platform"
+                //         });
+                //     }
+                // }
+                // // 4. Check if smsCode is matched
+                // return dbConfig.collection_smsVerificationLog.findOne(smsVerificationLogQuery).sort({createTime: -1}).then(
+                //     verificationSMS => {
+                //         verificationSmsDetail = verificationSMS;
+                //         // Check verification SMS code
+                //         if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
+                //             verificationSMS = verificationSMS || {};
+                //             return dbConfig.collection_smsVerificationLog.remove(
+                //                 {_id: verificationSMS._id}
+                //             ).then(
+                //                 () => {
+                //                     smsLogDetail = {tel: verificationSMS.tel, message: verificationSMS.code};
+                //                     dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
+                //                     return Q.resolve(true);
+                //                 }
+                //             )
+                //         }
+                //         else {
+                //             return Q.reject({
+                //                 status: constServerCode.VALIDATION_CODE_INVALID,
+                //                 name: "ValidationError",
+                //                 message: "Invalid SMS Validation Code"
+                //             });
+                //         }
+                //     }
+                // );
             }
         ).then(
             result => {
                 if (result) {
+                    verificationSmsDetail = result;
                     let queryPlayer = {
                         platform: platformObjId,
                         playerId: playerData ? playerData.playerId : null
@@ -708,37 +699,7 @@ let dbPlayerPartner = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        platform.smsVerificationExpireTime = platform.smsVerificationExpireTime || 5;
-                        let smsExpiredDate = new Date();
-                        smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platformData.smsVerificationExpireTime);
-                        // Check verification SMS match
-                        return dbConfig.collection_smsVerificationLog.findOne({
-                            platformObjId: playerObj.platform,
-                            tel: playerObj.phoneNumber,
-                            createTime: {$gte: smsExpiredDate}
-                        }).sort({createTime: -1}).then(
-                            verificationSMS => {
-                                // Check verification SMS code
-                                if (verificationSMS && verificationSMS.code && verificationSMS.code == updateData.smsCode) {
-                                    verificationSMS = verificationSMS || {};
-                                    return dbConfig.collection_smsVerificationLog.remove(
-                                        {_id: verificationSMS._id}
-                                    ).then(
-                                        () => {
-                                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
-                                            return Q.resolve(true);
-                                        }
-                                    )
-                                }
-                                else {
-                                    return Q.reject({
-                                        status: constServerCode.VALIDATION_CODE_INVALID,
-                                        name: "ValidationError",
-                                        message: "Invalid SMS Validation Code"
-                                    });
-                                }
-                            }
-                        )
+                        return dbPlayerMail.verifySMSValidationCode(playerObj.phoneNumber, platformData, updateData.smsCode);
                     }
                 }
                 else {

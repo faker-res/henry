@@ -16,6 +16,7 @@ var utility = require('./../modules/encrypt');
 var constPlayerStatus = require('./../const/constPlayerStatus');
 var constPlayerTrustLevel = require('./../const/constPlayerTrustLevel');
 var constPlayerPermission = require('./../const/constPlayerPermissions');
+var constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
 var constSystemParam = require('../const/constSystemParam');
 var constDepositMethod = require('../const/constDepositMethod');
 var mongoose = require('mongoose');
@@ -86,35 +87,45 @@ function socketActionPlayer(socketIO, socket) {
          */
         createPlayerRewardPointsRecord: function createPlayerRewardPointsRecord(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data);
-            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerRewardPointsRecord, [data.platformId, data.data.playerId, data.data.points, data.data.playerName, data.data.playerLevel, data.data.progress], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformId && data.playerId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerRewardPointsRecord, [data.platformId, data.playerId], actionName, isValidData);
         },
 
         /**
-         * Update player info with reward points record based on player id and platform id
+         * Remove a new reward points record based on player data
          */
-        upsertPlayerInfoRewardPointsObjId: function upsertPlayerInfoRewardPointsObjId(data) {
+        removePlayerRewardPointsRecord: function removePlayerRewardPointsRecord(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.playerId && data.platformId && data.rewardPointsObjId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.upsertPlayerInfoRewardPointsObjId, [data.playerId, data.platformId, data.rewardPointsObjId], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformId && data.playerId && data.rewardPointsObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.removePlayerRewardPointsRecord, [data.platformId, data.playerId, data.rewardPointsObjId], actionName, isValidData);
         },
 
-        /**
-         * Get player reward points record based on player rewardPointsObjId
-         */
-        getPlayerRewardPointsRecord: function getPlayerRewardPointsRecord(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.rewardPointsObjId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerRewardPointsRecord, [data.rewardPointsObjId], actionName, isValidData);
-        },
 
         /**
          * Get player reward points record based on player rewardPointsObjId
          */
         updatePlayerRewardPointsRecord: function updatePlayerRewardPointsRecord(data) {
             let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerObjId && data.platformObjId && data.updateAmount);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.playerObjId, data.platformObjId, data.updateAmount, data.remark, getAdminName(), getAdminId()], actionName, isValidData);
+        },
+
+        /**
+         * Get player reward points daily limit
+         */
+        getPlayerRewardPointsDailyLimit: function getPlayerRewardPointsDailyLimit(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerLevel);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerRewardPointsDailyLimit, [data.platformObjId, data.playerLevel], actionName, isValidData);
+        },
+
+        /**
+         * Get player reward points daily converted points
+         */
+        getPlayerRewardPointsDailyConvertedPoints: function getPlayerRewardPointsDailyConvertedPoints(data) {
+            let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.rewardPointsObjId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerRewardPointsRecord, [data.rewardPointsObjId, data.data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints, [data.rewardPointsObjId], actionName, isValidData);
         },
 
         /**
@@ -1030,10 +1041,27 @@ function socketActionPlayer(socketIO, socket) {
         convertRewardPointsToCredit: function convertRewardPointsToCredit(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.convertRewardPointsAmount);
-            let userAgent = '';
-            socketUtil.emitter(self.socket, dbPlayerRewardPoints.convertRewardPointsToCredit, [data.playerId, data.convertRewardPointsAmount, data.remark , getAdminId(), getAdminName()], actionName, isValidData);
+            let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
+            socketUtil.emitter(self.socket, dbPlayerRewardPoints.convertRewardPointsToCredit, [data.playerId, data.convertRewardPointsAmount, data.remark, userAgent, getAdminId(), getAdminName()], actionName, isValidData);
         },
+        getWithdrawalInfo: function getWithdrawalInfo(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getWithdrawalInfo, [data.platformId, data.playerId], actionName, isValidData);
+        },
+        //
+        // this.getWithdrawalInfo.onRequest = function (wsFunc, conn, data) {
+        //     var isValidData = Boolean(conn.playerId && data.platformId);
+        //     WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWithdrawalInfo, [data.platformId, conn.playerId], isValidData, false, false, true);
+        // };
 
+
+        getCreditDetail: function getCreditDetail(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
+            socketUtil.emitter(self.socket, dbPlayerInfo.getCreditDetail, [data.playerObjId, getAdminId(), getAdminName()], actionName, isValidData);
+        }
     };
     socketActionPlayer.actions = this.actions;
 }
