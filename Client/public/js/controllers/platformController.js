@@ -9378,9 +9378,9 @@ define(['js/app'], function (myApp) {
                     });
                     // $('#playerExpenseTable').DataTable(option);
                     var a = utilService.createDatatableWithFooter('#playerExpenseTable', option, {
-                        4: summary.validAmountSum,
-                        5: summary.amountSum,
-                        6: summary.bonusAmountSum,
+                        9: summary.validAmountSum,
+                        10: summary.bonusAmountSum,
+                        11: summary.amountSum,
                         // 8: summary.commissionAmountSum
                     });
                     vm.playerExpenseLog.pageObj.init({maxCount: vm.playerExpenseLog.totalCount}, newSearch);
