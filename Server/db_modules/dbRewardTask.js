@@ -28,7 +28,9 @@ var dbProposal = require('../db_modules/dbProposal');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var dbGameProvider = require('../db_modules/dbGameProvider');
 const ObjectId = mongoose.Types.ObjectId;
+
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+const dbRewardUtil = require("../db_common/dbRewardUtility");
 
 const dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
 
@@ -416,7 +418,8 @@ const dbRewardTask = {
                     rewardTaskProposalQuery.mainType = {$in: ["TopUp","Reward"]};
                     rewardTaskProposalQuery.$or = [
                         {'data.providerGroup': {$exists: true, $eq: null}},
-                        {'data.providerGroup': {$exists: false}}
+                        {'data.providerGroup': {$exists: false}},
+                        {'data.providerGroup': ""},
                     ]
                 } else {
                     rewardTaskProposalQuery['data.providerGroup'] = {$in: [ObjectId(query._id), String(query._id)]};
@@ -461,7 +464,6 @@ const dbRewardTask = {
 
                             item.data.topUpProposalId = item.data ? item.data.proposalId : '';
                             item.data.topUpAmount = item.data ? item.data.amount : '';
-                            item.data.rewardAmount = 0;
                             item.data.bonusAmount = 0;
                             item.data.currentAmount = item.data.currentAmt;
                             item.data.requiredBonusAmount = 0;
@@ -2119,7 +2121,9 @@ const dbRewardTask = {
                 deferred.reject(error);
             }
         );
-    }
+    },
+
+    getConsumptionReturnPeriodTime: (period) => dbRewardUtil.getConsumptionReturnPeriodTime(period)
 
 };
 

@@ -1100,22 +1100,30 @@ define(['js/app'], function (myApp) {
                     });
             };
 
+            function getConsumptionReturnPeriodTime (event) {
+                return $scope.$socketPromise('getConsumptionReturnPeriodTime', {period: event.settlementPeriod}).then(res => {
+                    $scope.$evalAsync(() => {
+                        event.settlementStartTime = vm.dateReformat(res.data.startTime);
+                        event.settlementEndTime = vm.dateReformat(res.data.endTime);
+                    })
+                })
+            };
+
             vm.startPlatformPlayerConsumptionReturnSettlement = function ($event) {
                 vm.playerConsumptionReturnSettlement = {
                     result: false,
                     status: 'ready'
                 };
 
-                socketService.$socket($scope.AppSocket, 'getYesterdayConsumptionReturnSGTime',
-                    {},
-                    ret => {
-                        vm.playerConsumptionReturnSettlement.startTime = vm.dateReformat(ret.data.startTime);
-                        vm.playerConsumptionReturnSettlement.endTime = vm.dateReformat(ret.data.endTime);
-                        $scope.safeApply();
-                    });
+                let p = Promise.resolve();
+
+                vm.allRewardEvent.map(event => {
+                    if (event && event.settlementPeriod && event.type.name == "PlayerConsumptionReturn") {
+                        p = p.then(() => getConsumptionReturnPeriodTime(event))
+                    }
+                });
 
                 $('#playerConsumptionReturnSettlementModal').modal('show');
-                $scope.safeApply();
             };
 
             vm.startPlatformRTGEventSettlement = function (event) {
@@ -1185,9 +1193,21 @@ define(['js/app'], function (myApp) {
             };
 
             vm.performPlayerConsumptionReturnSettlement = function () {
+                let eventArr = [];
+                let socketParam = {platformId: vm.selectedPlatform.id};
+
                 vm.playerConsumptionReturnSettlement.status = 'processing';
+
+                $('#playerConsumptionReturnSettlementTbl tbody input[type="checkbox"]:checked').each((i, v) => {
+                    eventArr.push(v.value);
+                })
+
+                if (eventArr.length > 0) {
+                    socketParam.selectedEvent = eventArr;
+                }
+
                 socketService.$socket($scope.AppSocket, 'startPlatformPlayerConsumptionReturnSettlement',
-                    {platformId: vm.selectedPlatform.id},
+                    socketParam,
                     function (data) {
                         console.log('playerConsumptionReturn', data);
                         vm.playerConsumptionReturnSettlement.status = 'completed';
@@ -9001,27 +9021,33 @@ define(['js/app'], function (myApp) {
                 var newproposalQuery = {};
                 var proposalNames = $('select#selectProposalType').multipleSelect("getSelects");
                 newproposalQuery.proposalTypeName = [];
-                vm.allProposalType.filter(item => {
-                    if (proposalNames.indexOf(item.name) > -1) {
-                        newproposalQuery.proposalTypeName.push(item.name);
-                    }
-                });
+                if (vm.allProposalType.length != proposalNames.length) {
+                    vm.allProposalType.filter(item => {
+                        if (proposalNames.indexOf(item.name) > -1) {
+                            newproposalQuery.proposalTypeName.push(item.name);
+                        }
+                    });
+                }
 
                 var rewardTypes = $('select#selectRewardType').multipleSelect("getSelects");
                 newproposalQuery.eventName = [];
-                vm.rewardList.filter(item => {
-                    if (rewardTypes.indexOf(item.name) > -1) {
-                        newproposalQuery.eventName.push(item.name);
-                    }
-                });
+                if (vm.rewardList.length != rewardTypes.length) {
+                    vm.rewardList.filter(item => {
+                        if (rewardTypes.indexOf(item.name) > -1) {
+                            newproposalQuery.eventName.push(item.name);
+                        }
+                    });
+                }
 
                 var promoType = $('select#selectPromoType').multipleSelect("getSelects");
                 newproposalQuery.promoTypeName = [];
-                vm.promoTypeList.filter(item => {
-                    if (promoType.indexOf(item.name) > -1) {
-                        newproposalQuery.promoTypeName.push(item.name);
-                    }
-                });
+                if (vm.promoTypeList.length != promoType.length) {
+                    vm.promoTypeList.filter(item => {
+                        if (promoType.indexOf(item.name) > -1) {
+                            newproposalQuery.promoTypeName.push(item.name);
+                        }
+                    });
+                }
 
                 newproposalQuery.status = [];
                 if (vm.proposalFilterstatus == "all") {
@@ -9047,15 +9073,9 @@ define(['js/app'], function (myApp) {
                     sortCol: vm.playerProposal.sortCol,
                     status: newproposalQuery.status,
                     playerId: vm.selectedSinglePlayer._id,
-                    // eventName: newproposalQuery.eventName,
+                    eventName: newproposalQuery.eventName,
                     promoTypeName: newproposalQuery.promoTypeName
                 };
-                
-                if(newproposalQuery.eventName.length === vm.rewardList.length){
-                    sendData.eventName = [];
-                }else{
-                    sendData.eventName = newproposalQuery.eventName;
-                }
                 
                 socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
                     console.log('playerproposal', data);
@@ -9358,9 +9378,9 @@ define(['js/app'], function (myApp) {
                     });
                     // $('#playerExpenseTable').DataTable(option);
                     var a = utilService.createDatatableWithFooter('#playerExpenseTable', option, {
-                        4: summary.validAmountSum,
-                        5: summary.amountSum,
-                        6: summary.bonusAmountSum,
+                        9: summary.validAmountSum,
+                        10: summary.bonusAmountSum,
+                        11: summary.amountSum,
                         // 8: summary.commissionAmountSum
                     });
                     vm.playerExpenseLog.pageObj.init({maxCount: vm.playerExpenseLog.totalCount}, newSearch);
@@ -10281,6 +10301,7 @@ define(['js/app'], function (myApp) {
                 vm.rewardTaskLog = vm.rewardTaskLog || {totalCount: 0, limit: 10, index: 0, query: {}};
                 vm.isUnlockTaskGroup = false;
                 vm.chosenProviderGroupId = null;
+                vm.rtgBonusAmt = {};
                 // utilService.actionAfterLoaded('#modalRewardTaskLog.in #rewardTaskLogQuery .endTime', function () {
                 utilService.actionAfterLoaded('#rewardTaskLogQuery .endTime', function () {
                     vm.rewardTaskLog.query.startTime = utilService.createDatePicker('#rewardTaskLogQuery .startTime');
@@ -10524,8 +10545,14 @@ define(['js/app'], function (myApp) {
                             advSearch: true,
                             sClass: "",
                             render: function (data, type, row) {
-                                let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
-                                var text = row.currentAmount$ + '/' + row.bonusAmount$;
+                                let providerGroupId;
+
+                                if (row.providerGroup) {
+                                    providerGroupId = row.providerGroup._id;
+                                }
+
+                                let text = row.currentAmount$ + '/' + row.bonusAmount$;
+                                vm.rtgBonusAmt[providerGroupId] = row.currentAmount$;
                                 vm.rewardTaskGroupCurrentAmt = row.currentAmount$;
                                 var result = '<div id="' + "pgReward" + providerGroupId + '">' + text + '</div>';
                                 return result;
@@ -10721,7 +10748,8 @@ define(['js/app'], function (myApp) {
                             let proposalSpendingAmt =
                                 vm.rewardTaskProposalData[i].data.spendingAmount
                                     || vm.rewardTaskProposalData[i].data.requiredUnlockAmount
-                                    || vm.rewardTaskProposalData[i].data.amount;
+                                    || vm.rewardTaskProposalData[i].data.amount
+                                    || 0;
 
                             let forbidXIMAAmt = 0;
                             let spendingAmount = proposalSpendingAmt;
@@ -10869,9 +10897,9 @@ define(['js/app'], function (myApp) {
                 if (!vm.getRewardTaskGroupProposalLoading) {
                     vm.getRewardTaskGroupProposalLoading = true;
                     socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
+                        console.log("vm.getRewardTaskGroupProposal data", data);
                         vm.rewardTaskProposalData = data.data.data;
                         vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
-                        console.log("vm.simpleRewardProposalData", vm.simpleRewardProposalData);
                         let summary = data.data.summary;
                         let result = data.data.data;
                         result.forEach((item,index) => {
@@ -10904,18 +10932,20 @@ define(['js/app'], function (myApp) {
 
                             item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
                             item.archivedAmt$ = 0;
-                            if (vm.rewardTaskGroupCurrentAmt <= -(item.availableAmt$)) {
-                                vm.rewardTaskGroupCurrentAmt -= -(item.availableAmt$);
+                            if (vm.rtgBonusAmt[item.data.providerGroup] <= -(item.availableAmt$)) {
+                                vm.rtgBonusAmt[item.data.providerGroup] -= -(item.availableAmt$);
                                 item.archivedAmt$ = item.availableAmt$
-                            } else if (vm.rewardTaskGroupCurrentAmt != 0) {
-                                item.archivedAmt$ = -vm.rewardTaskGroupCurrentAmt;
-                                vm.rewardTaskGroupCurrentAmt = 0;
+                            } else if (vm.rtgBonusAmt[item.data.providerGroup] != 0) {
+                                item.archivedAmt$ = -vm.rtgBonusAmt[item.data.providerGroup];
+                                vm.rtgBonusAmt[item.data.providerGroup] = 0;
                             }
 
                             item.isArchived =
                                 item.archivedAmt$ == item.availableAmt$
 
                         });
+
+                        console.log("vm.getRewardTaskGroupProposal", result);
 
                         $scope.$evalAsync(vm.drawRewardTaskTable(true, result, 0, summary, 0, 0));
                         // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
