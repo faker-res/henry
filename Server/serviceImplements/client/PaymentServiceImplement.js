@@ -146,7 +146,7 @@ var PaymentServiceImplement = function () {
             data.userAgent = userAgent;
         }
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName && Number.isInteger(data.amount) && data.amount < 10000000);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [data.userAgent, conn.playerId, data.amount, data.alipayName, data.alipayAccount, data.bonusCode, "CLIENT"], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [data.userAgent, conn.playerId, data.amount, data.alipayName, data.alipayAccount, data.bonusCode, "CLIENT", null, null, data.realName], isValidData);
     };
 
     this.requestWechatTopup.expectsData = 'amount: Number|String';

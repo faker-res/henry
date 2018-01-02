@@ -16,6 +16,7 @@ let dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
 let dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 let dbRewardPointsLvlConfig = require('../db_modules/dbRewardPointsLvlConfig');
 let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
+let dbGameProvider = require('../db_modules/dbGameProvider');
 
 describe("Test player reward points convert", function () {
 
@@ -28,6 +29,13 @@ describe("Test player reward points convert", function () {
     let testPlatformId = null;
     let testPlatformRewardPointLevelConfig = null;
 
+    let testPlatformGame = null;
+    let testPlatformGameProvider = null;
+    let testPlatformGameProviderGroup = null;
+
+    let rewardPointRewardTask = null;
+    let rewardAmountToPlayer = null;
+
     const pointToCreditAutoMaxPoints = 20;
     const pointToCreditAutoRate = 5;
     const pointToCreditManualMaxPoints = 500;
@@ -36,6 +44,7 @@ describe("Test player reward points convert", function () {
     const spendingAmountOnReward = 5;
 
     const amountRewardPointsAddToPlayer = 100;
+    const isUseProviderGroup = false;
 
 
     /* Test 1 - create a new platform before the creation of a new player */
@@ -53,6 +62,49 @@ describe("Test player reward points convert", function () {
         );
     });
 
+    /* Test 1.1 - create game provider and game for platform */
+    it('Should create game provider and game for platform', function (done) {
+        commonTestFunc.createTestGameProvider().then(
+            (gameProvider) => {
+                testPlatformGameProvider = gameProvider;
+                return commonTestFunc.createGame(testPlatformGameProvider._id);
+            },
+            (error) => {
+                done(error);
+            }
+        ).then(
+            (game) => {
+                testPlatformGame = game;
+                done();
+            },
+            (error) => {
+                done(error);
+            }
+        );
+    });
+
+    /* Test 1.2 - create game provider group */
+    it('Should create game provider group', function (done) {
+        let providerGroup = [{
+            name: 'asdas',
+            providers: [testPlatformGameProvider._id]
+        }];
+        dbGameProvider.updatePlatformProviderGroup(testPlatformObjId, providerGroup).then(
+            (gameProvider) => dbGameProvider.getPlatformProviderGroup(testPlatformObjId),
+            (error) => {
+                done(error);
+            }
+        ).then(
+            (gameProviderGroup) => {
+                testPlatformGameProviderGroup = gameProviderGroup[0];
+                done();
+            },
+            (error) => {
+                done(error);
+            }
+        );
+    });
+
     /* Test 2 - check and enable reward points system by default for new platform */
     it('Should check and enable reward points system by default for new platform', function (done) {
         if (testPlatform.usePointSystem !== false) {
@@ -60,7 +112,7 @@ describe("Test player reward points convert", function () {
         } else {
             dbConfig.collection_platform.findOneAndUpdate(
                 {_id: ObjectId(testPlatformObjId)},
-                {usePointSystem: true},
+                {usePointSystem: true, useProviderGroup: isUseProviderGroup},
                 {new: true}).lean().then(
                 (data) => {
                     testPlatform = data;
@@ -123,6 +175,7 @@ describe("Test player reward points convert", function () {
                         "dailyMaxPoints" : dailyMaxPoints,
                         "spendingAmountOnReward" : spendingAmountOnReward,
                         "levelObjId" : playerLevel._id,
+                        "providerGroup" : isUseProviderGroup? testPlatformGameProviderGroup._id : null,
                     };
                 });
                 return dbRewardPointsLvlConfig.upsertRewardPointsLvlConfig(rewardPointsLvlConfig);
@@ -210,11 +263,46 @@ describe("Test player reward points convert", function () {
             .sort({'createTime':-1}).lean().then(
             (player) => {
                 let convertPoint = amountRewardPointsAddToPlayer > pointToCreditManualMaxPoints? pointToCreditManualMaxPoints : amountRewardPointsAddToPlayer;
-                let credit = Math.floor(convertPoint / pointToCreditManualRate);
-                if (player.validCredit === credit) {
+                rewardAmountToPlayer = Math.floor(convertPoint / pointToCreditManualRate);
+
+                if (player.validCredit === rewardAmountToPlayer || (isUseProviderGroup && player.validCredit === 0)) {
                     done();
                 }else {
                     done('Player credit no match');
+                }
+            },
+            (error) => {
+                done(error);
+            }
+        )
+    });
+
+    /* Test 10 - check is add reward task */
+    it('Should check is add reward task', function (done) {
+        let getTaskProm = dbConfig.collection_rewardTask.findOne({
+            playerId: testPlayerObjId,
+            platformId: testPlatformObjId
+        });
+        if (isUseProviderGroup) {
+            getTaskProm = dbConfig.collection_rewardTaskGroup.findOne({
+                playerId: testPlayerObjId,
+                platformId: testPlatformObjId
+            });
+        }
+
+        getTaskProm.then(
+            (rewardTask) => {
+                if (rewardTask) {
+                    rewardPointRewardTask = rewardTask;
+                    if (!isUseProviderGroup && rewardAmountToPlayer * spendingAmountOnReward  === rewardPointRewardTask.requiredUnlockAmount) {
+                        done();
+                    } else if (isUseProviderGroup && rewardAmountToPlayer * spendingAmountOnReward === rewardPointRewardTask.targetConsumption) {
+                        done();
+                    } else {
+                        done('Random reward event proposal data and reward task no match');
+                    }
+                } else {
+                    done('Random reward event reward task no found');
                 }
             },
             (error) => {
