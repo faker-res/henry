@@ -244,7 +244,18 @@ var dbUtility = {
     },
 
     getLastWeekConsumptionReturnSGTime: function () {
-        var endTime = dbUtility.getPreviousSGMonday();
+        var endTime = dbUtility.getLastWeekSGTime();
+        endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
+        let startTime = moment(endTime).subtract(1, 'week').toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getCurrentWeekConsumptionReturnSGTime: function () {
+        var endTime = dbUtility.getCurrentWeekSGTime();
         endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
         let startTime = moment(endTime).subtract(1, 'week').toDate();
 
@@ -450,6 +461,20 @@ var dbUtility = {
             startTime: startTime,
             endTime: endTime
         };
+    },
+
+    getLastWeekConsumptionReturnSGTime: function (inputData) {
+        let lastBiWeekTime = dbUtility.getWeekTime();
+        let startTime = lastBiWeekTime.startTime;
+        let endTime = lastBiWeekTime.endTime;
+        startTime = new Date(startTime.getTime() + 12 * 60 * 60 * 1000);
+        endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+
     },
 
     getLastBiWeekConsumptionReturnSGTime: function (inputData) {
