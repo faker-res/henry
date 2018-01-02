@@ -7588,6 +7588,9 @@ define(['js/app'], function (myApp) {
                     let remark = (item.data && item.data.remark) ? $translate('remark') + ':' + item.data.remark + ', ' : '';
                     item.details$ = remark + item.detail.join(', ');
                     item.proposalId$ = item.data ? item.data.proposalId : '';
+                    item.totalAmountBefore$ = (Number(item.beforeAmount) + Number(item.beforeUnlockedAmount)).toFixed(2) + "(" + item.beforeAmount + "/" + item.beforeUnlockedAmount + ")";
+                    item.totalAmountAfter$ = (Number(item.curAmount) + Number(item.lockedAmount)).toFixed(2) + "(" + item.curAmount + "/" + item.lockedAmount + ")";
+                    item.totalChangedAmount$ = (Number(item.amount) + Number(item.changedLockedAmount)).toFixed(2) + "(" + item.amount + "/" + item.changedLockedAmount + ")";
                     return item;
                 });
 
@@ -7597,32 +7600,69 @@ define(['js/app'], function (myApp) {
                     columnDefs: [
                         {'sortCol': 'operationTime', bSortable: true, 'aTargets': [0]},
                         {'sortCol': 'operationType', bSortable: true, 'aTargets': [1]},
-                        {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
+                        // {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
                         {'title': $translate('CREATE_TIME'), data: 'createTime$'},
                         {'title': $translate('Type'), data: 'operationType$', sClass: "wordWrap width10Per"},
-                        {'title': $translate('PROPOSAL_ID'), data: 'proposalId$', sClass: "tbodyNoWrap"},
-                        {'title': $translate('Before Amount'), data: 'beforeAmount', sClass: "sumText wordWrap"},
-                        {'title': $translate('CHANGE_AMOUNT'), data: 'amount', sClass: "sumFloat tbodyNoWrap"},
-                        {'title': $translate('CUR_AMOUNT'), data: 'curAmount', sClass: "tbodyNoWrap"},
+                        {'title': $translate('Before Amount'), data: 'totalAmountBefore$', sClass: "sumText wordWrap"},
                         {
-                            'title': $translate('Before UnlockedAmount'),
-                            data: 'beforeUnlockedAmount',
-                            sClass: "tbodyNoWrap"
+                            'title': $translate('AMOUNT_CHANGE'),
+                            data: 'totalChangedAmount$',
+                            sClass: "tbodyNoWrap",
+                            render: function (data, type, row) {
+                                var link = $('<span>', {
+                                    'class': ((Number(row.amount) + Number(row.changedLockedAmount)) < 0? "text-danger" : "")
+                                }).text(data);
+                                return link.prop('outerHTML');
+
+                            }
                         },
+                        {'title': $translate('CUR_AMOUNT'), data: 'totalAmountAfter$', sClass: "sumText wordWrap"},
                         {
-                            'title': $translate('Change UnlockedAmount'),
-                            data: 'changedLockedAmount',
-                            sClass: "tbodyNoWrap"
-                        },
-                        {'title': $translate('UNLOCKAMOUNT'), data: 'lockedAmount', sClass: "tbodyNoWrap"},
-                        {'title': $translate('View Details'), data: 'details$', sClass: "wordWrap width30Per"}
+                            'title': $translate('View Details'),
+                            data: 'details$',
+                            sClass: "wordWrap width30Per",
+                            render: function (data, type, row) {
+                                if (row.proposalId$) {
+                                    return $translate('PROPOSAL_NO') + ": " + row.proposalId$;
+                                } else {
+                                    let details = "";
+                                    for (let i = 0; i < Object.keys(row.data).length; i++) {
+                                        if (Object.keys(row.data)[i] == "transferId" || Object.keys(row.data)[i] == "providerName"){
+                                            if (details)
+                                                details += "/ ";
+                                            details += $translate(Object.keys(row.data)[i]) + ": " + row.data[Object.keys(row.data)[i]];
+                                        }
+                                    }
+                                    return details;
+                                }
+                            }
+                        }
+                        
+                        // {'title': $translate('CREATE_TIME'), data: 'createTime$'},
+                        // {'title': $translate('Type'), data: 'operationType$', sClass: "wordWrap width10Per"},
+                        // {'title': $translate('PROPOSAL_ID'), data: 'proposalId$', sClass: "tbodyNoWrap"},
+                        // {'title': $translate('Before Amount'), data: 'beforeAmount', sClass: "sumText wordWrap"},
+                        // {'title': $translate('CHANGE_AMOUNT'), data: 'amount', sClass: "sumFloat tbodyNoWrap"},
+                        // {'title': $translate('CUR_AMOUNT'), data: 'curAmount', sClass: "tbodyNoWrap"},
+                        // {
+                        //     'title': $translate('Before UnlockedAmount'),
+                        //     data: 'beforeUnlockedAmount',
+                        //     sClass: "tbodyNoWrap"
+                        // },
+                        // {
+                        //     'title': $translate('Change UnlockedAmount'),
+                        //     data: 'changedLockedAmount',
+                        //     sClass: "tbodyNoWrap"
+                        // },
+                        // {'title': $translate('UNLOCKAMOUNT'), data: 'lockedAmount', sClass: "tbodyNoWrap"},
+                        // {'title': $translate('View Details'), data: 'details$', sClass: "wordWrap width30Per"}
                     ],
                     paging: false,
                 });
-                var a = utilService.createDatatableWithFooter('#playerCreditChangeLogTable', option, {4: totalChangedAmount});
+                var a = utilService.createDatatableWithFooter('#playerCreditChangeLogTable', option, {3: totalChangedAmount});
                 vm.playerCreditChangeLog.pageObj.init({maxCount: size}, newSearch);
 
                 $('#playerCreditChangeLogTable').off('order.dt');
