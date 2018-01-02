@@ -268,17 +268,17 @@ let dbPlayerLevelInfo = {
 
                                     let meetsEnoughConditions = false;
 
-                                    if (conditionSet.topupMinimum > 0 || conditionSet.consumptionMinimum > 0) {
+                                    if (conditionSet.topupMinimum >= 0 || conditionSet.consumptionMinimum >= 0) {
                                         if (conditionSet.andConditions) {
                                             meetsEnoughConditions = meetsTopupCondition && meetsConsumptionCondition
                                         } else {
-                                            if (conditionSet.topupMinimum <= 0) {
-                                                meetsEnoughConditions = meetsConsumptionCondition;
-                                            } else if (conditionSet.consumptionMinimum <= 0) {
-                                                meetsEnoughConditions = meetsTopupCondition;
-                                            } else {
+                                            // if (conditionSet.topupMinimum <= 0) {
+                                            //     meetsEnoughConditions = meetsConsumptionCondition;
+                                            // } else if (conditionSet.consumptionMinimum <= 0) {
+                                            //     meetsEnoughConditions = meetsTopupCondition;
+                                            // } else {
                                                 meetsEnoughConditions = meetsTopupCondition || meetsConsumptionCondition
-                                            }
+                                            // }
                                         }
                                     } else {
                                         levelObjId = playerData.playerLevel.value > 0 ? levels[0]._id : null;
@@ -370,7 +370,9 @@ let dbPlayerLevelInfo = {
                                         proposal.rewardAmount = levelUpObjArr[index].reward.bonusCredit;
                                         proposal.isRewardTask = levelUpObjArr[index].reward.isRewardTask;
                                         if (proposal.isRewardTask) {
-                                            proposal.providerGroup = levelUpObjArr[index].reward.providerGroup;
+                                            if (levelUpObjArr[index].reward.providerGroup && levelUpObjArr[index].reward.providerGroup !== "free") {
+                                                proposal.providerGroup = levelUpObjArr[index].reward.providerGroup;
+                                            }
                                             proposal.requiredUnlockAmount = levelUpObjArr[index].reward.requiredUnlockTimes * levelUpObjArr[index].reward.bonusCredit;
                                         }
 

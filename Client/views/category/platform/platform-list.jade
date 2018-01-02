@@ -390,9 +390,20 @@
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{"Player Consumption Return Settlement" | translate}} : {{vm.selectedPlatform.text}}
             .modal-body
-                label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
-                br
-                label {{vm.playerConsumptionReturnSettlement.startTime}} -> {{vm.playerConsumptionReturnSettlement.endTime}}
+                //label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
+                //br
+                //label {{vm.playerConsumptionReturnSettlement.startTime}} -> {{vm.playerConsumptionReturnSettlement.endTime}}
+                table#playerConsumptionReturnSettlementTbl.common-table.playerLvlTable
+                    thead
+                        th
+                        th {{"Name" | translate}}
+                        th {{"Settlement Period" | translate}}
+                    tbody(ng-repeat='event in vm.allRewardEvent | filter: {type:{name:"PlayerConsumptionReturn"}}')
+                        tr
+                            td
+                                input(type="checkbox" ng-value="event")
+                            td {{event.name}}
+                            td {{event.settlementStartTime}} -> {{event.settlementEndTime}}
             .modal-footer
                 .form-control.inlineBlk(style='width:initial', ng-if='vm.playerConsumptionReturnSettlement.status=="completed"')
                     .text-danger {{vm.playerConsumptionReturnSettlement.result | translate}}

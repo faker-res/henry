@@ -1728,7 +1728,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime) {
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -1852,7 +1852,7 @@ var dbPlayerTopUpRecord = {
                             proposalId: proposalData.proposalId,
                             platformId: player.platform.platformId,
                             userName: player.name,
-                            realName: player.realName || "",
+                            realName: realName || player.realName || "",
                             aliPayAccount: 1,
                             amount: amount,
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
@@ -2494,11 +2494,11 @@ var dbPlayerTopUpRecord = {
                             break;
                         case 3: //alipay
                             proposalType = constProposalType.PLAYER_ALIPAY_TOP_UP;
-                            return dbPlayerTopUpRecord.requestAlipayTopup(null, playerData.playerId, amount, "test", "test", data.bonusCode, "CLIENT");
+                            return dbPlayerTopUpRecord.requestAlipayTopup(null, playerData.playerId, amount, "test", "test", requestData.bonusCode, "CLIENT");
                             break;
                         case 4: //wechat
                             proposalType = constProposalType.PLAYER_WECHAT_TOP_UP;
-                            return dbPlayerTopUpRecord.requestWechatTopup(null, playerData.playerId, amount, "test", "test", data.bonusCode, "CLIENT");
+                            return dbPlayerTopUpRecord.requestWechatTopup(null, playerData.playerId, amount, "test", "test", requestData.bonusCode, "CLIENT");
                             break;
                     }
                 }
@@ -2529,8 +2529,8 @@ var dbPlayerTopUpRecord = {
                                     dbconfig.collection_proposal.remove({_id: proposalData._id}).then();
                                     delete proposalData._id;
                                     delete proposalData.proposalId;
-                                    proposalData.createTime = new Date(createTime);
-                                    proposalData.settleTime = new Date(createTime);
+                                    proposalData.createTime = dbUtility.getSGTimeOf(createTime);
+                                    proposalData.settleTime = dbUtility.getSGTimeOf(createTime);
                                     let newProposal = new dbconfig.collection_proposal(proposalData);
                                     return newProposal.save();
                                 }
@@ -2546,8 +2546,8 @@ var dbPlayerTopUpRecord = {
                                 if (recordData && recordData[0]) {
                                     dbconfig.collection_playerTopUpRecord.remove({_id: recordData[0]._id}).then();
                                     delete recordData[0]._id;
-                                    recordData[0].createTime = new Date(createTime);
-                                    recordData[0].settlementTime = new Date(createTime);
+                                    recordData[0].createTime = dbUtility.getSGTimeOf(createTime);
+                                    recordData[0].settlementTime = dbUtility.getSGTimeOf(createTime);
                                     let newRecord = new dbconfig.collection_playerTopUpRecord(recordData[0]);
                                     return newRecord.save();
                                 }
