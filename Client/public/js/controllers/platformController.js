@@ -15483,6 +15483,7 @@ define(['js/app'], function (myApp) {
                     condition: vm.rewardCondition,
                     validStartTime: vm.showReward.validStartTime || null,
                     validEndTime: vm.showReward.validEndTime || null,
+
                 };
 
                 if (vm.showRewardTypeData.isGrouped === true) {
@@ -15542,7 +15543,9 @@ define(['js/app'], function (myApp) {
                         curReward.param.rewardParam.push(levelParam);
                     });
                 } else {
-
+                    if(vm.showReward.ximaRequired !=null){
+                        curReward.condition.ximaRequired = vm.showReward.ximaRequired;
+                    }
                 }
 
 
@@ -15649,6 +15652,9 @@ define(['js/app'], function (myApp) {
                     sendData.canApplyFromClient = vm.showReward.canApplyFromClient;
                     sendData.validStartTime = vm.showReward.validStartTime || null;
                     sendData.validEndTime = vm.showReward.validEndTime || null;
+                    if(vm.showReward.ximaRequired !=null){
+                        sendData.condition.ximaRequired = vm.showReward.ximaRequired;
+                    }
                 }
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                 console.log('vm.rewardMainCondition', vm.rewardMainCondition);

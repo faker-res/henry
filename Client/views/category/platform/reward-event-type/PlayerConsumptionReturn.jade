@@ -10,6 +10,9 @@
 //.full-width-input-block
 //    label {{vm.showRewardTypeData.params.params.numOfDays.des | translate}}
 //    input.form-control(type='number', ng-model='vm.rewardParams.numOfDays', disabled='vm.platformRewardShowEdit()')
+.full-width-input-block
+    label {{"xima required N time withdraw" | translate}}
+    input.form-control(type='number', ng-model='vm.showReward.ximaRequired', ng-disabled='vm.platformRewardShowEdit()', required)
 .well
     label {{vm.showRewardTypeData.params.params.ratio.des | translate}}
     div(style='width:100%;overflow-x:scroll')
