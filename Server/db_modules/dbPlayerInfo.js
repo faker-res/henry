@@ -9843,6 +9843,7 @@ let dbPlayerInfo = {
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
+                                    rewardData.smsCode = data.smsCode;
                                     return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
                                     break;
                                 default:
