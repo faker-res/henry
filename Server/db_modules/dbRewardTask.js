@@ -721,7 +721,7 @@ const dbRewardTask = {
             let topUpRecordId = item.data.topUpRecordId ? item.data.topUpRecordId : null;
             let sendQuery = {};
             if (topUpRecordId) {
-                sendQuery = {proposalId: proposalId};
+                sendQuery = {_id: topUpRecordId};
             } else {
                 sendQuery = {proposalId: proposalId};
             }
