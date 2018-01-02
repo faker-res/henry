@@ -12163,6 +12163,7 @@ let dbPlayerInfo = {
                             }
 
                             if(bonusDetails){
+                                result.ximaWithdraw = playerDetails.ximaWithdraw || 0;
                                 result.freeTimes = bonusDetails.bonusCharges;
                                 result.serviceCharge = parseFloat(bonusDetails.bonusPercentageCharges * 0.01);
                             }
