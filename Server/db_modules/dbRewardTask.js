@@ -178,7 +178,6 @@ const dbRewardTask = {
         ).then(
             providerGroup2 => {
                 if (providerGroup2) {
-                    console.log("walaoprovider",providerGroup2);
                     let eventName = proposalData && proposalData.data && proposalData.data.eventName ? proposalData.data.eventName : "";
 
                     // Create credit change log for this reward

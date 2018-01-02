@@ -7574,7 +7574,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.drawPagedCreditChangeQueryTable = function (data, size, totalChangedAmount, newSearch) {
-                console.log("walaohere",data)
                 let tableData = data.map(item => {
                     item.createTime$ = vm.dateReformat(item.operationTime);
                     item.operationType$ = $translate(item.operationType);
@@ -7626,7 +7625,12 @@ define(['js/app'], function (myApp) {
                             sClass: "wordWrap width30Per",
                             render: function (data, type, row) {
                                 if (row.proposalId$) {
-                                    return $translate('PROPOSAL_NO') + ": " + row.proposalId$;
+                                    let proposalText = $translate('PROPOSAL_NO') + ": " + row.proposalId$;
+                                    var link = $('<a>', {
+                                        'ng-click': 'vm.showProposalModalNoObjId("' + row.proposalId$ + '",1)'
+
+                                    }).text(proposalText);
+                                    return link.prop('outerHTML');
                                 } else {
                                     let details = "";
                                     for (let i = 0; i < Object.keys(row.data).length; i++) {
@@ -7661,6 +7665,9 @@ define(['js/app'], function (myApp) {
                         // {'title': $translate('View Details'), data: 'details$', sClass: "wordWrap width30Per"}
                     ],
                     paging: false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
                 });
                 var a = utilService.createDatatableWithFooter('#playerCreditChangeLogTable', option, {3: totalChangedAmount});
                 vm.playerCreditChangeLog.pageObj.init({maxCount: size}, newSearch);
@@ -17012,6 +17019,32 @@ define(['js/app'], function (myApp) {
                     })
                 }
             };
+
+        vm.showProposalModalNoObjId = function (proposalId, templateNo) {
+            socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
+                platformId: vm.selectedPlatform.id,
+                proposalId: proposalId
+            }, function (data) {
+                vm.selectedProposal = data.data;
+                let proposalDetail = $.extend({}, vm.selectedProposal.data);
+                let checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
+                for (let i in proposalDetail) {
+                    if (checkForHexRegExp.test(proposalDetail[i])) {
+                        delete proposalDetail[i];
+                    }
+                }
+                vm.selectedProposal.data = $.extend({}, proposalDetail);
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
+                $(tmpt).on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                })
+            })
+        };
 
 
         vm.showProposalModal = function (proposalId, templateNo) {
