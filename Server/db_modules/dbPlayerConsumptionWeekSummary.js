@@ -416,7 +416,7 @@ var dbPlayerConsumptionWeekSummary = {
      * Start calculate consumption return for player
      * @param {ObjectId} playerId
      */
-    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin) {
+    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin, eventCode) {
         var deferred = Q.defer();
         var platformData = null;
         var playerData = null;
@@ -446,7 +446,12 @@ var dbPlayerConsumptionWeekSummary = {
                     // }
 
                     platformData = data.platform;
-                    return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
+                    if( eventCode ){
+                        return dbRewardEvent.getPlatformRewardEventWithCode(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN, eventCode);
+                    }
+                    else{
+                        return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
+                    }
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect player data"});
@@ -562,7 +567,7 @@ var dbPlayerConsumptionWeekSummary = {
      * Get consumption return amount for player
      * @param {String} playerId
      */
-    getPlayerConsumptionReturn: function (playerId) {
+    getPlayerConsumptionReturn: function (playerId, eventCode) {
         var platformData = null;
         var playerData = null;
         let eventObj = null;
@@ -574,7 +579,12 @@ var dbPlayerConsumptionWeekSummary = {
                     if (data && data.platform) {
                         playerData = data;
                         platformData = data.platform;
-                        return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
+                        if( eventCode ){
+                            return dbRewardEvent.getPlatformRewardEventWithCode(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN, eventCode);
+                        }
+                        else{
+                            return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
+                        }
                     }
                     else {
                         return Q.reject({name: "DataError", message: "Player is not found"});
