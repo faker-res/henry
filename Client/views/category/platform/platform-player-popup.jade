@@ -892,7 +892,7 @@
                                 label.control-label(style='width:100%') {{'Bankcard' | translate}}
                                 select.form-control(ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.bankCards', value='{{v}}') <b>{{v.name}} ({{v.accountNumber}})</b>
+                                    option(ng-repeat='(i,v) in vm.bankCards | orderBy : "name"', value='{{v}}') <b>{{v.name}} ({{v.accountNumber}})</b>
                             .form-group-col-md-6
                                 label.control-label {{'DEPOSIT_METHOD' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.depositMethod')
@@ -946,7 +946,7 @@
                                 label {{'Alipay' | translate}}
                                 select.form-control#alipayOption(ng-model='vm.alipaysAcc',ng-change='vm.pickAlipayAcc(vm.alipaysAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.allAlipaysAcc', value='{{v}}') {{v.accountNumber}} {{v.name}}({{v.state | translate}})
+                                    option(ng-repeat='(i,v) in vm.allAlipaysAcc | orderBy : "accountNumber"', value='{{v}}') {{v.accountNumber}} {{v.name}}({{v.state | translate}})
                             .form-group.col-md-6
                                 .control-label
                                 label {{'alipayName' | translate}}
@@ -998,7 +998,7 @@
                                 label {{'WechatPay' | translate}}
                                 select.form-control#wechatpayOption(ng-model='vm.wechatpaysAcc',ng-change='vm.pickWechatPayAcc(vm.wechatpaysAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc', value='{{v}}') {{v.nickName}} {{v.accountNumber}} ({{v.state | translate}})
+                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc | orderBy : "nickName"', value='{{v}}') {{v.nickName}} {{v.accountNumber}} ({{v.state | translate}})
                             .form-group.col-md-6
                                 .control-label
                                 label {{'wechatPayName' | translate}}
