@@ -149,7 +149,7 @@ const dbRewardTask = {
                     // There are on-going reward task for this provider group
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                         _id: providerGroup._id
-                    }, updObj);
+                    }, updObj, {new: true});
                 }
                 else {
                     let saveObj = {
