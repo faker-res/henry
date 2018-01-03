@@ -10985,12 +10985,14 @@ define(['js/app'], function (myApp) {
                                 item.archivedAmt$ = item.availableAmt$
                             } else if (vm.rtgBonusAmt[item.data.providerGroup] != 0) {
                                 if (item.data.providerGroup === '') {
-                                    let archivedAmtEmpty = vm.rtgBonusAmt[item.data.providerGroup] ? vm.rtgBonusAmt[item.data.providerGroup] : 0;
+                                    let archivedAmtEmpty = vm.rtgBonusAmt["undefined"] ? vm.rtgBonusAmt["undefined"] : 0;
                                     item.archivedAmt$ = -archivedAmtEmpty;
+                                    vm.rtgBonusAmt["undefined"] = 0;
+
                                 } else {
                                     item.archivedAmt$ = -vm.rtgBonusAmt[item.data.providerGroup];
+                                    vm.rtgBonusAmt[item.data.providerGroup] = 0;
                                 }
-                                vm.rtgBonusAmt[item.data.providerGroup] = 0;
                             }
                             item.isArchived =
                                 item.archivedAmt$ == item.availableAmt$
