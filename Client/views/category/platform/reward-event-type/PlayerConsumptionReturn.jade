@@ -25,4 +25,4 @@
                         div
                             text {{coldata | translate}}
                             .percentage
-                                input.form-control(type="Number", min='0', percentage, style='display:inline-block', ng-model="vm.rewardParams.ratio[rowdata.value][col]", ng-disabled='vm.platformRewardShowEdit()')
+                                input.form-control(type="Number", min='0', percentage, style='display:inline-block; min-width:65px;', ng-model="vm.rewardParams.ratio[rowdata.value][col]", ng-disabled='vm.platformRewardShowEdit()')
