@@ -28,6 +28,7 @@ const dbGameProvider = require('../db_modules/dbGameProvider');
 const dbProposal = require('./../db_modules/dbProposal');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
 const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
+const dbPlayerMail = require('../db_modules/dbPlayerMail');
 const dbPlayerPayment = require('../db_modules/dbPlayerPayment');
 const dbPlayerTopUpRecord = require('../db_modules/dbPlayerTopUpRecord');
 const dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
@@ -3563,7 +3564,15 @@ let dbPlayerReward = {
                     return resultArr;
                 }
             );
+
+            // check sms verification
+            let checkSMSProm = Promise.resolve(true); // default promise as true if sms checking is not required
+            if (eventData.condition.needSMSVerification) {
+                checkSMSProm = dbPlayerMail.verifySMSValidationCode(playerData.phoneNumber, playerData.platform, rewardData.smsCode);
+            }
+
             promArr.push(countInRewardInterval);
+            promArr.push(checkSMSProm);
         }
 
         return Promise.all([todayTopupProm, todayPropsProm, topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
