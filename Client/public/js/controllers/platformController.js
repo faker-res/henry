@@ -10557,7 +10557,7 @@ define(['js/app'], function (myApp) {
                             sClass: "",
                             render: function (data, type, row) {
                                 data = data || '';
-                                let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
+                                let providerGroupId = row.providerGroup ? row.providerGroup._id : null;
                                 let link = $('<div>', {});
 
                                 if (data) {
