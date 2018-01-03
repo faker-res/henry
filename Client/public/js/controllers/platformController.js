@@ -9368,8 +9368,8 @@ define(['js/app'], function (myApp) {
                             record.bDirty$ = record.bDirty ? $translate('UNABLE') : $translate('ABLE');
                             record.roundResult$ = record.result || "";
                             record.roundId$ = record.roundNo || "";
-                            record.matchId$ = record.playerNo || "";
-                            record.gameType$ = record.playerNo || "";
+                            record.matchId$ = record.playNo || "";
+                            record.gameType$ = record.cpGameType || "";
                             record.betType$ = record.betType ||"";
                             record.remark$ = record.playDetail || "";
                             return record
