@@ -554,10 +554,15 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {json} eventData
      */
     calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest) {
-        let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekSGTime();
+        let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         if (bRequest) {
-            if (dbutility.isCurrentSGTimePassed12PM()) {
-                settleTime = dbutility.getTodayConsumptionReturnSGTime();
+            if(eventData.settlementPeriod == constSettlementPeriod.DAILY){
+                if (dbutility.isCurrentSGTimePassed12PM()) {
+                    settleTime = dbutility.getTodayConsumptionReturnSGTime();
+                }
+            }
+            else{
+                settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
             }
         }
         return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest);
@@ -665,10 +670,15 @@ var dbPlayerConsumptionWeekSummary = {
      * @param bRequest
      */
     getPlayerConsumptionReturnAmount: function (platformId, event, proposalTypeId, playerId, bDetail, bRequest) {
-        let settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekSGTime();
+        let settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         if (bRequest) {
-            if (dbutility.isCurrentSGTimePassed12PM()) {
-                settleTime = dbutility.getTodayConsumptionReturnSGTime();
+            if(event.settlementPeriod == constSettlementPeriod.DAILY){
+                if (dbutility.isCurrentSGTimePassed12PM()) {
+                    settleTime = dbutility.getTodayConsumptionReturnSGTime();
+                }
+            }
+            else{
+                settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
             }
         }
         var eventData = event.param;
