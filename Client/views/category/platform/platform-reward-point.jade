@@ -119,8 +119,8 @@ style.
                                 td(style="min-width:200px;")
                                     input.form-control(type='text' ng-model='val.rewardContent' ng-disabled='!val.isEditing')
                                 td(style="min-width:200px;")
-                                    button.btn.btn-primary(ng-if='val.isEditing && !val._id' ng-click='vm.createRewardPointsEvent(val);vm.endLoadWeekDay();' ng-disabled='!(val.rewardTitle && val.period)' style='margin: 0 5px;') {{'CONFIRM' | translate}}
-                                    button.btn.btn-primary(ng-if='val.isEditing && val._id' ng-click='vm.updateRewardPointsEvent(idx,val);' ng-disabled='!(val.rewardTitle && val.period)' style='margin: 0 5px;') {{'CONFIRM' | translate}}
+                                    button.btn.btn-primary(ng-if='val.isEditing && !val._id' ng-click='vm.createRewardPointsEvent(val);vm.endLoadWeekDay();' ng-disabled='!val.rewardTitle' style='margin: 0 5px;') {{'CONFIRM' | translate}}
+                                    button.btn.btn-primary(ng-if='val.isEditing && val._id' ng-click='vm.updateRewardPointsEvent(idx,val);' ng-disabled='!val.rewardTitle' style='margin: 0 5px;') {{'CONFIRM' | translate}}
                                     button.btn.btn-danger(ng-if='val.isEditing' ng-click='vm.rewardPointsTabClicked("loginRewardPoints");' style='margin: 0 5px;') {{'CANCEL' | translate}}
                                     button.btn.btn-primary(ng-if='!val.isEditing' ng-click='vm.rewardPointsEventSetDisable(idx,val,false);' style='margin: 0 5px;') {{'EDIT' | translate}}
                                     button.btn.btn-danger(ng-if='!val.isEditing' data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click="vm.deletingRewardPointsEvent=val" style='margin: 0 5px;') {{'DELETE' | translate}}
@@ -187,8 +187,8 @@ style.
                                 td(style="min-width:185px;")
                                     input.form-control(type='text' ng-model='val.rewardContent' ng-disabled='!val.isEditing')
                                 td(style="min-width:200px;")
-                                    button.btn.btn-primary(ng-if='val.isEditing && !val._id' ng-click='vm.createRewardPointsEvent(val);vm.endLoadWeekDay();' ng-disabled='!(val.rewardTitle && val.period)' style='margin: 1px 1px;') {{'CONFIRM' | translate}}
-                                    button.btn.btn-primary(ng-if='val.isEditing && val._id' ng-click='vm.updateRewardPointsEvent(idx,val);' ng-disabled='!(val.rewardTitle && val.period)' style='margin: 1px 1px;') {{'CONFIRM' | translate}}
+                                    button.btn.btn-primary(ng-if='val.isEditing && !val._id' ng-click='vm.createRewardPointsEvent(val);vm.endLoadWeekDay();' ng-disabled='!val.rewardTitle' style='margin: 1px 1px;') {{'CONFIRM' | translate}}
+                                    button.btn.btn-primary(ng-if='val.isEditing && val._id' ng-click='vm.updateRewardPointsEvent(idx,val);' ng-disabled='!val.rewardTitle' style='margin: 1px 1px;') {{'CONFIRM' | translate}}
                                     button.btn.btn-danger(ng-if='val.isEditing' ng-click='vm.rewardPointsTabClicked("topupRewardPoints");' style='margin: 1px 1px;') {{'CANCEL' | translate}}
                                     button.btn.btn-primary(ng-if='!val.isEditing' ng-click='vm.rewardPointsEventSetDisable(idx,val,false);' style='margin: 1px 1px;') {{'EDIT' | translate}}
                                     button.btn.btn-danger(ng-if='!val.isEditing' data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click="vm.deletingRewardPointsEvent=val" style='margin: 1px 1px;') {{'DELETE' | translate}}
@@ -261,8 +261,8 @@ style.
                                 td(style="min-width:185px;")
                                     input.form-control(type='text' ng-model='val.rewardContent' ng-disabled='!val.isEditing')
                                 td(style="min-width:200px;")
-                                    button.btn.btn-primary(ng-if='val.isEditing && !val._id' ng-click='vm.createRewardPointsEvent(val);vm.endLoadWeekDay();' ng-disabled='!(val.rewardTitle && val.period)' style='margin: 1px 1px;') {{'CONFIRM' | translate}}
-                                    button.btn.btn-primary(ng-if='val.isEditing && val._id' ng-click='vm.updateRewardPointsEvent(idx,val);' ng-disabled='!(val.rewardTitle && val.period)' style='margin: 1px 1px;') {{'CONFIRM' | translate}}
+                                    button.btn.btn-primary(ng-if='val.isEditing && !val._id' ng-click='vm.createRewardPointsEvent(val);vm.endLoadWeekDay();' ng-disabled='!val.rewardTitle' style='margin: 1px 1px;') {{'CONFIRM' | translate}}
+                                    button.btn.btn-primary(ng-if='val.isEditing && val._id' ng-click='vm.updateRewardPointsEvent(idx,val);' ng-disabled='!val.rewardTitle' style='margin: 1px 1px;') {{'CONFIRM' | translate}}
                                     button.btn.btn-danger(ng-if='val.isEditing' ng-click='vm.rewardPointsTabClicked("gameRewardPoints");' style='margin: 1px 1px;') {{'CANCEL' | translate}}
                                     button.btn.btn-primary(ng-if='!val.isEditing' ng-click='vm.rewardPointsEventSetDisable(idx,val,false);' style='margin: 1px 1px;') {{'EDIT' | translate}}
                                     button.btn.btn-danger(ng-if='!val.isEditing' data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click="vm.deletingRewardPointsEvent=val" style='margin: 1px 1px;') {{'DELETE' | translate}}
