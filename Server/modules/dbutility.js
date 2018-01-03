@@ -244,7 +244,7 @@ var dbUtility = {
     },
 
     getLastWeekConsumptionReturnSGTime: function () {
-        var endTime = dbUtility.getLastWeekSGTime();
+        var endTime = dbUtility.getLastWeekSGTime().endTime;
         endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
         let startTime = moment(endTime).subtract(1, 'week').toDate();
 
@@ -255,7 +255,7 @@ var dbUtility = {
     },
 
     getCurrentWeekConsumptionReturnSGTime: function () {
-        var endTime = dbUtility.getCurrentWeekSGTime();
+        var endTime = dbUtility.getCurrentWeekSGTime().endTime;
         endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
         let startTime = moment(endTime).subtract(1, 'week').toDate();
 
