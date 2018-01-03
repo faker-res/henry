@@ -187,7 +187,7 @@ var dbPlayerConsumptionWeekSummary = {
         });
     },
 
-    checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, bRequest) {
+    checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, bRequest, userAgent) {
         var deferred = Q.defer();
 
         var summaryProm = dbconfig.collection_playerConsumptionSummary.find(
@@ -291,6 +291,8 @@ var dbPlayerConsumptionWeekSummary = {
                                 }
                                 if (bReturn) {
                                     var summaryIds = thisPlayersConsumptionSummaries.map(summary => summary._id);
+                                    let spendingAmount = returnAmount < 0.01 ? 0 : returnAmount;
+                                    spendingAmount = Number.isInteger(eventData.param.consumptionTimesRequired)? spendingAmount *eventData.param.consumptionTimesRequired : spendingAmount;
                                     var proposalData = {
                                         type: proposalTypeId,
                                         entryType: bRequest ? constProposalEntryType.CLIENT : constProposalEntryType.SYSTEM,
@@ -303,7 +305,7 @@ var dbPlayerConsumptionWeekSummary = {
                                             eventName: eventData.name,
                                             eventCode: eventData.code,
                                             rewardAmount: returnAmount < 0.01 ? 0 : returnAmount,
-                                            spendingAmount: returnAmount < 0.01 ? 0 : returnAmount,
+                                            spendingAmount: spendingAmount,
                                             returnDetail: returnDetail,
                                             summaryIds: summaryIds,
                                             bConsumptionReturnRequest: bRequest,
@@ -313,6 +315,16 @@ var dbPlayerConsumptionWeekSummary = {
                                             endTime: endTime
                                         }
                                     };
+
+                                    if (userAgent) {
+                                        // userAgent no null means is not system
+                                        proposalData.inputDevice = dbutility.getInputDevice(userAgent);
+                                        proposalData.creator = {
+                                            type: 'player',
+                                            name: playerData.name,
+                                            id: playerData.playerId
+                                        }
+                                    }
                                     proms.push(dbProposal.createProposalWithTypeId(proposalTypeId, proposalData));
                                 }
                                 processedSummaries = processedSummaries.concat(thisPlayersConsumptionSummaries);
@@ -416,7 +428,7 @@ var dbPlayerConsumptionWeekSummary = {
      * Start calculate consumption return for player
      * @param {ObjectId} playerId
      */
-    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin) {
+    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin, eventCode,userAgent) {
         var deferred = Q.defer();
         var platformData = null;
         var playerData = null;
@@ -446,7 +458,12 @@ var dbPlayerConsumptionWeekSummary = {
                     // }
 
                     platformData = data.platform;
-                    return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
+                    if( eventCode ){
+                        return dbRewardEvent.getPlatformRewardEventWithCode(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN, eventCode);
+                    }
+                    else{
+                        return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
+                    }
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect player data"});
@@ -469,7 +486,7 @@ var dbPlayerConsumptionWeekSummary = {
                                     if (dbPlayerReward.isRewardEventForbidden(updatePlayer, eventsData._id)) {
                                         continue;
                                     }
-                                    proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest));
+                                    proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest, userAgent));
                                 }
                                 return Q.all(proms).then(
                                     data => {
@@ -548,21 +565,26 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {json} platformData
      * @param {json} eventData
      */
-    calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest) {
-        let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekSGTime();
+    calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest, userAgent = null) {
+        let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         if (bRequest) {
-            if (dbutility.isCurrentSGTimePassed12PM()) {
-                settleTime = dbutility.getTodayConsumptionReturnSGTime();
+            if(eventData.settlementPeriod == constSettlementPeriod.DAILY){
+                if (dbutility.isCurrentSGTimePassed12PM()) {
+                    settleTime = dbutility.getTodayConsumptionReturnSGTime();
+                }
+            }
+            else{
+                settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
             }
         }
-        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest);
+        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest, userAgent);
     },
 
     /**
      * Get consumption return amount for player
      * @param {String} playerId
      */
-    getPlayerConsumptionReturn: function (playerId) {
+    getPlayerConsumptionReturn: function (playerId, eventCode) {
         var platformData = null;
         var playerData = null;
         let eventObj = null;
@@ -574,7 +596,12 @@ var dbPlayerConsumptionWeekSummary = {
                     if (data && data.platform) {
                         playerData = data;
                         platformData = data.platform;
-                        return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
+                        if( eventCode ){
+                            return dbRewardEvent.getPlatformRewardEventWithCode(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN, eventCode);
+                        }
+                        else{
+                            return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
+                        }
                     }
                     else {
                         return Q.reject({name: "DataError", message: "Player is not found"});
@@ -655,10 +682,15 @@ var dbPlayerConsumptionWeekSummary = {
      * @param bRequest
      */
     getPlayerConsumptionReturnAmount: function (platformId, event, proposalTypeId, playerId, bDetail, bRequest) {
-        let settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekSGTime();
+        let settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         if (bRequest) {
-            if (dbutility.isCurrentSGTimePassed12PM()) {
-                settleTime = dbutility.getTodayConsumptionReturnSGTime();
+            if(event.settlementPeriod == constSettlementPeriod.DAILY){
+                if (dbutility.isCurrentSGTimePassed12PM()) {
+                    settleTime = dbutility.getTodayConsumptionReturnSGTime();
+                }
+            }
+            else{
+                settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
             }
         }
         var eventData = event.param;

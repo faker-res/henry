@@ -150,6 +150,24 @@ var dbRewardEvent = {
         );
     },
 
+    getPlatformRewardEventWithCode: function (platformId, rewardTypeName, eventCode) {
+        return dbconfig.collection_rewardType.findOne({name: rewardTypeName}).then(
+            function (typeData) {
+                if (typeData && typeData._id) {
+                    return dbconfig.collection_rewardEvent.find(
+                        {type: typeData._id, platform: platformId, code: eventCode}
+                    ).populate({path: "rewardType", model: dbconfig.collection_rewardType}).exec();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can't find reward type for type name"});
+                }
+            },
+            function (error) {
+                return Q.reject({name: "DBError", message: "Error finding reward type for type name", error: error});
+            }
+        );
+    },
+
     /**
      * Find reward events by query
      * @param {String} query

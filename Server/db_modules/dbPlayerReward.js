@@ -4225,6 +4225,11 @@ let dbPlayerReward = {
                             proposalData.data.consecutiveNumber = consecutiveNumber;
                         }
 
+                        if (rewardData && rewardData.selectedTopup && rewardData.selectedTopup.proposalId &&
+                            eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+                            proposalData.data.topUpProposalId = rewardData.selectedTopup.proposalId;
+                        }
+
                         if (rewardData.applyTargetDate) {
                             proposalData.data.applyTargetDate = todayTime.startTime;
                         }

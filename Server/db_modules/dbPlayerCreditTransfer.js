@@ -1132,7 +1132,7 @@ let dbPlayerCreditTransfer = {
                 if (res) {//create log
                     playerCredit = res.validCredit;
                     let lockedCredit = res.lockedCredit;
-                    dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, validCreditToAdd, constPlayerCreditChangeType.TRANSFER_OUT, playerCredit, lockedCredit, lockedCredit, null, {
+                    dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, playerCredit, constPlayerCreditChangeType.TRANSFER_OUT, playerCredit, lockedCredit, updateObj.rewardAmt, null, {
                         providerId: providerShortId,
                         providerName: cpName,
                         transferId: transferId,
