@@ -96,12 +96,12 @@ angular.module('myApp.directives', [])
             link: function(scope, ele, attr, ctrl){
                 //console.log("consumptionReturnPercentage2");
                 ctrl.$parsers.unshift(function(viewValue){
-                    console.log("percent directive viewValue=%s", viewValue);
+                   // console.log("percent directive viewValue=%s", viewValue);
                     let returnedValue= parseFloat(parseFloat(viewValue)/100).toFixed(5);
                     return Number(returnedValue);
                 });
                 ctrl.$formatters.unshift(function(modelValue){
-                    console.log("percent directive modelValue=%s", modelValue);
+                   // console.log("percent directive modelValue=%s", modelValue);
                     var scaledVal = parseFloat((parseFloat(modelValue) * 100).toFixed(3));
                     if (ele[0].tagName === 'INPUT') {
                         // If the value is for an <input>, we should return it raw.
