@@ -514,7 +514,13 @@ function checkProposalConsumption(proposal, platformObj) {
                         devCheckMsg += "ERROR (2): " + ex.toString() + "; ";
                     }
 
-                    if ((validConsumptionAmount + lostThreshold) < spendingAmount) {
+                    if (playerData.ximaWithdraw && proposal.data.amount && proposal.data.amount <= playerData.ximaWithdraw) {
+                        repeatMsg = "Withdrawal amount is within the ximaWithdraw amount: ximaWithdraw " + playerData.ximaWithdraw;
+                        repeatMsgChinese = "提款额在洗码提款额内：洗码提款额" + playerData.ximaWithdraw;
+                        checkMsg += "Withdrawal amount is within the ximaWithdraw amount: ximaWithdraw " + playerData.ximaWithdraw;
+                        checkMsgChinese += "提款额在洗码提款额内：洗码提款额" + playerData.ximaWithdraw;
+                    }
+                    else if ((validConsumptionAmount + lostThreshold) < spendingAmount) {
                         isApprove = false;
                         repeatMsg = "Insufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
                         repeatMsgChinese = "总投注额不足：流水 " + totalConsumptionAmount + " ，所需流水 " + totalSpendingAmount + "; ";
