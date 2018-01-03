@@ -9366,12 +9366,12 @@ define(['js/app'], function (myApp) {
                             record.commissionAmount$ = parseFloat(record.commissionAmount).toFixed(2);
                             // record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
                             record.bDirty$ = record.bDirty ? $translate('UNABLE') : $translate('ABLE');
-                            record.roundResult$ = "";
-                            record.roundId$ = "";
-                            record.matchId$ = "";
-                            record.gameType$ = "";
-                            record.betType$ = "";
-                            record.remark$ = "";
+                            record.roundResult$ = record.result || "";
+                            record.roundId$ = record.roundNo || "";
+                            record.matchId$ = record.playNo || "";
+                            record.gameType$ = record.cpGameType || "";
+                            record.betType$ = record.betType ||"";
+                            record.remark$ = record.playDetail || "";
                             return record
                         }
                     );
@@ -10557,7 +10557,7 @@ define(['js/app'], function (myApp) {
                             sClass: "",
                             render: function (data, type, row) {
                                 data = data || '';
-                                let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
+                                let providerGroupId = row.providerGroup ? row.providerGroup._id : null;
                                 let link = $('<div>', {});
 
                                 if (data) {
@@ -10984,10 +10984,16 @@ define(['js/app'], function (myApp) {
                                 vm.rtgBonusAmt[item.data.providerGroup] -= -(item.availableAmt$);
                                 item.archivedAmt$ = item.availableAmt$
                             } else if (vm.rtgBonusAmt[item.data.providerGroup] != 0) {
-                                item.archivedAmt$ = -vm.rtgBonusAmt[item.data.providerGroup];
-                                vm.rtgBonusAmt[item.data.providerGroup] = 0;
-                            }
+                                if (item.data.providerGroup === '') {
+                                    let archivedAmtEmpty = vm.rtgBonusAmt["undefined"] ? vm.rtgBonusAmt["undefined"] : 0;
+                                    item.archivedAmt$ = -archivedAmtEmpty;
+                                    vm.rtgBonusAmt["undefined"] = 0;
 
+                                } else {
+                                    item.archivedAmt$ = -vm.rtgBonusAmt[item.data.providerGroup];
+                                    vm.rtgBonusAmt[item.data.providerGroup] = 0;
+                                }
+                            }
                             item.isArchived =
                                 item.archivedAmt$ == item.availableAmt$
 
@@ -11108,7 +11114,7 @@ define(['js/app'], function (myApp) {
                         //相關存款金額
                         {title: $translate('Deposit Amount'), data: "topUpAmount"},
                         {title: $translate('Deposit ProposalId'),
-                            data: "topUpProposal",
+                            data: "data.topUpProposal",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
                                     'ng-click': 'vm.showProposalModal("' + data + '",1)'
