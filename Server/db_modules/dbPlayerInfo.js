@@ -6027,12 +6027,18 @@ let dbPlayerInfo = {
                             if (periodMatch) {
                                 const topupPeriod = conditionSet.topupPeriod;
                                 const topupField = topupFieldsByPeriod[topupPeriod];
-                                const playersTopupForPeriod = playerObj[topupField];
+                                let playersTopupForPeriod = playerObj[topupField];
+                                if (playersTopupForPeriod === undefined) {
+                                    playersTopupForPeriod = 0;
+                                }
                                 let failsTopupRequirements = playersTopupForPeriod < conditionSet.topupMinimum;
 
                                 const consumptionPeriod = conditionSet.consumptionPeriod;
                                 const consumptionField = consumptionFieldsByPeriod[consumptionPeriod];
-                                const playersConsumptionForPeriod = playerObj[consumptionField];
+                                let playersConsumptionForPeriod = playerObj[consumptionField];
+                                if (playersConsumptionForPeriod === undefined) {
+                                    playersConsumptionForPeriod = 0;
+                                }
                                 let failsConsumptionRequirements = playersConsumptionForPeriod < conditionSet.consumptionMinimum;
 
                                 if (topupField === undefined || consumptionField === undefined) {
@@ -6041,8 +6047,8 @@ let dbPlayerInfo = {
 
                                 const failsEnoughConditions =
                                     conditionSet.andConditions
-                                        ? failsTopupRequirements && failsConsumptionRequirements
-                                        : failsTopupRequirements || failsConsumptionRequirements;
+                                        ? failsTopupRequirements || failsConsumptionRequirements
+                                        : failsTopupRequirements && failsConsumptionRequirements;
 
                                 // const failsEnoughConditions = failsTopupRequirements || failsConsumptionRequirements;
                                 if (failsEnoughConditions) {
