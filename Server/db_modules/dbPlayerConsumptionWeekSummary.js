@@ -292,7 +292,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 if (bReturn) {
                                     var summaryIds = thisPlayersConsumptionSummaries.map(summary => summary._id);
                                     let spendingAmount = returnAmount < 0.01 ? 0 : returnAmount;
-                                    spendingAmount = eventData.condition.ximaRequired? spendingAmount *eventData.condition.ximaRequired : spendingAmount;
+                                    spendingAmount = Number.isInteger(eventData.param.consumptionTimesRequired)? spendingAmount *eventData.param.consumptionTimesRequired : spendingAmount;
                                     var proposalData = {
                                         type: proposalTypeId,
                                         entryType: bRequest ? constProposalEntryType.CLIENT : constProposalEntryType.SYSTEM,
