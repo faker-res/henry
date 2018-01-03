@@ -89,7 +89,7 @@ let dbPlayerInfo = {
     /**
      * Create a new reward points record based on player data
      */
-    createPlayerRewardPointsRecord: function (platformId, playerId) {
+    createPlayerRewardPointsRecord: function (platformId, playerId, bulkCreate) {
         return dbconfig.collection_players.findOne({_id: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .lean().then(
@@ -3289,8 +3289,6 @@ let dbPlayerInfo = {
                                     if (playerData[ind].rewardPointsObjId) {
                                         playerData[ind].point$ = playerData[ind].rewardPointsObjId.points;
                                         playerData[ind].rewardPointsObjId = playerData[ind].rewardPointsObjId._id;
-                                    } else {
-                                        dbPlayerInfo.createPlayerRewardPointsRecord(playerData[ind].platform, playerData[ind]._id);
                                     }
 
                                     if (isProviderGroup) {
