@@ -463,20 +463,6 @@ var dbUtility = {
         };
     },
 
-    getLastWeekConsumptionReturnSGTime: function (inputData) {
-        let lastBiWeekTime = dbUtility.getWeekTime();
-        let startTime = lastBiWeekTime.startTime;
-        let endTime = lastBiWeekTime.endTime;
-        startTime = new Date(startTime.getTime() + 12 * 60 * 60 * 1000);
-        endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
-
-        return {
-            startTime: startTime,
-            endTime: endTime
-        };
-
-    },
-
     getLastBiWeekConsumptionReturnSGTime: function (inputData) {
         let lastBiWeekTime = dbUtility.getLastBiWeekSGTime();
         let startTime = lastBiWeekTime.startTime;
