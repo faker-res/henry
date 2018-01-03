@@ -510,7 +510,7 @@ define(['js/app'], function (myApp) {
                 entryType: vm.queryProposalEntryType,
                 size: vm.queryAuditProposal.limit || 10,
                 index: newSearch ? 0 : (vm.queryAuditProposal.index || 0),
-                sortCol: vm.queryAuditProposal.sortCol
+                sortCol: vm.queryAuditProposal.sortCol || {expirationTime: 1}
             };
 
             if (vm.queryProposalRelatedUser) {
@@ -1326,7 +1326,8 @@ define(['js/app'], function (myApp) {
                     v.entryType$ = $translate(vm.proposalEntryTypeList[v.entryType]);
                     v.userType$ = $translate(v.userType ? vm.proposalUserTypeList[v.userType] : "");
                     v.createTime$ = utilService.getFormatTime(v.createTime).substring(5);
-                    v.expirationTime$ = v.createTime == v.expirationTime ? 0 : new Date(v.expirationTime) - Date.now();
+                    v.expirationTime$ = v.createTime == v.expirationTime || new Date(v.expirationTime).getTime() == $scope.infiniteDate.getTime()
+                        ? 0 : new Date(v.expirationTime) - Date.now();
                     v.lockUser$ = $translate(v.isLocked);
                     v.creditAmount$ = (v.data.amount != null)
                         ? parseFloat(v.data.amount).toFixed(2)
@@ -1390,11 +1391,14 @@ define(['js/app'], function (myApp) {
                 "bProcessing": true,
                 bDeferRender: true,
                 // filterProposalType: true,
-                "aaSorting": vm.queryProposal.aaSorting || [],
+                "aaSorting": vm.queryAuditProposal.aaSorting || [[20, 'asc']],
+                // "order": vm.queryProposal.aaSorting || [[1, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
-                    {'sortCol': 'relatedAmount', bSortable: true, 'aTargets': [7]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'priority', bSortable: true, 'aTargets': [7]},
+                    {'sortCol': 'relatedUser', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [18]},
+                    {'sortCol': 'expirationTime', bSortable: true, 'aTargets': [20]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -1449,8 +1453,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                             let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : ""
                             return "<div>" + text + "</div>";
-                        },
-                        bSortable: true
+                        }
                     },
                     {
                         "title": $translate('PRIORITY'),
@@ -1566,8 +1569,7 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         "title": $translate('CREATION_TIME'),
-                        "data": 'createTime$',
-                        bSortable: true
+                        "data": 'createTime$'
                     },
                     {
                         "title": $translate('REMARK'),
@@ -1577,21 +1579,21 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         "title": $translate('EXPIRY_DATE'),
-                        "data": 'expirationTime$',
-                        type: 'signed-num',
+                        "data": 'expirationTime',
+                        // type: 'signed-num',
                         render: function (data, type, row) {
                             if (type === 'sort' || type === 'type') {
                                 return data;
                             }
                             else {
-                                if (data > 0) {
+                                if (row.expirationTime$ > 0) {
                                     // Not expired
-                                    let expireTime = Math.floor((data / 1000) / 60);
+                                    let expireTime = Math.floor((row.expirationTime$ / 1000) / 60);
                                     return "<div>" + $translate("Left") + " " + expireTime + " " + $translate("mins") + "</div>";
                                 }
-                                else if (data < 0) {
+                                else if (row.expirationTime$ < 0) {
                                     // Expired
-                                    let expireTime = Math.ceil((data / 1000) / 60);
+                                    let expireTime = Math.ceil((row.expirationTime$ / 1000) / 60);
                                     return "<div>" + $translate("Expired") + " " + -expireTime + " " + $translate("mins") + "</div>";
                                 }
                                 else {
@@ -1689,7 +1691,8 @@ define(['js/app'], function (myApp) {
             $('#proposalAuditDataTable tbody').on('click', 'tr', tableRowClicked);
             $('#proposalAuditDataTable').off('order.dt');
             $('#proposalAuditDataTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'queryProposal', vm.loadProposalQueryData);
+                // vm.commonSortChangeHandler(a, 'queryProposal', vm.loadProposalQueryData);
+                vm.commonSortChangeHandler(a, 'queryAuditProposal', vm.loadProposalAuditQueryData);
             });
             $scope.safeApply();
         };
