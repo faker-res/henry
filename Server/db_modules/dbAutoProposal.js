@@ -514,11 +514,12 @@ function checkProposalConsumption(proposal, platformObj) {
                         devCheckMsg += "ERROR (2): " + ex.toString() + "; ";
                     }
 
-                    if (playerData.ximaWithdraw && proposal.data.amount && proposal.data.amount <= playerData.ximaWithdraw) {
-                        repeatMsg = "Withdrawal amount is within the ximaWithdraw amount: ximaWithdraw " + playerData.ximaWithdraw;
-                        repeatMsgChinese = "提款额在洗码提款额内：洗码提款额" + playerData.ximaWithdraw;
-                        checkMsg += "Withdrawal amount is within the ximaWithdraw amount: ximaWithdraw " + playerData.ximaWithdraw;
-                        checkMsgChinese += "提款额在洗码提款额内：洗码提款额" + playerData.ximaWithdraw;
+                    if (proposal.data.ximaWithdrawUsed && proposal.data.amount && proposal.data.amount <= proposal.data.ximaWithdrawUsed) {
+                        isApprove = true;
+                        repeatMsg = "Withdrawal amount is within the ximaWithdraw amount: ximaWithdraw " + proposal.data.ximaWithdrawUsed;
+                        repeatMsgChinese = "提款额在洗码提款额内：洗码提款额" + proposal.data.ximaWithdrawUsed;
+                        checkMsg += "Withdrawal amount is within the ximaWithdraw amount: ximaWithdraw " + proposal.data.ximaWithdrawUsed;
+                        checkMsgChinese += "提款额在洗码提款额内：洗码提款额" + proposal.data.ximaWithdrawUsed;
                     }
                     else if ((validConsumptionAmount + lostThreshold) < spendingAmount) {
                         isApprove = false;
