@@ -11114,7 +11114,7 @@ define(['js/app'], function (myApp) {
                         //相關存款金額
                         {title: $translate('Deposit Amount'), data: "topUpAmount"},
                         {title: $translate('Deposit ProposalId'),
-                            data: "topUpProposal",
+                            data: "data.topUpProposal",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
                                     'ng-click': 'vm.showProposalModal("' + data + '",1)'
