@@ -271,6 +271,8 @@ var playerSchema = new Schema({
     promoteWay: {type: String},
     // reward point object
     rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints'},
+    // xima withdrawal check bypass
+    ximaWithdraw: {type: Number, default: 0},
 });
 
 //record is unique by name and platform

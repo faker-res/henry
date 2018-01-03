@@ -463,13 +463,18 @@ const dbRewardTask = {
                         if(!query._id){
 
                             item.data.topUpProposalId = item.data ? item.data.proposalId : '';
-                            item.data.topUpAmount = item.data ? item.data.amount : '';
+                            item.data.topUpAmount= 0;
+                            if (item.data) {
+                                item.data.topUpAmount = item.data.topUpRecordId && item.data.applyAmount ? item.data.applyAmount:item.data.amount? item.data.amount : 0;
+                            }
                             item.data.bonusAmount = 0;
                             item.data.currentAmount = item.data.currentAmt;
                             item.data.requiredBonusAmount = 0;
                             item.data['provider$'] = 'LOCAL_CREDIT'
                         }
-
+                        if(rewardTaskGroup.providerGroup === ''){
+                            item.data.providerGroup = null;
+                        }
                         return item;
                     }
                 });
