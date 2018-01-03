@@ -9366,12 +9366,12 @@ define(['js/app'], function (myApp) {
                             record.commissionAmount$ = parseFloat(record.commissionAmount).toFixed(2);
                             // record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
                             record.bDirty$ = record.bDirty ? $translate('UNABLE') : $translate('ABLE');
-                            record.roundResult$ = "";
-                            record.roundId$ = "";
-                            record.matchId$ = "";
-                            record.gameType$ = "";
-                            record.betType$ = "";
-                            record.remark$ = "";
+                            record.roundResult$ = record.result || "";
+                            record.roundId$ = record.roundNo || "";
+                            record.matchId$ = record.playerNo || "";
+                            record.gameType$ = record.playerNo || "";
+                            record.betType$ = record.betType ||"";
+                            record.remark$ = record.playDetail || "";
                             return record
                         }
                     );
