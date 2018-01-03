@@ -2562,7 +2562,15 @@ var proposal = {
                 {
                     $group: {
                         _id: null,
-                        totalAmount: {$sum: "$data.amount"},
+                        totalAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.amount", NaN]},
+                                    0,
+                                    "$data.amount"
+                                ]
+                            }
+                        },
                         totalRewardAmount: {
                             $sum: {
                                 $cond: [
@@ -2572,10 +2580,42 @@ var proposal = {
                                 ]
                             }
                         },
-                        totalTopUpAmount: {$sum: "$data.topUpAmount"},
-                        totalUpdateAmount: {$sum: "$data.updateAmount"},
-                        totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
-                        totalCommissionAmount: {$sum: "$data.commissionAmount"}
+                        totalTopUpAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.topUpAmount", NaN]},
+                                    0,
+                                    "$data.topUpAmount"
+                                ]
+                            }
+                        },
+                        totalUpdateAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.updateAmount", NaN]},
+                                    0,
+                                    "$data.updateAmount"
+                                ]
+                            }
+                        },
+                        totalNegativeProfitAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.negativeProfitAmount", NaN]},
+                                    0,
+                                    "$data.negativeProfitAmount"
+                                ]
+                            }
+                        },
+                        totalCommissionAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.commissionAmount", NaN]},
+                                    0,
+                                    "$data.commissionAmount"
+                                ]
+                            }
+                        },
                     }
                 }
             ]);
