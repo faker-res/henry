@@ -10557,7 +10557,7 @@ define(['js/app'], function (myApp) {
                             sClass: "",
                             render: function (data, type, row) {
                                 data = data || '';
-                                let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
+                                let providerGroupId = row.providerGroup ? row.providerGroup._id : null;
                                 let link = $('<div>', {});
 
                                 if (data) {
@@ -10984,10 +10984,11 @@ define(['js/app'], function (myApp) {
                                 vm.rtgBonusAmt[item.data.providerGroup] -= -(item.availableAmt$);
                                 item.archivedAmt$ = item.availableAmt$
                             } else if (vm.rtgBonusAmt[item.data.providerGroup] != 0) {
-                                item.archivedAmt$ = -vm.rtgBonusAmt[item.data.providerGroup];
+                                if(vm.rtgBonusAmt[item.data.providerGroup]){
+                                    item.archivedAmt$ = -vm.rtgBonusAmt[item.data.providerGroup];
+                                }
                                 vm.rtgBonusAmt[item.data.providerGroup] = 0;
                             }
-
                             item.isArchived =
                                 item.archivedAmt$ == item.availableAmt$
 

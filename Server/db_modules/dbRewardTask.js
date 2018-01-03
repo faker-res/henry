@@ -469,7 +469,9 @@ const dbRewardTask = {
                             item.data.requiredBonusAmount = 0;
                             item.data['provider$'] = 'LOCAL_CREDIT'
                         }
-
+                        if(rewardTaskGroup.providerGroup == ''){
+                            item.data.providerGroup = null;
+                        }
                         return item;
                     }
                 });
