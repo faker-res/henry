@@ -21,8 +21,8 @@ let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
 let dbRewardPointsEvent = require('../db_modules/dbRewardPointsEvent');
 let dbPlayerTopUpRecord = require('../db_modules/dbPlayerTopUpRecord');
 let dbProposal = require('../db_modules/dbProposal');
-
-describe("Test player reward points topup event", function () {
+let dbRewardPoints = require('../db_modules/dbRewardPoints');
+describe("Test player reward points login event", function () {
 
     let testPlayer = null;
     let testPlayerObjId = null;
@@ -44,30 +44,29 @@ describe("Test player reward points topup event", function () {
     const dailyMaxPoints = 100;
     const spendingAmountOnReward = 5;
 
-    const topupEventDailyTopupAmount = 100;
-    const topupEventRewardAmount = 10;
-    const rewardPointTopupEvent = {
-        "category": constRewardPointsLogCategory.TOPUP_REWARD_POINTS,
-        "period": 1,
-        "index": 1,
-        "userAgent": 1,
-        "rewardTitle": "testRewardPointTopupEvent",
-        "consecutiveCount": 1,
-        "rewardPoints": topupEventRewardAmount,
-        "rewardContent": "testRewardPointTopupEvent",
+    const loginEventRewardAmount = 10;
+    const rewardPointLoginEvent = {
+        "category" : 1,
+        "period" : 1,
+        "index" : 10,
+        "userAgent" : 0,
+        "consecutiveCount" : 1,
+        "rewardPoints" : loginEventRewardAmount,
+        "rewardTitle" : "testRewardPointLoginEvent",
+        "rewardContent" : "testRewardPointLoginEvent",
         //"platformObjId" : ObjectId("5732dad105710cf94b5cfaaa"),
-        "target": {
-            "dailyTopupAmount": topupEventDailyTopupAmount,
-            "bankType": 1,
-            "depositMethod": 1,
-            "merchantTopupType": 1,
-            "merchantTopupMainType": constPlayerTopUpType.MANUAL
+        "target" : {
+            "targetDestination" : [
+                "",
+                "57970a907f46b02427067245",
+                "57985b83611cd9d838274d9a",
+                "5799d77b9803c16f52ec8e68",
+                "5799d6bc9803c16f52ec8e67"
+            ]
         },
-        "status": true,
-        "customPeriodStartTime": null,
-        "customPeriodEndTime": null
-    };
-
+        "status" : true,
+        "customPeriodStartTime" : null,
+        "customPeriodEndTime" : null};
 
     /* Test 1 - create a new platform before the creation of a new player */
     it('Should create test API platform', function (done) {
@@ -187,9 +186,9 @@ describe("Test player reward points topup event", function () {
     });
 
     /* Test 5 - create top up reward point event to platform */
-    it('Should create top up reward point event to platform', function (done) {
-        rewardPointTopupEvent.platformObjId = testPlatformObjId;
-        dbRewardPointsEvent.createRewardPointsEvent(rewardPointTopupEvent).then(
+    it('Should create login reward point event to platform', function (done) {
+        rewardPointLoginEvent.platformObjId = testPlatformObjId;
+        dbRewardPointsEvent.createRewardPointsEvent(rewardPointLoginEvent).then(
             (rewardPointEvent) => {
                 testRewardPointEvent = rewardPointEvent;
                 done();
@@ -200,59 +199,23 @@ describe("Test player reward points topup event", function () {
         );
     });
 
-    /* Test 6 - create top up record to apply topup event */
-    it('Should create top up record to apply topup event', function (done) {
-        let manualTopupInputData = {
-            amount: topupEventDailyTopupAmount,
-            bankTypeId: 1,
-            depositMethod: 1,
-            lastBankcardNo: 123456789,
-        };
-        let userAgent = {
-            ua: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36',
-            browser: {name: 'Chrome', version: '61.0.3163.100', major: '61'},
-            engine: {name: 'WebKit', version: '537.36'},
-            os: {name: 'Linux', version: 'x86_64'},
-            device: {vendor: undefined, model: undefined, type: undefined},
-            cpu: {architecture: 'amd64'}
-        };
-        dbPlayerTopUpRecord.addManualTopupRequest(userAgent, testPlayer.playerId, manualTopupInputData, 'test').then(
+    /* Test 6 - check player reward point after apply top up reward point event */
+    it('Should login and apply login event', function (done) {
+        dbRewardPoints.updateLoginRewardPointProgress(testPlayer, null, 1).then(
             () => {
                 done();
             },
             (error) => {
-                done();
+                done(error);
             }
         );
     });
 
-    /* Test 7 - check proposal data and apply reward topup event  */
-    it('Should check is add manual topup proposal data and update proposal status', function (done) {
-        dbProposal.getProposal({"data.platformId": testPlatformObjId, "data.playerObjId": testPlayerObjId}).then(
-            (proposal) => {
-                if (proposal) {
-                    return dbProposal.updateTopupProposal(proposal.proposalId, constProposalStatus.SUCCESS, 0, 1);
-                } else {
-                    done('manual topup proposal no found');
-                }
-            },
-            (error) => {
-                done(error);
-            }
-        ).then(
-            (proposal) => {
-                done();
-            },
-            (error) => {
-                done(error);
-            });
-    });
-
-    /* Test 8 - check player reward point after apply top up reward point event */
+    /* Test 7 - check player reward point after apply top up reward point event */
     it('Should add reward point to player', function (done) {
         dbConfig.collection_rewardPoints.findOne({_id: testPlayerRewardPoints._id}).lean().then(
             (rewardPoints) => {
-                if (rewardPoints && rewardPoints.points === topupEventRewardAmount) {
+                if (rewardPoints && rewardPoints.points === loginEventRewardAmount) {
                     testPlayerRewardPoints = rewardPoints;
                     done();
                 } else {
@@ -265,15 +228,15 @@ describe("Test player reward points topup event", function () {
         );
     });
 
-    /* Test 9 - check reward point log after apply top up reward point event */
+    /* Test 8 - check reward point log after apply top up reward point event */
     it('Should create reward point log', function (done) {
         dbConfig.collection_rewardPointsLog.findOne({rewardPointsObjId: testPlayerRewardPoints._id})
             .sort({'createTime': -1}).lean().then(
             (rewardPointsLog) => {
-                if (rewardPointsLog && rewardPointsLog.amount === topupEventRewardAmount) {
+                if (rewardPointsLog && rewardPointsLog.amount === loginEventRewardAmount) {
                     done();
                 } else {
-                    done('rewardPointsLog no found');
+                    done('rewardPointsLog no found or no match');
                 }
             },
             (error) => {
@@ -282,7 +245,7 @@ describe("Test player reward points topup event", function () {
         );
     });
 
-    /* Test 10 - check player reward points event progress */
+    /* Test 9 - check player reward points event progress */
     it('Should check player reward points event progress', function (done) {
         let rewardPointProgress = testPlayerRewardPoints.progress[0];
         if(rewardPointProgress.count === 1 && rewardPointProgress.isApplied && rewardPointProgress.isApplicable

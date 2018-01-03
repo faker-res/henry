@@ -82,6 +82,7 @@ let dbPartner = require('../db_modules/dbPartner');
 let dbRewardPoints = require('../db_modules/dbRewardPoints');
 let dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
 let dbPlayerMail = require('../db_modules/dbPlayerMail');
+let dbConsumptionReturnWithdraw = require('../db_modules/dbConsumptionReturnWithdraw');
 let PLATFORM_PREFIX_SEPARATOR = '';
 
 let dbPlayerInfo = {
@@ -2234,6 +2235,7 @@ let dbPlayerInfo = {
                     topupRecordData.topUpRecordId = topupRecordData._id;
                     // Async - Check reward group task to apply on player top up
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, topupRecordData).catch(errorUtils.reportError);
+                    dbConsumptionReturnWithdraw.clearXimaWithdraw(playerData._id).catch(errorUtils.reportError);
                     deferred.resolve(data && data[0]);
                 }
             },
@@ -6023,12 +6025,18 @@ let dbPlayerInfo = {
                             if (periodMatch) {
                                 const topupPeriod = conditionSet.topupPeriod;
                                 const topupField = topupFieldsByPeriod[topupPeriod];
-                                const playersTopupForPeriod = playerObj[topupField];
+                                let playersTopupForPeriod = playerObj[topupField];
+                                if (playersTopupForPeriod === undefined) {
+                                    playersTopupForPeriod = 0;
+                                }
                                 let failsTopupRequirements = playersTopupForPeriod < conditionSet.topupMinimum;
 
                                 const consumptionPeriod = conditionSet.consumptionPeriod;
                                 const consumptionField = consumptionFieldsByPeriod[consumptionPeriod];
-                                const playersConsumptionForPeriod = playerObj[consumptionField];
+                                let playersConsumptionForPeriod = playerObj[consumptionField];
+                                if (playersConsumptionForPeriod === undefined) {
+                                    playersConsumptionForPeriod = 0;
+                                }
                                 let failsConsumptionRequirements = playersConsumptionForPeriod < conditionSet.consumptionMinimum;
 
                                 if (topupField === undefined || consumptionField === undefined) {
@@ -6037,8 +6045,8 @@ let dbPlayerInfo = {
 
                                 const failsEnoughConditions =
                                     conditionSet.andConditions
-                                        ? failsTopupRequirements && failsConsumptionRequirements
-                                        : failsTopupRequirements || failsConsumptionRequirements;
+                                        ? failsTopupRequirements || failsConsumptionRequirements
+                                        : failsTopupRequirements && failsConsumptionRequirements;
 
                                 // const failsEnoughConditions = failsTopupRequirements || failsConsumptionRequirements;
                                 if (failsEnoughConditions) {
@@ -9780,7 +9788,7 @@ let dbPlayerInfo = {
                                     break;
                                 //request consumption rebate
                                 case constRewardType.PLAYER_CONSUMPTION_RETURN:
-                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId);
+                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId, code);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN:
                                     if (data.topUpRecordId == null) {
@@ -12159,6 +12167,7 @@ let dbPlayerInfo = {
                             }
 
                             if(bonusDetails){
+                                result.ximaWithdraw = playerDetails.ximaWithdraw || 0;
                                 result.freeTimes = bonusDetails.bonusCharges;
                                 result.serviceCharge = parseFloat(bonusDetails.bonusPercentageCharges * 0.01);
                             }
