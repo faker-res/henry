@@ -843,13 +843,23 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: {$in: vm.allPlatformId}}, function (data) {
                 vm.rewardList = data.data;
                 //For limitedOffer intention
+
                 vm.rewardList.forEach(
                     reward => {
                         if (reward.type && reward.type.name == "PlayerLimitedOfferReward") {
-                            vm.rewardList.push({name:reward.name +" " + $translate('Intention')});
+                            let isNameExist = false;
+                            vm.rewardList.forEach(
+                                reward2 => {
+                                    if(reward2.name == reward.name +" " + $translate('Intention'))
+                                        isNameExist = true;
+                                }
+                            );
+                            if(!isNameExist)
+                                vm.rewardList.push({name:reward.name +" " + $translate('Intention')});
                         }
                     }
                 );
+
                 console.log('vm.rewardList', vm.rewardList);
                 $scope.safeApply();
                 if (callback) {
