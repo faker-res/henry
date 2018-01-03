@@ -247,7 +247,7 @@ var dbUtility = {
         var endTime = dbUtility.getLastWeekSGTime().endTime;
         endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
         let startTime = moment(endTime).subtract(1, 'week').toDate();
-
+        
         return {
             startTime: startTime,
             endTime: endTime
