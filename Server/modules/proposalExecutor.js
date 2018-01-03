@@ -1455,7 +1455,6 @@ var proposalExecutor = {
                         return pmsAPI.bonus_applyBonus(message).then(
                             bonusData => {
                                 if (bonusData) {
-                                    dbConsumptionReturnWithdraw.reduceXimaWithdraw(playerData._id, proposalData.data.amount).catch(errorUtils.reportError);
                                     return bonusData;
                                 }
                                 else {
@@ -2741,6 +2740,10 @@ var proposalExecutor = {
             rejectPlayerBonus: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.amount) {
                     //todo::add more reasons here, ex:cancel request
+
+                    if (proposalData.data.ximaWithdrawUsed) {
+                        dbConsumptionReturnWithdraw.addXimaWithdraw(proposalData.data.playerObjId, proposalData.data.ximaWithdrawUsed).catch(errorUtils.reportError);
+                    }
 
                     // return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount * proposalData.data.bonusCredit, "rejectPlayerBonus")
                     proposalData.data.creditCharge = proposalData.data.creditCharge || 0;
