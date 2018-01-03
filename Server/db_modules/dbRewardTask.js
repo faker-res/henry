@@ -468,6 +468,10 @@ const dbRewardTask = {
                             item.data.currentAmount = item.data.currentAmt;
                             item.data.requiredBonusAmount = 0;
                             item.data['provider$'] = 'LOCAL_CREDIT'
+                            if(item.data.providerGroup == ''){
+                                item.data.providerGroup = null;
+                            }
+
                         }
 
                         return item;
