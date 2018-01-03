@@ -315,6 +315,8 @@ define(['js/app'], function (myApp) {
                 }
             ];
 
+            vm.prepareToBeDeletedProviderGroupId = [];
+
             // Basic library functions
             var Lodash = {
                 keyBy: (array, keyName) => {
@@ -8329,22 +8331,19 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            vm.deleteProviderGroup = function (grp, isConfirm) {
+            vm.deleteProviderGroup = function (index, grp, isConfirm) {
+
                 if (!isConfirm) {
                     vm.modalYesNo = {};
                     vm.modalYesNo.modalTitle = $translate("Delete Provider Group");
                     vm.modalYesNo.modalText = $translate("Delete provider group " + grp.name + "? This will release all rewards amount binded with this group to player.");
-                    vm.modalYesNo.actionYes = () => vm.deleteProviderGroup(grp, true);
+                    vm.modalYesNo.actionYes = () => vm.deleteProviderGroup(index, grp, true);
                     $('#modalYesNo').modal();
                 }
                 else {
-                    let sendObj = {
-                        gameProviderGroupObjId: grp._id
-                    };
-
-                    socketService.$socket($scope.AppSocket, 'deletePlatformProviderGroup', sendObj, function (data) {
-                        vm.getPlatformProviderGroup();
-                    })
+                    vm.prepareToBeDeletedProviderGroupId.push(grp._id);
+                    vm.gameProviderGroup.splice(index,1);
+                    $scope.safeApply();
                 }
             };
 
@@ -19067,6 +19066,8 @@ define(['js/app'], function (myApp) {
                     vm.providerGroupConfig.showWarning = false;
                     vm.configTableEdit = false;
 
+                    vm.removeProviderGroup();
+
                     let sendData = {
                         platformObjId: vm.selectedPlatform.id,
                         gameProviderGroup: vm.gameProviderGroup.map(e => {
@@ -19085,6 +19086,18 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.removeProviderGroup = () => {
+                if(vm.prepareToBeDeletedProviderGroupId && vm.prepareToBeDeletedProviderGroupId.length > 0){
+                    let sendObj = {
+                        gameProviderGroupObjId: vm.prepareToBeDeletedProviderGroupId
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'deletePlatformProviderGroup', sendObj, function (data) {
+                        vm.getPlatformProviderGroup();
+                    })
+                }
+            }
+
             vm.checkProviderGrouped = (providerId, curCollection) => {
                 let isUsed = false;
 
@@ -19093,9 +19106,13 @@ define(['js/app'], function (myApp) {
                         isUsed = true;
                     }
                 });
-
+                vm.refreshDropDown();
                 return isUsed;
             };
+
+            vm.refreshDropDown = () => {
+                $('.spicker').selectpicker('refresh');
+            }
 
             vm.ensurePlayerLevelOrder = function () {
                 vm.sortPlayerLevels();

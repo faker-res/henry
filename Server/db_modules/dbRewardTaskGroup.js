@@ -103,7 +103,7 @@ let dbRewardTaskGroup = {
 
     deletePlatformProviderGroup: (gameProviderGroupObjId) => {
         return dbconfig.collection_rewardTaskGroup.find({
-            providerGroup: gameProviderGroupObjId,
+            providerGroup: {$in: gameProviderGroupObjId},
             status: constRewardTaskStatus.STARTED
         }).then(
             rewardTaskGroups => {
