@@ -7627,7 +7627,7 @@ define(['js/app'], function (myApp) {
                     columns: [
                         {'title': $translate('CREATE_TIME'), data: 'createTime$'},
                         {'title': $translate('Type'), data: 'operationType$', sClass: "wordWrap width10Per"},
-                        {'title': $translate('Before Amount'), data: 'totalAmountBefore$', sClass: "sumText wordWrap"},
+                        {'title': $translate('LOCAL_TOTAL_AMOUNT_BEFORE'), data: 'totalAmountBefore$', sClass: "sumText wordWrap"},
                         {
                             'title': $translate('AMOUNT_CHANGE'),
                             data: 'totalChangedAmount$',
@@ -7640,7 +7640,7 @@ define(['js/app'], function (myApp) {
 
                             }
                         },
-                        {'title': $translate('CUR_AMOUNT'), data: 'totalAmountAfter$', sClass: "sumText wordWrap"},
+                        {'title': $translate('LOCAL_TOTAL_AMOUNT_AFTER'), data: 'totalAmountAfter$', sClass: "sumText wordWrap"},
                         {
                             'title': $translate('View Details'),
                             data: 'details$',
@@ -15531,6 +15531,7 @@ define(['js/app'], function (myApp) {
                     condition: vm.rewardCondition,
                     validStartTime: vm.showReward.validStartTime || null,
                     validEndTime: vm.showReward.validEndTime || null,
+
                 };
 
                 if (vm.showRewardTypeData.isGrouped === true) {
@@ -15697,6 +15698,7 @@ define(['js/app'], function (myApp) {
                     sendData.canApplyFromClient = vm.showReward.canApplyFromClient;
                     sendData.validStartTime = vm.showReward.validStartTime || null;
                     sendData.validEndTime = vm.showReward.validEndTime || null;
+
                 }
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                 console.log('vm.rewardMainCondition', vm.rewardMainCondition);
