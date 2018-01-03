@@ -40,6 +40,9 @@ const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus"
 let dbRewardPoints = require("../db_modules/dbRewardPoints.js");
 let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
 let dbRewardPointsLog = require("../db_modules/dbRewardPointsLog.js");
+
+let dbConsumptionReturnWithdraw = require("../db_modules/dbConsumptionReturnWithdraw");
+
 const moment = require('moment-timezone');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -1383,6 +1386,10 @@ var proposalExecutor = {
                     changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.rewardAmount, constRewardType.PLAYER_CONSUMPTION_RETURN, proposalData.data).then(
                         () => {
                             //remove all consumption summaries
+                            if (!Number(proposalData.data.spendingAmount)) {
+                                dbConsumptionReturnWithdraw.addXimaWithdraw(proposalData.data.playerObjId, proposalData.data.rewardAmount).catch(errorUtils.reportError);
+                            }
+
                             return dbconfig.collection_playerConsumptionSummary.remove(
                                 {_id: {$in: proposalData.data.summaryIds}}
                             );
@@ -1448,6 +1455,7 @@ var proposalExecutor = {
                         return pmsAPI.bonus_applyBonus(message).then(
                             bonusData => {
                                 if (bonusData) {
+                                    dbConsumptionReturnWithdraw.reduceXimaWithdraw(playerData._id, proposalData.data.amount).catch(errorUtils.reportError);
                                     return bonusData;
                                 }
                                 else {
@@ -2990,7 +2998,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             // Create different process flow for lock provider group reward
             if (platform.useProviderGroup) {
                 if (proposalData.data.providerGroup && gameProviderGroup) {
-                    dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).catch(
+                    dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(() =>{
+                        dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
+                    }).catch(
                         error => Q.reject({
                             name: "DBError",
                             message: "Error creating reward task with provider group",
@@ -2999,7 +3009,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                     );
 
                     if (proposalData.data.isDynamicRewardAmount) {
-                        dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).catch(
+                        dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(() =>{
+                            dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
+                        }).catch(
                             error => Q.reject({
                                 name: "DBError",
                                 message: "Error deduct target consumption from free amount provider group",
@@ -3012,6 +3024,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         data => {
                             rewardTask = data;
                             SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
+                            dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                             return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
                                 rewardTask: taskData
                             });
@@ -3078,6 +3091,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                     }
                 ).then(
                     function () {
+                        dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                         deferred.resolve(resolveValue || rewardTask);
                     },
                     function (error) {
