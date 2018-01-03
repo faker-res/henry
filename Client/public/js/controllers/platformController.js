@@ -7609,6 +7609,9 @@ define(['js/app'], function (myApp) {
                     let remark = (item.data && item.data.remark) ? $translate('remark') + ':' + item.data.remark + ', ' : '';
                     item.details$ = remark + item.detail.join(', ');
                     item.proposalId$ = item.data ? item.data.proposalId : '';
+                    item.totalAmountBefore$ = (Number(item.beforeAmount) + Number(item.beforeUnlockedAmount)).toFixed(2) + "(" + item.beforeAmount + "/" + item.beforeUnlockedAmount + ")";
+                    item.totalAmountAfter$ = (Number(item.curAmount) + Number(item.lockedAmount)).toFixed(2) + "(" + item.curAmount + "/" + item.lockedAmount + ")";
+                    item.totalChangedAmount$ = (Number(item.amount) + Number(item.changedLockedAmount)).toFixed(2) + "(" + item.amount + "/" + item.changedLockedAmount + ")";
                     return item;
                 });
 
@@ -7618,32 +7621,77 @@ define(['js/app'], function (myApp) {
                     columnDefs: [
                         {'sortCol': 'operationTime', bSortable: true, 'aTargets': [0]},
                         {'sortCol': 'operationType', bSortable: true, 'aTargets': [1]},
-                        {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
+                        // {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
                         {'title': $translate('CREATE_TIME'), data: 'createTime$'},
                         {'title': $translate('Type'), data: 'operationType$', sClass: "wordWrap width10Per"},
-                        {'title': $translate('PROPOSAL_ID'), data: 'proposalId$', sClass: "tbodyNoWrap"},
-                        {'title': $translate('Before Amount'), data: 'beforeAmount', sClass: "sumText wordWrap"},
-                        {'title': $translate('CHANGE_AMOUNT'), data: 'amount', sClass: "sumFloat tbodyNoWrap"},
-                        {'title': $translate('CUR_AMOUNT'), data: 'curAmount', sClass: "tbodyNoWrap"},
+                        {'title': $translate('LOCAL_TOTAL_AMOUNT_BEFORE'), data: 'totalAmountBefore$', sClass: "sumText wordWrap"},
                         {
-                            'title': $translate('Before UnlockedAmount'),
-                            data: 'beforeUnlockedAmount',
-                            sClass: "tbodyNoWrap"
+                            'title': $translate('AMOUNT_CHANGE'),
+                            data: 'totalChangedAmount$',
+                            sClass: "tbodyNoWrap",
+                            render: function (data, type, row) {
+                                var link = $('<span>', {
+                                    'class': ((Number(row.amount) + Number(row.changedLockedAmount)) < 0? "text-danger" : "")
+                                }).text(data);
+                                return link.prop('outerHTML');
+
+                            }
                         },
+                        {'title': $translate('LOCAL_TOTAL_AMOUNT_AFTER'), data: 'totalAmountAfter$', sClass: "sumText wordWrap"},
                         {
-                            'title': $translate('Change UnlockedAmount'),
-                            data: 'changedLockedAmount',
-                            sClass: "tbodyNoWrap"
-                        },
-                        {'title': $translate('UNLOCKAMOUNT'), data: 'lockedAmount', sClass: "tbodyNoWrap"},
-                        {'title': $translate('View Details'), data: 'details$', sClass: "wordWrap width30Per"}
+                            'title': $translate('View Details'),
+                            data: 'details$',
+                            sClass: "wordWrap width30Per",
+                            render: function (data, type, row) {
+                                if (row.proposalId$) {
+                                    let proposalText = $translate('PROPOSAL_NO') + ": " + row.proposalId$;
+                                    var link = $('<a>', {
+                                        'ng-click': 'vm.showProposalModalNoObjId("' + row.proposalId$ + '",1)'
+
+                                    }).text(proposalText);
+                                    return link.prop('outerHTML');
+                                } else {
+                                    let details = "";
+                                    for (let i = 0; i < Object.keys(row.data).length; i++) {
+                                        if (Object.keys(row.data)[i] == "transferId" || Object.keys(row.data)[i] == "providerName"){
+                                            if (details)
+                                                details += "/ ";
+                                            details += $translate(Object.keys(row.data)[i]) + ": " + row.data[Object.keys(row.data)[i]];
+                                        }
+                                    }
+                                    return details;
+                                }
+                            }
+                        }
+                        
+                        // {'title': $translate('CREATE_TIME'), data: 'createTime$'},
+                        // {'title': $translate('Type'), data: 'operationType$', sClass: "wordWrap width10Per"},
+                        // {'title': $translate('PROPOSAL_ID'), data: 'proposalId$', sClass: "tbodyNoWrap"},
+                        // {'title': $translate('Before Amount'), data: 'beforeAmount', sClass: "sumText wordWrap"},
+                        // {'title': $translate('CHANGE_AMOUNT'), data: 'amount', sClass: "sumFloat tbodyNoWrap"},
+                        // {'title': $translate('CUR_AMOUNT'), data: 'curAmount', sClass: "tbodyNoWrap"},
+                        // {
+                        //     'title': $translate('Before UnlockedAmount'),
+                        //     data: 'beforeUnlockedAmount',
+                        //     sClass: "tbodyNoWrap"
+                        // },
+                        // {
+                        //     'title': $translate('Change UnlockedAmount'),
+                        //     data: 'changedLockedAmount',
+                        //     sClass: "tbodyNoWrap"
+                        // },
+                        // {'title': $translate('UNLOCKAMOUNT'), data: 'lockedAmount', sClass: "tbodyNoWrap"},
+                        // {'title': $translate('View Details'), data: 'details$', sClass: "wordWrap width30Per"}
                     ],
                     paging: false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
                 });
-                var a = utilService.createDatatableWithFooter('#playerCreditChangeLogTable', option, {4: totalChangedAmount});
+                var a = utilService.createDatatableWithFooter('#playerCreditChangeLogTable', option, {3: totalChangedAmount});
                 vm.playerCreditChangeLog.pageObj.init({maxCount: size}, newSearch);
 
                 $('#playerCreditChangeLogTable').off('order.dt');
@@ -9378,9 +9426,9 @@ define(['js/app'], function (myApp) {
                     });
                     // $('#playerExpenseTable').DataTable(option);
                     var a = utilService.createDatatableWithFooter('#playerExpenseTable', option, {
-                        4: summary.validAmountSum,
-                        5: summary.amountSum,
-                        6: summary.bonusAmountSum,
+                        9: summary.validAmountSum,
+                        10: summary.bonusAmountSum,
+                        11: summary.amountSum,
                         // 8: summary.commissionAmountSum
                     });
                     vm.playerExpenseLog.pageObj.init({maxCount: vm.playerExpenseLog.totalCount}, newSearch);
@@ -15483,6 +15531,7 @@ define(['js/app'], function (myApp) {
                     condition: vm.rewardCondition,
                     validStartTime: vm.showReward.validStartTime || null,
                     validEndTime: vm.showReward.validEndTime || null,
+
                 };
 
                 if (vm.showRewardTypeData.isGrouped === true) {
@@ -15649,6 +15698,7 @@ define(['js/app'], function (myApp) {
                     sendData.canApplyFromClient = vm.showReward.canApplyFromClient;
                     sendData.validStartTime = vm.showReward.validStartTime || null;
                     sendData.validEndTime = vm.showReward.validEndTime || null;
+
                 }
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                 console.log('vm.rewardMainCondition', vm.rewardMainCondition);
@@ -17009,6 +17059,32 @@ define(['js/app'], function (myApp) {
                     })
                 }
             };
+
+        vm.showProposalModalNoObjId = function (proposalId, templateNo) {
+            socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
+                platformId: vm.selectedPlatform.id,
+                proposalId: proposalId
+            }, function (data) {
+                vm.selectedProposal = data.data;
+                let proposalDetail = $.extend({}, vm.selectedProposal.data);
+                let checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
+                for (let i in proposalDetail) {
+                    if (checkForHexRegExp.test(proposalDetail[i])) {
+                        delete proposalDetail[i];
+                    }
+                }
+                vm.selectedProposal.data = $.extend({}, proposalDetail);
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
+                $(tmpt).on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                })
+            })
+        };
 
 
         vm.showProposalModal = function (proposalId, templateNo) {

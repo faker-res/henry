@@ -149,7 +149,7 @@ const dbRewardTask = {
                     // There are on-going reward task for this provider group
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                         _id: providerGroup._id
-                    }, updObj);
+                    }, updObj, {new: true});
                 }
                 else {
                     let saveObj = {
@@ -721,7 +721,7 @@ const dbRewardTask = {
             let topUpRecordId = item.data.topUpRecordId ? item.data.topUpRecordId : null;
             let sendQuery = {};
             if (topUpRecordId) {
-                sendQuery = {proposalId: proposalId};
+                sendQuery = {_id: topUpRecordId};
             } else {
                 sendQuery = {proposalId: proposalId};
             }
