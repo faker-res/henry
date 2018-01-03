@@ -89,6 +89,32 @@ angular.module('myApp.directives', [])
     };
   }])
 
+    .directive("consumptionreturnpercentage", ['$filter', function($filter){
+        //console.log("consumptionReturnPercentage");
+        return {
+            require: 'ngModel',
+            link: function(scope, ele, attr, ctrl){
+                //console.log("consumptionReturnPercentage2");
+                ctrl.$parsers.unshift(function(viewValue){
+                    console.log("percent directive viewValue=%s", viewValue);
+                    let returnedValue= parseFloat(parseFloat(viewValue)/100).toFixed(5);
+                    return Number(returnedValue);
+                });
+                ctrl.$formatters.unshift(function(modelValue){
+                    console.log("percent directive modelValue=%s", modelValue);
+                    var scaledVal = parseFloat((parseFloat(modelValue) * 100).toFixed(3));
+                    if (ele[0].tagName === 'INPUT') {
+                        // If the value is for an <input>, we should return it raw.
+                        return scaledVal;
+                    } else {
+                        // But for plain visual display, we may want to prettify with ','s
+                        return Number(scaledVal);
+                    }
+                });
+            }
+        };
+    }])
+
   /**
    * An easy way to make list items or table rows or cells selectable.
    *
