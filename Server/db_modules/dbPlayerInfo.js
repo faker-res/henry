@@ -12190,7 +12190,7 @@ let dbPlayerInfo = {
                                             "$lt": lastDay
                                         },
                                         "mainType": "PlayerBonus",
-                                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
+                                        "status": {"$in": [constProposalStatus.AUTOAUDIT, constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
                                     }
                                 },
                                 {
