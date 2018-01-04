@@ -98,7 +98,7 @@ var commonTestFunc = {
                     internetBanking: 'https://bankymcbankfacebanking.com/',
 
                     merchantGroup: merchantGroup._id,
-                    bankCardGroup: bankCardGroup._id,
+                    bankCardGroup: bankCardGroup._id
                 };
                 return dbPlayerInfo.createPlayerInfo(playerData);
             }
