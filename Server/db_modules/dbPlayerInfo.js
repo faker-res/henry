@@ -90,56 +90,99 @@ let dbPlayerInfo = {
     /**
      * Create a new reward points record based on player data
      */
-    createPlayerRewardPointsRecord: function (platformId, playerId) {
-        return dbconfig.collection_players.findOne({_id: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform})
-            .lean().then(
-                playerData => {
-                    if (playerData) {
-                        if (playerData.permission && playerData.permission.rewardPointsTask === false) {
+    createPlayerRewardPointsRecord: function (platformId, playerId, bulkCreate) {
+        if (platformId && !playerId && bulkCreate) { //initiated from Platform Basic configuration
+            return dbconfig.collection_players.find({platform: platformId})
+                .lean().then(
+                    playerData => {
+                        for (let x in playerData) {
+                            if (playerData[x]) {
+                                if (!playerData[x].rewardPointsObjId) {
+                                    let bulkCreateNewRewardPointsData = {
+                                        platformObjId: platformId,
+                                        playerObjId: playerData[x]._id,
+                                        playerName: playerData[x].name,
+                                        playerLevel: playerData[x].playerLevel,
+                                    };
+
+                                    dbconfig.collection_rewardPoints(bulkCreateNewRewardPointsData).save().then(
+                                        points => {
+                                            let saveObj = {
+                                                rewardPointsObjId: points._id
+                                            };
+
+                                            // update player info with reward points record based on player id and platform id
+                                            return dbconfig.collection_players.findOneAndUpdate({
+                                                _id: points.playerObjId,
+                                                platform: points.platformObjId
+                                            }, saveObj, {upsert: true, new: true});
+                                        }
+                                    ).then(
+                                        data => {
+                                            return dbconfig.collection_players.findOne({_id: data._id})
+                                                .populate({
+                                                    path: "rewardPointsObjId",
+                                                    model: dbconfig.collection_rewardPoints
+                                                })
+                                                .lean();
+                                        }
+                                    )
+                                }
+                                else {
+                                    console.log(playerData[x].name + ': Player already have reward points record');
+                                }
+                            }
+                            else {
+                                return Q.reject({
+                                    name: "DataError",
+                                    message: "Player not found"
+                                });
+                            }
+                        }
+                    }
+                );
+        } else if (platformId && playerId && !bulkCreate) { //initiated from creating new player info - createPlayerInfoAPI
+            return dbconfig.collection_players.findOne({_id: playerId})
+                .lean().then(
+                    playerData => {
+                        if (playerData) {
+                            let newRewardPointsData = {
+                                platformObjId: platformId,
+                                playerObjId: playerId,
+                                playerName: playerData.name,
+                                playerLevel: playerData.playerLevel,
+                            };
+
+                            let newRewardPoints = new dbconfig.collection_rewardPoints(newRewardPointsData);
+                            return newRewardPoints.save().then(
+                                points => {
+                                    let saveObj = {
+                                        rewardPointsObjId: points._id
+                                    };
+
+                                    // update player info with reward points record based on player id and platform id
+                                    return dbconfig.collection_players.findOneAndUpdate({
+                                        _id: points.playerObjId,
+                                        platform: points.platformObjId
+                                    }, saveObj, {upsert: true, new: true});
+                                }
+                            ).then(
+                                data => {
+                                    return dbconfig.collection_players.findOne({_id: data._id})
+                                        .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints})
+                                        .lean();
+                                }
+                            )
+                        }
+                        else {
                             return Q.reject({
-                                status: constServerCode.PLAYER_NO_PERMISSION,
                                 name: "DataError",
-                                message: "Player does not have reward points task permission"
+                                message: "Player not found"
                             });
                         }
-
-                        let newRewardPointsData = {
-                            platformObjId: platformId,
-                            playerObjId: playerId,
-                            playerName: playerData.name,
-                            playerLevel: playerData.playerLevel,
-                        };
-
-                        let newRewardPoints = new dbconfig.collection_rewardPoints(newRewardPointsData);
-                        return newRewardPoints.save().then(
-                            points => {
-                                let saveObj = {
-                                    rewardPointsObjId: points._id
-                                };
-
-                                // update player info with reward points record based on player id and platform id
-                                return dbconfig.collection_players.findOneAndUpdate({
-                                    _id: points.playerObjId,
-                                    platform: points.platformObjId
-                                }, saveObj, {upsert: true, new: true});
-                            }
-                        ).then(
-                            data => {
-                                return dbconfig.collection_players.findOne({_id: data._id})
-                                    .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints})
-                                    .lean();
-                            }
-                        )
                     }
-                    else {
-                        return Q.reject({
-                            name: "DataError",
-                            message: "Player not found"
-                        });
-                    }
-                }
-            );
+                );
+        }
     },
 
     /**
@@ -534,7 +577,7 @@ let dbPlayerInfo = {
             ).then(
                 data => {
                     if (data) {
-                        return dbPlayerInfo.createPlayerRewardPointsRecord(data.platform, data._id);
+                        return dbPlayerInfo.createPlayerRewardPointsRecord(data.platform, data._id, false);
                     }
                     else {
                         return data;
@@ -3291,8 +3334,6 @@ let dbPlayerInfo = {
                                     if (playerData[ind].rewardPointsObjId) {
                                         playerData[ind].point$ = playerData[ind].rewardPointsObjId.points;
                                         playerData[ind].rewardPointsObjId = playerData[ind].rewardPointsObjId._id;
-                                    } else {
-                                        dbPlayerInfo.createPlayerRewardPointsRecord(playerData[ind].platform, playerData[ind]._id);
                                     }
 
                                     if (isProviderGroup) {
@@ -3918,6 +3959,9 @@ let dbPlayerInfo = {
     playerLogout: function (playerData) {
         let time_now = new Date().getTime();
         let updateData = {isLogin: false, lastAccessTime: time_now};
+        if (!playerData.playerId) {
+            return Promise.resolve();
+        }
 
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerData.playerId}, updateData, constShardKeys.collection_players);
     },
@@ -9797,7 +9841,7 @@ let dbPlayerInfo = {
                                     break;
                                 //request consumption rebate
                                 case constRewardType.PLAYER_CONSUMPTION_RETURN:
-                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId, code);
+                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId, code, userAgent);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN:
                                     if (data.topUpRecordId == null) {
@@ -12190,7 +12234,7 @@ let dbPlayerInfo = {
                                             "$lt": lastDay
                                         },
                                         "mainType": "PlayerBonus",
-                                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
+                                        "status": {"$in": [constProposalStatus.AUTOAUDIT, constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
                                     }
                                 },
                                 {
@@ -12304,7 +12348,8 @@ let dbPlayerInfo = {
                         for (let i = 0; i < platformData.gameProviders.length; i++) {
                             providerCredit.gameCreditList[i] = {
                                 providerId: platformData.gameProviders[i].providerId,
-                                nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name
+                                nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
+                                status: platformData.gameProviders[i].status
                             };
                         }
                     }
@@ -12326,7 +12371,8 @@ let dbPlayerInfo = {
                                 return {
                                     providerId: creditData.providerId,
                                     gameCredit: parseFloat(creditData.credit).toFixed(2) || 0,
-                                    nickName: providerList.gameCreditList[i].nickName? providerList.gameCreditList[i].nickName: ""
+                                    nickName: providerList.gameCreditList[i].nickName? providerList.gameCreditList[i].nickName: "",
+                                    status: providerList.gameCreditList[i].status
                                 };
                             },
                             function (err) {
@@ -12335,7 +12381,8 @@ let dbPlayerInfo = {
                                     providerId: providerList.gameCreditList[i].providerId,
                                     gameCredit: 'unknown',
                                     nickName: providerList.gameCreditList[i].nickName? providerList.gameCreditList[i].nickName: "",
-                                    reason: err
+                                    reason: err,
+                                    status: providerList.gameCreditList[i].status
                                 };
                             }
                         );
@@ -12350,7 +12397,9 @@ let dbPlayerInfo = {
                     for (let i = 0; i < gameCreditList.length; i++) {
                         returnData.gameCreditList[i] = {
                             nickName: gameCreditList[i].nickName? gameCreditList[i].nickName: "",
-                            validCredit: gameCreditList[i].gameCredit? gameCreditList[i].gameCredit: ""
+                            validCredit: gameCreditList[i].gameCredit? gameCreditList[i].gameCredit: "",
+                            status: gameCreditList[i].status,
+                            providerId: gameCreditList[i].providerId
                         };
                     }
 

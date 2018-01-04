@@ -98,7 +98,7 @@ var commonTestFunc = {
                     internetBanking: 'https://bankymcbankfacebanking.com/',
 
                     merchantGroup: merchantGroup._id,
-                    bankCardGroup: bankCardGroup._id,
+                    bankCardGroup: bankCardGroup._id
                 };
                 return dbPlayerInfo.createPlayerInfo(playerData);
             }
@@ -364,9 +364,11 @@ var commonTestFunc = {
 
         let pmS1 = dbconfig.collection_gameProviderGroup.remove({platform:platformObjId});
 
+        let pmT = dbconfig.collection_promoCode.remove({platformObjId:platformObjId});
+
         return Q.all([pm1, pm2, pm3, pm4, pm5, pm6, pm7, pm8, pm9, pmA, pmB, pmC, pmC1, pmD, pmD1,
             pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ, pmK, pmL, pmM, pmN, pmO, pmO1, pmO2, pmO3,
-            pmP, pmQ, pmR, pmR2, pmR1, pmS, pmS1]);
+            pmP, pmQ, pmR, pmR2, pmR1, pmS, pmS1, pmT]);
     },
 
     removeTestProposalData: function (adminRoleObjIds, platformObjId, proposalTypeObjIds, playerObjId) {

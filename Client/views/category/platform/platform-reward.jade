@@ -35,8 +35,11 @@
                         label {{"REWARD_CLIENT_APPLY" | translate}}
                         input.form-control(type='checkbox', ng-model='vm.showReward.canApplyFromClient', ng-disabled='vm.platformRewardShowEdit() || !vm.showReward.needApply')
                     .full-width-input-block(ng-if='vm.rewardAttrConst.canSettle.indexOf(vm.showRewardTypeData.name)>-1')
-                        label {{"REWARD_NEED_SETTLEMENT" | translate}}
-                        input.form-control(type='checkbox', ng-model='vm.showReward.needSettlement', ng-disabled='vm.platformRewardShowEdit()')
+                        label(ng-if='(vm.showRewardTypeData && vm.showRewardTypeData.name !=="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name !=="PlayerConsumptionReturn")') {{"REWARD_NEED_SETTLEMENT" | translate}}
+                        label(ng-if='(vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")') {{"below X amount auto execute reward" | translate}}
+
+                        input.form-control(type='checkbox', ng-if='(vm.showRewardTypeData && vm.showRewardTypeData.name !=="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name !=="PlayerConsumptionReturn")' ng-model='vm.showReward.needSettlement', ng-disabled='vm.platformRewardShowEdit()')
+                        input.form-control(type='number', ng-if='(vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")' ng-model='vm.rewardParams.isIgnoreAudit', ng-disabled='vm.platformRewardShowEdit()')
                     .full-width-input-block(ng-if='vm.rewardAttrConst.canChangePeriod.indexOf(vm.showRewardTypeData.name)>-1')
                         label {{"Settlement Period" | translate}}
                         select.form-control(ng-model='vm.showReward.settlementPeriod', ng-disabled='vm.platformRewardShowEdit()', required)
@@ -114,7 +117,7 @@
                             label.control-label {{v.des | translate}}
                                 i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{v.detail | translate}}' ng-if="v.detail")
 
-                            input.form-control(ng-if="v.type == 'text' || v.type == 'checkbox'" type="{{v.type}}" ng-change="vm.changeRewardParamLayout(vm.rewardMainCondition[i]);" ng-model="vm.rewardMainCondition[i].value" data-cond-name="{{v.name}}" ng-disabled="v.disabled")
+                            input.form-control(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-change="vm.changeRewardParamLayout(vm.rewardMainCondition[i]);" ng-model="vm.rewardMainCondition[i].value" data-cond-name="{{v.name}}" ng-disabled="v.disabled")
                             select.form-control(ng-if="v.type == 'select'" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v | translate for (i,v) in v.options" ng-change="vm.rewardSelectOnChange(vm.rewardMainCondition[i])" data-cond-name="{{v.name}}" ng-disabled="v.disabled")
                                 option(value='' ng-if="vm.rewardMainCondition[i].name == 'providerGroup'") {{'LOCAL_CREDIT' | translate}}
                             div.dateTimePicker(id="rewardMainTaskDate-{{i}}" style="display: inline-block" ng-if="v.type == 'date'")

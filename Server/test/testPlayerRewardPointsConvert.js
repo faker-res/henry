@@ -116,9 +116,7 @@ describe("Test player reward points convert", function () {
                 {new: true}).lean().then(
                 (data) => {
                     testPlatform = data;
-                    if (testPlatform.usePointSystem !== true) {
-                        done('new platform reward points system should be enable');
-                    }
+                    testPlatform.should.have.property('usePointSystem', true);
                     done();
                 },
                 (error) => {
@@ -212,7 +210,8 @@ describe("Test player reward points convert", function () {
         dbConfig.collection_rewardPointsLog.findOne({rewardPointsObjId: testPlayerRewardPoints._id})
             .sort({'createTime':-1}).lean().then(
             (data) => {
-               data && data.amount === amountRewardPointsAddToPlayer ? done() : done('Log no match');
+                data.should.have.property('amount', amountRewardPointsAddToPlayer);
+                done();
             },
             (error) => {
                 done(error);
@@ -241,15 +240,15 @@ describe("Test player reward points convert", function () {
 
         Q.all([logProm, rewardPointProm]).then(
             (data) => {
-                if (data && data[0] && data[1]) {
-                    let log = data[0];
-                    testPlayerRewardPoints = data[1];
-                    if (log.amount === -amountRewardPointsAddToPlayer && testPlayerRewardPoints.points === 0) {
-                        done();
-                    }
-                } else {
-                    done('data no found');
-                }
+                should.exist(data);
+                should.exist(data[0]);
+                should.exist(data[1]);
+
+                let log = data[0];
+                testPlayerRewardPoints = data[1];
+                log.should.have.property('amount', -amountRewardPointsAddToPlayer);
+                testPlayerRewardPoints.should.have.property('points', 0);
+                done();
             },
             (error) => {
                 done(error);
@@ -268,7 +267,7 @@ describe("Test player reward points convert", function () {
                 if (player.validCredit === rewardAmountToPlayer || (isUseProviderGroup && player.validCredit === 0)) {
                     done();
                 }else {
-                    done('Player credit no match');
+                    done(new Error('Player credit no match'));
                 }
             },
             (error) => {
@@ -292,17 +291,14 @@ describe("Test player reward points convert", function () {
 
         getTaskProm.then(
             (rewardTask) => {
-                if (rewardTask) {
-                    rewardPointRewardTask = rewardTask;
-                    if (!isUseProviderGroup && rewardAmountToPlayer * spendingAmountOnReward  === rewardPointRewardTask.requiredUnlockAmount) {
-                        done();
-                    } else if (isUseProviderGroup && rewardAmountToPlayer * spendingAmountOnReward === rewardPointRewardTask.targetConsumption) {
-                        done();
-                    } else {
-                        done('Random reward event proposal data and reward task no match');
-                    }
+                should.exist(rewardTask);
+                rewardPointRewardTask = rewardTask;
+                if (!isUseProviderGroup && rewardAmountToPlayer * spendingAmountOnReward  === rewardPointRewardTask.requiredUnlockAmount) {
+                    done();
+                } else if (isUseProviderGroup && rewardAmountToPlayer * spendingAmountOnReward === rewardPointRewardTask.targetConsumption) {
+                    done();
                 } else {
-                    done('Random reward event reward task no found');
+                    done(new Error('Random reward event proposal data and reward task no match'));
                 }
             },
             (error) => {

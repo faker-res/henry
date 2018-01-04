@@ -83,15 +83,6 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
-         * Create a new reward points record based on player data
-         */
-        createPlayerRewardPointsRecord: function createPlayerRewardPointsRecord(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId && data.playerId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerRewardPointsRecord, [data.platformId, data.playerId], actionName, isValidData);
-        },
-
-        /**
          * Remove a new reward points record based on player data
          */
         removePlayerRewardPointsRecord: function removePlayerRewardPointsRecord(data) {
@@ -816,7 +807,7 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.amount && data.wechatPayAccount);
             let userAgent = '';
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestWechatTopup, [userAgent, data.playerId, data.amount, data.wechatPayName, data.wechatPayAccount, data.bonusCode, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestWechatTopup, [!Boolean(data.notUseQR), userAgent, data.playerId, data.amount, data.wechatPayName, data.wechatPayAccount, data.bonusCode, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
         },
 
         cancelWechatPayTopup: function cancelWechatPayTopup(data) {
