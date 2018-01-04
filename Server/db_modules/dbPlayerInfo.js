@@ -91,53 +91,45 @@ let dbPlayerInfo = {
      * Create a new reward points record based on player data
      */
     createPlayerRewardPointsRecord: function (platformId, playerId, bulkCreate) {
-        if (platformId && !playerId && bulkCreate) {
+        if (platformId && !playerId && bulkCreate) { //initiated from Platform Basic configuration
             return dbconfig.collection_players.find({platform: platformId})
-                .sort({_id:-1}).limit(20)
                 .lean().then(
                     playerData => {
                         for (let x in playerData) {
                             if (playerData[x]) {
+                                if (!playerData[x].rewardPointsObjId) {
+                                    let bulkCreateNewRewardPointsData = {
+                                        platformObjId: platformId,
+                                        playerObjId: playerData[x]._id,
+                                        playerName: playerData[x].name,
+                                        playerLevel: playerData[x].playerLevel,
+                                    };
 
-                                // undefined checking is backward compatible for available players without rewardPointsTask permission schema
-                                if (playerData[x].permission && playerData[x].permission.rewardPointsTask || playerData[x].permission.rewardPointsTask === undefined) {
-                                    if (!playerData[x].rewardPointsObjId) {
-                                        let bulkCreateNewRewardPointsData = {
-                                            platformObjId: platformId,
-                                            playerObjId: playerData[x]._id,
-                                            playerName: playerData[x].name,
-                                            playerLevel: playerData[x].playerLevel,
-                                        };
+                                    dbconfig.collection_rewardPoints(bulkCreateNewRewardPointsData).save().then(
+                                        points => {
+                                            let saveObj = {
+                                                rewardPointsObjId: points._id
+                                            };
 
-                                        dbconfig.collection_rewardPoints(bulkCreateNewRewardPointsData).save().then(
-                                            points => {
-                                                let saveObj = {
-                                                    rewardPointsObjId: points._id
-                                                };
-
-                                                // update player info with reward points record based on player id and platform id
-                                                return dbconfig.collection_players.findOneAndUpdate({
-                                                    _id: points.playerObjId,
-                                                    platform: points.platformObjId
-                                                }, saveObj, {upsert: true, new: true});
-                                            }
-                                        ).then(
-                                            data => {
-                                                return dbconfig.collection_players.findOne({_id: data._id})
-                                                    .populate({
-                                                        path: "rewardPointsObjId",
-                                                        model: dbconfig.collection_rewardPoints
-                                                    })
-                                                    .lean();
-                                            }
-                                        )
-                                    }
-                                    else {
-                                        console.log(playerData[x].name + ': Player already have reward points record');
-                                    }
+                                            // update player info with reward points record based on player id and platform id
+                                            return dbconfig.collection_players.findOneAndUpdate({
+                                                _id: points.playerObjId,
+                                                platform: points.platformObjId
+                                            }, saveObj, {upsert: true, new: true});
+                                        }
+                                    ).then(
+                                        data => {
+                                            return dbconfig.collection_players.findOne({_id: data._id})
+                                                .populate({
+                                                    path: "rewardPointsObjId",
+                                                    model: dbconfig.collection_rewardPoints
+                                                })
+                                                .lean();
+                                        }
+                                    )
                                 }
                                 else {
-                                    console.log(playerData[x].name + ': Player does not have rewardPointsTask permission');
+                                    console.log(playerData[x].name + ': Player already have reward points record');
                                 }
                             }
                             else {
@@ -149,20 +141,11 @@ let dbPlayerInfo = {
                         }
                     }
                 );
-        } else if (platformId && playerId && !bulkCreate) {
+        } else if (platformId && playerId && !bulkCreate) { //initiated from creating new player info - createPlayerInfoAPI
             return dbconfig.collection_players.findOne({_id: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform})
                 .lean().then(
                     playerData => {
                         if (playerData) {
-                            if (playerData.permission && playerData.permission.rewardPointsTask === false) {
-                                return Q.reject({
-                                    status: constServerCode.PLAYER_NO_PERMISSION,
-                                    name: "DataError",
-                                    message: "Player does not have reward points task permission"
-                                });
-                            }
-
                             let newRewardPointsData = {
                                 platformObjId: platformId,
                                 playerObjId: playerId,
