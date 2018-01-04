@@ -3001,5 +3001,6 @@
   "ANY_PAGE": "任一页面",
   "EMPTY": "空白（无）",
   "There are unallocated providers": "还有未分配的提供商",
-  "xima required N time withdraw":"洗码流水要求N倍提款"
+  "xima required N time withdraw":"洗码流水要求N倍提款",
+  "below X amount auto execute reward":"X 元以下优惠自动执行（忽略审核部)"
 }
