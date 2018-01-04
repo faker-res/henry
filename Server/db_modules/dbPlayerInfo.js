@@ -12337,7 +12337,8 @@ let dbPlayerInfo = {
                                     providerId: providerList.gameCreditList[i].providerId,
                                     gameCredit: 'unknown',
                                     nickName: providerList.gameCreditList[i].nickName? providerList.gameCreditList[i].nickName: "",
-                                    reason: err
+                                    reason: err,
+                                    status: providerList.gameCreditList[i].status
                                 };
                             }
                         );
@@ -12353,7 +12354,8 @@ let dbPlayerInfo = {
                         returnData.gameCreditList[i] = {
                             nickName: gameCreditList[i].nickName? gameCreditList[i].nickName: "",
                             validCredit: gameCreditList[i].gameCredit? gameCreditList[i].gameCredit: "",
-                            status: gameCreditList[i].status
+                            status: gameCreditList[i].status,
+                            providerId: gameCreditList[i].providerId
                         };
                     }
 
