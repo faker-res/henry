@@ -11017,6 +11017,16 @@ define(['js/app'], function (myApp) {
                 })
             }
 
+        vm.showUnlockProviderModal = function () {
+            if (vm.platformBasic.useProviderGroup == false && vm.selectedPlatform.data.useProviderGroup == true) {
+                $("#modalUnlockProvider").modal('show');
+                $("#modalUnlockProvider").on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                })
+            }
+
+        };
+
             vm.selectReward = function($event){
                 $event.stopPropagation();
                 vm.selectedRewards = [];
@@ -17109,6 +17119,13 @@ define(['js/app'], function (myApp) {
         };
         vm.showNewPlayerModal = function (data, templateNo) {
             vm.newPlayerProposal = data;
+
+            if (vm.newPlayerProposal.status === "Success") {
+                if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
+                    let str = vm.newPlayerProposal.data.phoneNumber;
+                    vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
+                }
+            }
 
             let tmpt = vm.proposalTemplate[templateNo];
             $(tmpt).modal('show');

@@ -200,7 +200,10 @@ let dbRewardTaskGroup = {
 
     startPlatformUnlockRewardTaskGroup: (platformObjId) => {
         let stream = dbconfig.collection_rewardTaskGroup.find(
-            {platformId: ObjectId(platformObjId)}
+            {
+                platformId: ObjectId(platformObjId),
+                status: constRewardTaskStatus.STARTED
+            }
         ).cursor({batchSize: 10000});
 
         let balancer = new SettlementBalancer();
