@@ -624,7 +624,7 @@ let PlayerServiceImplement = function () {
     //player logout api handler
     this.logout.expectsData = 'playerId: String';
     this.logout.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(conn.playerId);
+        let isValidData = true;
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogout, [{playerId: conn.playerId}], isValidData, true, false, true).then(
             function (res) {
                 conn.isAuth = false;
