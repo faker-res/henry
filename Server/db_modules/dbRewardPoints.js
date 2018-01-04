@@ -1246,9 +1246,11 @@ function buildTodayTopupAmountQuery(event, topupProposalData) {
     let relevantTopupMatchQuery = {
         playerId: topupProposalData.data.playerObjId,
         platformId: topupProposalData.data.platformId,
-        userAgent: event.userAgent.toString(),
         createTime: {$gte: today.startTime, $lte: today.endTime}
     };
+
+    if(event.userAgent)
+        relevantTopupMatchQuery.userAgent = event.userAgent.toString();
 
     if (event.target && event.target.merchantTopupMainType) {
         relevantTopupMatchQuery.topUpType = event.target.merchantTopupMainType.toString();
