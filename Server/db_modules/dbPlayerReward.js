@@ -1793,7 +1793,7 @@ let dbPlayerReward = {
                     data: f2.splice(searchQuery.index, searchQuery.limit)
                 };
             }
-        )
+        );
     },
 
     updatePromoCodeSMSContent: (platformObjId, promoCodeSMSContent, isDelete) => {
