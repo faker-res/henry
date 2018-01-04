@@ -2237,6 +2237,8 @@ var dbPlayerTopUpRecord = {
                         updateData.data.proposalId = proposal.proposalId;
                         updateData.data.weChatAccount = pmsData.result.weChatAccount;
                         updateData.data.weChatQRCode = pmsData.result.weChatQRCode;
+                        updateData.data.name = pmsData.result.name;
+                        updateData.data.nickname = pmsData.result.nickname;
                         if (pmsData.result.validTime) {
                             updateData.data.validTime = new Date(pmsData.result.validTime);
                         }
