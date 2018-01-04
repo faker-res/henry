@@ -88,7 +88,7 @@ function socketActionPlayer(socketIO, socket) {
         createPlayerRewardPointsRecord: function createPlayerRewardPointsRecord(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.playerId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerRewardPointsRecord, [data.platformId, data.playerId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerRewardPointsRecord, [data.platformId, data.playerId, false], actionName, isValidData);
         },
 
         /**
