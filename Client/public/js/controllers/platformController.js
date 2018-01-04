@@ -315,6 +315,8 @@ define(['js/app'], function (myApp) {
                 }
             ];
 
+            vm.prepareToBeDeletedProviderGroupId = [];
+
             // Basic library functions
             var Lodash = {
                 keyBy: (array, keyName) => {
@@ -8329,22 +8331,19 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            vm.deleteProviderGroup = function (grp, isConfirm) {
+            vm.deleteProviderGroup = function (index, grp, isConfirm) {
+
                 if (!isConfirm) {
                     vm.modalYesNo = {};
                     vm.modalYesNo.modalTitle = $translate("Delete Provider Group");
                     vm.modalYesNo.modalText = $translate("Delete provider group " + grp.name + "? This will release all rewards amount binded with this group to player.");
-                    vm.modalYesNo.actionYes = () => vm.deleteProviderGroup(grp, true);
+                    vm.modalYesNo.actionYes = () => vm.deleteProviderGroup(index, grp, true);
                     $('#modalYesNo').modal();
                 }
                 else {
-                    let sendObj = {
-                        gameProviderGroupObjId: grp._id
-                    };
-
-                    socketService.$socket($scope.AppSocket, 'deletePlatformProviderGroup', sendObj, function (data) {
-                        vm.getPlatformProviderGroup();
-                    })
+                    vm.prepareToBeDeletedProviderGroupId.push(grp._id);
+                    vm.gameProviderGroup.splice(index,1);
+                    $scope.safeApply();
                 }
             };
 
@@ -9366,12 +9365,12 @@ define(['js/app'], function (myApp) {
                             record.commissionAmount$ = parseFloat(record.commissionAmount).toFixed(2);
                             // record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
                             record.bDirty$ = record.bDirty ? $translate('UNABLE') : $translate('ABLE');
-                            record.roundResult$ = "";
-                            record.roundId$ = "";
-                            record.matchId$ = "";
-                            record.gameType$ = "";
-                            record.betType$ = "";
-                            record.remark$ = "";
+                            record.roundResult$ = record.result || "";
+                            record.roundId$ = record.roundNo || "";
+                            record.matchId$ = record.playNo || "";
+                            record.gameType$ = record.cpGameType || "";
+                            record.betType$ = record.betType ||"";
+                            record.remark$ = record.playDetail || "";
                             return record
                         }
                     );
@@ -10557,7 +10556,7 @@ define(['js/app'], function (myApp) {
                             sClass: "",
                             render: function (data, type, row) {
                                 data = data || '';
-                                let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
+                                let providerGroupId = row.providerGroup ? row.providerGroup._id : null;
                                 let link = $('<div>', {});
 
                                 if (data) {
@@ -10984,10 +10983,16 @@ define(['js/app'], function (myApp) {
                                 vm.rtgBonusAmt[item.data.providerGroup] -= -(item.availableAmt$);
                                 item.archivedAmt$ = item.availableAmt$
                             } else if (vm.rtgBonusAmt[item.data.providerGroup] != 0) {
-                                item.archivedAmt$ = -vm.rtgBonusAmt[item.data.providerGroup];
-                                vm.rtgBonusAmt[item.data.providerGroup] = 0;
-                            }
+                                if (item.data.providerGroup === '') {
+                                    let archivedAmtEmpty = vm.rtgBonusAmt["undefined"] ? vm.rtgBonusAmt["undefined"] : 0;
+                                    item.archivedAmt$ = -archivedAmtEmpty;
+                                    vm.rtgBonusAmt["undefined"] = 0;
 
+                                } else {
+                                    item.archivedAmt$ = -vm.rtgBonusAmt[item.data.providerGroup];
+                                    vm.rtgBonusAmt[item.data.providerGroup] = 0;
+                                }
+                            }
                             item.isArchived =
                                 item.archivedAmt$ == item.availableAmt$
 
@@ -11017,6 +11022,16 @@ define(['js/app'], function (myApp) {
                 })
                 return proposalData;
             }
+
+            vm.unlockPlatformProviderGroup = function() {
+                let sendQuery = {
+                    platformObjId: vm.selectedPlatform.id
+                }
+                socketService.$socket($scope.AppSocket, 'startPlatformUnlockRewardTaskGroup', sendQuery, function (data) {
+                console.log("PlatformUnlockRewardTaskGroup",data)
+                })
+            }
+
             vm.selectReward = function($event){
                 $event.stopPropagation();
                 vm.selectedRewards = [];
@@ -11108,7 +11123,7 @@ define(['js/app'], function (myApp) {
                         //相關存款金額
                         {title: $translate('Deposit Amount'), data: "topUpAmount"},
                         {title: $translate('Deposit ProposalId'),
-                            data: "topUpProposal",
+                            data: "data.topUpProposal",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
                                     'ng-click': 'vm.showProposalModal("' + data + '",1)'
@@ -18883,8 +18898,16 @@ define(['js/app'], function (myApp) {
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification
                     }
                 };
+                let isProviderGroupOn = false;
+                if (vm.selectedPlatform.data.useProviderGroup && !srcData.useProviderGroup){
+                    isProviderGroupOn = true;
+                }
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                     vm.loadPlatformData({loadAll: false});
+                    if (isProviderGroupOn) {
+                        vm.unlockPlatformProviderGroup()
+                    }
+
                 });
             }
 
@@ -19061,6 +19084,8 @@ define(['js/app'], function (myApp) {
                     vm.providerGroupConfig.showWarning = false;
                     vm.configTableEdit = false;
 
+                    vm.removeProviderGroup();
+
                     let sendData = {
                         platformObjId: vm.selectedPlatform.id,
                         gameProviderGroup: vm.gameProviderGroup.map(e => {
@@ -19079,6 +19104,18 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.removeProviderGroup = () => {
+                if(vm.prepareToBeDeletedProviderGroupId && vm.prepareToBeDeletedProviderGroupId.length > 0){
+                    let sendObj = {
+                        gameProviderGroupObjId: vm.prepareToBeDeletedProviderGroupId
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'deletePlatformProviderGroup', sendObj, function (data) {
+                        vm.getPlatformProviderGroup();
+                    })
+                }
+            }
+
             vm.checkProviderGrouped = (providerId, curCollection) => {
                 let isUsed = false;
 
@@ -19087,9 +19124,13 @@ define(['js/app'], function (myApp) {
                         isUsed = true;
                     }
                 });
-
+                vm.refreshDropDown();
                 return isUsed;
             };
+
+            vm.refreshDropDown = () => {
+                $('.spicker').selectpicker('refresh');
+            }
 
             vm.ensurePlayerLevelOrder = function () {
                 vm.sortPlayerLevels();

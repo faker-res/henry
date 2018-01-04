@@ -39,6 +39,7 @@ const constRewardTaskStatus = require('../const/constRewardTaskStatus');
 const constServerCode = require('../const/constServerCode');
 const constSettlementPeriod = require("../const/constSettlementPeriod");
 const constSystemParam = require('../const/constSystemParam');
+const errorUtils = require('../modules/errorUtils');
 
 function randomObjectId() {
     var id = crypto.randomBytes(12).toString('hex');
@@ -1307,7 +1308,7 @@ var dbPlatform = {
         return Q.all([playersProm, levelsProm]).spread(
             function (players, playerLevels) {
                 const proms = players.map(
-                    player => dbPlayerInfo.checkPlayerLevelDownWithLevels(player, playerLevels, checkPeriod)
+                    player => dbPlayerInfo.checkPlayerLevelDownWithLevels(player, playerLevels, checkPeriod).catch(errorUtils.reportError)
                 );
                 return Q.all(proms);
             }

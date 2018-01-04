@@ -6027,12 +6027,18 @@ let dbPlayerInfo = {
                             if (periodMatch) {
                                 const topupPeriod = conditionSet.topupPeriod;
                                 const topupField = topupFieldsByPeriod[topupPeriod];
-                                const playersTopupForPeriod = playerObj[topupField];
+                                let playersTopupForPeriod = playerObj[topupField];
+                                if (playersTopupForPeriod === undefined) {
+                                    playersTopupForPeriod = 0;
+                                }
                                 let failsTopupRequirements = playersTopupForPeriod < conditionSet.topupMinimum;
 
                                 const consumptionPeriod = conditionSet.consumptionPeriod;
                                 const consumptionField = consumptionFieldsByPeriod[consumptionPeriod];
-                                const playersConsumptionForPeriod = playerObj[consumptionField];
+                                let playersConsumptionForPeriod = playerObj[consumptionField];
+                                if (playersConsumptionForPeriod === undefined) {
+                                    playersConsumptionForPeriod = 0;
+                                }
                                 let failsConsumptionRequirements = playersConsumptionForPeriod < conditionSet.consumptionMinimum;
 
                                 if (topupField === undefined || consumptionField === undefined) {
@@ -6041,8 +6047,8 @@ let dbPlayerInfo = {
 
                                 const failsEnoughConditions =
                                     conditionSet.andConditions
-                                        ? failsTopupRequirements && failsConsumptionRequirements
-                                        : failsTopupRequirements || failsConsumptionRequirements;
+                                        ? failsTopupRequirements || failsConsumptionRequirements
+                                        : failsTopupRequirements && failsConsumptionRequirements;
 
                                 // const failsEnoughConditions = failsTopupRequirements || failsConsumptionRequirements;
                                 if (failsEnoughConditions) {
@@ -7374,6 +7380,7 @@ let dbPlayerInfo = {
      * Apply bonus
      */
     applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
+        let ximaWithdrawUsed = 0;
         if (amount < 100 && !adminInfo) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
         }
@@ -7545,6 +7552,10 @@ let dbPlayerInfo = {
                                     }
                                 }
 
+                                if (playerData.ximaWithdraw) {
+                                    ximaWithdrawUsed = Math.min(amount, playerData.ximaWithdraw);
+                                }
+
                                 return dbconfig.collection_players.findOneAndUpdate(
                                     {
                                         _id: player._id,
@@ -7609,6 +7620,7 @@ let dbPlayerInfo = {
                                                 lastSettleTime: new Date(),
                                                 honoreeDetail: honoreeDetail,
                                                 creditCharge: creditCharge,
+                                                ximaWithdrawUsed: ximaWithdrawUsed,
                                                 isAutoApproval: player.platform.enableAutoApplyBonus
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                             };
@@ -7633,6 +7645,7 @@ let dbPlayerInfo = {
                         if (bUpdateCredit) {
                             dbLogger.createCreditChangeLog(player._id, player.platform._id, -amount, constProposalType.PLAYER_BONUS, player.validCredit, null, proposal);
                         }
+                        dbConsumptionReturnWithdraw.reduceXimaWithdraw(player._id, ximaWithdrawUsed).catch(errorUtils.reportError);
                         return proposal;
                     } else {
                         return Q.reject({name: "DataError", errorMessage: "Cannot create bonus proposal"});
