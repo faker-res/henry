@@ -5,6 +5,9 @@ const dbRewardTask = require('./../db_modules/dbRewardTask');
 
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 const constServerCode = require('../const/constServerCode');
+const constSystemParam = require('./../const/constSystemParam');
+const errorUtils = require("../modules/errorUtils.js");
+const SettlementBalancer = require('../settlementModule/settlementBalancer');
 let ObjectId = mongoose.Types.ObjectId;
 
 let dbRewardTaskGroup = {
@@ -103,7 +106,7 @@ let dbRewardTaskGroup = {
 
     deletePlatformProviderGroup: (gameProviderGroupObjId) => {
         return dbconfig.collection_rewardTaskGroup.find({
-            providerGroup: gameProviderGroupObjId,
+            providerGroup: {$in: gameProviderGroupObjId},
             status: constRewardTaskStatus.STARTED
         }).then(
             rewardTaskGroups => {
@@ -193,6 +196,42 @@ let dbRewardTaskGroup = {
             }
         );
     },
+
+
+    startPlatformUnlockRewardTaskGroup: (platformObjId) => {
+        let stream = dbconfig.collection_rewardTaskGroup.find(
+            {platformId: ObjectId(platformObjId)}
+        ).cursor({batchSize: 10000});
+
+        let balancer = new SettlementBalancer();
+        return balancer.initConns().then(function () {
+            return balancer.processStream(
+                {
+                    stream: stream,
+                    batchSize: constSystemParam.BATCH_SIZE,
+                    makeRequest: function (rewardTaskGroup, request) {
+                        request("player", "performUnlockPlatformProviderGroup", {
+                            rewardTaskGroup: rewardTaskGroup
+                        });
+                    }
+                }
+            );
+        });
+    },
+
+    performUnlockPlatformProviderGroup: (rewardTaskGroup) => {
+        let promsArr = [];
+        rewardTaskGroup.map(reward => {
+            promsArr.push(dbRewardTaskGroup.unlockRewardTaskInRewardTaskGroup(reward._id,reward.targetConsumption,reward.targetConsumption + reward.forbidXIMAAmt).catch(errorUtils.reportError));
+        });
+
+        return Promise.all(promsArr);
+    },
+
+
+
+
+
 };
 
 module.exports = dbRewardTaskGroup;
