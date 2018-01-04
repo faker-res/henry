@@ -3918,6 +3918,9 @@ let dbPlayerInfo = {
     playerLogout: function (playerData) {
         let time_now = new Date().getTime();
         let updateData = {isLogin: false, lastAccessTime: time_now};
+        if (!playerData.playerId) {
+            return Promise.resolve();
+        }
 
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerData.playerId}, updateData, constShardKeys.collection_players);
     },
