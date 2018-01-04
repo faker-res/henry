@@ -11022,6 +11022,26 @@ define(['js/app'], function (myApp) {
                 })
                 return proposalData;
             }
+
+            vm.unlockPlatformProviderGroup = function() {
+                let sendQuery = {
+                    platformObjId: vm.selectedPlatform.id
+                }
+                socketService.$socket($scope.AppSocket, 'startPlatformUnlockRewardTaskGroup', sendQuery, function (data) {
+                console.log("PlatformUnlockRewardTaskGroup",data)
+                })
+            }
+
+        vm.showUnlockProviderModal = function () {
+            if (vm.platformBasic.useProviderGroup == false && vm.selectedPlatform.data.useProviderGroup == true) {
+                $("#modalUnlockProvider").modal('show');
+                $("#modalUnlockProvider").on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                })
+            }
+
+        };
+
             vm.selectReward = function($event){
                 $event.stopPropagation();
                 vm.selectedRewards = [];
@@ -17115,6 +17135,13 @@ define(['js/app'], function (myApp) {
         vm.showNewPlayerModal = function (data, templateNo) {
             vm.newPlayerProposal = data;
 
+            if (vm.newPlayerProposal.status === "Success") {
+                if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
+                    let str = vm.newPlayerProposal.data.phoneNumber;
+                    vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
+                }
+            }
+
             let tmpt = vm.proposalTemplate[templateNo];
             $(tmpt).modal('show');
             $(tmpt).on('shown.bs.modal', function (e) {
@@ -18888,8 +18915,16 @@ define(['js/app'], function (myApp) {
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification
                     }
                 };
+                let isProviderGroupOn = false;
+                if (vm.selectedPlatform.data.useProviderGroup && !srcData.useProviderGroup){
+                    isProviderGroupOn = true;
+                }
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                     vm.loadPlatformData({loadAll: false});
+                    if (isProviderGroupOn) {
+                        vm.unlockPlatformProviderGroup()
+                    }
+
                 });
             }
 
