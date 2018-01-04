@@ -1402,7 +1402,6 @@ define(['js/app'], function (myApp) {
                 bDeferRender: true,
                 // filterProposalType: true,
                 "aaSorting": vm.queryAuditProposal.aaSorting || [[20, 'asc']],
-                // "order": vm.queryProposal.aaSorting || [[1, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
                     {'sortCol': 'priority', bSortable: true, 'aTargets': [7]},
@@ -1701,7 +1700,6 @@ define(['js/app'], function (myApp) {
             $('#proposalAuditDataTable tbody').on('click', 'tr', tableRowClicked);
             $('#proposalAuditDataTable').off('order.dt');
             $('#proposalAuditDataTable').on('order.dt', function (event, a, b) {
-                // vm.commonSortChangeHandler(a, 'queryProposal', vm.loadProposalQueryData);
                 vm.commonSortChangeHandler(a, 'queryAuditProposal', vm.loadProposalAuditQueryData);
             });
             $scope.safeApply();
