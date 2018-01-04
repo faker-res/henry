@@ -11032,6 +11032,16 @@ define(['js/app'], function (myApp) {
                 })
             }
 
+        vm.showUnlockProviderModal = function () {
+            if (vm.platformBasic.useProviderGroup == false && vm.selectedPlatform.data.useProviderGroup == true) {
+                $("#modalUnlockProvider").modal('show');
+                $("#modalUnlockProvider").on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                })
+            }
+
+        };
+
             vm.selectReward = function($event){
                 $event.stopPropagation();
                 vm.selectedRewards = [];
