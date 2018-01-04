@@ -32,7 +32,7 @@ const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constSystemParam = require("../const/constSystemParam.js");
 const constServerCode = require("../const/constServerCode.js");
 const constPlayerTopUpType = require("../const/constPlayerTopUpType");
-const constInfiniteDate = require("../const/constInfiniteDate");
+const constMaxDateTime = require("../const/constMaxDateTime");
 let rsaCrypto = require("../modules/rsaCrypto");
 
 var proposal = {
@@ -333,7 +333,7 @@ var proposal = {
                     }
 
                     if (data[2] == 0) {
-                        expiredDate = constInfiniteDate;
+                        expiredDate = constMaxDateTime;
                     }
                     else {
                         expiredDate = moment(data[0].createTime).add('minutes', data[2]).format('YYYY-MM-DD HH:mm:ss.sss');

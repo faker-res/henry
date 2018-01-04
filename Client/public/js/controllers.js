@@ -23,7 +23,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     //    }, 500 + 1500 * Math.random());
     //};
 
-    $scope.infiniteDate = new Date('9999-12-31T23:59:59Z');
+    $scope.constMaxDateTime = new Date('9999-12-31T23:59:59Z');
     function forceRelogin() {
         socketService.showErrorMessage("Your session has expired.  Redirecting you to login page...");
 
