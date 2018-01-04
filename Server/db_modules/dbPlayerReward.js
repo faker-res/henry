@@ -1793,7 +1793,7 @@ let dbPlayerReward = {
                     data: f2.splice(searchQuery.index, searchQuery.limit)
                 };
             }
-        )
+        );
     },
 
     updatePromoCodeSMSContent: (platformObjId, promoCodeSMSContent, isDelete) => {
@@ -4127,7 +4127,7 @@ let dbPlayerReward = {
                                     eventName: eventData.name,
                                     eventCode: eventData.code,
                                     eventDescription: eventData.description,
-                                    isIgnoreAudit: Boolean(eventData.condition && eventData.condition.isIgnoreAudit === true),
+                                    isIgnoreAudit: eventData.condition && (typeof(eventData.condition.isIgnoreAudit) === "boolean" && eventData.condition.isIgnoreAudit ===true) || (Number.isInteger(eventData.condition.isIgnoreAudit) && eventData.condition.isIgnoreAudit >= applyDetail.rewardAmount),
                                     forbidWithdrawAfterApply: Boolean(applyDetail.forbidWithdrawAfterApply && applyDetail.forbidWithdrawAfterApply === true),
                                     remark: applyDetail.remark,
                                     useConsumption: Boolean(!applyDetail.isSharedWithXIMA),
@@ -4201,7 +4201,7 @@ let dbPlayerReward = {
                                 eventName: eventData.name,
                                 eventCode: eventData.code,
                                 eventDescription: eventData.description,
-                                isIgnoreAudit: Boolean(eventData.condition && eventData.condition.isIgnoreAudit === true),
+                                isIgnoreAudit: eventData.condition && (typeof(eventData.condition.isIgnoreAudit) === "boolean" && eventData.condition.isIgnoreAudit ===true) || (Number.isInteger(eventData.condition.isIgnoreAudit) && eventData.condition.isIgnoreAudit >= rewardAmount),
                                 forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
                                 remark: selectedRewardParam.remark,
                                 useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),

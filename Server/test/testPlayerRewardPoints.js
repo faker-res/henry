@@ -2,6 +2,7 @@ let should = require('should');
 let dbConfig = require('./../modules/dbproperties');
 let socketConnection = require('../test_modules/socketConnection');
 let commonTestFunc = require('../test_modules/commonTestFunc');
+let dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
@@ -130,23 +131,15 @@ describe("Test player reward points", function () {
 
     /* Test 8 - create a reward points record for existing player */
     it('Should create a reward points record for existing player', function (done) {
-        socketConnection.createConnection().then(function (socket) {
-            socket.connected.should.equal(true);
-            let createRewardPointsData = {
-                playerId: testPlayer._id,
-                platformId: testPlayer.platform
-            };
-
-            socket.emit('createPlayerRewardPointsRecord', createRewardPointsData);
-            socket.once('_createPlayerRewardPointsRecord', function (data) {
-                testPlayer = data.data;
-                testPlayerObjId = data.data._id;
-                socket.close();
-                if (data.success && data.data && data.data.rewardPointsObjId) {
+        dbPlayerInfo.createPlayerRewardPointsRecord(testPlayer.platform, testPlayer._id, false).then(
+            (data) => {
+                testPlayer = data;
+                testPlayerObjId = data._id;
+                if (data && data.rewardPointsObjId) {
                     done();
                 }
-            });
-        });
+            }
+        )
     });
 
     /* Test 9 - update player reward points record and create reward points log*/
