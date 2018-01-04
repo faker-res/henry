@@ -38,7 +38,9 @@ describe("Test Player Consumption Reward Group", function () {
     let testPlatformGame = null;
     let promoCodeType = null;
     let promoCodeNumber = null;
+    let promoCode = null;
     let topUpProposal = null;
+
 
     //********************
     //*SETUP
@@ -139,15 +141,15 @@ describe("Test Player Consumption Reward Group", function () {
         });
     });
 
-    //sample data;
-    it('add promocode sms content', function (done) {
-        let expireTime = new Date(new Date().getTime() + (60*60*1000));
-        let promoCode = {
+
+    it('create a  promocode', function (done) {
+        let expireTime = new Date(new Date().getTime() + (60 * 60 * 1000));
+        promoCode = {
             platformObjId: testPlatformObjId,
             playerName: testPlayer.name,
             isProviderGroup: true,
             allowedProviders: testPlatformGameProviderGroup,
-            amount: 100,
+            amount: 37,
             bannerText: "Happy New Year!",
             disableWithdraw: false,
             expirationTime: expireTime,
@@ -167,45 +169,36 @@ describe("Test Player Consumption Reward Group", function () {
         })
     });
 
-    it('Should add top up record and consumption record to player', function (done) {
+    //********************
+    //*TESTING
+    //********************
 
-        commonTestFunc.createTopUpRecord(testPlayer._id, testPlatformObjId, 230).then(
-            (record) => {
-                if (record){
-                    done();
-                } else {
-                    done('Failed to add the top up record')
-                }
-            },
-            (error) => {
-                done(error);
-            }
-        )
-    });
-
-    it('make a manual topup record', function(done){
+    //it will failed in here , because the PMS dint return result
+    it('create a manual topup record for apply the promo code', function (done) {
         let manualTopupInputData = {
             amount: 250,
             bankTypeId: 1,
             depositMethod: 1,
             lastBankcardNo: 123456789,
-            cityId:"120100",
+            cityId: "120100",
             districtId: "120101",
-            provinceId:"120000",
-            realName:"MY",
-            remark:"123"
+            provinceId: "120000",
+            realName: "MY",
+            remark: "123"
         };
-        dbPlayerTopUpRecord.addManualTopupRequest(null, testPlayer.playerId, manualTopupInputData, 'markt','mkt2018',1,'admin','admin','', new Date(),'mtai').
-            then(data=>{
-                done();
-        },err=>{
-                console.error(err);
-            })
+        dbPlayerTopUpRecord.addManualTopupRequest(null, testPlayer.playerId, manualTopupInputData, 'markt', 'mkt2018', 1, 'admin', 'admin', '', new Date(), 'mtai').then(data => {
+            done();
+        }, err => {
+            console.error(err);
+        })
     })
 
     // do this again because addManualTopupRequest didnt return result;
-    it('check if the proposal is ready', function (done) {
-        dbconfig.collection_proposal.findOne({'data.platformId':testPlatformObjId, 'data.playerObjId':testPlayer._id}).then(
+    it('check if the proposal is established', function (done) {
+        dbconfig.collection_proposal.findOne({
+            'data.platformId': testPlatformObjId,
+            'data.playerObjId': testPlayer._id
+        }).then(
             function (data) {
                 topUpProposal = data;
                 done();
@@ -217,78 +210,59 @@ describe("Test Player Consumption Reward Group", function () {
         );
     });
 
-    // it('should get player top up record', function (done) {
-    //     dbconfig.collection_playerTopUpRecord.findOne({playerId: testPlayer}).then(
-    //         function (data) {
-    //             console.log(data);
-    //             done();
-    //         },
-    //         function (error) {
-    //             console.log(error);
-    //             done('fail to create ali pay acc')
-    //         }
-    //     );
-    // });
-
-    // it('Should create TopUp Record', function (done) {
-    //         commonTestFunc.createTopUpRecord(testPlayer._id, testPlatformObjId).then(
-    //             function (data) {
-    //                 console.log(data);
-    //                 console.log(testPlayer)
-    //                 done();
-    //
-    //             }, function (error) {
-    //                 console.log({error: error});
-    //             });
-    //     }
-    // );
-    it("Approve TopUp Proposal", function(done){
-        // 1 means success
-        console.log(topUpProposal)
+    it("approve TopUp Proposal because it's prepending at start, and promocode need to calculate with proposal", function (done) {
         let requestId = new Date().getTime();
-        dbProposal.updateTopupProposal(topUpProposal.proposalId, 'Approved', requestId,1)
-            .then(data=>{
+        dbProposal.updateTopupProposal(topUpProposal.proposalId, 'Approved', requestId, 1)
+            .then(data => {
                 done();
-            },err=>{
+            }, err => {
                 console.log(err)
                 done();
             })
     });
 
-    it('check if the proposal is ready', function (done) {
-        dbconfig.collection_proposal.findOne({'data.platformId':testPlatformObjId, 'data.playerObjId':testPlayer._id}).then(
+    it("apply promocode now", function (done) {
+        dbPlayerReward.applyPromoCode(testPlayer.playerId, promoCodeNumber).then(data => {
+                done();
+            },
+            error => {
+                done('Fail at apply promocode')
+            })
+    })
+
+    it("creating consumption record to unlock this promo code", function (done) {
+        let curTime = new Date();
+        commonTestFunc.createConsumptionRecord(testPlayer._id, testPlatformObjId, 130).then(
             function (data) {
                 done();
             },
             function (error) {
+                console.error(error);
+                done('Fail at creating consumption record');
+            }
+        );
+    })
+
+    it('check if the proposal is unlock and reward amount is correct', function (done) {
+        dbconfig.collection_proposal.findOne({
+            'data.platformId': testPlatformObjId,
+            'data.playerObjId': testPlayer._id,
+            'mainType': 'Reward',
+            'status': 'Approved'
+        }).then(
+            function (data) {
+                if (data.data.rewardAmount == promoCode.amount) {
+                    done();
+                } else {
+                    done('the reward amount is not equal from the promocode setting');
+                }
+            },
+            function (error) {
                 console.log(error)
-                done('fail to create ali pay acc')
+                done('cannot find any promo code success proposal')
             }
         );
     });
-
-    it("apply promocode", function(done){
-        dbPlayerReward.applyPromoCode(testPlayer.playerId, promoCodeNumber).then(data=>{
-            done();
-        },
-        error=>{
-            done('Fail at apply promocode')
-        })
-    })
-
-    // it("creating consumption record", function (done) {
-    //     let curTime = new Date();
-    //     commonTestFunc.createConsumptionRecord(testPlayer._id, testPlatformObjId, 100).then(
-    //         function (data) {
-    //             done();
-    //         },
-    //         function (error) {
-    //             console.error(error);
-    //             done('Fail at creating consumption record');
-    //         }
-    //     );
-    // })
-
     var generatedData = {};
 
     // *****************
@@ -303,13 +277,11 @@ describe("Test Player Consumption Reward Group", function () {
         commonTestFunc.removeTestData(testPlatformObjId, [testPlayer._id]).then(function (data) {
             done();
         })
-        // done();
     });
 
     it('Should remove all test Data', function (done) {
         commonTestFunc.removeTestProposalData([], testPlatformObjId, [], [testPlayer._id]).then(function (data) {
             done();
         })
-        // done();
     });
 });
