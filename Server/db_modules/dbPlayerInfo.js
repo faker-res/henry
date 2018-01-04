@@ -99,7 +99,8 @@ let dbPlayerInfo = {
                         for (let x in playerData) {
                             if (playerData[x]) {
 
-                                if (playerData[x].permission && playerData[x].permission.rewardPointsTask) {
+                                // undefined checking is backward compatible for available players without rewardPointsTask permission schema
+                                if (playerData[x].permission && playerData[x].permission.rewardPointsTask || playerData[x].permission.rewardPointsTask === undefined) {
                                     if (!playerData[x].rewardPointsObjId) {
                                         let bulkCreateNewRewardPointsData = {
                                             platformObjId: platformId,
