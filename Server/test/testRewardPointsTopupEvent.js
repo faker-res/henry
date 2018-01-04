@@ -108,9 +108,7 @@ describe("Test player reward points topup event", function () {
                 {new: true}).lean().then(
                 (data) => {
                     testPlatform = data;
-                    if (testPlatform.usePointSystem !== true) {
-                        done('new platform reward points system should be enable');
-                    }
+                    testPlatform.should.have.property('usePointSystem', true);
                     done();
                 },
                 (error) => {
@@ -230,11 +228,8 @@ describe("Test player reward points topup event", function () {
     it('Should check is add manual topup proposal data and update proposal status', function (done) {
         dbProposal.getProposal({"data.platformId": testPlatformObjId, "data.playerObjId": testPlayerObjId}).then(
             (proposal) => {
-                if (proposal) {
-                    return dbProposal.updateTopupProposal(proposal.proposalId, constProposalStatus.SUCCESS, 0, 1);
-                } else {
-                    done('manual topup proposal no found');
-                }
+                should.exist(proposal);
+                return dbProposal.updateTopupProposal(proposal.proposalId, constProposalStatus.SUCCESS, 0, 1);
             },
             (error) => {
                 done(error);
@@ -252,12 +247,10 @@ describe("Test player reward points topup event", function () {
     it('Should add reward point to player', function (done) {
         dbConfig.collection_rewardPoints.findOne({_id: testPlayerRewardPoints._id}).lean().then(
             (rewardPoints) => {
-                if (rewardPoints && rewardPoints.points === topupEventRewardAmount) {
-                    testPlayerRewardPoints = rewardPoints;
-                    done();
-                } else {
-                    done('rewardPoints no found');
-                }
+                should.exist(rewardPoints);
+                rewardPoints.should.have.property('points', topupEventRewardAmount);
+                testPlayerRewardPoints = rewardPoints;
+                done();
             },
             (error) => {
                 done(error);
@@ -270,11 +263,9 @@ describe("Test player reward points topup event", function () {
         dbConfig.collection_rewardPointsLog.findOne({rewardPointsObjId: testPlayerRewardPoints._id})
             .sort({'createTime': -1}).lean().then(
             (rewardPointsLog) => {
-                if (rewardPointsLog && rewardPointsLog.amount === topupEventRewardAmount) {
-                    done();
-                } else {
-                    done('rewardPointsLog no found');
-                }
+                should.exist(rewardPointsLog);
+                rewardPointsLog.should.have.property('amount', topupEventRewardAmount);
+                done();
             },
             (error) => {
                 done(error);
@@ -285,12 +276,11 @@ describe("Test player reward points topup event", function () {
     /* Test 10 - check player reward points event progress */
     it('Should check player reward points event progress', function (done) {
         let rewardPointProgress = testPlayerRewardPoints.progress[0];
-        if(rewardPointProgress.count === 1 && rewardPointProgress.isApplied && rewardPointProgress.isApplicable
-            && rewardPointProgress.rewardPointsEventObjId.toString() === testRewardPointEvent._id.toString()) {
-            done();
-        } else {
-            done('player reward point event progress no match');
-        }
+        rewardPointProgress.should.have.property('count', 1);
+        rewardPointProgress.should.have.property('isApplied', true);
+        rewardPointProgress.should.have.property('isApplicable', true);
+        should.equal(rewardPointProgress.rewardPointsEventObjId.toString(), testRewardPointEvent._id.toString());
+        done();
     });
 
     /* Test 99 - remove all test Data */
