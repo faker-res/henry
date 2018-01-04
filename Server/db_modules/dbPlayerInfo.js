@@ -12304,7 +12304,8 @@ let dbPlayerInfo = {
                         for (let i = 0; i < platformData.gameProviders.length; i++) {
                             providerCredit.gameCreditList[i] = {
                                 providerId: platformData.gameProviders[i].providerId,
-                                nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name
+                                nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
+                                status: platformData.gameProviders[i].status
                             };
                         }
                     }
@@ -12326,7 +12327,8 @@ let dbPlayerInfo = {
                                 return {
                                     providerId: creditData.providerId,
                                     gameCredit: parseFloat(creditData.credit).toFixed(2) || 0,
-                                    nickName: providerList.gameCreditList[i].nickName? providerList.gameCreditList[i].nickName: ""
+                                    nickName: providerList.gameCreditList[i].nickName? providerList.gameCreditList[i].nickName: "",
+                                    status: providerList.gameCreditList[i].status
                                 };
                             },
                             function (err) {
@@ -12350,7 +12352,8 @@ let dbPlayerInfo = {
                     for (let i = 0; i < gameCreditList.length; i++) {
                         returnData.gameCreditList[i] = {
                             nickName: gameCreditList[i].nickName? gameCreditList[i].nickName: "",
-                            validCredit: gameCreditList[i].gameCredit? gameCreditList[i].gameCredit: ""
+                            validCredit: gameCreditList[i].gameCredit? gameCreditList[i].gameCredit: "",
+                            status: gameCreditList[i].status
                         };
                     }
 
