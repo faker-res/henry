@@ -1652,12 +1652,13 @@ const dbRewardTask = {
 
         if (unlockType == constRewardTaskStatus.MANUAL_UNLOCK) {
             taskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
-                platformId: rewardGroupData.platformId,
-                playerId: rewardGroupData.playerId,
-                providerGroup: rewardGroupData.providerGroup
+                // platformId: rewardGroupData.platformId,
+                // playerId: rewardGroupData.playerId,
+                // providerGroup: rewardGroupData.providerGroup
+                _id: rewardGroupData._id
             }, {
                 status: constRewardTaskStatus.MANUAL_UNLOCK
-            });
+            }, {new: true}).lean();
         }
 
         return taskGroupProm.then(() => {
