@@ -11022,6 +11022,16 @@ define(['js/app'], function (myApp) {
                 })
                 return proposalData;
             }
+
+            vm.unlockPlatformProviderGroup = function() {
+                let sendQuery = {
+                    platformObjId: vm.selectedPlatform.id
+                }
+                socketService.$socket($scope.AppSocket, 'startPlatformUnlockRewardTaskGroup', sendQuery, function (data) {
+                console.log("PlatformUnlockRewardTaskGroup",data)
+                })
+            }
+
             vm.selectReward = function($event){
                 $event.stopPropagation();
                 vm.selectedRewards = [];
@@ -18888,8 +18898,16 @@ define(['js/app'], function (myApp) {
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification
                     }
                 };
+                let isProviderGroupOn = false;
+                if (vm.selectedPlatform.data.useProviderGroup && !srcData.useProviderGroup){
+                    isProviderGroupOn = true;
+                }
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                     vm.loadPlatformData({loadAll: false});
+                    if (isProviderGroupOn) {
+                        vm.unlockPlatformProviderGroup()
+                    }
+
                 });
             }
 
