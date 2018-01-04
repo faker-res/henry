@@ -2042,7 +2042,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestWechatTopup: function (userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime) {
+    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -2175,7 +2175,12 @@ var dbPlayerTopUpRecord = {
                             requestData.groupWechatList = [wechatAccount];
                         }
                         //console.log("requestData", requestData);
-                        return pmsAPI.payment_requestWeChatQRAccount(requestData);
+                        if( useQR ){
+                            return pmsAPI.payment_requestWeChatQRAccount(requestData);
+                        }
+                        else{
+                            return pmsAPI.payment_requestWeChatAccount(requestData);
+                        }
                     }
                     else {
                         return Q.reject({name: "DataError", errorMessage: "Cannot create wechat top up proposal"});
@@ -2498,7 +2503,7 @@ var dbPlayerTopUpRecord = {
                             break;
                         case 4: //wechat
                             proposalType = constProposalType.PLAYER_WECHAT_TOP_UP;
-                            return dbPlayerTopUpRecord.requestWechatTopup(null, playerData.playerId, amount, "test", "test", requestData.bonusCode, "CLIENT");
+                            return dbPlayerTopUpRecord.requestWechatTopup(!Boolean(requestData.useQR), null, playerData.playerId, amount, "test", "test", requestData.bonusCode, "CLIENT");
                             break;
                     }
                 }
