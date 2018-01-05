@@ -312,7 +312,8 @@ var dbPlayerConsumptionWeekSummary = {
                                             applyAmount: applyAmount,
                                             eventDescription: eventData.description,
                                             startTime: startTime,
-                                            endTime: endTime
+                                            endTime: endTime,
+                                            isIgnoreAudit: eventData.param && Number.isInteger(eventData.param.isIgnoreAudit) && eventData.param.isIgnoreAudit >= returnAmount,
                                         }
                                     };
 

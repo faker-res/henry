@@ -247,6 +247,9 @@ var dbPlatform = {
             updateData.weeklySettlementMinute = weeklyTime.getUTCMinutes();
             updateData.weeklySettlementDay = weeklyTime.getUTCDay();
         }
+        if (updateData.usePointSystem) {
+            dbPlayerInfo.createPlayerRewardPointsRecord(query, "", true);
+        }
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
                 console.log("updatePlatform", data, query, updateData);

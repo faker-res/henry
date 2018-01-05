@@ -2918,14 +2918,21 @@ define(['js/app'], function (myApp) {
                         $(this).addClass('selected');
                         const record = table.row(this).data();
 
+                        let startTime = vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate();
+                        let endTime = vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate();
+                        let createTimeQuery = {
+                            $gte: startTime,
+                            $lte: endTime
+                        };
+
                         var playerTransfer;
-                        socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: record.playerObjId}, function (reply) {
+                        socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: record.playerObjId, createTime: createTimeQuery}, function (reply) {
                             vm.selectedThisPlayer = reply.data;
                             updateShowPlayerCredit();
                         });
 
-
                         socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId}, function (data) {
+                            console.log('getPlayerTransferErrorLogs', data); // todo :: delete log after problem solved
                             data.data.forEach(function (playerTransLog) {
                                 if (playerTransLog._id == record._id) {
                                     playerTransfer = playerTransLog
@@ -8428,9 +8435,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
-                if(!vm.selectedSinglePlayer.rewardPointsObjId) {
-                    vm.createPlayerRewardPointsRecord();
-                }
                 vm.rewardPointsChange.finalValidAmount = vm.isOneSelectedPlayer().rewardPointsObjId.points;
                 vm.rewardPointsChange.remark = '';
                 vm.rewardPointsChange.updateAmount = 0;
@@ -8438,18 +8442,6 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsConvert.remark = '';
                 vm.rewardPointsConvert.updateAmount = 0;
                 $scope.safeApply();
-            };
-
-            vm.createPlayerRewardPointsRecord = function () {
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    playerId: vm.isOneSelectedPlayer()._id
-                };
-
-                socketService.$socket($scope.AppSocket, 'createPlayerRewardPointsRecord', sendData, function () {
-                    vm.advancedPlayerQuery();
-                    $scope.safeApply();
-                });
             };
 
             vm.updatePlayerRewardPointsRecord = function () {
