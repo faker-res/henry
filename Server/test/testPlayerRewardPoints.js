@@ -171,19 +171,21 @@ describe("Test player reward points", function () {
 
     /* Test 10 - check is log match when add reward points to player*/
     it('Should create log when add reward points to player', function (done) {
-        dbConfig.collection_rewardPointsLog.findOne({rewardPointsObjId: testRewardPointsObjId})
-            .sort({'createTime':-1}).lean().then(
-            (data) => {
-                if (data && data.amount === testUpdateAmount) {
-                    done();
-                } else {
-                    done('Log no match');
+        setTimeout(function () {
+            dbConfig.collection_rewardPointsLog.findOne({rewardPointsObjId: testRewardPointsObjId})
+                .sort({'createTime':-1}).lean().then(
+                (data) => {
+                    if (data && data.amount === testUpdateAmount) {
+                        done();
+                    } else {
+                        done('Log no match');
+                    }
+                },
+                (error) => {
+                    done(error);
                 }
-            },
-            (error) => {
-                done(error);
-            }
-        );
+            );
+        }, 1000); // set 1s delay for test 9 to run completely
     });
 
     /* Test 100 - remove all test Data */
