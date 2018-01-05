@@ -2918,14 +2918,21 @@ define(['js/app'], function (myApp) {
                         $(this).addClass('selected');
                         const record = table.row(this).data();
 
+                        let startTime = vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate();
+                        let endTime = vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate();
+                        let createTimeQuery = {
+                            $gte: startTime,
+                            $lte: endTime
+                        };
+
                         var playerTransfer;
-                        socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: record.playerObjId}, function (reply) {
+                        socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: record.playerObjId, createTime: createTimeQuery}, function (reply) {
                             vm.selectedThisPlayer = reply.data;
                             updateShowPlayerCredit();
                         });
 
-
                         socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId}, function (data) {
+                            console.log('getPlayerTransferErrorLogs', data); // todo :: delete log after problem solved
                             data.data.forEach(function (playerTransLog) {
                                 if (playerTransLog._id == record._id) {
                                     playerTransfer = playerTransLog
