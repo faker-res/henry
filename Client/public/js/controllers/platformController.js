@@ -8962,8 +8962,8 @@ define(['js/app'], function (myApp) {
                 }
                 let sendObj = {
                     //targetProviders: providerArr,
-                    type: vm.constProposalType.ADD_PLAYER_REWARD_TASK,
-                    rewardType: vm.constProposalType.ADD_PLAYER_REWARD_TASK,
+                    type: vm.playerAddRewardTask.type,
+                    rewardType: vm.playerAddRewardTask.type,
                     platformId: vm.selectedSinglePlayer.platform,
                     playerId: vm.selectedSinglePlayer._id,
                     playerObjId: vm.selectedSinglePlayer._id,
@@ -8979,6 +8979,8 @@ define(['js/app'], function (myApp) {
                 if(!vm.selectedPlatform.data.useProviderGroup){
                     sendObj.targetProviders = providerArr;
                 }else{
+                    sendObj.type= vm.constProposalType.ADD_PLAYER_REWARD_TASK,
+                    sendObj.rewardType= vm.constProposalType.ADD_PLAYER_REWARD_TASK,
                     sendObj.providerGroup = vm.playerAddRewardTask.providerGroup;
                     sendObj.isGroupReward = true;
                 }
