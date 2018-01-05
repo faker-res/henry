@@ -299,6 +299,26 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerInfo, [{playerId: conn.playerId}, data], isValidData, false, false, true);
     };
 
+    //update player QQ
+    this.updatePlayerQQ.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerQQProposal, [{playerId: conn.playerId}, data], isValidData);
+    };
+
+    this.updatePlayerWeChat.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerWeChatProposal, [{playerId: conn.playerId}, data], isValidData);
+    };
+
+    this.updatePlayerEmail.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerEmailProposal, [{playerId: conn.playerId}, data], isValidData);
+    };
+
+
     this.updatePhoneNumberWithSMS.expectsData = 'playerId: String, phoneNumber: Number';
     this.updatePhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
@@ -1070,6 +1090,10 @@ let PlayerServiceImplement = function () {
         var isValidData = true;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getCreditDetail, [conn.playerObjId], isValidData);
     };
+
+    this.loginJblShow.onRequest = function (wsFunc, conn, data) {
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.loginJblShow, [conn.playerObjId], true);
+    }
 
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
