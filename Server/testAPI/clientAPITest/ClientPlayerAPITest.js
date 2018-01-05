@@ -355,6 +355,12 @@
         this.playerService.updatePlayerWeChat.once(callback);
     };
 
+    proto.updatePlayerEmail = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updatePlayerEmail.request(data);
+        this.playerService.updatePlayerEmail.once(callback);
+    };
+
     proto.updatePhoneNumberWithSMS = function (callback, requestData) {
         let data = requestData || {};
         this.playerService.updatePhoneNumberWithSMS.request(data);

@@ -85,7 +85,8 @@
                 "getCardTypeList",
                 "getCreditDetail",
                 "updatePlayerQQ",
-                "updatePlayerWeChat"
+                "updatePlayerWeChat",
+                "updatePlayerEmail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
