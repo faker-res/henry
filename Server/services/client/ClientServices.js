@@ -86,7 +86,8 @@
                 "getCreditDetail",
                 "updatePlayerQQ",
                 "updatePlayerWeChat",
-                "updatePlayerEmail"
+                "updatePlayerEmail",
+                "loginJblShow",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
