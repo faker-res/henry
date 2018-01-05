@@ -9841,7 +9841,7 @@ let dbPlayerInfo = {
                                     break;
                                 //request consumption rebate
                                 case constRewardType.PLAYER_CONSUMPTION_RETURN:
-                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId, code, userAgent);
+                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId, code, userAgent, data.isForceApply);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN:
                                     if (data.topUpRecordId == null) {

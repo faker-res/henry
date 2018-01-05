@@ -8605,7 +8605,7 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             };
-            vm.applyPlayerReward = function () {
+            vm.applyPlayerReward = function (isForceApply = false) {
                 vm.applyXM = true;
                 let idArr = [];
                 if (vm.playerApplyRewardShow.topUpRecordIds) {
@@ -8625,6 +8625,9 @@ define(['js/app'], function (myApp) {
                         referralName: vm.playerApplyRewardPara.referralName
                     }
                 };
+                if (isForceApply) {
+                    sendQuery.data.isForceApply = isForceApply;
+                }
                 socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
                     console.log('sent', data);
                     vm.applyXM = false;

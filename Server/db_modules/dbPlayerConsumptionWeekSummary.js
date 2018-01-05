@@ -187,7 +187,7 @@ var dbPlayerConsumptionWeekSummary = {
         });
     },
 
-    checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, bRequest, userAgent) {
+    checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, bRequest, userAgent, isForceApply) {
         var deferred = Q.defer();
 
         var summaryProm = dbconfig.collection_playerConsumptionSummary.find(
@@ -285,9 +285,9 @@ var dbPlayerConsumptionWeekSummary = {
 
                                 // If return reward amount larger than 1, create proposal
                                 var bReturn = true; //Boolean(returnAmount >= 1);
-                                if (bRequest) {
+                                if (bRequest && !isForceApply) {
                                     //todo:: move the 100 here to system param
-                                    bReturn = Boolean(returnAmount >= 100);
+                                    bReturn = Boolean(returnAmount >= eventData.param.earlyXimaMinAmount);
                                 }
                                 if (bReturn) {
                                     var summaryIds = thisPlayersConsumptionSummaries.map(summary => summary._id);
@@ -429,10 +429,11 @@ var dbPlayerConsumptionWeekSummary = {
      * Start calculate consumption return for player
      * @param {ObjectId} playerId
      */
-    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin, eventCode,userAgent) {
+    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin, eventCode,userAgent, isForceApply) {
         var deferred = Q.defer();
         var platformData = null;
         var playerData = null;
+        let eventData = null;
         //check if player platform has consumption return reward event
         dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
@@ -476,6 +477,7 @@ var dbPlayerConsumptionWeekSummary = {
         ).then(
             function (eventsData) {
                 if (eventsData) {
+                    eventData = eventsData[0] ? eventsData[0]:null;
                     return dbconfig.collection_players.findOneAndUpdate({
                         _id: playerData._id,
                         platform: playerData.platform._id
@@ -487,7 +489,7 @@ var dbPlayerConsumptionWeekSummary = {
                                     if (dbPlayerReward.isRewardEventForbidden(updatePlayer, eventsData._id)) {
                                         continue;
                                     }
-                                    proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest, userAgent));
+                                    proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest, userAgent, isForceApply));
                                 }
                                 return Q.all(proms).then(
                                     data => {
@@ -543,7 +545,7 @@ var dbPlayerConsumptionWeekSummary = {
                     deferred.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DBError",
-                        message: "Player does not have enough return amount"
+                        message: eventData.param && eventData.param.earlyXimaMinAmount ? "您的洗码额度不足"+eventData.param.earlyXimaMinAmount+"元，无法提前结算洗码，谢谢": "您的洗码额度不足，无法提前结算洗码，谢谢"
                     });
                 }
             },
@@ -566,7 +568,7 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {json} platformData
      * @param {json} eventData
      */
-    calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest, userAgent = null) {
+    calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest, userAgent = null, isForceApply = false) {
         let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         if (bRequest) {
             if(eventData.settlementPeriod == constSettlementPeriod.DAILY){
@@ -578,7 +580,7 @@ var dbPlayerConsumptionWeekSummary = {
                 settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
             }
         }
-        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest, userAgent);
+        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest, userAgent, isForceApply);
     },
 
     /**
