@@ -13,6 +13,7 @@ var geoip = require('geoip-lite');
 var jwt = require('jsonwebtoken');
 var md5 = require('md5');
 let rsaCrypto = require("../modules/rsaCrypto");
+let apiRequest = require("request");
 
 let env = require('../config/env').config();
 
@@ -12538,6 +12539,58 @@ let dbPlayerInfo = {
                 }
             }
         )
+    },
+
+    loginJblShow: function (playerObjId) {
+        return dbconfig.collection_players.findOne({_id: playerObjId}, {similarPlayers: 0})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(playerData => {
+            if (!playerData || !playerData.platform || String(playerData.platform.platformId) !== '6') {
+                console.log('playerData',playerData)
+                return Promise.reject({
+                    name: "DataError",
+                    message: "Invalid player data"
+                })
+            }
+
+            let playerName = playerData.name;
+
+            // NOTE :: token for authentication, may be needed later
+            // let profile = {name: playerData.name, password: playerData.password};
+            // let authenticateToken = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+            let token = md5(md5(playerName) + "kingbally");
+
+            return new Promise((resolve, reject) => {
+                apiRequest({
+                    url: 'https://www.jblshow.com/livestream/login',
+                    method: 'POST',
+                    json: {
+                        username: playerName,
+                        token: token
+                    }
+                }, function (error, response, body) {
+                    if (error || !body) {
+                        reject({
+                            status: constServerCode.OPERATION_FAIL,
+                            name: "DataError",
+                            message: error || "Connection failed"
+
+                        });
+                        return;
+                    }
+
+                    if (body.status && body.url) {
+                        resolve({url: body.url});
+                    }
+                    else {
+                        reject({
+                            name: "DataError",
+                            message: body.msg || "Login to JBL Show failure"
+                        });
+                    }
+                });
+            });
+        });
     },
 
 };

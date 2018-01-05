@@ -595,8 +595,17 @@
                 callback(data);
             }
         });
+    };
 
+    proto.loginJblShow = function (callback, requestData) {
+        let data = requestData || {};
 
+        this.playerService.loginJblShow.request(data);
+        this.playerService.loginJblShow.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
     };
 
     if (isNode) {
