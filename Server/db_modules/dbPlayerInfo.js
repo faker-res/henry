@@ -9969,10 +9969,18 @@ let dbPlayerInfo = {
         )
     },
 
-    getPlayerTransferErrorLog: function (playerObjId) {
-        return dbconfig.collection_playerCreditTransferLog.find({
-            playerObjId: playerObjId, bUsed: {$ne: true}    //status: constPlayerCreditTransferStatus.FAIL
-        }).sort({"createTime": -1}).limit(constSystemParam.MAX_RECORD_NUM);
+    getPlayerTransferErrorLog: function (playerObjId, createTime) {
+        let query = {
+            playerObjId: playerObjId,
+            bUsed: {$ne: true},
+            // status: constPlayerCreditTransferStatus.FAIL
+        };
+
+        if (createTime) {
+            query.createTime = createTime;
+        }
+
+        return dbconfig.collection_playerCreditTransferLog.find(query).sort({"createTime": -1}).limit(constSystemParam.MAX_RECORD_NUM);
     },
 
     verifyPlayerPhoneNumber: function (playerObjId, phoneNumber) {
@@ -12428,6 +12436,40 @@ let dbPlayerInfo = {
                 return returnData;
             }
         );
+    },
+
+    createPlayerQQProposal: function createPlayerQQProposal(query, data) {
+        return dbconfig.collection_players.findOne(query).lean().then(
+            playerData => {
+                let proposalData = {
+                    data: {
+                        playerObjId: playerData._id,
+                        playerName: playerData.name,
+                        updateData: {qq: data.qq}
+                    }
+                }
+                return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_QQ, proposalData);
+            }
+        )
+    },
+
+    /**
+     * Create new Proposal to update player WeChat
+     * @param {json} data - proposal data
+     */
+    createPlayerWeChatProposal: function createPlayerWeChatProposal(query, data) {
+        return dbconfig.collection_players.findOne(query).lean().then(
+            playerData => {
+                let proposalData = {
+                    data: {
+                        playerObjId: playerData._id,
+                        playerName: playerData.name,
+                        updateData: {wechat: data.wechat}
+                    }
+                }
+                return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_WECHAT, proposalData);
+            }
+        )
     },
 
 };

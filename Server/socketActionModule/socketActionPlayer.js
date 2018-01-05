@@ -698,7 +698,7 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerTransferErrorLogs: function getPlayerTransferErrorLogs(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerObjId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerTransferErrorLog, [data.playerObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerTransferErrorLog, [data.playerObjId, data.createTime], actionName, isValidData);
         },
 
         searchMailLog: function searchMailLog(data) {
