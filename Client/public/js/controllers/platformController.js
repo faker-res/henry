@@ -11985,6 +11985,7 @@ define(['js/app'], function (myApp) {
                     alipayAccount: vm.playerAlipayTopUp.alipayAccount,
                     bonusCode: vm.playerAlipayTopUp.bonusCode,
                     remark: vm.playerAlipayTopUp.remark,
+                    realName: vm.playerAlipayTopUp.realName,
                     createTime: vm.playerAlipayTopUp.createTime.data('datetimepicker').getLocalDate()
                 };
                 vm.playerAlipayTopUp.submitted = true;
