@@ -1215,7 +1215,10 @@
                                 label.text-success {{'SUCCESS' | translate}}
                             .well(ng-show='vm.playerApplyEventResult && !vm.playerApplyEventResult.success')
                                 label.text-danger {{'FAIL' | translate}}
-                                label.form-control {{(vm.playerApplyEventResult.error.message || vm.playerApplyEventResult.error.errorMessage) | translate}}
+                                label.form-control(ng-if='!vm.playerApplyRewardShow.showConsumptionReturn') {{(vm.playerApplyEventResult.error.message || vm.playerApplyEventResult.error.errorMessage) | translate}}
+                                label.form-control(style='width:80%;display:inline-block;' ng-if='vm.playerApplyRewardShow.showConsumptionReturn') {{ vm.playerApplyEventResult.error.message | translate}}
+                                button.btn.btn-primary.common-button(ng-if='vm.playerApplyRewardShow.showConsumptionReturn && (vm.playerApplyEventResult.error.message.indexOf("您的洗码额度不足") !== -1 || vm.playerApplyEventResult.error.errorMessage.indexOf("您的洗码额度不足") !== -1 )'
+                                ng-click='vm.applyPlayerReward(true)' style='vertical-align: bottom;margin-left: 10px;') {{"force submit" | translate}}
 
                         //#modalManualUnlockRewardTask
                         table.simple-table(ng-show="vm.selectedRewardSettingsTab == 'unlock-reward'")
