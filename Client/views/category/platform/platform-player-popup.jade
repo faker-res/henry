@@ -1149,10 +1149,13 @@
 
                         //#modalPlayerAddRewardTask
                         form(name='form_add_reward_task', ng-show="vm.selectedRewardSettingsTab == 'manual-reward'").well
-                            .form-group
+                            .form-group(ng-if='vm.selectedPlatform.data.useProviderGroup')
+                                label.control-label {{'Provider group' | translate}}
+                                select.form-control(ng-options='providerGroup._id as providerGroup.name for providerGroup in vm.gameProviderGroup', ng-model='vm.playerAddRewardTask.providerGroup', required)
+                            .form-group(ng-if='!vm.selectedPlatform.data.useProviderGroup')
                                 label.control-label {{'REWARD_NAME' | translate}}
                                 input.form-control(ng-model='vm.playerAddRewardTask.type', required)
-                            .form-group
+                            .form-group(ng-if='!vm.selectedPlatform.data.useProviderGroup')
                                 label.control-label {{'Provider' | translate}}
                                 div
                                     .inlinkBlk(ng-repeat='(i,v) in vm.platformProviderList')
