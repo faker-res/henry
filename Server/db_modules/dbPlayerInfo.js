@@ -12389,6 +12389,40 @@ let dbPlayerInfo = {
         );
     },
 
+    createPlayerQQProposal: function createPlayerQQProposal(query, data) {
+        return dbconfig.collection_players.findOne(query).lean().then(
+            playerData => {
+                let proposalData = {
+                    data: {
+                        playerObjId: playerData._id,
+                        playerName: playerData.name,
+                        updateData: {qq: data.qq}
+                    }
+                }
+                return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_QQ, proposalData);
+            }
+        )
+    },
+
+    /**
+     * Create new Proposal to update player WeChat
+     * @param {json} data - proposal data
+     */
+    createPlayerWeChatProposal: function createPlayerWeChatProposal(query, data) {
+        return dbconfig.collection_players.findOne(query).lean().then(
+            playerData => {
+                let proposalData = {
+                    data: {
+                        playerObjId: playerData._id,
+                        playerName: playerData.name,
+                        updateData: {wechat: data.wechat}
+                    }
+                }
+                return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_WECHAT, proposalData);
+            }
+        )
+    },
+
 };
 
 /**
