@@ -3724,13 +3724,11 @@ let dbPlayerReward = {
                         applyAmount = 0;
 
                         if (!rewardSpecificData || !rewardSpecificData[0]) {
-                            if (todayProposal.length > 0) {
-                                return Q.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Reward already hit maximum number of apply. Please contact cs."
-                                });
-                            }
+                            return Q.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "Not Valid for the reward."
+                            });
                         }
 
                         let playerRewardDetail = rewardSpecificData[0];
