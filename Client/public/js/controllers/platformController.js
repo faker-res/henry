@@ -103,6 +103,66 @@ define(['js/app'], function (myApp) {
             //     "PlayerLimitedOfferReward"
             // ];
 
+            vm.constProposalType = {
+                UPDATE_PLAYER_INFO: "UpdatePlayerInfo",
+                UPDATE_PLAYER_CREDIT: "UpdatePlayerCredit",
+                FIX_PLAYER_CREDIT_TRANSFER: "FixPlayerCreditTransfer",
+                UPDATE_PLAYER_EMAIL: "UpdatePlayerEmail",
+                UPDATE_PLAYER_PHONE: "UpdatePlayerPhone",
+                UPDATE_PLAYER_QQ: "UpdatePlayerQQ",
+                UPDATE_PLAYER_WECHAT: "UpdatePlayerWeChat",
+                UPDATE_PLAYER_BANK_INFO: "UpdatePlayerBankInfo",
+                ADD_PLAYER_REWARD_TASK: "AddPlayerRewardTask",
+                UPDATE_PARTNER_BANK_INFO: "UpdatePartnerBankInfo",
+                UPDATE_PARTNER_PHONE: "UpdatePartnerPhone",
+                UPDATE_PARTNER_EMAIL: "UpdatePartnerEmail",
+                UPDATE_PARTNER_QQ: "UpdatePartnerQQ",
+                UPDATE_PARTNER_INFO: "UpdatePartnerInfo",
+                FULL_ATTENDANCE: "FullAttendance",
+                PLAYER_CONSUMPTION_RETURN: "PlayerConsumptionReturn",
+                PARTNER_CONSUMPTION_RETURN: "PartnerConsumptionReturn",
+                FIRST_TOP_UP: "FirstTopUp",
+                PARTNER_INCENTIVE_REWARD: "PartnerIncentiveReward",
+                PARTNER_REFERRAL_REWARD: "PartnerReferralReward",
+                GAME_PROVIDER_REWARD: "GameProviderReward",
+                PLATFORM_TRANSACTION_REWARD: "PlatformTransactionReward",
+                PLAYER_MANUAL_TOP_UP: "ManualPlayerTopUp",
+                PLAYER_ALIPAY_TOP_UP: "PlayerAlipayTopUp",
+                PLAYER_WECHAT_TOP_UP: "PlayerWechatTopUp",
+                PLAYER_TOP_UP: "PlayerTopUp",
+                PLAYER_BONUS: "PlayerBonus",
+                PLAYER_TOP_UP_RETURN: "PlayerTopUpReturn",
+                PLAYER_CONSUMPTION_INCENTIVE: "PlayerConsumptionIncentive",
+                PLAYER_LEVEL_UP: "PlayerLevelUp",
+                PARTNER_TOP_UP_RETURN: "PartnerTopUpReturn",
+                PLAYER_TOP_UP_REWARD: "PlayerTopUpReward",
+                PLAYER_REFERRAL_REWARD: "PlayerReferralReward",
+                PARTNER_BONUS: "PartnerBonus",
+                PLAYER_CONSUMPTION_RETURN_FIX: "PlayerConsumptionReturnFix",
+                PLAYER_REGISTRATION_REWARD: "PlayerRegistrationReward",
+                PARTNER_COMMISSION: "PartnerCommission",
+                MANUAL_UNLOCK_PLAYER_REWARD: "ManualUnlockPlayerReward",
+                PLAYER_DOUBLE_TOP_UP_REWARD: "PlayerDoubleTopUpReward",
+                UPDATE_PARTNER_CREDIT:"UpdatePartnerCredit",
+                PLAYER_CONSECUTIVE_LOGIN_REWARD: "PlayerConsecutiveLoginReward",
+                PLAYER_REGISTRATION_INTENTION: "PlayerRegistrationIntention",
+                PLAYER_EASTER_EGG_REWARD: "PlayerEasterEggReward",
+                PLAYER_QUICKPAY_TOP_UP: "PlayerQuickpayTopUp",
+                PLAYER_TOP_UP_PROMO: "PlayerTopUpPromo",
+                PLAYER_LEVEL_MIGRATION: "PlayerLevelMigration",
+                PLAYER_CONSECUTIVE_CONSUMPTION_REWARD: "PlayerConsecutiveConsumptionReward",
+                PLAYER_PACKET_RAIN_REWARD: "PlayerPacketRainReward",
+                PLAYER_PROMO_CODE_REWARD: "PlayerPromoCodeReward",
+                PLAYER_LIMITED_OFFER_INTENTION: "PlayerLimitedOfferIntention",
+                PLAYER_LIMITED_OFFER_REWARD: "PlayerLimitedOfferReward",
+                PLAYER_CONSECUTIVE_REWARD_GROUP: "PlayerConsecutiveRewardGroup",
+                PLAYER_TOP_UP_RETURN_GROUP: "PlayerTopUpReturnGroup",
+                PLAYER_RANDOM_REWARD_GROUP: "PlayerRandomRewardGroup",
+                PLAYER_CONSUMPTION_REWARD_GROUP: "PlayerConsumptionRewardGroup",
+                PLAYER_FREE_TRIAL_REWARD_GROUP: "PlayerFreeTrialRewardGroup",
+                PLAYER_CONVERT_REWARD_POINTS: "PlayerConvertRewardPoints"
+            };
+
             vm.inputDevice = {
                 BACKSTAGE: 0,
                 WEB_PLAYER: 1,
@@ -2918,14 +2978,21 @@ define(['js/app'], function (myApp) {
                         $(this).addClass('selected');
                         const record = table.row(this).data();
 
+                        let startTime = vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate();
+                        let endTime = vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate();
+                        let createTimeQuery = {
+                            $gte: startTime,
+                            $lte: endTime
+                        };
+
                         var playerTransfer;
                         socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: record.playerObjId}, function (reply) {
                             vm.selectedThisPlayer = reply.data;
                             updateShowPlayerCredit();
                         });
 
-
-                        socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId}, function (data) {
+                        socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId, createTime: createTimeQuery}, function (data) {
+                            console.log('getPlayerTransferErrorLogs', data); // todo :: delete log after problem solved
                             data.data.forEach(function (playerTransLog) {
                                 if (playerTransLog._id == record._id) {
                                     playerTransfer = playerTransLog
@@ -2938,6 +3005,12 @@ define(['js/app'], function (myApp) {
 
                     function updateShowPlayerCredit() {
                         if (!errorLogObjReady || !vm.selectedThisPlayer) return;
+                        if (!playerTransfer) {
+                            vm.linkedPlayerTransferId = null;
+                            $scope.safeApply();
+                            return;
+                        }
+
                         vm.linkedPlayerTransferId = playerTransfer._id;
                         vm.creditChange.finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount
                             + vm.selectedThisPlayer.validCredit).toFixed(2);
@@ -8428,9 +8501,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
-                if(!vm.selectedSinglePlayer.rewardPointsObjId) {
-                    vm.createPlayerRewardPointsRecord();
-                }
                 vm.rewardPointsChange.finalValidAmount = vm.isOneSelectedPlayer().rewardPointsObjId.points;
                 vm.rewardPointsChange.remark = '';
                 vm.rewardPointsChange.updateAmount = 0;
@@ -8438,18 +8508,6 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsConvert.remark = '';
                 vm.rewardPointsConvert.updateAmount = 0;
                 $scope.safeApply();
-            };
-
-            vm.createPlayerRewardPointsRecord = function () {
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    playerId: vm.isOneSelectedPlayer()._id
-                };
-
-                socketService.$socket($scope.AppSocket, 'createPlayerRewardPointsRecord', sendData, function () {
-                    vm.advancedPlayerQuery();
-                    $scope.safeApply();
-                });
             };
 
             vm.updatePlayerRewardPointsRecord = function () {
@@ -8547,7 +8605,7 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             };
-            vm.applyPlayerReward = function () {
+            vm.applyPlayerReward = function (isForceApply = false) {
                 vm.applyXM = true;
                 let idArr = [];
                 if (vm.playerApplyRewardShow.topUpRecordIds) {
@@ -8567,6 +8625,9 @@ define(['js/app'], function (myApp) {
                         referralName: vm.playerApplyRewardPara.referralName
                     }
                 };
+                if (isForceApply) {
+                    sendQuery.data.isForceApply = isForceApply;
+                }
                 socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
                     console.log('sent', data);
                     vm.applyXM = false;
@@ -8909,7 +8970,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 let sendObj = {
-                    targetProviders: providerArr,
+                    //targetProviders: providerArr,
                     type: vm.playerAddRewardTask.type,
                     rewardType: vm.playerAddRewardTask.type,
                     platformId: vm.selectedSinglePlayer.platform,
@@ -8923,6 +8984,16 @@ define(['js/app'], function (myApp) {
                     useConsumption: Boolean(vm.playerAddRewardTask.useConsumption),
                     remark: vm.playerAddRewardTask.remark,
                 };
+                
+                if(!vm.selectedPlatform.data.useProviderGroup){
+                    sendObj.targetProviders = providerArr;
+                }else{
+                    sendObj.type= vm.constProposalType.ADD_PLAYER_REWARD_TASK,
+                    sendObj.rewardType= vm.constProposalType.ADD_PLAYER_REWARD_TASK,
+                    sendObj.providerGroup = vm.playerAddRewardTask.providerGroup;
+                    sendObj.isGroupReward = true;
+                }
+
                 console.log('sendObj', sendObj);
                 socketService.$socket($scope.AppSocket, 'createPlayerRewardTask', sendObj, function (data) {
                     vm.playerAddRewardTask.resMsg = $translate('SUCCESS');
@@ -17135,7 +17206,7 @@ define(['js/app'], function (myApp) {
         vm.showNewPlayerModal = function (data, templateNo) {
             vm.newPlayerProposal = data;
 
-            if (vm.newPlayerProposal.status === "Success") {
+            if (vm.newPlayerProposal.status === "Success" || vm.newPlayerProposal.status === "Manual") {
                 if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
                     let str = vm.newPlayerProposal.data.phoneNumber;
                     vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);

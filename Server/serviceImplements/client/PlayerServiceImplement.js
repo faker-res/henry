@@ -298,6 +298,26 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerInfo, [{playerId: data.playerId}, data], isValidData);
     };
 
+    //update player QQ
+    this.updatePlayerQQ.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerQQProposal, [{playerId: conn.playerId}, data], isValidData);
+    };
+
+    this.updatePlayerWeChat.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerWeChatProposal, [{playerId: conn.playerId}, data], isValidData);
+    };
+
+    this.updatePlayerEmail.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerEmailProposal, [{playerId: conn.playerId}, data], isValidData);
+    };
+
+
     this.updatePhoneNumberWithSMS.expectsData = 'playerId: String, phoneNumber: Number';
     this.updatePhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
@@ -624,7 +644,7 @@ let PlayerServiceImplement = function () {
     //player logout api handler
     this.logout.expectsData = 'playerId: String';
     this.logout.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(conn.playerId);
+        let isValidData = true;
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogout, [{playerId: conn.playerId}], isValidData, true, false, true).then(
             function (res) {
                 conn.isAuth = false;

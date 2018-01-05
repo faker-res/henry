@@ -3004,5 +3004,7 @@
   "xima required N time withdraw":"洗码流水要求N倍提款",
   "below X amount auto execute reward":"X 元以下优惠自动执行（忽略审核部)",
   "all provider group will force unlock": "所有锁大厅优惠将会强制解锁",
-  "turn off Use Provider Group": "关闭锁大厅组"
+  "turn off Use Provider Group": "关闭锁大厅组",
+  "early xima minimum amount": "提前洗码最低金额",
+  "force submit": "强制提交"
 }

@@ -83,15 +83,6 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
-         * Create a new reward points record based on player data
-         */
-        createPlayerRewardPointsRecord: function createPlayerRewardPointsRecord(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId && data.playerId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerRewardPointsRecord, [data.platformId, data.playerId], actionName, isValidData);
-        },
-
-        /**
          * Remove a new reward points record based on player data
          */
         removePlayerRewardPointsRecord: function removePlayerRewardPointsRecord(data) {
@@ -707,7 +698,7 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerTransferErrorLogs: function getPlayerTransferErrorLogs(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerObjId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerTransferErrorLog, [data.playerObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerTransferErrorLog, [data.playerObjId, data.createTime], actionName, isValidData);
         },
 
         searchMailLog: function searchMailLog(data) {

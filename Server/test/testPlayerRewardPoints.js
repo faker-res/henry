@@ -1,3 +1,9 @@
+let should = require('should');
+let dbConfig = require('./../modules/dbproperties');
+let socketConnection = require('../test_modules/socketConnection');
+let commonTestFunc = require('../test_modules/commonTestFunc');
+let dbPlayerInfo = require('../db_modules/dbPlayerInfo');
+
 const should = require('should');
 const dbConfig = require('./../modules/dbproperties');
 const socketConnection = require('../test_modules/socketConnection');
@@ -127,6 +133,15 @@ describe("Test player reward points", function () {
 
     /* Test 8 - create a reward points record for existing player */
     it('Should create a reward points record for existing player', function (done) {
+        dbPlayerInfo.createPlayerRewardPointsRecord(testPlayer.platform, testPlayer._id, false).then(
+            (data) => {
+                testPlayer = data;
+                testPlayerObjId = data._id;
+                if (data && data.rewardPointsObjId) {
+                    done();
+                }
+            }
+        )
         socketConnection.createConnection().then(function (socket) {
             socket.connected.should.equal(true);
             let createRewardPointsData = {

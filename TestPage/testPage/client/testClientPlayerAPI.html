@@ -1384,6 +1384,51 @@
     </div>
 </div>
 
+<h3>Update Player QQ (编辑玩家QQ)</h3>
+
+<div class="test-container">
+    <div>
+        <label>QQ
+            <input id="qq" type=text name="qq">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="updatePlayerQQ" data-api-name="updatePlayerQQ">Update</button>
+    </div>
+</div>
+
+<h3>Update Player WeChat (编辑玩家微信)</h3>
+
+<div class="test-container">
+    <div>
+        <label>WeChat
+            <input id="wechat" type=text name="wechat">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="updatePlayerWeChat" data-api-name="updatePlayerWeChat">Update</button>
+    </div>
+</div>
+
+<h3>Update Player Email (编辑玩家邮箱)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Email
+            <input id="email" type=text name="email">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="updatePlayerEmail" data-api-name="updatePlayerEmail">Update</button>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlayerAPITest, ClientConnectionAPITest) {

@@ -343,6 +343,24 @@
         this.playerService.update.once(callback);
     };
 
+    proto.updatePlayerQQ = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updatePlayerQQ.request(data);
+        this.playerService.updatePlayerQQ.once(callback);
+    };
+
+    proto.updatePlayerWeChat = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updatePlayerWeChat.request(data);
+        this.playerService.updatePlayerWeChat.once(callback);
+    };
+
+    proto.updatePlayerEmail = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updatePlayerEmail.request(data);
+        this.playerService.updatePlayerEmail.once(callback);
+    };
+
     proto.updatePhoneNumberWithSMS = function (callback, requestData) {
         let data = requestData || {};
         this.playerService.updatePhoneNumberWithSMS.request(data);

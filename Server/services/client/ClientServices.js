@@ -83,7 +83,10 @@
                 "manualPlayerLevelUp",
                 "getWithdrawalInfo",
                 "getCardTypeList",
-                "getCreditDetail"
+                "getCreditDetail",
+                "updatePlayerQQ",
+                "updatePlayerWeChat",
+                "updatePlayerEmail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
