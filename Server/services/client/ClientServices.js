@@ -85,7 +85,9 @@
                 "getCardTypeList",
                 "getCreditDetail",
                 "updatePlayerQQ",
-                "updatePlayerWeChat"
+                "updatePlayerWeChat",
+                "updatePlayerEmail",
+                "loginJblShow",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -104,7 +106,8 @@
             var functionNames = [
                 "getPlatformDetails",
                 "getPlatformAnnouncements",
-                "getConfig"
+                "getConfig",
+                "getLiveStream"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

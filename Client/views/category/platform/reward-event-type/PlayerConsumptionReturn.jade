@@ -11,6 +11,9 @@
 //    label {{vm.showRewardTypeData.params.params.numOfDays.des | translate}}
 //    input.form-control(type='number', ng-model='vm.rewardParams.numOfDays', disabled='vm.platformRewardShowEdit()')
 .full-width-input-block
+    label {{"early xima minimum amount" | translate}}
+    input.form-control(type='number', ng-model='vm.rewardParams.earlyXimaMinAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+.full-width-input-block
     label {{"xima required N time withdraw" | translate}}
     input.form-control(type='number', ng-model='vm.rewardParams.consumptionTimesRequired', ng-disabled='vm.platformRewardShowEdit()', required)
 .well

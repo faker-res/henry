@@ -13,6 +13,7 @@ var geoip = require('geoip-lite');
 var jwt = require('jsonwebtoken');
 var md5 = require('md5');
 let rsaCrypto = require("../modules/rsaCrypto");
+let apiRequest = require("request");
 
 let env = require('../config/env').config();
 
@@ -9841,7 +9842,7 @@ let dbPlayerInfo = {
                                     break;
                                 //request consumption rebate
                                 case constRewardType.PLAYER_CONSUMPTION_RETURN:
-                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId, code, userAgent);
+                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId, code, userAgent, data.isForceApply);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN:
                                     if (data.topUpRecordId == null) {
@@ -12438,6 +12439,10 @@ let dbPlayerInfo = {
         );
     },
 
+    /**
+     * Create new Proposal to update player QQ
+     * @param {json} data - proposal data
+     */
     createPlayerQQProposal: function createPlayerQQProposal(query, data) {
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
@@ -12448,7 +12453,22 @@ let dbPlayerInfo = {
                         updateData: {qq: data.qq}
                     }
                 }
-                return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_QQ, proposalData);
+
+                if (playerData.qq){
+                    proposalData.data.curData = {qq: playerData.qq};
+                }
+
+                if (playerData.qq && !data.qq) {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        message: "INVALID_DATA"
+                    });
+                } else if(!playerData.qq && !data.qq) {
+                    return Promise.resolve();
+                } else {
+                    return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_QQ, proposalData);
+                }
             }
         )
     },
@@ -12467,9 +12487,110 @@ let dbPlayerInfo = {
                         updateData: {wechat: data.wechat}
                     }
                 }
-                return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_WECHAT, proposalData);
+
+                if (playerData.wechat){
+                    proposalData.data.curData = {wechat: playerData.wechat};
+                }
+
+                if (playerData.wechat && !data.wechat) {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        message: "INVALID_DATA"
+                    });
+                } else if(!playerData.wechat && !data.wechat) {
+                    return Promise.resolve();
+                } else {
+                    return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_WECHAT, proposalData);
+                }
             }
         )
+    },
+
+    /**
+     * Create new Proposal to update player email
+     * @param {json} data - proposal data
+     */
+    createPlayerEmailProposal: function createPlayerEmailProposal(query, data) {
+        return dbconfig.collection_players.findOne(query).lean().then(
+            playerData => {
+                let proposalData = {
+                    data: {
+                        playerObjId: playerData._id,
+                        playerName: playerData.name,
+                        updateData: {email: data.email}
+                    }
+                }
+
+                if (playerData.email){
+                    proposalData.data.curData = {email: playerData.email};
+                }
+
+                if (playerData.email && !data.email) {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        message: "INVALID_DATA"
+                    });
+                } else if(!playerData.email && !data.email) {
+                    return Promise.resolve();
+                } else {
+                    return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_EMAIL, proposalData);
+                }
+            }
+        )
+    },
+
+    loginJblShow: function (playerObjId) {
+        return dbconfig.collection_players.findOne({_id: playerObjId}, {similarPlayers: 0})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(playerData => {
+            if (!playerData || !playerData.platform || String(playerData.platform.platformId) !== '6') {
+                console.log('playerData',playerData)
+                return Promise.reject({
+                    name: "DataError",
+                    message: "Invalid player data"
+                })
+            }
+
+            let playerName = playerData.name;
+
+            // NOTE :: token for authentication, may be needed later
+            // let profile = {name: playerData.name, password: playerData.password};
+            // let authenticateToken = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+            let token = md5(md5(playerName) + "kingbally");
+
+            return new Promise((resolve, reject) => {
+                apiRequest({
+                    url: 'https://www.jblshow.com/livestream/login',
+                    method: 'POST',
+                    json: {
+                        username: playerName,
+                        token: token
+                    }
+                }, function (error, response, body) {
+                    if (error || !body) {
+                        reject({
+                            status: constServerCode.OPERATION_FAIL,
+                            name: "DataError",
+                            message: error || "Connection failed"
+
+                        });
+                        return;
+                    }
+
+                    if (body.status && body.url) {
+                        resolve({url: body.url});
+                    }
+                    else {
+                        reject({
+                            name: "DataError",
+                            message: body.msg || "Login to JBL Show failure"
+                        });
+                    }
+                });
+            });
+        });
     },
 
 };
