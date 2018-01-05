@@ -959,6 +959,10 @@
                                 input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
                             .form-group.col-md-12
                                 .control-label
+                                label {{'realName' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.realName')
+                            .form-group.col-md-12
+                                .control-label
                                 label {{'promoCode' | translate}}
                                 input.form-control(ng-model='vm.playerAlipayTopUp.bonusCode')
                             .form-group.col-md-12
