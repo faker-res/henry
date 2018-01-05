@@ -455,6 +455,9 @@ var dbUtility = {
      * Get week time frame based on input date
      */
     getWeekTime: function (inputDate) {
+        // because start of week is monday instead of sunday, -1 day to get the actual 'start of week' (when inputDate land on monday)
+        inputDate = new Date(inputDate);
+        inputDate.setDate(inputDate.getDate() -1);
         var startTime = moment(inputDate).tz('Asia/Singapore').startOf("week").add(1, 'day').toDate();
         var endTime = moment(inputDate).tz('Asia/Singapore').add(1, 'day').add(1, 'week').toDate();
         return {

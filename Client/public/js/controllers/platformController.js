@@ -2978,14 +2978,21 @@ define(['js/app'], function (myApp) {
                         $(this).addClass('selected');
                         const record = table.row(this).data();
 
+                        let startTime = vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate();
+                        let endTime = vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate();
+                        let createTimeQuery = {
+                            $gte: startTime,
+                            $lte: endTime
+                        };
+
                         var playerTransfer;
-                        socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: record.playerObjId}, function (reply) {
+                        socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: record.playerObjId, createTime: createTimeQuery}, function (reply) {
                             vm.selectedThisPlayer = reply.data;
                             updateShowPlayerCredit();
                         });
 
-
                         socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId}, function (data) {
+                            console.log('getPlayerTransferErrorLogs', data); // todo :: delete log after problem solved
                             data.data.forEach(function (playerTransLog) {
                                 if (playerTransLog._id == record._id) {
                                     playerTransfer = playerTransLog
@@ -8488,9 +8495,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareShowPlayerRewardPointsAdjustment = function () {
-                if(!vm.selectedSinglePlayer.rewardPointsObjId) {
-                    vm.createPlayerRewardPointsRecord();
-                }
                 vm.rewardPointsChange.finalValidAmount = vm.isOneSelectedPlayer().rewardPointsObjId.points;
                 vm.rewardPointsChange.remark = '';
                 vm.rewardPointsChange.updateAmount = 0;
@@ -8498,18 +8502,6 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsConvert.remark = '';
                 vm.rewardPointsConvert.updateAmount = 0;
                 $scope.safeApply();
-            };
-
-            vm.createPlayerRewardPointsRecord = function () {
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    playerId: vm.isOneSelectedPlayer()._id
-                };
-
-                socketService.$socket($scope.AppSocket, 'createPlayerRewardPointsRecord', sendData, function () {
-                    vm.advancedPlayerQuery();
-                    $scope.safeApply();
-                });
             };
 
             vm.updatePlayerRewardPointsRecord = function () {
@@ -11090,6 +11082,26 @@ define(['js/app'], function (myApp) {
                 })
                 return proposalData;
             }
+
+            vm.unlockPlatformProviderGroup = function() {
+                let sendQuery = {
+                    platformObjId: vm.selectedPlatform.id
+                }
+                socketService.$socket($scope.AppSocket, 'startPlatformUnlockRewardTaskGroup', sendQuery, function (data) {
+                console.log("PlatformUnlockRewardTaskGroup",data)
+                })
+            }
+
+        vm.showUnlockProviderModal = function () {
+            if (vm.platformBasic.useProviderGroup == false && vm.selectedPlatform.data.useProviderGroup == true) {
+                $("#modalUnlockProvider").modal('show');
+                $("#modalUnlockProvider").on('shown.bs.modal', function (e) {
+                    $scope.safeApply();
+                })
+            }
+
+        };
+
             vm.selectReward = function($event){
                 $event.stopPropagation();
                 vm.selectedRewards = [];
@@ -17183,6 +17195,13 @@ define(['js/app'], function (myApp) {
         vm.showNewPlayerModal = function (data, templateNo) {
             vm.newPlayerProposal = data;
 
+            if (vm.newPlayerProposal.status === "Success") {
+                if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
+                    let str = vm.newPlayerProposal.data.phoneNumber;
+                    vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
+                }
+            }
+
             let tmpt = vm.proposalTemplate[templateNo];
             $(tmpt).modal('show');
             $(tmpt).on('shown.bs.modal', function (e) {
@@ -18956,8 +18975,16 @@ define(['js/app'], function (myApp) {
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification
                     }
                 };
+                let isProviderGroupOn = false;
+                if (vm.selectedPlatform.data.useProviderGroup && !srcData.useProviderGroup){
+                    isProviderGroupOn = true;
+                }
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                     vm.loadPlatformData({loadAll: false});
+                    if (isProviderGroupOn) {
+                        vm.unlockPlatformProviderGroup()
+                    }
+
                 });
             }
 

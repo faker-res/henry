@@ -54,7 +54,8 @@
                 "getDXNewPlayerDetail",
                 "autoConvertPlayerRewardPoints",
                 "bulkPlayerApplyReward",
-                "batchCreditTransferOut"
+                "batchCreditTransferOut",
+                "performUnlockPlatformProviderGroup"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
