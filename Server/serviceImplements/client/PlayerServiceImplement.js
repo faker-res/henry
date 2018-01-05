@@ -298,6 +298,20 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerInfo, [{playerId: data.playerId}, data], isValidData);
     };
 
+    //update player QQ
+    this.updatePlayerQQ.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.playerId && data.qq);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerQQProposal, [{playerId: conn.playerId}, data], isValidData);
+    };
+
+    this.updatePlayerWeChat.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.playerId && data.wechat);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerWeChatProposal, [{playerId: conn.playerId}, data], isValidData);
+    };
+
+
     this.updatePhoneNumberWithSMS.expectsData = 'playerId: String, phoneNumber: Number';
     this.updatePhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
