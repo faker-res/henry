@@ -102,7 +102,8 @@
             var functionNames = [
                 "getPlatformDetails",
                 "getPlatformAnnouncements",
-                "getConfig"
+                "getConfig",
+                "getLiveStream"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
