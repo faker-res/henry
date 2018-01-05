@@ -301,14 +301,20 @@ let PlayerServiceImplement = function () {
     //update player QQ
     this.updatePlayerQQ.onRequest = function (wsFunc, conn, data) {
 
-        var isValidData = Boolean(conn.playerId && data.qq);
+        var isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerQQProposal, [{playerId: conn.playerId}, data], isValidData);
     };
 
     this.updatePlayerWeChat.onRequest = function (wsFunc, conn, data) {
 
-        var isValidData = Boolean(conn.playerId && data.wechat);
+        var isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerWeChatProposal, [{playerId: conn.playerId}, data], isValidData);
+    };
+
+    this.updatePlayerEmail.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerEmailProposal, [{playerId: conn.playerId}, data], isValidData);
     };
 
 

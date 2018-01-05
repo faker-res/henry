@@ -12438,6 +12438,10 @@ let dbPlayerInfo = {
         );
     },
 
+    /**
+     * Create new Proposal to update player QQ
+     * @param {json} data - proposal data
+     */
     createPlayerQQProposal: function createPlayerQQProposal(query, data) {
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
@@ -12448,7 +12452,22 @@ let dbPlayerInfo = {
                         updateData: {qq: data.qq}
                     }
                 }
-                return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_QQ, proposalData);
+
+                if (playerData.qq){
+                    proposalData.data.curData = {qq: playerData.qq};
+                }
+
+                if (playerData.qq && !data.qq) {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        message: "INVALID_DATA"
+                    });
+                } else if(!playerData.qq && !data.qq) {
+                    return Promise.resolve();
+                } else {
+                    return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_QQ, proposalData);
+                }
             }
         )
     },
@@ -12467,7 +12486,56 @@ let dbPlayerInfo = {
                         updateData: {wechat: data.wechat}
                     }
                 }
-                return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_WECHAT, proposalData);
+
+                if (playerData.wechat){
+                    proposalData.data.curData = {wechat: playerData.wechat};
+                }
+
+                if (playerData.wechat && !data.wechat) {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        message: "INVALID_DATA"
+                    });
+                } else if(!playerData.wechat && !data.wechat) {
+                    return Promise.resolve();
+                } else {
+                    return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_WECHAT, proposalData);
+                }
+            }
+        )
+    },
+
+    /**
+     * Create new Proposal to update player email
+     * @param {json} data - proposal data
+     */
+    createPlayerEmailProposal: function createPlayerEmailProposal(query, data) {
+        return dbconfig.collection_players.findOne(query).lean().then(
+            playerData => {
+                let proposalData = {
+                    data: {
+                        playerObjId: playerData._id,
+                        playerName: playerData.name,
+                        updateData: {email: data.email}
+                    }
+                }
+
+                if (playerData.email){
+                    proposalData.data.curData = {email: playerData.email};
+                }
+
+                if (playerData.email && !data.email) {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        message: "INVALID_DATA"
+                    });
+                } else if(!playerData.email && !data.email) {
+                    return Promise.resolve();
+                } else {
+                    return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_EMAIL, proposalData);
+                }
             }
         )
     },
