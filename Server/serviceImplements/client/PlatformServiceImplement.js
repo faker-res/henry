@@ -27,6 +27,12 @@ var PlatformServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getConfig, [data.platformId], isValidData, null, null, true);
     };
 
+    this.getLiveStream.expectsData = '';
+    this.getLiveStream.onRequest = function (wsFunc, conn, data) {
+        var isValidData = true;
+        data = data || {};
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getLiveStream, [data], isValidData, null, null, true);
+    };
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);

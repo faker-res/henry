@@ -62,7 +62,16 @@
         });
     };
 
+    proto.getLiveStream = function (callback, requestData) {
 
+        this._service.getLiveStream.request(requestData);
+        this._service.getLiveStream.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+
+    };
 
     if (isNode) {
         module.exports = ClientPlatformAPITest;

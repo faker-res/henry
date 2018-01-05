@@ -40,7 +40,7 @@ const constServerCode = require('../const/constServerCode');
 const constSettlementPeriod = require("../const/constSettlementPeriod");
 const constSystemParam = require('../const/constSystemParam');
 const errorUtils = require('../modules/errorUtils');
-
+const request = require('request');
 function randomObjectId() {
     var id = crypto.randomBytes(12).toString('hex');
     return mongoose.Types.ObjectId(id);
@@ -2237,6 +2237,26 @@ var dbPlatform = {
             return Q.reject({name: "DBError", message: "Invalid platformId: " + platformId});
         }
     },
+    getLiveStream: function () {
+        let url = 'https://www.jblshow.com/livestream/liveurl';
+        var deferred = Q.defer();
+        request.get(url, {}, (err, res, body) => {
+            if (err) {
+                deferred.reject(`Get JBL livestream url failed  ${err}`);
+            } else {
+                let streamInfo = JSON.parse(res.body);
+                let streamResult = {};
+                if(streamInfo.content){
+                    streamResult = streamInfo.content;
+                }
+                if (streamInfo.code) {
+                    streamResult.code = streamInfo.code;
+                }
+                deferred.resolve(streamResult);
+            }
+        })
+        return deferred.promise;
+    }
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
