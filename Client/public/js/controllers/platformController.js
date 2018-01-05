@@ -8954,12 +8954,13 @@ define(['js/app'], function (myApp) {
 
             vm.initPlayerAddRewardTask = function () {
                 vm.playerAddRewardTask = {
-                    showSubmit: true
+                    showSubmit: true,
+                    providerGroup: 'null'
                 };
                 vm.showRewardSettingsTab(null);
                 // vm.selectedRewards = [];
                 // $('#modalPlayerAddRewardTask').modal();
-            }
+            };
 
             vm.submitAddPlayerRewardTask = function () {
                 vm.playerAddRewardTask.showSubmit = false;
