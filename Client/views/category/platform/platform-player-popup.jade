@@ -54,6 +54,13 @@
                                                         label {{"partner" | translate}}
                                                     .col-sm-8
                                                         text(style='height:inherit') {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
+
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"GENDER" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.getGenderFromBool(vm.selectedSinglePlayer.gender) || 'NONE' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
@@ -67,6 +74,12 @@
                                                         label {{"REFERRAL" | translate}}
                                                     .col-sm-8
                                                         text(style='height:inherit') {{vm.showReferralName || 'NONE' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"DOB" | translate}}
+                                                    .col-sm-8
+                                                        text(style='height:inherit') {{vm.convertDOBFormat(vm.selectedSinglePlayer.DOB) || 'NONE' | translate}}
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPlayerDialog('basicInfo');", ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br

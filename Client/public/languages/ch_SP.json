@@ -1,4 +1,8 @@
 {
+  "GENDER": "性别",
+  "DOB": "生日",
+  "Male": "男",
+  "Female": "女",
   "BACKSTAGE_SETTINGS": "后台设置",
   "PLAYER_DISPLAY_DATA": "玩家前端展示",
   "CUSTOMER_SERVICE_EMAIL_AUTOMATED": "自动回复邮箱",

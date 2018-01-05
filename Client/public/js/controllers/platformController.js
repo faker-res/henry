@@ -6580,8 +6580,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareCreatePlayer = function () {
+                vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {language: 'en', format: 'yyyy/MM/dd', endDate: new Date(), maxDate: new Date()});
+
                 vm.existPhone = false;
                 vm.newPlayer = {};
+
+
                 vm.duplicateNameFound = false;
                 vm.euPrefixNotExist = false;
                 $('.referralValidTrue').hide();
@@ -6595,6 +6599,7 @@ define(['js/app'], function (myApp) {
                 vm.phoneDuplicate.pageObj = utilService.createPageForPagingTable("#samePhoneNumTablePage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "phoneDuplicate", vm.loadPhoneNumberRecord)
                 });
+
 
             }
             vm.editPlayerStatus = function (id) {
@@ -7234,6 +7239,10 @@ define(['js/app'], function (myApp) {
             vm.createNewPlayer = function () {
                 vm.newPlayer.platform = vm.selectedPlatform.id;
                 vm.newPlayer.platformId = vm.selectedPlatform.data.platformId;
+                vm.tempDOB = vm.playerDOB.data('datetimepicker').getLocalDate();
+                vm.newPlayer.DOB = vm.tempDOB.toISOString().slice(0,10);
+                vm.newPlayer.gender = (vm.newPlayer.gender == "true") ? true : false ;
+
                 console.log('newPlayer', vm.newPlayer);
                 if (vm.newPlayer.createPartner) {
                     socketService.$socket($scope.AppSocket, 'createPlayerPartner', vm.newPlayer, function (data) {
@@ -13801,6 +13810,24 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+
+            vm.getGenderFromBool = function (genderBool) {
+                if (genderBool === true) {
+                    return "Male";
+                }
+                else if (genderBool === false) {
+                    return "Female";
+                }
+                else {
+                    return "";
+                }
+            }
+
+            vm.convertDOBFormat = function (DOBDate) {
+
+                return new Date(DOBDate).toISOString().slice(0,10);
+            }
+
             vm.getPlayerInfo = function (query) {
                 var myQuery = {
                     _id: query._id,
