@@ -187,7 +187,7 @@ var dbPlayerConsumptionWeekSummary = {
         });
     },
 
-    checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, bRequest, userAgent, isForceApply) {
+    checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, bRequest, userAgent, adminId=null, adminName=null, isForceApply) {
         var deferred = Q.defer();
 
         var summaryProm = dbconfig.collection_playerConsumptionSummary.find(
@@ -317,7 +317,13 @@ var dbPlayerConsumptionWeekSummary = {
                                         }
                                     };
 
-                                    if (userAgent) {
+                                    if(adminId && adminName){
+                                        proposalData.creator = {
+                                            name: adminName,
+                                            type: 'admin',
+                                            id: adminId
+                                        }
+                                    }else if (userAgent) {
                                         // userAgent no null means is not system
                                         proposalData.inputDevice = dbutility.getInputDevice(userAgent);
                                         proposalData.creator = {
@@ -429,7 +435,7 @@ var dbPlayerConsumptionWeekSummary = {
      * Start calculate consumption return for player
      * @param {ObjectId} playerId
      */
-    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin, eventCode,userAgent, isForceApply) {
+    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin, eventCode,userAgent, adminName, isForceApply) {
         var deferred = Q.defer();
         var platformData = null;
         var playerData = null;
@@ -489,7 +495,7 @@ var dbPlayerConsumptionWeekSummary = {
                                     if (dbPlayerReward.isRewardEventForbidden(updatePlayer, eventsData._id)) {
                                         continue;
                                     }
-                                    proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest, userAgent, isForceApply));
+                                    proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest, userAgent, bAdmin, adminName, isForceApply));
                                 }
                                 return Q.all(proms).then(
                                     data => {
@@ -568,7 +574,7 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {json} platformData
      * @param {json} eventData
      */
-    calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest, userAgent = null, isForceApply = false) {
+    calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest, userAgent = null, adminId=null, adminName=null, isForceApply = false) {
         let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         if (bRequest) {
             if(eventData.settlementPeriod == constSettlementPeriod.DAILY){
@@ -580,7 +586,7 @@ var dbPlayerConsumptionWeekSummary = {
                 settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
             }
         }
-        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest, userAgent, isForceApply);
+        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest, userAgent, adminId, adminName, isForceApply);
     },
 
     /**
