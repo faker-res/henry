@@ -9969,10 +9969,18 @@ let dbPlayerInfo = {
         )
     },
 
-    getPlayerTransferErrorLog: function (playerObjId) {
-        return dbconfig.collection_playerCreditTransferLog.find({
-            playerObjId: playerObjId, bUsed: {$ne: true}    //status: constPlayerCreditTransferStatus.FAIL
-        }).sort({"createTime": -1}).limit(constSystemParam.MAX_RECORD_NUM);
+    getPlayerTransferErrorLog: function (playerObjId, createTime) {
+        let query = {
+            playerObjId: playerObjId,
+            bUsed: {$ne: true},
+            // status: constPlayerCreditTransferStatus.FAIL
+        };
+
+        if (createTime) {
+            query.createTime = createTime;
+        }
+
+        return dbconfig.collection_playerCreditTransferLog.find(query).sort({"createTime": -1}).limit(constSystemParam.MAX_RECORD_NUM);
     },
 
     verifyPlayerPhoneNumber: function (playerObjId, phoneNumber) {
