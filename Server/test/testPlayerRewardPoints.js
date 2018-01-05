@@ -1,13 +1,8 @@
-let should = require('should');
-let dbConfig = require('./../modules/dbproperties');
-let socketConnection = require('../test_modules/socketConnection');
-let commonTestFunc = require('../test_modules/commonTestFunc');
-let dbPlayerInfo = require('../db_modules/dbPlayerInfo');
-
 const should = require('should');
 const dbConfig = require('./../modules/dbproperties');
 const socketConnection = require('../test_modules/socketConnection');
 const commonTestFunc = require('../test_modules/commonTestFunc');
+const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -137,29 +132,11 @@ describe("Test player reward points", function () {
             (data) => {
                 testPlayer = data;
                 testPlayerObjId = data._id;
-                if (data && data.rewardPointsObjId) {
-                    done();
-                }
+                should.exist(data);
+                should.exist(data.rewardPointsObjId);
+                done();
             }
         )
-        socketConnection.createConnection().then(function (socket) {
-            socket.connected.should.equal(true);
-            let createRewardPointsData = {
-                playerId: testPlayer._id,
-                platformId: testPlayer.platform
-            };
-
-            socket.emit('createPlayerRewardPointsRecord', createRewardPointsData);
-            socket.once('_createPlayerRewardPointsRecord', function (data) {
-                testPlayer = data.data;
-                testPlayerObjId = data.data._id;
-                socket.close();
-                should.exist(data.success);
-                should.exist(data.data);
-                should.exist(data.data.rewardPointsObjId);
-                done();
-            });
-        });
     });
 
     /* Test 9 - update player reward points record and create reward points log*/
