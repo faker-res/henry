@@ -2926,12 +2926,12 @@ define(['js/app'], function (myApp) {
                         };
 
                         var playerTransfer;
-                        socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: record.playerObjId, createTime: createTimeQuery}, function (reply) {
+                        socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: record.playerObjId}, function (reply) {
                             vm.selectedThisPlayer = reply.data;
                             updateShowPlayerCredit();
                         });
 
-                        socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId}, function (data) {
+                        socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId, createTime: createTimeQuery}, function (data) {
                             console.log('getPlayerTransferErrorLogs', data); // todo :: delete log after problem solved
                             data.data.forEach(function (playerTransLog) {
                                 if (playerTransLog._id == record._id) {
@@ -2945,6 +2945,12 @@ define(['js/app'], function (myApp) {
 
                     function updateShowPlayerCredit() {
                         if (!errorLogObjReady || !vm.selectedThisPlayer) return;
+                        if (!playerTransfer) {
+                            vm.linkedPlayerTransferId = null;
+                            $scope.safeApply();
+                            return;
+                        }
+
                         vm.linkedPlayerTransferId = playerTransfer._id;
                         vm.creditChange.finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount
                             + vm.selectedThisPlayer.validCredit).toFixed(2);
