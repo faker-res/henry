@@ -12580,7 +12580,7 @@ let dbPlayerInfo = {
                     }
 
                     if (body.status && body.url) {
-                        resolve({url: body.url});
+                        resolve({url: body.url, playerName, token});
                     }
                     else {
                         reject({
