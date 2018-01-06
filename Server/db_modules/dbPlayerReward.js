@@ -2559,8 +2559,10 @@ let dbPlayerReward = {
                     })
                 }
 
+                let orderedTimeSet = new Set(Array.from(timeSet).sort());
+
                 return {
-                    time: [...timeSet].join("/"),
+                    time: [...orderedTimeSet].join("/"),
                     showInfo: playerObj && playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
                     secretList: rewards.filter(e => Boolean(e.displayOriPrice) === false),
                     normalList: rewards.filter(e => Boolean(e.displayOriPrice) === true)
