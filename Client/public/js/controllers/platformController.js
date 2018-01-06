@@ -6774,46 +6774,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            // vm.initDateDOM = function (playerBeingEdited) {
-
-            //     utilService.actionAfterLoaded("#datepickerEditDOB", function () {
-            //         let date1 = playerBeingEdited.DOB;
-            //         // function checkValidTime() {
-            //         //     var time1 = new Date(vm.showReward.validStartTime).getTime();
-            //         //     var time2 = new Date(vm.showReward.validEndTime).getTime();
-            //         //     var text = time2 > time1 ? '' : $translate('RewardEndTimeStartTIme');
-            //         //     $('#rewardEndTimeValid').text(text);
-            //         // }
-            //         //
-            //         let dateTimeRegex = /\d{4}\/\d{2}\/\d{2}\ \d{2}\:\d{2}\:\d{2}/g;
-            //         utilService.createDatePicker("#datepickerEditDOB", {
-            //             language: 'en',
-            //             format: 'yyyy/MM/dd'
-            //         });
-
-            //         if (date1) {
-            //             $("#datepickerEditDOB").data('datetimepicker').setLocalDate(new Date(date1));
-            //         }
-
-            //         $("#datepickerEditDOB").off('changeDate change keyup');
-            //         $("#datepickerEditDOB").on('changeDate change keyup', function (data) {
-            //             if (playerBeingEdited) {
-            //                 let inputFieldValue = $("#datepickerEditDOB > div > input").val();
-            //                 if (dateTimeRegex.test(inputFieldValue)) {
-            //                     $("#datepickerEditDOB").datetimepicker('update');
-            //                 } else {
-            //                     if (inputFieldValue == '') {
-            //                         $("#datepickerEditDOB").datetimepicker('setDate', null);
-            //                     }
-            //                 }
-            //                 playerBeingEdited.DOB = $("#datepickerEditDOB").data('datetimepicker').getLocalDate();
-            //                 //checkValidTime();
-            //             }
-            //         });
-
-            //     });
-            // };
-
+        
             vm.openEditPlayerDialog = function (selectedTab) {
                 vm.editSelectedTab = "";
                 vm.editSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
