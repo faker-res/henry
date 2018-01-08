@@ -726,7 +726,7 @@ var dbPlayerTopUpRecord = {
                     player = playerData;
 
                     let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
-                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount);
+                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
                     let proms = [firstTopUpProm, limitedOfferProm];
 
                     if (topupRequest.bonusCode) {
@@ -810,6 +810,8 @@ var dbPlayerTopUpRecord = {
                 // Check Limited Offer Intention
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                    if(topupRequest.limitedOfferObjId)
+                        proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                 }
 
                 let newProposal = {
@@ -967,7 +969,8 @@ var dbPlayerTopUpRecord = {
                     player = playerData;
 
                     let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
-                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, inputData.amount);
+
+                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, inputData.amount,inputData.limitedOfferObjId);
                     let proms = [firstTopUpProm, limitedOfferProm];
 
                     if (inputData.bonusCode) {
@@ -1059,10 +1062,11 @@ var dbPlayerTopUpRecord = {
                     name: player.name,
                     id: playerId
                 };
-
                 // Check Limited Offer Intention
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                    if(inputData.limitedOfferObjId)
+                        proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                 }
 
                 var newProposal = {
@@ -1728,7 +1732,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName) {
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName, limitedOfferObjId) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -1743,7 +1747,7 @@ var dbPlayerTopUpRecord = {
                         player = playerData;
 
                         let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
-                        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);
                         let proms = [firstTopUpProm, limitedOfferProm];
 
                         if (bonusCode) {
@@ -1830,6 +1834,8 @@ var dbPlayerTopUpRecord = {
                     // Check Limited Offer Intention
                     if (limitedOfferTopUp) {
                         proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                        if(limitedOfferObjId)
+                            proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                     }
 
                     let newProposal = {
@@ -2042,7 +2048,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime) {
+    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime, limitedOfferObjId) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -2056,7 +2062,7 @@ var dbPlayerTopUpRecord = {
                     if (playerData) {
                         player = playerData;
 
-                        let checkLimitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                        let checkLimitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);
                         let proms = [checkLimitedOfferProm];
 
                         if (bonusCode) {
@@ -2134,6 +2140,8 @@ var dbPlayerTopUpRecord = {
                         // Check Limited Offer Intention
                         if (limitedOfferTopUp) {
                             proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                            if(limitedOfferObjId)
+                                proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                         }
 
                         let newProposal = {
@@ -2588,20 +2596,24 @@ var dbPlayerTopUpRecord = {
 
 };
 
-function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount) {
+function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount, limitedOfferObjId) {
     return dbconfig.collection_proposalType.findOne({
         platformId: platformObjId,
         name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
     }).lean().then(
         proposalTypeData => {
             if (proposalTypeData) {
-                return dbconfig.collection_proposal.findOne({
+                let query = {
                     'data.platformObjId': platformObjId,
                     'data.playerObjId': playerObjId,
                     'data.applyAmount': topUpAmount,
                     'data.topUpProposalObjId': {$exists: false},
                     type: proposalTypeData._id
-                }).sort({createTime: -1}).lean();
+                };
+                if(limitedOfferObjId){
+                    query['data.limitedOfferObjId'] =limitedOfferObjId;
+                }
+                return dbconfig.collection_proposal.findOne(query).sort({createTime: -1}).lean();
             }
         }
     ).then(

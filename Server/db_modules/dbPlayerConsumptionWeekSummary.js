@@ -278,7 +278,7 @@ var dbPlayerConsumptionWeekSummary = {
                                         applyAmount += consumeValidAmount;
                                     }
 
-                                    if (consumptionSummary) {
+                                    if (consumptionSummary && ratio > 0) {
                                         thisPlayersConsumptionSummaries.push(consumptionSummary);
                                     }
                                 }
