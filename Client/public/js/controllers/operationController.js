@@ -470,7 +470,6 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
                 console.log('proposal allData', data);
                 vm.proposals = data.data.data;
-
                 $('.proposalMessage > a > .fa').removeClass('fa-spin');
                 $('.proposalMessage').next().show();
 
@@ -969,6 +968,17 @@ define(['js/app'], function (myApp) {
                         : v.data.alipayAccount != null
                         ? v.data.alipayAccount
                         : null;
+                    // remove the time from the ISO date for display purpose
+                    if (v.data.DOB) {
+                        v.data.DOB = v.data.DOB.slice(0, 10);
+                    }
+                    // convert the status of gender from Boolean to string for display purpose
+                    if (v.data.gender == true) {
+                        v.data.gender = "男";
+                    }
+                    if (v.data.gender == false) {
+                        v.data.gender = "女";
+                    }
                     tableData.push(v);
                 }
             });

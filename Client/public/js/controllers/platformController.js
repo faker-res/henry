@@ -4223,7 +4223,14 @@ define(['js/app'], function (myApp) {
             }
 
             vm.submitRepairTransfer = function () {
-                socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.selectedThisPlayer._id}
+                let startTime = vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate();
+                let endTime = vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate();
+                let createTimeQuery = {
+                    $gte: startTime,
+                    $lte: endTime
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.selectedThisPlayer._id, createTime: createTimeQuery}
                     , function (pData) {
                         let playerTransfer = {};
                         pData.data.forEach(function (playerTransLog) {

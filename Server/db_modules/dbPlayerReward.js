@@ -2449,6 +2449,7 @@ let dbPlayerReward = {
                                 summ => {
                                     if (playerId) {
                                         let totalPromoCount = 0;
+                                        let isOwnByPlayer = false;
                                         summ.map(f => {
                                             if (String(f._id) == String(playerId)) {
                                                 status = 2;
@@ -2457,12 +2458,13 @@ let dbPlayerReward = {
                                                 if (f.paidCount > 0) {
                                                     status = 3;
                                                 }
+                                                isOwnByPlayer = true;
                                             }
 
                                             totalPromoCount += f.count;
                                         });
 
-                                        if (totalPromoCount >= e.limitTime) {
+                                        if (totalPromoCount >= e.qty && !isOwnByPlayer) {
                                             status = 4;
                                         }
 
@@ -4704,7 +4706,7 @@ function getPromoTitle(promo) {
 
 function getRewardPeriodToTime (rewardPeriod) {
     let time = null;
-    
+
     switch (rewardPeriod) {
         case "1":
             time = dbUtility.getTodaySGTime();

@@ -278,7 +278,7 @@ var dbPlayerConsumptionWeekSummary = {
                                         applyAmount += consumeValidAmount;
                                     }
 
-                                    if (consumptionSummary) {
+                                    if (consumptionSummary && ratio > 0) {
                                         thisPlayersConsumptionSummaries.push(consumptionSummary);
                                     }
                                 }
@@ -551,7 +551,7 @@ var dbPlayerConsumptionWeekSummary = {
                     deferred.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DBError",
-                        message: eventData.param && eventData.param.earlyXimaMinAmount ? "您的洗码额度不足"+eventData.param.earlyXimaMinAmount+"元，无法提前结算洗码，谢谢": "您的洗码额度不足，无法提前结算洗码，谢谢"
+                        message: eventData && eventData.param && eventData.param.earlyXimaMinAmount ? "您的洗码额度不足"+eventData.param.earlyXimaMinAmount+"元，无法提前结算洗码，谢谢": "您的洗码额度不足，无法提前结算洗码，谢谢"
                     });
                 }
             },
@@ -724,7 +724,6 @@ var dbPlayerConsumptionWeekSummary = {
 
         return Q.all([summaryProm, playerLevelProm, gameTypesProm]).spread(
             function (consumptionSummaries, playerData, allGameTypes) {
-
                 // Why is it that sometimes playerData is not found?
                 // Perhaps the player was requested because he had consumption records, but the player himself has been removed from the system
 
@@ -807,7 +806,7 @@ var dbPlayerConsumptionWeekSummary = {
                         };
                     }
                     else {
-                        return {settleTime: settleTime, totalAmount: 0};
+                        console.log("LH check consumption return reward 8-3", {settleTime: settleTime, totalAmount: 0});
                     }
                 }
             },
