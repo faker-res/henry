@@ -2628,36 +2628,6 @@ let dbPlayerReward = {
                         }
                     })
                 });
-
-
-                let matchQuery = {
-                    'data.limitedOfferObjId': limitedOfferObj._id
-                };
-                let queryTime = getRewardPeriodToTime(eventObj.param.period);
-                if(queryTime)
-                    matchQuery.createTime =  {$gte: queryTime.startTime, $lt: queryTime.endTime};
-
-                return dbConfig.collection_proposal.aggregate({
-                    $match: matchQuery
-                }, {
-                    $group: {
-                        _id: "$data.limitedOfferObjId",
-                        count: {$sum: 1},
-                    }
-                }).then(
-                    periodProposalCount => periodProposalCount && periodProposalCount[0]?periodProposalCount[0].count:0
-                );
-
-            }
-        ).then(
-            (periodProposalCount) => {
-                if(periodProposalCount >= limitedOfferObj.qty){
-                    return Q.reject({
-                        status: constServerCode.FAILED_LIMITED_OFFER_CONDITION,
-                        name: "DataError",
-                        message: "Reward not applicable"
-                    });
-                }
                 return dbConfig.collection_playerLevel.find({
                     platform: platformObj._id
                 }).sort({value: 1}).lean();
@@ -2701,12 +2671,16 @@ let dbPlayerReward = {
         ).then(
             proposalTypeData => {
                 proposalTypeObj = proposalTypeData;
+                let matchQuery = {
+                    'data.platformObjId': platformObj._id,
+                    'data.limitedOfferObjId': limitedOfferObj._id,
+                    type: proposalTypeData._id
+                };
+                let queryTime = getRewardPeriodToTime(eventObj.param.period);
+                if(queryTime)
+                    matchQuery.createTime =  {$gte: queryTime.startTime, $lt: queryTime.endTime};
                 return dbConfig.collection_proposal.aggregate({
-                    $match: {
-                        'data.platformObjId': platformObj._id,
-                        'data.limitedOfferObjId': limitedOfferObj._id,
-                        type: proposalTypeData._id
-                    }
+                    $match: matchQuery
                 }, {
                     $group: {
                         _id: "$data.playerObjId",
@@ -2717,7 +2691,7 @@ let dbPlayerReward = {
         ).then(
             offerCount => {
                 if (offerCount && offerCount.length > 0) {
-                    let totalCount = offerCount.reduce((a, b) => a.count + b.count);
+                    let totalCount = offerCount.reduce((sum, offerCount) =>sum + offerCount.count,0);
                     let isPurchased = false;
 
                     if (totalCount >= limitedOfferObj.qty) {
