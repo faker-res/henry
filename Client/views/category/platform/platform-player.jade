@@ -358,7 +358,7 @@ include modalGameCreditLog
                                     #basicGroup.tab-pane.fade(ng-class="selectedTab =='basicInfo'?'in active':''")
                                         include player-edit-form
                                         button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
-                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
+                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_editing_player.$invalid', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
                                     #contactGroup.tab-pane.fade(ng-class="selectedTab =='contactInfo'?'in active':''")
                                         include player-edit-contact
                                     #withdrawGroup.tab-pane.fade(ng-class="selectedTab =='withdrawInfo'?'in active':''")

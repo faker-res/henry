@@ -287,7 +287,7 @@ let PlayerServiceImplement = function () {
     this.update.expectsData = 'playerId: String, nickName: String, birthday: Date, gender: String';
     this.update.onRequest = function (wsFunc, conn, data) {
         // data.nickName && (!data.realName || data.realName.match(/\d+/g) == null)
-        var isValidData = Boolean(data && data.playerId && ( data.playerId === conn.playerId) && data.gender && (new Date(data.DOB).getTime() <= new Date().getTime() ));
+        var isValidData = Boolean(data && data.playerId && ( data.playerId === conn.playerId) && data.nickName && (!data.realName || data.realName.match(/\d+/g) == null) && data.gender && (new Date(data.DOB).getTime() <= new Date().getTime() ));
         if (data.phoneNumber) {
             var queryRes = queryPhoneLocation(data.phoneNumber);
             if (queryRes) {
