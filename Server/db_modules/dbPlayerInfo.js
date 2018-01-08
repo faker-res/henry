@@ -12562,7 +12562,7 @@ let dbPlayerInfo = {
 
             return new Promise((resolve, reject) => {
                 apiRequest({
-                    url: 'https://www.jblshow.com/newroom/2',
+                    url: 'https://www.jblshow.com/livestream/login',
                     method: 'POST',
                     json: {
                         username: playerName,
