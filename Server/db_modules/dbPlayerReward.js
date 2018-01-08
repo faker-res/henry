@@ -2629,6 +2629,35 @@ let dbPlayerReward = {
                     })
                 });
 
+
+                let matchQuery = {
+                    'data.limitedOfferObjId': limitedOfferObj._id
+                };
+                let queryTime = getRewardPeriodToTime(eventObj.param.period);
+                if(queryTime)
+                    matchQuery.createTime =  {$gte: queryTime.startTime, $lt: queryTime.endTime};
+
+                return dbConfig.collection_proposal.aggregate({
+                    $match: matchQuery
+                }, {
+                    $group: {
+                        _id: "$data.limitedOfferObjId",
+                        count: {$sum: 1},
+                    }
+                }).then(
+                    periodProposalCount => periodProposalCount && periodProposalCount[0]?periodProposalCount[0].count:0
+                );
+
+            }
+        ).then(
+            (periodProposalCount) => {
+                if(periodProposalCount >= limitedOfferObj.qty){
+                    return Q.reject({
+                        status: constServerCode.FAILED_LIMITED_OFFER_CONDITION,
+                        name: "DataError",
+                        message: "Reward not applicable"
+                    });
+                }
                 return dbConfig.collection_playerLevel.find({
                     platform: platformObj._id
                 }).sort({value: 1}).lean();
@@ -4690,6 +4719,27 @@ function getPromoTitle(promo) {
         promoTitle = promo.amount + '元';
     }
     return promoTitle;
+}
+
+function getRewardPeriodToTime (rewardPeriod) {
+    let time = null;
+    if (rewardPeriod) {
+        switch (rewardPeriod) {
+            case "1":
+                time = dbUtility.getTodaySGTime();
+                break;
+            case "2":
+                time =  dbUtility.getCurrentWeekSGTime();
+                break;
+            case "3":
+                time =  dbUtility.getCurrentBiWeekSGTIme();
+                break;
+            case "4":
+                time =  dbUtility.getCurrentMonthSGTIme();
+                break;
+        }
+    }
+    return time;
 }
 
 var proto = dbPlayerRewardFunc.prototype;
