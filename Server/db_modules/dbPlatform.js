@@ -2240,7 +2240,7 @@ var dbPlatform = {
     getLiveStream: function (playerObjId) {
         let url = 'https://www.jblshow.com/livestream/liveurl';
         var deferred = Q.defer();
-        request.get(url, {}, (err, res, body) => {
+        request.get(url, {strictSSL:false}, (err, res, body) => {
             if (err) {
                 deferred.reject(`Get JBL livestream url failed  ${err}`);
             } else {
