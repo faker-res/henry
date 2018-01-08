@@ -645,6 +645,7 @@ var dbPlayerConsumptionWeekSummary = {
                 }
             ).then(
                 function (data) {
+                    console.log("LH check consumption return reward 9", data);
                     var res = {totalAmount: 0, totalConsumptionAmount: 0, event: eventObj};
                     for (let amounts of data) {
                         Object.keys(amounts).forEach(
@@ -663,6 +664,7 @@ var dbPlayerConsumptionWeekSummary = {
                             }
                         )
                     }
+                    console.log("LH check consumption return reward 10", res);
                     return res;
                 }
             );
