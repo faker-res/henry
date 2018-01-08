@@ -2462,7 +2462,7 @@ let dbPlayerReward = {
                                             totalPromoCount += f.count;
                                         });
 
-                                        if (totalPromoCount >= e.limitTime) {
+                                        if (totalPromoCount >= e.qty) {
                                             status = 4;
                                         }
 
@@ -4704,7 +4704,7 @@ function getPromoTitle(promo) {
 
 function getRewardPeriodToTime (rewardPeriod) {
     let time = null;
-    
+
     switch (rewardPeriod) {
         case "1":
             time = dbUtility.getTodaySGTime();
