@@ -136,6 +136,7 @@ var dbRewardEvent = {
         return dbconfig.collection_rewardType.findOne({name: rewardTypeName}).then(
             function (typeData) {
                 if (typeData && typeData._id) {
+                    console.log("LH check consumption return reward 2", typeData);
                     return dbconfig.collection_rewardEvent.find(
                         {type: typeData._id, platform: platformId}
                     ).populate({path: "rewardType", model: dbconfig.collection_rewardType}).exec();
