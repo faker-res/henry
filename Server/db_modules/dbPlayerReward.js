@@ -2809,6 +2809,13 @@ let dbPlayerReward = {
                     userType: constProposalUserType.PLAYERS,
                     inputDevice: inputDevice
                 };
+
+                let endTime = moment(proposalData.data.startTime).add(limitedOfferObj.inStockDisplayTime,'m').toDate();
+                if (proposalData.data.expirationTime > endTime) {
+                    proposalData.data.expirationTime = endTime;
+                    let topUpDuration = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.expirationTime).getTime()) / 1000));
+                    proposalData.data.topUpDuration = (Math.floor((topUpDuration/60))) + "分钟";
+                }
                 return dbConfig.collection_platform.findOne({_id: playerObj.platform})
                     .populate({path: "gameProviders", model: dbConfig.collection_gameProvider}).lean().then(
                         providerData => {
