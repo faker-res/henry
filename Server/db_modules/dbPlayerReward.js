@@ -2449,6 +2449,7 @@ let dbPlayerReward = {
                                 summ => {
                                     if (playerId) {
                                         let totalPromoCount = 0;
+                                        let isOwnByPlayer = false;
                                         summ.map(f => {
                                             if (String(f._id) == String(playerId)) {
                                                 status = 2;
@@ -2457,12 +2458,13 @@ let dbPlayerReward = {
                                                 if (f.paidCount > 0) {
                                                     status = 3;
                                                 }
+                                                isOwnByPlayer = true;
                                             }
 
                                             totalPromoCount += f.count;
                                         });
 
-                                        if (totalPromoCount >= e.limitTime) {
+                                        if (totalPromoCount >= e.qty && !isOwnByPlayer) {
                                             status = 4;
                                         }
 
@@ -2559,8 +2561,10 @@ let dbPlayerReward = {
                     })
                 }
 
+                let orderedTimeSet = new Set(Array.from(timeSet).sort());
+
                 return {
-                    time: [...timeSet].join("/"),
+                    time: [...orderedTimeSet].join("/"),
                     showInfo: playerObj && playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
                     secretList: rewards.filter(e => Boolean(e.displayOriPrice) === false),
                     normalList: rewards.filter(e => Boolean(e.displayOriPrice) === true)
@@ -2626,7 +2630,6 @@ let dbPlayerReward = {
                         }
                     })
                 });
-
                 return dbConfig.collection_playerLevel.find({
                     platform: platformObj._id
                 }).sort({value: 1}).lean();
@@ -2670,12 +2673,16 @@ let dbPlayerReward = {
         ).then(
             proposalTypeData => {
                 proposalTypeObj = proposalTypeData;
+                let matchQuery = {
+                    'data.platformObjId': platformObj._id,
+                    'data.limitedOfferObjId': limitedOfferObj._id,
+                    type: proposalTypeData._id
+                };
+                let queryTime = getRewardPeriodToTime(eventObj.param.period);
+                if(queryTime && queryTime.startTime && queryTime.endTime)
+                    matchQuery.createTime =  {$gte: queryTime.startTime, $lt: queryTime.endTime};
                 return dbConfig.collection_proposal.aggregate({
-                    $match: {
-                        'data.platformObjId': platformObj._id,
-                        'data.limitedOfferObjId': limitedOfferObj._id,
-                        type: proposalTypeData._id
-                    }
+                    $match: matchQuery
                 }, {
                     $group: {
                         _id: "$data.playerObjId",
@@ -2686,7 +2693,7 @@ let dbPlayerReward = {
         ).then(
             offerCount => {
                 if (offerCount && offerCount.length > 0) {
-                    let totalCount = offerCount.reduce((a, b) => a.count + b.count);
+                    let totalCount = offerCount.reduce((sum, offerCount) =>sum + offerCount.count,0);
                     let isPurchased = false;
 
                     if (totalCount >= limitedOfferObj.qty) {
@@ -2782,7 +2789,7 @@ let dbPlayerReward = {
                         rewardAmount: limitedOfferObj.oriPrice - limitedOfferObj.offerPrice,
                         spendingAmount: limitedOfferObj.oriPrice * limitedOfferObj.bet,
                         limitedOfferName: limitedOfferObj.name,
-                        expirationTime: moment().add(30, 'm').toDate(),
+                        expirationTime: moment().add((limitedOfferObj.limitTime || 30), 'm').toDate(),
                         eventId: eventObj._id,
                         eventName: eventObj.name + ' Intention',
                         eventCode: eventObj.code,
@@ -2792,7 +2799,7 @@ let dbPlayerReward = {
                         originalPrice: limitedOfferObj.oriPrice + "（" + (limitedOfferObj.displayOriPrice ? '显示' : '隐藏') + "）",
                         Quantity: limitedOfferObj.qty,
                         limitApplyPerPerson: limitedOfferObj.limitPerson,
-                        topUpDuration: "30分钟",
+                        topUpDuration: (limitedOfferObj.limitTime || 30) + "分钟",
                         startTime: moment().set({
                             hour: limitedOfferObj.hrs,
                             minute: limitedOfferObj.min,
@@ -2807,6 +2814,13 @@ let dbPlayerReward = {
                     userType: constProposalUserType.PLAYERS,
                     inputDevice: inputDevice
                 };
+
+                let endTime = moment(proposalData.data.startTime).add(limitedOfferObj.inStockDisplayTime,'m').toDate();
+                if (proposalData.data.expirationTime > endTime) {
+                    proposalData.data.expirationTime = endTime;
+                    let topUpDuration = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.expirationTime).getTime()) / 1000));
+                    proposalData.data.topUpDuration = (Math.floor((topUpDuration/60))) + "分钟";
+                }
                 return dbConfig.collection_platform.findOne({_id: playerObj.platform})
                     .populate({path: "gameProviders", model: dbConfig.collection_gameProvider}).lean().then(
                         providerData => {
@@ -4688,6 +4702,30 @@ function getPromoTitle(promo) {
         promoTitle = promo.amount + '元';
     }
     return promoTitle;
+}
+
+function getRewardPeriodToTime (rewardPeriod) {
+    let time = null;
+
+    switch (rewardPeriod) {
+        case "1":
+            time = dbUtility.getTodaySGTime();
+            break;
+        case "2":
+            time =  dbUtility.getCurrentWeekSGTime();
+            break;
+        case "3":
+            time =  dbUtility.getCurrentBiWeekSGTIme();
+            break;
+        case "4":
+            time =  dbUtility.getCurrentMonthSGTIme();
+            break;
+        default:
+            time = dbUtility.getTodaySGTime();
+            break;
+    }
+
+    return time;
 }
 
 var proto = dbPlayerRewardFunc.prototype;

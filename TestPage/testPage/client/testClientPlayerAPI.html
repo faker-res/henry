@@ -13,6 +13,7 @@
     <!--<script src="common/require.js" data-main="testClientPlayerAPI"></script>-->
 </head>
 <h3>TEST PLAYER REGISTRATION (玩家开户)</h3>
+<h4> Gender: 0-Male, 1-Female</h4>
 
 <!--For Testing Player Registration API (1)-->
 <div class="test-container">
@@ -54,6 +55,16 @@
     <div>
         <label id="playerEmail">Email
             <input type=text name="email">
+        </label>
+    </div>
+    <div>
+        <label> Gender
+            <input name="gender" type=text>
+        </label>
+    </div>
+    <div>
+        <label> Birthday
+            <input type=date name="DOB">
         </label>
     </div>
     <div>
@@ -1021,14 +1032,30 @@
 <h3>MODIFY PLAYER INFORMATION (修改玩家信息)</h3>
 
 <div class="test-container">
+    <label> Gender: 0 (Female) / 1 (Male)</label>
     <div>
-        <label id="playerId" name="playerId">Player Id
-            <input id="playerIDInput" name="playerId" type=text>
+        <label name="playerId">Player Id (ID)
+            <input name="playerId" type=text>
         </label>
     </div>
     <div>
-        <label id="nickName">Nick Name
+        <label id="nickName">Nick Name (昵称)
             <input id="nickNameInput" type=text name="nickName">
+        </label>
+    </div>
+    <div>
+        <label> Real Name (真实姓名)
+            <input id="realNameInput" type=text name="realName">
+        </label>
+    </div>
+    <div>
+        <label> Gender (性别)
+            <input name="gender" type=text>
+        </label>
+    </div>
+    <div>
+        <label> Birthday (生日)
+            <input type=date name="DOB">
         </label>
     </div>
     <p></p>
@@ -1428,6 +1455,19 @@
         <button id="updatePlayerEmail" data-api-name="updatePlayerEmail">Update</button>
     </div>
 </div>
+
+<h3>Login JBL Show (登入金百利直播间)</h3>
+<div class="test-container">
+    <div>
+
+    </div>
+    <p></p>
+    <button data-api-name="loginJblShow">Get platform configuration</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],

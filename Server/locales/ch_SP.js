@@ -221,6 +221,7 @@ var simplifiedChinese = {
     "Top up does not meet Promo Code minimum required amount": "您的存款金额低于该优惠代码限制，请调整存款金额。",
     "SMS failure, please retry": "短信验证码发送失败，请重新点击获取",
     "SMS failure for more than 5 times, please contact customer service": "短信验证码连续发送失败5次，请联系客服人员",
+    "Connection failed": "连接失败",
     //todo::add missing messages here
 
     /*

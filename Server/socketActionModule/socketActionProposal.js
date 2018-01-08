@@ -301,7 +301,7 @@ function socketActionProposal(socketIO, socket) {
         getQueryProposalsForAdminId: function getQueryProposalsForAdminId(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.adminId && data.platformId && data.status);
-            var startTime = data.startDate ? data.startDate : new Date(0);
+            var startTime = data.startDate ? data.startDate : dbUtil.getYesterdaySGTime().endTime;
             var endTime = data.endDate ? data.endDate : new Date();
             var index = data.index || 0;
             var size = data.size || 10;
