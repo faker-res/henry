@@ -50,7 +50,8 @@ function socketActionRewardTask(socketIO, socket) {
         getConsumeRebateAmount: function getConsumeRebateAmount(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId);
-            socketUtil.emitter(self.socket, dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturn, [data.playerId], actionName, isValidData);
+            let eventCode = data.eventCode? data.eventCode: "";
+            socketUtil.emitter(self.socket, dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturn, [data.playerId,eventCode], actionName, isValidData);
         },
         getPlayerRewardTask: function getPlayerRewardTask(data) {
             var actionName = arguments.callee.name;

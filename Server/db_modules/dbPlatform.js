@@ -2237,10 +2237,10 @@ var dbPlatform = {
             return Q.reject({name: "DBError", message: "Invalid platformId: " + platformId});
         }
     },
-    getLiveStream: function () {
+    getLiveStream: function (playerObjId) {
         let url = 'https://www.jblshow.com/livestream/liveurl';
         var deferred = Q.defer();
-        request.get(url, {}, (err, res, body) => {
+        request.get(url, {strictSSL:false}, (err, res, body) => {
             if (err) {
                 deferred.reject(`Get JBL livestream url failed  ${err}`);
             } else {
@@ -2254,8 +2254,30 @@ var dbPlatform = {
                 }
                 deferred.resolve(streamResult);
             }
-        })
-        return deferred.promise;
+        });
+
+        let streamInfoProm = deferred.promise;
+        // return deferred.promise;
+
+        let urlTokenProm = playerObjId ? dbPlayerInfo.loginJblShow(playerObjId) : Promise.resolve();
+
+        return Promise.all([streamInfoProm, urlTokenProm]).then(
+            data => {
+                if (!data) {
+                    return;
+                }
+                let streamResult = data[0] || {};
+                let urlDetail = data[1];
+
+                if (urlDetail) {
+                    let endString = "?username=" + urlDetail.playerName + "&token=" + urlDetail.token;
+                    let url = urlDetail.url + endString;
+                    streamResult.url = url;
+                }
+
+                return streamResult;
+            }
+        );
     }
 };
 

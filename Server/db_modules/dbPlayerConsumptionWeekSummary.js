@@ -187,7 +187,7 @@ var dbPlayerConsumptionWeekSummary = {
         });
     },
 
-    checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, bRequest, userAgent, isForceApply) {
+    checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, bRequest, userAgent, adminId=null, adminName=null, isForceApply) {
         var deferred = Q.defer();
 
         var summaryProm = dbconfig.collection_playerConsumptionSummary.find(
@@ -317,7 +317,13 @@ var dbPlayerConsumptionWeekSummary = {
                                         }
                                     };
 
-                                    if (userAgent) {
+                                    if(adminId && adminName){
+                                        proposalData.creator = {
+                                            name: adminName,
+                                            type: 'admin',
+                                            id: adminId
+                                        }
+                                    }else if (userAgent) {
                                         // userAgent no null means is not system
                                         proposalData.inputDevice = dbutility.getInputDevice(userAgent);
                                         proposalData.creator = {
@@ -429,7 +435,7 @@ var dbPlayerConsumptionWeekSummary = {
      * Start calculate consumption return for player
      * @param {ObjectId} playerId
      */
-    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin, eventCode,userAgent, isForceApply) {
+    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin, eventCode,userAgent, adminName, isForceApply) {
         var deferred = Q.defer();
         var platformData = null;
         var playerData = null;
@@ -489,7 +495,7 @@ var dbPlayerConsumptionWeekSummary = {
                                     if (dbPlayerReward.isRewardEventForbidden(updatePlayer, eventsData._id)) {
                                         continue;
                                     }
-                                    proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest, userAgent, isForceApply));
+                                    proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest, userAgent, bAdmin, adminName, isForceApply));
                                 }
                                 return Q.all(proms).then(
                                     data => {
@@ -568,7 +574,7 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {json} platformData
      * @param {json} eventData
      */
-    calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest, userAgent = null, isForceApply = false) {
+    calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest, userAgent = null, adminId=null, adminName=null, isForceApply = false) {
         let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         if (bRequest) {
             if(eventData.settlementPeriod == constSettlementPeriod.DAILY){
@@ -580,7 +586,7 @@ var dbPlayerConsumptionWeekSummary = {
                 settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
             }
         }
-        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest, userAgent, isForceApply);
+        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest, userAgent, adminId, adminName, isForceApply);
     },
 
     /**
@@ -597,6 +603,7 @@ var dbPlayerConsumptionWeekSummary = {
             .populate({path: "platform", model: dbconfig.collection_platform}).then(
                 function (data) {
                     if (data && data.platform) {
+                        console.log("LH check consumption return reward 1", data);
                         playerData = data;
                         platformData = data.platform;
                         if( eventCode ){
@@ -616,6 +623,8 @@ var dbPlayerConsumptionWeekSummary = {
             ).then(
                 function (eventsData) {
                     if (eventsData && eventsData.length > 0) {
+                        console.log("LH check consumption return reward 3", eventsData);
+                        console.log("LH check consumption return reward 4", eventsData[0]);
                         eventObj = eventsData[0];
                         var proms = [];
                         for (let eventData of eventsData) {
@@ -636,6 +645,7 @@ var dbPlayerConsumptionWeekSummary = {
                 }
             ).then(
                 function (data) {
+                    console.log("LH check consumption return reward 9", data);
                     var res = {totalAmount: 0, totalConsumptionAmount: 0, event: eventObj};
                     for (let amounts of data) {
                         Object.keys(amounts).forEach(
@@ -654,6 +664,7 @@ var dbPlayerConsumptionWeekSummary = {
                             }
                         )
                     }
+                    console.log("LH check consumption return reward 10", res);
                     return res;
                 }
             );
@@ -718,7 +729,9 @@ var dbPlayerConsumptionWeekSummary = {
 
         return Q.all([summaryProm, playerLevelProm, gameTypesProm]).spread(
             function (consumptionSummaries, playerData, allGameTypes) {
-
+                console.log("LH check consumption return reward 5", consumptionSummaries);
+                console.log("LH check consumption return reward 6", playerData);
+                console.log("LH check consumption return reward 7", allGameTypes);
                 // Why is it that sometimes playerData is not found?
                 // Perhaps the player was requested because he had consumption records, but the player himself has been removed from the system
 
@@ -789,10 +802,17 @@ var dbPlayerConsumptionWeekSummary = {
                         res.playerId = playerData.playerId;
                         res.playerName = playerData.name;
                     }
+                    console.log("LH check consumption return reward 8-1", res);
                     return res;
                 } else {
                     //no consumption records
                     if (bDetail) {
+                        console.log("LH check consumption return reward 8-2", {
+                            settleTime: settleTime,
+                            playerId: playerId,
+                            playerName: playerData ? playerData.name : 'Player Not Found',
+                            totalAmount: 0
+                        });
                         return {
                             settleTime: settleTime,
                             playerId: playerId,
@@ -801,6 +821,7 @@ var dbPlayerConsumptionWeekSummary = {
                         };
                     }
                     else {
+                        console.log("LH check consumption return reward 8-3", {settleTime: settleTime, totalAmount: 0});
                         return {settleTime: settleTime, totalAmount: 0};
                     }
                 }
