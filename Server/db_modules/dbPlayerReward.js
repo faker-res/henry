@@ -2809,6 +2809,11 @@ let dbPlayerReward = {
                     userType: constProposalUserType.PLAYERS,
                     inputDevice: inputDevice
                 };
+
+                let endTime = moment(proposalData.data.startTime).add(limitedOfferObj.inStockDisplayTime,'m').toDate();
+                if (proposalData.data.expirationTime > endTime) {
+                    proposalData.data.expirationTime = endTime;
+                }
                 return dbConfig.collection_platform.findOne({_id: playerObj.platform})
                     .populate({path: "gameProviders", model: dbConfig.collection_gameProvider}).lean().then(
                         providerData => {
