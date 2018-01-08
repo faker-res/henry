@@ -551,7 +551,7 @@ var dbPlayerConsumptionWeekSummary = {
                     deferred.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DBError",
-                        message: eventData.param && eventData.param.earlyXimaMinAmount ? "您的洗码额度不足"+eventData.param.earlyXimaMinAmount+"元，无法提前结算洗码，谢谢": "您的洗码额度不足，无法提前结算洗码，谢谢"
+                        message: eventData && eventData.param && eventData.param.earlyXimaMinAmount ? "您的洗码额度不足"+eventData.param.earlyXimaMinAmount+"元，无法提前结算洗码，谢谢": "您的洗码额度不足，无法提前结算洗码，谢谢"
                     });
                 }
             },
@@ -603,7 +603,6 @@ var dbPlayerConsumptionWeekSummary = {
             .populate({path: "platform", model: dbconfig.collection_platform}).then(
                 function (data) {
                     if (data && data.platform) {
-                        console.log("LH check consumption return reward 1", data);
                         playerData = data;
                         platformData = data.platform;
                         if( eventCode ){
@@ -623,8 +622,6 @@ var dbPlayerConsumptionWeekSummary = {
             ).then(
                 function (eventsData) {
                     if (eventsData && eventsData.length > 0) {
-                        console.log("LH check consumption return reward 3", eventsData);
-                        console.log("LH check consumption return reward 4", eventsData[0]);
                         eventObj = eventsData[0];
                         var proms = [];
                         for (let eventData of eventsData) {
@@ -645,7 +642,6 @@ var dbPlayerConsumptionWeekSummary = {
                 }
             ).then(
                 function (data) {
-                    console.log("LH check consumption return reward 9", data);
                     var res = {totalAmount: 0, totalConsumptionAmount: 0, event: eventObj};
                     for (let amounts of data) {
                         Object.keys(amounts).forEach(
@@ -664,7 +660,6 @@ var dbPlayerConsumptionWeekSummary = {
                             }
                         )
                     }
-                    console.log("LH check consumption return reward 10", res);
                     return res;
                 }
             );
@@ -729,9 +724,6 @@ var dbPlayerConsumptionWeekSummary = {
 
         return Q.all([summaryProm, playerLevelProm, gameTypesProm]).spread(
             function (consumptionSummaries, playerData, allGameTypes) {
-                console.log("LH check consumption return reward 5", consumptionSummaries);
-                console.log("LH check consumption return reward 6", playerData);
-                console.log("LH check consumption return reward 7", allGameTypes);
                 // Why is it that sometimes playerData is not found?
                 // Perhaps the player was requested because he had consumption records, but the player himself has been removed from the system
 
@@ -802,17 +794,10 @@ var dbPlayerConsumptionWeekSummary = {
                         res.playerId = playerData.playerId;
                         res.playerName = playerData.name;
                     }
-                    console.log("LH check consumption return reward 8-1", res);
                     return res;
                 } else {
                     //no consumption records
                     if (bDetail) {
-                        console.log("LH check consumption return reward 8-2", {
-                            settleTime: settleTime,
-                            playerId: playerId,
-                            playerName: playerData ? playerData.name : 'Player Not Found',
-                            totalAmount: 0
-                        });
                         return {
                             settleTime: settleTime,
                             playerId: playerId,
@@ -822,7 +807,6 @@ var dbPlayerConsumptionWeekSummary = {
                     }
                     else {
                         console.log("LH check consumption return reward 8-3", {settleTime: settleTime, totalAmount: 0});
-                        return {settleTime: settleTime, totalAmount: 0};
                     }
                 }
             },
