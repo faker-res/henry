@@ -244,10 +244,17 @@ var dbUtility = {
     },
 
     getLastWeekConsumptionReturnSGTime: function () {
-        var endTime = dbUtility.getLastWeekSGTime().endTime;
+        let timeNow = moment().tz('Asia/Singapore').toDate();
+
+        let endTime = dbUtility.getLastWeekSGTime().endTime;
         endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
         let startTime = moment(endTime).subtract(1, 'week').toDate();
-        
+
+        if (timeNow < endTime) {
+            endTime = moment(endTime).subtract(1, 'week').toDate();
+            startTime = moment(endTime).subtract(1, 'week').toDate();
+        }
+
         return {
             startTime: startTime,
             endTime: endTime
@@ -255,9 +262,16 @@ var dbUtility = {
     },
 
     getCurrentWeekConsumptionReturnSGTime: function () {
-        var endTime = dbUtility.getCurrentWeekSGTime().endTime;
-        endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
-        let startTime = moment(endTime).subtract(1, 'week').toDate();
+        let timeNow = moment().tz('Asia/Singapore').toDate();
+
+        let startTime = dbUtility.getCurrentWeekSGTime().startTime;
+        startTime = new Date(startTime.getTime() + 12 * 60 * 60 * 1000);
+        let endTime = moment(startTime).add(1, 'week').toDate();
+
+        if (timeNow < startTime) {
+            startTime = moment(startTime).subtract(1, 'week').toDate();
+            endTime = moment(startTime).add(1, 'week').toDate();
+        }
 
         return {
             startTime: startTime,
@@ -393,9 +407,16 @@ var dbUtility = {
     },
 
     getYesterdayConsumptionReturnSGTime: function () {
-        var endTime = moment().tz('Asia/Singapore').startOf('day').toDate();
+        let timeNow = moment().tz('Asia/Singapore').toDate();
+
+        let endTime = moment().tz('Asia/Singapore').startOf('day').toDate();
         endTime = new Date(endTime.getTime() + 12*60*60*1000);
-        var startTime = moment(endTime).subtract(1, 'days').toDate();
+        let startTime = moment(endTime).subtract(1, 'days').toDate();
+
+        if (timeNow < endTime) {
+            endTime = new Date(endTime.getTime() - 24*60*60*1000);
+            startTime = moment(endTime).subtract(1, 'days').toDate();
+        }
 
         return {
             startTime: startTime,
@@ -404,9 +425,16 @@ var dbUtility = {
     },
 
     getTodayConsumptionReturnSGTime: function () {
-        var startTime = moment().tz('Asia/Singapore').startOf('day').toDate();
+        let timeNow = moment().tz('Asia/Singapore').toDate();
+
+        let startTime = moment().tz('Asia/Singapore').startOf('day').toDate();
         startTime = new Date(startTime.getTime() + 12*60*60*1000);
-        var endTime = moment(startTime).add(1, 'days').toDate();
+        let endTime = moment(startTime).add(1, 'days').toDate();
+
+        if (timeNow < startTime) {
+            startTime = new Date(startTime.getTime() - 24*60*60*1000);
+            endTime = moment(startTime).add(1, 'days').toDate();
+        }
 
         return {
             startTime: startTime,
