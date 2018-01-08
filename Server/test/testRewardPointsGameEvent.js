@@ -59,10 +59,10 @@ describe("Test player reward points for game event", function () {
             ],
             "targetDestination" : [
             ],
-            "dailyValidConsumptionAmount" : 100,
-            "dailyConsumptionCount" : null,
-            "singleConsumptionAmount" : null,
-            "dailyWinGameCount" : null
+            "dailyValidConsumptionAmount" : 100, // test the condition 2 (dailyValidConsumptionAmount: 100)
+            "dailyConsumptionCount" : null,  // test condition 1 (dailyConsumptionCount: 1)
+            "singleConsumptionAmount" : null,  // test condition 1 (singleConsumptionAmount: 100)
+            "dailyWinGameCount" : null  // test condition 3 (dailyWinGameCount: 1)
         },
         "status" : true,
         "__v" : 0,
