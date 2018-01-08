@@ -13,6 +13,19 @@ form(name="form_edit_player", novalidate)
             input.form-control(type="text", placeholder='{{"REAL_NAME" | translate}}', ng-model="playerBeingEdited.realName")
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
+            label.control-label {{"GENDER" | translate}}
+            div
+                input#genderMale(style="margin-right:8px;" type="radio", name="gender",ng-value="true", ng-model="playerBeingEdited.gender")
+                label(for="genderMale", style="margin-right:20px;") {{"Male" | translate}}
+                input#genderFemale(style="margin-right:8px;" type="radio", name="gender",ng-value="false", ng-model="playerBeingEdited.gender")
+                label(for="genderFemale") {{"Female" | translate}}
+        .form-group.col-md-6
+            label.control-label {{"DOB" | translate}}
+            input.form-control(type="date",ng-model="playerBeingEdited.DOB", max='{{today}}')
+            //#datepickerEditDOB
+            //input.form-control(type="date", ng-model="playerBeingEdited.DOB") remove is unwanted
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
             label.control-label {{"PLAYER_LEVEL" | translate}}
             select.form-control(type="text", ng-model="playerBeingEdited.playerLevel")
                 option(ng-repeat='(i,v) in allPlayerLevel', value='{{v._id}}', ng-selected='v._id == playerBeingEdited.playerLevel') {{v.name}}

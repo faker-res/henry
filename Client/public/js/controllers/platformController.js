@@ -6615,7 +6615,9 @@ define(['js/app'], function (myApp) {
                         photoUrl: vm.selectedSinglePlayer.photoUrl,
                         playerLevel: vm.selectedSinglePlayer.playerLevel._id,
                         referral: vm.selectedSinglePlayer.referral,
-                        smsSetting: vm.selectedSinglePlayer.smsSetting
+                        smsSetting: vm.selectedSinglePlayer.smsSetting,
+                        gender: vm.selectedSinglePlayer.gender,
+                        DOB: vm.selectedSinglePlayer.DOB
                     };
                     vm.selectedSinglePlayer.encodedBankAccount =
                         vm.selectedSinglePlayer.bankAccount ?
@@ -6772,6 +6774,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+        
             vm.openEditPlayerDialog = function (selectedTab) {
                 vm.editSelectedTab = "";
                 vm.editSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
@@ -6782,6 +6785,7 @@ define(['js/app'], function (myApp) {
                 function dialogDetails() {
                     let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
                     let editPlayer = vm.editPlayer;                  // ~ 6 fields
+                    vm.editPlayer.DOB = new Date(vm.editPlayer.DOB)
                     let allPartner = vm.partnerIdObj;
                     let allPlayerLevel = vm.allPlayerLvl;
 
@@ -6789,6 +6793,7 @@ define(['js/app'], function (myApp) {
                         $scope: $scope,
                         $compile: $compile,
                         childScope: {
+                            // vm: vm,
                             playerTopUpGroupQuery: {
                                 index: 0,
                                 limit: 10
@@ -6824,7 +6829,7 @@ define(['js/app'], function (myApp) {
                             verifyBankAccount: vm.verifyBankAccount,
                             verifyPlayerBankAccount: vm.verifyPlayerBankAccount,
                             updatePlayerPayment: vm.updatePlayerPayment,
-
+                            today: new Date().toISOString(),
                             allPlayerLevel: allPlayerLevel,
                             allPartner: allPartner,
                             playerId: selectedPlayer._id,
@@ -6837,7 +6842,12 @@ define(['js/app'], function (myApp) {
                             platformWechatPayGroupList: vm.platformWechatPayGroupList,
                             platformQuickPayGroupList: vm.platformQuickPayGroupList,
                             allPlayerTrustLvl: vm.allPlayerTrustLvl,
+                            //vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             updateEditedPlayer: function () {
+                                // + 8 to the time obtained from input type date
+                                this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB).setHours(new Date(this.playerBeingEdited.DOB).getHours() + 8 );
+                                // ng-model has to be in date object
+                                this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB);
                                 sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark, selectedPlayer.permission);
                             },
                             checkPlayerNameValidity: function (a, b, c) {
@@ -6936,6 +6946,10 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     };
+
+                    //vm.initDateDOM(option.childScope.playerBeingEdited);
+                    vm.bebugVariable = option.childScope.playerBeingEdited;
+
                     option.childScope.prepareEditPlayerPayment = function () {
                         vm.prepareEditPlayerPayment();
                         this.isEditingPlayerPayment = vm.isEditingPlayerPayment;
@@ -7750,7 +7764,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         }
-                        
+
                         // {'title': $translate('CREATE_TIME'), data: 'createTime$'},
                         // {'title': $translate('Type'), data: 'operationType$', sClass: "wordWrap width10Per"},
                         // {'title': $translate('PROPOSAL_ID'), data: 'proposalId$', sClass: "tbodyNoWrap"},
@@ -8994,7 +9008,7 @@ define(['js/app'], function (myApp) {
                     useConsumption: Boolean(vm.playerAddRewardTask.useConsumption),
                     remark: vm.playerAddRewardTask.remark,
                 };
-                
+
                 if(!vm.selectedPlatform.data.useProviderGroup){
                     sendObj.targetProviders = providerArr;
                 }else{
@@ -9204,7 +9218,7 @@ define(['js/app'], function (myApp) {
                     eventName: newproposalQuery.eventName,
                     promoTypeName: newproposalQuery.promoTypeName
                 };
-                
+
                 socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
                     console.log('playerproposal', data);
                     vm.playerProposal.loading = false;
@@ -9237,7 +9251,7 @@ define(['js/app'], function (myApp) {
             vm.safeApply = function () {
                 $scope.safeApply();
             }
-            
+
             vm.drawPlayerProposal = function (tblData, newSearch, summary) {
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
@@ -13913,7 +13927,10 @@ define(['js/app'], function (myApp) {
 
             vm.convertDOBFormat = function (DOBDate) {
 
-                return new Date(DOBDate).toISOString().slice(0,10);
+                    if (DOBDate) {
+                        return new Date(DOBDate).toISOString().slice(0, 10);
+                    }
+
             }
 
             vm.getPlayerInfo = function (query) {
