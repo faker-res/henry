@@ -2677,7 +2677,7 @@ let dbPlayerReward = {
                     type: proposalTypeData._id
                 };
                 let queryTime = getRewardPeriodToTime(eventObj.param.period);
-                if(queryTime)
+                if(queryTime && queryTime.startTime && queryTime.endTime)
                     matchQuery.createTime =  {$gte: queryTime.startTime, $lt: queryTime.endTime};
                 return dbConfig.collection_proposal.aggregate({
                     $match: matchQuery
@@ -4697,22 +4697,25 @@ function getPromoTitle(promo) {
 
 function getRewardPeriodToTime (rewardPeriod) {
     let time = null;
-    if (rewardPeriod) {
-        switch (rewardPeriod) {
-            case "1":
-                time = dbUtility.getTodaySGTime();
-                break;
-            case "2":
-                time =  dbUtility.getCurrentWeekSGTime();
-                break;
-            case "3":
-                time =  dbUtility.getCurrentBiWeekSGTIme();
-                break;
-            case "4":
-                time =  dbUtility.getCurrentMonthSGTIme();
-                break;
-        }
+    
+    switch (rewardPeriod) {
+        case "1":
+            time = dbUtility.getTodaySGTime();
+            break;
+        case "2":
+            time =  dbUtility.getCurrentWeekSGTime();
+            break;
+        case "3":
+            time =  dbUtility.getCurrentBiWeekSGTIme();
+            break;
+        case "4":
+            time =  dbUtility.getCurrentMonthSGTIme();
+            break;
+        default:
+            time = dbUtility.getTodaySGTime();
+            break;
     }
+
     return time;
 }
 
