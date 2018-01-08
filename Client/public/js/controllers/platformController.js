@@ -8929,7 +8929,7 @@ define(['js/app'], function (myApp) {
                 vm.playerApplyRewardShow.showConsumptionReturn = type == "PlayerConsumptionReturn";
                 vm.playerApplyRewardShow.consumptionReturnData = {};
                 if (type == "PlayerConsumptionReturn") {
-                    socketService.$socket($scope.AppSocket, 'getConsumeRebateAmount', {playerId: vm.isOneSelectedPlayer().playerId}, function (data) {
+                    socketService.$socket($scope.AppSocket, 'getConsumeRebateAmount', {playerId: vm.isOneSelectedPlayer().playerId, eventCode: vm.playerApplyRewardPara.code}, function (data) {
                         console.log('getConsumeRebateAmount', data);
                         vm.playerApplyRewardShow.showRewardAmount = parseFloat(data.data.totalAmount).toFixed(2);
                         vm.playerApplyRewardShow.consumptionReturnData = data.data;
