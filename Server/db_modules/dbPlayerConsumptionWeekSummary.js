@@ -268,7 +268,7 @@ var dbPlayerConsumptionWeekSummary = {
                                         ratio = 0;
                                     }
 
-                                    if (consumptionSummary && playerLevel && ratio >= 0) {
+                                    if (consumptionSummary && playerLevel && ratio > 0) {
                                         var consumeValidAmount = consumptionSummary.validAmount || 0;
                                         returnAmount += consumeValidAmount * ratio;
                                         returnDetail["GameType:" + gameType] = {
