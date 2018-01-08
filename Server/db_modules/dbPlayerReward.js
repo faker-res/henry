@@ -2559,8 +2559,10 @@ let dbPlayerReward = {
                     })
                 }
 
+                let orderedTimeSet = new Set(Array.from(timeSet).sort());
+
                 return {
-                    time: [...timeSet].join("/"),
+                    time: [...orderedTimeSet].join("/"),
                     showInfo: playerObj && playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
                     secretList: rewards.filter(e => Boolean(e.displayOriPrice) === false),
                     normalList: rewards.filter(e => Boolean(e.displayOriPrice) === true)
@@ -2782,7 +2784,7 @@ let dbPlayerReward = {
                         rewardAmount: limitedOfferObj.oriPrice - limitedOfferObj.offerPrice,
                         spendingAmount: limitedOfferObj.oriPrice * limitedOfferObj.bet,
                         limitedOfferName: limitedOfferObj.name,
-                        expirationTime: moment().add(30, 'm').toDate(),
+                        expirationTime: moment().add((limitedOfferObj.limitTime || 30), 'm').toDate(),
                         eventId: eventObj._id,
                         eventName: eventObj.name + ' Intention',
                         eventCode: eventObj.code,
@@ -2792,7 +2794,7 @@ let dbPlayerReward = {
                         originalPrice: limitedOfferObj.oriPrice + "（" + (limitedOfferObj.displayOriPrice ? '显示' : '隐藏') + "）",
                         Quantity: limitedOfferObj.qty,
                         limitApplyPerPerson: limitedOfferObj.limitPerson,
-                        topUpDuration: "30分钟",
+                        topUpDuration: (limitedOfferObj.limitTime || 30) + "分钟",
                         startTime: moment().set({
                             hour: limitedOfferObj.hrs,
                             minute: limitedOfferObj.min,
@@ -3724,13 +3726,11 @@ let dbPlayerReward = {
                         applyAmount = 0;
 
                         if (!rewardSpecificData || !rewardSpecificData[0]) {
-                            if (todayProposal.length > 0) {
-                                return Q.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Reward already hit maximum number of apply. Please contact cs."
-                                });
-                            }
+                            return Q.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "Not Valid for the reward."
+                            });
                         }
 
                         let playerRewardDetail = rewardSpecificData[0];
