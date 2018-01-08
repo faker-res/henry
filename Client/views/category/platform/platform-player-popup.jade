@@ -54,6 +54,13 @@
                                                         label {{"partner" | translate}}
                                                     .col-sm-8
                                                         text(style='height:inherit') {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
+
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"GENDER" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.getGenderFromBool(vm.selectedSinglePlayer.gender) || 'NONE' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
@@ -67,6 +74,12 @@
                                                         label {{"REFERRAL" | translate}}
                                                     .col-sm-8
                                                         text(style='height:inherit') {{vm.showReferralName || 'NONE' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"DOB" | translate}}
+                                                    .col-sm-8
+                                                        text(style='height:inherit') {{vm.convertDOBFormat(vm.selectedSinglePlayer.DOB) || 'NONE' | translate}}
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPlayerDialog('basicInfo');", ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
@@ -959,6 +972,10 @@
                                 input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
                             .form-group.col-md-12
                                 .control-label
+                                label {{'realName' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.realName')
+                            .form-group.col-md-12
+                                .control-label
                                 label {{'promoCode' | translate}}
                                 input.form-control(ng-model='vm.playerAlipayTopUp.bonusCode')
                             .form-group.col-md-12
@@ -1149,10 +1166,15 @@
 
                         //#modalPlayerAddRewardTask
                         form(name='form_add_reward_task', ng-show="vm.selectedRewardSettingsTab == 'manual-reward'").well
-                            .form-group
+                            .form-group(ng-if='vm.selectedPlatform.data.useProviderGroup')
+                                label.control-label {{'Provider group' | translate}}
+                                select.form-control(ng-model='vm.playerAddRewardTask.providerGroup', required)
+                                    option(value='null') {{'LOCAL_CREDIT' | translate}}
+                                    option(ng-repeat='(i,v) in vm.gameProviderGroup', value='{{v._id}}') {{ v.name }}
+                            .form-group(ng-if='!vm.selectedPlatform.data.useProviderGroup')
                                 label.control-label {{'REWARD_NAME' | translate}}
                                 input.form-control(ng-model='vm.playerAddRewardTask.type', required)
-                            .form-group
+                            .form-group(ng-if='!vm.selectedPlatform.data.useProviderGroup')
                                 label.control-label {{'Provider' | translate}}
                                 div
                                     .inlinkBlk(ng-repeat='(i,v) in vm.platformProviderList')
@@ -1215,7 +1237,10 @@
                                 label.text-success {{'SUCCESS' | translate}}
                             .well(ng-show='vm.playerApplyEventResult && !vm.playerApplyEventResult.success')
                                 label.text-danger {{'FAIL' | translate}}
-                                label.form-control {{(vm.playerApplyEventResult.error.message || vm.playerApplyEventResult.error.errorMessage) | translate}}
+                                label.form-control(ng-if='!vm.playerApplyRewardShow.showConsumptionReturn') {{(vm.playerApplyEventResult.error.message || vm.playerApplyEventResult.error.errorMessage) | translate}}
+                                label.form-control(style='width:80%;display:inline-block;' ng-if='vm.playerApplyRewardShow.showConsumptionReturn') {{ vm.playerApplyEventResult.error.message | translate}}
+                                button.btn.btn-primary.common-button(ng-if='vm.playerApplyRewardShow.showConsumptionReturn && (vm.playerApplyEventResult.error.message.indexOf("您的洗码额度不足") !== -1 || vm.playerApplyEventResult.error.errorMessage.indexOf("您的洗码额度不足") !== -1 )'
+                                ng-click='vm.applyPlayerReward(true)' style='vertical-align: bottom;margin-left: 10px;') {{"force submit" | translate}}
 
                         //#modalManualUnlockRewardTask
                         table.simple-table(ng-show="vm.selectedRewardSettingsTab == 'unlock-reward'")

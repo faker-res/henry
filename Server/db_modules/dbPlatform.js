@@ -40,7 +40,7 @@ const constServerCode = require('../const/constServerCode');
 const constSettlementPeriod = require("../const/constSettlementPeriod");
 const constSystemParam = require('../const/constSystemParam');
 const errorUtils = require('../modules/errorUtils');
-
+const request = require('request');
 function randomObjectId() {
     var id = crypto.randomBytes(12).toString('hex');
     return mongoose.Types.ObjectId(id);
@@ -2237,6 +2237,48 @@ var dbPlatform = {
             return Q.reject({name: "DBError", message: "Invalid platformId: " + platformId});
         }
     },
+    getLiveStream: function (playerObjId) {
+        let url = 'https://www.jblshow.com/livestream/liveurl';
+        var deferred = Q.defer();
+        request.get(url, {}, (err, res, body) => {
+            if (err) {
+                deferred.reject(`Get JBL livestream url failed  ${err}`);
+            } else {
+                let streamInfo = JSON.parse(res.body);
+                let streamResult = {};
+                if(streamInfo.content){
+                    streamResult = streamInfo.content;
+                }
+                if (streamInfo.code) {
+                    streamResult.code = streamInfo.code;
+                }
+                deferred.resolve(streamResult);
+            }
+        });
+
+        let streamInfoProm = deferred.promise;
+        // return deferred.promise;
+
+        let urlTokenProm = playerObjId ? dbPlayerInfo.loginJblShow(playerObjId) : Promise.resolve();
+
+        return Promise.all([streamInfoProm, urlTokenProm]).then(
+            data => {
+                if (!data) {
+                    return;
+                }
+                let streamResult = data[0] || {};
+                let urlDetail = data[1];
+
+                if (urlDetail) {
+                    let endString = "?username=" + urlDetail.playerName + "&token=" + urlDetail.token;
+                    let url = urlDetail.url + endString;
+                    streamResult.url = url;
+                }
+
+                return streamResult;
+            }
+        );
+    }
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
