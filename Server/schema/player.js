@@ -18,6 +18,10 @@ var playerSchema = new Schema({
     nickName: {type: String},
     //player email
     email: {type: String, default: ""},
+    //gender - true=male, false=female
+    gender:{type: Boolean},
+    //DOB
+    DOB:{type: Date, default: ""},
     //sms Setting
     smsSetting: {
         manualTopup: {type: Boolean, default: false},

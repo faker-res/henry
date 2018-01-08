@@ -31,7 +31,7 @@ var PlatformServiceImplement = function () {
     this.getLiveStream.onRequest = function (wsFunc, conn, data) {
         var isValidData = true;
         data = data || {};
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getLiveStream, [data], isValidData, null, null, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getLiveStream, [conn.playerObjId], isValidData, null, null, true);
     };
 };
 

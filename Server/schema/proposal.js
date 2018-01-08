@@ -64,6 +64,10 @@ proposalSchema.index({"data.PROMO_CODE_TYPE": 1});
 proposalSchema.index({"data.name": 1});
 proposalSchema.index({"data.phoneNumber": 1});
 proposalSchema.index({"data.rewardAmount": 1});
+proposalSchema.index({"data._id": 1});
+proposalSchema.index({"data.partnerId": 1});
+proposalSchema.index({"data.rewardAmount": 1});
+proposalSchema.index({"data.amount": 1});
 
 /*
  // Ensure that the caller does not accidentally save an ObjectId in proposal.data.playerId

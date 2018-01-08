@@ -4223,7 +4223,14 @@ define(['js/app'], function (myApp) {
             }
 
             vm.submitRepairTransfer = function () {
-                socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.selectedThisPlayer._id}
+                let startTime = vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate();
+                let endTime = vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate();
+                let createTimeQuery = {
+                    $gte: startTime,
+                    $lte: endTime
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.selectedThisPlayer._id, createTime: createTimeQuery}
                     , function (pData) {
                         let playerTransfer = {};
                         pData.data.forEach(function (playerTransLog) {
@@ -6615,7 +6622,9 @@ define(['js/app'], function (myApp) {
                         photoUrl: vm.selectedSinglePlayer.photoUrl,
                         playerLevel: vm.selectedSinglePlayer.playerLevel._id,
                         referral: vm.selectedSinglePlayer.referral,
-                        smsSetting: vm.selectedSinglePlayer.smsSetting
+                        smsSetting: vm.selectedSinglePlayer.smsSetting,
+                        gender: vm.selectedSinglePlayer.gender,
+                        DOB: vm.selectedSinglePlayer.DOB
                     };
                     vm.selectedSinglePlayer.encodedBankAccount =
                         vm.selectedSinglePlayer.bankAccount ?
@@ -6653,8 +6662,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareCreatePlayer = function () {
+                vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {language: 'en', format: 'yyyy/MM/dd', endDate: new Date(), maxDate: new Date()});
+
                 vm.existPhone = false;
                 vm.newPlayer = {};
+
+
                 vm.duplicateNameFound = false;
                 vm.euPrefixNotExist = false;
                 $('.referralValidTrue').hide();
@@ -6668,6 +6681,7 @@ define(['js/app'], function (myApp) {
                 vm.phoneDuplicate.pageObj = utilService.createPageForPagingTable("#samePhoneNumTablePage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "phoneDuplicate", vm.loadPhoneNumberRecord)
                 });
+
 
             }
             vm.editPlayerStatus = function (id) {
@@ -6767,6 +6781,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+        
             vm.openEditPlayerDialog = function (selectedTab) {
                 vm.editSelectedTab = "";
                 vm.editSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
@@ -6777,6 +6792,7 @@ define(['js/app'], function (myApp) {
                 function dialogDetails() {
                     let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
                     let editPlayer = vm.editPlayer;                  // ~ 6 fields
+                    vm.editPlayer.DOB = new Date(vm.editPlayer.DOB);
                     let allPartner = vm.partnerIdObj;
                     let allPlayerLevel = vm.allPlayerLvl;
 
@@ -6784,6 +6800,7 @@ define(['js/app'], function (myApp) {
                         $scope: $scope,
                         $compile: $compile,
                         childScope: {
+                            // vm: vm,
                             playerTopUpGroupQuery: {
                                 index: 0,
                                 limit: 10
@@ -6819,7 +6836,7 @@ define(['js/app'], function (myApp) {
                             verifyBankAccount: vm.verifyBankAccount,
                             verifyPlayerBankAccount: vm.verifyPlayerBankAccount,
                             updatePlayerPayment: vm.updatePlayerPayment,
-
+                            today: new Date().toISOString().slice(0,10),
                             allPlayerLevel: allPlayerLevel,
                             allPartner: allPartner,
                             playerId: selectedPlayer._id,
@@ -6832,7 +6849,12 @@ define(['js/app'], function (myApp) {
                             platformWechatPayGroupList: vm.platformWechatPayGroupList,
                             platformQuickPayGroupList: vm.platformQuickPayGroupList,
                             allPlayerTrustLvl: vm.allPlayerTrustLvl,
+                            //vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             updateEditedPlayer: function () {
+                                // + 8 to the time obtained from input type date
+                                this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB).setHours(new Date(this.playerBeingEdited.DOB).getHours() + 8 );
+                                // ng-model has to be in date object
+                                this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB);
                                 sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark, selectedPlayer.permission);
                             },
                             checkPlayerNameValidity: function (a, b, c) {
@@ -6931,6 +6953,7 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     };
+
                     option.childScope.prepareEditPlayerPayment = function () {
                         vm.prepareEditPlayerPayment();
                         this.isEditingPlayerPayment = vm.isEditingPlayerPayment;
@@ -6960,6 +6983,7 @@ define(['js/app'], function (myApp) {
                     option.childScope.changePartner = function () {
                         debounceGetPartnerInPlayer();
                     };
+
                     vm.partnerChange = false;
                     $('.referralValidTrue').hide();
                     $('.referralValidFalse').hide();
@@ -7307,6 +7331,10 @@ define(['js/app'], function (myApp) {
             vm.createNewPlayer = function () {
                 vm.newPlayer.platform = vm.selectedPlatform.id;
                 vm.newPlayer.platformId = vm.selectedPlatform.data.platformId;
+                vm.tempDOB = vm.playerDOB.data('datetimepicker').getLocalDate();
+                vm.newPlayer.DOB = vm.tempDOB.toISOString().slice(0,10);
+                vm.newPlayer.gender = (vm.newPlayer.gender == "true") ? true : false ;
+
                 console.log('newPlayer', vm.newPlayer);
                 if (vm.newPlayer.createPartner) {
                     socketService.$socket($scope.AppSocket, 'createPlayerPartner', vm.newPlayer, function (data) {
@@ -7741,7 +7769,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         }
-                        
+
                         // {'title': $translate('CREATE_TIME'), data: 'createTime$'},
                         // {'title': $translate('Type'), data: 'operationType$', sClass: "wordWrap width10Per"},
                         // {'title': $translate('PROPOSAL_ID'), data: 'proposalId$', sClass: "tbodyNoWrap"},
@@ -8908,7 +8936,7 @@ define(['js/app'], function (myApp) {
                 vm.playerApplyRewardShow.showConsumptionReturn = type == "PlayerConsumptionReturn";
                 vm.playerApplyRewardShow.consumptionReturnData = {};
                 if (type == "PlayerConsumptionReturn") {
-                    socketService.$socket($scope.AppSocket, 'getConsumeRebateAmount', {playerId: vm.isOneSelectedPlayer().playerId}, function (data) {
+                    socketService.$socket($scope.AppSocket, 'getConsumeRebateAmount', {playerId: vm.isOneSelectedPlayer().playerId, eventCode: vm.playerApplyRewardPara.code}, function (data) {
                         console.log('getConsumeRebateAmount', data);
                         vm.playerApplyRewardShow.showRewardAmount = parseFloat(data.data.totalAmount).toFixed(2);
                         vm.playerApplyRewardShow.consumptionReturnData = data.data;
@@ -8954,12 +8982,13 @@ define(['js/app'], function (myApp) {
 
             vm.initPlayerAddRewardTask = function () {
                 vm.playerAddRewardTask = {
-                    showSubmit: true
+                    showSubmit: true,
+                    providerGroup: 'null'
                 };
                 vm.showRewardSettingsTab(null);
                 // vm.selectedRewards = [];
                 // $('#modalPlayerAddRewardTask').modal();
-            }
+            };
 
             vm.submitAddPlayerRewardTask = function () {
                 vm.playerAddRewardTask.showSubmit = false;
@@ -8984,7 +9013,7 @@ define(['js/app'], function (myApp) {
                     useConsumption: Boolean(vm.playerAddRewardTask.useConsumption),
                     remark: vm.playerAddRewardTask.remark,
                 };
-                
+
                 if(!vm.selectedPlatform.data.useProviderGroup){
                     sendObj.targetProviders = providerArr;
                 }else{
@@ -9194,7 +9223,7 @@ define(['js/app'], function (myApp) {
                     eventName: newproposalQuery.eventName,
                     promoTypeName: newproposalQuery.promoTypeName
                 };
-                
+
                 socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
                     console.log('playerproposal', data);
                     vm.playerProposal.loading = false;
@@ -9227,7 +9256,7 @@ define(['js/app'], function (myApp) {
             vm.safeApply = function () {
                 $scope.safeApply();
             }
-            
+
             vm.drawPlayerProposal = function (tblData, newSearch, summary) {
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
@@ -13888,6 +13917,27 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+
+            vm.getGenderFromBool = function (genderBool) {
+                if (genderBool === true) {
+                    return "Male";
+                }
+                else if (genderBool === false) {
+                    return "Female";
+                }
+                else {
+                    return "";
+                }
+            }
+
+            vm.convertDOBFormat = function (DOBDate) {
+
+                    if (DOBDate) {
+                        return new Date(DOBDate).toISOString().slice(0, 10);
+                    }
+
+            }
+
             vm.getPlayerInfo = function (query) {
                 var myQuery = {
                     _id: query._id,
