@@ -67,10 +67,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             query: 'token=' + token,
             //todo::add secure flag for https
             //secure: true
-            //set connection timeout to 10 seconds
-            timeout: 10000,
-            reconnectionDelay: 1000,
-            reconnection: true,
+            //set connection timeout to 30 seconds
+            timeout: 30000,
+            reconnectionDelay: 60000,
+            reconnection: false,
             "transports": ["websocket"]
         });
 
