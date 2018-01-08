@@ -6947,9 +6947,6 @@ define(['js/app'], function (myApp) {
                         }
                     };
 
-                    //vm.initDateDOM(option.childScope.playerBeingEdited);
-                    vm.bebugVariable = option.childScope.playerBeingEdited;
-
                     option.childScope.prepareEditPlayerPayment = function () {
                         vm.prepareEditPlayerPayment();
                         this.isEditingPlayerPayment = vm.isEditingPlayerPayment;
