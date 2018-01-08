@@ -6785,7 +6785,7 @@ define(['js/app'], function (myApp) {
                 function dialogDetails() {
                     let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
                     let editPlayer = vm.editPlayer;                  // ~ 6 fields
-                    vm.editPlayer.DOB = new Date(vm.editPlayer.DOB)
+                    vm.editPlayer.DOB = new Date(vm.editPlayer.DOB);
                     let allPartner = vm.partnerIdObj;
                     let allPlayerLevel = vm.allPlayerLvl;
 
@@ -6829,7 +6829,7 @@ define(['js/app'], function (myApp) {
                             verifyBankAccount: vm.verifyBankAccount,
                             verifyPlayerBankAccount: vm.verifyPlayerBankAccount,
                             updatePlayerPayment: vm.updatePlayerPayment,
-                            today: new Date().toISOString(),
+                            today: new Date().toISOString().slice(0,10),
                             allPlayerLevel: allPlayerLevel,
                             allPartner: allPartner,
                             playerId: selectedPlayer._id,
@@ -6979,6 +6979,7 @@ define(['js/app'], function (myApp) {
                     option.childScope.changePartner = function () {
                         debounceGetPartnerInPlayer();
                     };
+
                     vm.partnerChange = false;
                     $('.referralValidTrue').hide();
                     $('.referralValidFalse').hide();

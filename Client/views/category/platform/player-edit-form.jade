@@ -1,8 +1,8 @@
-form(name="form_edit_player", novalidate)
+form(name="form_editing_player", novalidate)
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label *{{"PLAYER_NAME" | translate}}
-            input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="playerBeingEdited.name", ng-change='checkPlayerNameValidity(playerBeingEdited.name,form_edit_player,"edit")', required, disabled)
+            input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="playerBeingEdited.name", ng-change='checkPlayerNameValidity(playerBeingEdited.name,form_editing_player,"edit")', required, disabled)
             span.help-block(style='color: #b94a48', ng-show='duplicateNameFound()') {{'PLAYER_NAME' | translate}}&nbsp;{{'existed already' | translate}}
         //.form-group.col-md-6
         //   label.control-label {{"EMAIL" | translate}}
@@ -21,9 +21,7 @@ form(name="form_edit_player", novalidate)
                 label(for="genderFemale") {{"Female" | translate}}
         .form-group.col-md-6
             label.control-label {{"DOB" | translate}}
-            input.form-control(type="date",ng-model="playerBeingEdited.DOB", max='{{today}}')
-            //#datepickerEditDOB
-            //input.form-control(type="date", ng-model="playerBeingEdited.DOB") remove is unwanted
+            input.form-control(type="date",ng-model="playerBeingEdited.DOB", max="{{today}}") 
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label {{"PLAYER_LEVEL" | translate}}
