@@ -1261,13 +1261,21 @@ define(['js/app'], function (myApp) {
                 vm.playerConsumptionReturnSettlement.status = 'processing';
 
                 $('#playerConsumptionReturnSettlementTbl tbody input[type="checkbox"]:checked').each((i, v) => {
-                    eventArr.push(v.value);
-                })
+                    let filteredArr = vm.allRewardEvent.filter(function(rewardEvent) {
+                        if(rewardEvent && rewardEvent.type) {
+                            return rewardEvent.type.name == "PlayerConsumptionReturn";
+                        } else {
+                            return false;
+                        }
+                    });
+                    eventArr.push(filteredArr[v.value]);
+                });
 
                 if (eventArr.length > 0) {
                     socketParam.selectedEvent = eventArr;
                 }
 
+                console.log("sendData startPlatformPlayerConsumptionReturnSettlement", socketParam);
                 socketService.$socket($scope.AppSocket, 'startPlatformPlayerConsumptionReturnSettlement',
                     socketParam,
                     function (data) {
