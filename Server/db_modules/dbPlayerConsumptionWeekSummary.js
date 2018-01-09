@@ -143,7 +143,7 @@ var dbPlayerConsumptionWeekSummary = {
      */
     checkPlatformWeeklyConsumptionReturn: function (platformId, eventData, proposalTypeId, period) {
 
-        var settleTime = period == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekSGTime();
+        var settleTime = period == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         var balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
             // This collects players who have dirty records in the time range, although dirty records will not actually be used during processing.
@@ -578,9 +578,7 @@ var dbPlayerConsumptionWeekSummary = {
         let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         if (bRequest) {
             if(eventData.settlementPeriod == constSettlementPeriod.DAILY){
-                if (dbutility.isCurrentSGTimePassed12PM()) {
-                    settleTime = dbutility.getTodayConsumptionReturnSGTime();
-                }
+                settleTime = dbutility.getTodayConsumptionReturnSGTime();
             }
             else{
                 settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
@@ -694,9 +692,7 @@ var dbPlayerConsumptionWeekSummary = {
         let settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         if (bRequest) {
             if(event.settlementPeriod == constSettlementPeriod.DAILY){
-                if (dbutility.isCurrentSGTimePassed12PM()) {
-                    settleTime = dbutility.getTodayConsumptionReturnSGTime();
-                }
+                settleTime = dbutility.getTodayConsumptionReturnSGTime();
             }
             else{
                 settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
