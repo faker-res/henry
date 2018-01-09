@@ -2425,10 +2425,16 @@ let dbPlayerReward = {
                         // Find player's limited offer application
                         if (period) {
                             let timeInPassPeriodHours = dbUtility.getSGTimeOfPassHours(period);
-                            proposalQuery.createTime = {
-                                $gte: timeInPassPeriodHours.startTime,
-                                $lte: timeInPassPeriodHours.endTime
-                            };
+                            if (proposalQuery.createTime) {
+                                proposalQuery.createTime.$lte = timeInPassPeriodHours.endTime;
+                                proposalQuery.createTime.$gte = proposalQuery.createTime.$gte > timeInPassPeriodHours.startTime ? proposalQuery.createTime.$gte : timeInPassPeriodHours.startTime;
+                            }
+                            else {
+                                proposalQuery.createTime = {
+                                    $gte: timeInPassPeriodHours.startTime,
+                                    $lte: timeInPassPeriodHours.endTime
+                                };
+                            }
                         }
 
                         promArr.push(
