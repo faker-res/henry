@@ -2597,6 +2597,8 @@ var dbPlayerTopUpRecord = {
 };
 
 function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount, limitedOfferObjId) {
+    if(!limitedOfferObjId) return false;
+
     return dbconfig.collection_proposalType.findOne({
         platformId: platformObjId,
         name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
