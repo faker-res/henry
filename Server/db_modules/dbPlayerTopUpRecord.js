@@ -1975,7 +1975,7 @@ var dbPlayerTopUpRecord = {
                             platformId: playerData.platform.platformId,
                             queryId: serverInstance.getQueryId()
                         }).then(
-                            wechats => {walao
+                            wechats => {
                                 let bValid = false;
                                 let maxDeposit = 0;
                                 if (wechats.data && wechats.data.length > 0) {
