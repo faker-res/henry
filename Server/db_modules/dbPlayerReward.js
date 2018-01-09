@@ -2769,6 +2769,9 @@ let dbPlayerReward = {
                     }
                 }
 
+                let expirationTime = new Date();
+                expirationTime.setMinutes(expirationTime.getMinutes() + (Math.abs(Number(limitedOfferObj.limitTime)) || 30));
+
                 // create reward proposal
                 let proposalData = {
                     type: proposalTypeObj._id,
@@ -2789,7 +2792,8 @@ let dbPlayerReward = {
                         rewardAmount: limitedOfferObj.oriPrice - limitedOfferObj.offerPrice,
                         spendingAmount: limitedOfferObj.oriPrice * limitedOfferObj.bet,
                         limitedOfferName: limitedOfferObj.name,
-                        expirationTime: moment().add((limitedOfferObj.limitTime || 30), 'm').toDate(),
+                        // expirationTime: moment().add((Number(limitedOfferObj.limitTime) || 30), 'm').toDate(),
+                        expirationTime: expirationTime,
                         eventId: eventObj._id,
                         eventName: eventObj.name + ' Intention',
                         eventCode: eventObj.code,
