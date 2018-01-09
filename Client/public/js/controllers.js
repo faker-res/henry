@@ -299,10 +299,15 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.curPlatformText = "XBet";
     $scope.showPlatformDropDownList = false;
 
-    $scope.switchPlatform = () => {
+    $scope.switchPlatform = ($event) => {
+        $event.stopPropagation();
         $scope.showPlatformDropDownList = !$scope.showPlatformDropDownList;
     };
 
+    $(document).click(function () {
+        $scope.showPlatformDropDownList = false;
+        $scope.safeApply();
+    })
     //get all platform data from server
     $scope.loadPlatformData = option => {
         if ($('#platformRefresh').hasClass('fa-spin')) {
