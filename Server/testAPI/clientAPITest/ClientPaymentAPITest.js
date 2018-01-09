@@ -225,6 +225,12 @@
         this._service.getAlipayTopupRequestList.once(callback);
     };
 
+    proto.getWechatTopupRequestList = function (callback, requestData) {
+        var data = requestData || {};
+        this._service.getWechatTopupRequestList.request(data);
+        this._service.getWechatTopupRequestList.once(callback);
+    };
+
     proto.getOnlineTopupType = function (callback, requestData) {
         var data = requestData || {};
         this._service.getOnlineTopupType.request(data);
