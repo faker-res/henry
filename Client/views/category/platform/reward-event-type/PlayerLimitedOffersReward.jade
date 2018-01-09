@@ -61,8 +61,8 @@
 
                 td
                     div
-                        input.form-control(type='number', min='0', ng-model='vm.rewardParamsFilter[rowIndex].limitPerson', ng-disabled='vm.platformRewardShowEdit()', required)
-
+                        //input.form-control(type='number', min='0', ng-model='vm.rewardParamsFilter[rowIndex].limitPerson', ng-disabled='vm.platformRewardShowEdit()', required)
+                        text {{vm.rewardParamsFilter[rowIndex].limitPerson}}
                 td
                     div
                         input.form-control(type='number', min='0', ng-model='vm.rewardParamsFilter[rowIndex].limitTime', ng-disabled='vm.platformRewardShowEdit()', required)
@@ -135,8 +135,8 @@
 
                 td
                     div
-                        input.form-control(type='number', min='0', ng-model='vm.tempNewRewardEntry.limitPerson', ng-disabled='vm.platformRewardShowEdit()')
-
+                        //input.form-control(type='number', min='0', ng-model='vm.tempNewRewardEntry.limitPerson', ng-init='vm.tempNewRewardEntry.limitPerson = 1', ng-disabled='true')
+                        text(ng-init='vm.tempNewRewardEntry.limitPerson = 1') 1
                 td
                     div
                         input.form-control(type='number', min='0', ng-model='vm.tempNewRewardEntry.limitTime', ng-disabled='vm.platformRewardShowEdit()')
@@ -184,7 +184,7 @@
                             option(value="1") {{'Open'| translate}}
                             option(value="2") {{'Closed'| translate}}
                 td
-                    i.fa.fa-plus(ng-click='vm.updateLimitedOffersEdit("add",vm.tempNewRewardEntry);vm.tempNewRewardEntry={}')
+                    i.fa.fa-plus(ng-click='vm.updateLimitedOffersEdit("add",vm.tempNewRewardEntry);vm.tempNewRewardEntry={limitPerson:1}')
             //tr
                 td
                     div
