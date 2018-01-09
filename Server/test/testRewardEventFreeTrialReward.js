@@ -1,22 +1,20 @@
-let should = require('should');
-let socketConnection = require('../test_modules/socketConnection');
-let commonTestFunc = require('../test_modules/commonTestFunc');
-
+const should = require('should');
+const socketConnection = require('../test_modules/socketConnection');
+const commonTestFunc = require('../test_modules/commonTestFunc');
 const constRewardType = require("./../const/constRewardType");
 const errorUtils = require('../modules/errorUtils');
 const moment = require('moment-timezone');
-
-let dbConfig = require('../modules/dbproperties');
-let dbUtility = require("../modules/dbutility");
-let dbRewardEvent = require('../db_modules/dbRewardEvent');
-let dbRewardTask = require('../db_modules/dbRewardTask');
-let dbPlayerInfo = require('../db_modules/dbPlayerInfo');
-let dbProposal = require('../db_modules/dbProposal');
-let dbProposalType = require('../db_modules/dbProposalType');
-let dbProposalTypeProcess = require('../db_modules/dbProposalTypeProcess');
+const dbConfig = require('../modules/dbproperties');
+const dbUtility = require("../modules/dbutility");
+const dbRewardEvent = require('../db_modules/dbRewardEvent');
+const dbRewardTask = require('../db_modules/dbRewardTask');
+const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
+const dbProposal = require('../db_modules/dbProposal');
+const dbProposalType = require('../db_modules/dbProposalType');
+const dbProposalTypeProcess = require('../db_modules/dbProposalTypeProcess');
 
 describe("Test player free trial reward group", function () {
-    let date = new Date().getTime();
+    const date = new Date().getTime();
 
     let testPlayer = null;
     let testPlayer2 = null;
@@ -27,7 +25,7 @@ describe("Test player free trial reward group", function () {
     let testPlatformObjId = null;
     let testPlatformId = null;
 
-    let eventTypeName = constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP;
+    const eventTypeName = constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP;
     let proposalTypeId = null;
     let proposalTypeProcessId = null;
 
@@ -38,12 +36,12 @@ describe("Test player free trial reward group", function () {
 
     let rewardData = {};
 
-    let concurrentApplyNum = 10;
-    let rewardEventSpendingTimes = 5;
-    let rewardEventAmount = 1000;
-    let rewardEventRemark = "1000 multiply 5 = 5000 ok";
-    let randomSMSCode = parseInt(Math.random() * 9000 + 1000);
-    let timeNow = moment().subtract(1, 'minutes');
+    const concurrentApplyNum = 1;
+    const rewardEventSpendingTimes = 5;
+    const rewardEventAmount = 1000;
+    const rewardEventRemark = "1000 multiply 5 = 5000 ok";
+    const randomSMSCode = parseInt(Math.random() * 9000 + 1000);
+    const timeNow = moment().subtract(1, 'minutes');
 
     let createFreeTrialRewardEventData = {
         //"platform": testPlatformObjId,
@@ -97,7 +95,7 @@ describe("Test player free trial reward group", function () {
 
     /* Test 1 - create a new platform before the creation of a new player */
     it('Should create test API platform', function (done) {
-        commonTestFunc.createTestPlatform().then(
+        commonTestFunc.createTestPlatform({'useProviderGroup': true}).then(
             (platformData) => {
                 testPlatform = platformData;
                 testPlatformObjId = platformData._id;
@@ -286,16 +284,16 @@ describe("Test player free trial reward group", function () {
         )
     });
 
-    /* Test 11 - check the spendingAmount in proposal and requiredUnlockAmount in rewardTask is matched */
-    it('Should check the spendingAmount in proposal and requiredUnlockAmount in rewardTask is matched', function (done) {
-        dbRewardTask.getRewardTask({
+    /* Test 11 - check the spendingAmount in proposal and targetConsumption in rewardTaskGroup is matched */
+    it('Should check the spendingAmount in proposal and targetConsumption in rewardTaskGroup is matched', function (done) {
+        dbConfig.collection_rewardTaskGroup.findOne({
             playerId: testPlayerObjId,
             platformId: testPlatformObjId
         }).then(
             (rewardTask) => {
                 if (rewardTask) {
                     freeTrialRewardRewardTask = rewardTask;
-                    if (freeTrialRewardProposal.data.spendingAmount === freeTrialRewardRewardTask.requiredUnlockAmount) {
+                    if (freeTrialRewardProposal.data.spendingAmount === (freeTrialRewardRewardTask.targetConsumption + freeTrialRewardRewardTask.forbidXIMAAmt)) {
                         done();
                     } else {
                         done('The spending amount does not match with the required unlock amount');
