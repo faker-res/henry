@@ -304,9 +304,14 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         $scope.showPlatformDropDownList = !$scope.showPlatformDropDownList;
     };
 
-    $(document).click(function () {
-        $scope.showPlatformDropDownList = false;
-        $scope.safeApply();
+    $(document).on('click','body',function () {
+        // only when the dialog is open , then render it again.
+        if($scope.showPlatformDropDownList){
+            $scope.showPlatformDropDownList = false;
+            $scope.safeApply();
+        }else{
+            $scope.showPlatformDropDownList = false;
+        }
     })
     //get all platform data from server
     $scope.loadPlatformData = option => {
