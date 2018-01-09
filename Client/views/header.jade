@@ -9,7 +9,7 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                     img(src="images/icon/websiteBusiness_hover.png" width="30" )
                 div.inlineBlk.text.shadow(style='font-size:20px' ng-click='vm.initPlatform(false);vm.showPlatformDetailTab(null);vm.setPlatformFooter(null);vm.getAllDepartmentData();vm.prepareSettlementHistory();vm.populatePlatformData();') {{curPlatformText}}
                 //div#platformTree(style="height: 400px;")
-            .fa.fa-2x.fa-caret-down(style='margin:5px 10px; margin-top:8px;' ng-click='switchPlatform()')
+            .fa.fa-2x.fa-caret-down(style='margin:5px 10px; margin-top:8px;' ng-click='switchPlatform($event)')
             #platformTreeHeader(ng-show='showPlatformDropDownList', style="min-width: 200px; position: absolute; color: black; z-index: 9;")
     #cssmenu
         ul.navibar.navbar-header.nav-header.navbar-brand

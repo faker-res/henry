@@ -1977,6 +1977,7 @@ var dbPlayerTopUpRecord = {
                         }).then(
                             wechats => {
                                 let bValid = false;
+                                let maxDeposit = 0;
                                 if (wechats.data && wechats.data.length > 0) {
                                     wechats.data.forEach(
                                         wechat => {
@@ -1984,12 +1985,15 @@ var dbPlayerTopUpRecord = {
                                                 pWechat => {
                                                     if (pWechat == wechat.accountNumber && wechat.state == "NORMAL") {
                                                         bValid = true;
+                                                        maxDeposit = wechat.singleLimit > maxDeposit? wechat.singleLimit: maxDeposit;
                                                     }
                                                 }
                                             );
                                         }
                                     );
                                 }
+                                if (bValid)
+                                    bValid = {valid:bValid, maxDepositAmount:maxDeposit};
                                 return bValid;
                             }
                         );
@@ -2013,6 +2017,7 @@ var dbPlayerTopUpRecord = {
                         }).then(
                             alipays => {
                                 let bValid = false;
+                                let maxDeposit = 0;
                                 if (alipays.data && alipays.data.length > 0) {
                                     alipays.data.forEach(
                                         alipay => {
@@ -2020,12 +2025,15 @@ var dbPlayerTopUpRecord = {
                                                 pAlipay => {
                                                     if (pAlipay == alipay.accountNumber && alipay.state == "NORMAL") {
                                                         bValid = true;
+                                                        maxDeposit = alipay.singleLimit > maxDeposit? alipay.singleLimit: maxDeposit;
                                                     }
                                                 }
                                             );
                                         }
                                     );
                                 }
+                                if (bValid)
+                                    bValid = {valid:bValid, maxDepositAmount:maxDeposit};
                                 return bValid;
                             }
                         );
@@ -2597,6 +2605,8 @@ var dbPlayerTopUpRecord = {
 };
 
 function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount, limitedOfferObjId) {
+    if(!limitedOfferObjId) return false;
+
     return dbconfig.collection_proposalType.findOne({
         platformId: platformObjId,
         name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION

@@ -5976,6 +5976,11 @@ let dbPlayerInfo = {
                             if (!rewardProp) {
                                 // if this is level up and player has not reach this level before
                                 // create level up reward proposal
+
+                                if(playerObj.permission && playerObj.permission.banReward) {
+                                    return Promise.resolve();
+                                }
+
                                 if (levelUpObjArr[index] && levelUpObjArr[index].reward && levelUpObjArr[index].reward.bonusCredit) {
                                     proposal.rewardAmount = levelUpObjArr[index].reward.bonusCredit;
                                     proposal.isRewardTask = levelUpObjArr[index].reward.isRewardTask;
@@ -8555,6 +8560,7 @@ let dbPlayerInfo = {
                         if (playerData.merchantGroup && playerData.merchantGroup.merchants && playerData.merchantGroup.merchants.length > 0) {
                             playerData.merchantGroup.merchants.forEach(
                                 merchant => {
+                                    let maxDeposit = 0;
                                     for (let i = 0; i < paymentData.merchants.length; i++) {
                                         var status = 2;
                                         if (paymentData.merchants[i].merchantNo == merchant) {
@@ -8566,11 +8572,14 @@ let dbPlayerInfo = {
                                                 bValidType = false;
                                                 if (status == 1 && paymentData.merchants[i].status == "ENABLED") {
                                                     type.status = status;
+                                                    if (type.maxDepositAmount < paymentData.merchants[i].permerchantLimits){
+                                                        type.maxDepositAmount = paymentData.merchants[i].permerchantLimits;
+                                                    }
                                                 }
                                             }
                                         });
                                         if (bValidType && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
-                                            resData.push({type: paymentData.merchants[i].topupType, status: status});
+                                            resData.push({type: paymentData.merchants[i].topupType, status: status, maxDepositAmount: paymentData.merchants[i].permerchantLimits});
                                         }
                                     }
                                 }

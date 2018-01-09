@@ -398,10 +398,10 @@
                         th
                         th {{"Name" | translate}}
                         th {{"Settlement Period" | translate}}
-                    tbody(ng-repeat='event in vm.allRewardEvent | filter: {type:{name:"PlayerConsumptionReturn"}}')
+                    tbody(ng-repeat='(i, event) in vm.allRewardEvent | filter: {type:{name:"PlayerConsumptionReturn"}}')
                         tr
                             td
-                                input(type="checkbox" ng-value="event")
+                                input(type="checkbox" ng-value="i")
                             td {{event.name}}
                             td {{event.settlementStartTime}} -> {{event.settlementEndTime}}
             .modal-footer

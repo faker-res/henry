@@ -1261,13 +1261,21 @@ define(['js/app'], function (myApp) {
                 vm.playerConsumptionReturnSettlement.status = 'processing';
 
                 $('#playerConsumptionReturnSettlementTbl tbody input[type="checkbox"]:checked').each((i, v) => {
-                    eventArr.push(v.value);
-                })
+                    let filteredArr = vm.allRewardEvent.filter(function(rewardEvent) {
+                        if(rewardEvent && rewardEvent.type) {
+                            return rewardEvent.type.name == "PlayerConsumptionReturn";
+                        } else {
+                            return false;
+                        }
+                    });
+                    eventArr.push(filteredArr[v.value]);
+                });
 
                 if (eventArr.length > 0) {
                     socketParam.selectedEvent = eventArr;
                 }
 
+                console.log("sendData startPlatformPlayerConsumptionReturnSettlement", socketParam);
                 socketService.$socket($scope.AppSocket, 'startPlatformPlayerConsumptionReturnSettlement',
                     socketParam,
                     function (data) {
@@ -6662,12 +6670,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareCreatePlayer = function () {
-                vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {language: 'en', format: 'yyyy/MM/dd', endDate: new Date(), maxDate: new Date()});
+                vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {language: 'en', format: 'yyyy/MM/dd',endDate: new Date(), maxDate: new Date()});
+                vm.playerDOB.data('datetimepicker').setDate(new Date("January 01, 1990 16:00:00"));
 
                 vm.existPhone = false;
                 vm.newPlayer = {};
-
-
+                vm.newPlayer.gender= "true";
                 vm.duplicateNameFound = false;
                 vm.euPrefixNotExist = false;
                 $('.referralValidTrue').hide();
@@ -6681,8 +6689,6 @@ define(['js/app'], function (myApp) {
                 vm.phoneDuplicate.pageObj = utilService.createPageForPagingTable("#samePhoneNumTablePage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "phoneDuplicate", vm.loadPhoneNumberRecord)
                 });
-
-
             }
             vm.editPlayerStatus = function (id) {
                 console.log(id);
@@ -7331,9 +7337,8 @@ define(['js/app'], function (myApp) {
             vm.createNewPlayer = function () {
                 vm.newPlayer.platform = vm.selectedPlatform.id;
                 vm.newPlayer.platformId = vm.selectedPlatform.data.platformId;
-                vm.tempDOB = vm.playerDOB.data('datetimepicker').getLocalDate();
-                vm.newPlayer.DOB = vm.tempDOB.toISOString().slice(0,10);
-                vm.newPlayer.gender = (vm.newPlayer.gender == "true") ? true : false ;
+                vm.newPlayer.DOB = vm.playerDOB.data('datetimepicker').getLocalDate();
+                vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false ;
 
                 console.log('newPlayer', vm.newPlayer);
                 if (vm.newPlayer.createPartner) {
