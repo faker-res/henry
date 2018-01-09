@@ -309,8 +309,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         if($scope.showPlatformDropDownList){
             $scope.showPlatformDropDownList = false;
             $scope.safeApply();
-        }else{
-            $scope.showPlatformDropDownList = false;
         }
     })
     //get all platform data from server
