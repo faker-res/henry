@@ -2476,12 +2476,18 @@ let dbPlayerReward = {
                                     e.status = status;
 
                                     if (status == 2) {
-                                        return dbConfig.collection_proposal.findOne({
+                                        return dbConfig.collection_proposal.find({
                                             'data.platformObjId': platformObj._id,
                                             'data.limitedOfferObjId': e._id,
                                             type: intPropTypeObj._id,
                                             'data.playerId': playerId
-                                        }).lean();
+                                        }).sort({createTime:-1}).limit(1).lean().then(
+                                            proposalArray => {
+                                                if (proposalArray && proposalArray[0]) {
+                                                    return proposalArray[0];
+                                                }
+                                            }
+                                        );
                                     }
                                 }
                             ).then(
