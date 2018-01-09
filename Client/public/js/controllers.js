@@ -312,7 +312,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }else{
             $scope.showPlatformDropDownList = false;
         }
-
     })
     //get all platform data from server
     $scope.loadPlatformData = option => {
