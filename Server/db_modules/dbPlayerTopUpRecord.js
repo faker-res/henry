@@ -1992,7 +1992,8 @@ var dbPlayerTopUpRecord = {
                                         }
                                     );
                                 }
-                                bValid = {valid:bValid, maxDepositAmount:maxDeposit};
+                                if (bValid)
+                                    bValid = {valid:bValid, maxDepositAmount:maxDeposit};
                                 return bValid;
                             }
                         );
@@ -2031,7 +2032,8 @@ var dbPlayerTopUpRecord = {
                                         }
                                     );
                                 }
-                                bValid = {valid:bValid, maxDepositAmount:maxDeposit};
+                                if (bValid)
+                                    bValid = {valid:bValid, maxDepositAmount:maxDeposit};
                                 return bValid;
                             }
                         );
