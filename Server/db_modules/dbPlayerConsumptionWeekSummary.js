@@ -578,9 +578,7 @@ var dbPlayerConsumptionWeekSummary = {
         let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         if (bRequest) {
             if(eventData.settlementPeriod == constSettlementPeriod.DAILY){
-                if (dbutility.isCurrentSGTimePassed12PM()) {
-                    settleTime = dbutility.getTodayConsumptionReturnSGTime();
-                }
+                settleTime = dbutility.getTodayConsumptionReturnSGTime();
             }
             else{
                 settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
@@ -694,9 +692,7 @@ var dbPlayerConsumptionWeekSummary = {
         let settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         if (bRequest) {
             if(event.settlementPeriod == constSettlementPeriod.DAILY){
-                if (dbutility.isCurrentSGTimePassed12PM()) {
-                    settleTime = dbutility.getTodayConsumptionReturnSGTime();
-                }
+                settleTime = dbutility.getTodayConsumptionReturnSGTime();
             }
             else{
                 settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
