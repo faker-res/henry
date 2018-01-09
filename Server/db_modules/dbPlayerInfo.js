@@ -8560,6 +8560,7 @@ let dbPlayerInfo = {
                         if (playerData.merchantGroup && playerData.merchantGroup.merchants && playerData.merchantGroup.merchants.length > 0) {
                             playerData.merchantGroup.merchants.forEach(
                                 merchant => {
+                                    let maxDeposit = 0;
                                     for (let i = 0; i < paymentData.merchants.length; i++) {
                                         var status = 2;
                                         if (paymentData.merchants[i].merchantNo == merchant) {
@@ -8571,6 +8572,9 @@ let dbPlayerInfo = {
                                                 bValidType = false;
                                                 if (status == 1 && paymentData.merchants[i].status == "ENABLED") {
                                                     type.status = status;
+                                                    if (type.maxDepositAmount < paymentData.merchants[i].permerchantLimits){
+                                                        type.maxDepositAmount = paymentData.merchants[i].permerchantLimits;
+                                                    }
                                                 }
                                             }
                                         });
