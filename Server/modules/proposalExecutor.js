@@ -14,7 +14,6 @@ var constRewardTaskStatus = require("./../const/constRewardTaskStatus");
 var constShardKeys = require("./../const/constShardKeys");
 var constPlayerCreditChangeType = require("../const/constPlayerCreditChangeType");
 var constProposalStatus = require("../const/constProposalStatus");
-const constMessageType = require("../const/constMessageType");
 var Q = require("q");
 var mongoose = require('mongoose');
 var messageDispatcher = require("./messageDispatcher.js");
@@ -534,6 +533,8 @@ var proposalExecutor = {
                         constShardKeys.collection_players
                     ).then(
                         function (data) {
+                            //proposalData.data.updateData.phoneNumber take only last 4 number
+                            sendMessageToPlayer (proposalData,constMessageType.UPDATE_PHONE_INFO_SUCCESS,{});
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -696,6 +697,8 @@ var proposalExecutor = {
                         constShardKeys.collection_partner
                     ).then(
                         function (data) {
+                            //proposalData.data.bankAccount substring to only last 4 number
+                            sendMessageToPlayer (proposalData,constMessageType.UPDATE_BANK_INFO_SUCCESS,{});
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -956,6 +959,7 @@ var proposalExecutor = {
                         }
                         Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
                             data => {
+                                sendMessageToPlayer (proposalData,constMessageType.ALIPAY_TOPUP_SUCCESS,{});
                                 deferred.resolve(proposalData);
                             },
                             error => {
@@ -1024,6 +1028,7 @@ var proposalExecutor = {
                         }
                         Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
                             data => {
+                                sendMessageToPlayer (proposalData,constMessageType.WECHAT_TOPUP_SUCCESS,{});
                                 deferred.resolve(proposalData);
                             },
                             error => {
@@ -1046,7 +1051,7 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
                     dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.MANUAL, proposalData).then(
                         function (data) {
-                            SMSSender.sendByPlayerId(proposalData.data.playerId, constPlayerSMSSetting.MANUAL_TOPUP);
+                            SMSSender.sendByPlayerId(proposalData.data.playerId, constMessageType.MANUAL_TOPUP_SUCCESS);
                             var wsMessageClient = serverInstance.getWebSocketMessageClient();
                             if (wsMessageClient) {
                                 wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
@@ -1390,7 +1395,7 @@ var proposalExecutor = {
                             if (!Number(proposalData.data.spendingAmount)) {
                                 dbConsumptionReturnWithdraw.addXimaWithdraw(proposalData.data.playerObjId, proposalData.data.rewardAmount).catch(errorUtils.reportError);
                             }
-
+                            sendMessageToPlayer(proposalData,constRewardType.PLAYER_CONSUMPTION_RETURN,{});
                             return dbconfig.collection_playerConsumptionSummary.remove(
                                 {_id: {$in: proposalData.data.summaryIds}}
                             );
@@ -3011,7 +3016,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                             error: error
                         })
                     );
-
+                    sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
                     if (proposalData.data.isDynamicRewardAmount) {
                         dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(() =>{
                             dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
@@ -3027,11 +3032,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                     dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
                         data => {
                             rewardTask = data;
-                            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
                             dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
-                            return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
-                                rewardTask: taskData
-                            });
+                            return sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
                         }
                     ).catch(
                         error => errorUtils.reportError(error)
@@ -3084,14 +3086,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                 ).then(
                     //() => createRewardLogForProposal(taskData.rewardType, proposalData)
                     () => {
-                        SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
-                        // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
-                        // Changing into async function
-                        //dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
-                        //send message if there is any template created for this reward
-                        return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
-                            rewardTask: taskData
-                        });
+                        sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
                     }
                 ).then(
                     function () {
@@ -3108,7 +3103,27 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         }
     );
 }
+function sendMessageToPlayer (proposalData,type,metaDataObj) {
+    //type that need to add 'Success' status
+    let needSendMessageRewardTypes = [constRewardType.PLAYER_PROMO_CODE_REWARD, constRewardType.PLAYER_CONSUMPTION_RETURN, constRewardType.PLAYER_LIMITED_OFFERS_REWARD,constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
+        constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
+        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,
+    ];
 
+    // type reference to constMessageType or constMessageTypeParam.name
+    let messageType = type;
+    if(needSendMessageRewardTypes.indexOf(type)!==-1){
+         messageType = type + 'Success';
+    }
+
+    SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, messageType);
+    // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
+    // Changing into async function
+    //dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
+    //send message if there is any template created for this reward
+    return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, messageType, metaDataObj);
+
+}
 function createRewardLogForProposal(rewardTypeName, proposalData) {
     rewardTypeName = proposalData.type.name;
 

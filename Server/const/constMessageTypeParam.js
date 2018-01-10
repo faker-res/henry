@@ -61,13 +61,13 @@ const constMessageTypeParam = {
     PLAYER_LIMITED_OFFERS_REWARD_SUCCESS: {
         name:"PlayerLimitedOfferRewardSuccess",
         params:[
-            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.rewardAmount' , description:'limitedOfferRewardAmount'},
             {parameterName:'proposalData.createTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
         ]
     },
-    UPDATE_PAYMENT_INFO_SUCCESS: {
-        name:"UpdatePaymentInfoSuccess",
+    UPDATE_BANK_INFO_SUCCESS: {
+        name:"UpdateBankInfoSuccess",
         params:[
             {parameterName:'proposalData.data.bankAccount' , description:'bankcardLast4Number(new)'}, //Need test
             {parameterName:'proposalData.createTime' , description:'executeTime'},
@@ -146,8 +146,8 @@ const constMessageTypeParam = {
             {parameterName:'proposalData.createTime' , description:'executeTime'}, //Need test
         ]
     },
-    PROMO_CODE_SUCCESS:{
-        name:"PromoCodeSuccess",
+    PLAYER_PROMO_CODE_REWARD_SUCCESS:{
+        name:"PlayerPromoCodeRewardSuccess",
         params:[
             {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
             {parameterName:'proposalData.createTime' , description:'executeTime'},

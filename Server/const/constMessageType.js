@@ -15,7 +15,7 @@ const constMessageType = {
     WITHDRAW_SUCCESS: "WithdrawSuccess",
     WITHDRAW_CANCEL: "WithdrawCancel",
     PLAYER_LIMITED_OFFERS_REWARD_SUCCESS: "PlayerLimitedOfferRewardSuccess",
-    UPDATE_PAYMENT_INFO_SUCCESS: "UpdatePaymentInfoSuccess",
+    UPDATE_BANK_INFO_SUCCESS: "UpdateBankInfoSuccess",
     UPDATE_PHONE_INFO_SUCCESS: "UpdatePhoneInfoSuccess",
     UPDATE_PASSWORD_SUCCESS: "UpdatePasswordSuccess",
     SMS_VERIFICATION_SUCCESS: "SmsVerificationCodeSuccess",
@@ -25,7 +25,7 @@ const constMessageType = {
     PLAYER_CONSUMPTION_REWARD_GROUP_SUCCESS: "PlayerConsumptionRewardGroupSuccess",
     PLAYER_FREE_TRIAL_REWARD_GROUP_SUCCESS: "PlayerFreeTrialRewardGroupSuccess",
     PLAYER_REGISTER_INTENTION_SUCCESS: "PlayerRegisterIntentionSuccess",
-    PROMO_CODE_SUCCESS: "PromoCodeSuccess"
+    PLAYER_PROMO_CODE_REWARD_SUCCESS: "PlayerPromoCodeRewardSuccess"
 
 /* OLD MESSAGE TYPE
     //For proposal

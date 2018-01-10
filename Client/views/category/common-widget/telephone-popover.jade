@@ -154,20 +154,10 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                 .form-group.col-md-12
                     label.control-label {{"RECEIVE_SMS" | translate}}
                         input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.receiveSMS")
-                    label.control-label.margin-right-5 {{"MANUAL_TOP_UP" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.manualTopup")
-                    label.control-label.margin-right-5 {{"APPLY_BONUS" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.applyBonus")
-                    label.control-label.margin-right-5 {{"CANCEL_BONUS" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.cancelBonus")
-                    label.control-label.margin-right-5 {{"APPLY_REWARD" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.applyReward")
-                    label.control-label.margin-right-5 {{"CONSUMPTION_RETURN" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.consumptionReturn")
-                    label.control-label.margin-right-5 {{"UPDATE_PAYMENT_INFO" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.updatePaymentInfo")
-                    label.control-label.margin-right-5 {{"UPDATE_PASSWORD" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.updatePassword")
+                    label.control-label.margin-right-5(ng-repeat="(k, t) in vm.allMessageTypes") {{t.name | translate}}
+                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[t.name]")
+
+
 
     ez-modal-footer
         #smsToPlayerFooter(ng-if="vm.smsModalTab === 'smsToPlayerPanel'")

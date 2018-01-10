@@ -24,13 +24,34 @@ var playerSchema = new Schema({
     DOB:{type: Date, default: null},
     //sms Setting
     smsSetting: {
+        // remain old message type just in case, could remove in future
         manualTopup: {type: Boolean, default: false},
         applyBonus: {type: Boolean, default: false},
         cancelBonus: {type: Boolean, default: false},
         applyReward: {type: Boolean, default: false},
         consumptionReturn: {type: Boolean, default: false},
         updatePaymentInfo: {type: Boolean, default: false},
-        updatePassword: {type: Boolean, default: false}
+        updatePassword: {type: Boolean, default: false},
+        // new message type
+        PlayerConsumptionReturnSuccess: {type: Boolean, default: false},
+        ManualTopupSuccess: {type: Boolean, default: false},
+        OnlineTopupSuccess: {type: Boolean, default: false},
+        AlipayTopupSuccess: {type: Boolean, default: false},
+        WechatTopupSuccess: {type: Boolean, default: false},
+        WithdrawSuccess: {type: Boolean, default: false},
+        WithdrawCancel: {type: Boolean, default: false},
+        PlayerLimitedOfferRewardSuccess: {type: Boolean, default: false},
+        UpdatePaymentInfoSuccess: {type: Boolean, default: false},
+        UpdatePhoneInfoSuccess: {type: Boolean, default: false},
+        UpdatePasswordSuccess: {type: Boolean, default: false},
+        SmsVerificationCodeSuccess: {type: Boolean, default: false},
+        PlayerTopUpReturnGroupSuccess: {type: Boolean, default: false},
+        PlayerLoseReturnRewardGroupSuccess: {type: Boolean, default: false},
+        PlayerConsecutiveRewardGroupSuccess: {type: Boolean, default: false},
+        PlayerConsumptionRewardGroupSuccess: {type: Boolean, default: false},
+        PlayerFreeTrialRewardGroupSuccess: {type: Boolean, default: false},
+        PlayerRegisterIntentionSuccess: {type: Boolean, default: false},
+        PROMO_CODE_SUCCESS: {type: Boolean, default: false},
     },
     //store player's icon
     icon: {type: String, default: ""},

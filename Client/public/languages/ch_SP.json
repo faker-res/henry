@@ -3025,7 +3025,7 @@
   "WithdrawSuccess": "提款（成功）",
   "WithdrawCancel": "提款（取消）",
   "PlayerLimitedOfferRewardSuccess": "秒杀礼包（成功）",
-  "UpdatePaymentInfoSuccess": "编辑玩家银行资料（成功）",
+  "UpdateBankInfoSuccess": "编辑玩家银行资料（成功）",
   "UpdatePhoneInfoSuccess": "编辑玩家电话资料（成功）",
   "UpdatePasswordSuccess": "修改网站密码（成功）",
   "SmsVerificationCodeSuccess": "发送短信验证码（成功）",
@@ -3035,6 +3035,18 @@
   "PlayerConsumptionRewardGroupSuccess": "投注额优惠（组）（成功）",
   "PlayerFreeTrialRewardGroupSuccess": "免费体验金（组）（成功）",
   "PlayerRegisterIntentionSuccess": "玩家注册意象（手动、成功）",
-  "PromoCodeSuccess": "优惠代码（成功）"
+  "PlayerPromoCodeRewardSuccess": "优惠代码（成功）",
+  "ximaAmount": "洗码金额",
+  "manualTopupAmount": "手工存款金额",
+  "onlineTopupAmount": "在线充值金额",
+  "alipayTopupAmount": "个人支付宝金额",
+  "wechatTopupAmount": "个人微信金额",
+  "limitedOfferRewardAmount": "秒杀礼包金额",
+  "bankcardLast4Number(new)": "银行卡后4位数(新）",
+  "phoneLast4Number(new)": "电话后4位数(新）",
+  "executeTime": "执行时间",
+  "rewardEventName": "优惠名称",
+  "promoCodeName": "优惠代码名称",
+  "cancelTime": "取消时间"
 
 }
