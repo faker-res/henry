@@ -20038,6 +20038,8 @@ define(['js/app'], function (myApp) {
 
                     if (vm.editingMessageTemplate.format == 'smstpl') {
                         vm.editingMessageTemplate.type = vm.smsTitle;
+                    } else {
+                        vm.editingMessageTemplate.type = vm.allMessageTypes[vm.displayedMessageTemplate.typeIndex].name;
                     }
                     var templateData = vm.editingMessageTemplate;
                     templateData.platform = vm.selectedPlatform.id;
