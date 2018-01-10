@@ -6671,7 +6671,7 @@ define(['js/app'], function (myApp) {
 
             vm.prepareCreatePlayer = function () {
                 vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {language: 'en', format: 'yyyy/MM/dd',endDate: new Date(), maxDate: new Date()});
-                vm.playerDOB.data('datetimepicker').setDate(new Date("January 01, 1990 16:00:00"));
+                vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime( new Date("January 01, 1990")));
 
                 vm.existPhone = false;
                 vm.newPlayer = {};
@@ -6857,9 +6857,8 @@ define(['js/app'], function (myApp) {
                             allPlayerTrustLvl: vm.allPlayerTrustLvl,
                             //vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             updateEditedPlayer: function () {
-                                // + 8 to the time obtained from input type date
-                                this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB).setHours(new Date(this.playerBeingEdited.DOB).getHours() + 8 );
-                                // ng-model has to be in date object
+                              
+                                // this ng-model has to be in date object
                                 this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB);
                                 sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark, selectedPlayer.permission);
                             },
@@ -7338,6 +7337,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayer.platform = vm.selectedPlatform.id;
                 vm.newPlayer.platformId = vm.selectedPlatform.data.platformId;
                 vm.newPlayer.DOB = vm.playerDOB.data('datetimepicker').getLocalDate();
+                vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
                 vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false ;
 
                 console.log('newPlayer', vm.newPlayer);
@@ -13938,7 +13938,8 @@ define(['js/app'], function (myApp) {
             vm.convertDOBFormat = function (DOBDate) {
 
                     if (DOBDate) {
-                        return new Date(DOBDate).toISOString().slice(0, 10);
+                        return utilService.getFormatTime(DOBDate).slice(0, 10);
+                        //return new Date(DOBDate).toISOString().slice(0, 10);
                     }
 
             }
