@@ -20038,6 +20038,8 @@ define(['js/app'], function (myApp) {
 
                     if (vm.editingMessageTemplate.format == 'smstpl') {
                         vm.editingMessageTemplate.type = vm.smsTitle;
+                    } else {
+                        vm.editingMessageTemplate.type = vm.allMessageTypes[vm.displayedMessageTemplate.typeIndex].name;
                     }
                     var templateData = vm.editingMessageTemplate;
                     templateData.platform = vm.selectedPlatform.id;
@@ -20052,6 +20054,8 @@ define(['js/app'], function (myApp) {
 
                     if (vm.editingMessageTemplate.format == 'smstpl') {
                         vm.editingMessageTemplate.type = vm.smsTitle;
+                    } else {
+                        vm.editingMessageTemplate.type = vm.allMessageTypes[vm.displayedMessageTemplate.typeIndex].name;
                     }
                     var updateData = vm.editingMessageTemplate;
                     vm.resetToViewMessageTemplate();
@@ -20177,9 +20181,9 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                vm.messageTemplateInsertParameter = function () {
+                vm.messageTemplateInsertParameter = function (param) {
                     var box = document.getElementById('messageTemplateEditBox');
-                    var param = vm.messageTemplateParameterToInsert;
+                    // var param = vm.messageTemplateParameterToInsert;
                     insertTextAtCaret(box, '{{' + param + '}}');
                 };
 
