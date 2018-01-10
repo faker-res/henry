@@ -58,25 +58,27 @@
                                         option(ng-repeat="(i, p) in vm.messageTemplateAllParams", value="{{p[0]}}") {{p[0] + ' (' + p[1] + ')'}}
                                 .clearfix
                             textarea#messageTemplateEditBox.form-control(style="max-height: 185px; overflow: auto; margin-bottom: 12px;", rows="15", ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.content", ng-change="vm.previewMessageTemplate()", required, placeholder="Example: Congratulations {{'{'+'{player.name}'+'}'}}, your top up for {{'{'+'{topUpRecord.currency}'+'}'}} {{'{'+'{topUpRecord.value}'+'}'}} has been confirmed.")
-                            //.full-width-input-block(ng-if="vm.displayedMessageTemplate.type == 'smsVerificationCode'")
-                                text {{"VERIFICATION_TEMPLATE_NOTE" | translate}}
-                            //label {{"PREVIEW" | translate}}
-                            //- We have two different preview elements, one for displaying HTML content, the other for displaying plain text content.
-                            //- We only show one at a time.  They are ng-non-bindable because they are managed by jQuery.
-                            //.well(style="margin-bottom: 0px; padding-top: 15px; padding-bottom: 15px", ng-non-bindable)
-                                .messageTemplatePreview.html(style="max-height: 185px; overflow: auto; background-color: white")
-                                textarea.messageTemplatePreview.text(style="display: none; width: 100%; max-height: 192px; overflow: auto", rows="15", disabled)
-                            //注： 请将下列参数依需求插入内容中，编辑请注意敏感字眼。
                             br
                             label(ng-if="vm.displayedMessageTemplate.typeIndex") {{"Notice: Please insert the following parameters into the message template content as required." | translate}}
                             table.simple-table(style='', ng-if="vm.displayedMessageTemplate.typeIndex")
                                 thead
                                     th {{"PARAMETER" | translate}}
                                     th {{"MESSAGE_TEMPLATE_PARAMETER_DESCRIPTION" | translate}}
+                                    th
                                 tbody(ng-repeat="(i, v) in vm.allMessageTypes[vm.displayedMessageTemplate.typeIndex].params")
                                     td {{"\{\{"+(v.parameterName)+"\}\}"}}
                                     td {{ v.description }}
-
+                                    td
+                                        button(style="cursor:pointer;", ng-click="vm.messageTemplateInsertParameter(v.parameterName)") {{"ADD" | translate}}
+                            //br
+                            //.full-width-input-block(ng-if="vm.displayedMessageTemplate.type == 'smsVerificationCode'")
+                            //    text {{"VERIFICATION_TEMPLATE_NOTE" | translate}}
+                            //label {{"PREVIEW" | translate}}
+                            ////- We have two different preview elements, one for displaying HTML content, the other for displaying plain text content.
+                            ////- We only show one at a time.  They are ng-non-bindable because they are managed by jQuery.
+                            //.well(style="margin-bottom: 0px; padding-top: 15px; padding-bottom: 15px", ng-non-bindable)
+                            //    .messageTemplatePreview.html(style="max-height: 185px; overflow: auto; background-color: white")
+                            //    textarea.messageTemplatePreview.text(style="display: none; width: 100%; max-height: 192px; overflow: auto", rows="15", disabled)
 
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'MessageTemplate', 'Update') && !vm.editingMessageTemplate && vm.selectedMessageTemplate", ng-click='vm.startEditMessageTemplate()')
