@@ -453,7 +453,8 @@ var proposal = {
                 }
                 if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PREPENDING ||
                         proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING
-                        || proposalData.status == constProposalStatus.EXPIRED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data &&
+                        || proposalData.status == constProposalStatus.EXPIRED || proposalData.status == constProposalStatus.RECOVER
+                        || proposalData.status == constProposalStatus.CANCEL) && proposalData.data &&
                     (proposalData.data.requestId == requestId || !proposalData.data.requestId)) {
                     return proposalData;
                 }

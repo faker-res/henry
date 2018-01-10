@@ -515,7 +515,7 @@ var dbPlatform = {
                     return Q.all([providerProm, gameProm]);
                 }
                 else {
-                    return Q.reject({name: "DataError", message: "Cannot find provider or platform"});
+                    return Q.reject({name: "DataError", message: "Cannot find provider or platform. ProviderId:" + providerId + " PlatformId: " + platformId});
                 }
             }
         );
