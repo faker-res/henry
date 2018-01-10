@@ -3000,34 +3000,25 @@ var proposal = {
     },
 
     getPlatformRewardProposal: function (platform) {
-        let proposal = {};
-        let proposalTypeArr = [];
-
         return dbconfig.collection_proposalType.find(
             {
                 platformId: platform,
             }
-        ).then(
-            data => {
-                data.map(item => {
-                    proposal[item._id] = {_id: item._id, name: item.name};
+        ).lean().then(
+            proposalTypes => {
+                let result = {};
+                if (!proposalTypes) {
+                    return [];
+                }
+
+                let rewardProposalTypes = proposalTypes.filter(type => constProposalMainType[type.name] === constProposalMainType.FirstTopUp); // main type is reward
+                rewardProposalTypes.map(type => {
+                    result[type._id] = type.name;
                 });
-                var proposalTypeArr = data.map(type => {
-                    return type._id;
-                });
-                return dbconfig.collection_proposal.distinct('type', {
-                    mainType: constProposalMainType.FirstTopUp,
-                    type: {$in: proposalTypeArr}
-                });
-            }
-        ).then(
-            data => {
-                var result = {};
-                data.map(item => {
-                    result[item] = proposal[item].name;
-                });
+
                 return result;
-            })
+            }
+        );
     },
 
     getAllRewardProposal: function (platform) {
