@@ -14,6 +14,7 @@ var constRewardTaskStatus = require("./../const/constRewardTaskStatus");
 var constShardKeys = require("./../const/constShardKeys");
 var constPlayerCreditChangeType = require("../const/constPlayerCreditChangeType");
 var constProposalStatus = require("../const/constProposalStatus");
+const constMessageType = require("../const/constMessageType");
 var Q = require("q");
 var mongoose = require('mongoose');
 var messageDispatcher = require("./messageDispatcher.js");
