@@ -8599,12 +8599,12 @@ let dbPlayerInfo = {
                                         resData.forEach(type => {
                                             if (type.type == paymentData.data[i].bankTypeId) {
                                                 bValidType = false;
-                                                if (status == 1) {
+                                                if (status == 1 && paymentData.data[i].status == "NORMAL") {
                                                     type.status = status;
                                                 }
                                             }
                                         });
-                                        if (bValidType) {
+                                        if (bValidType && status == 1 && paymentData.data[i].status == "NORMAL") {
                                             resData.push({
                                                 type: paymentData.data[i].bankTypeId,
                                                 status: status,
