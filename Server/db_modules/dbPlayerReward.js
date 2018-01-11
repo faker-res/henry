@@ -2088,7 +2088,9 @@ let dbPlayerReward = {
                         applyAmount: topUpProp && topUpProp.data.amount ? topUpProp.data.amount : 0,
                         topUpProposal: topUpProp && topUpProp.proposalId ? topUpProp.proposalId : null,
                         useLockedCredit: false,
-                        useConsumption: !promoCodeObj.isSharedWithXIMA
+                        useConsumption: !promoCodeObj.isSharedWithXIMA,
+                        eventName: "优惠代码",
+                        eventCode: "YHDM"
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
