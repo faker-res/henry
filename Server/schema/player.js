@@ -19,9 +19,9 @@ var playerSchema = new Schema({
     //player email
     email: {type: String, default: ""},
     //gender - true=male, false=female
-    gender:{type: Boolean},
+    gender:{type: Boolean, default: true},
     //DOB
-    DOB:{type: Date, default: ""},
+    DOB:{type: Date, default: null},
     //sms Setting
     smsSetting: {
         manualTopup: {type: Boolean, default: false},
