@@ -222,6 +222,7 @@ var simplifiedChinese = {
     "SMS failure, please retry": "短信验证码发送失败，请重新点击获取",
     "SMS failure for more than 5 times, please contact customer service": "短信验证码连续发送失败5次，请联系客服人员",
     "Connection failed": "连接失败",
+    "PlayerPromoCodeReward": "优惠代码"
     //todo::add missing messages here
 
     /*

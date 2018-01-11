@@ -645,7 +645,7 @@ db.rewardParam.update({
                     minDeposit: {type: "number", des: "Minimum Deposit Period"},
                     minLoseAmount: {type: "number", des: "Minimum Lose Period"},
                     rewardAmount: {type: "number", des: "Reward amount"},
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    spendingTimes: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "number",
@@ -661,7 +661,7 @@ db.rewardParam.update({
                     minLoseAmount: {type: "number", des: "Minimum Lose Period"},
                     rewardPercent: {type: "number", des: "PROMO_REWARD_%"},
                     maxReward: {type: "number", des: "Maximum Reward"},
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    spendingTimes: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "number",
