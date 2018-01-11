@@ -6,7 +6,7 @@ const constMessageType = require('../const/constMessageType');
 const smsAPI = require('../externalAPI/smsAPI');
 const localization = require("../modules/localization").localization;
 const errorUtils = require("../modules/errorUtils.js");
-
+const dbLogger = require('./dbLogger');
 const SMSSender = {
 
     sendByPlayerId: function (playerId, type, proposalData) {
@@ -54,10 +54,22 @@ const SMSSender = {
                                     message: template.content,
                                     delay: 0
                                 };
-                                
+
+                                let logData =  {
+                                    purpose: type,
+                                    playerId: playerId,
+                                    channel: defaultChannel,
+                                    platformId: platformId,
+                                    tel: playerData.phoneNumber,
+                                    message: template.content
+                                };
+                                if(proposalData)logData.proposalId =  proposalData.proposalId;
                                 return smsAPI.sending_sendMessage(messageData).then(
-                                    () => {},
+                                    () => {
+                                        dbLogger.createSMSLog(null, null, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'success');
+                                    },
                                     error => {
+                                        dbLogger.createSMSLog(null, null, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'failure');
                                         //todo::refactor this to properly while loop
                                         if( nextChannel != null ){
                                             var nextMessageData = {
