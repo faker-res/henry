@@ -59,8 +59,8 @@
                                 .clearfix
                             textarea#messageTemplateEditBox.form-control(style="max-height: 185px; overflow: auto; margin-bottom: 12px;", rows="15", ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.content", ng-change="vm.previewMessageTemplate()", required, placeholder="Example: Congratulations {{'{'+'{player.name}'+'}'}}, your top up for {{'{'+'{topUpRecord.currency}'+'}'}} {{'{'+'{topUpRecord.value}'+'}'}} has been confirmed.")
                             br
-                            label(ng-if="vm.displayedMessageTemplate.type") {{"Notice: Please insert the following parameters into the message template content as required." | translate}}
-                            table.simple-table(style='', ng-if="vm.displayedMessageTemplate.type")
+                            label(ng-if="vm.displayedMessageTemplate.type && vm.displayedMessageTemplate.format!='smstpl'") {{"Notice: Please insert the following parameters into the message template content as required." | translate}}
+                            table.simple-table(style='', ng-if="vm.displayedMessageTemplate.type && vm.displayedMessageTemplate.format!='smstpl'")
                                 thead
                                     th {{"PARAMETER" | translate}}
                                     th {{"MESSAGE_TEMPLATE_PARAMETER_DESCRIPTION" | translate}}
