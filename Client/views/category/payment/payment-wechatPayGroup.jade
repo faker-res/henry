@@ -196,7 +196,7 @@
                         tr(ng-repeat="(idx,val) in vm.allWechatList | filter: vm.filterWechat as filteredWechatList" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
                             td
                                 input(type="checkbox" ng-model="val.isCheck" ng-change="vm.wechatListUncheckDifferentGroup(val.isCheck, val.isInGroup);")
-                            td {{ val.state | translate}}
+                            td {{ val.state === 'DISABLED' ? 'DISABLE' : val.state | translate}}
                             td {{ val.accountNumber | translate}}
                             td {{ val.name | translate}}
                             td {{ val.nickName | translate}}
@@ -373,6 +373,6 @@
                     .panel-body
                         .col-md-3(ng-repeat="(status, show) in vm.wechatStatusFilterOptions")
                             input(type="checkbox" ng-model="vm.wechatStatusFilterOptions[status]")
-                            span {{status | translate}}
+                            span {{status === "DISABLED" ? "DISABLE" : status | translate}}
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal') {{"CONFIRM" | translate}}

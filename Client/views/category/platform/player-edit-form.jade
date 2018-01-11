@@ -21,7 +21,8 @@ form(name="form_editing_player", novalidate)
                 label(for="genderFemale") {{"Female" | translate}}
         .form-group.col-md-6
             label.control-label {{"DOB" | translate}}
-            input.form-control(type="date",ng-model="playerBeingEdited.DOB", max="{{today}}") 
+            input.form-control(style='width:calc(100% - 20px);display: inline-block', type="date",name="DOBInput", ng-model="playerBeingEdited.DOB", max="{{today}}")
+            i.margin-left-5.fa.fa-times.text-danger(style='width:10px;', ng-show="form_editing_player.DOBInput.$invalid")
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label {{"PLAYER_LEVEL" | translate}}
