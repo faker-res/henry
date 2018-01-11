@@ -17,6 +17,7 @@ const queryPhoneLocation = require('query-mobile-phone-area');
 const constProposalEntryType = require('./../../const/constProposalEntryType');
 const constProposalUserType = require('./../../const/constProposalUserType');
 const constProposalStatus = require('./../../const/constProposalStatus');
+const constMessageType = require('./../../const/constMessageType');
 const dbLogger = require('./../../modules/dbLogger');
 const dbPlayerPartner = require('../../db_modules/dbPlayerPartner');
 const dbPlayerRegistrationIntentRecord = require('../../db_modules/dbPlayerRegistrationIntentRecord');
@@ -792,7 +793,13 @@ let PlayerServiceImplement = function () {
             function (res) {
                 if (res) {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS}, data);
-                    SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
+                    // reference to constmessageTypeParam
+                    let sendMessageData = {
+                         data:{bankAccount: data.bankAccount.substr(data.bankAccount.length - 4)},
+                         createTime: new Date(),
+                         proposalId:'' // API call skip proposal, so does not have proposalId
+                    }
+                    SMSSender.sendByPlayerId(data.playerId, constMessageType.UPDATE_BANK_INFO_SUCCESS , sendMessageData);
                     var loggerInfo = {
                         source: constProposalEntryType.CLIENT,
                         bankName: data.bankName,
