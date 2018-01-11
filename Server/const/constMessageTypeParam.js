@@ -54,7 +54,7 @@ const constMessageTypeParam = {
         name:"WithdrawCancel",
         params:[
             {parameterName:'proposalData.data.amount' , description:'withdrawAmount'},
-            {parameterName:'proposalData.cancelTime' , description:'cancelTime'}, //should get cancel time, Need test
+            {parameterName:'proposalData.cancelTime' , description:'cancelTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
         ]
     },
@@ -69,7 +69,7 @@ const constMessageTypeParam = {
     UPDATE_BANK_INFO_SUCCESS: {
         name:"UpdateBankInfoSuccess",
         params:[
-            {parameterName:'proposalData.data.bankAccount' , description:'bankcardLast4Number(new)'}, //Need test
+            {parameterName:'proposalData.data.bankAccount' , description:'bankcardLast4Number(new)'},
             {parameterName:'proposalData.createTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
         ]
@@ -77,22 +77,22 @@ const constMessageTypeParam = {
     UPDATE_PHONE_INFO_SUCCESS: {
         name:"UpdatePhoneInfoSuccess",
         params:[
-            {parameterName:'proposalData.data.updateData.phoneNumber' , description:'phoneLast4Number(new)'}, //Need test
+            {parameterName:'proposalData.data.phoneNumber' , description:'phoneLast4Number(new)'},
             {parameterName:'proposalData.createTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
         ]
     },
-    UPDATE_PASSWORD_SUCCESS: {
-        name:"UpdatePasswordSuccess",
+    UPDATE_PASSWORD: {
+        name:"updatePassword",
         params:[
-            {parameterName:'proposalData.createTime' , description:'executeTime'}
+            {parameterName:'executeTime' , description:'executeTime'}
         ]
     },
-    SMS_VERIFICATION_SUCCESS: {
-        name:"SmsVerificationCodeSuccess",
+    SMS_VERIFICATION: {
+        name:"smsVerificationCode",
         params:[
-            {parameterName:'proposalData.code' , description:'smsVerificationCode'}, //Need test
-            {parameterName:'proposalData.createTime' , description:'sendTime'} //Need test
+            {parameterName:'smsCode' , description:'smsVerificationCode'},
+            {parameterName:'sendTime' , description:'sendTime'}
         ]
     },
     PLAYER_TOP_UP_RETURN_GROUP_SUCCESS: {
@@ -143,7 +143,7 @@ const constMessageTypeParam = {
     PLAYER_REGISTER_INTENTION_SUCCESS:{
         name:"PlayerRegisterIntentionSuccess",
         params:[
-            {parameterName:'proposalData.createTime' , description:'executeTime'}, //Need test
+            {parameterName:'proposalData.createTime' , description:'executeTime'},
         ]
     },
     PLAYER_PROMO_CODE_REWARD_SUCCESS:{
@@ -152,7 +152,7 @@ const constMessageTypeParam = {
             {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
             {parameterName:'proposalData.createTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
-            {parameterName:'proposalData.data.eventName' , description:'promoCodeName'} // need test
+            {parameterName:'proposalData.data.promoCodeName' , description:'promoCodeName'}
         ]
     }
 

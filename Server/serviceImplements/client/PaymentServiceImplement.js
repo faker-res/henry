@@ -77,6 +77,7 @@ var PaymentServiceImplement = function () {
                     status: constServerCode.SUCCESS,
                     data: res
                 }, data);
+                // Handle by proposal executor
                 //SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.APPLY_BONUS);
             }
         ).catch(WebSocketUtil.errorHandler).done();
@@ -100,7 +101,8 @@ var PaymentServiceImplement = function () {
                     status: constServerCode.SUCCESS,
                     data: res
                 }, data);
-                SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.CANCEL_BONUS);
+                // Handle by proposal executor
+                //SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.CANCEL_BONUS);
             }
         ).catch(WebSocketUtil.errorHandler).done();
     };

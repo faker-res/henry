@@ -429,7 +429,7 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.updateAmount > 0) {
                     changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount, constProposalType.PLAYER_CONSUMPTION_RETURN_FIX, proposalData.data).then(
                         res => {
-                            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.CONSUMPTION_RETURN);
+                            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constMessageType.PLAYER_CONSUMPTION_RETURN_SUCCESS);
                         }
                     ).then(deferred.resolve, deferred.reject);
                 }
@@ -525,6 +525,8 @@ var proposalExecutor = {
                         proposalData.data.updateData.phoneCity = queryRes.city;
                         proposalData.data.updateData.phoneType = queryRes.type;
                     }
+                    // for send message to player before encrypt phone number
+                    let phoneNumberLast4Digit = proposalData.data.updateData.phoneNumber.substr(proposalData.data.updateData.phoneNumber.length - 4);
                     proposalData.data.updateData.phoneNumber = rsaCrypto.encrypt(proposalData.data.updateData.phoneNumber);
                     dbUtil.findOneAndUpdateForShard(
                         dbconfig.collection_players,
@@ -533,7 +535,9 @@ var proposalExecutor = {
                         constShardKeys.collection_players
                     ).then(
                         function (data) {
-                            //proposalData.data.updateData.phoneNumber take only last 4 number
+                            // reference constMessageTypeParam
+                            // take last 4 phonenumber send message to player
+                            proposalData.data.phoneNumber = phoneNumberLast4Digit;
                             sendMessageToPlayer (proposalData,constMessageType.UPDATE_PHONE_INFO_SUCCESS,{});
                             deferred.resolve(data);
                         },
@@ -670,7 +674,11 @@ var proposalExecutor = {
                             }
                             dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'bankAccount', proposalData.data.bankAccount).then();
                             dbLogger.createBankInfoLog(loggerInfo);
-                            SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
+                            //SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
+                            //bankcardLast4Number(new) send message to player
+                            proposalData.data.bankAccount = proposalData.data.bankAccount.substr(proposalData.data.bankAccount.length - 4);
+                            proposalData.data.playerObjId = proposalData.data._id;
+                            sendMessageToPlayer (proposalData,constMessageType.UPDATE_BANK_INFO_SUCCESS,{});
                             deferred.resolve(data);
                         },
                         function (error) {
@@ -697,8 +705,6 @@ var proposalExecutor = {
                         constShardKeys.collection_partner
                     ).then(
                         function (data) {
-                            //proposalData.data.bankAccount substring to only last 4 number
-                            sendMessageToPlayer (proposalData,constMessageType.UPDATE_BANK_INFO_SUCCESS,{});
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -918,6 +924,7 @@ var proposalExecutor = {
                         }
                         Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
                             data => {
+                                sendMessageToPlayer (proposalData,constMessageType.ONLINE_TOPUP_SUCCESS,{});
                                 deferred.resolve(proposalData);
                             },
                             error => {
@@ -1461,6 +1468,7 @@ var proposalExecutor = {
                         return pmsAPI.bonus_applyBonus(message).then(
                             bonusData => {
                                 if (bonusData) {
+                                    sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
                                     return bonusData;
                                 }
                                 else {
@@ -2755,7 +2763,12 @@ var proposalExecutor = {
                     proposalData.data.creditCharge = proposalData.data.creditCharge || 0;
                     return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount + proposalData.data.creditCharge, constPlayerCreditChangeType.REJECT_PLAYER_BONUS)
                         .then(
-                            res => deferred.resolve("Proposal is rejected"),
+
+                            res => {
+                                proposalData.cancelTime = new Date();
+                                sendMessageToPlayer (proposalData,constMessageType.WITHDRAW_CANCEL,{});
+                                return deferred.resolve("Proposal is rejected");
+                            },
                             error => deferred.reject(error)
                         );
                 }
@@ -3116,7 +3129,7 @@ function sendMessageToPlayer (proposalData,type,metaDataObj) {
          messageType = type + 'Success';
     }
 
-    SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, messageType);
+    SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, messageType, proposalData);
     // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
     // Changing into async function
     //dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);

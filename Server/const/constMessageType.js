@@ -17,8 +17,8 @@ const constMessageType = {
     PLAYER_LIMITED_OFFERS_REWARD_SUCCESS: "PlayerLimitedOfferRewardSuccess",
     UPDATE_BANK_INFO_SUCCESS: "UpdateBankInfoSuccess",
     UPDATE_PHONE_INFO_SUCCESS: "UpdatePhoneInfoSuccess",
-    UPDATE_PASSWORD_SUCCESS: "UpdatePasswordSuccess",
-    SMS_VERIFICATION_SUCCESS: "SmsVerificationCodeSuccess",
+    UPDATE_PASSWORD: "updatePassword", // use back old message type
+    SMS_VERIFICATION: "smsVerificationCode", // use back old message type
     PLAYER_TOP_UP_RETURN_GROUP_SUCCESS: "PlayerTopUpReturnGroupSuccess",
     PLAYER_LOSE_RETURN_REWARD_GROUP_SUCCESS: "PlayerLoseReturnRewardGroupSuccess",
     PLAYER_CONSECUTIVE_REWARD_GROUP_SUCCESS: "PlayerConsecutiveRewardGroupSuccess",
@@ -45,6 +45,7 @@ const constMessageType = {
     CANCEL_BONUS: "cancelBonus",
     APPLY_REWARD: "applyReward",
     CONSUMPTION_RETURN: "consumptionReturn",
+
     UPDATE_PAYMENT_INFO: "updatePaymentInfo",
     UPDATE_PASSWORD: "updatePassword",
 

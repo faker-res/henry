@@ -31,7 +31,7 @@ var playerSchema = new Schema({
         applyReward: {type: Boolean, default: false},
         consumptionReturn: {type: Boolean, default: false},
         updatePaymentInfo: {type: Boolean, default: false},
-        updatePassword: {type: Boolean, default: false},
+
         // new message type
         PlayerConsumptionReturnSuccess: {type: Boolean, default: false},
         ManualTopupSuccess: {type: Boolean, default: false},
@@ -41,17 +41,16 @@ var playerSchema = new Schema({
         WithdrawSuccess: {type: Boolean, default: false},
         WithdrawCancel: {type: Boolean, default: false},
         PlayerLimitedOfferRewardSuccess: {type: Boolean, default: false},
-        UpdatePaymentInfoSuccess: {type: Boolean, default: false},
+        UpdateBankInfoSuccess: {type: Boolean, default: false},
         UpdatePhoneInfoSuccess: {type: Boolean, default: false},
-        UpdatePasswordSuccess: {type: Boolean, default: false},
-        SmsVerificationCodeSuccess: {type: Boolean, default: false},
+        updatePassword: {type: Boolean, default: false}, // use back this old message type
         PlayerTopUpReturnGroupSuccess: {type: Boolean, default: false},
         PlayerLoseReturnRewardGroupSuccess: {type: Boolean, default: false},
         PlayerConsecutiveRewardGroupSuccess: {type: Boolean, default: false},
         PlayerConsumptionRewardGroupSuccess: {type: Boolean, default: false},
         PlayerFreeTrialRewardGroupSuccess: {type: Boolean, default: false},
         PlayerRegisterIntentionSuccess: {type: Boolean, default: false},
-        PROMO_CODE_SUCCESS: {type: Boolean, default: false},
+        PlayerPromoCodeRewardSuccess: {type: Boolean, default: false},
     },
     //store player's icon
     icon: {type: String, default: ""},
