@@ -7012,27 +7012,11 @@ define(['js/app'], function (myApp) {
             vm.loadSMSSettings = function () {
                 let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
                 let editPlayer = vm.editPlayer;                  // ~ 6 fields
+                vm.playerBeingEdited = {
+                    smsSetting: editPlayer.smsSetting,
+                    receiveSMS: editPlayer.receiveSMS
+                };
 
-                vm.playerBeingEdited = [{receiveSMS: editPlayer.receiveSMS}]
-                vm.playerBeingEdited.receiveSMS = editPlayer.receiveSMS;
-
-                vm.playerBeingEdited.smsSetting = [{
-                    manualTopup: editPlayer.smsSetting.manualTopup,
-                    applyBonus: editPlayer.smsSetting.applyBonus,
-                    cancelBonus: editPlayer.smsSetting.cancelBonus,
-                    applyReward: editPlayer.smsSetting.applyReward,
-                    consumptionReturn: editPlayer.smsSetting.consumptionReturn,
-                    updatePaymentInfo: editPlayer.smsSetting.updatePaymentInfo,
-                    updatePassword: editPlayer.smsSetting.updatePassword
-                }]
-
-                vm.playerBeingEdited.smsSetting.manualTopup = editPlayer.smsSetting.manualTopup;
-                vm.playerBeingEdited.smsSetting.applyBonus = editPlayer.smsSetting.applyBonus;
-                vm.playerBeingEdited.smsSetting.cancelBonus = editPlayer.smsSetting.cancelBonus;
-                vm.playerBeingEdited.smsSetting.applyReward = editPlayer.smsSetting.applyReward;
-                vm.playerBeingEdited.smsSetting.consumptionReturn = editPlayer.smsSetting.consumptionReturn;
-                vm.playerBeingEdited.smsSetting.updatePaymentInfo = editPlayer.smsSetting.updatePaymentInfo;
-                vm.playerBeingEdited.smsSetting.updatePassword = editPlayer.smsSetting.updatePassword;
             };
 
 
@@ -7293,30 +7277,20 @@ define(['js/app'], function (myApp) {
             vm.updateSMSSettings = function () {
                 //oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 let playerId = vm.isOneSelectedPlayer()._id;
-                var smsSettings = {
-                    manualTopup: vm.playerBeingEdited.smsSetting.manualTopup,
-                    applyBonus: vm.playerBeingEdited.smsSetting.applyBonus,
-                    cancelBonus: vm.playerBeingEdited.smsSetting.cancelBonus,
-                    applyReward: vm.playerBeingEdited.smsSetting.applyReward,
-                    consumptionReturn: vm.playerBeingEdited.smsSetting.consumptionReturn,
-                    updatePaymentInfo: vm.playerBeingEdited.smsSetting.updatePaymentInfo,
-                    updatePassword: vm.playerBeingEdited.smsSetting.updatePassword
-                }
 
                 var updateSMS = {
                     receiveSMS: vm.playerBeingEdited.receiveSMS != null ? vm.playerBeingEdited.receiveSMS : undefined,
-                    smsSetting: smsSettings != null ? smsSettings : undefined,
+                    smsSetting: vm.playerBeingEdited.smsSetting,
                 }
 
-                if (Object.keys(updateSMS).length > 0) {
-                    socketService.$socket($scope.AppSocket, 'updatePlayer', {
-                        query: {_id: playerId},
-                        updateData: updateSMS
-                    }, function (updated) {
-                        console.log('updated', updated);
-                        vm.getPlatformPlayersData();
-                    });
-                }
+                socketService.$socket($scope.AppSocket, 'updatePlayer', {
+                    query: {_id: playerId},
+                    updateData: updateSMS
+                }, function (updated) {
+                    console.log('updated', updated);
+                    vm.getPlatformPlayersData();
+                });
+
             }
 
             /// check the length of password of player/partner before signup
