@@ -6670,7 +6670,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareCreatePlayer = function () {
-                vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {language: 'en', format: 'yyyy/MM/dd',endDate: new Date(), maxDate: new Date()});
+                vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {language: 'en', format: 'yyyy/MM/dd', endDate: new Date(), maxDate: new Date()});
                 vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime( new Date("January 01, 1990")));
 
                 vm.existPhone = false;
@@ -6842,7 +6842,7 @@ define(['js/app'], function (myApp) {
                             verifyBankAccount: vm.verifyBankAccount,
                             verifyPlayerBankAccount: vm.verifyPlayerBankAccount,
                             updatePlayerPayment: vm.updatePlayerPayment,
-                            today: new Date().toISOString().slice(0,10),
+                            today: new Date().toISOString(),
                             allPlayerLevel: allPlayerLevel,
                             allPartner: allPartner,
                             playerId: selectedPlayer._id,
@@ -13936,10 +13936,25 @@ define(['js/app'], function (myApp) {
             }
 
             vm.convertDOBFormat = function (DOBDate) {
-
+                    // conversion to new Date() from ISOString date format by using toLocaleString() will have delay after year 1982
+                    // the delay will result wrong displaying date
+                    // solution to this: generat the string format from new Date() by using basic functions (getFullYear(), geMonth(), getDate())
                     if (DOBDate) {
-                        return utilService.getFormatTime(DOBDate).slice(0, 10);
-                        //return new Date(DOBDate).toISOString().slice(0, 10);
+
+                        let displayedDOB = new Date(DOBDate);
+                        var y = displayedDOB.getFullYear();
+                        var m = displayedDOB.getMonth() + 1;
+                        if (m < 10){
+                            m= '0' + m;
+                        }
+
+                        var d = displayedDOB.getDate();
+                        if (d < 10){
+                            d= '0' + d;
+                        }
+
+                        return y + "-" + m + "-" + d
+                        // return utilService.getFormatTime(DOBDate).slice(0, 10);
                     }
 
             }

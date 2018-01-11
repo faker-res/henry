@@ -324,79 +324,100 @@
                         thead
                             tr
                                 th(style="width:30%") {{"PROMO_CODE_TYPE_1" | translate}}
-                                th(style="width:70%") {{"SMS_CONTENT" | translate}}
+                                th(style="width:20%") {{"BANNER TITLE" | translate}}
+                                th(style="width:50%") {{"SMS_CONTENT" | translate}}
                                 th(ng-if='vm.promoCodeSMSContentEdit')
                         tbody
                             tr(ng-repeat='type in vm.promoCodeType1')
                                 td
                                     text {{type.name}}
                                 td(ng-if="!vm.promoCodeSMSContentEdit")
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsTitle}}
+                                td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                td(ng-if='vm.promoCodeSMSContentEdit')
+                                    input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType1, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')
-                                td(colspan=3) {{'ADD' | translate}}
+                                td(colspan=4) {{'ADD' | translate}}
                             tr(ng-if='vm.promoCodeSMSContentEdit')
                                 td
                                     input(type='text' , ng-model='vm.newPromoCodeSMSContentType1.name')
                                 td
+                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsTitle")
+                                td
                                     input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsContent")
                                 td
-                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType1, {name: vm.newPromoCodeSMSContentType1.name, smsContent: vm.newPromoCodeSMSContentType1.smsContent}); vm.newPromoCodeSMSContentType1={}')
+                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType1, {name: vm.newPromoCodeSMSContentType1.name,smsTitle: vm.newPromoCodeSMSContentType1.smsTitle,smsContent: vm.newPromoCodeSMSContentType1.smsContent}); vm.newPromoCodeSMSContentType1={}')
                     br
                     table.common-table.playerLvlTable
                         thead
                             tr
                                 th(style="width:30%") {{"PROMO_CODE_TYPE_2" | translate}}
-                                th(style="width:70%") {{"SMS_CONTENT" | translate}}
+                                th(style="width:20%") {{"BANNER TITLE" | translate}}
+                                th(style="width:50%") {{"SMS_CONTENT" | translate}}
                                 th(ng-if='vm.promoCodeSMSContentEdit')
                         tbody
                             tr(ng-repeat='type in vm.promoCodeType2')
                                 td
                                     text {{type.name}}
                                 td(ng-if="!vm.promoCodeSMSContentEdit")
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsTitle}}
+                                td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                td(ng-if='vm.promoCodeSMSContentEdit')
+                                    input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType2, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')
-                                td(colspan=3) {{'ADD' | translate}}
+                                td(colspan=4) {{'ADD' | translate}}
                             tr(ng-if='vm.promoCodeSMSContentEdit')
                                 td
                                     input(type='text' , ng-model='vm.newPromoCodeSMSContentType2.name')
                                 td
+                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsTitle")
+                                td
                                     input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsContent")
                                 td
-                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType2, {name: vm.newPromoCodeSMSContentType2.name, smsContent: vm.newPromoCodeSMSContentType2.smsContent}); vm.newPromoCodeSMSContentType2={}')
+                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType2, {name: vm.newPromoCodeSMSContentType2.name, smsTitle: vm.newPromoCodeSMSContentType2.smsTitle, smsContent: vm.newPromoCodeSMSContentType2.smsContent}); vm.newPromoCodeSMSContentType2={}')
                     br
                     table.common-table.playerLvlTable
                         thead
                             tr
                                 th(style="width:30%") {{"PROMO_CODE_TYPE_3" | translate}}
-                                th(style="width:70%") {{"SMS_CONTENT" | translate}}
+                                th(style="width:20%") {{"BANNER TITLE" | translate}}
+                                th(style="width:50%") {{"SMS_CONTENT" | translate}}
                                 th(ng-if='vm.promoCodeSMSContentEdit')
                         tbody
                             tr(ng-repeat='type in vm.promoCodeType3')
                                 td
                                     text {{type.name}}
                                 td(ng-if="!vm.promoCodeSMSContentEdit")
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsTitle}}
+                                td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                td(ng-if='vm.promoCodeSMSContentEdit')
+                                    input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType3, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')
-                                td(colspan=3) {{'ADD' | translate}}
+                                td(colspan=4) {{'ADD' | translate}}
                             tr(ng-if='vm.promoCodeSMSContentEdit')
                                 td
                                     input(type='text' , ng-model='vm.newPromoCodeSMSContentType3.name')
                                 td
+                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsTitle")
+                                td
                                     input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsContent")
                                 td
-                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType3, {name: vm.newPromoCodeSMSContentType3.name, smsContent: vm.newPromoCodeSMSContentType3.smsContent}); vm.newPromoCodeSMSContentType3={}')
+                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType3, {name: vm.newPromoCodeSMSContentType3.name, smsTitle: vm.newPromoCodeSMSContentType3.smsTitle, smsContent: vm.newPromoCodeSMSContentType3.smsContent}); vm.newPromoCodeSMSContentType3={}')
 
                     br
                     .pull-right
