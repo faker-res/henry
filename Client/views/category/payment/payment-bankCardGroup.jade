@@ -96,7 +96,7 @@ style.
                         tr(ng-repeat="v in vm.allBankCards" ng-class="{'bg-secondary': !v.included}" ng-show="v.show$")
                             td
                                 input(type="checkbox" ng-model="v.selected")
-                            td.text-center(ng-class="{'text-disabled': v.state === 'DISABLED'}") {{v.status| translate}}
+                            td.text-center(ng-class="{'text-disabled': v.state === 'DISABLED'}") {{v.status === 'DISABLED' ? 'DISABLE' : v.status | translate}}
                             td {{v.bankTypeId ? vm.getBankCardTypeTextbyId(v.bankTypeId) : ("VOID" | translate)}}
                             td {{v.name}}
                             td {{v.accountNumber}}
@@ -416,6 +416,6 @@ style.
                     .panel-body
                         .col-md-3(ng-repeat="(status, show) in vm.bankCardFilterOptions.status")
                             input(type="checkbox" ng-model="vm.bankCardFilterOptions.status[status]")
-                            span {{status | translate}}
+                            span {{status === "DISABLED" ? "DISABLE" : status | translate}}
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.bankCardsFilter()") {{"FILTER" | translate}}
