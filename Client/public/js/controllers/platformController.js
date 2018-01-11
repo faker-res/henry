@@ -20069,8 +20069,6 @@ define(['js/app'], function (myApp) {
 
                 vm.setSelectedMessageTemplateTypeIndex = function () {
                     for(let messageType in vm.allMessageTypes) {
-                        console.log(messageType);
-                        console.log(vm.allMessageTypes);
                         if(vm.allMessageTypes[messageType].name == vm.displayedMessageTemplate.type) {
                             vm.displayedMessageTemplate.typeIndex = messageType;
                             break;
