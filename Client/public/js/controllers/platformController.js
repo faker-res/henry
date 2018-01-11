@@ -7274,6 +7274,25 @@ define(['js/app'], function (myApp) {
                 // }
             }
 
+            vm.smsSettingToggleSelectAll = function () {
+                let status = vm.playerBeingEdited.smsSettingSelectAll;
+                for(let type in vm.allMessageTypes) {
+                    let settingName = vm.allMessageTypes[type].name;
+                    if(settingName!="smsVerificationCode") {
+                        vm.playerBeingEdited.smsSetting[settingName] = status;
+                    }
+                }
+            };
+            vm.smsSettingSetSelectAll = function() {
+                for(let type in vm.allMessageTypes) {
+                    let settingName = vm.allMessageTypes[type].name;
+                    if(settingName!="smsVerificationCode" && !vm.playerBeingEdited.smsSetting[settingName]) {
+                        vm.playerBeingEdited.smsSettingSelectAll = false;
+                        return;
+                    }
+                }
+                vm.playerBeingEdited.smsSettingSelectAll = true;
+            };
             vm.updateSMSSettings = function () {
                 //oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 let playerId = vm.isOneSelectedPlayer()._id;
