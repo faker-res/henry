@@ -20039,8 +20039,6 @@ define(['js/app'], function (myApp) {
 
                     if (vm.editingMessageTemplate.format == 'smstpl') {
                         vm.editingMessageTemplate.type = vm.smsTitle;
-                    } else {
-                        vm.editingMessageTemplate.type = vm.allMessageTypes[vm.displayedMessageTemplate.typeIndex].name;
                     }
                     var templateData = vm.editingMessageTemplate;
                     templateData.platform = vm.selectedPlatform.id;
@@ -20055,8 +20053,6 @@ define(['js/app'], function (myApp) {
 
                     if (vm.editingMessageTemplate.format == 'smstpl') {
                         vm.editingMessageTemplate.type = vm.smsTitle;
-                    } else {
-                        vm.editingMessageTemplate.type = vm.allMessageTypes[vm.displayedMessageTemplate.typeIndex].name;
                     }
                     var updateData = vm.editingMessageTemplate;
                     vm.resetToViewMessageTemplate();
@@ -20072,12 +20068,20 @@ define(['js/app'], function (myApp) {
                     }).done();
                 };
 
+                vm.setSelectedMessageTemplateTypeIndex = function () {
+                    for(let messageType in vm.allMessageTypes) {
+                        if(vm.allMessageTypes[messageType].name == vm.displayedMessageTemplate.type) {
+                            vm.displayedMessageTemplate.typeIndex = messageType;
+                            break;
+                        }
+                    }
+                };
+
                 vm.resetToViewMessageTemplate = function () {
                     vm.editingMessageTemplate = null;
                     vm.messageTemplateMode = 'view';
                     vm.displayedMessageTemplate = vm.selectedMessageTemplate;
                     vm.previewMessageTemplate();
-
                 };
 
                 function selectMessageWithId(targetId) {
