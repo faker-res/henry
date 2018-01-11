@@ -152,7 +152,7 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
         #smsSettingPanel.panel-body(ng-if="vm.smsModalTab === 'smsSettingPanel'")
             .row.margin-left-5.margin-right-5
                 .form-group.col-md-12
-                    label.control-label(style="width:auto%;") {{"RECEIVE_SMS" | translate}}
+                    label.control-label(style="width:auto;") {{"RECEIVE_SMS" | translate}}
                         input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.receiveSMS")
                     label.control-label(style="width:auto;") {{"Select All" | translate}}
                         input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSettingSelectAll", ng-change="vm.smsSettingToggleSelectAll();", ng-disabled="!vm.playerBeingEdited.receiveSMS")
