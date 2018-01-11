@@ -3047,6 +3047,7 @@
   "executeTime": "执行时间",
   "rewardEventName": "优惠名称",
   "promoCodeName": "优惠代码名称",
-  "cancelTime": "取消时间"
+  "cancelTime": "取消时间",
+  "sendTime": "发送时间"
 
 }
