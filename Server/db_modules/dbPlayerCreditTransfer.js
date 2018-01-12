@@ -1157,7 +1157,7 @@ let dbPlayerCreditTransfer = {
                     );
                 }
                 else {
-                    return Q.reject({name: "DBError", message: "Error in increasing player credit."})
+                    return Q.reject({name: "DBError", message: "Failed to increase player credit."})
                 }
             },
             function (err) {
