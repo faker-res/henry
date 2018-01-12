@@ -1479,7 +1479,7 @@ var proposal = {
                                         retData.push(prom);
                                     }
                                     return Q.all(retData);
-                                }).read("secondary");
+                                }).read("secondaryPreferred");
                         var b = dbconfig.collection_proposal.find(queryObj).count();
                         var c = dbconfig.collection_proposal.aggregate(
                             {
@@ -1503,7 +1503,7 @@ var proposal = {
                                     totalCommissionAmount: {$sum: "$data.commissionAmount"}
                                 }
                             }
-                        ).read("secondary");
+                        ).read("secondaryPreferred");
                         return Q.all([a, b, c])
                     }
                     else {
