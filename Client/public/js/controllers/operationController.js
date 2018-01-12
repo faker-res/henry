@@ -660,7 +660,8 @@ define(['js/app'], function (myApp) {
                     $('#ProposalDetail .delayTopupExpireDate').on('click', function () {
                         var $tr = $(this).closest('tr');
                         vm.delayTopupExpirDate(obj, function (newData) {
-                            $tr.find('td:nth-child(2)').first().text(utilService.getFormatTime(newData.newValidTime));
+                            obj.validTime = newData.newValidTime;
+                            obj.status = "Pending";
                             vm.needRefreshTable = true;
                             $scope.safeApply();
                         });
@@ -830,6 +831,8 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'delayManualTopupRequest', sendData, function (data) {
                 console.log("update data", data);
                 vm.selectedProposal.status = 'Pending';
+                vm.selectedProposal.data.validTime = data.data.newValidTime;
+                vm.selectedProposalDetailForDisplay.validTime = data.data.newValidTime;
                 $scope.safeApply();
                 if (callback) {
                     callback(data.data);
