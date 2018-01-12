@@ -1186,3 +1186,15 @@
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal') {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal' ng-click='vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup') {{"CANCEL" | translate}}
+
+.row
+    .col-md-3
+    .col-md-9(style="padding-left:0;padding-right:15px")
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                label {{"CHINESE_TRANSLATION_CSV" | translate}}
+            .panel-body
+                button.btn.btn-success.common-button(type='button', ng-click='vm.downloadTranslationCSV()')
+                    i.fa.fa-download
+                    text {{"DOWNLOAD_CSV" | translate}}
+
