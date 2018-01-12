@@ -105,7 +105,6 @@ const SMSSender = {
     },
 
     sendPromoCodeSMSByPlayerId(playerObjId, promoData){
-        console.log("AAAAAAAAAAAAAAAAAAAA",promoData);
         var defaultChannel = null;
         var platformId = null;
         var phoneNumber = null;
