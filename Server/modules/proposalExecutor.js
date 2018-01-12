@@ -2768,7 +2768,7 @@ var proposalExecutor = {
                         .then(
 
                             res => {
-                                proposalData.cancelTime = new Date();
+                                proposalData.cancelTime = moment(new Date()).format("YYYY/MM/DD HH:mm:ss");
                                 sendMessageToPlayer (proposalData,constMessageType.WITHDRAW_CANCEL,{});
                                 return deferred.resolve("Proposal is rejected");
                             },
@@ -3132,6 +3132,8 @@ function sendMessageToPlayer (proposalData,type,metaDataObj) {
          messageType = type + 'Success';
     }
 
+    if(proposalData.createTime)
+        proposalData.createTime = moment(proposalData.createTime).format("YYYY/MM/DD HH:mm:ss");
     SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, messageType, proposalData);
     // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
     // Changing into async function
