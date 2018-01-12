@@ -5484,7 +5484,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getRewardsForPlayer: function (playerId, rewardType, startTime, endTime, startIndex, count) {
+    getRewardsForPlayer: function (playerId, rewardType, startTime, endTime, startIndex, count, eventCode) {
         var queryProm = null;
         var playerName = '';
         var queryObject = {
@@ -5533,6 +5533,9 @@ let dbPlayerInfo = {
                 if (proposalType) {
                     if (proposalType && proposalType._id) {
                         queryObject.type = proposalType._id;
+                    }
+                    if(eventCode){
+                        queryObject["data.eventCode"] = eventCode;
                     }
                     var countProm = dbconfig.collection_proposal.find(queryObject).count();
                     var rewardProm = dbconfig.collection_proposal.find(queryObject)

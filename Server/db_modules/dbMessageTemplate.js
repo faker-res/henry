@@ -1,4 +1,5 @@
 var constMessageType = require("../const/constMessageType");
+var constMessageTypeParam = require("../const/constMessageTypeParam");
 var dbconfig = require('./../modules/dbproperties');
 var Q = require("q");
 
@@ -8,7 +9,7 @@ var dbMessageTemplate = {
      * Retrieve the map of messageTemplate types
      */
     getAllMessageTypes: function () {
-        return Q.resolve(constMessageType);
+        return Q.resolve(constMessageTypeParam);
     },
 
     /**

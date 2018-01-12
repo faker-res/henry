@@ -9,7 +9,7 @@
                 label {{"MESSAGE_TEMPLATES" | translate}}
             .panel-body
                 ul.list-group.treeview(style="height: 430px; overflow-y: auto;")
-                    li.list-group-item(ng-repeat='(i,v) in vm.messageTemplatesForPlatform', ng-class='{active: vm.selectedMessageTemplate === v}', ng-click='vm.selectedMessageTemplate = v;vm.smsTitle=v.type; vm.resetToViewMessageTemplate();')
+                    li.list-group-item(ng-repeat='(i,v) in vm.messageTemplatesForPlatform', ng-class='{active: vm.selectedMessageTemplate === v}', ng-click='vm.selectedMessageTemplate = v;vm.smsTitle=v.type; vm.resetToViewMessageTemplate(); vm.setSelectedMessageTemplateTypeIndex();')
                         text {{v.type | translate }} ({{v.format}})
 
                 .btn-group.text-center(style="border-radius:9px",role="group")
@@ -23,7 +23,7 @@
     .col-sm-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
-                label {{"MESSAGE_TEMPLATE" | translate}}&nbsp;:&nbsp;{{vm.selectedMessageTemplate.type}}
+                label {{"MESSAGE_TEMPLATE" | translate}}&nbsp;:&nbsp;{{vm.selectedMessageTemplate.type | translate}}
             .panel-body
                 .text-center(ng-if='!vm.displayedMessageTemplate')
                     label.text-danger {{"NO_MESSAGE_TEMPLATE_MESSAGE" | translate}}
@@ -38,8 +38,8 @@
                                 option(value="smstpl") {{"MESSAGE_TEMPLATE_SMS_TEMPLATE" | translate}}
                         .full-width-input-block(ng-if="vm.displayedMessageTemplate.format!='smstpl'")
                             label {{"MESSAGE_TEMPLATE_TYPE" | translate}}
-                            select.form-control(ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.typeIndex")
-                                option(ng-repeat="(k, t) in vm.allMessageTypes", value="{{k}}") {{t.name | translate}}
+                            select.form-control(ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.type", ng-change="vm.setSelectedMessageTemplateTypeIndex();")
+                                option(ng-repeat="(k, t) in vm.allMessageTypes", value="{{t.name}}") {{t.name | translate}}
                         .full-width-input-block(ng-if="vm.displayedMessageTemplate.format=='smstpl'")
                             label {{"MESSAGE_TEMPLATE_TYPE" | translate}}
                             input.form-control(ng-disabled="!vm.editingMessageTemplate", type='text', ng-model='vm.smsTitle', ng-if="vm.displayedMessageTemplate.format=='smstpl'")
@@ -59,15 +59,15 @@
                                 .clearfix
                             textarea#messageTemplateEditBox.form-control(style="max-height: 185px; overflow: auto; margin-bottom: 12px;", rows="15", ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.content", ng-change="vm.previewMessageTemplate()", required, placeholder="Example: Congratulations {{'{'+'{player.name}'+'}'}}, your top up for {{'{'+'{topUpRecord.currency}'+'}'}} {{'{'+'{topUpRecord.value}'+'}'}} has been confirmed.")
                             br
-                            label(ng-if="vm.displayedMessageTemplate.typeIndex") {{"Notice: Please insert the following parameters into the message template content as required." | translate}}
-                            table.simple-table(style='', ng-if="vm.displayedMessageTemplate.typeIndex")
+                            label(ng-if="vm.displayedMessageTemplate.type && vm.displayedMessageTemplate.format!='smstpl'") {{"Notice: Please insert the following parameters into the message template content as required." | translate}}
+                            table.simple-table(style='', ng-if="vm.displayedMessageTemplate.type && vm.displayedMessageTemplate.format!='smstpl'")
                                 thead
                                     th {{"PARAMETER" | translate}}
                                     th {{"MESSAGE_TEMPLATE_PARAMETER_DESCRIPTION" | translate}}
                                     th
                                 tbody(ng-repeat="(i, v) in vm.allMessageTypes[vm.displayedMessageTemplate.typeIndex].params")
                                     td {{"\{\{"+(v.parameterName)+"\}\}"}}
-                                    td {{ v.description }}
+                                    td {{ v.description | translate }}
                                     td
                                         button(style="cursor:pointer;", ng-click="vm.messageTemplateInsertParameter(v.parameterName)") {{"ADD" | translate}}
                             //br

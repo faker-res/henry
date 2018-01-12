@@ -664,6 +664,14 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         PROMO_maxTopUpAmount: "M"
     };
 
+    $scope.constPlayerCreditTransferStatus = {
+        1: "SUCCESS",
+        2: "FAIL",
+        3: "REQUEST",
+        4: "SEND",
+        5: "TIMEOUT"
+    };
+
     // $scope.consumptionRecordProviderName = {
     //     1: "AGOTHS",
     //     2: "PT",
