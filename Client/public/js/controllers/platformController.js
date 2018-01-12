@@ -7391,6 +7391,7 @@ define(['js/app'], function (myApp) {
                     phoneType: data.data.phoneType,
                     partnerId: data.data.partnerId,
                     isOnline: data.data.isOnline,
+                    playerObjId: data.data._id,
                     playerId: data.data.playerId,
                     remarks: data.data.partnerName ? $translate("PARTNER") + ": " + data.data.partnerName : "",
                     status: vm.constProposalStatus.MANUAL,
