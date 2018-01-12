@@ -331,8 +331,10 @@ const dbPlayerMail = {
                         return Q.reject({message: 'Template not set for current platform'});
                     }
 
-                    template.content = template.content.replace('smsCode', code);
 
+                    template.content = template.content.replace('{{smsCode}}', code);
+                    template.content = template.content.replace('smsCode', code); // for backward compatibility
+                    template.content = template.content.replace('{{sendTime}}', new Date());
                     if (channel === null || platformId === null) {
                         return Q.reject({message: "cannot find platform or sms channel."});
                     }

@@ -2959,7 +2959,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate("STATUS"),
                             render: function (data, type, row) {
-                                return (row.status == 1 ? $translate("SUCCESS") : row.status == 2 ? $translate("FAIL") : $translate("REQUEST"));
+                                return $translate($scope.constPlayerCreditTransferStatus[row.status]);
                             }
                         }
                     ],
@@ -6670,8 +6670,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareCreatePlayer = function () {
-                vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {language: 'en', format: 'yyyy/MM/dd',endDate: new Date(), maxDate: new Date()});
-                vm.playerDOB.data('datetimepicker').setDate(new Date("January 01, 1990 16:00:00"));
+                vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {language: 'en', format: 'yyyy/MM/dd', endDate: new Date(), maxDate: new Date()});
+                vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime( new Date("January 01, 1990")));
 
                 vm.existPhone = false;
                 vm.newPlayer = {};
@@ -6842,7 +6842,7 @@ define(['js/app'], function (myApp) {
                             verifyBankAccount: vm.verifyBankAccount,
                             verifyPlayerBankAccount: vm.verifyPlayerBankAccount,
                             updatePlayerPayment: vm.updatePlayerPayment,
-                            today: new Date().toISOString().slice(0,10),
+                            today: new Date().toISOString(),
                             allPlayerLevel: allPlayerLevel,
                             allPartner: allPartner,
                             playerId: selectedPlayer._id,
@@ -6857,9 +6857,8 @@ define(['js/app'], function (myApp) {
                             allPlayerTrustLvl: vm.allPlayerTrustLvl,
                             //vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             updateEditedPlayer: function () {
-                                // + 8 to the time obtained from input type date
-                                this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB).setHours(new Date(this.playerBeingEdited.DOB).getHours() + 8 );
-                                // ng-model has to be in date object
+                              
+                                // this ng-model has to be in date object
                                 this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB);
                                 sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark, selectedPlayer.permission);
                             },
@@ -7013,27 +7012,11 @@ define(['js/app'], function (myApp) {
             vm.loadSMSSettings = function () {
                 let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
                 let editPlayer = vm.editPlayer;                  // ~ 6 fields
+                vm.playerBeingEdited = {
+                    smsSetting: editPlayer.smsSetting,
+                    receiveSMS: editPlayer.receiveSMS
+                };
 
-                vm.playerBeingEdited = [{receiveSMS: editPlayer.receiveSMS}]
-                vm.playerBeingEdited.receiveSMS = editPlayer.receiveSMS;
-
-                vm.playerBeingEdited.smsSetting = [{
-                    manualTopup: editPlayer.smsSetting.manualTopup,
-                    applyBonus: editPlayer.smsSetting.applyBonus,
-                    cancelBonus: editPlayer.smsSetting.cancelBonus,
-                    applyReward: editPlayer.smsSetting.applyReward,
-                    consumptionReturn: editPlayer.smsSetting.consumptionReturn,
-                    updatePaymentInfo: editPlayer.smsSetting.updatePaymentInfo,
-                    updatePassword: editPlayer.smsSetting.updatePassword
-                }]
-
-                vm.playerBeingEdited.smsSetting.manualTopup = editPlayer.smsSetting.manualTopup;
-                vm.playerBeingEdited.smsSetting.applyBonus = editPlayer.smsSetting.applyBonus;
-                vm.playerBeingEdited.smsSetting.cancelBonus = editPlayer.smsSetting.cancelBonus;
-                vm.playerBeingEdited.smsSetting.applyReward = editPlayer.smsSetting.applyReward;
-                vm.playerBeingEdited.smsSetting.consumptionReturn = editPlayer.smsSetting.consumptionReturn;
-                vm.playerBeingEdited.smsSetting.updatePaymentInfo = editPlayer.smsSetting.updatePaymentInfo;
-                vm.playerBeingEdited.smsSetting.updatePassword = editPlayer.smsSetting.updatePassword;
             };
 
 
@@ -7291,33 +7274,42 @@ define(['js/app'], function (myApp) {
                 // }
             }
 
+            vm.smsSettingToggleSelectAll = function () {
+                let status = vm.playerBeingEdited.smsSettingSelectAll;
+                for(let type in vm.allMessageTypes) {
+                    let settingName = vm.allMessageTypes[type].name;
+                    if(settingName!="smsVerificationCode") {
+                        vm.playerBeingEdited.smsSetting[settingName] = status;
+                    }
+                }
+            };
+            vm.smsSettingSetSelectAll = function() {
+                for(let type in vm.allMessageTypes) {
+                    let settingName = vm.allMessageTypes[type].name;
+                    if(settingName!="smsVerificationCode" && !vm.playerBeingEdited.smsSetting[settingName]) {
+                        vm.playerBeingEdited.smsSettingSelectAll = false;
+                        return;
+                    }
+                }
+                vm.playerBeingEdited.smsSettingSelectAll = true;
+            };
             vm.updateSMSSettings = function () {
                 //oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 let playerId = vm.isOneSelectedPlayer()._id;
-                var smsSettings = {
-                    manualTopup: vm.playerBeingEdited.smsSetting.manualTopup,
-                    applyBonus: vm.playerBeingEdited.smsSetting.applyBonus,
-                    cancelBonus: vm.playerBeingEdited.smsSetting.cancelBonus,
-                    applyReward: vm.playerBeingEdited.smsSetting.applyReward,
-                    consumptionReturn: vm.playerBeingEdited.smsSetting.consumptionReturn,
-                    updatePaymentInfo: vm.playerBeingEdited.smsSetting.updatePaymentInfo,
-                    updatePassword: vm.playerBeingEdited.smsSetting.updatePassword
-                }
 
                 var updateSMS = {
                     receiveSMS: vm.playerBeingEdited.receiveSMS != null ? vm.playerBeingEdited.receiveSMS : undefined,
-                    smsSetting: smsSettings != null ? smsSettings : undefined,
+                    smsSetting: vm.playerBeingEdited.smsSetting,
                 }
 
-                if (Object.keys(updateSMS).length > 0) {
-                    socketService.$socket($scope.AppSocket, 'updatePlayer', {
-                        query: {_id: playerId},
-                        updateData: updateSMS
-                    }, function (updated) {
-                        console.log('updated', updated);
-                        vm.getPlatformPlayersData();
-                    });
-                }
+                socketService.$socket($scope.AppSocket, 'updatePlayer', {
+                    query: {_id: playerId},
+                    updateData: updateSMS
+                }, function (updated) {
+                    console.log('updated', updated);
+                    vm.getPlatformPlayersData();
+                });
+
             }
 
             /// check the length of password of player/partner before signup
@@ -7338,6 +7330,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayer.platform = vm.selectedPlatform.id;
                 vm.newPlayer.platformId = vm.selectedPlatform.data.platformId;
                 vm.newPlayer.DOB = vm.playerDOB.data('datetimepicker').getLocalDate();
+                vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
                 vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false ;
 
                 console.log('newPlayer', vm.newPlayer);
@@ -13936,9 +13929,25 @@ define(['js/app'], function (myApp) {
             }
 
             vm.convertDOBFormat = function (DOBDate) {
-
+                    // conversion to new Date() from ISOString date format by using toLocaleString() will have delay after year 1982
+                    // the delay will result wrong displaying date
+                    // solution to this: generat the string format from new Date() by using basic functions (getFullYear(), geMonth(), getDate())
                     if (DOBDate) {
-                        return new Date(DOBDate).toISOString().slice(0, 10);
+
+                        let displayedDOB = new Date(DOBDate);
+                        var y = displayedDOB.getFullYear();
+                        var m = displayedDOB.getMonth() + 1;
+                        if (m < 10){
+                            m= '0' + m;
+                        }
+
+                        var d = displayedDOB.getDate();
+                        if (d < 10){
+                            d= '0' + d;
+                        }
+
+                        return y + "-" + m + "-" + d
+                        // return utilService.getFormatTime(DOBDate).slice(0, 10);
                     }
 
             }
@@ -20067,12 +20076,20 @@ define(['js/app'], function (myApp) {
                     }).done();
                 };
 
+                vm.setSelectedMessageTemplateTypeIndex = function () {
+                    for(let messageType in vm.allMessageTypes) {
+                        if(vm.allMessageTypes[messageType].name == vm.displayedMessageTemplate.type) {
+                            vm.displayedMessageTemplate.typeIndex = messageType;
+                            break;
+                        }
+                    }
+                };
+
                 vm.resetToViewMessageTemplate = function () {
                     vm.editingMessageTemplate = null;
                     vm.messageTemplateMode = 'view';
                     vm.displayedMessageTemplate = vm.selectedMessageTemplate;
                     vm.previewMessageTemplate();
-
                 };
 
                 function selectMessageWithId(targetId) {
@@ -20177,9 +20194,9 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                vm.messageTemplateInsertParameter = function () {
+                vm.messageTemplateInsertParameter = function (param) {
                     var box = document.getElementById('messageTemplateEditBox');
-                    var param = vm.messageTemplateParameterToInsert;
+                    // var param = vm.messageTemplateParameterToInsert;
                     insertTextAtCaret(box, '{{' + param + '}}');
                 };
 

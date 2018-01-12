@@ -30,7 +30,7 @@ let RewardServiceImplement = function () {
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getRewardsForPlayer, [conn.playerId, data.rewardType, data.startTime, data.endTime, data.startIndex, data.requestCount], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getRewardsForPlayer, [conn.playerId, data.rewardType, data.startTime, data.endTime, data.startIndex, data.requestCount, data.eventCode], isValidData);
     };
 
     this.getRewardTask.expectsData = 'playerId: String';
