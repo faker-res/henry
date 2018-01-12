@@ -2089,6 +2089,7 @@ let dbPlayerReward = {
                         topUpProposal: topUpProp && topUpProp.proposalId ? topUpProp.proposalId : null,
                         useLockedCredit: false,
                         useConsumption: !promoCodeObj.isSharedWithXIMA,
+                        promoCodeName: promoCodeObj.bannerText,
                         eventName: "优惠代码",
                         eventCode: "YHDM"
                     },

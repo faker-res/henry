@@ -18,6 +18,7 @@ define([], function () {
         this.cookiePolicyKey = 'sinonet-management-role';
         this.cookieDepartmentKey = 'sinonet-management-departments';
         this.cookieLanguageKey = 'sinonet-management-language';
+        this.cookiePlatformKey = 'sinonet-management-platform';
         var self = this;
 
         this.$get = function () {
@@ -84,10 +85,23 @@ define([], function () {
                 expires: exp,
                 //secure: true
             });
+
+            $cookies.put(this.cookiePlatformKey, "XBet", {
+                expires: exp
+            });
+
         };
 
         this.updateLanguage = function ($cookies, language) {
             $cookies.put(this.cookieLanguageKey, language);
+        };
+
+        this.updatePlatform = function ($cookies, platform) {
+            var exp = new Date();
+            exp.setSeconds(exp.getSeconds() + 60 * 60 * 12);
+            $cookies.put(this.cookiePlatformKey, platform, {
+                expires: exp
+            });
         };
 
         this.isValid = function ($cookies, localStorageService) {
@@ -136,6 +150,8 @@ define([], function () {
             $cookies.remove(this.cookieAdminNameKey);
             $cookies.remove(this.cookiePolicyKey);
             $cookies.remove(this.cookieDepartmentKey);
+            $cookies.remove(this.cookiePlatformKey);
+            $cookies.remove("platform");
             $cookies.remove("SRVNAME");
 
             localStorageService.remove(this.cookiePolicyKey);

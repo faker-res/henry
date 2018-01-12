@@ -23,7 +23,7 @@
     .col-sm-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
-                label {{"MESSAGE_TEMPLATE" | translate}}&nbsp;:&nbsp;{{vm.selectedMessageTemplate.type}}
+                label {{"MESSAGE_TEMPLATE" | translate}}&nbsp;:&nbsp;{{vm.selectedMessageTemplate.type | translate}}
             .panel-body
                 .text-center(ng-if='!vm.displayedMessageTemplate')
                     label.text-danger {{"NO_MESSAGE_TEMPLATE_MESSAGE" | translate}}
@@ -67,7 +67,7 @@
                                     th
                                 tbody(ng-repeat="(i, v) in vm.allMessageTypes[vm.displayedMessageTemplate.typeIndex].params")
                                     td {{"\{\{"+(v.parameterName)+"\}\}"}}
-                                    td {{ v.description }}
+                                    td {{ v.description | translate }}
                                     td
                                         button(style="cursor:pointer;", ng-click="vm.messageTemplateInsertParameter(v.parameterName)") {{"ADD" | translate}}
                             //br
