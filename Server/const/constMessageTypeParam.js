@@ -143,6 +143,7 @@ const constMessageTypeParam = {
     PLAYER_REGISTER_INTENTION_SUCCESS:{
         name:"PlayerRegisterIntentionSuccess",
         params:[
+            {parameterName:'proposalData.data.playerName' , description:'PLAYER_NAME'},
             {parameterName:'proposalData.createTime' , description:'executeTime'},
         ]
     },
