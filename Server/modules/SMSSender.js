@@ -8,6 +8,7 @@ const localization = require("../modules/localization").localization;
 const errorUtils = require("../modules/errorUtils.js");
 const dbLogger = require('./dbLogger');
 const constPromoCodeLegend = require("../const/constPromoCodeLegend.js");
+const moment = require('moment-timezone');
 
 const SMSSender = {
 
@@ -43,7 +44,7 @@ const SMSSender = {
                         template => {
                             if (template && template.content) {
                                 if(template.type === constMessageType.UPDATE_PASSWORD)
-                                    template.content = template.content.replace('{{executeTime}}', new Date());
+                                    template.content = template.content.replace('{{executeTime}}', moment(new Date()).format("YYYY/MM/DD HH:mm:ss"));
                                 if(proposalData){
                                     let metaData = {proposalData: proposalData};
                                     template.content = renderTemplate(template.content, metaData);
@@ -56,10 +57,22 @@ const SMSSender = {
                                     message: template.content,
                                     delay: 0
                                 };
-                                
+
+                                let logData =  {
+                                    purpose: type,
+                                    playerId: playerId,
+                                    channel: defaultChannel,
+                                    platformId: platformId,
+                                    tel: playerData.phoneNumber,
+                                    message: template.content
+                                };
+                                if(proposalData)logData.proposalId =  proposalData.proposalId;
                                 return smsAPI.sending_sendMessage(messageData).then(
-                                    () => {},
+                                    () => {
+                                        dbLogger.createSMSLog(null, null, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'success');
+                                    },
                                     error => {
+                                        dbLogger.createSMSLog(null, null, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'failure',error);
                                         //todo::refactor this to properly while loop
                                         if( nextChannel != null ){
                                             var nextMessageData = {

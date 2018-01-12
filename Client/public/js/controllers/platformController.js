@@ -2959,7 +2959,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate("STATUS"),
                             render: function (data, type, row) {
-                                return (row.status == 1 ? $translate("SUCCESS") : row.status == 2 ? $translate("FAIL") : $translate("REQUEST"));
+                                return $translate($scope.constPlayerCreditTransferStatus[row.status]);
                             }
                         }
                     ],
@@ -7274,6 +7274,25 @@ define(['js/app'], function (myApp) {
                 // }
             }
 
+            vm.smsSettingToggleSelectAll = function () {
+                let status = vm.playerBeingEdited.smsSettingSelectAll;
+                for(let type in vm.allMessageTypes) {
+                    let settingName = vm.allMessageTypes[type].name;
+                    if(settingName!="smsVerificationCode") {
+                        vm.playerBeingEdited.smsSetting[settingName] = status;
+                    }
+                }
+            };
+            vm.smsSettingSetSelectAll = function() {
+                for(let type in vm.allMessageTypes) {
+                    let settingName = vm.allMessageTypes[type].name;
+                    if(settingName!="smsVerificationCode" && !vm.playerBeingEdited.smsSetting[settingName]) {
+                        vm.playerBeingEdited.smsSettingSelectAll = false;
+                        return;
+                    }
+                }
+                vm.playerBeingEdited.smsSettingSelectAll = true;
+            };
             vm.updateSMSSettings = function () {
                 //oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 let playerId = vm.isOneSelectedPlayer()._id;
@@ -7372,6 +7391,7 @@ define(['js/app'], function (myApp) {
                     phoneType: data.data.phoneType,
                     partnerId: data.data.partnerId,
                     isOnline: data.data.isOnline,
+                    playerObjId: data.data._id,
                     playerId: data.data.playerId,
                     remarks: data.data.partnerName ? $translate("PARTNER") + ": " + data.data.partnerName : "",
                     status: vm.constProposalStatus.MANUAL,
@@ -10277,6 +10297,8 @@ define(['js/app'], function (myApp) {
                 vm.mailLog = vm.mailLog || {};
                 vm.mailLog.query = {};
                 vm.mailLog.receivedMails = [{}];
+                vm.mailLog.isAdmin = true;
+                vm.mailLog.isSystem = false;
                 utilService.actionAfterLoaded('#messagePlayerModal.in #messageLogPanel #mailLogQuery .endTime', function () {
                     vm.mailLog.startTime = utilService.createDatePicker('#messageLogPanel #mailLogQuery .startTime');
                     vm.mailLog.endTime = utilService.createDatePicker('#messageLogPanel #mailLogQuery .endTime');
@@ -10292,6 +10314,11 @@ define(['js/app'], function (myApp) {
                     startTime: vm.mailLog.startTime.data('datetimepicker').getLocalDate() || new Date(0),
                     endTime: vm.mailLog.endTime.data('datetimepicker').getLocalDate() || new Date()
                 };
+                if(!vm.mailLog.isAdmin && vm.mailLog.isSystem){
+                    requestData.senderType = 'System';
+                } else if (vm.mailLog.isAdmin && !vm.mailLog.isSystem) {
+                    requestData.senderType = 'admin';
+                }
                 $scope.$socketPromise('searchMailLog', requestData).then(result => {
                     console.log("result:", result);
                     vm.mailLog.receivedMails = result.data;
@@ -10305,6 +10332,8 @@ define(['js/app'], function (myApp) {
                 vm.smsLog.query = {};
                 vm.smsLog.searchResults = [{}];
                 vm.smsLog.query.status = "all";
+                vm.smsLog.query.isAdmin = true;
+                vm.smsLog.query.isSystem = false;
                 utilService.actionAfterLoaded('.modal.in #smsLogPanel #smsLogQuery .endTime', function () {
                     vm.smsLog.query.startTime = utilService.createDatePicker('#smsLogPanel #smsLogQuery .startTime');
                     vm.smsLog.query.endTime = utilService.createDatePicker('#smsLogPanel #smsLogQuery .endTime');
@@ -10321,6 +10350,8 @@ define(['js/app'], function (myApp) {
             vm.searchSMSLog = function (newSearch) {
                 var requestData = {
                     // playerId: vm.selectedSinglePlayer.playerId,
+                    isAdmin: vm.smsLog.query.isAdmin,
+                    isSystem: vm.smsLog.query.isSystem,
                     status: vm.smsLog.query.status,
                     startTime: vm.smsLog.query.startTime.data('datetimepicker').getLocalDate(),//$('#smsLogQuery .startTime input').val() || undefined,
                     endTime: vm.smsLog.query.endTime.data('datetimepicker').getLocalDate(),//$('#smsLogQuery .endTime   input').val() || undefined,
@@ -10330,6 +10361,7 @@ define(['js/app'], function (myApp) {
                 if (vm.smsLog.type == "single") {
                     requestData.playerId = vm.selectedSinglePlayer.playerId;
                 }
+
                 //console.log("requestData:", requestData);
                 $scope.$socketPromise('searchSMSLog', requestData).then(result => {
                     vm.smsLog.searchResults = result.data.data.map(item => {
