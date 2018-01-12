@@ -53,7 +53,7 @@ ez-modal(modal-id="messagePlayerModal", modal-title="{{'SEND_MESSAGE_TO_PLAYER' 
                         tr(ng-repeat='(i,mailLog) in vm.mailLog.receivedMails')
                             td {{mailLog.createTime | date:'medium'}}
                             td {{mailLog.senderType}}
-                            td {{mailLog.senderName}}
+                            td {{mailLog.senderName | translate}}
                             td {{mailLog.content}}
 
     ez-modal-footer(ng-if="vm.messageModalTab === 'sendMessageToPlayerPanel'")

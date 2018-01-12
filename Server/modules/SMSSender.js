@@ -6,6 +6,8 @@ const constMessageType = require('../const/constMessageType');
 const smsAPI = require('../externalAPI/smsAPI');
 const localization = require("../modules/localization").localization;
 const errorUtils = require("../modules/errorUtils.js");
+const dbLogger = require('./dbLogger');
+const constPromoCodeLegend = require("../const/constPromoCodeLegend.js");
 
 const SMSSender = {
 
@@ -87,7 +89,117 @@ const SMSSender = {
                 }
             }
         ).then().catch(errorUtils.reportError);
-    }
+    },
+
+    sendPromoCodeSMSByPlayerId(playerObjId, promoData){
+        console.log("AAAAAAAAAAAAAAAAAAAA",promoData);
+        var defaultChannel = null;
+        var platformId = null;
+        var phoneNumber = null;
+        var nextChannel = null;
+        let playerId = null;
+        dbconfig.collection_players.findOne({_id: playerObjId}).populate({
+            path: "platform", model: dbconfig.collection_platform
+        }).then(
+            playerData => {
+                if (playerData && playerData.platform && playerData.receiveSMS) {
+                    platformId = playerData.platform.platformId;
+                    phoneNumber = playerData.phoneNumber;
+                    playerId = playerData.playerId;
+                    //get sms channel
+                    smsAPI.channel_getChannelList({}).then(
+                        channelData => {
+                            if (channelData && channelData.channels && channelData.channels.length > 0) {
+                                defaultChannel = channelData.channels[0];
+                                if( channelData.channels.length > 1 ){
+                                    nextChannel = channelData.channels[1];
+                                }
+
+                                let messageContent = SMSSender.contentModifier(promoData.promoCodeType.smsContent,promoData);
+
+                                var messageData = {
+                                    channel: defaultChannel,
+                                    tel: playerData.phoneNumber,
+                                    platformId: platformId,
+                                    message: messageContent,
+                                    delay: 0
+                                };
+
+                                let logData = {
+                                    playerId: playerId,
+                                    channel: defaultChannel,
+                                    platformId: platformId,
+                                    tel: playerData.phoneNumber,
+                                    message: messageContent
+                                }
+
+                                return smsAPI.sending_sendMessage(messageData).then(
+                                    () => {
+                                        dbLogger.createSMSLog(null, null, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'success');
+                                    },
+                                    error => {
+                                        dbLogger.createSMSLog(null, null, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'failure');
+                                        //todo::refactor this to properly while loop
+                                        if( nextChannel != null ){
+                                            var nextMessageData = {
+                                                channel: nextChannel,
+                                                tel: playerData.phoneNumber,
+                                                platformId: platformId,
+                                                message: messageContent,
+                                                delay: 0
+                                            };
+
+                                            return smsAPI.sending_sendMessage(nextMessageData);
+                                        }
+                                    }
+                                );
+                            }
+                        }
+                    ).then().catch(errorUtils.reportError);
+                }
+            }
+        );
+    },
+
+    contentModifier: function(messageContent, promoData){
+        Object.keys(constPromoCodeLegend).forEach(e => {
+            let indexCode = constPromoCodeLegend[e];
+            let codePositionIndex = messageContent.indexOf("(" + indexCode + ")");
+            let contentToReplace = "";
+
+            switch (indexCode) {
+                case "X":
+                    contentToReplace = promoData.amount;
+                    break;
+                case "D":
+                    contentToReplace = promoData.minTopUpAmount;
+                    break;
+                case "Y":
+                    contentToReplace = promoData.requiredConsumption;
+                    break;
+                case "Z":
+                    contentToReplace = promoData.expirationTime;
+                    break;
+                case "P":
+                    contentToReplace = promoData.allowedProviders;
+                    break;
+                case "Q":
+                    contentToReplace = promoData.code;
+                    break;
+                case "M":
+                    contentToReplace = promoData.maxRewardAmount;
+                    break;
+                default:
+                    break;
+            }
+
+            if (codePositionIndex > -1) {
+                messageContent = messageContent.substr(0, codePositionIndex) + contentToReplace + messageContent.substr(codePositionIndex + 3);
+            }
+        });
+
+        return messageContent;
+    },
 
 };
 
