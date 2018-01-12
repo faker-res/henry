@@ -2959,7 +2959,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate("STATUS"),
                             render: function (data, type, row) {
-                                return (row.status == 1 ? $translate("SUCCESS") : row.status == 2 ? $translate("FAIL") : $translate("REQUEST"));
+                                return $translate($scope.constPlayerCreditTransferStatus[row.status]);
                             }
                         }
                     ],
