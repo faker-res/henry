@@ -313,6 +313,7 @@ var dbUtility = {
         return date ? moment(date).tz('Asia/Singapore').startOf('day').add(1, 'days').toDate() : null;
     },
 
+
     getPreviousSGDayOfDate: function (date) {
         return date ? {
             startTime: moment(date).tz('Asia/Singapore').subtract(1, 'days').startOf('day').toDate(),

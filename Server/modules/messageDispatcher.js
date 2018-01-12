@@ -109,7 +109,7 @@ const messageDispatcher = {
         }
         // @todo SMS format
         else {
-            return Q.reject("I do not know how to dispatch a message with format '" + format + "'.");
+            // return Q.reject("I do not know how to dispatch a message with format '" + format + "'.");
         }
     }
 

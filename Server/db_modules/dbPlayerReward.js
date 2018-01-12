@@ -2834,7 +2834,7 @@ let dbPlayerReward = {
                     inputDevice: inputDevice
                 };
 
-                let endTime = moment(proposalData.data.startTime).add(limitedOfferObj.inStockDisplayTime,'m').toDate();
+                let endTime = moment(proposalData.data.startTime).add(limitedOfferObj.outStockDisplayTime,'m').toDate();
                 if (proposalData.data.expirationTime > endTime) {
                     proposalData.data.expirationTime = endTime;
                     let topUpDuration = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.expirationTime).getTime()) / 1000));
