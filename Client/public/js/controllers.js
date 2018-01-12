@@ -296,7 +296,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             $('#cssmenu .navbar-brand  a[name*="mainPage"]').parent().removeClass('clickedBackstagePrivilege');
     };
 
-    $scope.curPlatformText = "XBet";
+    $scope.curPlatformText = $cookies.get(authService.cookiePlatformKey) || "XBet";
     $scope.showPlatformDropDownList = false;
 
     $scope.switchPlatform = ($event) => {
@@ -332,7 +332,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             }, 1000);
 
             //select platform from cookies data
-            let storedPlatform = $cookies.get("platform");
+            // let storedPlatform = $cookies.get("platform");
+            let storedPlatform = $cookies.get(authService.cookiePlatformKey);
             if (storedPlatform) {
                 $scope.searchAndSelectPlatform(storedPlatform, option);
             }
@@ -394,7 +395,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.selectPlatformNode = function (node, option) {
         $scope.selectedPlatform = node;
         $scope.curPlatformText = node.text;
-        console.log("$scope.selectedPlatform", $scope.selectedPlatform);
+        authService.updatePlatform($cookies, node.text)
+        console.log("$scope.selectedPlatform", node.text);
         $cookies.put("platform", node.text);
         if (option && !option.loadAll) {
             $scope.safeApply();
