@@ -38,6 +38,8 @@ const dbUtility = require('./../modules/dbutility');
 const errorUtils = require("./../modules/errorUtils.js");
 const rewardUtility = require("../modules/rewardUtility");
 const dbLogger = require("../modules/dbLogger");
+const SMSSender = require('../modules/SMSSender');
+const messageDispatcher = require("../modules/messageDispatcher.js");
 
 let rsaCrypto = require("../modules/rsaCrypto");
 
@@ -1852,6 +1854,8 @@ let dbPlayerReward = {
             }
         ).then(
             newPromoCode => {
+                SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry);
+                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry);
                 return newPromoCode.code;
             }
         )
@@ -2834,7 +2838,7 @@ let dbPlayerReward = {
                     inputDevice: inputDevice
                 };
 
-                let endTime = moment(proposalData.data.startTime).add(limitedOfferObj.inStockDisplayTime,'m').toDate();
+                let endTime = moment(proposalData.data.startTime).add(limitedOfferObj.outStockDisplayTime,'m').toDate();
                 if (proposalData.data.expirationTime > endTime) {
                     proposalData.data.expirationTime = endTime;
                     let topUpDuration = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.expirationTime).getTime()) / 1000));
