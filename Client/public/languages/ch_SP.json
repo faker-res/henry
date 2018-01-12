@@ -1414,6 +1414,9 @@
   "RewardPointsChange": "修改积分",
   "RewardPointsConvert": "兑换积分",
 
+  "CHINESE_TRANSLATION_CSV": "中文翻譯（CSV)",
+  "DOWNLOAD_CSV": "下載",
+
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
