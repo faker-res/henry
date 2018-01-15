@@ -3057,6 +3057,7 @@
   "sendTime": "发送时间",
   "OPERATOR": "操作员",
   "senderName": "发送人名称",
-  "senderType": "发送人类型"
+  "senderType": "发送人类型",
+  "Account Branch": "开户分行"
 
 }
