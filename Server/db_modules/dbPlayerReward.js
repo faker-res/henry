@@ -1848,7 +1848,7 @@ let dbPlayerReward = {
 
     },
 
-    generatePromoCode: (platformObjId, newPromoCodeEntry) => {
+    generatePromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName) => {
         // Check if player exist
         return dbConfig.collection_players.findOne({
             platform: platformObjId,
@@ -1868,8 +1868,8 @@ let dbPlayerReward = {
             }
         ).then(
             newPromoCode => {
-                SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry);
-                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry);
+                SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName);
                 return newPromoCode.code;
             }
         )
