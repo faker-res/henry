@@ -1280,67 +1280,38 @@ var proposal = {
     getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName, inputDevice) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
 
-        let platformIds = platformId.map(p => {
-            if(p && typeof p != "object"){
-                return ObjectId(p);
-            }
-        })
-
-        //check proposal without process
-        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
-
-        //check proposal with process
-        // var prom2 = dbconfig.collection_proposalTypeProcess.find({platformId: platformId}).lean().then(
-        //     types => {
-        //         if (types && types.length > 0) {
-        //             var proposalProcessTypesId = [];
-        //             for (var i = 0; i < types.length; i++) {
-        //                 if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
-        //                     proposalProcessTypesId.push(types[i]._id);
-        //                 }
-        //             }
-        //             return dbconfig.collection_proposalProcess.find({
-        //                 type: {$in: proposalProcessTypesId},
-        //                 status: {$in: statusArr}
-        //             }).lean();
-        //         }
-        //         else {
-        //             return Q.reject({name: "DataError", message: "Can not find platform proposal process types"});
-        //         }
-        //     }
-        // );
-        return Q.all([prom1]).then(//removed , prom2
+        return dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean().then(//removed , prom2
             data => {
-                if (data && data[0]) { // removed  && data[1]
-                    var types = data[0];
-                    // var processes = data[1];
-                    if (types && types.length > 0) {
-                        var proposalTypesId = [];
+                if (data) {
+                    let types = data;
 
-                        for (var i = 0; i < types.length; i++) {
+                    if (types && types.length > 0) {
+                        let proposalTypesId = [];
+
+                        // can directly pass object id into this
+                        for (let i = 0; i < types.length; i++) {
                             if ((!typeArr || (typeArr && typeArr.length == 0)) || typeArr.indexOf(types[i].name) != -1) {
                                 proposalTypesId.push(types[i]._id);
                             }
                         }
 
-                        // var processIds = [];
-                        // for (var j = 0; j < processes.length; j++) {
-                        //     processIds.push(processes[j]._id);
-                        // }
-                        var queryObj = {
+                        let queryObj = {
                             type: {$in: proposalTypesId},
                             createTime: {
                                 $gte: new Date(startTime),
                                 $lt: new Date(endTime)
-                            },
-                            status: {$in: statusArr}
+                            }
                         };
+
+                        if (statusArr) {
+                            queryObj.status = {$in: statusArr}
+                        }
 
                         if (userName) {
                             queryObj['data.name'] = userName;
                         }
+
                         if (relateUser) {
-                            // queryObj["data.playerName"] = relateUser;
                             queryObj["$and"] = [];
                             queryObj["$and"].push({
                                 $or: [
@@ -1377,11 +1348,7 @@ var proposal = {
                         }
 
                         if (promoTypeName && promoTypeName.length > 0) {
-                            queryObj["$and"] = queryObj["$and"] || [];
-                            let dataCheck = {"data.PROMO_CODE_TYPE": {$in: promoTypeName}};
-                            let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
-                            let orQuery = [dataCheck, existCheck];
-                            queryObj["$and"].push({$or: orQuery});
+                            queryObj["data.PROMO_CODE_TYPE"] = {$in: promoTypeName};
                         }
 
                         if (credit) {
