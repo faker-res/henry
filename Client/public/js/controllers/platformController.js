@@ -7171,15 +7171,28 @@ define(['js/app'], function (myApp) {
                 if (Object.keys(updateData).length > 0) {
                     updateData._id = playerId;
                     var isUpdate = false;
+                    var isMerchantGroupChange = false;
+                    var isBankCardGroupChange = false;
+                    var isAlipayGroup = false;
+                    var isWechatPayGroup = false;
                     updateData.playerName = newPlayerData.name || vm.editPlayer.name
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
                     Object.keys(newPlayerData).forEach(function (key) {
                         if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup" || key == "referralName") {
+                            if (key == "smsSetting" || key == "quickPayGroup" || key == "referralName") {
                                 //do nothing
                             } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                                 //do nothing
-                            } else {
+                            } else if (key == "merchantGroup") {
+                                isMerchantGroupChange = true;
+                            } else if (key == "bankCardGroup") {
+                                isBankCardGroupChange = true;
+                            } else if (key == "alipayGroup") {
+                                isAlipayGroup = true;
+                            } else if (key == "wechatPayGroup") {
+                                isWechatPayGroup = true;
+                            }
+                            else {
                                 isUpdate = true;
                             }
                         }
@@ -7222,6 +7235,10 @@ define(['js/app'], function (myApp) {
                     delete updateData.merchantGroup;
                     delete updateData.alipayGroup;
                     delete updateData.quickPayGroup;
+
+                    if(!isBankCardGroupChange && !isAlipayGroup && !isWechatPayGroup && isMerchantGroupChange ){
+                        isUpdate = false;
+                    }
 
                     if (isUpdate) {
                         socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
@@ -7333,7 +7350,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
                 vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false ;
 
-                console.log('newPlayer', vm.newPlayer);
+               console.log('newPlayer', vm.newPlayer);
                 if (vm.newPlayer.createPartner) {
                     socketService.$socket($scope.AppSocket, 'createPlayerPartner', vm.newPlayer, function (data) {
                         vm.playerCreateResult = data;
