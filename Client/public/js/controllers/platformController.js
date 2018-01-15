@@ -7350,7 +7350,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
                 vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false ;
 
-               console.log('newPlayer', vm.newPlayer);
+                console.log('newPlayer', vm.newPlayer);
                 if (vm.newPlayer.createPartner) {
                     socketService.$socket($scope.AppSocket, 'createPlayerPartner', vm.newPlayer, function (data) {
                         vm.playerCreateResult = data;
