@@ -49,7 +49,7 @@ const messageDispatcher = {
         );
     },
 
-    dispatchMessagesForPromoCode: function (platformObjId, metaData) {
+    dispatchMessagesForPromoCode: function (platformObjId, metaData, adminName) {
         let providerNameList = [];
         const playerId = metaData.playerObjId;
         // Fetch any data which might be used in the template
@@ -60,7 +60,7 @@ const messageDispatcher = {
                 metaData.recipientId = player._id;
                 metaData.recipientType = 'player';
                 metaData.senderType = 'admin';
-                metaData.senderName = 'OPERATOR';
+                metaData.senderName = adminName ? adminName: "";
                 metaData.platformId = platformObjId;
                 const platformId = platformObjId;
 
