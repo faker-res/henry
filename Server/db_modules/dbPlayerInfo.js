@@ -48,6 +48,7 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var pmsAPI = require("../externalAPI/pmsAPI.js");
 var localization = require("../modules/localization");
+var ch_SP = require("../locales/ch_SP");
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 var queryPhoneLocation = require('query-mobile-phone-area');
@@ -1767,7 +1768,9 @@ let dbPlayerInfo = {
             updatedData => {
                 let inputDeviceData = dbUtility.getInputDevice(userAgent,false);
                 updateData.isPlayerInit = true;
-                updateData.playerName = playerObj.name;
+               // updateData.playerName = playerObj.name;
+                updateData.playerId = playerObj.playerId || "";
+                updateData.name = playerObj.name || "";
 
                 // If user modified their own, no proposal needed
                 if (!skipProposal) {
@@ -11975,6 +11978,29 @@ let dbPlayerInfo = {
                 return {data: logs, size: count};
             }
         )
+    },
+
+    // translation CSV at platform config
+    downloadTranslationCSV: function () {
+        let simplifiedChinese = ch_SP;
+        let outputChineseKey = [];
+        let outputChineseValue = [];
+
+        for (let key in simplifiedChinese) {
+            if (simplifiedChinese.hasOwnProperty(key)) {
+                let value = simplifiedChinese[key];
+                outputChineseKey.push(key);
+                outputChineseValue.push(value);
+            }
+        }
+
+        let exportCSVResult = [];
+        for (let x = 0; x < outputChineseKey.length; x++) {
+            for (let y = 0; y < outputChineseValue.length; y++) {
+                exportCSVResult.push([outputChineseKey[x++], outputChineseValue[y]]); //create nested array
+            }
+        }
+        return exportCSVResult;
     },
 
     comparePhoneNum: function (filterAllPlatform, platformObjId, arrayInputPhone) {
