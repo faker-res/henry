@@ -59,9 +59,9 @@ var playerSchema = new Schema({
     //is test player, convertion rate = total(isTestPlayer && isRealPlayer)/total(isTestPlayer)
     isTestPlayer: {type: Boolean, default: false},
     //is real player
-    isRealPlayer: {type: Boolean, default: true},
+    isRealPlayer: {type: Boolean, default: true, index: true},
     //last feedback time
-    lastFeedbackTime: {type: Date, default: ""},
+    lastFeedbackTime: {type: Date, default: "", index: true},
     //feedback times
     feedbackTimes: {type: Number, min: 0, default: 0},
     //no more feedback
@@ -184,7 +184,7 @@ var playerSchema = new Schema({
     //total top up
     topUpSum: {type: Number, min: 0, default: 0},
     //top up times
-    topUpTimes: {type: Number, min: 0, default: 0},
+    topUpTimes: {type: Number, min: 0, default: 0, index: true},
     //daily consumption sum for level up check
     dailyConsumptionSum: {type: Number, min: 0, default: 0},
     //weekly consumption sum for level up check
