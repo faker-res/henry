@@ -428,8 +428,6 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            let promoType = $('select#selectPromoType').multipleSelect("getSelects");
-
             let startTime = $('#datetimepicker').data('datetimepicker').getLocalDate();
             let endTime = $('#datetimepicker2').data('datetimepicker').getLocalDate();
             let sendData = {
@@ -438,7 +436,7 @@ define(['js/app'], function (myApp) {
                 inputDevice: vm.proposalInputDevice,
                 //eventName: rewardNames,
                 eventName: rewardEventName,
-                promoTypeName: promoType,
+                promoTypeName: [],
                 //type: vm.proposalTypeSelected,
                 type: proposalTypeNames,
                 startDate: startTime,
@@ -448,6 +446,16 @@ define(['js/app'], function (myApp) {
                 index: newSearch ? 0 : (vm.queryProposal.index || 0),
                 sortCol: vm.queryProposal.sortCol
             };
+
+            let promoType = $('select#selectPromoType').multipleSelect("getSelects");
+
+            if (vm.promoTypeList.length != promoType.length) {
+                vm.promoTypeList.filter(item => {
+                    if (promoType.indexOf(item.name) > -1) {
+                        sendData.promoTypeName.push(item.name);
+                    }
+                });
+            }
 
             if (vm.queryProposalRelatedUser) {
                 sendData.relateUser = vm.queryProposalRelatedUser.toLowerCase();
@@ -660,7 +668,8 @@ define(['js/app'], function (myApp) {
                     $('#ProposalDetail .delayTopupExpireDate').on('click', function () {
                         var $tr = $(this).closest('tr');
                         vm.delayTopupExpirDate(obj, function (newData) {
-                            $tr.find('td:nth-child(2)').first().text(utilService.getFormatTime(newData.newValidTime));
+                            obj.validTime = newData.newValidTime;
+                            obj.status = "Pending";
                             vm.needRefreshTable = true;
                             $scope.safeApply();
                         });
@@ -830,6 +839,8 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'delayManualTopupRequest', sendData, function (data) {
                 console.log("update data", data);
                 vm.selectedProposal.status = 'Pending';
+                vm.selectedProposal.data.validTime = data.data.newValidTime;
+                vm.selectedProposalDetailForDisplay.validTime = data.data.newValidTime;
                 $scope.safeApply();
                 if (callback) {
                     callback(data.data);

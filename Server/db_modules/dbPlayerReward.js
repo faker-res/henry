@@ -38,6 +38,8 @@ const dbUtility = require('./../modules/dbutility');
 const errorUtils = require("./../modules/errorUtils.js");
 const rewardUtility = require("../modules/rewardUtility");
 const dbLogger = require("../modules/dbLogger");
+const SMSSender = require('../modules/SMSSender');
+const messageDispatcher = require("../modules/messageDispatcher.js");
 
 let rsaCrypto = require("../modules/rsaCrypto");
 
@@ -1535,11 +1537,23 @@ let dbPlayerReward = {
                             }
                             : {path: "allowedProviders", model: dbConfig.collection_gameProvider};
 
-                        return dbConfig.collection_promoCode.find(query)
+                        let promoCodesProm = dbConfig.collection_promoCode.find(query)
                             .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
-                            .populate(populateCond).lean()
+                            .populate(populateCond).lean();
+
+                        let bonusUrlProm = Promise.resolve();
+
+                        if (Number(platformData.platformId) === 6) {
+                            // due to dependency loop, require dbPlatform only when needed to prevent ('function not found') error
+                            let dbPlatform = require('../db_modules/dbPlatform');
+                            bonusUrlProm = dbPlatform.getLiveStream(playerData._id).catch(errorUtils.reportError);
+                        }
+
+                        return Promise.all([promoCodesProm, bonusUrlProm])
                             .then(
-                                promocodes => {
+                                data => {
+                                    let promocodes = data && data[0] ? data[0] : [];
+                                    let bonusUrl = data && data[1] ? data[1].url : false;
                                     let usedListArr = [];
                                     let noUseListArr = [];
                                     let expiredListArr = [];
@@ -1600,7 +1614,9 @@ let dbPlayerReward = {
                                         if (status == "1") {
                                             noUseListArr.push(promo);
                                         } else if (status == "2") {
-                                            promo.bonusUrl = playerData.name;
+                                            if (bonusUrl) {
+                                                promo.bonusUrl = bonusUrl;
+                                            }
                                             usedListArr.push(promo);
                                         } else if (status == "3") {
                                             expiredListArr.push(promo);
@@ -1852,6 +1868,8 @@ let dbPlayerReward = {
             }
         ).then(
             newPromoCode => {
+                SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry);
+                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry);
                 return newPromoCode.code;
             }
         )
