@@ -906,6 +906,11 @@
   "RewardPointsChange": "Change Reward Points",
   "RewardPointsConvert": "Convert Reward Points",
 
+  "CHINESE_TRANSLATION_CSV": "Chinese Translation (CSV)",
+  "PREPARE_CSV": "Prepare file..",
+  "DOWNLOAD_CSV": "Download",
+  "DownloadTranslationCSV": "Download Translation CSV",
+
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
   "SMS_VERIFICATION": "SMS Verification",

@@ -74,7 +74,7 @@ var PartnerServiceImplement = function () {
             conn.captchaCode = null;
             wsFunc.response(conn, {
                 status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
-                errorMessage: localization.translate("Verification code invalid", conn.lang),
+                errorMessage: localization.translate("Verification code invalid", conn.lang, conn.platformId),
                 data: null
             }, data);
         }
@@ -92,14 +92,14 @@ var PartnerServiceImplement = function () {
                     // User Exists in db
                     wsFunc.response(conn, {
                         status: constServerCode.SUCCESS,
-                        errorMessage: localization.translate("Username is Valid", conn.lang),
+                        errorMessage: localization.translate("Username is Valid", conn.lang, conn.platformId),
                         data: true,
                     }, data);
                 } else {
                     // User does not exist in db, username is available to use
                     wsFunc.response(conn, {
                         status: constServerCode.USERNAME_ALREADY_EXIST,
-                        errorMessage: localization.translate("Username already exists", conn.lang),
+                        errorMessage: localization.translate("Username already exists", conn.lang, conn.platformId),
                         data: false,
                     }, data);
                 }
@@ -143,7 +143,7 @@ var PartnerServiceImplement = function () {
                         conn.captchaCode = null;
                         wsFunc.response(conn, {
                             status: constServerCode.INVALID_CAPTCHA,
-                            errorMessage: localization.translate("Captcha code invalid", conn.lang),
+                            errorMessage: localization.translate("Captcha code invalid", conn.lang, conn.platformId),
                             data: {noOfAttempt: conn.noOfAttempt},
 
                         }, data);
@@ -174,7 +174,7 @@ var PartnerServiceImplement = function () {
                     wsFunc.response(conn, {
                         status: constServerCode.INVALID_USER_PASSWORD,
                         data: {noOfAttempt: conn.noOfAttempt},
-                        errorMessage: localization.translate("User not found OR Invalid Password", conn.lang),
+                        errorMessage: localization.translate("User not found OR Invalid Password", conn.lang, conn.platformId),
                     }, data);
                 }
             }

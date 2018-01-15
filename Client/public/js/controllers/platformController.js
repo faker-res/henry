@@ -10006,7 +10006,8 @@ define(['js/app'], function (myApp) {
                             }
                         }
                         if (reset && vm.districtList && vm.districtList[0]) {
-                            vm.currentDistrict.district = vm.districtList[0].id
+                            // vm.currentDistrict.district = vm.districtList[0].id
+                            vm.currentDistrict.district = ""
                         }
                         $scope.safeApply();
                     }
@@ -18221,6 +18222,16 @@ define(['js/app'], function (myApp) {
                 }, 1);
             };
             // player level codes==============end===============================
+
+            vm.downloadTranslationCSV = function () {
+                vm.prepareTranslationCSV = false;
+
+                socketService.$socket($scope.AppSocket, 'downloadTranslationCSV', {}, function (data) {
+                    vm.prepareTranslationCSV = true;
+                    vm.exportTranslationCSV = data.data;
+                    $scope.safeApply();
+                });
+            };
 
             // phone number filter codes==============start===============================
             vm.phoneNumFilterClicked = function () {

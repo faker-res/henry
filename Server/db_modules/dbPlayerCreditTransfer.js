@@ -1079,16 +1079,17 @@ let dbPlayerCreditTransfer = {
                             inProvider: false
                         }, {
                             new: true
-                        }).then(
-                            updatedRewardGroup => {
-                                // Check whether provider group has undergo operation
-                                if (updatedRewardGroup.status != constRewardTaskStatus.STARTED) {
-                                    return dbRewardTask.completeRewardTaskGroup(updatedRewardGroup, updatedRewardGroup.status);
-                                }
-
-                                return true;
-                            }
-                        )
+                        })
+                        //     .then(
+                        //     updatedRewardGroup => {
+                        //         // Check whether provider group has undergo operation
+                        //         if (updatedRewardGroup.status != constRewardTaskStatus.STARTED) {
+                        //             return dbRewardTask.completeRewardTaskGroup(updatedRewardGroup, updatedRewardGroup.status);
+                        //         }
+                        //
+                        //         return true;
+                        //     }
+                        // )
                     } else {
                         return true;
                     }

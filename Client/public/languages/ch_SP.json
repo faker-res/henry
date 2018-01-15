@@ -1414,6 +1414,11 @@
   "RewardPointsChange": "修改积分",
   "RewardPointsConvert": "兑换积分",
 
+  "CHINESE_TRANSLATION_CSV": "中文翻译（CSV)",
+  "PREPARE_CSV": "预备文档..",
+  "DOWNLOAD_CSV": "下载",
+  "DownloadTranslationCSV": "下载翻译CSV",
+
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
@@ -3060,7 +3065,7 @@
   "sms group settings": "分组短信项目",
   "sms group": "短信分组",
   "DELETE_SMS_GROUP": "删除短信分组",
-  "Are you sure you want to delete sms setting group": "你确定要删除短信分组"
-
+  "Are you sure you want to delete sms setting group": "你确定要删除短信分组",
+  "Account Branch": "开户分行"
 
 }
