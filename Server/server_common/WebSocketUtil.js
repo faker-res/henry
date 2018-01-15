@@ -34,7 +34,7 @@ var WebSocketUtility = {
             function (error) {
                 // Do not log authentication failures or invalid requests.
                 // The client should have enough information to solve those.
-                if (error === false || error === localization.translate("INVALID_DATA", conn.lang) || error.status) {
+                if (error === false || error === localization.translate("INVALID_DATA", conn.lang) || error.status, conn.platformId) {
                     return;
                 }
                 // Log the error in detail, so a developer can reproduce it and resolve it.
@@ -77,7 +77,7 @@ var WebSocketUtility = {
      * @param {Boolean} noAuth - no need auth check
      */
     responsePromise: function (conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth) {
-        var $translate = text => localization.translate(text, conn.lang);
+        var $translate = text => localization.translate(text, conn.lang, conn.platformId);
 
         //todo::need to update expacts data properly for each service function first then enable the check below
         // if (wsFunc && wsFunc.expectsData) {
@@ -100,7 +100,7 @@ var WebSocketUtility = {
 
             wsFunc.response(conn, {
                 status: errorCode,
-                errorMessage: localization.translate(returnMsg, conn.lang),
+                errorMessage: localization.translate(returnMsg, conn.lang, conn.platformId),
                 data: serverInstance.getServerType() == "dataMigration" ? reqData : null
             }, reqData);
             deferred.reject(false);
@@ -138,7 +138,7 @@ var WebSocketUtility = {
                         if (err && err.status) {
                             if (err.errorMessage || err.message) {
                                 var msg = err.errorMessage || err.message;
-                                err.errorMessage = localization.translate(msg, conn.lang);
+                                err.errorMessage = localization.translate(msg, conn.lang, conn.platformId);
                             }
                             wsFunc.response(conn, err, reqData);
                         }
@@ -146,7 +146,7 @@ var WebSocketUtility = {
                             var errorCode = err && err.code || constServerCode.COMMON_ERROR;
                             var resObj = {
                                 status: errorCode,
-                                errorMessage: localization.translate(err.message || err.errorMessage, conn.lang),
+                                errorMessage: localization.translate(err.message || err.errorMessage, conn.lang, conn.platformId),
                                 data: serverInstance.getServerType() == "dataMigration" ? reqData : null
                             };
                             resObj.errorMessage = err.errMessage || resObj.errorMessage;
@@ -166,7 +166,7 @@ var WebSocketUtility = {
         }
         else {
             WebSocketUtility.invalidDataResponse(conn, wsFunc, reqData);
-            deferred.reject(localization.translate("INVALID_DATA", conn.lang));
+            deferred.reject(localization.translate("INVALID_DATA", conn.lang, conn.platformId));
         }
         return deferred.promise;
     },
@@ -181,7 +181,7 @@ var WebSocketUtility = {
     invalidDataResponse: function (conn, wsFunc, reqData, reason) {
         wsFunc.response(conn, {
             status: constServerCode.INVALID_PARAM,
-            errorMessage: reason || localization.translate("Invalid Data", conn.lang),
+            errorMessage: reason || localization.translate("Invalid Data", conn.lang, conn.platformId),
             data: serverInstance.getServerType() == "dataMigration" ? reqData : null
         }, reqData);
     },
@@ -323,8 +323,8 @@ var WebSocketUtility = {
                 else {
                     wsFunc.response(conn, {
                         status: constServerCode.INVALID_DATA,
-                        errorMessage: localization.translate("Invalid Data", conn.lang),
-                        errorMsg: localization.translate("Invalid Data", conn.lang),
+                        errorMessage: localization.translate("Invalid Data", conn.lang, conn.platformId),
+                        errorMsg: localization.translate("Invalid Data", conn.lang, conn.platformId),
                         code: data.code
                     }, reqData);
                 }
@@ -332,8 +332,8 @@ var WebSocketUtility = {
             err => {
                 return wsFunc.response(conn, {
                     status: constServerCode.COMMON_ERROR,
-                    errorMessage: localization.translate(err.message, conn.lang),
-                    errorMsg: localization.translate(err.message, conn.lang),
+                    errorMessage: localization.translate(err.message, conn.lang, conn.platformId),
+                    errorMsg: localization.translate(err.message, conn.lang, conn.platformId),
                     code: data.code
                 }, reqData);
             }
