@@ -10006,7 +10006,8 @@ define(['js/app'], function (myApp) {
                             }
                         }
                         if (reset && vm.districtList && vm.districtList[0]) {
-                            vm.currentDistrict.district = vm.districtList[0].id
+                            // vm.currentDistrict.district = vm.districtList[0].id
+                            vm.currentDistrict.district = ""
                         }
                         $scope.safeApply();
                     }
@@ -15954,8 +15955,76 @@ define(['js/app'], function (myApp) {
                         vm.providerGroupConfig = {showWarning: false};
                         vm.getPlatformProviderGroup();
                         break;
+                    case 'smsGroup':
+                        vm.deletingSmsGroup = null;
+                        vm.getPlatformSmsGroups().then(
+                            () => {
+                                vm.getNoInGroupSmsSetting();
+                            }
+                        );
+                        vm.getAllMessageTypes();
+
                 }
             };
+            vm.getNoInGroupSmsSetting = () => {
+                vm.noGroupSmsSetting = [];
+                for (let messageType in vm.allMessageTypes) {
+                    let isInGroup = false;
+                    vm.smsGroups.forEach((smsGroup) => {
+                        if ((smsGroup.smsParentSmsId !== -1 && vm.allMessageTypes[messageType].name === smsGroup.smsName) || vm.allMessageTypes[messageType].name === 'smsVerificationCode') {
+                            isInGroup = true;
+                        }
+                    });
+
+                    if(!isInGroup)
+                        vm.noGroupSmsSetting.push(vm.allMessageTypes[messageType]);
+                }
+                $scope.safeApply();
+            }
+
+            function updateSmsGroup() {
+                socketService.$socket($scope.AppSocket, 'updatePlatformSmsGroups', {smsGroups:vm.smsGroups, platformObjId: vm.selectedPlatform.data._id}, function (data) {
+                    vm.configTabClicked("smsGroup")
+                });
+            }
+
+            vm.addSmsSettingToGroup = (smsSetting, index) => {
+                if(!smsSetting.group) return;
+                vm.smsGroups.push({smsName:smsSetting.name ,smsParentSmsId: smsSetting.group, platformObjId:vm.selectedPlatform.data._id});
+                vm.noGroupSmsSetting.splice(index, 1);
+            }
+
+            vm.addNewSmsGroup = () => {
+                socketService.$socket($scope.AppSocket, 'addNewSmsGroup', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
+                    vm.smsGroups.push(data.data)
+                    $scope.safeApply();
+                });
+            }
+
+            vm.removeSmsSettingFromGroup = (smsSettingGroup) => {
+                vm.smsGroups = vm.smsGroups.filter(smsGroup => smsGroup.smsName !==smsSettingGroup.smsName && smsSettingGroup.smsParentSmsId !==-1);
+                vm.getNoInGroupSmsSetting();
+                $scope.safeApply();
+            };
+
+            vm.getPlatformSmsGroups =  () => {
+                return $scope.$socketPromise('getPlatformSmsGroups', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+                    vm.smsGroups = data.data;
+                    console.log('vm.smsGroups', vm.smsGroups);
+                    $scope.safeApply();
+                });
+            };
+
+            vm.deleteSmsGroup = (smsGroup) => {
+                return $scope.$socketPromise('deletePlatformSmsGroup', {_id: smsGroup._id}).then(function (data) {
+                    vm.getPlatformSmsGroups().then(
+                        () => {
+                            vm.getNoInGroupSmsSetting();
+                        }
+                    );
+                });
+            };
+
 
             vm.promoCodeTabClicked = function (choice) {
                 vm.selectedPromoCodeTab = choice;
@@ -18929,6 +18998,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'providerGroup':
                         updateProviderGroup();
+                        break;
+                    case 'smsGroup':
+                        updateSmsGroup();
                         break;
                 }
             };

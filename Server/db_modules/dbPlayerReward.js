@@ -1614,7 +1614,7 @@ let dbPlayerReward = {
                                         if (status == "1") {
                                             noUseListArr.push(promo);
                                         } else if (status == "2") {
-                                            if (bonusUrl) {
+                                            if (bonusUrl && promocode.isActive) {
                                                 promo.bonusUrl = bonusUrl;
                                             }
                                             usedListArr.push(promo);

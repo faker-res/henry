@@ -33,7 +33,7 @@ var RegistrationIntentionServiceImplement = function () {
                 } else {
                     wsFunc.response(conn, {
                         status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
-                        errorMessage: localization.translate("Verification code invalid", conn.lang),
+                        errorMessage: localization.translate("Verification code invalid", conn.lang, conn.platformId),
                         data: null
                     }, data);
                 }

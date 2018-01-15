@@ -35,7 +35,7 @@ var errorLogHandler = function (conn, wsFunc, data, err, functionName) {
     if (err && err.status) {
         if (err.errorMessage || err.message) {
             var msg = err.errorMessage || err.message;
-            err.errorMessage = localization.translate(msg, conn.lang);
+            err.errorMessage = localization.translate(msg, conn.lang, conn.platformId);
         }
         wsFunc.response(conn, err, data);
     }
@@ -43,7 +43,7 @@ var errorLogHandler = function (conn, wsFunc, data, err, functionName) {
         let errorCode = err && err.code || constServerCode.COMMON_ERROR;
         let resObj = {
             status: errorCode,
-            errorMessage: localization.translate(err.message || err.errorMessage, conn.lang),
+            errorMessage: localization.translate(err.message || err.errorMessage, conn.lang, conn.platformId),
             data: null
         };
         resObj.errorMessage = err.errMessage || resObj.errorMessage;
