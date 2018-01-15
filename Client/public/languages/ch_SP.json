@@ -1415,6 +1415,7 @@
   "RewardPointsConvert": "兑换积分",
 
   "CHINESE_TRANSLATION_CSV": "中文翻譯（CSV)",
+  "PREPARE_CSV": "预备文档..",
   "DOWNLOAD_CSV": "下載",
 
   "attachRolesToUsersById": "添加用户角色",

@@ -1194,7 +1194,10 @@
             .panel-heading.panel-heading-sm
                 label {{"CHINESE_TRANSLATION_CSV" | translate}}
             .panel-body
-                button.btn.btn-success.common-button(type='button', ng-click='vm.downloadTranslationCSV()')
+                button.btn.btn-success.common-button(type='button', ng-show='!vm.prepareTranslationCSV', ng-click='vm.downloadTranslationCSV()')
+                    i.fa.fa-cog
+                    text {{"PREPARE_CSV" | translate}}
+                button.btn.btn-success.common-button(type='button', ng-show='vm.prepareTranslationCSV', ng-csv='vm.exportTranslationCSV', filename='chineseTranslation.csv')
                     i.fa.fa-download
                     text {{"DOWNLOAD_CSV" | translate}}
 
