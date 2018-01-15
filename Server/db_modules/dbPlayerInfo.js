@@ -8088,13 +8088,17 @@ let dbPlayerInfo = {
                 deferred.reject({name: "DataError", message: "Token is not authenticated"});
             }
             else {
-                dbconfig.collection_players.findOne({playerId: playerId}).then(
+                dbconfig.collection_players.findOne({playerId: playerId}).populate({
+                    path: "platform",
+                    model: dbconfig.collection_platform
+                }).then(
                     playerData => {
                         if (playerData) {
                             if (playerData.lastLoginIp == playerIp) {
                                 conn.isAuth = true;
                                 conn.playerId = playerId;
                                 conn.playerObjId = playerData._id;
+                                conn.platformId = playerData.platform.platformId;
                                 deferred.resolve(true);
                             }
                             else {

@@ -7,6 +7,7 @@
 // });
 
 var simplifiedChinese = require('../locales/ch_SP');
+var simplifiedChinese2 = require('../locales/ch_SP2');
 
 var lang = {
     ch_SP: 1,
@@ -15,13 +16,27 @@ var lang = {
 
 var localization = {
 
-    translate: function(message, languages){
+    translate: function(message, languages, platformId){
         if( languages == lang.en  ){
             return message;
         }
         else{
-            if(simplifiedChinese[message]){
-                return simplifiedChinese[message];
+            let resMessage;
+
+            switch (platformId) {
+                case 1:
+                    resMessage = simplifiedChinese2[message];
+                    break;
+                case 2:
+                    resMessage = simplifiedChinese[message];
+                    break;
+                default:
+                    resMessage = simplifiedChinese[message];
+                    break;
+            }
+
+            if(resMessage){
+                return resMessage;
             }
             else{
                 //handle dynamic error messages
