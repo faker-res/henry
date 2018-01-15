@@ -1414,10 +1414,10 @@
   "RewardPointsChange": "修改积分",
   "RewardPointsConvert": "兑换积分",
 
-  "CHINESE_TRANSLATION_CSV": "中文翻譯（CSV)",
+  "CHINESE_TRANSLATION_CSV": "中文翻译（CSV)",
   "PREPARE_CSV": "预备文档..",
-  "DOWNLOAD_CSV": "下載",
-  "DownloadTranslationCSV": "下載翻譯CSV",
+  "DOWNLOAD_CSV": "下载",
+  "DownloadTranslationCSV": "下载翻译CSV",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
