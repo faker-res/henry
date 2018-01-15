@@ -1454,6 +1454,12 @@ var dbPlatform = {
             partnerId: data.partnerId || undefined,
             type: {$nin: ["registration"]}
         };
+        if(data.isAdmin && !data.isSystem){
+            query.adminName = {$exists: true, $ne: null};
+        }else if(data.isSystem && !data.isAdmin) {
+            query.adminName = {$eq: null};
+        }
+
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
         addOptionalTimeLimitsToQuery(data, query, 'createTime');

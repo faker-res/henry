@@ -1605,6 +1605,7 @@
   "TO_PLAYER": "给玩家",
   "To Partner": "给代理",
   "SEND": "发送",
+  "TIMEOUT": "请求超时",
   "Sender Type": "发送人类型",
   "Sender Name": "发送人名称",
   "SMS Log": "SMS记录",
@@ -3048,6 +3049,9 @@
   "rewardEventName": "优惠名称",
   "promoCodeName": "优惠代码名称",
   "cancelTime": "取消时间",
-  "sendTime": "发送时间"
+  "sendTime": "发送时间",
+  "OPERATOR": "操作员",
+  "senderName": "发送人名称",
+  "senderType": "发送人类型"
 
 }

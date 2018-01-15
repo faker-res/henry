@@ -1853,7 +1853,7 @@ include modalGameCreditLog
                             tr(ng-repeat='(i,mailLog) in vm.mailLog.receivedMails')
                                 td {{mailLog.createTime | date:'medium'}}
                                 td {{mailLog.senderType}}
-                                td {{mailLog.senderName}}
+                                td {{mailLog.senderName | translate}}
                                 td {{mailLog.content}}
             .modal-footer
                 button.common-button.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}

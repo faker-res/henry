@@ -1079,16 +1079,17 @@ let dbPlayerCreditTransfer = {
                             inProvider: false
                         }, {
                             new: true
-                        }).then(
-                            updatedRewardGroup => {
-                                // Check whether provider group has undergo operation
-                                if (updatedRewardGroup.status != constRewardTaskStatus.STARTED) {
-                                    return dbRewardTask.completeRewardTaskGroup(updatedRewardGroup, updatedRewardGroup.status);
-                                }
-
-                                return true;
-                            }
-                        )
+                        })
+                        //     .then(
+                        //     updatedRewardGroup => {
+                        //         // Check whether provider group has undergo operation
+                        //         if (updatedRewardGroup.status != constRewardTaskStatus.STARTED) {
+                        //             return dbRewardTask.completeRewardTaskGroup(updatedRewardGroup, updatedRewardGroup.status);
+                        //         }
+                        //
+                        //         return true;
+                        //     }
+                        // )
                     } else {
                         return true;
                     }
@@ -1157,7 +1158,7 @@ let dbPlayerCreditTransfer = {
                     );
                 }
                 else {
-                    return Q.reject({name: "DBError", message: "Error in increasing player credit."})
+                    return Q.reject({name: "DBError", message: "Failed to increase player credit."})
                 }
             },
             function (err) {

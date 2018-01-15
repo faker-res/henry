@@ -8,6 +8,7 @@ const dbMessageTemplate = require("../db_modules/dbMessageTemplate.js");
 const emailer = require("../modules/emailer");
 const serverInstance = require("./serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
+const constPromoCodeLegend = require("../const/constPromoCodeLegend.js");
 const assert = require('assert');
 
 const messageDispatcher = {
@@ -46,6 +47,135 @@ const messageDispatcher = {
                 return Q.all(proms);
             }
         );
+    },
+
+    dispatchMessagesForPromoCode: function (platformObjId, metaData) {
+        let providerNameList = [];
+        const playerId = metaData.playerObjId;
+        // Fetch any data which might be used in the template
+        return dbPlayerInfo.getPlayerInfo({_id: playerId}).then(
+            function (player) {
+                //metaData.proposalData = proposalData;
+                metaData.player = player;
+                metaData.recipientId = player._id;
+                metaData.recipientType = 'player';
+                metaData.senderType = 'admin';
+                metaData.senderName = 'OPERATOR';
+                metaData.platformId = platformObjId;
+                const platformId = platformObjId;
+
+                let proms = [];
+                let providerProm = [];
+                let gameProviderProm;
+                if(metaData && metaData.allowedProviders){
+                    if(metaData.isProviderGroup){
+                        return Promise.all([messageDispatcher.getProviderNameByProviderGroupId(metaData.allowedProviders)]);
+                    }else{
+                        return Promise.all([messageDispatcher.getProviderNameByProviderId(metaData.allowedProviders)]);
+                    }
+                }
+            }
+        ).then(
+            data => {
+                if(data && data[0] && data[0].length > 0){
+                    metaData.allowedProviders = data[0];
+                }
+
+                let messageContent = messageDispatcher.contentModifier(metaData.promoCodeType.smsContent,metaData);
+
+                let messageTemplate = {
+                    format: 'internal',
+                    subject: metaData.promoCodeType.smsTitle,
+                    content: messageContent
+                }
+
+                messageDispatcher.renderTemplateAndSendMessage(messageTemplate, metaData);
+            }
+        );
+    },
+
+    getProviderNameByProviderGroupId: function(providerGroupId){
+        let gameProviderProm = [];
+        let gameProviderNameArr =[];
+        return dbconfig.collection_gameProviderGroup.findOne({_id: providerGroupId}).then(
+            gameProviderGroupData => {
+                if(gameProviderGroupData && gameProviderGroupData.providers && gameProviderGroupData.providers.length > 0){
+                    gameProviderGroupData.providers.forEach(gameProviderId => {
+                        gameProviderProm.push(dbconfig.collection_gameProvider.findOne({_id: gameProviderId}));
+                    })
+                }
+                return Promise.all(gameProviderProm);
+            }
+        ).then(
+            gameProviderData => {
+                if(gameProviderData && gameProviderData.length > 0){
+                    gameProviderData.forEach(gameProvider => {
+                        gameProviderNameArr.push(gameProvider.name);
+                    })
+                }
+                return gameProviderNameArr;
+            }
+        );
+    },
+
+    getProviderNameByProviderId(providerIdArr){
+        let gameProviderProm = [];
+        let gameProviderNameArr = [];
+
+        providerIdArr.forEach(providerId => {
+            gameProviderProm.push(dbconfig.collection_gameProvider.findOne({_id: providerId}));
+        })
+
+        return Promise.all(gameProviderProm).then(
+            gameProviderData => {
+            if(gameProviderData && gameProviderData.length > 0){
+                gameProviderData.forEach(gameProvider => {
+                    gameProviderNameArr.push(gameProvider.name);
+                })
+            }
+
+            return gameProviderNameArr;
+        })
+    },
+
+    contentModifier: function(messageContent, metaData){
+        Object.keys(constPromoCodeLegend).forEach(e => {
+            let indexCode = constPromoCodeLegend[e];
+            let codePositionIndex = messageContent.indexOf("(" + indexCode + ")");
+            let contentToReplace = "";
+
+            switch (indexCode) {
+                case "X":
+                    contentToReplace = metaData.amount;
+                    break;
+                case "D":
+                    contentToReplace = metaData.minTopUpAmount;
+                    break;
+                case "Y":
+                    contentToReplace = metaData.requiredConsumption;
+                    break;
+                case "Z":
+                    contentToReplace = metaData.expirationTime;
+                    break;
+                case "P":
+                    contentToReplace = metaData.allowedProviders;
+                    break;
+                case "Q":
+                    contentToReplace = metaData.code;
+                    break;
+                case "M":
+                    contentToReplace = metaData.maxRewardAmount;
+                    break;
+                default:
+                    break;
+            }
+
+            if (codePositionIndex > -1) {
+                messageContent = messageContent.substr(0, codePositionIndex) + contentToReplace + messageContent.substr(codePositionIndex + 3);
+            }
+        });
+
+        return messageContent;
     },
 
     /**
@@ -109,7 +239,7 @@ const messageDispatcher = {
         }
         // @todo SMS format
         else {
-            return Q.reject("I do not know how to dispatch a message with format '" + format + "'.");
+            // return Q.reject("I do not know how to dispatch a message with format '" + format + "'.");
         }
     }
 
