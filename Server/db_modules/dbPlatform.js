@@ -2271,8 +2271,7 @@ var dbPlatform = {
 
                 if (urlDetail) {
                     let endString = "?username=" + urlDetail.playerName + "&token=" + urlDetail.token;
-                    let url = urlDetail.url + endString;
-                    streamResult.url = url;
+                    streamResult.url = urlDetail.url + endString;
                 }
 
                 return streamResult;
