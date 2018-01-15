@@ -97,7 +97,7 @@ let PlayerServiceImplement = function () {
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, false], isValidData, true, true, true).then(
                 (playerData) => {
                     data.playerId = data.playerId ? data.playerId : playerData.playerId;
-                    data.remarks = playerData.partnerName ? localization.translate("PARTNER", conn.lang) + ": " + playerData.partnerName : "";
+                    data.remarks = playerData.partnerName ? localization.translate("PARTNER", conn.lang, conn.platformId) + ": " + playerData.partnerName : "";
                     if(playerData && playerData.partnerId){
                         data.partnerId = playerData.partnerId;
                     }
@@ -136,7 +136,7 @@ let PlayerServiceImplement = function () {
                     if (err && err.status) {
                         if (err.errorMessage || err.message) {
                             var msg = err.errorMessage || err.message;
-                            err.errorMessage = localization.translate(msg, conn.lang);
+                            err.errorMessage = localization.translate(msg, conn.lang, conn.platformId);
                         }
                         wsFunc.response(conn, err, data);
                     }
@@ -144,7 +144,7 @@ let PlayerServiceImplement = function () {
                         var errorCode = err && err.code || constServerCode.COMMON_ERROR;
                         var resObj = {
                             status: errorCode,
-                            errorMessage: localization.translate(err.message || err.errorMessage, conn.lang)
+                            errorMessage: localization.translate(err.message || err.errorMessage, conn.lang, conn.platformId)
                         };
                         resObj.errorMessage = err.errMessage || resObj.errorMessage;
                         wsFunc.response(conn, resObj, data);
@@ -167,7 +167,7 @@ let PlayerServiceImplement = function () {
             conn.captchaCode = null;
             wsFunc.response(conn, {
                 status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
-                errorMessage: localization.translate("Invalid image captcha", conn.lang),
+                errorMessage: localization.translate("Invalid image captcha", conn.lang, conn.platformId),
                 data: null
             }, data);
         }
@@ -261,7 +261,7 @@ let PlayerServiceImplement = function () {
             conn.captchaCode = null;
             wsFunc.response(conn, {
                 status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
-                errorMessage: localization.translate("Invalid SMS Validation Code", conn.lang),
+                errorMessage: localization.translate("Invalid SMS Validation Code", conn.lang, conn.platformId),
                 data: null
             }, data);
         }
@@ -376,7 +376,7 @@ let PlayerServiceImplement = function () {
                         conn.captchaCode = null;
                         wsFunc.response(conn, {
                             status: constServerCode.INVALID_CAPTCHA,
-                            errorMessage: localization.translate("Captcha code invalid", conn.lang),
+                            errorMessage: localization.translate("Captcha code invalid", conn.lang, conn.platformId),
                             data: {noOfAttempt: conn.noOfAttempt},
 
                         }, data);
@@ -427,7 +427,7 @@ let PlayerServiceImplement = function () {
                         wsFunc.response(conn, {
                             status: constServerCode.PLAYER_IS_FORBIDDEN,
                             data: {noOfAttempt: 0},
-                            errorMessage: localization.translate(error.message, conn.lang),
+                            errorMessage: localization.translate(error.message, conn.lang, conn.platformId),
                         }, data);
                     }
                     else {
@@ -439,7 +439,7 @@ let PlayerServiceImplement = function () {
                         wsFunc.response(conn, {
                             status: error.code || constServerCode.INVALID_USER_PASSWORD,
                             data: {noOfAttempt: conn.noOfAttempt},
-                            errorMessage: localization.translate("User not found OR Invalid Password", conn.lang),
+                            errorMessage: localization.translate("User not found OR Invalid Password", conn.lang, conn.platformId),
                         }, data);
                     }
                 }
@@ -481,7 +481,7 @@ let PlayerServiceImplement = function () {
                         conn.captchaCode = null;
                         wsFunc.response(conn, {
                             status: constServerCode.INVALID_CAPTCHA,
-                            errorMessage: localization.translate("Captcha code invalid", conn.lang),
+                            errorMessage: localization.translate("Captcha code invalid", conn.lang, conn.platformId),
                             data: {noOfAttempt: conn.noOfAttempt},
 
                         }, data);
@@ -531,7 +531,7 @@ let PlayerServiceImplement = function () {
                     wsFunc.response(conn, {
                         status: constServerCode.INVALID_USER_PASSWORD,
                         data: {noOfAttempt: conn.noOfAttempt},
-                        errorMessage: localization.translate("User not found OR Invalid Password", conn.lang),
+                        errorMessage: localization.translate("User not found OR Invalid Password", conn.lang, conn.platformId),
                     }, data);
                 }
             }
@@ -571,7 +571,7 @@ let PlayerServiceImplement = function () {
                         conn.captchaCode = null;
                         wsFunc.response(conn, {
                             status: constServerCode.INVALID_CAPTCHA,
-                            errorMessage: localization.translate("Captcha code invalid", conn.lang),
+                            errorMessage: localization.translate("Captcha code invalid", conn.lang, conn.platformId),
                             data: {noOfAttempt: conn.noOfAttempt},
 
                         }, data);
@@ -623,13 +623,13 @@ let PlayerServiceImplement = function () {
                         wsFunc.response(conn, {
                             status: constServerCode.VALIDATION_CODE_EXPIRED,
                             data: {noOfAttempt: conn.noOfAttempt},
-                            errorMessage: localization.translate("Invalid SMS Validation Code", conn.lang),
+                            errorMessage: localization.translate("Invalid SMS Validation Code", conn.lang, conn.platformId),
                         }, data);
                     } else {
                         wsFunc.response(conn, {
                             status: constServerCode.INVALID_USER_PASSWORD,
                             data: {noOfAttempt: conn.noOfAttempt},
-                            errorMessage: localization.translate("User not found OR Invalid Password", conn.lang),
+                            errorMessage: localization.translate("User not found OR Invalid Password", conn.lang, conn.platformId),
                         }, data);
                     }
                 }
@@ -690,14 +690,14 @@ let PlayerServiceImplement = function () {
                     // User Exists in db
                     wsFunc.response(conn, {
                         status: constServerCode.SUCCESS,
-                        errorMessage: localization.translate("Username is Valid", conn.lang),
+                        errorMessage: localization.translate("Username is Valid", conn.lang, conn.platformId),
                         data: true,
                     }, data);
                 } else {
                     // User does not exist in db, username is available to use
                     wsFunc.response(conn, {
                         status: constServerCode.USERNAME_ALREADY_EXIST,
-                        errorMessage: localization.translate("Username already exists", conn.lang),
+                        errorMessage: localization.translate("Username already exists", conn.lang, conn.platformId),
                         data: false,
                     }, data);
                 }
@@ -714,14 +714,14 @@ let PlayerServiceImplement = function () {
                     // User Exists in db
                     wsFunc.response(conn, {
                         status: constServerCode.PLAYER_REALNAME_EXIST,
-                        errorMessage: localization.translate("Realname already exists", conn.lang),
+                        errorMessage: localization.translate("Realname already exists", conn.lang, conn.platformId),
                         data: true,
                     }, data);
                 }
                 else if (res && res.isPlayerRealNameNonChinese) {
                     wsFunc.response(conn, {
                         status: constServerCode.PLAYER_REALNAME_MUST_BE_CHINESE,
-                        errorMessage: localization.translate("Realname should be chinese character", conn.lang),
+                        errorMessage: localization.translate("Realname should be chinese character", conn.lang, conn.platformId),
                         data: true,
                     }, data);
                 }
@@ -729,7 +729,7 @@ let PlayerServiceImplement = function () {
                     // Passed
                     wsFunc.response(conn, {
                         status: constServerCode.SUCCESS,
-                        errorMessage: localization.translate("Success", conn.lang),
+                        errorMessage: localization.translate("Success", conn.lang, conn.platformId),
                         data: true,
                     }, data);
                 }
@@ -924,7 +924,7 @@ let PlayerServiceImplement = function () {
             os: ua.os.name || ''
         }];
 
-        data.remarks = data.partnerName ? localization.translate("PARTNER", conn.lang) + ": " + data.partnerName : "";
+        data.remarks = data.partnerName ? localization.translate("PARTNER", conn.lang, conn.platformId) + ": " + data.partnerName : "";
 
         if(data.phoneNumber && data.phoneNumber.length == 11){
             WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
@@ -932,7 +932,7 @@ let PlayerServiceImplement = function () {
             conn.captchaCode = null;
             wsFunc.response(conn, {
                 status: constServerCode.INVALID_PHONE_NUMBER,
-                errorMessage: localization.translate("Invalid phone number", conn.lang),
+                errorMessage: localization.translate("Invalid phone number", conn.lang, conn.platformId),
                 data: null
             }, data);
         }
@@ -1056,7 +1056,7 @@ let PlayerServiceImplement = function () {
             conn.captchaCode = null;
             wsFunc.response(conn, {
                 status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
-                errorMessage: localization.translate("Verification code invalid", conn.lang),
+                errorMessage: localization.translate("Verification code invalid", conn.lang, conn.platformId),
                 data: null
             }, data);
         }

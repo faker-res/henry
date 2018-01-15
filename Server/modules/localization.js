@@ -7,7 +7,7 @@
 // });
 
 var simplifiedChinese = require('../locales/ch_SP');
-var simplifiedChinese2 = require('../locales/ch_SP2');
+// var simplifiedChinese2 = require('../locales/ch_SP2');
 
 var lang = {
     ch_SP: 1,
@@ -24,12 +24,12 @@ var localization = {
             let resMessage;
 
             switch (platformId) {
-                case 1:
-                    resMessage = simplifiedChinese2[message];
-                    break;
-                case 2:
+                case "1":
                     resMessage = simplifiedChinese[message];
                     break;
+                // case "2":
+                //     resMessage = simplifiedChinese[message];
+                //     break;
                 default:
                     resMessage = simplifiedChinese[message];
                     break;
