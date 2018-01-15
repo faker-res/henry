@@ -726,7 +726,7 @@ var dbPlayerTopUpRecord = {
                     player = playerData;
 
                     let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
-                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount);
+                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
                     let proms = [firstTopUpProm, limitedOfferProm];
 
                     if (topupRequest.bonusCode) {
@@ -810,6 +810,8 @@ var dbPlayerTopUpRecord = {
                 // Check Limited Offer Intention
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                    if(topupRequest.limitedOfferObjId)
+                        proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                 }
 
                 let newProposal = {
@@ -967,7 +969,8 @@ var dbPlayerTopUpRecord = {
                     player = playerData;
 
                     let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
-                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, inputData.amount);
+
+                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, inputData.amount,inputData.limitedOfferObjId);
                     let proms = [firstTopUpProm, limitedOfferProm];
 
                     if (inputData.bonusCode) {
@@ -1059,10 +1062,11 @@ var dbPlayerTopUpRecord = {
                     name: player.name,
                     id: playerId
                 };
-
                 // Check Limited Offer Intention
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                    if(inputData.limitedOfferObjId)
+                        proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                 }
 
                 var newProposal = {
@@ -1728,7 +1732,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime) {
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName, limitedOfferObjId) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -1743,7 +1747,7 @@ var dbPlayerTopUpRecord = {
                         player = playerData;
 
                         let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
-                        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);
                         let proms = [firstTopUpProm, limitedOfferProm];
 
                         if (bonusCode) {
@@ -1796,7 +1800,7 @@ var dbPlayerTopUpRecord = {
                     proposalData.playerLevel = player.playerLevel;
                     proposalData.platform = player.platform.platformId;
                     proposalData.playerName = player.name;
-                    proposalData.realName = player.realName;
+                    proposalData.realName = realName || player.realName;
                     proposalData.amount = Number(amount);
                     proposalData.alipayName = alipayName;
                     proposalData.alipayAccount = alipayAccount;
@@ -1830,6 +1834,8 @@ var dbPlayerTopUpRecord = {
                     // Check Limited Offer Intention
                     if (limitedOfferTopUp) {
                         proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                        if(limitedOfferObjId)
+                            proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                     }
 
                     let newProposal = {
@@ -1852,7 +1858,7 @@ var dbPlayerTopUpRecord = {
                             proposalId: proposalData.proposalId,
                             platformId: player.platform.platformId,
                             userName: player.name,
-                            realName: player.realName || "",
+                            realName: realName || player.realName || "",
                             aliPayAccount: 1,
                             amount: amount,
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
@@ -1971,6 +1977,7 @@ var dbPlayerTopUpRecord = {
                         }).then(
                             wechats => {
                                 let bValid = false;
+                                let maxDeposit = 0;
                                 if (wechats.data && wechats.data.length > 0) {
                                     wechats.data.forEach(
                                         wechat => {
@@ -1978,12 +1985,15 @@ var dbPlayerTopUpRecord = {
                                                 pWechat => {
                                                     if (pWechat == wechat.accountNumber && wechat.state == "NORMAL") {
                                                         bValid = true;
+                                                        maxDeposit = wechat.singleLimit > maxDeposit? wechat.singleLimit: maxDeposit;
                                                     }
                                                 }
                                             );
                                         }
                                     );
                                 }
+                                if (bValid)
+                                    bValid = {valid:bValid, maxDepositAmount:maxDeposit};
                                 return bValid;
                             }
                         );
@@ -2007,6 +2017,7 @@ var dbPlayerTopUpRecord = {
                         }).then(
                             alipays => {
                                 let bValid = false;
+                                let maxDeposit = 0;
                                 if (alipays.data && alipays.data.length > 0) {
                                     alipays.data.forEach(
                                         alipay => {
@@ -2014,12 +2025,15 @@ var dbPlayerTopUpRecord = {
                                                 pAlipay => {
                                                     if (pAlipay == alipay.accountNumber && alipay.state == "NORMAL") {
                                                         bValid = true;
+                                                        maxDeposit = alipay.singleLimit > maxDeposit? alipay.singleLimit: maxDeposit;
                                                     }
                                                 }
                                             );
                                         }
                                     );
                                 }
+                                if (bValid)
+                                    bValid = {valid:bValid, maxDepositAmount:maxDeposit};
                                 return bValid;
                             }
                         );
@@ -2042,7 +2056,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestWechatTopup: function (userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime) {
+    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime, limitedOfferObjId) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -2056,7 +2070,7 @@ var dbPlayerTopUpRecord = {
                     if (playerData) {
                         player = playerData;
 
-                        let checkLimitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                        let checkLimitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);
                         let proms = [checkLimitedOfferProm];
 
                         if (bonusCode) {
@@ -2134,6 +2148,8 @@ var dbPlayerTopUpRecord = {
                         // Check Limited Offer Intention
                         if (limitedOfferTopUp) {
                             proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                            if(limitedOfferObjId)
+                                proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                         }
 
                         let newProposal = {
@@ -2175,7 +2191,12 @@ var dbPlayerTopUpRecord = {
                             requestData.groupWechatList = [wechatAccount];
                         }
                         //console.log("requestData", requestData);
-                        return pmsAPI.payment_requestWeChatQRAccount(requestData);
+                        if( useQR ){
+                            return pmsAPI.payment_requestWeChatQRAccount(requestData);
+                        }
+                        else{
+                            return pmsAPI.payment_requestWeChatAccount(requestData);
+                        }
                     }
                     else {
                         return Q.reject({name: "DataError", errorMessage: "Cannot create wechat top up proposal"});
@@ -2232,6 +2253,8 @@ var dbPlayerTopUpRecord = {
                         updateData.data.proposalId = proposal.proposalId;
                         updateData.data.weChatAccount = pmsData.result.weChatAccount;
                         updateData.data.weChatQRCode = pmsData.result.weChatQRCode;
+                        updateData.data.name = pmsData.result.name;
+                        updateData.data.nickname = pmsData.result.nickname;
                         if (pmsData.result.validTime) {
                             updateData.data.validTime = new Date(pmsData.result.validTime);
                         }
@@ -2494,11 +2517,11 @@ var dbPlayerTopUpRecord = {
                             break;
                         case 3: //alipay
                             proposalType = constProposalType.PLAYER_ALIPAY_TOP_UP;
-                            return dbPlayerTopUpRecord.requestAlipayTopup(null, playerData.playerId, amount, "test", "test", data.bonusCode, "CLIENT");
+                            return dbPlayerTopUpRecord.requestAlipayTopup(null, playerData.playerId, amount, "test", "test", requestData.bonusCode, "CLIENT");
                             break;
                         case 4: //wechat
                             proposalType = constProposalType.PLAYER_WECHAT_TOP_UP;
-                            return dbPlayerTopUpRecord.requestWechatTopup(null, playerData.playerId, amount, "test", "test", data.bonusCode, "CLIENT");
+                            return dbPlayerTopUpRecord.requestWechatTopup(!Boolean(requestData.useQR), null, playerData.playerId, amount, "test", "test", requestData.bonusCode, "CLIENT");
                             break;
                     }
                 }
@@ -2529,8 +2552,8 @@ var dbPlayerTopUpRecord = {
                                     dbconfig.collection_proposal.remove({_id: proposalData._id}).then();
                                     delete proposalData._id;
                                     delete proposalData.proposalId;
-                                    proposalData.createTime = new Date(createTime);
-                                    proposalData.settleTime = new Date(createTime);
+                                    proposalData.createTime = dbUtility.getSGTimeOf(createTime);
+                                    proposalData.settleTime = dbUtility.getSGTimeOf(createTime);
                                     let newProposal = new dbconfig.collection_proposal(proposalData);
                                     return newProposal.save();
                                 }
@@ -2546,8 +2569,8 @@ var dbPlayerTopUpRecord = {
                                 if (recordData && recordData[0]) {
                                     dbconfig.collection_playerTopUpRecord.remove({_id: recordData[0]._id}).then();
                                     delete recordData[0]._id;
-                                    recordData[0].createTime = new Date(createTime);
-                                    recordData[0].settlementTime = new Date(createTime);
+                                    recordData[0].createTime = dbUtility.getSGTimeOf(createTime);
+                                    recordData[0].settlementTime = dbUtility.getSGTimeOf(createTime);
                                     let newRecord = new dbconfig.collection_playerTopUpRecord(recordData[0]);
                                     return newRecord.save();
                                 }
@@ -2581,20 +2604,26 @@ var dbPlayerTopUpRecord = {
 
 };
 
-function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount) {
+function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount, limitedOfferObjId) {
+    if(!limitedOfferObjId) return false;
+
     return dbconfig.collection_proposalType.findOne({
         platformId: platformObjId,
         name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
     }).lean().then(
         proposalTypeData => {
             if (proposalTypeData) {
-                return dbconfig.collection_proposal.findOne({
+                let query = {
                     'data.platformObjId': platformObjId,
                     'data.playerObjId': playerObjId,
                     'data.applyAmount': topUpAmount,
                     'data.topUpProposalObjId': {$exists: false},
                     type: proposalTypeData._id
-                }).sort({createTime: -1}).lean();
+                };
+                if(limitedOfferObjId){
+                    query['data.limitedOfferObjId'] =limitedOfferObjId;
+                }
+                return dbconfig.collection_proposal.findOne(query).sort({createTime: -1}).lean();
             }
         }
     ).then(

@@ -77,6 +77,7 @@ var PaymentServiceImplement = function () {
                     status: constServerCode.SUCCESS,
                     data: res
                 }, data);
+                // Handle by proposal executor
                 //SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.APPLY_BONUS);
             }
         ).catch(WebSocketUtil.errorHandler).done();
@@ -100,7 +101,8 @@ var PaymentServiceImplement = function () {
                     status: constServerCode.SUCCESS,
                     data: res
                 }, data);
-                SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.CANCEL_BONUS);
+                // Handle by proposal executor
+                //SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.CANCEL_BONUS);
             }
         ).catch(WebSocketUtil.errorHandler).done();
     };
@@ -146,7 +148,8 @@ var PaymentServiceImplement = function () {
             data.userAgent = userAgent;
         }
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName && Number.isInteger(data.amount) && data.amount < 10000000);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [data.userAgent, conn.playerId, data.amount, data.alipayName, data.alipayAccount, data.bonusCode, "CLIENT"], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [data.userAgent, conn.playerId, data.amount, data.alipayName, data.alipayAccount,
+            data.bonusCode, "CLIENT", null, null, null, null, data.realName, data.limitedOfferObjId], isValidData);
     };
 
     this.requestWechatTopup.expectsData = 'amount: Number|String';
@@ -161,7 +164,7 @@ var PaymentServiceImplement = function () {
         // if ([10, 20, 50, 100].indexOf(data.amount) < 0) {
         //     isValidData = false;
         // }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestWechatTopup, [data.userAgent, conn.playerId, data.amount, data.wechatName, data.wechatAccount, data.bonusCode, "CLIENT"], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestWechatTopup, [!Boolean(data.notUseQR), data.userAgent, conn.playerId, data.amount, data.wechatName, data.wechatAccount, data.bonusCode, "CLIENT", null, null, null, null, data.limitedOfferObjId], isValidData);
     };
 
     this.cancelManualTopupRequest.expectsData = 'proposalId: String';

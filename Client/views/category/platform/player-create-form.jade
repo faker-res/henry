@@ -28,6 +28,17 @@ form(name="form_new_player", novalidate)
 		.form-group.col-md-6
 			label.control-label {{"NICK_NAME" | translate}}
 			input.form-control(type="text", placeholder='{{"NICK_NAME" | translate}}', ng-model="vm.newPlayer.nickName")
+	.row.margin-left-5.margin-right-5
+		.form-group.col-md-6
+			label.control-label {{"GENDER" | translate}}
+			div
+				input#genderMale(style="margin-right:8px;" type="radio", name="gender",value='{{true}}', ng-model="vm.newPlayer.gender")
+				label(for="genderMale", style="margin-right:20px;") {{"Male" | translate}}
+				input#genderFemale(style="margin-right:8px;" type="radio", name="gender",value='{{false}}', ng-model="vm.newPlayer.gender")
+				label(for="genderFemale") {{"Female" | translate}}
+		.form-group.col-md-6
+			label.control-label {{"DOB" | translate}}
+			#datepickerDOB
 	//div.form-group.col-md-6
 	//	label.control-label {{"GAME_CREDIT" | translate}}
 	//	input.form-control(type="number", name="gameCredit", placeholder='{{"GAME_CREDIT" | translate}}', ng-model="vm.newPlayer.gameCredit")

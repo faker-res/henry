@@ -614,14 +614,14 @@
                                 td {{'ONLY_NEW_USER_CAN_LOGIN' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.onlyNewCanLogin', ng-disabled='!vm.configTableEdit')
-                            tr
-                                td {{'USE_LOCK_CREDIT' | translate}}
-                                td
-                                    input(type='checkbox', ng-model='vm.platformBasic.useLockedCredit', ng-disabled='!vm.configTableEdit')
+                            //tr
+                            //    td {{'USE_LOCK_CREDIT' | translate}}
+                            //    td
+                            //        input(type='checkbox', ng-model='vm.platformBasic.useLockedCredit', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'Use Provider Group' | translate}}
                                 td
-                                    input(type='checkbox', ng-model='vm.platformBasic.useProviderGroup', ng-disabled='!vm.configTableEdit')
+                                    input(type='checkbox', ng-model='vm.platformBasic.useProviderGroup', ng-disabled='!vm.configTableEdit', ng-change='vm.showUnlockProviderModal()')
                             tr
                                 td {{'Use Point System' | translate}}
                                 td
@@ -1097,7 +1097,7 @@
                                     select.spicker.form-control(disabled, ng-model='group.providers', multiple data-width="600px")
                                         option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}' ng-init="$last && vm.endLoadWeekDay()" ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
                                 td(ng-if='vm.configTableEdit')
-                                    button.btn.btn-danger.common-button(ng-click='vm.deleteProviderGroup(group)') {{"Delete" | translate}}
+                                    button.btn.btn-danger.common-button(ng-click='vm.deleteProviderGroup($index,group)') {{"Delete" | translate}}
                             tr(ng-if='vm.configTableEdit')
                                 td
                                     input.form-control(ng-model='vm.newProviderGroup.name')
@@ -1170,3 +1170,34 @@
                     label {{"PREVIEW" | translate}}
                     .well(style="margin-bottom: 0px; padding-top: 15px; padding-bottom: 15px", ng-non-bindable)
                         .announcementPreview.html(style="max-height: 185px; overflow: auto; background-color: white")
+#modalUnlockProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"turn off Use Provider Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"all provider group will force unlock"|translate}}
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal' ng-click='vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup') {{"CANCEL" | translate}}
+
+.row
+    .col-md-3
+    .col-md-9(style="padding-left:0;padding-right:15px")
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                label {{"CHINESE_TRANSLATION_CSV" | translate}}
+            .panel-body
+                button.btn.btn-success.common-button(type='button', ng-show='!vm.prepareTranslationCSV', ng-click='vm.downloadTranslationCSV()')
+                    i.fa.fa-cog
+                    text {{"PREPARE_CSV" | translate}}
+                button.btn.btn-success.common-button(type='button', ng-show='vm.prepareTranslationCSV', ng-csv='vm.exportTranslationCSV', filename='chineseTranslation.csv')
+                    i.fa.fa-download
+                    text {{"DOWNLOAD_CSV" | translate}}
+

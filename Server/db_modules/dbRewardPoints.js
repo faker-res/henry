@@ -477,7 +477,7 @@ let dbRewardPoints = {
                     rewardTitle: pointEvent.rewardTitle,
                     rewardContent: pointEvent.rewardContent,
                     rewardPeriod: pointEvent.rewardPeriod,
-                    userAgent: inputDevice,
+                    userAgent: inputDevice?inputDevice:0,
                     status: constRewardPointsLogStatus.PROCESSED,
                     playerName: rewardPoints.playerName,
                     oldPoints: preUpdatePoint,
@@ -935,7 +935,7 @@ function isRelevantLoginEventByProvider(event, provider, inputDevice) {
         eventTargetDestination = event.target.targetDestination;
     }
 
-    return provider ? eventTargetDestination.indexOf(provider.toString()) !== -1 : eventTargetDestination.length === 0;
+    return provider ? eventTargetDestination.indexOf(provider.toString()) !== -1 || eventTargetDestination.includes('') : eventTargetDestination.length === 0 || eventTargetDestination.includes('');
 }
 
 function isRelevantTopupEvent(event, topupMainType, topupProposalData) {
@@ -948,7 +948,7 @@ function isRelevantTopupEvent(event, topupMainType, topupProposalData) {
     if (event.customPeriodStartTime && new Date(event.customPeriodStartTime) > new Date())
         return false;
     // check userAgent
-    if (event.userAgent && Number(event.userAgent) !== Number(topupProposalData.data.userAgent))
+    if (event.userAgent && topupProposalData.data.userAgent && Number(event.userAgent) !== Number(topupProposalData.data.userAgent))
         return false;
     // check merchantTopupMainType
     if (event.target && event.target.merchantTopupMainType &&
@@ -1246,9 +1246,11 @@ function buildTodayTopupAmountQuery(event, topupProposalData) {
     let relevantTopupMatchQuery = {
         playerId: topupProposalData.data.playerObjId,
         platformId: topupProposalData.data.platformId,
-        userAgent: event.userAgent.toString(),
         createTime: {$gte: today.startTime, $lte: today.endTime}
     };
+
+    if(event.userAgent)
+        relevantTopupMatchQuery.userAgent = event.userAgent.toString();
 
     if (event.target && event.target.merchantTopupMainType) {
         relevantTopupMatchQuery.topUpType = event.target.merchantTopupMainType.toString();

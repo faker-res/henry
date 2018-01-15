@@ -50,7 +50,8 @@ function socketActionRewardTask(socketIO, socket) {
         getConsumeRebateAmount: function getConsumeRebateAmount(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId);
-            socketUtil.emitter(self.socket, dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturn, [data.playerId], actionName, isValidData);
+            let eventCode = data.eventCode? data.eventCode: "";
+            socketUtil.emitter(self.socket, dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturn, [data.playerId,eventCode], actionName, isValidData);
         },
         getPlayerRewardTask: function getPlayerRewardTask(data) {
             var actionName = arguments.callee.name;
@@ -118,6 +119,18 @@ function socketActionRewardTask(socketIO, socket) {
             let isValidData = Boolean(data && data.rewardTaskGroupId);
             // let isValidData = Boolean(data && data.rewardTaskGroupId && data.incRewardAmount && data.incConsumptionAmount);
             socketUtil.emitter(self.socket, dbRewardTaskGroup.unlockRewardTaskInRewardTaskGroup, [data.rewardTaskGroupId, data.incRewardAmount, data.incConsumptionAmount], actionName, isValidData);
+        },
+
+        startPlatformUnlockRewardTaskGroup: function startPlatformUnlockRewardTaskGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbRewardTaskGroup.startPlatformUnlockRewardTaskGroup, [data.platformObjId], actionName, isValidData);
+        },
+
+        getConsumptionReturnPeriodTime: function getConsumptionReturnPeriodTime(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.period);
+            socketUtil.emitter(self.socket, dbRewardTask.getConsumptionReturnPeriodTime, [data.period], actionName, isValidData);
         }
     };
     socketActionRewardTask.actions = this.actions;

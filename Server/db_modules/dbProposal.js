@@ -32,6 +32,7 @@ const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constSystemParam = require("../const/constSystemParam.js");
 const constServerCode = require("../const/constServerCode.js");
 const constPlayerTopUpType = require("../const/constPlayerTopUpType");
+const constMaxDateTime = require("../const/constMaxDateTime");
 let rsaCrypto = require("../modules/rsaCrypto");
 
 var proposal = {
@@ -305,6 +306,15 @@ var proposal = {
                                 });
                             }
                             else {
+
+                                if (proposalData.data.isPlayerInit){
+                                    proposalData.creator = {
+                                        type: 'player',
+                                        name: proposalData.data.playerName || "",
+                                        id: proposalData.data.playerId || ""
+                                    };
+                                }
+
                                 var proposalProm = proposal.createProposal(proposalData);
                                 var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
                                 return Q.all([proposalProm, platProm, data[0].expirationDuration]);
@@ -332,7 +342,7 @@ var proposal = {
                     }
 
                     if (data[2] == 0) {
-                        expiredDate = data[0].createTime;
+                        expiredDate = constMaxDateTime;
                     }
                     else {
                         expiredDate = moment(data[0].createTime).add('minutes', data[2]).format('YYYY-MM-DD HH:mm:ss.sss');
@@ -452,7 +462,8 @@ var proposal = {
                 }
                 if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PREPENDING ||
                         proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING
-                        || proposalData.status == constProposalStatus.EXPIRED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data &&
+                        || proposalData.status == constProposalStatus.EXPIRED || proposalData.status == constProposalStatus.RECOVER
+                        || proposalData.status == constProposalStatus.CANCEL) && proposalData.data &&
                     (proposalData.data.requestId == requestId || !proposalData.data.requestId)) {
                     return proposalData;
                 }
@@ -1269,58 +1280,38 @@ var proposal = {
     getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName, inputDevice) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
 
-        //check proposal without process
-        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
-
-        //check proposal with process
-        // var prom2 = dbconfig.collection_proposalTypeProcess.find({platformId: platformId}).lean().then(
-        //     types => {
-        //         if (types && types.length > 0) {
-        //             var proposalProcessTypesId = [];
-        //             for (var i = 0; i < types.length; i++) {
-        //                 if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
-        //                     proposalProcessTypesId.push(types[i]._id);
-        //                 }
-        //             }
-        //             return dbconfig.collection_proposalProcess.find({
-        //                 type: {$in: proposalProcessTypesId},
-        //                 status: {$in: statusArr}
-        //             }).lean();
-        //         }
-        //         else {
-        //             return Q.reject({name: "DataError", message: "Can not find platform proposal process types"});
-        //         }
-        //     }
-        // );
-        return Q.all([prom1]).then(//removed , prom2
+        return dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean().then(//removed , prom2
             data => {
-                if (data && data[0]) { // removed  && data[1]
-                    var types = data[0];
-                    // var processes = data[1];
+                if (data) {
+                    let types = data;
+
                     if (types && types.length > 0) {
-                        var proposalTypesId = [];
-                        for (var i = 0; i < types.length; i++) {
-                            if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
+                        let proposalTypesId = [];
+
+                        // can directly pass object id into this
+                        for (let i = 0; i < types.length; i++) {
+                            if ((!typeArr || (typeArr && typeArr.length == 0)) || typeArr.indexOf(types[i].name) != -1) {
                                 proposalTypesId.push(types[i]._id);
                             }
                         }
-                        // var processIds = [];
-                        // for (var j = 0; j < processes.length; j++) {
-                        //     processIds.push(processes[j]._id);
-                        // }
-                        var queryObj = {
+
+                        let queryObj = {
                             type: {$in: proposalTypesId},
                             createTime: {
                                 $gte: new Date(startTime),
                                 $lt: new Date(endTime)
-                            },
-                            status: {$in: statusArr}
+                            }
                         };
+
+                        if (statusArr) {
+                            queryObj.status = {$in: statusArr}
+                        }
+
                         if (userName) {
                             queryObj['data.name'] = userName;
                         }
+
                         if (relateUser) {
-                            // queryObj["data.playerName"] = relateUser;
                             queryObj["$and"] = [];
                             queryObj["$and"].push({
                                 $or: [
@@ -1346,20 +1337,18 @@ var proposal = {
                             ];
                         }
 
-                        if (eventName) {
-                            queryObj["$and"] = queryObj["$and"] || [];
-                            let dataCheck = {"data.eventName": {$in: eventName}};
-                            let existCheck = {"data.eventName": {$exists: false}};
-                            let orQuery = [dataCheck, existCheck];
-                            queryObj["$and"].push({$or: orQuery});
+                        if (eventName && eventName.length > 0) {
+                            // queryObj["$and"] = queryObj["$and"] || [];
+                            // let dataCheck = {"data.eventName": {$in: eventName}};
+                            // let existCheck = {"data.eventName": {$exists: false}};
+                            // let orQuery = [dataCheck, existCheck];
+                            // queryObj["$and"].push({$or: orQuery});
+
+                            queryObj["data.eventName"] = {$in: eventName};
                         }
 
-                        if (promoTypeName) {
-                            queryObj["$and"] = queryObj["$and"] || [];
-                            let dataCheck = {"data.PROMO_CODE_TYPE": {$in: promoTypeName}};
-                            let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
-                            let orQuery = [dataCheck, existCheck];
-                            queryObj["$and"].push({$or: orQuery});
+                        if (promoTypeName && promoTypeName.length > 0) {
+                            queryObj["data.PROMO_CODE_TYPE"] = {$in: promoTypeName};
                         }
 
                         if (credit) {
@@ -1376,7 +1365,6 @@ var proposal = {
                         }
 
                         inputDevice ? queryObj.inputDevice = inputDevice : null;
-
                         var sortKey = (Object.keys(sortCol))[0];
                         var a = sortKey != 'relatedAmount' ?
                             dbconfig.collection_proposal.find(queryObj)
@@ -1467,7 +1455,7 @@ var proposal = {
                                         retData.push(prom);
                                     }
                                     return Q.all(retData);
-                                });
+                                }).read("secondaryPreferred");
                         var b = dbconfig.collection_proposal.find(queryObj).count();
                         var c = dbconfig.collection_proposal.aggregate(
                             {
@@ -1491,7 +1479,7 @@ var proposal = {
                                     totalCommissionAmount: {$sum: "$data.commissionAmount"}
                                 }
                             }
-                        );
+                        ).read("secondaryPreferred");
                         return Q.all([a, b, c])
                     }
                     else {
@@ -2552,7 +2540,15 @@ var proposal = {
                 {
                     $group: {
                         _id: null,
-                        totalAmount: {$sum: "$data.amount"},
+                        totalAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.amount", NaN]},
+                                    0,
+                                    "$data.amount"
+                                ]
+                            }
+                        },
                         totalRewardAmount: {
                             $sum: {
                                 $cond: [
@@ -2562,10 +2558,42 @@ var proposal = {
                                 ]
                             }
                         },
-                        totalTopUpAmount: {$sum: "$data.topUpAmount"},
-                        totalUpdateAmount: {$sum: "$data.updateAmount"},
-                        totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
-                        totalCommissionAmount: {$sum: "$data.commissionAmount"}
+                        totalTopUpAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.topUpAmount", NaN]},
+                                    0,
+                                    "$data.topUpAmount"
+                                ]
+                            }
+                        },
+                        totalUpdateAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.updateAmount", NaN]},
+                                    0,
+                                    "$data.updateAmount"
+                                ]
+                            }
+                        },
+                        totalNegativeProfitAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.negativeProfitAmount", NaN]},
+                                    0,
+                                    "$data.negativeProfitAmount"
+                                ]
+                            }
+                        },
+                        totalCommissionAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.commissionAmount", NaN]},
+                                    0,
+                                    "$data.commissionAmount"
+                                ]
+                            }
+                        },
                     }
                 }
             ]);
@@ -2949,34 +2977,25 @@ var proposal = {
     },
 
     getPlatformRewardProposal: function (platform) {
-        let proposal = {};
-        let proposalTypeArr = [];
-
         return dbconfig.collection_proposalType.find(
             {
                 platformId: platform,
             }
-        ).then(
-            data => {
-                data.map(item => {
-                    proposal[item._id] = {_id: item._id, name: item.name};
+        ).lean().then(
+            proposalTypes => {
+                let result = {};
+                if (!proposalTypes) {
+                    return [];
+                }
+
+                let rewardProposalTypes = proposalTypes.filter(type => constProposalMainType[type.name] === constProposalMainType.FirstTopUp); // main type is reward
+                rewardProposalTypes.map(type => {
+                    result[type._id] = type.name;
                 });
-                var proposalTypeArr = data.map(type => {
-                    return type._id;
-                });
-                return dbconfig.collection_proposal.distinct('type', {
-                    mainType: constProposalMainType.FirstTopUp,
-                    type: {$in: proposalTypeArr}
-                });
-            }
-        ).then(
-            data => {
-                var result = {};
-                data.map(item => {
-                    result[item] = proposal[item].name;
-                });
+
                 return result;
-            })
+            }
+        );
     },
 
     getAllRewardProposal: function (platform) {

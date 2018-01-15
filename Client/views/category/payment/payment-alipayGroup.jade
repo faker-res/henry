@@ -70,7 +70,7 @@
                         tr(ng-repeat="(idx,val) in vm.allAlipayList | filter: vm.filterAlipay as filteredAlipayList" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
                             td
                                 input(type="checkbox" ng-model="val.isCheck" ng-change="vm.alipayListUncheckDifferentGroup(val.isCheck, val.isInGroup);")
-                            td {{ val.state | translate}}
+                            td {{ val.state === 'DISABLED' ? 'DISABLE' : val.state | translate}}
                             td {{ val.accountNumber | translate}}
                             td {{ val.name | translate}}
                             td {{ val.singleLimit | translate}}
@@ -236,6 +236,6 @@
                         .panel-body
                             .col-md-3(ng-repeat="(status, show) in vm.alipayStatusFilterOptions")
                                 input(type="checkbox" ng-model="vm.alipayStatusFilterOptions[status]")
-                                span {{status | translate}}
+                                span {{status === "DISABLED" ? "DISABLE" : status | translate}}
                 .modal-footer
                     button.btn.btn-primary.common-button(data-dismiss='modal') {{"CONFIRM" | translate}}

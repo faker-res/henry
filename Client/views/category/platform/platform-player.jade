@@ -124,9 +124,9 @@
             img.img-edit
     hr.margin-top-bottom-small
     .btn-group.margin-small
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'devFunc', 'Read')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.triggerSavePlayersCredit()')
-            text {{"Trigger Save Players Credit" | translate}}
-            img.img-edit
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'devFunc', 'Read')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.triggerSavePlayersCredit()')
+        //    text {{"Trigger Save Players Credit" | translate}}
+        //    img.img-edit
 
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Delete')", ng-disabled="!vm.canDeletePlayers()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalDeletePlayer')
         //    text(ng-if="vm.selectedSinglePlayer.status == 1 ") {{"DISABLE" | translate}}
@@ -358,7 +358,7 @@ include modalGameCreditLog
                                     #basicGroup.tab-pane.fade(ng-class="selectedTab =='basicInfo'?'in active':''")
                                         include player-edit-form
                                         button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
-                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
+                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_editing_player.$invalid', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
                                     #contactGroup.tab-pane.fade(ng-class="selectedTab =='contactInfo'?'in active':''")
                                         include player-edit-contact
                                     #withdrawGroup.tab-pane.fade(ng-class="selectedTab =='withdrawInfo'?'in active':''")
@@ -1853,7 +1853,7 @@ include modalGameCreditLog
                             tr(ng-repeat='(i,mailLog) in vm.mailLog.receivedMails')
                                 td {{mailLog.createTime | date:'medium'}}
                                 td {{mailLog.senderType}}
-                                td {{mailLog.senderName}}
+                                td {{mailLog.senderName | translate}}
                                 td {{mailLog.content}}
             .modal-footer
                 button.common-button.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}

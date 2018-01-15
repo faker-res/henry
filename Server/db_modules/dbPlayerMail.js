@@ -172,7 +172,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVertificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName) {
+    sendVerificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName) {
         var sendObj = {
             tel: data.tel,
             channel: data.channel,
@@ -331,8 +331,10 @@ const dbPlayerMail = {
                         return Q.reject({message: 'Template not set for current platform'});
                     }
 
-                    template.content = template.content.replace('smsCode', code);
 
+                    template.content = template.content.replace('{{smsCode}}', code);
+                    template.content = template.content.replace('smsCode', code); // for backward compatibility
+                    template.content = template.content.replace('{{sendTime}}', new Date());
                     if (channel === null || platformId === null) {
                         return Q.reject({message: "cannot find platform or sms channel."});
                     }
@@ -364,7 +366,7 @@ const dbPlayerMail = {
                     };
                     // Log the verification SMS before send
                     new dbconfig.collection_smsVerificationLog(saveObj).save().catch(errorUtils.reportError);
-                    return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
+                    return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
                 }
             }
         ).then(

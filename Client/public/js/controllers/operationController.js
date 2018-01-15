@@ -408,7 +408,25 @@ define(['js/app'], function (myApp) {
                 rewardNames[idx] = rewardNames[idx].replace(" "+$translate('Intention')," Intention");
             });
 
-            let promoType = $('select#selectPromoType').multipleSelect("getSelects");
+            let rewardEventName = [];
+
+            if (vm.rewardList.length != rewardNames.length) {
+                vm.rewardList.filter(item => {
+                    if (rewardNames.indexOf(item.name) > -1) {
+                        rewardEventName.push(item.name);
+                    }
+                });
+            }
+
+            let proposalTypeNames = [];
+
+            if (vm.allProposalType.length != vm.proposalTypeSelected.length) {
+                vm.allProposalType.filter(item => {
+                    if (vm.proposalTypeSelected.indexOf(item.name) > -1) {
+                        proposalTypeNames.push(item.name);
+                    }
+                });
+            }
 
             let startTime = $('#datetimepicker').data('datetimepicker').getLocalDate();
             let endTime = $('#datetimepicker2').data('datetimepicker').getLocalDate();
@@ -416,9 +434,11 @@ define(['js/app'], function (myApp) {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
                 inputDevice: vm.proposalInputDevice,
-                eventName: rewardNames,
-                promoTypeName: promoType,
-                type: vm.proposalTypeSelected,
+                //eventName: rewardNames,
+                eventName: rewardEventName,
+                promoTypeName: [],
+                //type: vm.proposalTypeSelected,
+                type: proposalTypeNames,
                 startDate: startTime,
                 endDate: endTime,
                 entryType: vm.queryProposalEntryType,
@@ -426,6 +446,16 @@ define(['js/app'], function (myApp) {
                 index: newSearch ? 0 : (vm.queryProposal.index || 0),
                 sortCol: vm.queryProposal.sortCol
             };
+
+            let promoType = $('select#selectPromoType').multipleSelect("getSelects");
+
+            if (vm.promoTypeList.length != promoType.length) {
+                vm.promoTypeList.filter(item => {
+                    if (promoType.indexOf(item.name) > -1) {
+                        sendData.promoTypeName.push(item.name);
+                    }
+                });
+            }
 
             if (vm.queryProposalRelatedUser) {
                 sendData.relateUser = vm.queryProposalRelatedUser.toLowerCase();
@@ -448,7 +478,6 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
                 console.log('proposal allData', data);
                 vm.proposals = data.data.data;
-
                 $('.proposalMessage > a > .fa').removeClass('fa-spin');
                 $('.proposalMessage').next().show();
 
@@ -488,7 +517,7 @@ define(['js/app'], function (myApp) {
                 entryType: vm.queryProposalEntryType,
                 size: vm.queryAuditProposal.limit || 10,
                 index: newSearch ? 0 : (vm.queryAuditProposal.index || 0),
-                sortCol: vm.queryAuditProposal.sortCol
+                sortCol: vm.queryAuditProposal.sortCol || {expirationTime: 1}
             };
 
             if (vm.queryProposalRelatedUser) {
@@ -639,7 +668,8 @@ define(['js/app'], function (myApp) {
                     $('#ProposalDetail .delayTopupExpireDate').on('click', function () {
                         var $tr = $(this).closest('tr');
                         vm.delayTopupExpirDate(obj, function (newData) {
-                            $tr.find('td:nth-child(2)').first().text(utilService.getFormatTime(newData.newValidTime));
+                            obj.validTime = newData.newValidTime;
+                            obj.status = "Pending";
                             vm.needRefreshTable = true;
                             $scope.safeApply();
                         });
@@ -809,6 +839,8 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'delayManualTopupRequest', sendData, function (data) {
                 console.log("update data", data);
                 vm.selectedProposal.status = 'Pending';
+                vm.selectedProposal.data.validTime = data.data.newValidTime;
+                vm.selectedProposalDetailForDisplay.validTime = data.data.newValidTime;
                 $scope.safeApply();
                 if (callback) {
                     callback(data.data);
@@ -821,13 +853,23 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: {$in: vm.allPlatformId}}, function (data) {
                 vm.rewardList = data.data;
                 //For limitedOffer intention
+
                 vm.rewardList.forEach(
                     reward => {
-                        if (reward.type.name == "PlayerLimitedOfferReward") {
-                            vm.rewardList.push({name:reward.name +" " + $translate('Intention')});
+                        if (reward.type && reward.type.name == "PlayerLimitedOfferReward") {
+                            let isNameExist = false;
+                            vm.rewardList.forEach(
+                                reward2 => {
+                                    if(reward2.name == reward.name +" " + $translate('Intention'))
+                                        isNameExist = true;
+                                }
+                            );
+                            if(!isNameExist)
+                                vm.rewardList.push({name:reward.name +" " + $translate('Intention')});
                         }
                     }
                 );
+
                 console.log('vm.rewardList', vm.rewardList);
                 $scope.safeApply();
                 if (callback) {
@@ -937,6 +979,17 @@ define(['js/app'], function (myApp) {
                         : v.data.alipayAccount != null
                         ? v.data.alipayAccount
                         : null;
+                    // remove the time from the ISO date for display purpose
+                    if (v.data.DOB) {
+                        v.data.DOB = v.data.DOB.slice(0, 10);
+                    }
+                    // convert the status of gender from Boolean to string for display purpose
+                    if (v.data.gender == true) {
+                        v.data.gender = "男";
+                    }
+                    if (v.data.gender == false) {
+                        v.data.gender = "女";
+                    }
                     tableData.push(v);
                 }
             });
@@ -1304,7 +1357,8 @@ define(['js/app'], function (myApp) {
                     v.entryType$ = $translate(vm.proposalEntryTypeList[v.entryType]);
                     v.userType$ = $translate(v.userType ? vm.proposalUserTypeList[v.userType] : "");
                     v.createTime$ = utilService.getFormatTime(v.createTime).substring(5);
-                    v.expirationTime$ = v.createTime == v.expirationTime ? 0 : new Date(v.expirationTime) - Date.now();
+                    v.expirationTime$ = v.createTime == v.expirationTime || new Date(v.expirationTime).getTime() == $scope.constMaxDateTime.getTime()
+                        ? 0 : new Date(v.expirationTime) - Date.now();
                     v.lockUser$ = $translate(v.isLocked);
                     v.creditAmount$ = (v.data.amount != null)
                         ? parseFloat(v.data.amount).toFixed(2)
@@ -1368,11 +1422,13 @@ define(['js/app'], function (myApp) {
                 "bProcessing": true,
                 bDeferRender: true,
                 // filterProposalType: true,
-                "aaSorting": vm.queryProposal.aaSorting || [],
+                "aaSorting": vm.queryAuditProposal.aaSorting || [[20, 'asc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
-                    {'sortCol': 'relatedAmount', bSortable: true, 'aTargets': [7]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'priority', bSortable: true, 'aTargets': [7]},
+                    {'sortCol': 'relatedUser', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [18]},
+                    {'sortCol': 'expirationTime', bSortable: true, 'aTargets': [20]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -1427,8 +1483,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                             let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : ""
                             return "<div>" + text + "</div>";
-                        },
-                        bSortable: true
+                        }
                     },
                     {
                         "title": $translate('PRIORITY'),
@@ -1544,8 +1599,7 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         "title": $translate('CREATION_TIME'),
-                        "data": 'createTime$',
-                        bSortable: true
+                        "data": 'createTime$'
                     },
                     {
                         "title": $translate('REMARK'),
@@ -1555,21 +1609,21 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         "title": $translate('EXPIRY_DATE'),
-                        "data": 'expirationTime$',
-                        type: 'signed-num',
+                        "data": 'expirationTime',
+                        // type: 'signed-num',
                         render: function (data, type, row) {
                             if (type === 'sort' || type === 'type') {
                                 return data;
                             }
                             else {
-                                if (data > 0) {
+                                if (row.expirationTime$ > 0) {
                                     // Not expired
-                                    let expireTime = Math.floor((data / 1000) / 60);
+                                    let expireTime = Math.floor((row.expirationTime$ / 1000) / 60);
                                     return "<div>" + $translate("Left") + " " + expireTime + " " + $translate("mins") + "</div>";
                                 }
-                                else if (data < 0) {
+                                else if (row.expirationTime$ < 0) {
                                     // Expired
-                                    let expireTime = Math.ceil((data / 1000) / 60);
+                                    let expireTime = Math.ceil((row.expirationTime$ / 1000) / 60);
                                     return "<div>" + $translate("Expired") + " " + -expireTime + " " + $translate("mins") + "</div>";
                                 }
                                 else {
@@ -1667,7 +1721,7 @@ define(['js/app'], function (myApp) {
             $('#proposalAuditDataTable tbody').on('click', 'tr', tableRowClicked);
             $('#proposalAuditDataTable').off('order.dt');
             $('#proposalAuditDataTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'queryProposal', vm.loadProposalQueryData);
+                vm.commonSortChangeHandler(a, 'queryAuditProposal', vm.loadProposalAuditQueryData);
             });
             $scope.safeApply();
         };

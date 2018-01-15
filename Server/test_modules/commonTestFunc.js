@@ -13,13 +13,15 @@ var dbRewardEvent = require('./../db_modules/dbRewardEvent');
 var dbRewardRule = require('./../db_modules/dbRewardRule');
 var dbRewardTask = require('./../db_modules/dbRewardTask');
 var dbProposalProcess = require('./../db_modules/dbProposalProcess');
-var dbProposalTypeProcess = require('./../db_modules/dbProposalTypeProcess');
 var dbAdminInfo = require('../db_modules/dbAdminInfo');
 var dbDepartment = require('../db_modules/dbDepartment');
 var dbRole = require('../db_modules/dbRole');
 var dbPartner = require('../db_modules/dbPartner');
+var dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
 var constProposalStepStatus = require('../const/constProposalStepStatus');
 var clientApiInstances = require("../modules/clientApiInstances.js");
+
+const mongoose = require('mongoose');
 
 require('./improveMochaReporting')();
 
@@ -39,6 +41,7 @@ var commonTestFunc = {
     testChannelName: 'testChannelName',
     testRewardRuleName: 'testRewardRuleName',
     testPartnerName: 'testPartner',
+    testRewardEventName: "testRewardEventName",
 
     testAdminName: "step1admin",
     testRoleName: "step1Role",
@@ -79,6 +82,7 @@ var commonTestFunc = {
                     realName: "Test Player",
                     phoneNumber: '80808080',
                     email: 'testPlayer@sinonet.com.sg',
+                    lastLoginIp: '188.188.188.188',
 
                     //Add in new details
                     viewInfo: {showInfoState: true, limitedOfferInfo:1},
@@ -94,7 +98,7 @@ var commonTestFunc = {
                     internetBanking: 'https://bankymcbankfacebanking.com/',
 
                     merchantGroup: merchantGroup._id,
-                    bankCardGroup: bankCardGroup._id,
+                    bankCardGroup: bankCardGroup._id
                 };
                 return dbPlayerInfo.createPlayerInfo(playerData);
             }
@@ -130,7 +134,7 @@ var commonTestFunc = {
     },
 
     getTestBankCardGroup: function (platformObjId) {
-        return new dbconfig.collection_platformMerchantGroup({
+        return new dbconfig.collection_platformBankCardGroup({
             groupId: String(commonTestFunc.getRandomInt()),
             code: String(commonTestFunc.getRandomInt()),
             name: 'TestBankCardGroup:' + commonTestFunc.getRandomInt(),
@@ -177,18 +181,31 @@ var commonTestFunc = {
         return dbGame.createGame(gameData);
     },
 
-    createTopUpRecord: function (playerObjId, platformObjId) {
+    createTopUpRecord: function (playerObjId, platformObjId, amount = 500) {
 
         var topUpData = {
             playerId: playerObjId,
             platformId: platformObjId,
-            amount: 500,
+            amount: amount,
             createTime: new Date(),
             paymentId: "testPayment",
             currency: "USD",
             topUpType: "VISA"
         };
         return dbPlayerTopUpRecord.createPlayerTopUpRecord(topUpData);
+    },
+
+    createConsumptionRecord: function (playerObjId, platformObjId, amount = 500) {
+
+        var recordData = {
+            playerId: playerObjId,
+            platformId: platformObjId,
+            gameId: mongoose.Types.ObjectId(),
+            gameType: 123,
+            orderNo: new Date().getTime() + Math.random(),
+            validAmount: amount
+        };
+        return dbPlayerConsumptionRecord.createPlayerConsumptionRecord(recordData);
     },
 
     createTestProposal: function (proposalData) {
@@ -216,16 +233,6 @@ var commonTestFunc = {
         };
         return dbProposalProcess.createProposalProcess(inputProposalProcess);
     },
-
-    createTestProposalTypeProcess: function (data) {
-        return dbProposalTypeProcess.createProposalTypeProcess(data);
-    },
-
-    createTestProposalType: function (data) {
-        let proposalType = new dbconfig.collection_proposalType(data);
-        return proposalType.save()
-    },
-
 
     createRewardEvent: function (data) {
         return dbRewardEvent.createRewardEvent(data);
@@ -287,6 +294,8 @@ var commonTestFunc = {
         let departmentQuery = ".*" + commonTestFunc.testDepartName + "*.";
         let roleQuery = ".*" + commonTestFunc.testRoleName + "*.";
         let partnerQuery = ".*" + commonTestFunc.testPartnerName + "*.";
+        let merchantGroupQuery = ".*TestMerchantGroup*.";
+        let bankCardGroupQuery = ".*TestBankCardGroup*.";
 
         let pm1 = dbconfig.collection_platform.find({name: {$regex: platformNameQuery}}, {_id: 1}).then(
             platforms => {
@@ -303,8 +312,8 @@ var commonTestFunc = {
         let pm9 = dbconfig.collection_department.remove({departmentName: {$regex: departmentQuery}});
         let pm10 = dbconfig.collection_partner.remove({name: {$regex: partnerQuery}});
 
-        let pmA = dbconfig.collection_platformMerchantGroup.remove({name: 'TestMerchantGroup.*'});
-        let pmB = dbconfig.collection_platformBankCardGroup.remove({name: 'TestBankCardGroup.*'});
+        let pmA = dbconfig.collection_platformMerchantGroup.remove({name: {$regex: merchantGroupQuery}});
+        let pmB = dbconfig.collection_platformBankCardGroup.remove({name: {$regex: bankCardGroupQuery}});
 
         let pmC = dbconfig.collection_playerConsumptionRecord.remove({platformId: platformObjId});
         let pmC1 = dbconfig.collection_playerConsumptionRecord.remove({playerId: {$in: playerObjIds}});
@@ -335,12 +344,31 @@ var commonTestFunc = {
 
         let pmO = dbconfig.collection_rewardTask.remove({platformId: platformObjId});
         let pmO1 = dbconfig.collection_rewardTask.remove({playerId: {$in: playerObjIds}});
+        let pmO2 = dbconfig.collection_rewardTaskGroup.remove({platformId: platformObjId});
+        let pmO3 = dbconfig.collection_rewardTaskGroup.remove({playerId: {$in: playerObjIds}});
+
 
         let pmP = dbconfig.collection_partnerCommissionRecord.remove({platform: platformObjId});
         let pmQ = dbconfig.collection_partnerCommissionConfig.remove({platform: platformObjId});
 
+        let pmR = dbconfig.collection_rewardPoints.find({platformObjId: platformObjId}).then(
+            rewardPoints => {
+                let rewardPointsIds = rewardPoints.map(rewardPoint => rewardPoint._id);
+                return dbconfig.collection_rewardPointsLog.remove({rewardPointsObjId: {$in: rewardPointsIds}});
+            }
+        );
+        let pmR1 = dbconfig.collection_rewardPoints.remove({playerObjId:playerObjIds});
+        let pmR2 = dbconfig.collection_rewardPointsEvent.remove({platformObjId:platformObjId});
+
+        let pmS = dbconfig.collection_proposal.remove({"data.platformId":platformObjId});
+
+        let pmS1 = dbconfig.collection_gameProviderGroup.remove({platform:platformObjId});
+
+        let pmT = dbconfig.collection_promoCode.remove({platformObjId:platformObjId});
+
         return Q.all([pm1, pm2, pm3, pm4, pm5, pm6, pm7, pm8, pm9, pmA, pmB, pmC, pmC1, pmD, pmD1,
-            pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ, pmK, pmL, pmM, pmN, pmO, pmO1, pmP, pmQ]);
+            pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ, pmK, pmL, pmM, pmN, pmO, pmO1, pmO2, pmO3,
+            pmP, pmQ, pmR, pmR2, pmR1, pmS, pmS1, pmT]);
     },
 
     removeTestProposalData: function (adminRoleObjIds, platformObjId, proposalTypeObjIds, playerObjId) {
@@ -354,9 +382,7 @@ var commonTestFunc = {
         var pm_P1 = dbconfig.collection_proposal.remove({"proposalId": {$regex: proposalQuery}});
         var pm_P2 = dbconfig.collection_proposal.remove({"playerId": playerObjId});
 
-        var pm_P3 = dbconfig.collection_proposalTypeProcess.remove({platformId: platformObjId});
-
-        return Q.all([pm_P_ProcessStep, pm_P_Process, pm_P_Type, pm_P, pm_P1, pm_P2, pm_P3]);
+        return Q.all([pm_P_ProcessStep, pm_P_Process, pm_P_Type, pm_P, pm_P1, pm_P2]);
     },
 
     removeAllTestProposalData: function () {

@@ -39,7 +39,8 @@ const constRewardTaskStatus = require('../const/constRewardTaskStatus');
 const constServerCode = require('../const/constServerCode');
 const constSettlementPeriod = require("../const/constSettlementPeriod");
 const constSystemParam = require('../const/constSystemParam');
-
+const errorUtils = require('../modules/errorUtils');
+const request = require('request');
 function randomObjectId() {
     var id = crypto.randomBytes(12).toString('hex');
     return mongoose.Types.ObjectId(id);
@@ -245,6 +246,9 @@ var dbPlatform = {
             updateData.weeklySettlementHour = weeklyTime.getUTCHours();
             updateData.weeklySettlementMinute = weeklyTime.getUTCMinutes();
             updateData.weeklySettlementDay = weeklyTime.getUTCDay();
+        }
+        if (updateData.usePointSystem) {
+            dbPlayerInfo.createPlayerRewardPointsRecord(query, "", true);
         }
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
@@ -511,7 +515,7 @@ var dbPlatform = {
                     return Q.all([providerProm, gameProm]);
                 }
                 else {
-                    return Q.reject({name: "DataError", message: "Cannot find provider or platform"});
+                    return Q.reject({name: "DataError", message: "Cannot find provider or platform. ProviderId:" + providerId + " PlatformId: " + platformId});
                 }
             }
         );
@@ -1307,7 +1311,7 @@ var dbPlatform = {
         return Q.all([playersProm, levelsProm]).spread(
             function (players, playerLevels) {
                 const proms = players.map(
-                    player => dbPlayerInfo.checkPlayerLevelDownWithLevels(player, playerLevels, checkPeriod)
+                    player => dbPlayerInfo.checkPlayerLevelDownWithLevels(player, playerLevels, checkPeriod).catch(errorUtils.reportError)
                 );
                 return Q.all(proms);
             }
@@ -1450,6 +1454,12 @@ var dbPlatform = {
             partnerId: data.partnerId || undefined,
             type: {$nin: ["registration"]}
         };
+        if(data.isAdmin && !data.isSystem){
+            query.adminName = {$exists: true, $ne: null};
+        }else if(data.isSystem && !data.isAdmin) {
+            query.adminName = {$eq: null};
+        }
+
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
         addOptionalTimeLimitsToQuery(data, query, 'createTime');
@@ -1484,6 +1494,7 @@ var dbPlatform = {
         data.recipientName ? query.recipientName = data.recipientName : "";
         data.inputDevice ? query.inputDevice = data.inputDevice : "";
         data.purpose ? query.purpose = data.purpose : "";
+        data.platformObjId ? query.platform = data.platformObjId : "";
 
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
@@ -2232,6 +2243,47 @@ var dbPlatform = {
             return Q.reject({name: "DBError", message: "Invalid platformId: " + platformId});
         }
     },
+    getLiveStream: function (playerObjId) {
+        let url = 'https://www.jblshow.com/livestream/liveurl';
+        var deferred = Q.defer();
+        request.get(url, {strictSSL:false}, (err, res, body) => {
+            if (err) {
+                deferred.reject(`Get JBL livestream url failed  ${err}`);
+            } else {
+                let streamInfo = JSON.parse(res.body);
+                let streamResult = {};
+                if(streamInfo.content){
+                    streamResult = streamInfo.content;
+                }
+                if (streamInfo.code) {
+                    streamResult.code = streamInfo.code;
+                }
+                deferred.resolve(streamResult);
+            }
+        });
+
+        let streamInfoProm = deferred.promise;
+        // return deferred.promise;
+
+        let urlTokenProm = playerObjId ? dbPlayerInfo.loginJblShow(playerObjId) : Promise.resolve();
+
+        return Promise.all([streamInfoProm, urlTokenProm]).then(
+            data => {
+                if (!data) {
+                    return;
+                }
+                let streamResult = data[0] || {};
+                let urlDetail = data[1];
+
+                if (urlDetail) {
+                    let endString = "?username=" + urlDetail.playerName + "&token=" + urlDetail.token;
+                    streamResult.url = urlDetail.url + endString;
+                }
+
+                return streamResult;
+            }
+        );
+    }
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {

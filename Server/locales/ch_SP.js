@@ -205,7 +205,6 @@ var simplifiedChinese = {
     "This phone number is already used. Please insert other phone number.": "该号码已经被使用，请使用其他手机号。",
     "PlayerLevelUp": "升级奖励",
     "level change fail, please contact cs": "等级变更失效，请联系客服。",
-    "apply reward fail, please contact cs": "申请优惠失败，请联系客服。",
     "The promoCode Type is still valid": "优惠类型还在使用中，不能被删除。",
     "Player level is not enough": "玩家等级不足",
     "SMS validation code invalidated. Please get another one.": "短信验证码已失效，请重新获取",
@@ -222,6 +221,8 @@ var simplifiedChinese = {
     "Top up does not meet Promo Code minimum required amount": "您的存款金额低于该优惠代码限制，请调整存款金额。",
     "SMS failure, please retry": "短信验证码发送失败，请重新点击获取",
     "SMS failure for more than 5 times, please contact customer service": "短信验证码连续发送失败5次，请联系客服人员",
+    "Connection failed": "连接失败",
+    "PlayerPromoCodeReward": "优惠代码"
     //todo::add missing messages here
 
     /*

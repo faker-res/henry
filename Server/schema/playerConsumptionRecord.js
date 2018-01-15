@@ -12,8 +12,14 @@ var playerConsumptionRecordSchema = new Schema({
     gameId: {type: Schema.ObjectId, required: true},
     // game type
     gameType: {type: String, required: true},
+    // cp game type
+    cpGameType: {type: String, index: true},
+    // bet type
+    betType: {type: String, index: true},
     // gameRound
     roundNo: {type: String},
+    // gameRound
+    playerNo: {type: String},
     // payment time
     createTime: {type: Date, default: Date.now, index: true},
     //total amount for statistics

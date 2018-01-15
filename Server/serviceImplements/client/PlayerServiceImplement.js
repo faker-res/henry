@@ -17,6 +17,7 @@ const queryPhoneLocation = require('query-mobile-phone-area');
 const constProposalEntryType = require('./../../const/constProposalEntryType');
 const constProposalUserType = require('./../../const/constProposalUserType');
 const constProposalStatus = require('./../../const/constProposalStatus');
+const constMessageType = require('./../../const/constMessageType');
 const dbLogger = require('./../../modules/dbLogger');
 const dbPlayerPartner = require('../../db_modules/dbPlayerPartner');
 const dbPlayerRegistrationIntentRecord = require('../../db_modules/dbPlayerRegistrationIntentRecord');
@@ -284,9 +285,10 @@ let PlayerServiceImplement = function () {
     };
 
     //player update api handler
-    this.update.expectsData = 'playerId: String, nickName: String';
+    this.update.expectsData = 'playerId: String, nickName: String, birthday: Date, gender: String';
     this.update.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.playerId && ( data.playerId == conn.playerId) && data.nickName && data.realName.match(/\d+/g) == null);
+        // data.nickName && (!data.realName || data.realName.match(/\d+/g) == null)
+        var isValidData = Boolean(data && data.playerId && ( data.playerId === conn.playerId) && data.nickName && (!data.realName || data.realName.match(/\d+/g) == null) && data.gender && (new Date(data.DOB).getTime() <= new Date().getTime() ));
         if (data.phoneNumber) {
             var queryRes = queryPhoneLocation(data.phoneNumber);
             if (queryRes) {
@@ -295,8 +297,28 @@ let PlayerServiceImplement = function () {
                 data.phoneType = queryRes.type;
             }
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerInfo, [{playerId: data.playerId}, data], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerInfo, [{playerId: conn.playerId}, data], isValidData, false, false, true);
     };
+
+    //update player QQ
+    this.updatePlayerQQ.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerQQProposal, [{playerId: conn.playerId}, data], isValidData);
+    };
+
+    this.updatePlayerWeChat.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerWeChatProposal, [{playerId: conn.playerId}, data], isValidData);
+    };
+
+    this.updatePlayerEmail.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerEmailProposal, [{playerId: conn.playerId}, data], isValidData);
+    };
+
 
     this.updatePhoneNumberWithSMS.expectsData = 'playerId: String, phoneNumber: Number';
     this.updatePhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
@@ -624,7 +646,7 @@ let PlayerServiceImplement = function () {
     //player logout api handler
     this.logout.expectsData = 'playerId: String';
     this.logout.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(conn.playerId);
+        let isValidData = true;
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogout, [{playerId: conn.playerId}], isValidData, true, false, true).then(
             function (res) {
                 conn.isAuth = false;
@@ -767,11 +789,17 @@ let PlayerServiceImplement = function () {
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
         }
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePlayerPayment, [userAgent, {playerId: conn.playerId}, data, null, true], isValidData, true, false, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePlayerPayment, [userAgent, {playerId: conn.playerId}, data, null, false], isValidData, true, false, false).then(
             function (res) {
                 if (res) {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS}, data);
-                    SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
+                    /*// reference to constmessageTypeParam
+                    let sendMessageData = {
+                         data:{bankAccount: data.bankAccount.substr(data.bankAccount.length - 4)},
+                         createTime: new Date(),
+                         proposalId:'' // API call skip proposal, so does not have proposalId
+                    }
+                    SMSSender.sendByPlayerId(data.playerId, constMessageType.UPDATE_BANK_INFO_SUCCESS , sendMessageData);
                     var loggerInfo = {
                         source: constProposalEntryType.CLIENT,
                         bankName: data.bankName,
@@ -788,7 +816,7 @@ let PlayerServiceImplement = function () {
                         creatorType: constProposalUserType.PLAYERS,
                         creatorObjId: res._id
                     };
-                    dbLogger.createBankInfoLog(loggerInfo);
+                    dbLogger.createBankInfoLog(loggerInfo);*/
                 }
                 else {
                     wsFunc.response(conn, {
@@ -1061,14 +1089,18 @@ let PlayerServiceImplement = function () {
     };
 
     this.getWithdrawalInfo.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId && data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWithdrawalInfo, [data.platformId, conn.playerId], isValidData, false, false, true);
+        var isValidData = Boolean(data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWithdrawalInfo, [data.platformId, conn.playerId], isValidData);
     };
 
     this.getCreditDetail.onRequest = function (wsFunc, conn, data) {
         var isValidData = true;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getCreditDetail, [conn.playerObjId], isValidData);
     };
+
+    this.loginJblShow.onRequest = function (wsFunc, conn, data) {
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.loginJblShow, [conn.playerObjId], true);
+    }
 
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);

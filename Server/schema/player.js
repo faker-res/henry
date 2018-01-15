@@ -18,15 +18,39 @@ var playerSchema = new Schema({
     nickName: {type: String},
     //player email
     email: {type: String, default: ""},
+    //gender - true=male, false=female
+    gender:{type: Boolean, default: true},
+    //DOB
+    DOB:{type: Date, default: null},
     //sms Setting
     smsSetting: {
+        // remain old message type just in case, could remove in future
         manualTopup: {type: Boolean, default: false},
         applyBonus: {type: Boolean, default: false},
         cancelBonus: {type: Boolean, default: false},
         applyReward: {type: Boolean, default: false},
         consumptionReturn: {type: Boolean, default: false},
         updatePaymentInfo: {type: Boolean, default: false},
-        updatePassword: {type: Boolean, default: false}
+
+        // new message type
+        PlayerConsumptionReturnSuccess: {type: Boolean, default: false},
+        ManualTopupSuccess: {type: Boolean, default: false},
+        OnlineTopupSuccess: {type: Boolean, default: false},
+        AlipayTopupSuccess: {type: Boolean, default: false},
+        WechatTopupSuccess: {type: Boolean, default: false},
+        WithdrawSuccess: {type: Boolean, default: false},
+        WithdrawCancel: {type: Boolean, default: false},
+        PlayerLimitedOfferRewardSuccess: {type: Boolean, default: false},
+        UpdateBankInfoSuccess: {type: Boolean, default: false},
+        UpdatePhoneInfoSuccess: {type: Boolean, default: false},
+        updatePassword: {type: Boolean, default: false}, // use back this old message type
+        PlayerTopUpReturnGroupSuccess: {type: Boolean, default: false},
+        PlayerLoseReturnRewardGroupSuccess: {type: Boolean, default: false},
+        PlayerConsecutiveRewardGroupSuccess: {type: Boolean, default: false},
+        PlayerConsumptionRewardGroupSuccess: {type: Boolean, default: false},
+        PlayerFreeTrialRewardGroupSuccess: {type: Boolean, default: false},
+        PlayerRegisterIntentionSuccess: {type: Boolean, default: false},
+        PlayerPromoCodeRewardSuccess: {type: Boolean, default: false},
     },
     //store player's icon
     icon: {type: String, default: ""},
@@ -35,9 +59,9 @@ var playerSchema = new Schema({
     //is test player, convertion rate = total(isTestPlayer && isRealPlayer)/total(isTestPlayer)
     isTestPlayer: {type: Boolean, default: false},
     //is real player
-    isRealPlayer: {type: Boolean, default: true},
+    isRealPlayer: {type: Boolean, default: true, index: true},
     //last feedback time
-    lastFeedbackTime: {type: Date, default: ""},
+    lastFeedbackTime: {type: Date, default: "", index: true},
     //feedback times
     feedbackTimes: {type: Number, min: 0, default: 0},
     //no more feedback
@@ -160,7 +184,7 @@ var playerSchema = new Schema({
     //total top up
     topUpSum: {type: Number, min: 0, default: 0},
     //top up times
-    topUpTimes: {type: Number, min: 0, default: 0},
+    topUpTimes: {type: Number, min: 0, default: 0, index: true},
     //daily consumption sum for level up check
     dailyConsumptionSum: {type: Number, min: 0, default: 0},
     //weekly consumption sum for level up check
@@ -271,6 +295,8 @@ var playerSchema = new Schema({
     promoteWay: {type: String},
     // reward point object
     rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints'},
+    // xima withdrawal check bypass
+    ximaWithdraw: {type: Number, default: 0},
 });
 
 //record is unique by name and platform
