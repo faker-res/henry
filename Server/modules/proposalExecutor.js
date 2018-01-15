@@ -676,9 +676,11 @@ var proposalExecutor = {
                             dbLogger.createBankInfoLog(loggerInfo);
                             //SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
                             //bankcardLast4Number(new) send message to player
-                            proposalData.data.bankAccount = proposalData.data.bankAccount.substr(proposalData.data.bankAccount.length - 4);
-                            proposalData.data.playerObjId = proposalData.data._id;
-                            sendMessageToPlayer (proposalData,constMessageType.UPDATE_BANK_INFO_SUCCESS,{});
+                            if (proposalData.data.bankAccount) {
+                                proposalData.data.bankAccount = proposalData.data.bankAccount.substr(proposalData.data.bankAccount.length - 4);
+                                proposalData.data.playerObjId = proposalData.data._id;
+                                sendMessageToPlayer(proposalData, constMessageType.UPDATE_BANK_INFO_SUCCESS, {});
+                            }
                             deferred.resolve(data);
                         },
                         function (error) {

@@ -18,7 +18,7 @@ form(name='form_playerPaymentInfo').well
             div
                 input.form-control.inlineBlk(ng-model='playerPayment.encodedBankAccount', style='width:calc(100% - 100px)', ng-if='!isEditingPlayerPayment', disabled)
                 input.form-control.inlineBlk(ng-model='playerPayment.newBankAccount', ng-change='playerPayment.showNewAccountNo=true;', style='width:calc(100% - 100px)', ng-if='isEditingPlayerPayment && !playerPayment.showNewAccountNo')
-                input.form-control.inlineBlk(ng-model='playerPayment.newBankAccount', pattern= "[0-9]{16,}", style='width:calc(100% - 100px)', ng-if='isEditingPlayerPayment && playerPayment.showNewAccountNo')
+                input.form-control.inlineBlk(ng-model='playerPayment.newBankAccount', pattern= "[0-9]{16,19}", style='width:calc(100% - 100px)', ng-if='isEditingPlayerPayment && playerPayment.showNewAccountNo')
                 //input.form-control.inlineBlk(ng-model='playerPayment.newBankAccount', pattern="((.{0})|([0-9]{16,}))", style='width:calc(100% - 100px)', ng-if='isEditingPlayerPayment')
                 button.btn.btn-info.pull-right(style='width:80px', ng-click='isEditingPlayerPaymentShowVerify=!isEditingPlayerPaymentShowVerify')
                     text(ng-if='isEditingPlayerPaymentShowVerify') {{::'CLOSE' | translate}}
@@ -50,9 +50,10 @@ form(name='form_playerPaymentInfo').well
             .col-md-4(style='padding-right:0')
                 label.control-label {{"districtId" | translate}}
                 select.form-control(type='text', ng-model='currentDistrict.district', ng-options='v.id as v.name for (i,v) in districtList', ng-disabled='!isEditingPlayerPayment')
+                    option(value='')
         .form-group-col-md-6
-            label.control-label *{{'Bank Address' | translate}}
-            input.form-control(ng-model='playerPayment.bankAddress', ng-disabled='!isEditingPlayerPayment', required)
+            label.control-label {{'Account Branch' | translate}}
+            input.form-control(ng-model='playerPayment.bankAddress', ng-disabled='!isEditingPlayerPayment')
 button.common-button.margin-right-5.btn.btn-primary(ng-show='!isEditingPlayerPayment', ng-click="isEditingPlayerPayment=true") {{"EDIT" | translate}}
 button.common-button.margin-right-5.btn.btn-primary(ng-show='isEditingPlayerPayment', ng-click="prepareEditPlayerPayment()") {{"CANCEL" | translate}}
 button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog',ng-show='isEditingPlayerPayment', ng-disabled='form_playerPaymentInfo.$invalid || form_playerPaymentInfo.$pristine', ng-click="updatePlayerPayment();") {{"UPDATE" | translate}}

@@ -10006,7 +10006,8 @@ define(['js/app'], function (myApp) {
                             }
                         }
                         if (reset && vm.districtList && vm.districtList[0]) {
-                            vm.currentDistrict.district = vm.districtList[0].id
+                            // vm.currentDistrict.district = vm.districtList[0].id
+                            vm.currentDistrict.district = ""
                         }
                         $scope.safeApply();
                     }
