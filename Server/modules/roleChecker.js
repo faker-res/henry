@@ -385,7 +385,8 @@ var roleChecker = {
                 Monitor: [],
                 PlayerValue: ['updatePlayerValueConfig','updatePlayerLevelScores'],
                 Credibility: ['updateCredibilityRemarksInBulk'],
-                providerGroup: ['deletePlatformProviderGroup']
+                providerGroup: ['deletePlatformProviderGroup'],
+                smsGroup: []
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
