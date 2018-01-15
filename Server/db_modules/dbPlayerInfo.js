@@ -1768,7 +1768,9 @@ let dbPlayerInfo = {
             updatedData => {
                 let inputDeviceData = dbUtility.getInputDevice(userAgent,false);
                 updateData.isPlayerInit = true;
-                updateData.playerName = playerObj.name;
+               // updateData.playerName = playerObj.name;
+                updateData.playerId = playerObj.playerId || "";
+                updateData.name = playerObj.name || "";
 
                 // If user modified their own, no proposal needed
                 if (!skipProposal) {
