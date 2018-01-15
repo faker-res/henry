@@ -586,7 +586,7 @@
                                 option(value='false') {{'NO' | translate}}
                                 option(value='true') {{"YES" | translate}}
                         .pull-right
-                            button.btn.btn-primary.common-button(ng-click='vm.setPromoCodeActivate()') {{"SET" | translate}}
+                            button.btn.btn-primary.common-button(ng-click='vm.setPromoCodeActivate(); vm.savePromoCodeTime();') {{"SET" | translate}}
                             label {{vm.promoCodeActivate.message}}
 
                 // Tab - Promo Code Analysis
