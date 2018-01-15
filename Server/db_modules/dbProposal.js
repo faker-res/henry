@@ -306,6 +306,15 @@ var proposal = {
                                 });
                             }
                             else {
+
+                                if (proposalData.data.isPlayerInit){
+                                    proposalData.creator = {
+                                        type: 'player',
+                                        name: proposalData.data.playerName || "",
+                                        id: proposalData.data.playerId || ""
+                                    };
+                                }
+
                                 var proposalProm = proposal.createProposal(proposalData);
                                 var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
                                 return Q.all([proposalProm, platProm, data[0].expirationDuration]);
@@ -1479,7 +1488,7 @@ var proposal = {
                                         retData.push(prom);
                                     }
                                     return Q.all(retData);
-                                }).read("secondary");
+                                }).read("secondaryPreferred");
                         var b = dbconfig.collection_proposal.find(queryObj).count();
                         var c = dbconfig.collection_proposal.aggregate(
                             {
@@ -1503,7 +1512,7 @@ var proposal = {
                                     totalCommissionAmount: {$sum: "$data.commissionAmount"}
                                 }
                             }
-                        ).read("secondary");
+                        ).read("secondaryPreferred");
                         return Q.all([a, b, c])
                     }
                     else {
