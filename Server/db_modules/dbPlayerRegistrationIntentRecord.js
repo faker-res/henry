@@ -84,6 +84,7 @@ var dbPlayerRegistrationIntentRecord = {
                 data: data,
                 entryType: data.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                 userType: data.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                status: status
             };
 
             //data.ipArea = geoip('210.21.84.23');
