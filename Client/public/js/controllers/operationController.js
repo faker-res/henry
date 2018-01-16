@@ -2657,22 +2657,37 @@ define(['js/app'], function (myApp) {
                 });
             });
 
-            setTimeout(function () {
+            $scope.$evalAsync(() => {
                 utilService.actionAfterLoaded("#proposalDataTablePage", function () {
                     vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
                     });
                 });
-            }, 0);
+            });
+            // setTimeout(function () {
+            //     utilService.actionAfterLoaded("#proposalDataTablePage", function () {
+            //         vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
+            //             vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
+            //         });
+            //     });
+            // }, 0);
 
-            // for some reason, the pagination wont translate when it does not put inside setTimeout
-            setTimeout(function() {
+            $scope.$evalAsync(() => {
                 utilService.actionAfterLoaded("#proposalAuditDataTablePage", function () {
                     vm.queryAuditProposal.pageObj = utilService.createPageForPagingTable("#proposalAuditDataTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "queryAuditProposal", vm.loadProposalAuditQueryData)
                     });
                 });
-            }, 0);
+            })
+
+            // // for some reason, the pagination wont translate when it does not put inside setTimeout
+            // setTimeout(function() {
+            //     utilService.actionAfterLoaded("#proposalAuditDataTablePage", function () {
+            //         vm.queryAuditProposal.pageObj = utilService.createPageForPagingTable("#proposalAuditDataTablePage", {}, $translate, function (curP, pageSize) {
+            //             vm.commonPageChangeHandler(curP, pageSize, "queryAuditProposal", vm.loadProposalAuditQueryData)
+            //         });
+            //     });
+            // }, 0);
 
 
             // Q.all([vm.getAllPlatforms(), vm.getProposalEntryTypeList(), vm.getProposalPriorityList(),

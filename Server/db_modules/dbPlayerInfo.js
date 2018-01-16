@@ -266,7 +266,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId) {
+    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate) {
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -340,6 +340,9 @@ let dbPlayerInfo = {
             ).then(
                 validData => {
                     if (validData && validData.isPlayerNameValid) {
+                        if (isAutoCreate) { // todo :: add a platform setting to allow or deny auto create
+                            return {isPhoneNumberValid: true};
+                        }
 
                         // phone number white listing
                         if (platformObj.whiteListingPhoneNumbers
@@ -545,7 +548,7 @@ let dbPlayerInfo = {
                         inputData.csOfficer = ObjectId(adminId);
                     }
 
-                    return dbPlayerInfo.createPlayerInfo(inputData);
+                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate);
                 }
             ).then(
                 data => {
@@ -863,7 +866,7 @@ let dbPlayerInfo = {
         })
     },
 
-    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix) {
+    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate) {
         let deferred = Q.defer();
         let playerData = null;
         let platformData = null;
@@ -931,6 +934,10 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data.isPlayerNameValid) {
+                    if (isAutoCreate) {
+                        return {isPhoneNumberValid: true};
+                    }
+
                     if (platformData.whiteListingPhoneNumbers
                         && platformData.whiteListingPhoneNumbers.length > 0
                         && playerdata.phoneNumber
@@ -5573,18 +5580,23 @@ let dbPlayerInfo = {
                         else {
                             status = proposals[i].process ? proposals[i].process.status : proposals[i].status;
                         }
-                        res.push(
-                            {
-                                playerId: playerId,
-                                playerName: playerName,
-                                createTime: proposals[i].createTime,
-                                rewardType: proposals[i].type ? proposals[i].type.name : "",
-                                rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
-                                eventName: proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : "",null, platformId),
-                                eventCode: proposals[i].data.eventCode,
-                                status: status
-                            }
-                        );
+
+                        let rec = {
+                            playerId: playerId,
+                            playerName: playerName,
+                            createTime: proposals[i].createTime,
+                            rewardType: proposals[i].type ? proposals[i].type.name : "",
+                            rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
+                            eventName: proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : "",null, platformId),
+                            eventCode: proposals[i].data.eventCode,
+                            status: status
+                        }
+
+                        if (proposals[i].data.PROMO_CODE_TYPE) {
+                            rec.promoCodeName = proposals[i].data.PROMO_CODE_TYPE;
+                        }
+
+                        res.push(rec);
                         totalAmount += (proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : 0);
                     }
                     return {
