@@ -557,6 +557,12 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.inputDevice);
             socketUtil.emitter(self.socket, dbPlatform.getPartnerNextOrderNo, [data.platformId, data.inputDevice], actionName, isValidData);
+        },
+
+        updatePromoCodeSetting: function updatePromoCodeSetting(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.promoCodeStartTime && data.promoCodeEndTime && data.promoCodeIsActive);
+            socketUtil.emitter(self.socket, dbPlatform.updatePromoCodeSetting, [data.platformObjId, data.promoCodeStartTime, data.promoCodeEndTime, data.promoCodeIsActive], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;

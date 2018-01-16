@@ -154,12 +154,42 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
         #smsSettingPanel.panel-body(ng-if="vm.smsModalTab === 'smsSettingPanel'")
             .row.margin-left-5.margin-right-5
                 .form-group.col-md-12
-                    label.control-label(style="width:auto;") {{"RECEIVE_SMS" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.receiveSMS")
-                    label.control-label(style="width:auto;") {{"Select All" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSettingSelectAll", ng-change="vm.smsSettingToggleSelectAll();", ng-disabled="!vm.playerBeingEdited.receiveSMS")
-                    label.control-label.margin-right-5(style="width:100%;", ng-repeat="(k, t) in vm.allMessageTypes", ng-if="t.name!='smsVerificationCode'") {{t.name | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[t.name]", ng-change="vm.smsSettingSetSelectAll();", ng-disabled="!vm.playerBeingEdited.receiveSMS")
+                    .col-md-4
+                        table.common-table.playerLvlTable
+                            thead
+                                tr
+                                    th {{"receive status" | translate}}
+                                    th {{"no group sms setting" | translate}}
+
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.noGroupSmsSetting')
+                                    td
+                                        input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[v.name]")
+                                    td
+                                        span {{v.name | translate}}
+
+                    .col-md-8
+                        table.common-table.playerLvlTable
+                            thead
+                                tr
+                                    th {{"receive status/sms group" | translate}}
+                                    th {{"sms group settings" | translate}}
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.smsGroups | filter: {smsParentSmsId: -1}')
+                                    td
+                                        input.margin-right-5(type="checkbox" ng-model='vm.playerSmsSetting.smsGroup[v.smsId]' ng-init='vm.isAllSmsInGroupChecked(v)' ng-change='vm.smsGroupCheckChange(v)')
+                                        span(ng-if='!vm.configTableEdit') {{v.smsName}}
+                                    td
+                                        div(ng-repeat='(ii, vv) in vm.smsGroups | filter: {smsParentSmsId: v.smsId}')
+                                            span {{ vv.smsName | translate}}
+                                            input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[vv.smsName]" ng-change='vm.isAllSmsInGroupChecked(v)')
+
+                    //label.control-label(style="width:auto;") {{"RECEIVE_SMS" | translate}}
+                    //    input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.receiveSMS")
+                    //label.control-label(style="width:auto;") {{"Select All" | translate}}
+                    //    input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSettingSelectAll", ng-change="vm.smsSettingToggleSelectAll();", ng-disabled="!vm.playerBeingEdited.receiveSMS")
+                    //label.control-label.margin-right-5(style="width:100%;", ng-repeat="(k, t) in vm.allMessageTypes", ng-if="t.name!='smsVerificationCode'") {{t.name | translate}}
+                    //    input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[t.name]", ng-change="vm.smsSettingSetSelectAll();", ng-disabled="!vm.playerBeingEdited.receiveSMS")
 
 
 
