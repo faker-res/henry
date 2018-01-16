@@ -8051,7 +8051,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.initPlayerDisplayDataModal = function () {
-            $('#customerServeiceTab').addClass('active');
+            $('#customerServiceTab').addClass('active');
             $('#advertisementTab').removeClass('active');
             $scope.safeApply();
             vm.playerDisplayDataTab = "customerServicePanel";
@@ -8061,7 +8061,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.initPartnerDisplayDataModal = function() {
-            $('#partnerTab').addClass('active');
+            $('#partnerServiceTab').addClass('active');
             $('#partnerAdvertisementTab').removeClass('active');
             $scope.safeApply();
             vm.partnerDisplayDataTab = "partnerPanel";

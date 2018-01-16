@@ -430,6 +430,13 @@ define(['js/app'], function (myApp) {
 
             let startTime = $('#datetimepicker').data('datetimepicker').getLocalDate();
             let endTime = $('#datetimepicker2').data('datetimepicker').getLocalDate();
+
+            let searchInterval = Math.abs(new Date(endTime).getTime() - new Date(startTime).getTime());
+            if (searchInterval > $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME) {
+                socketService.showErrorMessage($translate("Exceed proposal search max time frame"));
+                return;
+            }
+
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
@@ -507,6 +514,12 @@ define(['js/app'], function (myApp) {
             var startTime = $('#datetimepickerAudit').data('datetimepicker');
             var endTime = $('#datetimepickerAudit2').data('datetimepicker');
             var newEndTime = endTime.getLocalDate();
+
+            let searchInterval = Math.abs(new Date(endTime.getLocalDate()).getTime() - new Date(startTime.getLocalDate()).getTime());
+            if (searchInterval > $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME) {
+                socketService.showErrorMessage($translate("Exceed proposal search max time frame"));
+                return;
+            }
 
             let sendData = {
                 adminId: authService.adminId,

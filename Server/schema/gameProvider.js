@@ -32,7 +32,7 @@ var gameProviderSchema = new Schema({
     //store based on platformObjId eg.: {platformObjId: {processedAmount: number, totalAmount: number}}
     batchCreditTransferOutStatus: {type: JSON, default: {}},
     //game types
-    gameTypes: [{type: String}],
+    gameTypes: [],
     //player types
     playTypes: [{type: String}]
 });
