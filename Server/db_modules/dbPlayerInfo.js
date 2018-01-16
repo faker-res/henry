@@ -1773,9 +1773,11 @@ let dbPlayerInfo = {
         ).then(
             updatedData => {
                 let inputDeviceData = dbUtility.getInputDevice(userAgent,false);
-                updateData.isPlayerInit = true;
+                //updateData.isPlayerInit = true;
                // updateData.playerName = playerObj.name;
-                updateData.playerId = playerObj.playerId || "";
+                updateData.isIgnoreAudit=true; // bypass the audit process if the update is made from the frontend API by the user
+                updateData._id =  playerObj._id || "";
+                updateData.playerObjId = playerObj._id || "";
                 updateData.name = playerObj.name || "";
 
                 // If user modified their own, no proposal needed
@@ -8591,7 +8593,7 @@ let dbPlayerInfo = {
                                         resData.forEach(type => {
                                             if (type.type == paymentData.merchants[i].topupType) {
                                                 bValidType = false;
-                                                if (status == 1 && paymentData.merchants[i].status == "ENABLED") {
+                                                if (status == 1 && paymentData.merchants[i].status == "ENABLED" && paymentData.merchants[i].targetDevices == clientType) {
                                                     type.status = status;
                                                     if (type.maxDepositAmount < paymentData.merchants[i].permerchantLimits){
                                                         type.maxDepositAmount = paymentData.merchants[i].permerchantLimits;
