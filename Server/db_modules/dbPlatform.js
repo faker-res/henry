@@ -2283,7 +2283,18 @@ var dbPlatform = {
                 return streamResult;
             }
         );
-    }
+    },
+
+    /**
+     * Update the promoCode setting in Platform
+     */
+    updatePromoCodeSetting: function (platformObjId, promoCodeStartTime, promoCodeEndTime) {
+        return dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId},
+            {
+                promoCodeStartTime: promoCodeStartTime,
+                promoCodeEndTime: promoCodeEndTime
+            }, {new: true});
+    },
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
