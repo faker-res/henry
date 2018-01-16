@@ -1614,7 +1614,7 @@ let dbPlayerReward = {
                                         if (status == "1") {
                                             noUseListArr.push(promo);
                                         } else if (status == "2") {
-                                            if (bonusUrl) {
+                                            if (bonusUrl && promocode.isActive) {
                                                 promo.bonusUrl = bonusUrl;
                                             }
                                             usedListArr.push(promo);
@@ -3083,6 +3083,20 @@ let dbPlayerReward = {
 
     },
     updatePromoCodesActive: (platformObjId, data) => {
+        if (data.flag) {
+            dbConfig.collection_promoCode.update({
+                platformObjId: platformObjId,
+                createTime: {$not: {$gte: new Date(data.startCreateTime), $lt: new Date(data.endCreateTime)}},
+                isActive: true
+            }, {
+                $set: {
+                    isActive: false
+                }
+            }, {
+                multi: true
+            }).exec().catch(errorUtils.reportError);
+        }
+
         return dbConfig.collection_promoCode.update({
             platformObjId: platformObjId,
             acceptedTime: {$gte: new Date(data.startAcceptedTime), $lt: new Date(data.endAcceptedTime)}

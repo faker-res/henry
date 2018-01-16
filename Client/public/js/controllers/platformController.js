@@ -7175,7 +7175,7 @@ define(['js/app'], function (myApp) {
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
                     Object.keys(newPlayerData).forEach(function (key) {
                         if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup" || key == "referralName") {
+                            if (key == "smsSetting" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName" || key == "DOB") {
                                 //do nothing
                             } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                                 //do nothing
@@ -16134,12 +16134,20 @@ define(['js/app'], function (myApp) {
                                 language: 'en',
                                 format: 'yyyy/MM/dd hh:mm:ss'
                             });
-                            vm.promoCodeActivate.startCreateTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                            if (vm.selectedPlatform.data.promoCodeStartTime) {
+                                vm.promoCodeActivate.startCreateTime.data('datetimepicker').setDate(utilService.getLocalTime(new Date(vm.selectedPlatform.data.promoCodeStartTime)));
+                            } else {
+                                vm.promoCodeActivate.startCreateTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                            }
                             vm.promoCodeActivate.endCreateTime = utilService.createDatePicker('#promoCodeActivate .endCreateTime', {
                                 language: 'en',
                                 format: 'yyyy/MM/dd hh:mm:ss'
                             });
-                            vm.promoCodeActivate.endCreateTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                            if (vm.selectedPlatform.data.promoCodeEndTime) {
+                                vm.promoCodeActivate.endCreateTime.data('datetimepicker').setDate(utilService.getLocalTime(new Date(vm.selectedPlatform.data.promoCodeEndTime)));
+                            } else {
+                                vm.promoCodeActivate.endCreateTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                            }
                         });
                         break;
                     case 'smsContent':
@@ -17769,6 +17777,26 @@ define(['js/app'], function (myApp) {
                 }, true);
 
             };
+
+            vm.savePromoCodeTime = function () {
+                let sendObj = {
+                    promoCodeStartTime: vm.promoCodeActivate.startCreateTime.data('datetimepicker').getLocalDate(),
+                    promoCodeEndTime: vm.promoCodeActivate.endCreateTime.data('datetimepicker').getLocalDate(),
+                    platformObjId: vm.selectedPlatform.id
+                };
+
+                if (sendObj.promoCodeStartTime.toISOString() !== new Date(vm.selectedPlatform.data.promoCodeStartTime).toISOString() ||
+                    sendObj.promoCodeEndTime.toISOString() !== new Date(vm.selectedPlatform.data.promoCodeEndTime).toISOString()) {
+                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSetting', sendObj, function (data) {
+                        console.log('updatePromoCodeSetting', data);
+                        vm.selectedPlatform.data.promoCodeStartTime = data.data.promoCodeStartTime;
+                        vm.selectedPlatform.data.promoCodeEndTime = data.data.promoCodeEndTime;
+                        $scope.safeApply();
+                    }, function (err) {
+                        console.error(err);
+                    }, true);
+                }
+            }
 
             vm.getPromoCodeAnalysis = function (isNewSearch) {
                 vm.promoCodeAnalysis.platformId = vm.selectedPlatform.id;

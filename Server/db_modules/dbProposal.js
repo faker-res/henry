@@ -1367,7 +1367,7 @@ var proposal = {
                         inputDevice ? queryObj.inputDevice = inputDevice : null;
                         var sortKey = (Object.keys(sortCol))[0];
                         var a = sortKey != 'relatedAmount' ?
-                            dbconfig.collection_proposal.find(queryObj)
+                            dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred")
                                 .populate({path: 'type', model: dbconfig.collection_proposalType})
                                 .populate({path: 'process', model: dbconfig.collection_proposalProcess})
                                 // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
@@ -1456,7 +1456,7 @@ var proposal = {
                                     }
                                     return Q.all(retData);
                                 }).read("secondaryPreferred");
-                        var b = dbconfig.collection_proposal.find(queryObj).count();
+                        var b = dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred").count();
                         var c = dbconfig.collection_proposal.aggregate(
                             {
                                 $match: queryObj

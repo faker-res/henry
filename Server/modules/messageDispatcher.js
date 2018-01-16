@@ -77,8 +77,16 @@ const messageDispatcher = {
             }
         ).then(
             data => {
-                if(data && data[0] && data[0].length > 0){
-                    metaData.allowedProviders = data[0];
+                if(data){
+                    if(metaData.isProviderGroup) {
+                        if(data.length > 0 && data[0].name){
+                            metaData.allowedProviders = data[0].name;
+                        }
+                    }else{
+                        if(data[0] && data[0].length > 0){
+                            metaData.allowedProviders = data[0]
+                        }
+                    }
                 }
 
                 let messageContent = messageDispatcher.contentModifier(metaData.promoCodeType.smsContent,metaData);
@@ -95,27 +103,7 @@ const messageDispatcher = {
     },
 
     getProviderNameByProviderGroupId: function(providerGroupId){
-        let gameProviderProm = [];
-        let gameProviderNameArr =[];
-        return dbconfig.collection_gameProviderGroup.findOne({_id: providerGroupId}).then(
-            gameProviderGroupData => {
-                if(gameProviderGroupData && gameProviderGroupData.providers && gameProviderGroupData.providers.length > 0){
-                    gameProviderGroupData.providers.forEach(gameProviderId => {
-                        gameProviderProm.push(dbconfig.collection_gameProvider.findOne({_id: gameProviderId}));
-                    })
-                }
-                return Promise.all(gameProviderProm);
-            }
-        ).then(
-            gameProviderData => {
-                if(gameProviderData && gameProviderData.length > 0){
-                    gameProviderData.forEach(gameProvider => {
-                        gameProviderNameArr.push(gameProvider.name);
-                    })
-                }
-                return gameProviderNameArr;
-            }
-        );
+        return dbconfig.collection_gameProviderGroup.findOne({_id: providerGroupId},{name: 1});
     },
 
     getProviderNameByProviderId(providerIdArr){
