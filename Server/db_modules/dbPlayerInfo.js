@@ -48,6 +48,7 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var pmsAPI = require("../externalAPI/pmsAPI.js");
 var localization = require("../modules/localization");
+var ch_SP = require("../locales/ch_SP");
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 var queryPhoneLocation = require('query-mobile-phone-area');
@@ -265,7 +266,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId) {
+    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate) {
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -339,6 +340,9 @@ let dbPlayerInfo = {
             ).then(
                 validData => {
                     if (validData && validData.isPlayerNameValid) {
+                        if (isAutoCreate) { // todo :: add a platform setting to allow or deny auto create
+                            return {isPhoneNumberValid: true};
+                        }
 
                         // phone number white listing
                         if (platformObj.whiteListingPhoneNumbers
@@ -544,7 +548,7 @@ let dbPlayerInfo = {
                         inputData.csOfficer = ObjectId(adminId);
                     }
 
-                    return dbPlayerInfo.createPlayerInfo(inputData);
+                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate);
                 }
             ).then(
                 data => {
@@ -862,7 +866,7 @@ let dbPlayerInfo = {
         })
     },
 
-    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix) {
+    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate) {
         let deferred = Q.defer();
         let playerData = null;
         let platformData = null;
@@ -930,6 +934,10 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data.isPlayerNameValid) {
+                    if (isAutoCreate) {
+                        return {isPhoneNumberValid: true};
+                    }
+
                     if (platformData.whiteListingPhoneNumbers
                         && platformData.whiteListingPhoneNumbers.length > 0
                         && playerdata.phoneNumber
@@ -1767,7 +1775,9 @@ let dbPlayerInfo = {
             updatedData => {
                 let inputDeviceData = dbUtility.getInputDevice(userAgent,false);
                 updateData.isPlayerInit = true;
-                updateData.playerName = playerObj.name;
+               // updateData.playerName = playerObj.name;
+                updateData.playerId = playerObj.playerId || "";
+                updateData.name = playerObj.name || "";
 
                 // If user modified their own, no proposal needed
                 if (!skipProposal) {
@@ -5484,7 +5494,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getRewardsForPlayer: function (playerId, rewardType, startTime, endTime, startIndex, count, eventCode) {
+    getRewardsForPlayer: function (playerId, rewardType, startTime, endTime, startIndex, count, eventCode, platformId) {
         var queryProm = null;
         var playerName = '';
         var queryObject = {
@@ -5570,18 +5580,23 @@ let dbPlayerInfo = {
                         else {
                             status = proposals[i].process ? proposals[i].process.status : proposals[i].status;
                         }
-                        res.push(
-                            {
-                                playerId: playerId,
-                                playerName: playerName,
-                                createTime: proposals[i].createTime,
-                                rewardType: proposals[i].type ? proposals[i].type.name : "",
-                                rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
-                                eventName: proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : ""),
-                                eventCode: proposals[i].data.eventCode,
-                                status: status
-                            }
-                        );
+
+                        let rec = {
+                            playerId: playerId,
+                            playerName: playerName,
+                            createTime: proposals[i].createTime,
+                            rewardType: proposals[i].type ? proposals[i].type.name : "",
+                            rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
+                            eventName: proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : "",null, platformId),
+                            eventCode: proposals[i].data.eventCode,
+                            status: status
+                        }
+
+                        if (proposals[i].data.PROMO_CODE_TYPE) {
+                            rec.promoCodeName = proposals[i].data.PROMO_CODE_TYPE;
+                        }
+
+                        res.push(rec);
                         totalAmount += (proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : 0);
                     }
                     return {
@@ -8088,13 +8103,17 @@ let dbPlayerInfo = {
                 deferred.reject({name: "DataError", message: "Token is not authenticated"});
             }
             else {
-                dbconfig.collection_players.findOne({playerId: playerId}).then(
+                dbconfig.collection_players.findOne({playerId: playerId}).populate({
+                    path: "platform",
+                    model: dbconfig.collection_platform
+                }).then(
                     playerData => {
                         if (playerData) {
                             if (playerData.lastLoginIp == playerIp) {
                                 conn.isAuth = true;
                                 conn.playerId = playerId;
                                 conn.playerObjId = playerData._id;
+                                conn.platformId = playerData.platform.platformId;
                                 deferred.resolve(true);
                             }
                             else {
@@ -11975,6 +11994,29 @@ let dbPlayerInfo = {
                 return {data: logs, size: count};
             }
         )
+    },
+
+    // translation CSV at platform config
+    downloadTranslationCSV: function () {
+        let simplifiedChinese = ch_SP;
+        let outputChineseKey = [];
+        let outputChineseValue = [];
+
+        for (let key in simplifiedChinese) {
+            if (simplifiedChinese.hasOwnProperty(key)) {
+                let value = simplifiedChinese[key];
+                outputChineseKey.push(key);
+                outputChineseValue.push(value);
+            }
+        }
+
+        let exportCSVResult = [];
+        for (let x = 0; x < outputChineseKey.length; x++) {
+            for (let y = 0; y < outputChineseValue.length; y++) {
+                exportCSVResult.push([outputChineseKey[x++], outputChineseValue[y]]); //create nested array
+            }
+        }
+        return exportCSVResult;
     },
 
     comparePhoneNum: function (filterAllPlatform, platformObjId, arrayInputPhone) {

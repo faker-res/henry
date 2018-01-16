@@ -676,9 +676,11 @@ var proposalExecutor = {
                             dbLogger.createBankInfoLog(loggerInfo);
                             //SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
                             //bankcardLast4Number(new) send message to player
-                            proposalData.data.bankAccount = proposalData.data.bankAccount.substr(proposalData.data.bankAccount.length - 4);
-                            proposalData.data.playerObjId = proposalData.data._id;
-                            sendMessageToPlayer (proposalData,constMessageType.UPDATE_BANK_INFO_SUCCESS,{});
+                            if (proposalData.data.bankAccount) {
+                                proposalData.data.bankAccount = proposalData.data.bankAccount.substr(proposalData.data.bankAccount.length - 4);
+                                proposalData.data.playerObjId = proposalData.data._id;
+                                sendMessageToPlayer(proposalData, constMessageType.UPDATE_BANK_INFO_SUCCESS, {});
+                            }
                             deferred.resolve(data);
                         },
                         function (error) {
@@ -1058,19 +1060,21 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
                     dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.MANUAL, proposalData).then(
                         function (data) {
-                            SMSSender.sendByPlayerId(proposalData.data.playerId, constMessageType.MANUAL_TOPUP_SUCCESS);
-                            var wsMessageClient = serverInstance.getWebSocketMessageClient();
-                            if (wsMessageClient) {
-                                wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
-                                    {
-                                        proposalId: proposalData.proposalId,
-                                        amount: proposalData.data.amount,
-                                        handleTime: new Date(),
-                                        status: proposalData.status,
-                                        playerId: proposalData.data.playerId
-                                    }
-                                );
-                            }
+
+                            sendMessageToPlayer(proposalData,constMessageType.MANUAL_TOPUP_SUCCESS,{});
+                            // SMSSender.sendByPlayerId(proposalData.data.playerId, constMessageType.MANUAL_TOPUP_SUCCESS);
+                            // var wsMessageClient = serverInstance.getWebSocketMessageClient();
+                            // if (wsMessageClient) {
+                            //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
+                            //         {
+                            //             proposalId: proposalData.proposalId,
+                            //             amount: proposalData.data.amount,
+                            //             handleTime: new Date(),
+                            //             status: proposalData.status,
+                            //             playerId: proposalData.data.playerId
+                            //         }
+                            //     );
+                            // }
                             // DEBUG: Reward sometime not applied issue
                             console.log('applyForPlatformTransactionReward - Start', proposalData.proposalId);
                             dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL);
@@ -1935,6 +1939,7 @@ var proposalExecutor = {
              * execution function for player intention proposal
              */
             executePlayerRegistrationIntention: function (proposalData, deferred) {
+                sendMessageToPlayer(proposalData,constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS,{});
                 deferred.resolve(proposalData);
             },
 
@@ -2765,7 +2770,7 @@ var proposalExecutor = {
                         .then(
 
                             res => {
-                                proposalData.cancelTime = new Date();
+                                proposalData.cancelTime = moment(new Date()).format("YYYY/MM/DD HH:mm:ss");
                                 sendMessageToPlayer (proposalData,constMessageType.WITHDRAW_CANCEL,{});
                                 return deferred.resolve("Proposal is rejected");
                             },
@@ -3129,12 +3134,14 @@ function sendMessageToPlayer (proposalData,type,metaDataObj) {
          messageType = type + 'Success';
     }
 
+    if(proposalData.createTime)
+        proposalData.createTime = moment(proposalData.createTime).format("YYYY/MM/DD HH:mm:ss");
     SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, messageType, proposalData);
     // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
     // Changing into async function
     //dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
     //send message if there is any template created for this reward
-    return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, messageType, metaDataObj);
+    return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, messageType, metaDataObj).catch(err=>{console.error(err)});
 
 }
 function createRewardLogForProposal(rewardTypeName, proposalData) {

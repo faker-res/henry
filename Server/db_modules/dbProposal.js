@@ -306,6 +306,15 @@ var proposal = {
                                 });
                             }
                             else {
+
+                                if (proposalData.data.isPlayerInit){
+                                    proposalData.creator = {
+                                        type: 'player',
+                                        name: proposalData.data.playerName || "",
+                                        id: proposalData.data.playerId || ""
+                                    };
+                                }
+
                                 var proposalProm = proposal.createProposal(proposalData);
                                 var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
                                 return Q.all([proposalProm, platProm, data[0].expirationDuration]);
@@ -1271,67 +1280,38 @@ var proposal = {
     getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName, inputDevice) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
 
-        let platformIds = platformId.map(p => {
-            if(p && typeof p != "object"){
-                return ObjectId(p);
-            }
-        })
-
-        //check proposal without process
-        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
-
-        //check proposal with process
-        // var prom2 = dbconfig.collection_proposalTypeProcess.find({platformId: platformId}).lean().then(
-        //     types => {
-        //         if (types && types.length > 0) {
-        //             var proposalProcessTypesId = [];
-        //             for (var i = 0; i < types.length; i++) {
-        //                 if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
-        //                     proposalProcessTypesId.push(types[i]._id);
-        //                 }
-        //             }
-        //             return dbconfig.collection_proposalProcess.find({
-        //                 type: {$in: proposalProcessTypesId},
-        //                 status: {$in: statusArr}
-        //             }).lean();
-        //         }
-        //         else {
-        //             return Q.reject({name: "DataError", message: "Can not find platform proposal process types"});
-        //         }
-        //     }
-        // );
-        return Q.all([prom1]).then(//removed , prom2
+        return dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean().then(//removed , prom2
             data => {
-                if (data && data[0]) { // removed  && data[1]
-                    var types = data[0];
-                    // var processes = data[1];
-                    if (types && types.length > 0) {
-                        var proposalTypesId = [];
+                if (data) {
+                    let types = data;
 
-                        for (var i = 0; i < types.length; i++) {
+                    if (types && types.length > 0) {
+                        let proposalTypesId = [];
+
+                        // can directly pass object id into this
+                        for (let i = 0; i < types.length; i++) {
                             if ((!typeArr || (typeArr && typeArr.length == 0)) || typeArr.indexOf(types[i].name) != -1) {
                                 proposalTypesId.push(types[i]._id);
                             }
                         }
 
-                        // var processIds = [];
-                        // for (var j = 0; j < processes.length; j++) {
-                        //     processIds.push(processes[j]._id);
-                        // }
-                        var queryObj = {
+                        let queryObj = {
                             type: {$in: proposalTypesId},
                             createTime: {
                                 $gte: new Date(startTime),
                                 $lt: new Date(endTime)
-                            },
-                            status: {$in: statusArr}
+                            }
                         };
+
+                        if (statusArr) {
+                            queryObj.status = {$in: statusArr}
+                        }
 
                         if (userName) {
                             queryObj['data.name'] = userName;
                         }
+
                         if (relateUser) {
-                            // queryObj["data.playerName"] = relateUser;
                             queryObj["$and"] = [];
                             queryObj["$and"].push({
                                 $or: [
@@ -1368,11 +1348,7 @@ var proposal = {
                         }
 
                         if (promoTypeName && promoTypeName.length > 0) {
-                            queryObj["$and"] = queryObj["$and"] || [];
-                            let dataCheck = {"data.PROMO_CODE_TYPE": {$in: promoTypeName}};
-                            let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
-                            let orQuery = [dataCheck, existCheck];
-                            queryObj["$and"].push({$or: orQuery});
+                            queryObj["data.PROMO_CODE_TYPE"] = {$in: promoTypeName};
                         }
 
                         if (credit) {
@@ -1391,7 +1367,7 @@ var proposal = {
                         inputDevice ? queryObj.inputDevice = inputDevice : null;
                         var sortKey = (Object.keys(sortCol))[0];
                         var a = sortKey != 'relatedAmount' ?
-                            dbconfig.collection_proposal.find(queryObj)
+                            dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred")
                                 .populate({path: 'type', model: dbconfig.collection_proposalType})
                                 .populate({path: 'process', model: dbconfig.collection_proposalProcess})
                                 // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
@@ -1479,8 +1455,8 @@ var proposal = {
                                         retData.push(prom);
                                     }
                                     return Q.all(retData);
-                                });
-                        var b = dbconfig.collection_proposal.find(queryObj).count();
+                                }).read("secondaryPreferred");
+                        var b = dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred").count();
                         var c = dbconfig.collection_proposal.aggregate(
                             {
                                 $match: queryObj
@@ -1503,7 +1479,7 @@ var proposal = {
                                     totalCommissionAmount: {$sum: "$data.commissionAmount"}
                                 }
                             }
-                        );
+                        ).read("secondaryPreferred");
                         return Q.all([a, b, c])
                     }
                     else {

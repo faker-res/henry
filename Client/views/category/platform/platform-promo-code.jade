@@ -575,10 +575,10 @@
                 div(ng-if='vm.selectedPromoCodeTab=="activatePromoCode" && checkViewPermission("Platform", "promoCode", "activatePromoCode")')
                     #promoCodeActivate.block-query.col-md-12.well
                         div
-                            label.control-label {{'START_CREATE_TIME' | translate}}
+                            label.control-label {{'START_ACCEPTED_TIME' | translate}}
                             .startCreateTime
                         div
-                            label.control-label {{'END_CREATE_TIME' | translate}}
+                            label.control-label {{'END_ACCEPTED_TIME' | translate}}
                             .endCreateTime
                         div
                             label {{"IS_ACTIVE" | translate}}
@@ -586,7 +586,7 @@
                                 option(value='false') {{'NO' | translate}}
                                 option(value='true') {{"YES" | translate}}
                         .pull-right
-                            button.btn.btn-primary.common-button(ng-click='vm.setPromoCodeActivate()') {{"SET" | translate}}
+                            button.btn.btn-primary.common-button(ng-click='vm.setPromoCodeActivate(); vm.savePromoCodeTime();') {{"SET" | translate}}
                             label {{vm.promoCodeActivate.message}}
 
                 // Tab - Promo Code Analysis

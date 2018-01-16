@@ -2959,7 +2959,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate("STATUS"),
                             render: function (data, type, row) {
-                                return (row.status == 1 ? $translate("SUCCESS") : row.status == 2 ? $translate("FAIL") : $translate("REQUEST"));
+                                return $translate($scope.constPlayerCreditTransferStatus[row.status]);
                             }
                         }
                     ],
@@ -7175,7 +7175,7 @@ define(['js/app'], function (myApp) {
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
                     Object.keys(newPlayerData).forEach(function (key) {
                         if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup" || key == "referralName") {
+                            if (key == "smsSetting" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName" || key == "DOB") {
                                 //do nothing
                             } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                                 //do nothing
@@ -7274,6 +7274,25 @@ define(['js/app'], function (myApp) {
                 // }
             }
 
+            vm.smsSettingToggleSelectAll = function () {
+                let status = vm.playerBeingEdited.smsSettingSelectAll;
+                for(let type in vm.allMessageTypes) {
+                    let settingName = vm.allMessageTypes[type].name;
+                    if(settingName!="smsVerificationCode") {
+                        vm.playerBeingEdited.smsSetting[settingName] = status;
+                    }
+                }
+            };
+            vm.smsSettingSetSelectAll = function() {
+                for(let type in vm.allMessageTypes) {
+                    let settingName = vm.allMessageTypes[type].name;
+                    if(settingName!="smsVerificationCode" && !vm.playerBeingEdited.smsSetting[settingName]) {
+                        vm.playerBeingEdited.smsSettingSelectAll = false;
+                        return;
+                    }
+                }
+                vm.playerBeingEdited.smsSettingSelectAll = true;
+            };
             vm.updateSMSSettings = function () {
                 //oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 let playerId = vm.isOneSelectedPlayer()._id;
@@ -7372,6 +7391,7 @@ define(['js/app'], function (myApp) {
                     phoneType: data.data.phoneType,
                     partnerId: data.data.partnerId,
                     isOnline: data.data.isOnline,
+                    playerObjId: data.data._id,
                     playerId: data.data.playerId,
                     remarks: data.data.partnerName ? $translate("PARTNER") + ": " + data.data.partnerName : "",
                     status: vm.constProposalStatus.MANUAL,
@@ -7989,7 +8009,7 @@ define(['js/app'], function (myApp) {
                     vm.feedbackModalTab = "addFeedbackPanel";
                 });
             }
-        vm.initMessageModal = function () {
+            vm.initMessageModal = function () {
 
                 $('#sendMessageToPlayerTab').addClass('active');
                 $('#messageLogTab').removeClass('active');
@@ -8002,9 +8022,33 @@ define(['js/app'], function (myApp) {
                 $('#smsLogTab').removeClass('active');
                 $('#smsSettingTab').removeClass('active');
                 vm.smsModalTab = "smsToPlayerPanel";
+                vm.playerSmsSetting = {smsGroup:{}};
+                vm.getPlatformSmsGroups();
+                vm.getAllMessageTypes();
                 $scope.safeApply();
-
             }
+
+        vm.smsGroupCheckChange = (smsParentGroup) => {
+            let smsSettingInThisGroup = vm.smsGroups.filter(smsGroup => smsGroup.smsParentSmsId === smsParentGroup.smsId);
+            let isGroupChecked = vm.playerSmsSetting.smsGroup[smsParentGroup.smsId];
+            smsSettingInThisGroup.forEach(
+                smsSetting => {
+                    vm.playerBeingEdited.smsSetting[smsSetting.smsName] = isGroupChecked;
+                }
+            );
+        }
+
+        vm.isAllSmsInGroupChecked = (smsParentGroup) => {
+            let smsSettingInThisGroup = vm.smsGroups.filter(smsGroup => smsGroup.smsParentSmsId === smsParentGroup.smsId);
+            let isAllChecked = true;
+            for(let i = 0;i<smsSettingInThisGroup.length;i++){
+                if(vm.playerBeingEdited.smsSetting[smsSettingInThisGroup[i].smsName] === false) {
+                    isAllChecked = false;
+                    break;
+                }
+            }
+            vm.playerSmsSetting.smsGroup[smsParentGroup.smsId] = isAllChecked;
+        }
 
         vm.initPlayerDisplayDataModal = function () {
             $('#customerServeiceTab').addClass('active');
@@ -9986,7 +10030,8 @@ define(['js/app'], function (myApp) {
                             }
                         }
                         if (reset && vm.districtList && vm.districtList[0]) {
-                            vm.currentDistrict.district = vm.districtList[0].id
+                            // vm.currentDistrict.district = vm.districtList[0].id
+                            vm.currentDistrict.district = ""
                         }
                         $scope.safeApply();
                     }
@@ -10277,6 +10322,8 @@ define(['js/app'], function (myApp) {
                 vm.mailLog = vm.mailLog || {};
                 vm.mailLog.query = {};
                 vm.mailLog.receivedMails = [{}];
+                vm.mailLog.isAdmin = true;
+                vm.mailLog.isSystem = false;
                 utilService.actionAfterLoaded('#messagePlayerModal.in #messageLogPanel #mailLogQuery .endTime', function () {
                     vm.mailLog.startTime = utilService.createDatePicker('#messageLogPanel #mailLogQuery .startTime');
                     vm.mailLog.endTime = utilService.createDatePicker('#messageLogPanel #mailLogQuery .endTime');
@@ -10292,6 +10339,11 @@ define(['js/app'], function (myApp) {
                     startTime: vm.mailLog.startTime.data('datetimepicker').getLocalDate() || new Date(0),
                     endTime: vm.mailLog.endTime.data('datetimepicker').getLocalDate() || new Date()
                 };
+                if(!vm.mailLog.isAdmin && vm.mailLog.isSystem){
+                    requestData.senderType = 'System';
+                } else if (vm.mailLog.isAdmin && !vm.mailLog.isSystem) {
+                    requestData.senderType = 'admin';
+                }
                 $scope.$socketPromise('searchMailLog', requestData).then(result => {
                     console.log("result:", result);
                     vm.mailLog.receivedMails = result.data;
@@ -10305,6 +10357,8 @@ define(['js/app'], function (myApp) {
                 vm.smsLog.query = {};
                 vm.smsLog.searchResults = [{}];
                 vm.smsLog.query.status = "all";
+                vm.smsLog.query.isAdmin = true;
+                vm.smsLog.query.isSystem = false;
                 utilService.actionAfterLoaded('.modal.in #smsLogPanel #smsLogQuery .endTime', function () {
                     vm.smsLog.query.startTime = utilService.createDatePicker('#smsLogPanel #smsLogQuery .startTime');
                     vm.smsLog.query.endTime = utilService.createDatePicker('#smsLogPanel #smsLogQuery .endTime');
@@ -10321,6 +10375,8 @@ define(['js/app'], function (myApp) {
             vm.searchSMSLog = function (newSearch) {
                 var requestData = {
                     // playerId: vm.selectedSinglePlayer.playerId,
+                    isAdmin: vm.smsLog.query.isAdmin,
+                    isSystem: vm.smsLog.query.isSystem,
                     status: vm.smsLog.query.status,
                     startTime: vm.smsLog.query.startTime.data('datetimepicker').getLocalDate(),//$('#smsLogQuery .startTime input').val() || undefined,
                     endTime: vm.smsLog.query.endTime.data('datetimepicker').getLocalDate(),//$('#smsLogQuery .endTime   input').val() || undefined,
@@ -10330,6 +10386,7 @@ define(['js/app'], function (myApp) {
                 if (vm.smsLog.type == "single") {
                     requestData.playerId = vm.selectedSinglePlayer.playerId;
                 }
+
                 //console.log("requestData:", requestData);
                 $scope.$socketPromise('searchSMSLog', requestData).then(result => {
                     vm.smsLog.searchResults = result.data.data.map(item => {
@@ -15922,8 +15979,69 @@ define(['js/app'], function (myApp) {
                         vm.providerGroupConfig = {showWarning: false};
                         vm.getPlatformProviderGroup();
                         break;
+                    case 'smsGroup':
+                        vm.deletingSmsGroup = null;
+                        vm.getPlatformSmsGroups();
+                        vm.getAllMessageTypes();
+
                 }
             };
+            vm.getNoInGroupSmsSetting = () => {
+                vm.noGroupSmsSetting = [];
+                for (let messageType in vm.allMessageTypes) {
+                    let isInGroup = false;
+                    vm.smsGroups.forEach((smsGroup) => {
+                        if ((smsGroup.smsParentSmsId !== -1 && vm.allMessageTypes[messageType].name === smsGroup.smsName) || vm.allMessageTypes[messageType].name === 'smsVerificationCode') {
+                            isInGroup = true;
+                        }
+                    });
+
+                    if(!isInGroup)
+                        vm.noGroupSmsSetting.push(vm.allMessageTypes[messageType]);
+                }
+                $scope.safeApply();
+            }
+
+            function updateSmsGroup() {
+                socketService.$socket($scope.AppSocket, 'updatePlatformSmsGroups', {smsGroups:vm.smsGroups, platformObjId: vm.selectedPlatform.data._id}, function (data) {
+                    vm.configTabClicked("smsGroup")
+                });
+            }
+
+            vm.addSmsSettingToGroup = (smsSetting, index) => {
+                if(!smsSetting.group) return;
+                vm.smsGroups.push({smsName:smsSetting.name ,smsParentSmsId: smsSetting.group, platformObjId:vm.selectedPlatform.data._id});
+                vm.noGroupSmsSetting.splice(index, 1);
+            }
+
+            vm.addNewSmsGroup = () => {
+                socketService.$socket($scope.AppSocket, 'addNewSmsGroup', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
+                    vm.smsGroups.push(data.data)
+                    $scope.safeApply();
+                });
+            }
+
+            vm.removeSmsSettingFromGroup = (smsSettingGroup) => {
+                vm.smsGroups = vm.smsGroups.filter(smsGroup => smsGroup.smsName !==smsSettingGroup.smsName && smsSettingGroup.smsParentSmsId !==-1);
+                vm.getNoInGroupSmsSetting();
+                $scope.safeApply();
+            };
+
+            vm.getPlatformSmsGroups =  () => {
+                return $scope.$socketPromise('getPlatformSmsGroups', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+                    vm.smsGroups = data.data;
+                    console.log('vm.smsGroups', vm.smsGroups);
+                    vm.getNoInGroupSmsSetting();
+                    $scope.safeApply();
+                });
+            };
+
+            vm.deleteSmsGroup = (smsGroup) => {
+                return $scope.$socketPromise('deletePlatformSmsGroup', {_id: smsGroup._id}).then(function (data) {
+                    vm.getPlatformSmsGroups();
+                });
+            };
+
 
             vm.promoCodeTabClicked = function (choice) {
                 vm.selectedPromoCodeTab = choice;
@@ -16016,12 +16134,20 @@ define(['js/app'], function (myApp) {
                                 language: 'en',
                                 format: 'yyyy/MM/dd hh:mm:ss'
                             });
-                            vm.promoCodeActivate.startCreateTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                            if (vm.selectedPlatform.data.promoCodeStartTime) {
+                                vm.promoCodeActivate.startCreateTime.data('datetimepicker').setDate(utilService.getLocalTime(new Date(vm.selectedPlatform.data.promoCodeStartTime)));
+                            } else {
+                                vm.promoCodeActivate.startCreateTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                            }
                             vm.promoCodeActivate.endCreateTime = utilService.createDatePicker('#promoCodeActivate .endCreateTime', {
                                 language: 'en',
                                 format: 'yyyy/MM/dd hh:mm:ss'
                             });
-                            vm.promoCodeActivate.endCreateTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                            if (vm.selectedPlatform.data.promoCodeEndTime) {
+                                vm.promoCodeActivate.endCreateTime.data('datetimepicker').setDate(utilService.getLocalTime(new Date(vm.selectedPlatform.data.promoCodeEndTime)));
+                            } else {
+                                vm.promoCodeActivate.endCreateTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                            }
                         });
                         break;
                     case 'smsContent':
@@ -17635,8 +17761,8 @@ define(['js/app'], function (myApp) {
 
             vm.setPromoCodeActivate = function () {
                 let sendObj = {
-                    startCreateTime: vm.promoCodeActivate.startCreateTime.data('datetimepicker').getLocalDate(),
-                    endCreateTime: vm.promoCodeActivate.endCreateTime.data('datetimepicker').getLocalDate(),
+                    startAcceptedTime: vm.promoCodeActivate.startCreateTime.data('datetimepicker').getLocalDate(),
+                    endAcceptedTime: vm.promoCodeActivate.endCreateTime.data('datetimepicker').getLocalDate(),
                     flag: vm.promoCodeActivate.flag,
                     platformObjId: vm.selectedPlatform.id
                 };
@@ -17651,6 +17777,35 @@ define(['js/app'], function (myApp) {
                 }, true);
 
             };
+
+            vm.savePromoCodeTime = function () {
+                let sendObj = {
+                    promoCodeStartTime: vm.promoCodeActivate.startCreateTime.data('datetimepicker').getLocalDate(),
+                    promoCodeEndTime: vm.promoCodeActivate.endCreateTime.data('datetimepicker').getLocalDate(),
+                    platformObjId: vm.selectedPlatform.id
+                };
+
+                let isUpdatePlatform = false;
+                if (!vm.selectedPlatform.data.promoCodeStartTime || !vm.selectedPlatform.data.promoCodeEndTime) {
+                    isUpdatePlatform = true;
+                } else if (vm.selectedPlatform.data.promoCodeStartTime && vm.selectedPlatform.data.promoCodeEndTime) {
+                    if (sendObj.promoCodeStartTime.toISOString() !== new Date(vm.selectedPlatform.data.promoCodeStartTime).toISOString() ||
+                        sendObj.promoCodeEndTime.toISOString() !== new Date(vm.selectedPlatform.data.promoCodeEndTime).toISOString()) {
+                        isUpdatePlatform = true;
+                    }
+                }
+
+                if (isUpdatePlatform) {
+                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSetting', sendObj, function (data) {
+                        console.log('updatePromoCodeSetting', data);
+                        vm.selectedPlatform.data.promoCodeStartTime = data.data.promoCodeStartTime;
+                        vm.selectedPlatform.data.promoCodeEndTime = data.data.promoCodeEndTime;
+                        $scope.safeApply();
+                    }, function (err) {
+                        console.error(err);
+                    }, true);
+                }
+            }
 
             vm.getPromoCodeAnalysis = function (isNewSearch) {
                 vm.promoCodeAnalysis.platformId = vm.selectedPlatform.id;
@@ -18121,6 +18276,16 @@ define(['js/app'], function (myApp) {
                 }, 1);
             };
             // player level codes==============end===============================
+
+            vm.downloadTranslationCSV = function () {
+                vm.prepareTranslationCSV = false;
+
+                socketService.$socket($scope.AppSocket, 'downloadTranslationCSV', {}, function (data) {
+                    vm.prepareTranslationCSV = true;
+                    vm.exportTranslationCSV = data.data;
+                    $scope.safeApply();
+                });
+            };
 
             // phone number filter codes==============start===============================
             vm.phoneNumFilterClicked = function () {
@@ -18887,6 +19052,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'providerGroup':
                         updateProviderGroup();
+                        break;
+                    case 'smsGroup':
+                        updateSmsGroup();
                         break;
                 }
             };

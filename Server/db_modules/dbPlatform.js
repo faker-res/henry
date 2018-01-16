@@ -1454,6 +1454,12 @@ var dbPlatform = {
             partnerId: data.partnerId || undefined,
             type: {$nin: ["registration"]}
         };
+        if(data.isAdmin && !data.isSystem){
+            query.adminName = {$exists: true, $ne: null};
+        }else if(data.isSystem && !data.isAdmin) {
+            query.adminName = {$eq: null};
+        }
+
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
         addOptionalTimeLimitsToQuery(data, query, 'createTime');
@@ -2271,14 +2277,24 @@ var dbPlatform = {
 
                 if (urlDetail) {
                     let endString = "?username=" + urlDetail.playerName + "&token=" + urlDetail.token;
-                    let url = urlDetail.url + endString;
-                    streamResult.url = url;
+                    streamResult.url = urlDetail.url + endString;
                 }
 
                 return streamResult;
             }
         );
-    }
+    },
+
+    /**
+     * Update the promoCode setting in Platform
+     */
+    updatePromoCodeSetting: function (platformObjId, promoCodeStartTime, promoCodeEndTime) {
+        return dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId},
+            {
+                promoCodeStartTime: promoCodeStartTime,
+                promoCodeEndTime: promoCodeEndTime
+            }, {new: true});
+    },
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
