@@ -17785,8 +17785,17 @@ define(['js/app'], function (myApp) {
                     platformObjId: vm.selectedPlatform.id
                 };
 
-                if (sendObj.promoCodeStartTime.toISOString() !== new Date(vm.selectedPlatform.data.promoCodeStartTime).toISOString() ||
-                    sendObj.promoCodeEndTime.toISOString() !== new Date(vm.selectedPlatform.data.promoCodeEndTime).toISOString()) {
+                let isUpdatePlatform = false;
+                if (!vm.selectedPlatform.data.promoCodeStartTime || !vm.selectedPlatform.data.promoCodeEndTime) {
+                    isUpdatePlatform = true;
+                } else if (vm.selectedPlatform.data.promoCodeStartTime && vm.selectedPlatform.data.promoCodeEndTime) {
+                    if (sendObj.promoCodeStartTime.toISOString() !== new Date(vm.selectedPlatform.data.promoCodeStartTime).toISOString() ||
+                        sendObj.promoCodeEndTime.toISOString() !== new Date(vm.selectedPlatform.data.promoCodeEndTime).toISOString()) {
+                        isUpdatePlatform = true;
+                    }
+                }
+
+                if (isUpdatePlatform) {
                     socketService.$socket($scope.AppSocket, 'updatePromoCodeSetting', sendObj, function (data) {
                         console.log('updatePromoCodeSetting', data);
                         vm.selectedPlatform.data.promoCodeStartTime = data.data.promoCodeStartTime;
@@ -18270,8 +18279,10 @@ define(['js/app'], function (myApp) {
 
             vm.downloadTranslationCSV = function () {
                 vm.prepareTranslationCSV = false;
+                let platformId = vm.selectedPlatform.data.platformId;
 
-                socketService.$socket($scope.AppSocket, 'downloadTranslationCSV', {}, function (data) {
+                socketService.$socket($scope.AppSocket, 'downloadTranslationCSV', {platformId: platformId}, function (data) {
+                    vm.fileNameCSV = "ch_SP"+"_"+platformId;
                     vm.prepareTranslationCSV = true;
                     vm.exportTranslationCSV = data.data;
                     $scope.safeApply();
