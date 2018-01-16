@@ -1197,7 +1197,7 @@
                 button.btn.btn-primary.common-button(type='button', ng-show='!vm.prepareTranslationCSV', ng-click='vm.downloadTranslationCSV()')
                     i.fa.fa-cog
                     text {{"PREPARE_CSV" | translate}}
-                button.btn.btn-success.common-button(type='button', ng-show='vm.prepareTranslationCSV', ng-csv='vm.exportTranslationCSV', filename='chineseTranslation.csv')
+                button.btn.btn-success.common-button(type='button', ng-show='vm.prepareTranslationCSV', ng-csv='vm.exportTranslationCSV', filename='{{vm.fileNameCSV}}.csv')
                     i.fa.fa-download
                     text {{"DOWNLOAD_CSV" | translate}}
 

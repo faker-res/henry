@@ -48,7 +48,6 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var pmsAPI = require("../externalAPI/pmsAPI.js");
 var localization = require("../modules/localization");
-var ch_SP = require("../locales/ch_SP");
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 var queryPhoneLocation = require('query-mobile-phone-area');
@@ -11981,8 +11980,8 @@ let dbPlayerInfo = {
     },
 
     // translation CSV at platform config
-    downloadTranslationCSV: function () {
-        let simplifiedChinese = ch_SP;
+    downloadTranslationCSV: function (platformId) {
+        let simplifiedChinese = require("../locales/ch_SP" + "_" + platformId);
         let outputChineseKey = [];
         let outputChineseValue = [];
 
