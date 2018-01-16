@@ -8009,7 +8009,7 @@ define(['js/app'], function (myApp) {
                     vm.feedbackModalTab = "addFeedbackPanel";
                 });
             }
-        vm.initMessageModal = function () {
+            vm.initMessageModal = function () {
 
                 $('#sendMessageToPlayerTab').addClass('active');
                 $('#messageLogTab').removeClass('active');
@@ -8022,9 +8022,33 @@ define(['js/app'], function (myApp) {
                 $('#smsLogTab').removeClass('active');
                 $('#smsSettingTab').removeClass('active');
                 vm.smsModalTab = "smsToPlayerPanel";
+                vm.playerSmsSetting = {smsGroup:{}};
+                vm.getPlatformSmsGroups();
+                vm.getAllMessageTypes();
                 $scope.safeApply();
-
             }
+
+        vm.smsGroupCheckChange = (smsParentGroup) => {
+            let smsSettingInThisGroup = vm.smsGroups.filter(smsGroup => smsGroup.smsParentSmsId === smsParentGroup.smsId);
+            let isGroupChecked = vm.playerSmsSetting.smsGroup[smsParentGroup.smsId];
+            smsSettingInThisGroup.forEach(
+                smsSetting => {
+                    vm.playerBeingEdited.smsSetting[smsSetting.smsName] = isGroupChecked;
+                }
+            );
+        }
+
+        vm.isAllSmsInGroupChecked = (smsParentGroup) => {
+            let smsSettingInThisGroup = vm.smsGroups.filter(smsGroup => smsGroup.smsParentSmsId === smsParentGroup.smsId);
+            let isAllChecked = true;
+            for(let i = 0;i<smsSettingInThisGroup.length;i++){
+                if(vm.playerBeingEdited.smsSetting[smsSettingInThisGroup[i].smsName] === false) {
+                    isAllChecked = false;
+                    break;
+                }
+            }
+            vm.playerSmsSetting.smsGroup[smsParentGroup.smsId] = isAllChecked;
+        }
 
         vm.initPlayerDisplayDataModal = function () {
             $('#customerServeiceTab').addClass('active');
@@ -15957,11 +15981,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'smsGroup':
                         vm.deletingSmsGroup = null;
-                        vm.getPlatformSmsGroups().then(
-                            () => {
-                                vm.getNoInGroupSmsSetting();
-                            }
-                        );
+                        vm.getPlatformSmsGroups();
                         vm.getAllMessageTypes();
 
                 }
@@ -16011,17 +16031,14 @@ define(['js/app'], function (myApp) {
                 return $scope.$socketPromise('getPlatformSmsGroups', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
                     vm.smsGroups = data.data;
                     console.log('vm.smsGroups', vm.smsGroups);
+                    vm.getNoInGroupSmsSetting();
                     $scope.safeApply();
                 });
             };
 
             vm.deleteSmsGroup = (smsGroup) => {
                 return $scope.$socketPromise('deletePlatformSmsGroup', {_id: smsGroup._id}).then(function (data) {
-                    vm.getPlatformSmsGroups().then(
-                        () => {
-                            vm.getNoInGroupSmsSetting();
-                        }
-                    );
+                    vm.getPlatformSmsGroups();
                 });
             };
 
