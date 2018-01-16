@@ -8593,7 +8593,7 @@ let dbPlayerInfo = {
                                         resData.forEach(type => {
                                             if (type.type == paymentData.merchants[i].topupType) {
                                                 bValidType = false;
-                                                if (status == 1 && paymentData.merchants[i].status == "ENABLED") {
+                                                if (status == 1 && paymentData.merchants[i].status == "ENABLED" && paymentData.merchants[i].targetDevices == clientType) {
                                                     type.status = status;
                                                     if (type.maxDepositAmount < paymentData.merchants[i].permerchantLimits){
                                                         type.maxDepositAmount = paymentData.merchants[i].permerchantLimits;
