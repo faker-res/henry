@@ -3057,6 +3057,18 @@
   "sendTime": "发送时间",
   "OPERATOR": "操作员",
   "senderName": "发送人名称",
-  "senderType": "发送人类型"
+  "senderType": "发送人类型",
+  "no group sms setting": "无分组短信项目",
+  "sms group setting": "短信组设置",
+  "add to group": "添加到组",
+  "ADD GROUP": "新增组别",
+  "sms group settings": "分组短信项目",
+  "sms group": "短信分组",
+  "DELETE_SMS_GROUP": "删除短信分组",
+  "Are you sure you want to delete sms setting group": "你确定要删除短信分组",
+  "Account Branch": "开户分行",
+  "receive status": "接收状态",
+  "receive status/sms group": "接收状态/短信分组"
+
 
 }

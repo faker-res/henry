@@ -79,6 +79,8 @@ let rewardPointsTaskSchema = require('./../schema/rewardPointsTask');
 let playerPageAdvertisementInfoSchema = require('./../schema/playerPageAdvertisementInfo');
 let partnerPageAdvertisementInfoSchema = require('./../schema/partnerPageAdvertisementInfo');
 
+let smsGroupSchema = require('./../schema/smsGroup');
+
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -97,6 +99,7 @@ var rewardRuleModel = db_admin.model('rewardRule', rewardRuleSchema, 'rewardRule
 var rewardParamModel = db_admin.model('rewardParam', rewardParamSchema, 'rewardParam');
 var rewardConditionModel = db_admin.model('rewardCondition', rewardConditionSchema, 'rewardCondition');
 let rewardPointsEventModel = db_admin.model('rewardPointsEvent', rewardPointsEventSchema, 'rewardPointsEvent');
+let rewardPointsLvlConfigModel = db_admin.model('rewardPointsLvlConfig', rewardPointsLvlConfigSchema, 'rewardPointsLvlConfig');
 
 var apiUserModel = db_admin.model('apiUser', apiUserSchema, 'apiUser');
 var platformModel = db_admin.model('platform', platformSchema, 'platform');
@@ -170,11 +173,10 @@ let promoCodeUserGroupModel = db_admin.model('promoCodeUserGroup', promoCodeUser
 let playerFeedbackResultModel = db_admin.model('playerFeedbackResult', playerFeedbackResultSchema, 'playerFeedbackResult');
 let playerFeedbackTopicModel = db_admin.model('playerFeedbackTopic', playerFeedbackTopicSchema, 'playerFeedbackTopic');
 
-let rewardPointsLvlConfigModel = db_admin.model('rewardPointsLvlConfig', rewardPointsLvlConfigSchema, 'rewardPointsLvlConfig');
-
 let playerPageAdvertisementInfoModel = db_admin.model('playerPageAdvertisementInfo', playerPageAdvertisementInfoSchema, 'playerPageAdvertisementInfo');
 let partnerPageAdvertisementInfoModel = db_admin.model('partnerPageAdvertisementInfo', partnerPageAdvertisementInfoSchema, 'partnerPageAdvertisementInfo');
 
+let smsGroupModel = db_admin.model('smsGroup', smsGroupSchema, 'smsGroup');
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
@@ -424,6 +426,8 @@ var dbProperties = {
 
     collection_playerPageAdvertisementInfo: playerPageAdvertisementInfoModel,
     collection_partnerPageAdvertisementInfo: partnerPageAdvertisementInfoModel,
+
+    collection_smsGroup: smsGroupModel,
 
     //logs
     collection_playerMail: playerMailModel,

@@ -39,7 +39,7 @@ let promoCodeSchema = new Schema({
     // Promo Code Status
     status: {type: Number},
     // Promo Code Active Flag
-    isActive: {type: Boolean, default: false},
+    isActive: {type: Boolean, default: false, index: true},
     // Top Up Proposal Used for this promo code
     topUpProposalId: {type: String},
     // Promo Code Proposal Id
