@@ -3086,7 +3086,7 @@ let dbPlayerReward = {
         if (data.flag) {
             dbConfig.collection_promoCode.update({
                 platformObjId: platformObjId,
-                createTime: {$not: {$gte: new Date(data.startCreateTime), $lt: new Date(data.endCreateTime)}},
+                acceptedTime: {$not: {$gte: new Date(data.startAcceptedTime), $lt: new Date(data.endAcceptedTime)}},
                 isActive: true
             }, {
                 $set: {
