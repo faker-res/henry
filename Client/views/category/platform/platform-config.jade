@@ -36,6 +36,8 @@
                         span {{"Player Credibility" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "providerGroup"}', ng-click='vm.configTabClicked("providerGroup")')
                         span {{"Lock Lobby Group" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "smsGroup"}', ng-click='vm.configTabClicked("smsGroup")')
+                        span {{"sms group setting" | translate}}
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
@@ -614,10 +616,10 @@
                                 td {{'ONLY_NEW_USER_CAN_LOGIN' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.onlyNewCanLogin', ng-disabled='!vm.configTableEdit')
-                            tr
-                                td {{'USE_LOCK_CREDIT' | translate}}
-                                td
-                                    input(type='checkbox', ng-model='vm.platformBasic.useLockedCredit', ng-disabled='!vm.configTableEdit')
+                            //tr
+                            //    td {{'USE_LOCK_CREDIT' | translate}}
+                            //    td
+                            //        input(type='checkbox', ng-model='vm.platformBasic.useLockedCredit', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'Use Provider Group' | translate}}
                                 td
@@ -1088,7 +1090,7 @@
                             tr
                                 th {{"Provider Group Name" | translate}}
                                 th(width="600px") {{"Provider" | translate}}
-                                th(ng-if='vm.configTableEdit') {{"ACTION" | translate}}
+                                th(ng-if='vm.configTableEdit') {{"add to group" | translate}}
                         tbody
                             tr(ng-repeat='group in vm.gameProviderGroup')
                                 td
@@ -1112,6 +1114,50 @@
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("providerGroup")') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("providerGroup")') {{"CONFIRM" | translate}}
                         label(ng-if="vm.providerGroupConfig.showWarning") {{"There are unallocated providers" | translate}}
+                div(ng-if='vm.selectedConfigTab=="smsGroup"')
+                    .col-md-4
+                        table.common-table.playerLvlTable
+                            thead
+                                tr
+                                    th {{"no group sms setting" | translate}}
+                                    th {{"add to group" | translate}}
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.noGroupSmsSetting')
+                                    td
+                                        span {{v.name | translate}}
+                                    td
+                                        select.form-control(ng-disabled='!vm.configTableEdit' ng-model='v.group' style='width:80%;display:inline-block')
+                                            option(ng-repeat="(k, t) in vm.smsGroups | filter: {smsParentSmsId: -1}", value="{{t.smsId}}") {{t.smsName | translate}}
+                                        i.fa.fa-plus(ng-if='vm.configTableEdit' ng-click='vm.addSmsSettingToGroup(v,i);')
+                    .col-md-8
+                        table.common-table.playerLvlTable
+                            thead
+                                tr
+                                    th {{"sms group" | translate}}
+                                    th {{"sms group settings" | translate}}
+                                    th {{"Function" | translate}}
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.smsGroups | filter: {smsParentSmsId: -1}')
+                                    td
+                                        input.form-control(type='text' ng-if='vm.configTableEdit' ng-model='v.smsName')
+                                        span(ng-if='!vm.configTableEdit') {{v.smsName}}
+                                    td
+                                        div(ng-repeat='(ii, vv) in vm.smsGroups | filter: {smsParentSmsId: v.smsId}')
+                                            span {{ vv.smsName | translate}}
+                                            i.fa.fa-minus(ng-if='vm.configTableEdit' ng-click='vm.removeSmsSettingFromGroup(vv);')
+                                    td
+                                        button.btn.common-btn.btn-primary(ng-if='vm.configTableEdit' data-toggle="modal", data-target='#modalDeleteSmsGroup' ng-click="vm.deletingSmsGroup=v") {{'DELETE' | translate}}
+                        br
+                        button.btn.btn-primary.common-button.pull-right(ng-if='vm.configTableEdit' ng-click='vm.addNewSmsGroup()')
+                            text {{"ADD GROUP" | translate}}
+                            img.img-edit
+
+                    button.btn.btn-primary.common-button.pull-right(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'smsGroup')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button.pull-right(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("smsGroup")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button.pull-right(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("smsGroup")') {{"CONFIRM" | translate}}
+
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
                         form(name="platformAnnouncementsForm")
@@ -1186,3 +1232,36 @@
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal') {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal' ng-click='vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup') {{"CANCEL" | translate}}
+
+#modalDeleteSmsGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE_SMS_GROUP" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"Are you sure you want to delete sms setting group"|translate}}
+                                    strong.text-danger &nbsp;{{vm.deletingSmsGroup.smsName}}
+                                    label ?
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click='vm.deleteSmsGroup(vm.deletingSmsGroup)') {{"DELETE" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+.row(ng-if="checkViewPermission('Platform', 'Config', 'DownloadTranslationCSV')")
+    .col-md-3
+    .col-md-9(style="padding-left:0;padding-right:15px")
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                label {{"CHINESE_TRANSLATION_CSV" | translate}}
+            .panel-body
+                button.btn.btn-primary.common-button(type='button', ng-show='!vm.prepareTranslationCSV', ng-click='vm.downloadTranslationCSV()')
+                    i.fa.fa-cog
+                    text {{"PREPARE_CSV" | translate}}
+                button.btn.btn-success.common-button(type='button', ng-show='vm.prepareTranslationCSV', ng-csv='vm.exportTranslationCSV', filename='chineseTranslation.csv')
+                    i.fa.fa-download
+                    text {{"DOWNLOAD_CSV" | translate}}

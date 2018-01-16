@@ -48,6 +48,7 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var pmsAPI = require("../externalAPI/pmsAPI.js");
 var localization = require("../modules/localization");
+var ch_SP = require("../locales/ch_SP");
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 var queryPhoneLocation = require('query-mobile-phone-area');
@@ -5486,7 +5487,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getRewardsForPlayer: function (playerId, rewardType, startTime, endTime, startIndex, count, eventCode) {
+    getRewardsForPlayer: function (playerId, rewardType, startTime, endTime, startIndex, count, eventCode, platformId) {
         var queryProm = null;
         var playerName = '';
         var queryObject = {
@@ -5579,7 +5580,7 @@ let dbPlayerInfo = {
                                 createTime: proposals[i].createTime,
                                 rewardType: proposals[i].type ? proposals[i].type.name : "",
                                 rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
-                                eventName: proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : ""),
+                                eventName: proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : "",null, platformId),
                                 eventCode: proposals[i].data.eventCode,
                                 status: status
                             }
@@ -8090,13 +8091,17 @@ let dbPlayerInfo = {
                 deferred.reject({name: "DataError", message: "Token is not authenticated"});
             }
             else {
-                dbconfig.collection_players.findOne({playerId: playerId}).then(
+                dbconfig.collection_players.findOne({playerId: playerId}).populate({
+                    path: "platform",
+                    model: dbconfig.collection_platform
+                }).then(
                     playerData => {
                         if (playerData) {
                             if (playerData.lastLoginIp == playerIp) {
                                 conn.isAuth = true;
                                 conn.playerId = playerId;
                                 conn.playerObjId = playerData._id;
+                                conn.platformId = playerData.platform.platformId;
                                 deferred.resolve(true);
                             }
                             else {
@@ -11977,6 +11982,29 @@ let dbPlayerInfo = {
                 return {data: logs, size: count};
             }
         )
+    },
+
+    // translation CSV at platform config
+    downloadTranslationCSV: function () {
+        let simplifiedChinese = ch_SP;
+        let outputChineseKey = [];
+        let outputChineseValue = [];
+
+        for (let key in simplifiedChinese) {
+            if (simplifiedChinese.hasOwnProperty(key)) {
+                let value = simplifiedChinese[key];
+                outputChineseKey.push(key);
+                outputChineseValue.push(value);
+            }
+        }
+
+        let exportCSVResult = [];
+        for (let x = 0; x < outputChineseKey.length; x++) {
+            for (let y = 0; y < outputChineseValue.length; y++) {
+                exportCSVResult.push([outputChineseKey[x++], outputChineseValue[y]]); //create nested array
+            }
+        }
+        return exportCSVResult;
     },
 
     comparePhoneNum: function (filterAllPlatform, platformObjId, arrayInputPhone) {

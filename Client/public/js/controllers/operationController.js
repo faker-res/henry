@@ -428,8 +428,6 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            let promoType = $('select#selectPromoType').multipleSelect("getSelects");
-
             let startTime = $('#datetimepicker').data('datetimepicker').getLocalDate();
             let endTime = $('#datetimepicker2').data('datetimepicker').getLocalDate();
             let sendData = {
@@ -438,7 +436,7 @@ define(['js/app'], function (myApp) {
                 inputDevice: vm.proposalInputDevice,
                 //eventName: rewardNames,
                 eventName: rewardEventName,
-                promoTypeName: promoType,
+                promoTypeName: [],
                 //type: vm.proposalTypeSelected,
                 type: proposalTypeNames,
                 startDate: startTime,
@@ -448,6 +446,16 @@ define(['js/app'], function (myApp) {
                 index: newSearch ? 0 : (vm.queryProposal.index || 0),
                 sortCol: vm.queryProposal.sortCol
             };
+
+            let promoType = $('select#selectPromoType').multipleSelect("getSelects");
+
+            if (vm.promoTypeList.length != promoType.length) {
+                vm.promoTypeList.filter(item => {
+                    if (promoType.indexOf(item.name) > -1) {
+                        sendData.promoTypeName.push(item.name);
+                    }
+                });
+            }
 
             if (vm.queryProposalRelatedUser) {
                 sendData.relateUser = vm.queryProposalRelatedUser.toLowerCase();
@@ -2649,22 +2657,37 @@ define(['js/app'], function (myApp) {
                 });
             });
 
-            setTimeout(function () {
+            $scope.$evalAsync(() => {
                 utilService.actionAfterLoaded("#proposalDataTablePage", function () {
                     vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
                     });
                 });
-            }, 0);
+            });
+            // setTimeout(function () {
+            //     utilService.actionAfterLoaded("#proposalDataTablePage", function () {
+            //         vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
+            //             vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
+            //         });
+            //     });
+            // }, 0);
 
-            // for some reason, the pagination wont translate when it does not put inside setTimeout
-            setTimeout(function() {
+            $scope.$evalAsync(() => {
                 utilService.actionAfterLoaded("#proposalAuditDataTablePage", function () {
                     vm.queryAuditProposal.pageObj = utilService.createPageForPagingTable("#proposalAuditDataTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "queryAuditProposal", vm.loadProposalAuditQueryData)
                     });
                 });
-            }, 0);
+            })
+
+            // // for some reason, the pagination wont translate when it does not put inside setTimeout
+            // setTimeout(function() {
+            //     utilService.actionAfterLoaded("#proposalAuditDataTablePage", function () {
+            //         vm.queryAuditProposal.pageObj = utilService.createPageForPagingTable("#proposalAuditDataTablePage", {}, $translate, function (curP, pageSize) {
+            //             vm.commonPageChangeHandler(curP, pageSize, "queryAuditProposal", vm.loadProposalAuditQueryData)
+            //         });
+            //     });
+            // }, 0);
 
 
             // Q.all([vm.getAllPlatforms(), vm.getProposalEntryTypeList(), vm.getProposalPriorityList(),
