@@ -184,7 +184,12 @@ var platformSchema = new Schema({
     }],
     jiguangAppKey: {type: String},
     jiguangMasterKey: {type: String},
-    bonusSetting: {type: JSON,default:{}}
+    bonusSetting: {type: JSON,default:{}},
+    // promocode last config setting set isActive time
+    promoCodeStartTime: {type: Date},
+    promoCodeEndTime: {type: Date},
+    // promocode last config setting
+    promoCodeIsActive: {type: Boolean, default: false}
 });
 
 //add platform id before save

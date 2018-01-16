@@ -39,12 +39,12 @@ form(name="form_new_platform" ,novalidate)
             div(name="player-display-data", ng-show="vm.selectedPlatformDetailTab == 'player-display-data'")
                 ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='height: 46px;')
                     .pull-left.padding-all-5
-                    li.active(id = 'customerServeiceTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
+                    li.active(id = 'customerServiceTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
                         a.common-tab(data-toggle="tab", ng-click='vm.playerDisplayDataTab = \'customerServicePanel\'')
                             .fa.fa-file-text.margin-right-5
                             text.span {{"CUSTOMER_SERVICE" | translate}}
                     li(id = 'advertisementTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
-                        a.common-tab(data-toggle="tab",ng-click='vm.playerDisplayDataTab = \'advertisementPanel\'; vm.playerAdvertisementList();vm.editAdvertisementRecord=false; vm.showAdvertisementRecord=true;vm.addNewPlayerAdvertisement=false;')
+                        a.common-tab(data-toggle="tab",ng-click='vm.playerDisplayDataTab = \'advertisementPanel\';vm.playerAdvertisementWebDevice=true;vm.playerAdvertisementH5Device=false; vm.playerAdvertisementList();vm.editAdvertisementRecord=false; vm.showAdvertisementRecord=true;vm.addNewPlayerAdvertisement=false;')
                             .fa.fa-file-text.margin-right-5
                             text.span {{"ADVERTISEMENT" | translate}}
 
@@ -314,12 +314,12 @@ form(name="form_new_platform" ,novalidate)
             div(name="partner-display-data", ng-show="vm.selectedPlatformDetailTab == 'partner-display-data'")
                 ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='height: 46px;')
                     .pull-left.padding-all-5
-                    li.active(id = 'partnerServeiceTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
+                    li.active(id = 'partnerServiceTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
                         a.common-tab(data-toggle="tab", ng-click='vm.partnerDisplayDataTab = \'partnerPanel\'')
                             .fa.fa-file-text.margin-right-5
                             text.span {{"PARTNER" | translate}}
                     li(id = 'partnerAdvertisementTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
-                        a.common-tab(data-toggle="tab",ng-click='vm.partnerDisplayDataTab = \'partnerAdvertisementPanel\'; vm.partnerAdvertisementList();vm.editpartnerAdvertisementRecord=false; vm.showpartnerAdvertisementRecord=true;vm.addNewPartnerAdvertisement=false;')
+                        a.common-tab(data-toggle="tab",ng-click='vm.partnerDisplayDataTab = \'partnerAdvertisementPanel\';vm.partnerAdvertisementWebDevice=true;vm.partnerAdvertisementH5Device=false; vm.partnerAdvertisementList();vm.editpartnerAdvertisementRecord=false; vm.showpartnerAdvertisementRecord=true;vm.addNewPartnerAdvertisement=false;')
                             .fa.fa-file-text.margin-right-5
                             text.span {{"ADVERTISEMENT" | translate}}
 

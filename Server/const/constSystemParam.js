@@ -18,7 +18,9 @@ const constSystemParam = {
     //CONST STRING
     PROPOSAL_NO_STEP: "PROPOSAL_NO_STEP",
 
-    BANK_ACCOUNT_LENGTH: 16
+    BANK_ACCOUNT_LENGTH: 16,
+
+    PROPOSAL_SEARCH_MAX_TIME_FRAME: 691200000, // 8 days ( 8 * (1000*3600*24))
 };
 
 module.exports = constSystemParam;

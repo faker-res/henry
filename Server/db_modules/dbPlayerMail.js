@@ -425,7 +425,8 @@ const dbPlayerMail = {
                                     data: inputData,
                                     entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                     userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                                    inputDevice: inputDevice ? inputDevice : 0
+                                    inputDevice: inputDevice ? inputDevice : 0,
+                                    status: constProposalStatus.PENDING
                                 };
 
                                 dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
