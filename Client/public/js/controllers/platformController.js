@@ -17699,8 +17699,17 @@ define(['js/app'], function (myApp) {
                     platformObjId: vm.selectedPlatform.id
                 };
 
-                if (sendObj.promoCodeStartTime.toISOString() !== new Date(vm.selectedPlatform.data.promoCodeStartTime).toISOString() ||
-                    sendObj.promoCodeEndTime.toISOString() !== new Date(vm.selectedPlatform.data.promoCodeEndTime).toISOString()) {
+                let isUpdatePlatform = false;
+                if (!vm.selectedPlatform.data.promoCodeStartTime || !vm.selectedPlatform.data.promoCodeEndTime) {
+                    isUpdatePlatform = true;
+                } else if (vm.selectedPlatform.data.promoCodeStartTime && vm.selectedPlatform.data.promoCodeEndTime) {
+                    if (sendObj.promoCodeStartTime.toISOString() !== new Date(vm.selectedPlatform.data.promoCodeStartTime).toISOString() ||
+                        sendObj.promoCodeEndTime.toISOString() !== new Date(vm.selectedPlatform.data.promoCodeEndTime).toISOString()) {
+                        isUpdatePlatform = true;
+                    }
+                }
+
+                if (isUpdatePlatform) {
                     socketService.$socket($scope.AppSocket, 'updatePromoCodeSetting', sendObj, function (data) {
                         console.log('updatePromoCodeSetting', data);
                         vm.selectedPlatform.data.promoCodeStartTime = data.data.promoCodeStartTime;
