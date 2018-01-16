@@ -5573,18 +5573,23 @@ let dbPlayerInfo = {
                         else {
                             status = proposals[i].process ? proposals[i].process.status : proposals[i].status;
                         }
-                        res.push(
-                            {
-                                playerId: playerId,
-                                playerName: playerName,
-                                createTime: proposals[i].createTime,
-                                rewardType: proposals[i].type ? proposals[i].type.name : "",
-                                rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
-                                eventName: proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : "",null, platformId),
-                                eventCode: proposals[i].data.eventCode,
-                                status: status
-                            }
-                        );
+
+                        let rec = {
+                            playerId: playerId,
+                            playerName: playerName,
+                            createTime: proposals[i].createTime,
+                            rewardType: proposals[i].type ? proposals[i].type.name : "",
+                            rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
+                            eventName: proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : "",null, platformId),
+                            eventCode: proposals[i].data.eventCode,
+                            status: status
+                        }
+
+                        if (proposals[i].data.PROMO_CODE_TYPE) {
+                            rec.promoCodeName = proposals[i].data.PROMO_CODE_TYPE;
+                        }
+
+                        res.push(rec);
                         totalAmount += (proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : 0);
                     }
                     return {
