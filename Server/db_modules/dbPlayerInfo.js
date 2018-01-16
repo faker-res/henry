@@ -48,7 +48,6 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var pmsAPI = require("../externalAPI/pmsAPI.js");
 var localization = require("../modules/localization");
-var ch_SP = require("../locales/ch_SP");
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 var queryPhoneLocation = require('query-mobile-phone-area');
@@ -1774,9 +1773,11 @@ let dbPlayerInfo = {
         ).then(
             updatedData => {
                 let inputDeviceData = dbUtility.getInputDevice(userAgent,false);
-                updateData.isPlayerInit = true;
+                //updateData.isPlayerInit = true;
                // updateData.playerName = playerObj.name;
-                updateData.playerId = playerObj.playerId || "";
+                updateData.isIgnoreAudit=true; // bypass the audit process if the update is made from the frontend API by the user
+                updateData._id =  playerObj._id || "";
+                updateData.playerObjId = playerObj._id || "";
                 updateData.name = playerObj.name || "";
 
                 // If user modified their own, no proposal needed
@@ -8584,7 +8585,7 @@ let dbPlayerInfo = {
                                 merchant => {
                                     let maxDeposit = 0;
                                     for (let i = 0; i < paymentData.merchants.length; i++) {
-                                        var status = 2;
+                                        let status = 2;
                                         if (paymentData.merchants[i].merchantNo == merchant) {
                                             status = 1;
                                         }
@@ -11997,8 +11998,8 @@ let dbPlayerInfo = {
     },
 
     // translation CSV at platform config
-    downloadTranslationCSV: function () {
-        let simplifiedChinese = ch_SP;
+    downloadTranslationCSV: function (platformId) {
+        let simplifiedChinese = require("../locales/ch_SP" + "_" + platformId);
         let outputChineseKey = [];
         let outputChineseValue = [];
 

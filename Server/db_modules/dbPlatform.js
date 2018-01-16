@@ -2149,7 +2149,7 @@ var dbPlatform = {
         );
     },
 
-    getConfig: function (platformId) {
+    getConfig: function (platformId,inputDevice) {
         if(platformId){
             let returnedObj = {
                 wechatList: [],
@@ -2189,8 +2189,8 @@ var dbPlatform = {
                             returnedObj.live800 = data.csUrl;
                         }
                         if(data.platformId){
-                            return dbconfig.collection_playerPageAdvertisementInfo.find({platformId: data._id}).sort({orderNo: 1});
-                        };
+                            return dbconfig.collection_playerPageAdvertisementInfo.find({platformId: data._id, inputDevice: inputDevice}).sort({orderNo: 1});
+                        }
                     }else{
                         return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                     }
@@ -2288,11 +2288,12 @@ var dbPlatform = {
     /**
      * Update the promoCode setting in Platform
      */
-    updatePromoCodeSetting: function (platformObjId, promoCodeStartTime, promoCodeEndTime) {
+    updatePromoCodeSetting: function (platformObjId, promoCodeStartTime, promoCodeEndTime, promoCodeIsActive) {
         return dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId},
             {
                 promoCodeStartTime: promoCodeStartTime,
-                promoCodeEndTime: promoCodeEndTime
+                promoCodeEndTime: promoCodeEndTime,
+                promoCodeIsActive: promoCodeIsActive
             }, {new: true});
     },
 };

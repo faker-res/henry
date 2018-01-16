@@ -151,7 +151,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     //$scope.safeApply();
 
                     setTimeout(() => {
-                        resolve(serverPing.disconnect());
+                        serverPing.disconnect();
+                        resolve(serverPing.close());
                     }, 1000);
                 });
 

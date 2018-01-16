@@ -1031,9 +1031,9 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         downloadTranslationCSV: function downloadTranslationCSV(data){
-            var actionName = arguments.callee.name;
-            var isValidData = Boolean(data);
-            socketUtil.emitter(self.socket, dbPlayerInfo.downloadTranslationCSV, [data], actionName, isValidData);
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.downloadTranslationCSV, [data.platformId], actionName, isValidData);
         },
 
         convertRewardPointsToCredit: function convertRewardPointsToCredit(data) {

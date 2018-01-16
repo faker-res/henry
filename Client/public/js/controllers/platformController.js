@@ -8051,7 +8051,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.initPlayerDisplayDataModal = function () {
-            $('#customerServeiceTab').addClass('active');
+            $('#customerServiceTab').addClass('active');
             $('#advertisementTab').removeClass('active');
             $scope.safeApply();
             vm.playerDisplayDataTab = "customerServicePanel";
@@ -8061,7 +8061,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.initPartnerDisplayDataModal = function() {
-            $('#partnerTab').addClass('active');
+            $('#partnerServiceTab').addClass('active');
             $('#partnerAdvertisementTab').removeClass('active');
             $scope.safeApply();
             vm.partnerDisplayDataTab = "partnerPanel";
@@ -16128,7 +16128,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'activatePromoCode':
                         vm.promoCodeActivate = {};
-                        vm.promoCodeActivate.flag = 'false';
+                        vm.promoCodeActivate.flag = vm.selectedPlatform.data.hasOwnProperty('promoCodeIsActive')? vm.selectedPlatform.data.promoCodeIsActive.toString(): 'false';
                         utilService.actionAfterLoaded('#promoCodeActivate', function () {
                             vm.promoCodeActivate.startCreateTime = utilService.createDatePicker('#promoCodeActivate .startCreateTime', {
                                 language: 'en',
@@ -17782,7 +17782,8 @@ define(['js/app'], function (myApp) {
                 let sendObj = {
                     promoCodeStartTime: vm.promoCodeActivate.startCreateTime.data('datetimepicker').getLocalDate(),
                     promoCodeEndTime: vm.promoCodeActivate.endCreateTime.data('datetimepicker').getLocalDate(),
-                    platformObjId: vm.selectedPlatform.id
+                    platformObjId: vm.selectedPlatform.id,
+                    promoCodeIsActive: vm.promoCodeActivate.flag
                 };
 
                 let isUpdatePlatform = false;
@@ -17795,11 +17796,20 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.selectedPlatform.data.hasOwnProperty('promoCodeIsActive')) {
+                    if (vm.promoCodeActivate.flag != vm.selectedPlatform.data.promoCodeIsActive.toString()) {
+                        isUpdatePlatform = true;
+                    }
+                } else {
+                    isUpdatePlatform = true;
+                }
+
                 if (isUpdatePlatform) {
                     socketService.$socket($scope.AppSocket, 'updatePromoCodeSetting', sendObj, function (data) {
                         console.log('updatePromoCodeSetting', data);
                         vm.selectedPlatform.data.promoCodeStartTime = data.data.promoCodeStartTime;
                         vm.selectedPlatform.data.promoCodeEndTime = data.data.promoCodeEndTime;
+                        vm.selectedPlatform.data.promoCodeIsActive = data.data.promoCodeIsActive;
                         $scope.safeApply();
                     }, function (err) {
                         console.error(err);
@@ -18279,8 +18289,10 @@ define(['js/app'], function (myApp) {
 
             vm.downloadTranslationCSV = function () {
                 vm.prepareTranslationCSV = false;
+                let platformId = vm.selectedPlatform.data.platformId;
 
-                socketService.$socket($scope.AppSocket, 'downloadTranslationCSV', {}, function (data) {
+                socketService.$socket($scope.AppSocket, 'downloadTranslationCSV', {platformId: platformId}, function (data) {
+                    vm.fileNameCSV = "ch_SP"+"_"+platformId;
                     vm.prepareTranslationCSV = true;
                     vm.exportTranslationCSV = data.data;
                     $scope.safeApply();
