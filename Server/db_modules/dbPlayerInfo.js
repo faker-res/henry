@@ -1767,9 +1767,11 @@ let dbPlayerInfo = {
         ).then(
             updatedData => {
                 let inputDeviceData = dbUtility.getInputDevice(userAgent,false);
-                updateData.isPlayerInit = true;
+                //updateData.isPlayerInit = true;
                // updateData.playerName = playerObj.name;
-                updateData.playerId = playerObj.playerId || "";
+                updateData.isIgnoreAudit=true; // bypass the audit process if the update is made from the frontend API by the user
+                updateData._id =  playerObj._id || "";
+                updateData.playerObjId = playerObj._id || "";
                 updateData.name = playerObj.name || "";
 
                 // If user modified their own, no proposal needed
