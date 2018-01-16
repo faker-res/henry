@@ -3068,7 +3068,8 @@
   "Are you sure you want to delete sms setting group": "你确定要删除短信分组",
   "Account Branch": "开户分行",
   "receive status": "接收状态",
-  "receive status/sms group": "接收状态/短信分组"
+  "receive status/sms group": "接收状态/短信分组",
+  "Exceed proposal search max time frame": "请将搜索时间范围限制在七天内"
 
 
 }
