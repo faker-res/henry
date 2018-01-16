@@ -16128,7 +16128,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'activatePromoCode':
                         vm.promoCodeActivate = {};
-                        vm.promoCodeActivate.flag = vm.selectedPlatform.data.promoCodeIsActive.toString();
+                        vm.promoCodeActivate.flag = vm.selectedPlatform.data.hasOwnProperty('promoCodeIsActive')? vm.selectedPlatform.data.promoCodeIsActive.toString(): 'false';
                         utilService.actionAfterLoaded('#promoCodeActivate', function () {
                             vm.promoCodeActivate.startCreateTime = utilService.createDatePicker('#promoCodeActivate .startCreateTime', {
                                 language: 'en',
@@ -17796,7 +17796,11 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                if (vm.promoCodeActivate.flag != vm.selectedPlatform.data.promoCodeIsActive.toString()) {
+                if (vm.selectedPlatform.data.hasOwnProperty('promoCodeIsActive')) {
+                    if (vm.promoCodeActivate.flag != vm.selectedPlatform.data.promoCodeIsActive.toString()) {
+                        isUpdatePlatform = true;
+                    }
+                } else {
                     isUpdatePlatform = true;
                 }
 
