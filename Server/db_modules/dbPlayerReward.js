@@ -1614,7 +1614,7 @@ let dbPlayerReward = {
                                         if (status == "1") {
                                             noUseListArr.push(promo);
                                         } else if (status == "2") {
-                                            if (bonusUrl) {
+                                            if (bonusUrl && promocode.isActive) {
                                                 promo.bonusUrl = bonusUrl;
                                             }
                                             usedListArr.push(promo);
@@ -1848,7 +1848,7 @@ let dbPlayerReward = {
 
     },
 
-    generatePromoCode: (platformObjId, newPromoCodeEntry) => {
+    generatePromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName) => {
         // Check if player exist
         return dbConfig.collection_players.findOne({
             platform: platformObjId,
@@ -1868,8 +1868,8 @@ let dbPlayerReward = {
             }
         ).then(
             newPromoCode => {
-                SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry);
-                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry);
+                SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName);
                 return newPromoCode.code;
             }
         )
@@ -3086,7 +3086,7 @@ let dbPlayerReward = {
         if (data.flag) {
             dbConfig.collection_promoCode.update({
                 platformObjId: platformObjId,
-                createTime: {$not: {$gte: new Date(data.startCreateTime), $lt: new Date(data.endCreateTime)}},
+                acceptedTime: {$not: {$gte: new Date(data.startAcceptedTime), $lt: new Date(data.endAcceptedTime)}},
                 isActive: true
             }, {
                 $set: {
@@ -3099,7 +3099,7 @@ let dbPlayerReward = {
 
         return dbConfig.collection_promoCode.update({
             platformObjId: platformObjId,
-            createTime: {$gte: new Date(data.startCreateTime), $lt: new Date(data.endCreateTime)}
+            acceptedTime: {$gte: new Date(data.startAcceptedTime), $lt: new Date(data.endAcceptedTime)}
         }, {
             $set: {
                 isActive: data.flag

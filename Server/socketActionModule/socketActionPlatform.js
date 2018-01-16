@@ -14,6 +14,7 @@ const dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
 const dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
 const dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
+const dbSmsGroup = require('../db_modules/dbSmsGroup');
 
 const consumptionReturnEvent = require('./../scheduleTask/consumptionReturnEvent');
 
@@ -367,6 +368,30 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbGameProvider.getPlatformProviderGroup, [data.platformObjId], actionName, isValidData);
+        },
+
+        addNewSmsGroup: function addNewSmsGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbSmsGroup.addNewSmsGroup, [data.platformObjId], actionName, isValidData);
+        },
+
+        getPlatformSmsGroups: function getPlatformSmsGroups(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbSmsGroup.getPlatformSmsGroups, [data.platformObjId], actionName, isValidData);
+        },
+
+        updatePlatformSmsGroups: function updatePlatformSmsGroups(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.smsGroups);
+            socketUtil.emitter(self.socket, dbSmsGroup.updatePlatformSmsGroups, [data.platformObjId, data.smsGroups], actionName, isValidData);
+        },
+
+        deletePlatformSmsGroup: function deletePlatformSmsGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbSmsGroup.deletePlatformSmsGroup, [data._id], actionName, isValidData);
         },
 
         updatePlatformProviderGroup: function updatePlatformProviderGroup(data) {
