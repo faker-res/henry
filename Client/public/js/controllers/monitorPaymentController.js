@@ -468,6 +468,15 @@ define(['js/app'], function (myApp) {
 
         }
         vm.getPaymentMonitorRecord = function (isNewSearch) {
+            let queryStartTime = vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate();
+            let queryEndTime = vm.paymentMonitorQuery.endTime.data('datetimepicker').getLocalDate();
+
+            let searchInterval = Math.abs(new Date(queryEndTime).getTime() - new Date(queryStartTime).getTime());
+            if (searchInterval > $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME) {
+                socketService.showErrorMessage($translate("Exceed proposal search max time frame"));
+                return;
+            }
+
             if (isNewSearch) {
                 $('#autoRefreshProposalFlag').attr('checked', false);
             }
