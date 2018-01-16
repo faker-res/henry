@@ -17805,6 +17805,7 @@ define(['js/app'], function (myApp) {
                         console.log('updatePromoCodeSetting', data);
                         vm.selectedPlatform.data.promoCodeStartTime = data.data.promoCodeStartTime;
                         vm.selectedPlatform.data.promoCodeEndTime = data.data.promoCodeEndTime;
+                        vm.selectedPlatform.data.promoCodeIsActive = data.data.promoCodeIsActive;
                         $scope.safeApply();
                     }, function (err) {
                         console.error(err);
