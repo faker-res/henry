@@ -40,6 +40,7 @@ var constPlayerLevelPeriod = require("./../const/constPlayerLevelPeriod");
 var constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTransferStatus");
 var constReferralStatus = require("./../const/constReferralStatus");
 var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
+let constMessageType = require("../const/constMessageType");
 var cpmsAPI = require("../externalAPI/cpmsAPI");
 
 var moment = require('moment-timezone');
@@ -84,6 +85,7 @@ let dbRewardPoints = require('../db_modules/dbRewardPoints');
 let dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
 let dbPlayerMail = require('../db_modules/dbPlayerMail');
 let dbConsumptionReturnWithdraw = require('../db_modules/dbConsumptionReturnWithdraw');
+let dbSmsGroup = require('../db_modules/dbSmsGroup');
 let PLATFORM_PREFIX_SEPARATOR = '';
 
 let dbPlayerInfo = {
@@ -11995,6 +11997,96 @@ let dbPlayerInfo = {
                 return {data: logs, size: count};
             }
         )
+    },
+
+    getPlayerSmsStatus: function (playerId) {
+        let playerSmsSetting = {};
+        return dbconfig.collection_players.findOne({playerId:playerId}).then(
+            (player) => {
+                if(!player) return Q.reject({name: "DataError", message: "Cant find player"});
+                playerSmsSetting = player.smsSetting;
+                return dbSmsGroup.getPlatformSmsGroups(player.platform);
+            }
+        ).then(
+            (platformSmsGroups) => {
+                let smsGroups = platformSmsGroups.filter(smsGroups => smsGroups.smsParentSmsId ===-1);
+                let smsSettingsInGroup = platformSmsGroups.filter(smsGroups => smsGroups.smsParentSmsId !==-1);
+                let noInGroupSmsTypesNames = dbUtility.difArrays(smsSettingsInGroup.map(smsSetting => smsSetting.smsName), Object.values(constMessageType));
+
+                let smsSettings = smsGroups.map(smsGroup => {
+                    let smsGroupStatus = 1;
+                    let innerSmsGroupSetting = smsSettingsInGroup.filter(smsGroups => smsGroups.smsParentSmsId ===smsGroup.smsId).map(
+                        smsSetting => {
+                            if(!playerSmsSetting[smsSetting.smsName])
+                                smsGroupStatus = 0;
+                            return {smsName:smsSetting.smsName,smsId:smsSetting.smsId, status:Number(playerSmsSetting[smsSetting.smsName])}
+                        }
+                    );
+                    return {smsName:smsGroup.smsName,smsId:smsGroup.smsId,status:smsGroupStatus, settings:innerSmsGroupSetting}
+                });
+                noInGroupSmsTypesNames.forEach(typeName => {
+                    if(playerSmsSetting[typeName] !==null)
+                        smsSettings.push({smsName:typeName, smsId:-1, status:Number(playerSmsSetting[typeName])})
+                });
+                return smsSettings;
+            }
+        );
+    },
+
+    setPlayerSmsStatus: function (playerId,status) {
+        // can update multiple status,so status can be: 15:1, 10:0, 2:1, ...
+        // example: (smsId:status) 15:0  status:1(true),0(false)
+        let statusGroups = status.split(",");
+        let playerSmsSetting = {};
+        let updateData = {};
+        return dbconfig.collection_players.findOne({playerId:playerId}).then(
+            (player) => {
+                if(!player) return Q.reject({name: "DataError", message: "Cant find player"});
+                playerSmsSetting = player.smsSetting;
+                return dbSmsGroup.getPlatformSmsGroups(player.platform);
+            }
+        ).then(
+            (platformSmsGroups) => {
+                statusGroups.forEach(statusGroup => {
+                    // statusPairArray[0]:smsId/MessageTypeName statusPairArray[1]:status
+                    // statusPairArray[0] is MessageTypeName when this smsSetting not in smsGroup
+                    let statusPairArray = statusGroup.split(":");
+                    let smsIdOrTypeName = statusPairArray[0];
+                    let updateStatus = parseInt(statusPairArray[1]);
+                    //smsId is Integer, so if smsId is not an Integer then it is MessageTypeName
+                    if (Number.isInteger(parseInt(smsIdOrTypeName))) {
+                        smsIdOrTypeName = parseInt(smsIdOrTypeName);
+                        //smsId
+                        let smsSettingGroup = platformSmsGroups.find(
+                            SmsGroup => SmsGroup.smsId === smsIdOrTypeName
+                        );
+                        if(smsSettingGroup) {
+                            if(smsSettingGroup.smsParentSmsId ===-1) {
+                                // smsId is a sms group
+                                // we update all sms setting in this smsSettingGroup
+                                platformSmsGroups.forEach(SmsGroup => {
+                                    if(SmsGroup.smsParentSmsId === smsSettingGroup.smsId)
+                                        updateData["smsSetting." +SmsGroup.smsName] = !!updateStatus; // number to boolean
+                                });
+                            } else {
+                                // smsId is not a sms group
+                                updateData["smsSetting." +smsSettingGroup.smsName] = !!updateStatus;
+                            }
+                        }
+                    } else {
+                        //MessageTypeName
+                        updateData["smsSetting." +smsIdOrTypeName] = !!updateStatus // number to boolean
+                    }
+                });
+            }
+        ).catch(
+            () => Q.reject({name: "DataError", message: "Invalid data"})
+
+        ).then(
+            () => {
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerId}, updateData, constShardKeys.collection_players);
+            }
+        );
     },
 
     // translation CSV at platform config
