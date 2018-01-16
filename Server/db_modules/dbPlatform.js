@@ -2288,11 +2288,12 @@ var dbPlatform = {
     /**
      * Update the promoCode setting in Platform
      */
-    updatePromoCodeSetting: function (platformObjId, promoCodeStartTime, promoCodeEndTime) {
+    updatePromoCodeSetting: function (platformObjId, promoCodeStartTime, promoCodeEndTime, promoCodeIsActive) {
         return dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId},
             {
                 promoCodeStartTime: promoCodeStartTime,
-                promoCodeEndTime: promoCodeEndTime
+                promoCodeEndTime: promoCodeEndTime,
+                promoCodeIsActive: promoCodeIsActive
             }, {new: true});
     },
 };
