@@ -8583,7 +8583,7 @@ let dbPlayerInfo = {
                                 merchant => {
                                     let maxDeposit = 0;
                                     for (let i = 0; i < paymentData.merchants.length; i++) {
-                                        var status = 2;
+                                        let status = 2;
                                         if (paymentData.merchants[i].merchantNo == merchant) {
                                             status = 1;
                                         }
