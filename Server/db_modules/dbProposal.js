@@ -307,7 +307,7 @@ var proposal = {
                             }
                             else {
 
-                                if (proposalData.data.isPlayerInit){
+                                if (proposalData.data.isIgnoreAudit){
                                     proposalData.creator = {
                                         type: 'player',
                                         name: proposalData.data.playerName || "",
