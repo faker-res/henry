@@ -3085,7 +3085,7 @@ let dbPlayerReward = {
     updatePromoCodesActive: (platformObjId, data) => {
         return dbConfig.collection_promoCode.update({
             platformObjId: platformObjId,
-            createTime: {$gte: new Date(data.startCreateTime), $lt: new Date(data.endCreateTime)}
+            acceptedTime: {$gte: new Date(data.startAcceptedTime), $lt: new Date(data.endAcceptedTime)}
         }, {
             $set: {
                 isActive: data.flag

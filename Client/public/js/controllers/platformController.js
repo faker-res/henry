@@ -17753,8 +17753,8 @@ define(['js/app'], function (myApp) {
 
             vm.setPromoCodeActivate = function () {
                 let sendObj = {
-                    startCreateTime: vm.promoCodeActivate.startCreateTime.data('datetimepicker').getLocalDate(),
-                    endCreateTime: vm.promoCodeActivate.endCreateTime.data('datetimepicker').getLocalDate(),
+                    startAcceptedTime: vm.promoCodeActivate.startCreateTime.data('datetimepicker').getLocalDate(),
+                    endAcceptedTime: vm.promoCodeActivate.endCreateTime.data('datetimepicker').getLocalDate(),
                     flag: vm.promoCodeActivate.flag,
                     platformObjId: vm.selectedPlatform.id
                 };
