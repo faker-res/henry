@@ -2,6 +2,7 @@ var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var PlatformService = require("./../../services/client/ClientServices").PlatformService;
 var dbPlatform = require('./../../db_modules/dbPlatform');
 var dbPlatformAnnouncement = require("../../db_modules/dbPlatformAnnouncement");
+const dbUtility = require('./../../modules/dbutility');
 
 var PlatformServiceImplement = function () {
     PlatformService.call(this);
@@ -24,7 +25,9 @@ var PlatformServiceImplement = function () {
     this.getConfig.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.platformId);
         data = data || {};
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getConfig, [data.platformId], isValidData, null, null, true);
+
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent'], false);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getConfig, [data.platformId,inputDevice], isValidData, null, null, true);
     };
 
     this.getLiveStream.expectsData = '';
