@@ -10,7 +10,7 @@ const serverInstance = require("./serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constPromoCodeLegend = require("../const/constPromoCodeLegend.js");
 const assert = require('assert');
-
+const moment = require('moment-timezone');
 const messageDispatcher = {
 
     /**
@@ -180,6 +180,7 @@ const messageDispatcher = {
     renderTemplateAndSendMessage: function (messageTemplate, metaData) {
         const renderedSubject = typeof messageTemplate.subject === 'string' && renderTemplate(messageTemplate.subject, metaData);
         const contentIsHTML = isHTML(messageTemplate.content);
+        messageTemplate.content = messageTemplate.content.replace('{{proposalData.createTime}}', moment(metaData.proposalData.createTime).format("YYYY/MM/DD HH:mm:ss"));
         const renderedContent = renderTemplate(messageTemplate.content, metaData);
         return messageDispatcher.sendMessage(messageTemplate.format, metaData, renderedContent, renderedSubject, contentIsHTML);
     },

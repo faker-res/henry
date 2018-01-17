@@ -987,6 +987,18 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerInfo, [{playerId: conn.playerId}, updateData], isValidData);
     };
 
+    this.getSmsStatus.expectsData = 'playerId: String';
+    this.getSmsStatus.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerSmsStatus, [conn.playerId], isValidData);
+    };
+
+    this.setSmsStatus.expectsData = 'playerId: String';
+    this.setSmsStatus.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && conn.playerId && data.status);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setPlayerSmsStatus, [conn.playerId, data.status], isValidData);
+    };
+
     this.getPlayerDayStatus.expectsData = 'playerId: String';
     this.getPlayerDayStatus.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);

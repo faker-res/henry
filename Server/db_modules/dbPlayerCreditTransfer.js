@@ -982,6 +982,28 @@ let dbPlayerCreditTransfer = {
                 else {
                     return Q.reject({name: "DataError", message: "Error transfer player credit to provider."});
                 }
+            },
+            err => {
+                return Promise.resolve().then(
+                    () => {
+                        //change player credit back if transfer failed
+                        if (bTransfered) {
+                            console.error(err);
+                            if (err && err.errorMessage && err.errorMessage.indexOf('Request timeout') > -1) {
+                            } else {
+                                return playerCreditChangeWithRewardTaskGroup(player._id, player.platform, rewardTaskGroupObjId, validTransferAmount, lockedTransferAmount, providerId, true).then(
+                                    () => Promise.reject({
+                                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                        name: "NumError",
+                                        errorMessage: "Player does not have enough credit."
+                                    })
+                                );
+                            }
+                        }
+                    }
+                ).catch(errorUtils.reportError).then(
+                    () => Promise.reject(err)
+                );
             }
         );
     },
