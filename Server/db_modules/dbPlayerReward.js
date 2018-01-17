@@ -313,6 +313,159 @@ let dbPlayerReward = {
         });
     },
 
+    getRandBonusInfo: (playerId, rewardCode, platformId) => {
+        return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    return dbConfig.collection_players.findOne({playerId: playerId, platform: platformData._id}).lean().then(
+                        playerData => {
+                            if (playerData) {
+                                return dbRewardEvent.getPlatformRewardEventWithTypeName(platformData._id, constRewardType.PLAYER_RANDOM_REWARD_GROUP, rewardCode).then(
+                                    rewardData => {
+                                        if (rewardData) {
+                                            let timeNow = new Date();
+                                            let intervalTime = getIntervalPeriodFromEvent(rewardData);
+
+                                            let outputObject = {
+                                                "today":[//只显示今天正在开始的以及即将开始的,只有status=0或status=1的
+                                                    {
+                                                        "id": rewardData._id,//奖励编号
+                                                        "startTime": rewardData.validStartTime,
+                                                        "endTime": rewardData.validEndTime,
+                                                        "timeLeft": Math.abs(parseInt((rewardData.validEndTime - timeNow) / 1000)) + " seconds",
+                                                        "status": 0,
+                                                        "desc": "status:0:初始,1:时间到了,可以开始游戏,2:已结束",
+                                                        "condition": {
+                                                            "currentDeposit": playerData.validCredit,//当前存款(分子)
+                                                            "deposit": rewardData.param.rewardParam[0].value[0].requiredTopUpAmount,//需要达到的存款(分母)
+                                                            "providerGroup": rewardData.condition.consumptionProvider,
+                                                            "providers": "所有平台",
+                                                            "currentBetAmount": playerData.dailyConsumptionSum,//当前流水(分子)
+                                                            "betAmount": rewardData.param.rewardParam[0].value[0].requiredConsumptionAmount,//需要达到的流水(分母)
+                                                            "currentTimes": 2,//用户可用的当前次数(分子)
+                                                            "times": rewardData.param.rewardParam[0].value[0].numberParticipation,//总次数(分母)
+                                                            "grade": playerData.playerLevel,
+                                                            "device": playerData.userAgent[0].device,
+                                                            "depositType": rewardData.topupType,
+                                                            "onlineType": rewardData.onlineTopUpType,
+                                                            "cardType": rewardData.bankCardType
+                                                        },
+                                                        "bonusCondition": {
+                                                            "bet": rewardData.param.rewardParam[0].value[0].spendingTimesOnReward,//流水倍数
+                                                            "providerGroup": rewardData.condition.consumptionProvider,
+                                                            "providers": "所有平台"
+                                                        }
+                                                    },
+                                                    {
+                                                        "id": "2",//奖励编号
+                                                        "startTime": "12:00",
+                                                        "endTime": "12:10",
+                                                        "status": 1,
+                                                        "condition":{
+                                                            "currentDeposit": "100",
+                                                            "deposit": "200",
+                                                            "providerGroup": "百家乐（真人）",
+                                                            "providers": "所有平台",
+                                                            "currentBetAmount": 2000,
+                                                            "betAmount": 3000,
+                                                            "currentTimes": 2,
+                                                            "times": 3,
+                                                            "grade": "lv3.抚府",
+                                                            "device": "手机",
+                                                            "depositType": "在线充值,个人微信",
+                                                            "onlineType": "微信扫码,快捷支付",
+                                                            "cardType": "中国银行,农业银行"
+                                                        },
+                                                        "bonusCondition":{
+                                                            "bet": 6,
+                                                            "providerGroup": "百家乐（真人）",
+                                                            "providers": "所有平台"
+                                                        }
+                                                    }
+                                                ],
+                                                "get":[//已领取
+                                                    {
+                                                        "id":"3",//奖励编号
+                                                        "startTime":"12:00",
+                                                        "endTime":"12:10",
+                                                        "timeLeft":"200",
+                                                        "status":2,//已领取,当此状态为2 时有字段amountList
+                                                        "amountList":[100,200,300],//已领取的金额列表,
+                                                        "desc":"status:0:初始,1:可以开始游戏,2:已结束",
+                                                        "condition":{
+                                                            "deposit":"200",
+                                                            "providerGroup":"百家乐（真人）",
+                                                            "providers":"所有平台",
+                                                            "betAmount":3000,
+                                                            "times":3,
+                                                            "grade":"lv3.抚府",
+                                                            "device":"手机",
+                                                            "depositType":"在线充值,个人微信",
+                                                            "onlineType":"微信扫码,快捷支付",
+                                                            "cardType":"中国银行,农业银行"
+                                                        },
+                                                        "bonusCondition":{
+                                                            "bet":6,
+                                                            "providerGroup":"百家乐（真人）",
+                                                            "providers":"所有平台"
+                                                        }
+                                                    }
+                                                ],
+                                                "end":[
+                                                    {
+                                                        "id":"4",//奖励编号
+                                                        "startTime":"12:00",
+                                                        "endTime":"12:10",
+                                                        "timeLeft":"200",
+                                                        "status":3,
+                                                        "condition":{
+                                                            "deposit":"200",
+                                                            "providerGroup":"百家乐（真人）",
+                                                            "providers":"所有平台",
+                                                            "betAmount":3000,
+                                                            "times":3,
+                                                            "grade":"lv3.抚府",
+                                                            "device":"手机",
+                                                            "depositType":"在线充值,个人微信",
+                                                            "onlineType":"微信扫码,快捷支付",
+                                                            "cardType":"中国银行,农业银行"
+                                                        },
+                                                        "bonusCondition":{
+                                                            "bet":6,
+                                                            "providerGroup":"百家乐（真人）",
+                                                            "providers":"所有平台"
+                                                        }
+                                                    }
+                                                ],
+                                                "bonusList":[//名单
+                                                    {
+                                                        "accountNo":"ke***enken",
+                                                        "bonus":110,
+                                                        "time":"2018-01-16T05:10:11.551Z"
+                                                    }
+                                                ]
+                                            };
+                                            return outputObject;
+                                        }
+                                        else {
+                                            return Q.reject({name: "DataError", message: "Cannot find reward event"});
+                                        }
+                                    });
+                            }
+                            else {
+                                return Q.reject({name: "DataError", message: "Cannot find player"});
+                            }
+                        }
+                    );
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        );
+    },
+
+
     getPlayerConsecutiveRewardDetail: (playerId, code, isApply, platform, applyTargetTime) => {
         // reward event code is an optional value, getting the latest relevant event by default
         let currentTime = applyTargetTime || new Date();
