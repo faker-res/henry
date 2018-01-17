@@ -7855,7 +7855,7 @@ let dbPlayerInfo = {
                 if (typeData) {
                     var queryObj = {
                         "data.playerId": playerId,
-                        type: typeData._id
+                        type: ObjectId(typeData._id)
                     };
                     if (status) {
                         queryObj.status = status;
@@ -7877,15 +7877,18 @@ let dbPlayerInfo = {
                             model: dbconfig.collection_platform
                         })
                         .sort({createTime: seq}).skip(startIndex).limit(count).lean();
+                    let sumAmountProm = dbconfig.collection_proposal.aggregate([
+                        {$match: queryObj},
+                        {$group: {
+                            '_id': null,
+                            totalAmount: {$sum: "$data.amount"}
+                        }}
+                    ]);
 
-                    return Q.all([proposalProm, countProm]).then(
+                    return Q.all([proposalProm, countProm, sumAmountProm]).then(
                         data => {
-                            let totalAmount = 0;
-
-                            if (data && data[0] && data[1]) {
-                                for (var i = 0; i < data[0].length; i++) {
-                                    totalAmount += data[0][i].amount;
-                                }
+                            if (data && data[0] && data[1] && data[2] && data[2][0]) {
+                                let totalAmount = data[2][0].totalAmount;
 
                                 return {
                                     stats: {
@@ -7903,7 +7906,7 @@ let dbPlayerInfo = {
                                         totalCount: data[1] || 0,
                                         startIndex: startIndex,
                                         requestCount: count,
-                                        totalAmount: totalAmount
+                                        totalAmount: 0
                                     },
                                     records: []
                                 }
