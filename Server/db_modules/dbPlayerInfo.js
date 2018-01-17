@@ -40,6 +40,7 @@ var constPlayerLevelPeriod = require("./../const/constPlayerLevelPeriod");
 var constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTransferStatus");
 var constReferralStatus = require("./../const/constReferralStatus");
 var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
+let constMessageType = require("../const/constMessageType");
 var cpmsAPI = require("../externalAPI/cpmsAPI");
 
 var moment = require('moment-timezone');
@@ -56,6 +57,7 @@ var constProposalUserType = require('../const/constProposalUserType');
 var constProposalEntryType = require('../const/constProposalEntryType');
 var errorUtils = require("../modules/errorUtils.js");
 var SMSSender = require('../modules/SMSSender');
+var messageDispatcher = require('../modules/messageDispatcher');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
 var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
 
@@ -84,6 +86,7 @@ let dbRewardPoints = require('../db_modules/dbRewardPoints');
 let dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
 let dbPlayerMail = require('../db_modules/dbPlayerMail');
 let dbConsumptionReturnWithdraw = require('../db_modules/dbConsumptionReturnWithdraw');
+let dbSmsGroup = require('../db_modules/dbSmsGroup');
 let PLATFORM_PREFIX_SEPARATOR = '';
 
 let dbPlayerInfo = {
@@ -1497,7 +1500,7 @@ let dbPlayerInfo = {
      */
     resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword, dontReturnPassword) {
         let deferred = Q.defer();
-
+        let playerObj;
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
             if (err) {
                 deferred.reject({
@@ -1523,6 +1526,7 @@ let dbPlayerInfo = {
                     constShardKeys.collection_players
                 ).then(
                     data => {
+                        playerObj = data;
                         // update partner password if selected
                         if (resetPartnerPassword) {
                             return dbUtility.findOneAndUpdateForShard(
@@ -1541,7 +1545,14 @@ let dbPlayerInfo = {
                         deferred.reject({name: "DBError", message: "Error updating player password.", error: error});
                     }
                 ).then(
-                    data => deferred.resolve(dontReturnPassword ? "" : newPassword),
+                    data => {
+                        SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+                        let messageData = {
+                            data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                        };
+                        messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
+                        return deferred.resolve(dontReturnPassword ? "" : newPassword);
+                    },
                     error => deferred.reject({
                         name: "DBError",
                         message: "Error updating partner password.",
@@ -1644,10 +1655,18 @@ let dbPlayerInfo = {
                             dbconfig.collection_players.findOneAndUpdate(
                                 {_id: playerObj._id, platform: playerObj.platform}, {password: hash}
                             ).then(
-                                deferred.resolve, deferred.reject
+                                () => {
+                                    SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+                                    let messageData = {
+                                        data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                                    };
+                                    messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
+                                    deferred.resolve();
+                                }, deferred.reject
                             );
                         });
                     });
+
                     // playerObj.password = newPassword;
                     // return playerObj.save();
                     return deferred.promise;
@@ -6246,14 +6265,27 @@ let dbPlayerInfo = {
                                         lastApplyLevelUpReward: Date.now()
                                     }).save();
                                 } else {
-                                    return dbconfig.collection_playerState.findOneAndUpdate({
-                                        player: playerObj._id,
-                                        lastApplyLevelUpReward: {$lt: new Date() - 1000}
-                                    }, {
-                                        $currentDate: {lastApplyLevelUpReward: true}
-                                    }, {
-                                        new: true
-                                    });
+                                    // State exist
+                                    if (stateRec.lastApplyLevelUpReward) {
+                                        // update rec
+                                        return dbconfig.collection_playerState.findOneAndUpdate({
+                                            player: playerObj._id,
+                                            lastApplyLevelUpReward: {$lt: new Date() - 1000}
+                                        }, {
+                                            $currentDate: {lastApplyLevelUpReward: true}
+                                        }, {
+                                            new: true
+                                        });
+                                    } else {
+                                        // update rec with new field
+                                        return dbconfig.collection_playerState.findOneAndUpdate({
+                                            player: playerObj._id,
+                                        }, {
+                                            $currentDate: {lastApplyLevelUpReward: true}
+                                        }, {
+                                            new: true
+                                        });
+                                    }
                                 }
                             }
                         ).then(
@@ -7782,12 +7814,20 @@ let dbPlayerInfo = {
 
                 return Q.all([proposalProm, countProm]).then(
                     data => {
-                        if (data && data[0] && data[1]) {
+                        if (data && data[0] && data[1]){
+
+                            let totalAmount = 0;
+
+                            for (var i = 0; i < data[0].length; i++) {
+                                totalAmount += data[0][i].amount;
+                            }
+
                             return {
                                 stats: {
                                     totalCount: data[1],
                                     startIndex: startIndex,
-                                    requestCount: count
+                                    requestCount: count,
+                                    totalAmount: totalAmount
                                 },
                                 records: data[0]
                             }
@@ -7797,7 +7837,8 @@ let dbPlayerInfo = {
                                 stats: {
                                     totalCount: data[1] || 0,
                                     startIndex: startIndex,
-                                    requestCount: count
+                                    requestCount: count,
+                                    totalAmount: 0
                                 },
                                 records: []
                             }
@@ -7831,7 +7872,7 @@ let dbPlayerInfo = {
                 if (typeData) {
                     var queryObj = {
                         "data.playerId": playerId,
-                        type: typeData._id
+                        type: ObjectId(typeData._id)
                     };
                     if (status) {
                         queryObj.status = status;
@@ -7853,15 +7894,25 @@ let dbPlayerInfo = {
                             model: dbconfig.collection_platform
                         })
                         .sort({createTime: seq}).skip(startIndex).limit(count).lean();
+                    let sumAmountProm = dbconfig.collection_proposal.aggregate([
+                        {$match: queryObj},
+                        {$group: {
+                            '_id': null,
+                            totalAmount: {$sum: "$data.amount"}
+                        }}
+                    ]);
 
-                    return Q.all([proposalProm, countProm]).then(
+                    return Q.all([proposalProm, countProm, sumAmountProm]).then(
                         data => {
-                            if (data && data[0] && data[1]) {
+                            if (data && data[0] && data[1] && data[2] && data[2][0]) {
+                                let totalAmount = data[2][0].totalAmount;
+
                                 return {
                                     stats: {
                                         totalCount: data[1],
                                         startIndex: startIndex,
-                                        requestCount: count
+                                        requestCount: count,
+                                        totalAmount: totalAmount
                                     },
                                     records: data[0]
                                 }
@@ -7871,7 +7922,8 @@ let dbPlayerInfo = {
                                     stats: {
                                         totalCount: data[1] || 0,
                                         startIndex: startIndex,
-                                        requestCount: count
+                                        requestCount: count,
+                                        totalAmount: 0
                                     },
                                     records: []
                                 }
@@ -11995,6 +12047,91 @@ let dbPlayerInfo = {
                 return {data: logs, size: count};
             }
         )
+    },
+
+    getPlayerSmsStatus: function (playerId) {
+        let playerSmsSetting = {};
+        return dbconfig.collection_players.findOne({playerId:playerId}).then(
+            (player) => {
+                if(!player) return Q.reject({name: "DataError", message: "Cant find player"});
+                playerSmsSetting = player.smsSetting;
+                return dbSmsGroup.getPlatformSmsGroups(player.platform);
+            }
+        ).then(
+            (platformSmsGroups) => {
+                let smsGroups = platformSmsGroups.filter(smsGroups => smsGroups.smsParentSmsId ===-1);
+                let smsSettingsInGroup = platformSmsGroups.filter(smsGroups => smsGroups.smsParentSmsId !==-1);
+
+                let smsSettings = smsGroups.map(smsGroup => {
+                    let smsGroupStatus = 1;
+                    let innerSmsGroupSetting = smsSettingsInGroup.filter(smsGroups => smsGroups.smsParentSmsId ===smsGroup.smsId).map(
+                        smsSetting => {
+                            if(!playerSmsSetting[smsSetting.smsName])
+                                smsGroupStatus = 0;
+                            return {smsName:smsSetting.smsName,smsId:smsSetting.smsId, status:Number(playerSmsSetting[smsSetting.smsName])}
+                        }
+                    );
+                    return {smsName:smsGroup.smsName,smsId:smsGroup.smsId,status:smsGroupStatus, settings:innerSmsGroupSetting}
+                });
+                // hide all setting that is not in sms setting group
+                // noInGroupSmsTypesNames.forEach(typeName => {
+                //     if(playerSmsSetting[typeName] !==null)
+                //         smsSettings.push({smsName:typeName, smsId:-1, status:Number(playerSmsSetting[typeName])})
+                // });
+                return smsSettings;
+            }
+        );
+    },
+
+    setPlayerSmsStatus: function (playerId,status) {
+        // can update multiple status,so status can be: 15:1, 10:0, 2:1, ...
+        // example: (smsId:status) 15:0  status:1(true),0(false)
+        let statusGroups = status.split(",");
+        let playerSmsSetting = {};
+        let updateData = {};
+        return dbconfig.collection_players.findOne({playerId:playerId}).then(
+            (player) => {
+                if(!player) return Q.reject({name: "DataError", message: "Cant find player"});
+                playerSmsSetting = player.smsSetting;
+                return dbSmsGroup.getPlatformSmsGroups(player.platform);
+            }
+        ).then(
+            (platformSmsGroups) => {
+                statusGroups.forEach(statusGroup => {
+                    // statusPairArray[0]:smsId/MessageTypeName statusPairArray[1]:status
+                    // statusPairArray[0] is MessageTypeName when this smsSetting not in smsGroup
+                    let statusPairArray = statusGroup.split(":");
+                    let smsIdOrTypeName = statusPairArray[0];
+                    let updateStatus = parseInt(statusPairArray[1]);
+
+                    smsIdOrTypeName = parseInt(smsIdOrTypeName);
+                    //smsId
+                    let smsSettingGroup = platformSmsGroups.find(
+                        SmsGroup => SmsGroup.smsId === smsIdOrTypeName
+                    );
+                    if(smsSettingGroup) {
+                        if(smsSettingGroup.smsParentSmsId ===-1) {
+                            // smsId is a sms group
+                            // we update all sms setting in this smsSettingGroup
+                            platformSmsGroups.forEach(SmsGroup => {
+                                if(SmsGroup.smsParentSmsId === smsSettingGroup.smsId)
+                                    updateData["smsSetting." +SmsGroup.smsName] = !!updateStatus; // number to boolean
+                            });
+                        } else {
+                            // smsId is not a sms group
+                            updateData["smsSetting." +smsSettingGroup.smsName] = !!updateStatus;
+                        }
+                    }
+                });
+            }
+        ).catch(
+            () => Q.reject({name: "DataError", message: "Invalid data"})
+
+        ).then(
+            () => {
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerId}, updateData, constShardKeys.collection_players);
+            }
+        );
     },
 
     // translation CSV at platform config

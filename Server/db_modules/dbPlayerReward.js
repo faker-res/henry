@@ -2148,7 +2148,7 @@ let dbPlayerReward = {
                             mainType: "TopUp"
                         };
 
-                        if (promoCodeObj.promoCodeTypeObjId.type == 3) {
+                        if ([1, 3].indexOf(promoCodeObj.promoCodeTypeObjId.type) > -1) {
                             searchQuery["data.amount"] = {$gte: promoCodeObj.minTopUpAmount}
                         }
 

@@ -746,7 +746,7 @@ let PlayerServiceImplement = function () {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS, // operation successful
                 }, data);
-                SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+                //SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
             }
         ).catch(WebSocketUtil.errorHandler).done();
     };
@@ -985,6 +985,18 @@ let PlayerServiceImplement = function () {
         var updateData = {};
         Object.keys(data).forEach(key => updateData["smsSetting." + key] = data[key])
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerInfo, [{playerId: conn.playerId}, updateData], isValidData);
+    };
+
+    this.getSmsStatus.expectsData = 'playerId: String';
+    this.getSmsStatus.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerSmsStatus, [conn.playerId], isValidData);
+    };
+
+    this.setSmsStatus.expectsData = 'playerId: String';
+    this.setSmsStatus.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && conn.playerId && data.status);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setPlayerSmsStatus, [conn.playerId, data.status], isValidData);
     };
 
     this.getPlayerDayStatus.expectsData = 'playerId: String';
