@@ -419,6 +419,10 @@ define(['js/app'], function (myApp) {
             if (!platformId) return;
             socketService.$socket($scope.AppSocket, 'getPlatform', {_id: platformId}, function (data) {
                 vm.allGameProviders = data.data.gameProviders;
+                vm.gameProvidersList = {};
+                vm.allGameProviders.map(provider => {
+                    vm.gameProvidersList[provider._id] = provider;
+                });
                 console.log('vm.allGameProviders', vm.allGameProviders);
                 $scope.safeApply();
             }, function (err) {
@@ -15514,6 +15518,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.endLoadWeekDay = function () {
+                vm.refreshSPicker();
+            };
+
+            vm.refreshSPicker = () => {
                 $timeout(function () {
                     $('.spicker').selectpicker('refresh');
                 }, 0);

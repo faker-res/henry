@@ -115,8 +115,25 @@ define(['js/app'], function (myApp) {
                         width: 30,
                         height: 30,
                     }
-                };
+                };vm.rightPanelTitle == 'ALL_PROPOSAL'
                 return obj;
+            };
+
+            vm.toggleShowPlatformDropDownList = function () {
+                vm.showPlatformDropDownList = !vm.showPlatformDropDownList;
+
+                $scope.safeApply();
+            };
+
+            vm.showPlatformDetailTab = function (tabName) {
+                vm.selectedPlatformDetailTab = tabName == null ? "backstage-settings" : tabName;
+                if(tabName && tabName == "player-display-data"){
+                    vm.initPlayerDisplayDataModal();
+                }else if(tabName && tabName == "partner-display-data"){
+                    vm.initPartnerDisplayDataModal();
+                }else if(tabName && tabName == "system-settlement"){
+                    vm.prepareSettlementHistory();
+                }
             };
 
             var eventName = "$viewContentLoaded";

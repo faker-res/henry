@@ -4,7 +4,7 @@
             .panel.panel-primary
                 .panel-heading.common-left-panel-heading
                     ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
-                        #qualityInspectionTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
+                        #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
 
                         li.active(ng-show="checkViewPermission('QualityInspection', 'Setting', 'Read')" style="margin-left: 20px;")
                             a.common-tab(data-toggle="tab", href="#Setting", ng-click="vm.qualityInspectionPageName='INSPECTION PARAMETER';vm.updatePageTile();")

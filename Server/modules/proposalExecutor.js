@@ -1939,7 +1939,23 @@ var proposalExecutor = {
              * execution function for player intention proposal
              */
             executePlayerRegistrationIntention: function (proposalData, deferred) {
-                sendMessageToPlayer(proposalData,constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS,{});
+                // for message template
+                if(proposalData.data && proposalData.data.realName) {
+                    // this proposal data's player name no include platform prefix;
+                    dbconfig.collection_platform.findOne({_id:proposalData.data.platform}).then(
+                        (platform) => {
+                            let playerName = platform.prefix + proposalData.data.name;
+                            return dbPlayerInfo.getPlayerInfo({name:playerName,platform:platform._id});
+                        }
+                    ).then(
+                        (player) => {
+                            proposalData.data.playerName = proposalData.data.name;
+                            proposalData.data.playerObjId = player._id;
+                            proposalData.data.platformId = proposalData.data.platform;
+                            sendMessageToPlayer(proposalData,constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS,{});
+                        }
+                    );
+                }
                 deferred.resolve(proposalData);
             },
 
