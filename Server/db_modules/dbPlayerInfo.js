@@ -6248,14 +6248,27 @@ let dbPlayerInfo = {
                                         lastApplyLevelUpReward: Date.now()
                                     }).save();
                                 } else {
-                                    return dbconfig.collection_playerState.findOneAndUpdate({
-                                        player: playerObj._id,
-                                        lastApplyLevelUpReward: {$lt: new Date() - 1000}
-                                    }, {
-                                        $currentDate: {lastApplyLevelUpReward: true}
-                                    }, {
-                                        new: true
-                                    });
+                                    // State exist
+                                    if (stateRec.lastApplyLevelUpReward) {
+                                        // update rec
+                                        return dbconfig.collection_playerState.findOneAndUpdate({
+                                            player: playerObj._id,
+                                            lastApplyLevelUpReward: {$lt: new Date() - 1000}
+                                        }, {
+                                            $currentDate: {lastApplyLevelUpReward: true}
+                                        }, {
+                                            new: true
+                                        });
+                                    } else {
+                                        // update rec with new field
+                                        return dbconfig.collection_playerState.findOneAndUpdate({
+                                            player: playerObj._id,
+                                        }, {
+                                            $currentDate: {lastApplyLevelUpReward: true}
+                                        }, {
+                                            new: true
+                                        });
+                                    }
                                 }
                             }
                         ).then(
