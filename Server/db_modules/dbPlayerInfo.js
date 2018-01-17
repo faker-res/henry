@@ -12033,10 +12033,11 @@ let dbPlayerInfo = {
                     );
                     return {smsName:smsGroup.smsName,smsId:smsGroup.smsId,status:smsGroupStatus, settings:innerSmsGroupSetting}
                 });
-                noInGroupSmsTypesNames.forEach(typeName => {
-                    if(playerSmsSetting[typeName] !==null)
-                        smsSettings.push({smsName:typeName, smsId:-1, status:Number(playerSmsSetting[typeName])})
-                });
+                // hide all setting that is not in sms setting group
+                // noInGroupSmsTypesNames.forEach(typeName => {
+                //     if(playerSmsSetting[typeName] !==null)
+                //         smsSettings.push({smsName:typeName, smsId:-1, status:Number(playerSmsSetting[typeName])})
+                // });
                 return smsSettings;
             }
         );
@@ -12062,29 +12063,24 @@ let dbPlayerInfo = {
                     let statusPairArray = statusGroup.split(":");
                     let smsIdOrTypeName = statusPairArray[0];
                     let updateStatus = parseInt(statusPairArray[1]);
-                    //smsId is Integer, so if smsId is not an Integer then it is MessageTypeName
-                    if (Number.isInteger(parseInt(smsIdOrTypeName))) {
-                        smsIdOrTypeName = parseInt(smsIdOrTypeName);
-                        //smsId
-                        let smsSettingGroup = platformSmsGroups.find(
-                            SmsGroup => SmsGroup.smsId === smsIdOrTypeName
-                        );
-                        if(smsSettingGroup) {
-                            if(smsSettingGroup.smsParentSmsId ===-1) {
-                                // smsId is a sms group
-                                // we update all sms setting in this smsSettingGroup
-                                platformSmsGroups.forEach(SmsGroup => {
-                                    if(SmsGroup.smsParentSmsId === smsSettingGroup.smsId)
-                                        updateData["smsSetting." +SmsGroup.smsName] = !!updateStatus; // number to boolean
-                                });
-                            } else {
-                                // smsId is not a sms group
-                                updateData["smsSetting." +smsSettingGroup.smsName] = !!updateStatus;
-                            }
+
+                    smsIdOrTypeName = parseInt(smsIdOrTypeName);
+                    //smsId
+                    let smsSettingGroup = platformSmsGroups.find(
+                        SmsGroup => SmsGroup.smsId === smsIdOrTypeName
+                    );
+                    if(smsSettingGroup) {
+                        if(smsSettingGroup.smsParentSmsId ===-1) {
+                            // smsId is a sms group
+                            // we update all sms setting in this smsSettingGroup
+                            platformSmsGroups.forEach(SmsGroup => {
+                                if(SmsGroup.smsParentSmsId === smsSettingGroup.smsId)
+                                    updateData["smsSetting." +SmsGroup.smsName] = !!updateStatus; // number to boolean
+                            });
+                        } else {
+                            // smsId is not a sms group
+                            updateData["smsSetting." +smsSettingGroup.smsName] = !!updateStatus;
                         }
-                    } else {
-                        //MessageTypeName
-                        updateData["smsSetting." +smsIdOrTypeName] = !!updateStatus // number to boolean
                     }
                 });
             }
