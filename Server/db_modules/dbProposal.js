@@ -308,7 +308,7 @@ var proposal = {
                             }
                             else {
 
-                                if (proposalData.data.isPlayerInit){
+                                if (proposalData.data.isIgnoreAudit){
                                     proposalData.creator = {
                                         type: 'player',
                                         name: proposalData.data.playerName || "",
@@ -1135,6 +1135,15 @@ var proposal = {
         var finalSummary = [];
         size = Math.min(size, constSystemParam.REPORT_MAX_RECORD_NUM);
 
+        let maxDiffTime = constSystemParam.PROPOSAL_SEARCH_MAX_TIME_FRAME;
+        let searchInterval = Math.abs(new Date(startTime).getTime() - new Date(endTime).getTime());
+        if (searchInterval > maxDiffTime) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Exceed proposal search max time frame"
+            });
+        }
+
         var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).exec();
         var prom2 = dbconfig.collection_admin.findOne({_id: adminId}).exec();
         return Q.all([prom1, prom2]).then(
@@ -1336,6 +1345,15 @@ var proposal = {
                                 $lt: new Date(endTime)
                             }
                         };
+
+                        let maxDiffTime = constSystemParam.PROPOSAL_SEARCH_MAX_TIME_FRAME;
+                        let searchInterval = Math.abs(queryObj.createTime.$gte.getTime() - queryObj.createTime.$lt.getTime());
+                        if (searchInterval > maxDiffTime) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "Exceed proposal search max time frame"
+                            });
+                        }
 
                         if (statusArr) {
                             queryObj.status = {$in: statusArr}
@@ -3380,6 +3398,15 @@ var proposal = {
         query["createTime"] = {};
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
         query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
+        let maxDiffTime = constSystemParam.PROPOSAL_SEARCH_MAX_TIME_FRAME;
+        let searchInterval = Math.abs(query.createTime.$gte.getTime() - query.createTime.$lt.getTime());
+        if (searchInterval > maxDiffTime) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Exceed proposal search max time frame"
+            });
+        }
+
 
         if (data.merchantNo && data.merchantNo.length > 0 && (!data.merchantGroup || data.merchantGroup.length == 0)) {
             query['$or'] = [
@@ -3398,7 +3425,7 @@ var proposal = {
                 item.forEach(sItem => {
                     mGroupList.push(sItem)
                 })
-            })
+            });
             query['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
         }
 

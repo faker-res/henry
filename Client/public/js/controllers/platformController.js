@@ -419,6 +419,10 @@ define(['js/app'], function (myApp) {
             if (!platformId) return;
             socketService.$socket($scope.AppSocket, 'getPlatform', {_id: platformId}, function (data) {
                 vm.allGameProviders = data.data.gameProviders;
+                vm.gameProvidersList = {};
+                vm.allGameProviders.map(provider => {
+                    vm.gameProvidersList[provider._id] = provider;
+                });
                 console.log('vm.allGameProviders', vm.allGameProviders);
                 $scope.safeApply();
             }, function (err) {
@@ -8051,7 +8055,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.initPlayerDisplayDataModal = function () {
-            $('#customerServeiceTab').addClass('active');
+            $('#customerServiceTab').addClass('active');
             $('#advertisementTab').removeClass('active');
             $scope.safeApply();
             vm.playerDisplayDataTab = "customerServicePanel";
@@ -8061,7 +8065,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.initPartnerDisplayDataModal = function() {
-            $('#partnerTab').addClass('active');
+            $('#partnerServiceTab').addClass('active');
             $('#partnerAdvertisementTab').removeClass('active');
             $scope.safeApply();
             vm.partnerDisplayDataTab = "partnerPanel";
@@ -15514,6 +15518,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.endLoadWeekDay = function () {
+                vm.refreshSPicker();
+            };
+
+            vm.refreshSPicker = () => {
                 $timeout(function () {
                     $('.spicker').selectpicker('refresh');
                 }, 0);
@@ -18289,8 +18297,10 @@ define(['js/app'], function (myApp) {
 
             vm.downloadTranslationCSV = function () {
                 vm.prepareTranslationCSV = false;
+                let platformId = vm.selectedPlatform.data.platformId;
 
-                socketService.$socket($scope.AppSocket, 'downloadTranslationCSV', {}, function (data) {
+                socketService.$socket($scope.AppSocket, 'downloadTranslationCSV', {platformId: platformId}, function (data) {
+                    vm.fileNameCSV = "ch_SP"+"_"+platformId;
                     vm.prepareTranslationCSV = true;
                     vm.exportTranslationCSV = data.data;
                     $scope.safeApply();

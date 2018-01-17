@@ -1939,7 +1939,23 @@ var proposalExecutor = {
              * execution function for player intention proposal
              */
             executePlayerRegistrationIntention: function (proposalData, deferred) {
-                sendMessageToPlayer(proposalData,constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS,{});
+                // for message template
+                if(proposalData.data && proposalData.data.realName) {
+                    // this proposal data's player name no include platform prefix;
+                    dbconfig.collection_platform.findOne({_id:proposalData.data.platform}).then(
+                        (platform) => {
+                            let playerName = platform.prefix + proposalData.data.name;
+                            return dbPlayerInfo.getPlayerInfo({name:playerName,platform:platform._id});
+                        }
+                    ).then(
+                        (player) => {
+                            proposalData.data.playerName = proposalData.data.name;
+                            proposalData.data.playerObjId = player._id;
+                            proposalData.data.platformId = proposalData.data.platform;
+                            sendMessageToPlayer(proposalData,constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS,{});
+                        }
+                    );
+                }
                 deferred.resolve(proposalData);
             },
 
@@ -3133,9 +3149,7 @@ function sendMessageToPlayer (proposalData,type,metaDataObj) {
     if(needSendMessageRewardTypes.indexOf(type)!==-1){
          messageType = type + 'Success';
     }
-
-    if(proposalData.createTime)
-        proposalData.createTime = moment(proposalData.createTime).format("YYYY/MM/DD HH:mm:ss");
+    
     SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, messageType, proposalData);
     // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
     // Changing into async function

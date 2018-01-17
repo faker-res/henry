@@ -636,12 +636,7 @@ var dbPlayerTopUpRecord = {
                         playerId: player._id
                     };
                     if (topUpType) {
-                        if (topUpType == 2) {
-                            queryObj.topUpType = parseInt(topUpType);
-                        }
-                        else {
-                            queryObj.topUpType = {$ne: 2};
-                        }
+                        queryObj.topUpType = parseInt(topUpType);
                     }
                     if (queryStartTime || queryEndTime) {
                         queryObj.createTime = {};

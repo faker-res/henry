@@ -141,7 +141,27 @@ const dbPlayerMail = {
         return dbconfig.collection_players.findOne({playerId: playerId}).then(
             function (data) {
                 if (data) {
-                    return dbconfig.collection_playerMail.find({recipientId: data._id, bDelete: false});
+                    return dbconfig.collection_playerMail.find({recipientId: data._id, bDelete: false}).lean().then(
+                        playerMailData => {
+                            if(playerMailData && playerMailData.length > 0){
+                                playerMailData.map(playerMail => {
+                                    if(playerMail){
+                                        if(playerMail.senderType){
+                                            delete playerMail.senderType;
+                                        }
+
+                                        if(playerMail.senderName){
+                                            delete playerMail.senderName;
+                                        }
+
+                                        return playerMail;
+                                    }
+                                })
+
+                                return playerMailData;
+                            }
+                        }
+                    );
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Player is not found"});
@@ -425,7 +445,8 @@ const dbPlayerMail = {
                                     data: inputData,
                                     entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                     userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                                    inputDevice: inputDevice ? inputDevice : 0
+                                    inputDevice: inputDevice ? inputDevice : 0,
+                                    status: constProposalStatus.PENDING
                                 };
 
                                 dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);

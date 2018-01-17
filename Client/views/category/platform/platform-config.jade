@@ -778,16 +778,6 @@
                                 td
                                     input(type='checkbox', ng-model='vm.autoApprovalBasic.enableAutoApplyBonus', ng-disabled='!vm.configTableEdit')
                             tr
-                                td {{'Single Withdrawal Limit' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan')
-                            tr
-                                td {{'Single Day Withdrawal Limit' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan')
-                            tr
                                 td {{'Auto Approval Retry Count' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveRepeatCount}}
@@ -797,6 +787,16 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveRepeatDelay}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveRepeatDelay')
+                            tr
+                                td {{'Single Withdrawal Limit' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan')
+                            tr
+                                td {{'Single Day Withdrawal Limit' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan')
                             tr
                                 td {{'Lost Threshold' | translate}}
                                 td
@@ -1262,6 +1262,6 @@
                 button.btn.btn-primary.common-button(type='button', ng-show='!vm.prepareTranslationCSV', ng-click='vm.downloadTranslationCSV()')
                     i.fa.fa-cog
                     text {{"PREPARE_CSV" | translate}}
-                button.btn.btn-success.common-button(type='button', ng-show='vm.prepareTranslationCSV', ng-csv='vm.exportTranslationCSV', filename='chineseTranslation.csv')
+                button.btn.btn-success.common-button(type='button', ng-show='vm.prepareTranslationCSV', ng-click='vm.prepareTranslationCSV=!vm.prepareTranslationCSV', ng-csv='vm.exportTranslationCSV', filename='{{vm.fileNameCSV}}.csv')
                     i.fa.fa-download
                     text {{"DOWNLOAD_CSV" | translate}}

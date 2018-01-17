@@ -380,9 +380,22 @@
                 playerId: testPlayerId,
                 smsSetting : "mobilePhone"
             };
-
         this.playerService.updateSmsSetting.request(data);
         this.playerService.updateSmsSetting.once(callback);
+    };
+
+    proto.getSmsStatus = function(callback, requestData) {
+
+        let data = requestData || {playerId: testPlayerId};
+        this.playerService.getSmsStatus.request(data);
+        this.playerService.getSmsStatus.once(callback);
+    };
+
+    proto.setSmsStatus = function(callback, requestData) {
+
+        let data = requestData || {playerId: testPlayerId, status:''};
+        this.playerService.setSmsStatus.request(data);
+        this.playerService.setSmsStatus.once(callback);
     };
 
     proto.updatePaymentInfo = function (callback, requestData) {
