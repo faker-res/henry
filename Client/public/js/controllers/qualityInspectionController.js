@@ -119,6 +119,12 @@ define(['js/app'], function (myApp) {
                 return obj;
             };
 
+            var eventName = "$viewContentLoaded";
+            if (!$scope.AppSocket) {
+                eventName = "socketConnected";
+                $scope.$emit('childControllerLoaded', 'qualityInspectionControllerLoaded');
+            }
+
             var _ = {
                 clone: function (obj) {
                     return $.extend({}, obj);
