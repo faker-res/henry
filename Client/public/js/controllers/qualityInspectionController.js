@@ -136,6 +136,16 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.showLive800 = function(){
+                console.log('showlive800')
+                socketService.$socket($scope.AppSocket, 'showLive800', {}, success);
+
+                function success(data) {
+                    console.log(data);
+                    $scope.safeApply();
+                }
+            }
+
             var eventName = "$viewContentLoaded";
             if (!$scope.AppSocket) {
                 eventName = "socketConnected";
