@@ -603,6 +603,25 @@ var roleChecker = {
             Payment:{
                 Read: ['getPaymentMonitorResult']
             }
+        },
+        QualityInspection: {
+            Setting: {
+                Read: []
+            },
+            Record: {
+                Read: []
+            },
+            Evaluation: {
+                Read: []
+            },
+            CSReport: {
+                Read: []
+            },
+            Report: {
+                Read: []
+            }
+
+
         }
     },
 
