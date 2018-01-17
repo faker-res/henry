@@ -236,14 +236,14 @@ style.
                                 td(style="min-width:105px;")
                                     select.form-control(ng-model='val.userAgent' ng-options="+(i) as v | translate for (i,v) in constPlayerRegistrationInterface" ng-disabled='!val.isEditing')
                                 td(style="min-width:105px;")
-                                    select.spicker.form-control(data-container="body" ng-model="val.target.targetDestination" multiple, data-width='100%' data-actions-box='true' ng-disabled='!val.isEditing')
+                                    select.form-control(data-container="body" ng-model="val.target.targetDestination" data-width='100%' data-actions-box='true' ng-disabled='!val.isEditing' ng-change="safeApply()")
                                         option(style="display: inline-block" ng-repeat='(i,v) in vm.allGameProviders', value='{{v._id}}') {{v.name}}
                                 td(style="min-width:105px;")
-                                    select.spicker.form-control(ng-model="val.target.gameType" multiple, data-width='100%' data-actions-box='true' ng-disabled='!val.isEditing')
-                                        option(style="display: inline-block" ng-repeat='(i,v) in vm.allGameTypes', value='{{i}}') {{v}}
+                                    select.form-control(ng-model="val.target.gameType" data-width='100%' data-actions-box='true' ng-disabled='!val.isEditing' ng-change="safeApply();vm.refreshSPicker();")
+                                        option(style="display: inline-block" ng-repeat='(i,v) in vm.gameProvidersList[val.target.targetDestination].gameType[0]', value='{{i}}') {{i}}
                                 td(style="min-width:105px;")
-                                    select.spicker.form-control(ng-model="val.target.betType" multiple, data-width='100%' data-actions-box='true' ng-disabled='!val.isEditing')
-                                        option(style="display: inline-block" ng-repeat='(i,v) in vm.allGameBetType', value='{{v._id}}') {{v.name}}
+                                    select.spicker.form-control(ng-model="val.target.betType" multiple, data-width='100%' data-actions-box='true' ng-disabled='!val.isEditing' data-container="body")
+                                        option(style="display: inline-block" ng-repeat='(i,v) in vm.gameProvidersList[val.target.targetDestination].gameType[0][val.target.gameType]', value='{{v}}') {{v}}
                                 td(style="min-width:95px;")
                                     input.form-control(type='number' ng-model='val.target.dailyConsumptionCount' ng-change='val.target.dailyWinGameCount = val.target.dailyValidConsumptionAmount = null' ng-disabled='!val.isEditing')
                                 td(style="min-width:95px;")
