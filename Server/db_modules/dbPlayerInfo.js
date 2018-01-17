@@ -7880,12 +7880,19 @@ let dbPlayerInfo = {
 
                     return Q.all([proposalProm, countProm]).then(
                         data => {
+                            let totalAmount = 0;
+
                             if (data && data[0] && data[1]) {
+                                for (var i = 0; i < data[0].length; i++) {
+                                    totalAmount += data[0][i].amount;
+                                }
+
                                 return {
                                     stats: {
                                         totalCount: data[1],
                                         startIndex: startIndex,
-                                        requestCount: count
+                                        requestCount: count,
+                                        totalAmount: totalAmount
                                     },
                                     records: data[0]
                                 }
@@ -7895,7 +7902,8 @@ let dbPlayerInfo = {
                                     stats: {
                                         totalCount: data[1] || 0,
                                         startIndex: startIndex,
-                                        requestCount: count
+                                        requestCount: count,
+                                        totalAmount: totalAmount
                                     },
                                     records: []
                                 }
