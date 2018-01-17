@@ -1065,6 +1065,7 @@ var dbPlayerTopUpRecord = {
                 // Check Limited Offer Intention
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                    proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
                     if(inputData.limitedOfferObjId)
                         proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                 }
@@ -1834,6 +1835,7 @@ var dbPlayerTopUpRecord = {
                     // Check Limited Offer Intention
                     if (limitedOfferTopUp) {
                         proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                        proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
                         if(limitedOfferObjId)
                             proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                     }
@@ -2148,6 +2150,7 @@ var dbPlayerTopUpRecord = {
                         // Check Limited Offer Intention
                         if (limitedOfferTopUp) {
                             proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                            proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
                             if(limitedOfferObjId)
                                 proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                         }
@@ -2364,6 +2367,7 @@ var dbPlayerTopUpRecord = {
                     // Check Limited Offer Intention
                     if (limitedOfferTopUp) {
                         proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                        proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
                     }
 
                     let newProposal = {
