@@ -1500,7 +1500,7 @@ let dbPlayerInfo = {
      */
     resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword, dontReturnPassword) {
         let deferred = Q.defer();
-
+        let playerObj;
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
             if (err) {
                 deferred.reject({
@@ -1526,6 +1526,7 @@ let dbPlayerInfo = {
                     constShardKeys.collection_players
                 ).then(
                     data => {
+                        playerObj = data;
                         // update partner password if selected
                         if (resetPartnerPassword) {
                             return dbUtility.findOneAndUpdateForShard(
@@ -1544,7 +1545,14 @@ let dbPlayerInfo = {
                         deferred.reject({name: "DBError", message: "Error updating player password.", error: error});
                     }
                 ).then(
-                    data => deferred.resolve(dontReturnPassword ? "" : newPassword),
+                    data => {
+                        SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+                        let messageData = {
+                            data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                        };
+                        messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
+                        return deferred.resolve(dontReturnPassword ? "" : newPassword);
+                    },
                     error => deferred.reject({
                         name: "DBError",
                         message: "Error updating partner password.",
@@ -12042,7 +12050,6 @@ let dbPlayerInfo = {
             (platformSmsGroups) => {
                 let smsGroups = platformSmsGroups.filter(smsGroups => smsGroups.smsParentSmsId ===-1);
                 let smsSettingsInGroup = platformSmsGroups.filter(smsGroups => smsGroups.smsParentSmsId !==-1);
-                let noInGroupSmsTypesNames = dbUtility.difArrays(smsSettingsInGroup.map(smsSetting => smsSetting.smsName), Object.values(constMessageType));
 
                 let smsSettings = smsGroups.map(smsGroup => {
                     let smsGroupStatus = 1;
