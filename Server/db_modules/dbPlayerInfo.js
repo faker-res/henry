@@ -12068,7 +12068,7 @@ let dbPlayerInfo = {
                         smsSetting => {
                             if(!playerSmsSetting[smsSetting.smsName])
                                 smsGroupStatus = 0;
-                            return {smsName:smsSetting.smsName,smsId:smsSetting.smsId, status:Number(playerSmsSetting[smsSetting.smsName])}
+                            return {smsName:localization.localization.translate(smsSetting.smsName),smsId:smsSetting.smsId, status:Number(playerSmsSetting[smsSetting.smsName])}
                         }
                     );
                     return {smsName:smsGroup.smsName,smsId:smsGroup.smsId,status:smsGroupStatus, settings:innerSmsGroupSetting}
