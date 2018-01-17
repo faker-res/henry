@@ -57,6 +57,7 @@ var constProposalUserType = require('../const/constProposalUserType');
 var constProposalEntryType = require('../const/constProposalEntryType');
 var errorUtils = require("../modules/errorUtils.js");
 var SMSSender = require('../modules/SMSSender');
+var messageDispatcher = require('../modules/messageDispatcher');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
 var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
 
@@ -1646,10 +1647,18 @@ let dbPlayerInfo = {
                             dbconfig.collection_players.findOneAndUpdate(
                                 {_id: playerObj._id, platform: playerObj.platform}, {password: hash}
                             ).then(
-                                deferred.resolve, deferred.reject
+                                () => {
+                                    SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+                                    let messageData = {
+                                        data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                                    };
+                                    messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
+                                    deferred.resolve();
+                                }, deferred.reject
                             );
                         });
                     });
+
                     // playerObj.password = newPassword;
                     // return playerObj.save();
                     return deferred.promise;
