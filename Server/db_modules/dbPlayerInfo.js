@@ -7556,20 +7556,21 @@ let dbPlayerInfo = {
                 }
             ).then(
                 playerData => {
-                    player = playerData;
+                    if (playerData) {
+                        player = playerData;
 
-                    return dbRewardTaskGroup.checkPlayerHasAvailRTG(player);
+                        return dbconfig.collection_rewardTaskGroup.findOne({
+                            platformId: playerData.platform,
+                            playerId: playerData._id,
+                            status: {$in: [constRewardTaskStatus.STARTED]}
+                        }).lean();
+                    } else {
+                        return Promise.reject({name: "DataError", errorMessage: "Cannot find player"});
+                    }
                 }
             ).then(
-                playerData => {
-                    if (playerData) {
-                        // if ((!playerData.permission || !playerData.permission.applyBonus) && !bForce) {
-                        //     return Q.reject({
-                        //         status: constServerCode.PLAYER_NO_PERMISSION,
-                        //         name: "DataError",
-                        //         errorMessage: "Player does not have this permission"
-                        //     });
-                        // }
+                RTGs => {
+                    if (!RTGs) {
                         // if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
                         //     || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
                         //     return Q.reject({
@@ -7578,12 +7579,11 @@ let dbPlayerInfo = {
                         //         errorMessage: "Player does not have valid payment information"
                         //     });
                         // }
-
                         let todayTime = dbUtility.getTodaySGTime();
                         let creditProm = Q.resolve();
 
-                        if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
-                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
+                        if (player.lastPlayedProvider && player.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true);
                         }
 
                         return creditProm.then(
@@ -7625,16 +7625,16 @@ let dbPlayerInfo = {
                                 let creditCharge = 0;
                                 let amountAfterUpdate = player.validCredit - amount;
                                 let playerLevelVal = player.playerLevel.value;
-                                if (playerData.platform.bonusSetting) {
+                                if (player.platform.bonusSetting) {
                                     // let bonusSetting = playerData.platform.bonusSetting.find((item) => {
                                     //     return item.value == playerLevelVal
                                     // });
 
                                     let bonusSetting = {};
 
-                                    for(let x in playerData.platform.bonusSetting){
-                                        if(playerData.platform.bonusSetting[x].value == playerLevelVal){
-                                            bonusSetting = playerData.platform.bonusSetting[x];
+                                    for(let x in player.platform.bonusSetting){
+                                        if(player.platform.bonusSetting[x].value == playerLevelVal){
+                                            bonusSetting = player.platform.bonusSetting[x];
                                         }
                                     }
                                     if (todayBonusApply.length >= bonusSetting.bonusCharges && bonusSetting.bonusPercentageCharges > 0) {
@@ -7643,8 +7643,8 @@ let dbPlayerInfo = {
                                     }
                                 }
 
-                                if (playerData.ximaWithdraw) {
-                                    ximaWithdrawUsed = Math.min(amount, playerData.ximaWithdraw);
+                                if (player.ximaWithdraw) {
+                                    ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
                                 }
 
                                 return dbconfig.collection_players.findOneAndUpdate(
@@ -7727,7 +7727,7 @@ let dbPlayerInfo = {
                                     });
                             });
                     } else {
-                        return Q.reject({name: "DataError", errorMessage: "Cannot find player"});
+                        return Promise.reject({name: "DataError", errorMessage: "There are available reward task group to complete"});
                     }
                 }
             ).then(

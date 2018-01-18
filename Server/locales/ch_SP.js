@@ -231,6 +231,7 @@ var simplifiedChinese = {
     "WechatTopupSuccess": "个人微信（成功）",
     "WithdrawSuccess": "提款（成功）",
     "WithdrawCancel": "提款（取消）",
+    "There are available reward task group to complete": "流水尚未达到提款要求，请继续投注。",
     "PlayerLimitedOfferRewardSuccess": "秒杀礼包（成功）",
     "UpdateBankInfoSuccess": "编辑玩家银行资料（成功）",
     "UpdatePhoneInfoSuccess": "编辑玩家电话资料（成功）",
