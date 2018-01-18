@@ -36,6 +36,14 @@ var PlatformServiceImplement = function () {
         data = data || {};
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getLiveStream, [conn.playerObjId], isValidData, null, null, true);
     };
+
+    this.playerPhoneChat.onRequest = function (wsFunc, conn, data) {
+        var isValidData = true;
+        data = data || {};
+        var isValidData = Boolean(data && data.phone && data.captcha && data.random);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.playerPhoneChat, [data.phone, data.captcha, data.random], isValidData, null, null, true);
+    };
+
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);
