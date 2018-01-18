@@ -213,7 +213,7 @@ const messageDispatcher = {
                 platformId: metaData.platformId,
                 senderType: metaData.senderType,
                 senderId: metaData.senderId,
-                senderName: metaData.senderName,
+                //senderName: metaData.senderName,
                 recipientType: metaData.recipientType,
                 recipientId: metaData.recipientId,
                 // playerId: metaData.player._id,
