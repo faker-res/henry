@@ -11,6 +11,7 @@ const ObjectId = mongoose.Types.ObjectId;
 
 const constPromoCodeStatus = require("./../const/constPromoCodeStatus");
 const constProposalEntryType = require("./../const/constProposalEntryType");
+const constProposalMainType = require('../const/constProposalMainType');
 const constProposalStatus = require("./../const/constProposalStatus");
 const constProposalType = require("./../const/constProposalType");
 const constProposalUserType = require("./../const/constProposalUserType");
@@ -21,8 +22,7 @@ const constServerCode = require('../const/constServerCode');
 
 const dbPlayerUtil = require('../db_common/dbPlayerUtility');
 const dbProposalUtil = require('../db_common/dbProposalUtility');
-var constProposalMainType = require('../const/constProposalMainType');
-var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
+const dbRewardUtil = require("./../db_common/dbRewardUtility");
 
 const dbGameProvider = require('../db_modules/dbGameProvider');
 const dbProposal = require('./../db_modules/dbProposal');
@@ -37,7 +37,6 @@ const dbConfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
 const errorUtils = require("./../modules/errorUtils.js");
 const rewardUtility = require("../modules/rewardUtility");
-const dbLogger = require("../modules/dbLogger");
 const SMSSender = require('../modules/SMSSender');
 const messageDispatcher = require("../modules/messageDispatcher.js");
 
@@ -3739,25 +3738,7 @@ let dbPlayerReward = {
 
         // Get interval time
         if (eventData.condition.interval) {
-            switch (eventData.condition.interval) {
-                case "1":
-                    intervalTime = todayTime;
-                    break;
-                case "2":
-                    intervalTime = rewardData.applyTargetDate ? dbUtility.getWeekTime(rewardData.applyTargetDate) : dbUtility.getCurrentWeekSGTime();
-                    break;
-                case "3":
-                    intervalTime = rewardData.applyTargetDate ? dbUtility.getBiWeekSGTIme(rewardData.applyTargetDate) : dbUtility.getCurrentBiWeekSGTIme();
-                    break;
-                case "4":
-                    intervalTime = rewardData.applyTargetDate ? dbUtility.getMonthSGTIme(rewardData.applyTargetDate) : dbUtility.getCurrentMonthSGTIme();
-                    break;
-                default:
-                    if (eventData.validStartTime && eventData.validEndTime) {
-                        intervalTime = {startTime: eventData.validStartTime, endTime: eventData.validEndTime};
-                    }
-                    break;
-            }
+            intervalTime = dbRewardUtil.getRewardEventIntervalTime(rewardData, eventData);
         }
 
         let topupMatchQuery = {
@@ -3773,30 +3754,6 @@ let dbPlayerReward = {
             status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
             settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
         };
-
-        let todayTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
-            {
-                $match: topupMatchQuery
-            },
-            {
-                $group: {
-                    _id: {playerId: "$playerId"},
-                    amount: {$sum: "$amount"}
-                }
-            }
-        ).then(
-            summary => {
-                if (summary && summary[0]) {
-                    return summary[0].amount;
-                }
-                else {
-                    // No topup record will return 0
-                    return 0;
-                }
-            }
-        );
-
-        let todayPropsProm = dbConfig.collection_proposal.find(eventQuery).lean();
 
         // Check registration interface condition
         if (checkInterfaceRewardPermission(eventData, rewardData)) {
@@ -3879,6 +3836,7 @@ let dbPlayerReward = {
             promArr.push(periodConsumptionProm);
             topupMatchQuery.amount = {$gte: selectedRewardParam[0].requiredTopUpAmount};
             topupMatchQuery.$or = [{'bDirty': false}];
+
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
                 let ignoreUsedTopupReward = [];
                 ignoreUsedTopupReward = eventData.condition.ignoreTopUpDirtyCheckForReward.map(function (rewardId) {
@@ -4248,13 +4206,11 @@ let dbPlayerReward = {
             promArr.push(checkSMSProm);
         }
 
-        return Promise.all([todayTopupProm, todayPropsProm, topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
+        return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
             data => {
-                let topUpSum = data[0];
-                let todayPacketCount = data[1].length ? data[1].length : 0;
-                let topupInPeriodData = data[2];
-                let eventInPeriodData = data[3];
-                let rewardSpecificData = data[4];
+                let topupInPeriodData = data[0];
+                let eventInPeriodData = data[1];
+                let rewardSpecificData = data[2];
 
                 let topupInPeriodCount = topupInPeriodData.length;
                 let eventInPeriodCount = eventInPeriodData.length;

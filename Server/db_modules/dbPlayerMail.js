@@ -57,6 +57,9 @@ const dbPlayerMail = {
             if (results) {
                 let notifyProm = [];
                 results.forEach((result) => {
+                    // from mongoose object to js object
+                    result = result.toObject();
+                    delete result.senderName;
                     notifyProm.push(notifyPlayerOfNewMessage(result));
                 });
                 return Q.all(notifyProm);

@@ -142,7 +142,7 @@ let dbRewardTaskGroup = {
     },
 
     getPlayerAllRewardTaskGroupDetailByPlayerObjId: (query) => {
-        return dbconfig.collection_players.findOne(query).then(
+        return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
                 if (playerData) {
                     let playerObjId = playerData._id;
@@ -231,10 +231,19 @@ let dbRewardTaskGroup = {
         return Promise.all(promsArr);
     },
 
+    checkPlayerHasAvailRTG: (playerData) => {
+        return dbconfig.collection_rewardTaskGroup.findOne({
+            platformId: playerData.platform,
+            playerId: playerData._id,
+            status: {$in: [constRewardTaskStatus.STARTED]}
+        }).lean().then(
+            RTG => {
+                if (RTG) {
 
-
-
-
+                }
+            }
+        )
+    }
 };
 
 module.exports = dbRewardTaskGroup;
