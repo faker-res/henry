@@ -2315,8 +2315,8 @@ var dbPlatform = {
         );
     },
 
-    playerPhoneChat: function (phone, captcha, random) {
-        let url = 'https://www.phoneapichat.com/servlet/TelephoneApplication?phone='+phone+'&captcha='+captcha+'&platform=jinshihao&random=' + random;
+    playerPhoneChat: function (platform, phone, captcha, random) {
+        let url = 'https://www.phoneapichat.com/servlet/TelephoneApplication?phone=' + phone + '&captcha=' + captcha + '&platform=' + platform + '&random=' + random;
         var deferred = Q.defer();
         request.get(url, {credentials: true}, (err, res, body) => {
             if (err) {

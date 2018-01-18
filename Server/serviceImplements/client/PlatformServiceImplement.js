@@ -39,8 +39,8 @@ var PlatformServiceImplement = function () {
 
     this.playerPhoneChat.onRequest = function (wsFunc, conn, data) {
         data = data || {};
-        let isValidData = Boolean(data && data.phone && data.captcha && data.random);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.playerPhoneChat, [data.phone, data.captcha, data.random], isValidData, null, null, true);
+        let isValidData = Boolean(data && data.platform && data.phone && data.captcha && data.random);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.playerPhoneChat, [data.platform, data.phone, data.captcha, data.random], isValidData, null, null, true);
     };
 
 };
