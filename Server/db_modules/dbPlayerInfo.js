@@ -7559,11 +7559,15 @@ let dbPlayerInfo = {
                     if (playerData) {
                         player = playerData;
 
-                        return dbconfig.collection_rewardTaskGroup.findOne({
-                            platformId: playerData.platform,
-                            playerId: playerData._id,
-                            status: {$in: [constRewardTaskStatus.STARTED]}
-                        }).lean();
+                        if (player.platform && player.platform.useProviderGroup) {
+                            return dbconfig.collection_rewardTaskGroup.findOne({
+                                platformId: playerData.platform,
+                                playerId: playerData._id,
+                                status: {$in: [constRewardTaskStatus.STARTED]}
+                            }).lean();
+                        } else {
+                            return false;
+                        }
                     } else {
                         return Promise.reject({name: "DataError", errorMessage: "Cannot find player"});
                     }
