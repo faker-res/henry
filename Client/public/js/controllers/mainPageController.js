@@ -675,7 +675,7 @@ define(['js/app'], function (myApp) {
 
             vm.reArrangeArr = function(oriTXT, targetField, targetArr){
                 let convertArr = oriTXT.split(',');
-                vm[targetArr][targetField] = convertArr;
+                targetArr[targetField] = convertArr;
             };
 
             vm.editUserDialog = function () {
@@ -698,8 +698,8 @@ define(['js/app'], function (myApp) {
             };
             vm.submitEditUser = function () {
                 var adminId = vm.curUser._id;
-                vm.reArrangeArr(vm.updateAdminLive800.live800CompanyIdTXT , vm.newAdmin, live800CompanyId);
-                vm.reArrangeArr(vm.updateAdminLive800.live800AccTXT , vm.newAdmin, live800Acc);
+                vm.reArrangeArr(vm.updateAdminLive800.live800CompanyIdTXT ,  'live800CompanyId', vm.newAdmin,);
+                vm.reArrangeArr(vm.updateAdminLive800.live800AccTXT , 'live800Acc', vm.newAdmin);
 
                 socketService.$socket($scope.AppSocket, 'updateAdmin', {
                     query: {_id: vm.curUser._id},
