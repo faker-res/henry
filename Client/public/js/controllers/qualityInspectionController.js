@@ -99,6 +99,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 // Initial Loading
+                vm.evaluationTab = 'unreadEvaluation';
 
                 $scope.safeApply();
             };
