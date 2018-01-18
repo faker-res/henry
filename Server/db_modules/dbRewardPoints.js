@@ -979,7 +979,7 @@ function isRelevantGameEvent(event, consumptionRecord) {
     }
 
     if (!event.status) {
-        return false
+        return false;
     }
 
     // customPeriodEndTime check
@@ -991,23 +991,20 @@ function isRelevantGameEvent(event, consumptionRecord) {
         return false;
     }
 
-    // temp ignore interface/UA check, todo :: add when data is available
+    if (event.target && event.target.targetDestination && event.target.targetDestination.toString() === consumptionRecord.providerId.toString()) {
+        return false;
+    }
 
-    if (event.target && event.target.targetDestination && event.target.targetDestination.length > 0) {
-        let eventTargetDestination = event.target.targetDestination;
-        if (!consumptionRecord.providerId || eventTargetDestination.indexOf(consumptionRecord.providerId.toString()) < 0) {
+    if (event.target && event.target.gameType && event.target.gameType.toString() === consumptionRecord.cpGameType.toString()) {
+        return false;
+    }
+
+    if (event.target && event.target.betType && event.target.betType.length > 0) {
+        let relevantBetType = event.target.betType;
+        if (!consumptionRecord.betType || relevantBetType.indexOf(consumptionRecord.betType.toString()) < 0) {
             return false;
         }
     }
-
-    if (event.target && event.target.gameType && event.target.gameType.length > 0) {
-        let relevantGameTypes = event.target.gameType;
-        if (!consumptionRecord.gameType || relevantGameTypes.indexOf(consumptionRecord.gameType.toString()) < 0) {
-            return false;
-        }
-    }
-
-    // temp ignore bet type check, todo :: add when data is available
 
     return true;
 }

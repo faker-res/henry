@@ -419,6 +419,10 @@ define(['js/app'], function (myApp) {
             if (!platformId) return;
             socketService.$socket($scope.AppSocket, 'getPlatform', {_id: platformId}, function (data) {
                 vm.allGameProviders = data.data.gameProviders;
+                vm.gameProvidersList = {};
+                vm.allGameProviders.map(provider => {
+                    vm.gameProvidersList[provider._id] = provider;
+                });
                 console.log('vm.allGameProviders', vm.allGameProviders);
                 $scope.safeApply();
             }, function (err) {
@@ -7175,7 +7179,7 @@ define(['js/app'], function (myApp) {
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
                     Object.keys(newPlayerData).forEach(function (key) {
                         if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "smsSetting" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName" || key == "DOB") {
+                            if (key == "smsSetting" || key == "bankCardGroup" || key == "alipayGroup" || key == "wechatPayGroup" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName" || key == "DOB") {
                                 //do nothing
                             } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                                 //do nothing
@@ -15514,6 +15518,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.endLoadWeekDay = function () {
+                vm.refreshSPicker();
+            };
+
+            vm.refreshSPicker = () => {
                 $timeout(function () {
                     $('.spicker').selectpicker('refresh');
                 }, 0);
