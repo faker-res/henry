@@ -1033,9 +1033,11 @@ let dbPlayerCreditTransfer = {
         let playerCredit = 0;
         let rewardTaskCredit = 0;
         let transferId = new Date().getTime();
+        let providerPlayerObj = 0;
 
         let rewardGroupObj;
         let updateObj = {};
+        let checkBResolve = false;
 
         // First, need to make sure there's money in provider first
         let creditQuery = forSync ?
@@ -1052,25 +1054,13 @@ let dbPlayerCreditTransfer = {
         return creditQuery.then(
             res => {
                 if (res) {
-                    let providerPlayerObj = {gameCredit: res.credit ? parseFloat(res.credit) : 0};
+                    providerPlayerObj = {gameCredit: res.credit ? parseFloat(res.credit) : 0};
 
                     // Player has insufficient credit to transfer out, check bResolve
                     if (providerPlayerObj.gameCredit < 1 || amount == 0 || providerPlayerObj.gameCredit < amount) {
-                        let notEnoughCredit = true;
                         if (bResolve) {
-                            return dbConfig.collection_players.findOne({_id: playerObjId}).lean().then(
-                                playerData => {
-                                    return Promise.resolve(
-                                        {
-                                            playerId: playerId,
-                                            providerId: providerShortId,
-                                            providerCredit: providerPlayerObj.gameCredit,
-                                            playerCredit: playerData.validCredit,
-                                            rewardCredit: playerData.lockedCredit
-                                        }
-                                    );
-                                }
-                            );
+                            checkBResolve = true;
+                            throw new Error("Insufficient amount to transfer out");
                         }
                         else {
                             return Promise.reject({
@@ -1091,17 +1081,8 @@ let dbPlayerCreditTransfer = {
             },
             err => {
                 if (bResolve) {
-                    return dbConfig.collection_players.findOne({_id: playerObjId}).lean().then(
-                        playerData => {
-                            return {
-                                playerId: playerId,
-                                providerId: providerShortId,
-                                providerCredit: 0,
-                                playerCredit: playerData.validCredit,
-                                rewardCredit: playerData.lockedCredit
-                            }
-                        }
-                    );
+                    checkBResolve = true;
+                    throw new Error("Error when querying CPMS");
                 }
                 else{
                     return Promise.reject(err);
@@ -1206,7 +1187,7 @@ let dbPlayerCreditTransfer = {
                 });
             }
         ).then(
-            function (res) {
+            res => {
                 if (res) {//create log
                     playerCredit = res.validCredit;
                     let lockedCredit = res.lockedCredit;
@@ -1220,7 +1201,7 @@ let dbPlayerCreditTransfer = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform,
                         platformId, constPlayerCreditChangeType.TRANSFER_OUT, transferId, providerShortId, amount, lockedCredit, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
 
-                    return Q.resolve(
+                    return Promise.resolve(
                         {
                             playerId: playerId,
                             providerId: providerShortId,
@@ -1235,11 +1216,29 @@ let dbPlayerCreditTransfer = {
                     );
                 }
                 else {
-                    return Q.reject({name: "DBError", message: "Failed to increase player credit."})
+                    return Promise.reject({name: "DBError", message: "Failed to increase player credit."})
                 }
             },
-            function (err) {
-                return Q.reject({name: "DBError", message: "Error in increasing player credit.", error: err});
+            err => {
+                return Promise.reject({name: "DBError", message: "Error in increasing player credit.", error: err});
+            }
+        ).catch(
+            err => {
+                if (bResolve && checkBResolve) {
+                    return dbConfig.collection_players.findOne({_id: playerObjId}).lean().then(
+                        playerData => {
+                            return Promise.resolve(
+                                {
+                                    playerId: playerId,
+                                    providerId: providerShortId,
+                                    providerCredit: providerPlayerObj.gameCredit,
+                                    playerCredit: playerData.validCredit,
+                                    rewardCredit: playerData.lockedCredit
+                                }
+                            );
+                        }
+                    );
+                }
             }
         );
     }
