@@ -137,13 +137,22 @@ define(['js/app'], function (myApp) {
             };
 
             vm.showLive800 = function(){
-                console.log('showlive800')
-                socketService.$socket($scope.AppSocket, 'showLive800', {}, success);
 
-                function success(data) {
-                    console.log(data);
-                    $scope.safeApply();
-                }
+
+                vm.qaForm = [
+                    {'id':331, status:'Success', name:'Feature1',created_time:'2018-1-15 16:33:51', comment:'尊敬的会员您好，欢迎您的莅临，在线客服《茉莉》很高兴为您服务，请问有什么可以帮助到您？'},
+                    {'id':332, status:'Success', name:'Feature2',created_time:'2018-1-15 16:33:51', comment:'尊敬的会员您好，欢迎您的莅临，在线客服《茉莉》很高兴为您服务，请问有什么可以帮助到您？'},
+                    {'id':333, status:'Success', name:'Feature3',created_time:'2018-1-15 16:33:51', comment:'尊敬的会员您好，欢迎您的莅临，在线客服《茉莉》很高兴为您服务，请问有什么可以帮助到您？'},
+                    {'id':334, status:'Success', name:'Feature4',created_time:'2018-1-15 16:33:51', comment:'尊敬的会员您好，欢迎您的莅临，在线客服《茉莉》很高兴为您服务，请问有什么可以帮助到您？'}
+                ]
+
+                // console.log('showlive800')
+                // socketService.$socket($scope.AppSocket, 'showLive800', {}, success);
+                //
+                // function success(data) {
+                //     console.log(data);
+                //     $scope.safeApply();
+                // }
             }
 
             var eventName = "$viewContentLoaded";
