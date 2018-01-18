@@ -133,6 +133,29 @@ var proposal = {
             })
     },
 
+    applyRepairCreditTransfer: function (platformId, proposalData) {
+        function isTransferIdRepaired(transferId) {
+            return dbconfig.collection_playerCreditTransferLog.find({transferId, isRepaired: true}, {_id: 1}).limit(1).lean().then(
+                log => {
+                    return Boolean(log && log[0]);
+                }
+            );
+        }
+
+        return isTransferIdRepaired(proposalData.data.transferId).then(
+            isRepaired => {
+                if (isRepaired) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "This transfer has been repaired."
+                    });
+                }
+
+                return proposal.createProposalWithTypeNameWithProcessInfo(platformId, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, proposalData);
+            }
+        );
+    },
+
     createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
         function getStepInfo(result) {
             return dbconfig.collection_proposalProcess.findOne({_id: result.process})
