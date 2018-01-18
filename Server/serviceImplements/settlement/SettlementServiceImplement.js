@@ -222,7 +222,7 @@ var SettlementServiceImplement = function () {
 
     this.processAutoProposals.onRequest = (wsFunc, conn, data) => {
         let isValidData = Boolean(data && data.proposals && data.platformObj);
-        let args = [data.proposals, data.platformObj];
+        let args = [data.proposals, data.platformObj, data.useProviderGroup];
         WebSocketUtil.performAction(conn, wsFunc, data, dbAutoProposal.processAutoProposals, args, isValidData);
     };
 
