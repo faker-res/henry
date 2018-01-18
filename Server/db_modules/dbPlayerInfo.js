@@ -1500,7 +1500,7 @@ let dbPlayerInfo = {
      */
     resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword, dontReturnPassword) {
         let deferred = Q.defer();
-
+        let playerObj;
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
             if (err) {
                 deferred.reject({
@@ -1526,6 +1526,7 @@ let dbPlayerInfo = {
                     constShardKeys.collection_players
                 ).then(
                     data => {
+                        playerObj = data;
                         // update partner password if selected
                         if (resetPartnerPassword) {
                             return dbUtility.findOneAndUpdateForShard(
@@ -1544,7 +1545,14 @@ let dbPlayerInfo = {
                         deferred.reject({name: "DBError", message: "Error updating player password.", error: error});
                     }
                 ).then(
-                    data => deferred.resolve(dontReturnPassword ? "" : newPassword),
+                    data => {
+                        SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+                        let messageData = {
+                            data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                        };
+                        messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
+                        return deferred.resolve(dontReturnPassword ? "" : newPassword);
+                    },
                     error => deferred.reject({
                         name: "DBError",
                         message: "Error updating partner password.",
@@ -7864,7 +7872,7 @@ let dbPlayerInfo = {
                 if (typeData) {
                     var queryObj = {
                         "data.playerId": playerId,
-                        type: typeData._id
+                        type: ObjectId(typeData._id)
                     };
                     if (status) {
                         queryObj.status = status;
@@ -7886,15 +7894,25 @@ let dbPlayerInfo = {
                             model: dbconfig.collection_platform
                         })
                         .sort({createTime: seq}).skip(startIndex).limit(count).lean();
+                    let sumAmountProm = dbconfig.collection_proposal.aggregate([
+                        {$match: queryObj},
+                        {$group: {
+                            '_id': null,
+                            totalAmount: {$sum: "$data.amount"}
+                        }}
+                    ]);
 
-                    return Q.all([proposalProm, countProm]).then(
+                    return Q.all([proposalProm, countProm, sumAmountProm]).then(
                         data => {
-                            if (data && data[0] && data[1]) {
+                            if (data && data[0] && data[1] && data[2] && data[2][0]) {
+                                let totalAmount = data[2][0].totalAmount;
+
                                 return {
                                     stats: {
                                         totalCount: data[1],
                                         startIndex: startIndex,
-                                        requestCount: count
+                                        requestCount: count,
+                                        totalAmount: totalAmount
                                     },
                                     records: data[0]
                                 }
@@ -7904,7 +7922,8 @@ let dbPlayerInfo = {
                                     stats: {
                                         totalCount: data[1] || 0,
                                         startIndex: startIndex,
-                                        requestCount: count
+                                        requestCount: count,
+                                        totalAmount: 0
                                     },
                                     records: []
                                 }
@@ -12042,7 +12061,6 @@ let dbPlayerInfo = {
             (platformSmsGroups) => {
                 let smsGroups = platformSmsGroups.filter(smsGroups => smsGroups.smsParentSmsId ===-1);
                 let smsSettingsInGroup = platformSmsGroups.filter(smsGroups => smsGroups.smsParentSmsId !==-1);
-                let noInGroupSmsTypesNames = dbUtility.difArrays(smsSettingsInGroup.map(smsSetting => smsSetting.smsName), Object.values(constMessageType));
 
                 let smsSettings = smsGroups.map(smsGroup => {
                     let smsGroupStatus = 1;
@@ -12050,7 +12068,7 @@ let dbPlayerInfo = {
                         smsSetting => {
                             if(!playerSmsSetting[smsSetting.smsName])
                                 smsGroupStatus = 0;
-                            return {smsName:smsSetting.smsName,smsId:smsSetting.smsId, status:Number(playerSmsSetting[smsSetting.smsName])}
+                            return {smsName:localization.localization.translate(smsSetting.smsName),smsId:smsSetting.smsId, status:Number(playerSmsSetting[smsSetting.smsName])}
                         }
                     );
                     return {smsName:smsGroup.smsName,smsId:smsGroup.smsId,status:smsGroupStatus, settings:innerSmsGroupSetting}
