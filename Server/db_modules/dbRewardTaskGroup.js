@@ -229,20 +229,6 @@ let dbRewardTaskGroup = {
         });
 
         return Promise.all(promsArr);
-    },
-
-    checkPlayerHasAvailRTG: (playerData) => {
-        return dbconfig.collection_rewardTaskGroup.findOne({
-            platformId: playerData.platform,
-            playerId: playerData._id,
-            status: {$in: [constRewardTaskStatus.STARTED]}
-        }).lean().then(
-            RTG => {
-                if (RTG) {
-
-                }
-            }
-        )
     }
 };
 

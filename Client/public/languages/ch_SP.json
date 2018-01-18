@@ -2272,6 +2272,7 @@
   "Auto Approval Retry Count": "回圈次数（开启锁大厅组无效）",
   "Auto Approval Interval": "回圈间隔分钟（开启锁大厅组无效）",
   "Lost Threshold": "输赢宽限值（优惠-输值 ≤ X 则通过）",
+  "There are available reward task group to complete": "流水尚未达到提款要求，请继续投注。",
   "Consumption Offset": "投注额宽限值（所需流水-收录流水 ≤ X 则通过）",
   "todayTopUpAmount": "当日充值额",
   "todayBonusAmount": "当日投注额",
