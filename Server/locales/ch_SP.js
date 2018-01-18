@@ -222,7 +222,27 @@ var simplifiedChinese = {
     "SMS failure, please retry": "短信验证码发送失败，请重新点击获取",
     "SMS failure for more than 5 times, please contact customer service": "短信验证码连续发送失败5次，请联系客服人员",
     "Connection failed": "连接失败",
-    "PlayerPromoCodeReward": "优惠代码"
+    "PlayerPromoCodeReward": "优惠代码",
+    "Player reach participate limit": "次数已用完",
+    "PlayerConsumptionReturnSuccess": "玩家洗码（成功）",
+    "ManualTopupSuccess": "手工存款（成功）",
+    "OnlineTopupSuccess": "在线充值（成功）",
+    "AlipayTopupSuccess": "个人支付宝（成功）",
+    "WechatTopupSuccess": "个人微信（成功）",
+    "WithdrawSuccess": "提款（成功）",
+    "WithdrawCancel": "提款（取消）",
+    "PlayerLimitedOfferRewardSuccess": "秒杀礼包（成功）",
+    "UpdateBankInfoSuccess": "编辑玩家银行资料（成功）",
+    "UpdatePhoneInfoSuccess": "编辑玩家电话资料（成功）",
+    "UpdatePasswordSuccess": "修改网站密码（成功）",
+    "SmsVerificationCodeSuccess": "发送短信验证码（成功）",
+    "PlayerTopUpReturnGroupSuccess": "存送金（组）（成功）",
+    "PlayerLoseReturnRewardGroupSuccess": "输值反利（组）（成功）",
+    "PlayerConsecutiveRewardGroupSuccess": "签到全勤（组）（成功）",
+    "PlayerConsumptionRewardGroupSuccess": "投注额优惠（组）（成功）",
+    "PlayerFreeTrialRewardGroupSuccess": "免费体验金（组）（成功）",
+    "PlayerRegisterIntentionSuccess": "玩家注册意象（手动、成功）",
+    "PlayerPromoCodeRewardSuccess": "优惠代码（成功）"
     //todo::add missing messages here
 
     /*

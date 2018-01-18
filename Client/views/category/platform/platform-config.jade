@@ -778,16 +778,6 @@
                                 td
                                     input(type='checkbox', ng-model='vm.autoApprovalBasic.enableAutoApplyBonus', ng-disabled='!vm.configTableEdit')
                             tr
-                                td {{'Single Withdrawal Limit' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan')
-                            tr
-                                td {{'Single Day Withdrawal Limit' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan')
-                            tr
                                 td {{'Auto Approval Retry Count' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveRepeatCount}}
@@ -797,6 +787,16 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveRepeatDelay}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveRepeatDelay')
+                            tr
+                                td {{'Single Withdrawal Limit' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan')
+                            tr
+                                td {{'Single Day Withdrawal Limit' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan')
                             tr
                                 td {{'Lost Threshold' | translate}}
                                 td
@@ -1128,7 +1128,7 @@
                                     td
                                         select.form-control(ng-disabled='!vm.configTableEdit' ng-model='v.group' style='width:80%;display:inline-block')
                                             option(ng-repeat="(k, t) in vm.smsGroups | filter: {smsParentSmsId: -1}", value="{{t.smsId}}") {{t.smsName | translate}}
-                                        i.fa.fa-plus(ng-if='vm.configTableEdit' ng-click='vm.addSmsSettingToGroup(v,i);')
+                                        i.fa.fa-plus.fa-lg(ng-if='vm.configTableEdit' ng-click='vm.addSmsSettingToGroup(v,i);')
                     .col-md-8
                         table.common-table.playerLvlTable
                             thead
@@ -1144,7 +1144,7 @@
                                     td
                                         div(ng-repeat='(ii, vv) in vm.smsGroups | filter: {smsParentSmsId: v.smsId}')
                                             span {{ vv.smsName | translate}}
-                                            i.fa.fa-minus(ng-if='vm.configTableEdit' ng-click='vm.removeSmsSettingFromGroup(vv);')
+                                            i.fa.fa-minus.fa-lg(ng-if='vm.configTableEdit' ng-click='vm.removeSmsSettingFromGroup(vv);')
                                     td
                                         button.btn.common-btn.btn-primary(ng-if='vm.configTableEdit' data-toggle="modal", data-target='#modalDeleteSmsGroup' ng-click="vm.deletingSmsGroup=v") {{'DELETE' | translate}}
                         br

@@ -1,0 +1,42 @@
+.row.margin-left-5.margin-right-5(ng-show="checkViewPermission('Platform')")
+    #inspectionContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
+        .padding-all-5
+            .panel.panel-primary
+                .panel-heading.common-left-panel-heading
+                    ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
+                        #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
+
+                        li.active(ng-show="checkViewPermission('QualityInspection', 'Setting', 'Read')" style="margin-left: 20px;")
+                            a.common-tab(data-toggle="tab", href="#Setting", ng-click="vm.qualityInspectionPageName='INSPECTION PARAMETER';vm.updatePageTile();")
+                                .fa.fa-wrench.margin-right-5
+                                text.span {{"INSPECTION PARAMETER" | translate}}
+                        li(ng-show="checkViewPermission('QualityInspection', 'Record', 'Read')")
+                            //a.common-tab(data-toggle="tab", href="#Feedback", ng-click="vm.submitPlayerFeedbackQuery();vm.platformPageName='Feedback';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#Record", ng-click="vm.qualityInspectionPageName='800 RECORD';vm.updatePageTile();")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"800 RECORD" | translate}}
+                        li(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#Evaluation", ng-click="vm.qualityInspectionPageName='MY EVALUATION';vm.updatePageTile();")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"MY EVALUATION" | translate}}
+                        li(ng-show="checkViewPermission('QualityInspection', 'CSReport', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#CSReport", ng-click="vm.qualityInspectionPageName='CS REPORT';vm.updatePageTile();")
+                                .fa.fa-table.margin-right-5
+                                text.span {{"CS REPORT" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'Game', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#Report", ng-click="vm.qualityInspectionPageName='INSPECTION REPORT';vm.updatePageTile();")
+                                .fa.fa-table.margin-right-5
+                                text.span {{"INSPECTION REPORT" | translate}}
+
+                .panel-body.common-right-panel-body
+                    div.tab-content
+                        #Setting.tab-pane.fade.in.active
+                            include ./inspection-setting
+                        #Record.tab-pane.fade
+                            include ./inspection-800-record
+                        #Evaluation.tab-pane.fade
+                            include ./inspection-evaluation
+                        #CSReport.tab-pane.fade
+                            include ./inspection-cs-report
+                        #Report.tab-pane.fade
+                            include ./inspection-report

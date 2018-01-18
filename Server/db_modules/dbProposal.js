@@ -27,6 +27,7 @@ var ObjectId = mongoose.Types.ObjectId;
 var dbutility = require('./../modules/dbutility');
 var pmsAPI = require('../externalAPI/pmsAPI');
 var moment = require('moment-timezone');
+var errorUtils = require("../modules/errorUtils.js");
 const serverInstance = require("../modules/serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constSystemParam = require("../const/constSystemParam.js");
@@ -799,6 +800,39 @@ var proposal = {
                     }
                 }
             );
+    },
+
+    autoCancelProposal: function (proposalData) {
+        if (proposalData) {
+            var reject = true;
+            var proposalStatus = proposalData.status || proposalData.process.status;
+
+            if (proposalStatus != constProposalStatus.PENDING) {
+                reject = false;
+            }
+
+            if (reject) {
+                return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
+                    .then(successData => {
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposalData._id, createTime: proposalData.createTime},
+                            {
+                                noSteps: true,
+                                process: null,
+                                status: constProposalStatus.CANCEL,
+                                "data.cancelBy": "秒杀礼包已过期"
+                            },
+                            {new: true}
+                        );
+                    })
+            }
+            else {
+                return Q.reject({message: "incorrect proposal status or authentication."});
+            }
+        }
+        else {
+            return Q.reject({message: "incorrect proposal data!"});
+        }
     },
 
     getAllPlatformAvailableProposalsForAdminId: function (adminId, platform) {
@@ -3165,6 +3199,30 @@ var proposal = {
             },
             {multi: true}
         );
+    },
+
+    checkLimitedOfferTopUpExpiration: function () {
+        return dbconfig.collection_proposal.find({
+            status: constProposalStatus.PENDING,
+            mainType: {$in: [constProposalMainType.PlayerWechatTopUp, constProposalMainType.ManualPlayerTopUp, constProposalMainType.PlayerAlipayTopUp]},
+            "data.expirationTime": {$lt: new Date()},
+            "data.limitedOfferObjId": {$exists: true}
+        })
+            .populate({path: "process", model: dbconfig.collection_proposalProcess})
+            .populate({path: "type", model: dbconfig.collection_proposalType}).lean()
+            .then(
+                proposalData => {
+                    if (proposalData && proposalData.length > 0) {
+                        let proms = [];
+                        proposalData.forEach(proposal => {
+                           proms.push(this.autoCancelProposal(proposal));
+                        });
+                        return Promise.all(proms).catch(errorUtils.reportError);
+                    }
+
+                }
+            )
+
     },
 
     checkProposalExpiration: function () {
