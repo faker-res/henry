@@ -12453,7 +12453,7 @@ let dbPlayerInfo = {
                                 status: constRewardTaskStatus.STARTED
                             }
                             let rewardProm = dbconfig.collection_rewardTaskGroup.find(sendQuery)
-                                .populate({path: "providerGroup", select: 'name', model: dbconfig.collection_gameProviderGroup}).lean()
+                                .populate({path: "providerGroup", select: 'name providerGroupId', model: dbconfig.collection_gameProviderGroup}).lean()
                                 .then(rewardDetails => {
                                     if(!rewardDetails){
                                         return "";
@@ -12461,17 +12461,24 @@ let dbPlayerInfo = {
                                     let lockListArr = [];
                                     rewardDetails.map(r =>{
                                         if(r){
-                                            let providerGroupName = "";
+                                            let providerGroupName = "", providerGroupId;
                                             let targetCon = r.targetConsumption ? r.targetConsumption : 0;
                                             let ximaAmt = r.forbidXIMAAmt ? r.forbidXIMAAmt : 0;
                                             let curCon = r.curConsumption ? r.curConsumption : 0;
-                                            if(r.providerGroup){
+
+                                            if (r.providerGroup) {
                                                 providerGroupName = r.providerGroup.name ? r.providerGroup.name : "";
-                                            }else{
+                                                providerGroupId = r.providerGroup.providerGroupId
+                                            } else {
                                                 providerGroupName = "LOCAL_CREDIT";
                                             }
 
-                                            lockListArr.push({name: providerGroupName, lockAmount: targetCon + ximaAmt, currentLockAmount: curCon});
+                                            lockListArr.push({
+                                                name: providerGroupName,
+                                                lockAmount: targetCon + ximaAmt,
+                                                currentLockAmount: curCon,
+                                                providerGrpId: providerGroupId
+                                            });
                                         }
                                     });
 
