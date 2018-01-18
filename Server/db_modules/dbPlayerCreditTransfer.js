@@ -811,7 +811,7 @@ let dbPlayerCreditTransfer = {
 
                 // Add player's current validCredit to transferAmount first
                 // If amount is less than 0, means transfer all
-                validTransferAmount += amount > 0 ? amount : parseFloat(player.validCredit.toFixed(2));
+                validTransferAmount += amount > 0 ? amount : Math.floor(parseFloat(player.validCredit.toFixed(2)));
                 validTransferAmount = Math.floor(validTransferAmount);
 
                 if (gameProviderGroup) {
@@ -1020,7 +1020,7 @@ let dbPlayerCreditTransfer = {
      * @param platformId
      * @param adminName
      * @param cpName
-     * @param bResolve
+     * @param bResolve - Flag to force resolve this transfer out due to certain condition
      * @param maxReward
      * @param forSync
      */
@@ -1034,22 +1034,77 @@ let dbPlayerCreditTransfer = {
         let rewardTaskCredit = 0;
         let transferId = new Date().getTime();
 
-        let player, rewardGroupObj;
+        let rewardGroupObj;
         let updateObj = {};
 
-        let playerProm = dbConfig.collection_players.findOne({_id: playerObjId}).populate(
-            {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
-        ).lean();
+        // First, need to make sure there's money in provider first
+        let creditQuery = forSync ?
+            Promise.resolve({credit: amount})
+            :
+            cpmsAPI.player_queryCredit(
+                {
+                    username: userName,
+                    platformId: platformId,
+                    providerId: providerShortId
+                }
+            );
 
-        // Search provider group
-        return playerProm.then(
-            playerData => {
-                if (playerData) {
-                    player = playerData;
+        return creditQuery.then(
+            res => {
+                if (res) {
+                    let providerPlayerObj = {gameCredit: res.credit ? parseFloat(res.credit) : 0};
+
+                    // Player has insufficient credit to transfer out, check bResolve
+                    if (providerPlayerObj.gameCredit < 1 || amount == 0 || providerPlayerObj.gameCredit < amount) {
+                        let notEnoughCredit = true;
+                        if (bResolve) {
+                            return dbConfig.collection_players.findOne({_id: playerObjId}).lean().then(
+                                playerData => {
+                                    return Promise.resolve(
+                                        {
+                                            playerId: playerId,
+                                            providerId: providerShortId,
+                                            providerCredit: providerPlayerObj.gameCredit,
+                                            playerCredit: playerData.validCredit,
+                                            rewardCredit: playerData.lockedCredit
+                                        }
+                                    );
+                                }
+                            );
+                        }
+                        else {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                name: "DataError",
+                                errorMessage: "Player does not have enough credit."
+                            });
+                        }
+                    }
 
                     return checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync);
                 } else {
-                    return Promise.reject({name: "DataError", message: "Can't find player information."});
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Cant find player credit in provider."
+                    });
+                }
+            },
+            err => {
+                if (bResolve) {
+                    return dbConfig.collection_players.findOne({_id: playerObjId}).lean().then(
+                        playerData => {
+                            return {
+                                playerId: playerId,
+                                providerId: providerShortId,
+                                providerCredit: 0,
+                                playerCredit: playerData.validCredit,
+                                rewardCredit: playerData.lockedCredit
+                            }
+                        }
+                    );
+                }
+                else{
+                    return Promise.reject(err);
                 }
             }
         ).then(
