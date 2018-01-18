@@ -3081,6 +3081,7 @@
   "READ EVALUATION": "已读评估",
   "APPEAL EVALUATION": "申诉评估",
   "APPEAL STATUS": "申诉状态",
+  "This transfer has been repaired.": "此转入/出记录已被修复，无法再次修复",
   "CONVERSATION_START_DATE": "(对话)开始日期",
   "CONVERSATION_END_DATE": "(对话)结束日期",
   "APPEAL_START_DATE": "(申诉)开始日期",
