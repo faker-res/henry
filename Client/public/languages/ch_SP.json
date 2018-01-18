@@ -3069,7 +3069,20 @@
   "Account Branch": "开户分行",
   "receive status": "接收状态",
   "receive status/sms group": "接收状态/短信分组",
-  "Exceed proposal search max time frame": "请将搜索时间范围限制在七天内"
-
-
+  "Exceed proposal search max time frame": "请将搜索时间范围限制在七天内",
+  "qualityInspection": "质检",
+  "Quality Inspection": "质检",
+  "INSPECTION PARAMETER": "质检参数",
+  "800 RECORD": "800记录",
+  "MY EVALUATION": "我的评估",
+  "CS REPORT": "客服报表",
+  "INSPECTION REPORT": "质检报表",
+  "UNREAD EVALUATION": "未读评估",
+  "READ EVALUATION": "已读评估",
+  "APPEAL EVALUATION": "申诉评估",
+  "APPEAL STATUS": "申诉状态",
+  "CONVERSATION_START_DATE": "(对话)开始日期",
+  "CONVERSATION_END_DATE": "(对话)结束日期",
+  "APPEAL_START_DATE": "(申诉)开始日期",
+  "APPEAL_END_DATE": "(申诉)结束日期"
 }

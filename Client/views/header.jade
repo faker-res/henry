@@ -52,6 +52,10 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                         div()
                             //ng-init="clickedHeader='Admin'"
                     | {{ 'Backstage Privilege' | translate }}
+            li(style="{{ checkViewPermission('Dashboard')? 'display:block' : 'display:none'}}")
+                a(href='', name='qualityInspection', ng-click="openHeaderPanel('qualityInspection'); setClickedHeaderIcon()" )
+                    i.fa.fa-check-square-o
+                    | {{ 'Quality Inspection' | translate }}
             //li(style="{{ checkViewPermission('Test', 'test')? 'display:block' : 'display:none'}}")
             //    a(href='testPage')
             //        i.fa.fa-usd

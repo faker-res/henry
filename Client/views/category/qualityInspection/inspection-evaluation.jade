@@ -1,0 +1,126 @@
+.panel.panel-primary(ng-if="checkViewPermission('QualityInspection', 'Evaluation','Read')")
+    //.panel-heading.padding-all-5
+    //    .panel-title.left-col
+    //        .row
+    //            a.fa.fa-chevron-circle-left.contractIcon(ng-show='vm.showOperationList', ng-click='vm.toggleShowOperationList(false)')
+    //            a.fa.fa-chevron-circle-right.contractIcon(ng-show='!vm.showOperationList', ng-click='vm.toggleShowOperationList(true)')
+    //            text.strong {{vm.selectedPlatform.name}} {{vm.rightPanelTitle | translate}}
+    .panel-body.common-right-panel-body
+        .tab-content
+            .panel.panel-primary
+                .panel-heading.common-left-panel-heading
+                    ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
+                        #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
+
+                        li.active(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'Read')" style="margin-left: 20px;")
+                            a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='unreadEvaluation'" )
+                                .fa.fa-wrench.margin-right-5
+                                text.span {{"UNREAD EVALUATION" | translate}}
+                        li(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'Read')")
+                            //a.common-tab(data-toggle="tab", href="#Feedback", ng-click="vm.submitPlayerFeedbackQuery();vm.platformPageName='Feedback';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='readEvaluation'")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"READ EVALUATION" | translate}}
+                        li(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'Read')")
+                            a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='appealEvaluation'")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"APPEAL EVALUATION" | translate}}
+                .panel-body.common-right-panel-body
+                    div(ng-show="vm.evaluationTab == 'unreadEvaluation'")
+                        #unreadEvaluationDiv.tab-pane.fade.in.active
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalDate')")
+                                label {{'START_DATE' | translate}}
+                                #unreadEvaluationDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalDate')")
+                                label {{'END_DATE' | translate}}
+                                br
+                                #unreadEvaluationDatetimePicker2.input-append.form-control
+                                    input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                                button.common-button.btn.btn-primary(ng-if='vm.queryProposalId', ng-click='vm.getOneProposal()') {{'SEARCH' | translate}}
+                                button.common-button.btn.btn-primary(ng-if='!vm.queryProposalId', ng-click='vm.searchProposalByQuery(true)') {{'SEARCH' | translate}}
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                                button.common-button.btn.btn-warning(ng-click='vm.resetFilter()') {{'Reset' | translate}}
+                            .clearfix
+                            .proposalMessage
+                                text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.timeAllProposal}}
+                                    label.text-danger.newProposalAlert
+                                    a(ng-click='vm.loadProposalQueryData(true)')
+                                        .fa.fa-refresh
+                                    .pull-right
+                                        label.inlineBlk.pull-right {{'Auto Refresh' | translate}}
+                                            input#autoRefreshProposalFlag.margin-left-5(type='checkbox', ng-model="vm.autoRefresh")
+                                        .inlineBlk.hidden
+                                            text {{"Time left until next refresh" | translate}} :&nbsp;
+                                            text.timeLeftRefreshOperation
+                                            text s
+                            .row
+                                .col-md-12
+                                    label {{"Total" | translate}} {{vm.queryProposal.totalCount}} {{"records" | translate}}
+                                    table.common-table#proposalDataTable.display(style="width:100%;min-width:100%;max-height:450px;")
+                                    #proposalDataTablePage
+
+                    div(ng-show="vm.evaluationTab == 'readEvaluation'")
+                        #readEvaluationDiv.tab-pane.fade.in.active
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalDate')")
+                                label {{'START_DATE' | translate}}
+                                #readEvaluationStartDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalDate')")
+                                label {{'END_DATE' | translate}}
+                                br
+                                #readEvaluationEndDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                                button.common-button.btn.btn-primary(ng-if='vm.queryProposalId', ng-click='vm.getOneProposal()') {{'SEARCH' | translate}}
+                                button.common-button.btn.btn-primary(ng-if='!vm.queryProposalId', ng-click='vm.searchProposalByQuery(true)') {{'SEARCH' | translate}}
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                                button.common-button.btn.btn-warning(ng-click='vm.resetFilter()') {{'Reset' | translate}}
+                            .clearfix
+                    div(ng-show="vm.evaluationTab == 'appealEvaluation'")
+                        #appealEvaluationDiv.tab-pane.fade.in.active
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalDate')")
+                                label {{'START_DATE' | translate}}
+                                #conversationStartDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalDate')")
+                                label {{'END_DATE' | translate}}
+                                br
+                                #conversationEndDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalDate')")
+                                label {{'START_DATE' | translate}}
+                                #appealEvaluationStartDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalDate')")
+                                label {{'END_DATE' | translate}}
+                                br
+                                #appealEvaluationEndDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalStatus')")
+                                label {{'APPEAL STATUS' | translate}}
+                                select.form-control#selectAppealStatus(multiple="multiple", style='min-width:100px;height:34px;')
+                                    //option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}') {{v | translate}}
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                                button.common-button.btn.btn-primary(ng-if='vm.queryProposalId', ng-click='vm.getOneProposal()') {{'SEARCH' | translate}}
+                                button.common-button.btn.btn-primary(ng-if='!vm.queryProposalId', ng-click='vm.searchProposalByQuery(true)') {{'SEARCH' | translate}}
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                                button.common-button.btn.btn-warning(ng-click='vm.resetFilter()') {{'Reset' | translate}}
+                            .clearfix
