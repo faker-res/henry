@@ -66,9 +66,9 @@ const constProviderStatus = require("./../const/constProviderStatus");
 
 // db_common
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+const dbPropUtil = require("../db_common/dbProposalUtility");
 
 // db_modules
-let dbGeoIp = require('./../db_modules/dbGeoIp');
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
 let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
@@ -7518,34 +7518,18 @@ let dbPlayerInfo = {
                 playerData => {
                     //check if player has pending proposal to update bank info
                     if (playerData) {
-                        return dbconfig.collection_proposalType.findOne({
-                            platformId: playerData.platform._id,
-                            name: constProposalType.UPDATE_PLAYER_BANK_INFO
-                        }).then(
-                            proposalType => {
-                                if (proposalType) {
-                                    return dbconfig.collection_proposal.find({
-                                        type: proposalType._id,
-                                        "data._id": String(playerData._id)
-                                    }).populate(
-                                        {path: "process", model: dbconfig.collection_proposalProcess}
-                                    ).lean();
-                                }
-                                else {
-                                    return Q.reject({
-                                        name: "DataError",
-                                        errorMessage: "Cannot find proposal type"
-                                    });
-                                }
-                            }
-                        ).then(
+                        let propQ = {
+                            "data._id": String(playerData._id)
+                        };
+
+                        return dbPropUtil.getProposalDataOfType(playerData.platform._id, constProposalType.UPDATE_PLAYER_BANK_INFO, propQ).then(
                             proposals => {
                                 if (proposals && proposals.length > 0) {
-                                    var bExist = false;
+                                    let bExist = false;
                                     proposals.forEach(
                                         proposal => {
                                             if (proposal.status == constProposalStatus.PENDING ||
-                                                ( proposal.process && proposal.process.status == constProposalStatus.PENDING)) {
+                                                (proposal.process && proposal.process.status == constProposalStatus.PENDING)) {
                                                 bExist = true;
                                             }
                                         }
@@ -7554,7 +7538,7 @@ let dbPlayerInfo = {
                                         return playerData;
                                     }
                                     else {
-                                        return Q.reject({
+                                        return Promise.reject({
                                             name: "DataError",
                                             errorMessage: "Player is updating bank info"
                                         });
@@ -7567,8 +7551,14 @@ let dbPlayerInfo = {
                         );
                     }
                     else {
-                        return Q.reject({name: "DataError", errorMessage: "Cannot find player"});
+                        return Promise.reject({name: "DataError", errorMessage: "Cannot find player"});
                     }
+                }
+            ).then(
+                playerData => {
+                    player = playerData;
+
+                    return dbRewardTaskGroup.checkPlayerHasAvailRTG(player);
                 }
             ).then(
                 playerData => {
@@ -12464,7 +12454,7 @@ let dbPlayerInfo = {
                                 status: constRewardTaskStatus.STARTED
                             }
                             let rewardProm = dbconfig.collection_rewardTaskGroup.find(sendQuery)
-                                .populate({path: "providerGroup", select: 'name', model: dbconfig.collection_gameProviderGroup}).lean()
+                                .populate({path: "providerGroup", select: 'name providerGroupId', model: dbconfig.collection_gameProviderGroup}).lean()
                                 .then(rewardDetails => {
                                     if(!rewardDetails){
                                         return "";
@@ -12472,17 +12462,24 @@ let dbPlayerInfo = {
                                     let lockListArr = [];
                                     rewardDetails.map(r =>{
                                         if(r){
-                                            let providerGroupName = "";
+                                            let providerGroupName = "", providerGroupId;
                                             let targetCon = r.targetConsumption ? r.targetConsumption : 0;
                                             let ximaAmt = r.forbidXIMAAmt ? r.forbidXIMAAmt : 0;
                                             let curCon = r.curConsumption ? r.curConsumption : 0;
-                                            if(r.providerGroup){
+
+                                            if (r.providerGroup) {
                                                 providerGroupName = r.providerGroup.name ? r.providerGroup.name : "";
-                                            }else{
+                                                providerGroupId = r.providerGroup.providerGroupId
+                                            } else {
                                                 providerGroupName = "LOCAL_CREDIT";
                                             }
 
-                                            lockListArr.push({name: providerGroupName, lockAmount: targetCon + ximaAmt, currentLockAmount: curCon});
+                                            lockListArr.push({
+                                                name: providerGroupName,
+                                                lockAmount: targetCon + ximaAmt,
+                                                currentLockAmount: curCon,
+                                                providerGrpId: providerGroupId
+                                            });
                                         }
                                     });
 

@@ -3151,7 +3151,7 @@ let dbPlayerReward = {
 
         // Get interval time
         if (eventData.condition.interval) {
-            intervalTime = dbRewardUtil.getRewardEventIntervalTime(eventData);
+            intervalTime = dbRewardUtil.getRewardEventIntervalTime(rewardData, eventData);
         }
 
         let topupMatchQuery = {
