@@ -1940,19 +1940,27 @@ var proposalExecutor = {
              */
             executePlayerRegistrationIntention: function (proposalData, deferred) {
                 // for message template
-                if(proposalData.data && proposalData.data.realName) {
+                if(proposalData.data && proposalData.data.realName && proposalData.status === constProposalStatus.APPROVED) {
+                    let platformObjId =proposalData.data.platform?proposalData.data.platform:proposalData.data.platformId;
                     // this proposal data's player name no include platform prefix;
-                    dbconfig.collection_platform.findOne({_id:proposalData.data.platform}).then(
+                    dbconfig.collection_platform.findOne({_id:platformObjId}).then(
                         (platform) => {
                             let playerName = platform.prefix + proposalData.data.name;
-                            return dbPlayerInfo.getPlayerInfo({name:playerName,platform:platform._id});
+                            return dbconfig.collection_players.findOne({name:playerName,platform:platform._id})
+                                .populate({path: "playerLevel", model: dbconfig.collection_playerLevel});
                         }
                     ).then(
                         (player) => {
-                            proposalData.data.playerName = proposalData.data.name;
-                            proposalData.data.playerObjId = player._id;
-                            proposalData.data.platformId = proposalData.data.platform;
-                            sendMessageToPlayer(proposalData,constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS,{});
+                            if(player) {
+                                dbconfig.collection_proposal.update({
+                                    _id: proposalData._id,
+                                }, {"data.playerLevelName": player.playerLevel.name}).exec();
+                                proposalData.data.playerName = proposalData.data.name;
+                                proposalData.data.playerObjId = player._id;
+                                proposalData.data.platformId = proposalData.data.platform;
+                                sendMessageToPlayer(proposalData,constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS,{});
+                            }
+
                         }
                     );
                 }

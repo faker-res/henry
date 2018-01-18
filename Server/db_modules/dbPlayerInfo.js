@@ -12089,9 +12089,11 @@ let dbPlayerInfo = {
         let statusGroups = status.split(",");
         let playerSmsSetting = {};
         let updateData = {};
-        return dbconfig.collection_players.findOne({playerId:playerId}).then(
+        let playerData;
+        return dbconfig.collection_players.findOne({playerId:playerId}).lean().then(
             (player) => {
                 if(!player) return Q.reject({name: "DataError", message: "Cant find player"});
+                playerData = player;
                 playerSmsSetting = player.smsSetting;
                 return dbSmsGroup.getPlatformSmsGroups(player.platform);
             }
@@ -12129,7 +12131,16 @@ let dbPlayerInfo = {
 
         ).then(
             () => {
-                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerId}, updateData, constShardKeys.collection_players);
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerId}, updateData, constShardKeys.collection_players).then(
+                    () => {
+                        return dbPlayerInfo.getPlayerSmsStatus(playerData.playerId).then(
+                            (smsSetting) => {
+                                playerData.smsSetting = smsSetting;
+                                return playerData;
+                            }
+                        );
+                    }
+                );
             }
         );
     },
