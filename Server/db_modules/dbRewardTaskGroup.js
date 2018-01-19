@@ -229,12 +229,7 @@ let dbRewardTaskGroup = {
         });
 
         return Promise.all(promsArr);
-    },
-
-
-
-
-
+    }
 };
 
 module.exports = dbRewardTaskGroup;
