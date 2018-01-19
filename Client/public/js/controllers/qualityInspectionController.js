@@ -12,6 +12,11 @@ define(['js/app'], function (myApp) {
             // For debugging:
             window.VM = vm;
 
+            vm.evaluationAppealStatus = {
+                APPEALING: 1,
+                APPEAL_COMPLETED: 1
+            };
+
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
                 window.document.title = $translate("qualityInspection") + "->" + $translate(vm.qualityInspectionPageName);
@@ -47,6 +52,10 @@ define(['js/app'], function (myApp) {
                     if (storedPlatform) {
                         vm.searchAndSelectPlatform(storedPlatform, option);
                     }
+
+                    vm.initUnreadEvaluation();
+                    vm.initReadEvaluation();
+                    vm.initAppealEvaluation();
                 }, function (err) {
                     vm.showPlatformSpin = false;
                 });
@@ -99,7 +108,6 @@ define(['js/app'], function (myApp) {
                 }
 
                 // Initial Loading
-                vm.evaluationTab = 'unreadEvaluation';
 
                 $scope.safeApply();
             };
@@ -161,8 +169,6 @@ define(['js/app'], function (myApp) {
                 }
             }
             vm.showLive800 = function(){
-
-
                 vm.qaForm = [
                     {
                         messageId: 331,
@@ -264,6 +270,9 @@ define(['js/app'], function (myApp) {
                         ]
                     }]
 
+                setTimeout(function(){
+                    $scope.safeApply();
+                },0)
 
                 // vm.conversationForm = [
                 //     {
@@ -379,6 +388,122 @@ define(['js/app'], function (myApp) {
             if (!$scope.AppSocket) {
                 eventName = "socketConnected";
                 $scope.$emit('childControllerLoaded', 'qualityInspectionControllerLoaded');
+            }
+
+            vm.initUnreadEvaluation = function(){
+                vm.evaluationTab = 'unreadEvaluation';
+
+                $('#unreadEvaluationStartDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $("#unreadEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                $('#unreadEvaluationEndDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $("#unreadEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+            }
+
+            vm.initReadEvaluation = function(){
+                $('#readEvaluationStartDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $('#readEvaluationEndDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+            }
+
+            vm.initAppealEvaluation = function(){
+                $('#conversationStartDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $('#conversationEndDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $('#appealEvaluationStartDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $('#appealEvaluationEndDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+            }
+
+            vm.getUnreadEvaluationRecord = function() {
+                var startTime = $('#unreadEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#unreadEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
+
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime
+                }
+
+                    vm.qaForm = [
+                        {
+                            messageId: 331,
+                            status: '已完成（已读）',
+                            qualityAssessor: 'QC-ALLEN',
+                            fpmsAcc: 'ishtar',
+                            processTime: '2018-1-15 19:33:51',
+                            createTime: '2018-1-15 16:33:51',
+                            appealReason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
+                            conversation: [
+                                {
+                                    'time': '2018-1-15 16:33:51',
+                                    'roles': '客服',
+                                    'createTime': '2018-1-15 16:33:51',
+                                    'timeoutRate': -2,
+                                    'inspectionRate': 0,
+                                    'review': '答非所问'
+                                },
+                                {
+                                    'roles': 'Guest',
+                                    'createTime': '2018-1-15 16:33:51',
+                                },
+                                {
+                                    'time': '2018-1-15 16:33:51',
+                                    'roles': '客服',
+                                    'createTime': '2018-1-15 16:33:51',
+                                    'timeoutRate': -2,
+                                    'inspectionRate': 0,
+                                    'review': '答非所问'
+                                },
+                            ]
+                        }
+                        ]
+
+                socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecord', sendData, function (data) {
+                    //vm.qaForm = "";
+
+                    if(data && data.data && data.data.length > 0){
+                        //vm.qaForm = data.data;
+                        $scope.safeApply();
+                        // setTimeout(function(){
+                        //     $scope.safeApply();
+                        // },100)
+                    }
+                });
             }
 
             var _ = {

@@ -3,6 +3,7 @@ var log = require("./../modules/logger");
 var Q = require("q");
 var dbUtil = require('./../modules/dbutility');
 var mysql = require("mysql");
+const constQualityInspectionStatus = require('./../const/constQualityInspectionStatus');
 
 var dbQualityInspection = {
     connectMysql: function(){
@@ -36,9 +37,20 @@ var dbQualityInspection = {
             deferred.resolve(results);
             connection.end();
         });
-
         return deferred.promise;
+    },
+
+    getUnreadEvaluationRecord: function(startTime, endTime){
+        let query ={
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
+            },
+            status: constQualityInspectionStatus.COMPLETED_UNREAD
+        }
+        return dbconfig.collection_qualityInspection.find(query).lean();
     }
+
 };
 
 module.exports = dbQualityInspection;

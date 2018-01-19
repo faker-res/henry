@@ -81,6 +81,8 @@ let partnerPageAdvertisementInfoSchema = require('./../schema/partnerPageAdverti
 
 let smsGroupSchema = require('./../schema/smsGroup');
 
+let qualityInspectionSchema = require('./../schema/qualityInspection');
+
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -177,6 +179,7 @@ let playerPageAdvertisementInfoModel = db_admin.model('playerPageAdvertisementIn
 let partnerPageAdvertisementInfoModel = db_admin.model('partnerPageAdvertisementInfo', partnerPageAdvertisementInfoSchema, 'partnerPageAdvertisementInfo');
 
 let smsGroupModel = db_admin.model('smsGroup', smsGroupSchema, 'smsGroup');
+
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
@@ -327,6 +330,8 @@ let playerForbidTopUpLogModel = dbLogs.model('playerForbidTopUpLog', playerForbi
 
 let rewardPointsLogSchema = require('./../schema/logs/rewardPointsLog');
 let rewardPointsLogModel = dbLogs.model('rewardPointsLog', rewardPointsLogSchema, 'rewardPointsLog');
+
+let qualityInspectionModel = dbLogs.model('qualityInspection', qualityInspectionSchema, 'qualityInspection');
 
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
@@ -483,6 +488,8 @@ var dbProperties = {
     collection_playerForbidTopUpLog: playerForbidTopUpLogModel,
     collection_rewardPointsLog: rewardPointsLogModel,
     collection_rewardTaskGroup: rewardTaskGroupModel,
+
+    collection_qualityInspection: qualityInspectionModel,
 
     //unique
     collection_playerName: playerNameModal,

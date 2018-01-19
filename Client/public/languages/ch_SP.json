@@ -3084,5 +3084,7 @@
   "CONVERSATION_START_DATE": "(对话)开始日期",
   "CONVERSATION_END_DATE": "(对话)结束日期",
   "APPEAL_START_DATE": "(申诉)开始日期",
-  "APPEAL_END_DATE": "(申诉)结束日期"
+  "APPEAL_END_DATE": "(申诉)结束日期",
+  "APPEALING": "申诉中",
+  "APPEAL_COMPLETED": "申诉结案"
 }
