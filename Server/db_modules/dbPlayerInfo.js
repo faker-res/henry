@@ -7560,11 +7560,19 @@ let dbPlayerInfo = {
                         player = playerData;
 
                         if (player.platform && player.platform.useProviderGroup) {
-                            return dbconfig.collection_rewardTaskGroup.findOne({
-                                platformId: playerData.platform,
-                                playerId: playerData._id,
-                                status: {$in: [constRewardTaskStatus.STARTED]}
-                            }).lean();
+                            let unlockAllGroups = Promise.resolve(true);
+                            if (bForce) {
+                                unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id).catch(errorUtils.reportError);
+                            }
+                            return unlockAllGroups.then(
+                                () => {
+                                    return dbconfig.collection_rewardTaskGroup.findOne({
+                                        platformId: playerData.platform,
+                                        playerId: playerData._id,
+                                        status: {$in: [constRewardTaskStatus.STARTED]}
+                                    }).lean();
+                                }
+                            );
                         } else {
                             return false;
                         }
@@ -7726,10 +7734,6 @@ let dbPlayerInfo = {
                                                 userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                                             };
                                             newProposal.inputDevice = dbUtility.getInputDevice(userAgent,false);
-
-                                            if (bForce && player.platform.useProviderGroup) {
-                                                dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id).catch(errorUtils.reportError);
-                                            }
 
                                             return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
                                         }
