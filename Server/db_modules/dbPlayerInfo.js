@@ -8048,7 +8048,7 @@ let dbPlayerInfo = {
     /*
      * update top up proposal
      */
-    updatePlayerTopupProposal: function (proposalId, bSuccess) {
+    updatePlayerTopupProposal: function (proposalId, bSuccess, remark) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType}).then(
                 data => {
@@ -8071,7 +8071,8 @@ let dbPlayerInfo = {
                                             {_id: data._id, createTime: data.createTime},
                                             {
                                                 status: status,
-                                                "data.lastSettleTime": lastSettleTime
+                                                "data.lastSettleTime": lastSettleTime,
+                                                "data.remark": remark
                                             }
                                         )
                                     );

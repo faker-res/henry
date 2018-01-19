@@ -465,7 +465,7 @@ var proposal = {
         updateData['data.remarks'] = remarks;
         return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate({_id: ObjectId(id)}, updateData, {new: true}).exec();
     },
-    updateTopupProposal: function (proposalId, status, requestId, orderStatus) {
+    updateTopupProposal: function (proposalId, status, requestId, orderStatus, remark) {
         var proposalObj = null;
         var type = constPlayerTopUpType.ONLINE;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
@@ -514,9 +514,9 @@ var proposal = {
         ).then(
             data => {
                 if (status == constProposalStatus.SUCCESS) {
-                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true);
+                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true, remark);
                 } else if (status == constProposalStatus.FAIL) {
-                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false);
+                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark);
                 }
                 else {
                     //update proposal for experiation
