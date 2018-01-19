@@ -7726,6 +7726,11 @@ let dbPlayerInfo = {
                                                 userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                                             };
                                             newProposal.inputDevice = dbUtility.getInputDevice(userAgent,false);
+
+                                            if (bForce) {
+                                                dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id).catch(errorUtils.reportError);
+                                            }
+
                                             return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
                                         }
                                     });
