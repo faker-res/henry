@@ -74,6 +74,25 @@
     </div>
 </div>
 
+<h3>Search Platform Consumption (获取平台消费记录)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform ID
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Count
+            <input name="requestCount">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="searchConsumptionRecord">Search</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlatformAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlatformAPITest, ClientConnectionAPITest) {
