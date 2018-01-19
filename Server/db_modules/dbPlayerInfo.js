@@ -1498,9 +1498,10 @@ let dbPlayerInfo = {
      * @param {objectId} platform - player's platform
      * @param {boolean} resetPartnerPassword - reset partner password also if true
      */
-    resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword, dontReturnPassword) {
+    resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword, dontReturnPassword, creator) {
         let deferred = Q.defer();
         let playerObj;
+
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
             if (err) {
                 deferred.reject({
@@ -1546,12 +1547,35 @@ let dbPlayerInfo = {
                     }
                 ).then(
                     data => {
-                        SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
-                        let messageData = {
-                            data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                        let proposalData = {
+                            creator: creator? creator :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerObj._id
+                                },
+                            data: {
+                                _id:playerObj._id,
+                                playerId: playerObj.playerId,
+                                platformId: playerObj.platform,
+                                isIgnoreAudit: true,
+                                updatePassword: true,
+                                remark: '修改密码'
+
+                            },
+                            entryType: creator ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                            userType: constProposalUserType.PLAYERS,
                         };
-                        messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
-                        return deferred.resolve(dontReturnPassword ? "" : newPassword);
+                        dbProposal.createProposalWithTypeName(playerObj.platform,constProposalType.UPDATE_PLAYER_INFO,proposalData).then(
+                            () => {
+                                SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+                                let messageData = {
+                                    data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                                };
+                                messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
+                                return deferred.resolve(dontReturnPassword ? "" : newPassword);
+                            }
+                        )
                     },
                     error => deferred.reject({
                         name: "DBError",
@@ -1652,16 +1676,39 @@ let dbPlayerInfo = {
                             }
                             // player.password = hash;
                             // next();
+
                             dbconfig.collection_players.findOneAndUpdate(
                                 {_id: playerObj._id, platform: playerObj.platform}, {password: hash}
                             ).then(
                                 () => {
-                                    SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
-                                    let messageData = {
-                                        data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                                    let proposalData = {
+                                        creator:
+                                            {
+                                                type: 'player',
+                                                name: playerObj.name,
+                                                id: playerObj._id
+                                            },
+                                        data: {
+                                            _id:playerObj._id,
+                                            playerId: playerObj.playerId,
+                                            platformId: playerObj.platform,
+                                            isIgnoreAudit: true,
+                                            updatePassword: true,
+                                            remark: '修改密码'
+                                        },
+                                        entryType: constProposalEntryType.CLIENT,
+                                        userType: constProposalUserType.PLAYERS,
                                     };
-                                    messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
-                                    deferred.resolve();
+                                    dbProposal.createProposalWithTypeName(playerObj.platform,constProposalType.UPDATE_PLAYER_INFO,proposalData).then(
+                                        () => {
+                                            SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+                                            let messageData = {
+                                                data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                                            };
+                                            messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
+                                            deferred.resolve();
+                                        }
+                                    )
                                 }, deferred.reject
                             );
                         });
@@ -1802,6 +1849,7 @@ let dbPlayerInfo = {
                 // If user modified their own, no proposal needed
                 if (!skipProposal) {
                     dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {
+                        creator: {type: "player", name: playerObj.name, id: playerObj._id},
                         data: updateData,
                         inputDevice: inputDeviceData
                     }, smsLogData);
