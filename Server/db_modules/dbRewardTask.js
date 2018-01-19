@@ -542,6 +542,7 @@ const dbRewardTask = {
                 }
             })
     },
+
     getRewardTaskList: function(query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj){
         return dbGameProvider.getPlatformProviderGroup(query.platformId).then(
             data => {
