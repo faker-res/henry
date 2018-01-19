@@ -3010,6 +3010,7 @@
   "BUTTON NAME": "按钮名字",
   "OPENED": "已开启",
   "CLOSED": "已关闭",
+  "Player does not have permission for this limited offer. Please contact cs for more detail.": "玩家无参加秒杀礼包的权限，详情请联系客服。",
   "Convert reward points amount must greater than 0": "兑换积分的数量必须大于0",
   "PLATFORM_ID": "平台ID",
   "DELETE_ADVERTISEMENT": "删除广告",
