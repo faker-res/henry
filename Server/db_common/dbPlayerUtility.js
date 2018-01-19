@@ -199,7 +199,7 @@ const dbPlayerUtility = {
                 if (!player) {
                     return Q.reject({name: "DataError", message: "Can't update player credit: player not found."});
                 }
-                dbLogger.createCreditChangeLog(playerObjId, platformObjId, updateAmount, reasonType, player.validCredit, null, data);
+                dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platformObjId, updateAmount, reasonType, player.validCredit, 0, 0, null, data);
                 return player;
             },
             error => {

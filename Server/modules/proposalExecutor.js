@@ -1342,12 +1342,12 @@ var proposalExecutor = {
                             {new: true}
                         ).lean().then(
                             function (data) {
-                                dbLogger.createCreditChangeLog(
+                                dbLogger.createCreditChangeLogWithLockedCredit(
                                     data._id, data.platform,
                                     proposalData.data.rewardAmount,
                                     proposalData.type.name,
                                     data.validCredit,
-                                    null, proposalData);
+                                    0, 0, null, proposalData);
                                 deferred.resolve(data);
                             },
                             function (err) {
@@ -1874,12 +1874,12 @@ var proposalExecutor = {
                         platform: proposalData.data.platformId
                     }, updatePlayer, {new: true}).lean().then(
                         function (data) {
-                            dbLogger.createCreditChangeLog(
+                            dbLogger.createCreditChangeLogWithLockedCredit(
                                 data._id, data.platform,
                                 proposalData.data.rewardAmount,
                                 proposalData.type.name,
                                 data.validCredit,
-                                null, proposalData);
+                                0, 0, null, proposalData);
                             deferred.resolve(data);
                         },
                         function (err) {
