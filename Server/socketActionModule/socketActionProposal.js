@@ -62,7 +62,7 @@ function socketActionProposal(socketIO, socket) {
                 data.data.playerObjId && data.data.hasOwnProperty("updateAmount") &&
                 data.data.hasOwnProperty("curAmount") && data.data.hasOwnProperty("realName")
             );
-            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.applyRepairCreditTransfer, [data.platformId, data], actionName, isValidData);
         },
 
         createReturnFixProposal: function createReturnFixProposal(data) {

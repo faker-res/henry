@@ -142,7 +142,7 @@ let dbRewardTaskGroup = {
     },
 
     getPlayerAllRewardTaskGroupDetailByPlayerObjId: (query) => {
-        return dbconfig.collection_players.findOne(query).then(
+        return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
                 if (playerData) {
                     let playerObjId = playerData._id;
@@ -229,12 +229,7 @@ let dbRewardTaskGroup = {
         });
 
         return Promise.all(promsArr);
-    },
-
-
-
-
-
+    }
 };
 
 module.exports = dbRewardTaskGroup;

@@ -19412,6 +19412,7 @@ define(['js/app'], function (myApp) {
                         platformObjId: vm.selectedPlatform.id,
                         gameProviderGroup: vm.gameProviderGroup.map(e => {
                             return {
+                                providerGroupId: e.providerGroupId,
                                 name: e.name,
                                 providers: e.providers
                             };

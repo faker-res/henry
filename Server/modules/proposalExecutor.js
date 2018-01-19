@@ -418,7 +418,20 @@ var proposalExecutor = {
              * execution function for fix player credit transfer
              */
             executeFixPlayerCreditTransfer: function (proposalData, deferred) {
-                proposalExecutor.executions.executeUpdatePlayerCredit(proposalData, deferred, true);
+                isTransferIdRepaired(proposalData.data.transferId).then(
+                    isRepaired => {
+                        if (!isRepaired) {
+                            setTransferIdAsRepaired(proposalData.data.transferId).catch(errorUtils.reportError);
+                            proposalExecutor.executions.executeUpdatePlayerCredit(proposalData, deferred, true);
+                        }
+                        else {
+                            deferred.reject({name: "DataError", message: "This transfer has been repaired."});
+                        }
+                    },
+                    err => {
+                        deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error(err)});
+                    }
+                );
             },
 
             /**
@@ -1940,19 +1953,27 @@ var proposalExecutor = {
              */
             executePlayerRegistrationIntention: function (proposalData, deferred) {
                 // for message template
-                if(proposalData.data && proposalData.data.realName) {
+                if(proposalData.data && proposalData.data.realName && proposalData.status === constProposalStatus.APPROVED) {
+                    let platformObjId =proposalData.data.platform?proposalData.data.platform:proposalData.data.platformId;
                     // this proposal data's player name no include platform prefix;
-                    dbconfig.collection_platform.findOne({_id:proposalData.data.platform}).then(
+                    dbconfig.collection_platform.findOne({_id:platformObjId}).then(
                         (platform) => {
                             let playerName = platform.prefix + proposalData.data.name;
-                            return dbPlayerInfo.getPlayerInfo({name:playerName,platform:platform._id});
+                            return dbconfig.collection_players.findOne({name:playerName,platform:platform._id})
+                                .populate({path: "playerLevel", model: dbconfig.collection_playerLevel});
                         }
                     ).then(
                         (player) => {
-                            proposalData.data.playerName = proposalData.data.name;
-                            proposalData.data.playerObjId = player._id;
-                            proposalData.data.platformId = proposalData.data.platform;
-                            sendMessageToPlayer(proposalData,constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS,{});
+                            if(player) {
+                                dbconfig.collection_proposal.update({
+                                    _id: proposalData._id,
+                                }, {"data.playerLevelName": player.playerLevel.name}).exec();
+                                proposalData.data.playerName = proposalData.data.name;
+                                proposalData.data.playerObjId = player._id;
+                                proposalData.data.platformId = proposalData.data.platform;
+                                sendMessageToPlayer(proposalData,constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS,{});
+                            }
+
                         }
                     );
                 }
@@ -3247,6 +3268,18 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
             } else {
                 return Q.reject(error);
             }
+        }
+    );
+}
+
+function setTransferIdAsRepaired(transferId) {
+    return dbconfig.collection_playerCreditTransferLog.update({transferId}, {isRepaired: true}, {multi: true});
+}
+
+function isTransferIdRepaired(transferId) {
+    return dbconfig.collection_playerCreditTransferLog.find({transferId, isRepaired: true}, {_id: 1}).limit(1).lean().then(
+        log => {
+            return Boolean(log && log[0]);
         }
     );
 }

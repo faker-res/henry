@@ -2272,6 +2272,7 @@
   "Auto Approval Retry Count": "回圈次数（开启锁大厅组无效）",
   "Auto Approval Interval": "回圈间隔分钟（开启锁大厅组无效）",
   "Lost Threshold": "输赢宽限值（优惠-输值 ≤ X 则通过）",
+  "There are available reward task group to complete": "流水尚未达到提款要求，请继续投注。",
   "Consumption Offset": "投注额宽限值（所需流水-收录流水 ≤ X 则通过）",
   "todayTopUpAmount": "当日充值额",
   "todayBonusAmount": "当日投注额",
@@ -3069,7 +3070,21 @@
   "Account Branch": "开户分行",
   "receive status": "接收状态",
   "receive status/sms group": "接收状态/短信分组",
-  "Exceed proposal search max time frame": "请将搜索时间范围限制在七天内"
-
-
+  "Exceed proposal search max time frame": "请将搜索时间范围限制在七天内",
+  "qualityInspection": "质检",
+  "Quality Inspection": "质检",
+  "INSPECTION PARAMETER": "质检参数",
+  "800 RECORD": "800记录",
+  "MY EVALUATION": "我的评估",
+  "CS REPORT": "客服报表",
+  "INSPECTION REPORT": "质检报表",
+  "UNREAD EVALUATION": "未读评估",
+  "READ EVALUATION": "已读评估",
+  "APPEAL EVALUATION": "申诉评估",
+  "APPEAL STATUS": "申诉状态",
+  "This transfer has been repaired.": "此转入/出记录已被修复，无法再次修复",
+  "CONVERSATION_START_DATE": "(对话)开始日期",
+  "CONVERSATION_END_DATE": "(对话)结束日期",
+  "APPEAL_START_DATE": "(申诉)开始日期",
+  "APPEAL_END_DATE": "(申诉)结束日期"
 }
