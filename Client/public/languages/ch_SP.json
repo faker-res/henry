@@ -3076,8 +3076,13 @@
   "800 RECORD": "800记录",
   "MY EVALUATION": "我的评估",
   "CS REPORT": "客服报表",
-  "INSPECTION REPORT": "质检报表"
-
-
-
+  "INSPECTION REPORT": "质检报表",
+  "UNREAD EVALUATION": "未读评估",
+  "READ EVALUATION": "已读评估",
+  "APPEAL EVALUATION": "申诉评估",
+  "APPEAL STATUS": "申诉状态",
+  "CONVERSATION_START_DATE": "(对话)开始日期",
+  "CONVERSATION_END_DATE": "(对话)结束日期",
+  "APPEAL_START_DATE": "(申诉)开始日期",
+  "APPEAL_END_DATE": "(申诉)结束日期"
 }

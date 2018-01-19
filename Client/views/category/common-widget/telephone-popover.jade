@@ -154,7 +154,7 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
         #smsSettingPanel.panel-body(ng-if="vm.smsModalTab === 'smsSettingPanel'")
             .row.margin-left-5.margin-right-5
                 .form-group.col-md-12
-                    .col-md-4
+                    .col-md-12.col-lg-4
                         table.common-table.playerLvlTable
                             thead
                                 tr
@@ -168,7 +168,7 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                                     td
                                         span {{v.name | translate}}
 
-                    .col-md-8
+                    .col-sm-12.col-sm-offset-0.col-md-offset-1.col-lg-7.col-md-12.pull-right
                         table.common-table.playerLvlTable
                             thead
                                 tr
