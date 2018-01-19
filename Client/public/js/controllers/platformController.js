@@ -5872,12 +5872,12 @@ define(['js/app'], function (myApp) {
                                     // PlayerPacketRainReward: {imgType: 'i', iconClass: "fa fa-umbrella"},
                                     phoneCallFeedback: {imgType: 'i', iconClass: "fa fa-volume-control-phone"},
                                     SMSFeedBack: {imgType: 'i', iconClass: "fa fa-comment"},
-                                    PlayerLimitedOfferReward: {
-                                        imgType: 'img',
-                                        src: "images/icon/limitedRewardBlue.png",
-                                        width: "26px",
-                                        height: '26px'
-                                    },
+                                    // PlayerLimitedOfferReward: {
+                                    //     imgType: 'img',
+                                    //     src: "images/icon/limitedRewardBlue.png",
+                                    //     width: "26px",
+                                    //     height: '26px'
+                                    // },
                                     banReward: {imgType: 'i', iconClass: "fa fa-gift"},
                                     rewardPointsTask: {
                                         imgType: 'img',
