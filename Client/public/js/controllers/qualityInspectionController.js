@@ -100,8 +100,27 @@ define(['js/app'], function (myApp) {
 
                 // Initial Loading
                 vm.evaluationTab = 'unreadEvaluation';
+                // Initial setting for setting in qualityInspection
+                vm.getOvertimeSetting();
+                // create the conversationDefinition object for old platform
+                let query ={_id: vm.selectedPlatform.id, conversationDefinition: { $exists: true }};
+                socketService.$socket($scope.AppSocket, 'getPlatformSetting', query, function (data) {
+                  if (data.data.length === 0){
+                      let sendData = {
+                                  query: {_id: vm.selectedPlatform.id},
+                                  updateData: { 'conversationDefinition.totalSec': 40,
+                                                'conversationDefinition.askingSentence': 2,
+                                                'conversationDefinition.replyingSentence': 2}
+                              };
+                              socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                                  vm.loadPlatformData({loadAll: false});
+                                  $scope.safeApply();
+                              });
+                      $scope.safeApply();
+                  }
 
-                $scope.safeApply();
+                });
+
             };
 
             //create platform node for platform list
@@ -148,8 +167,141 @@ define(['js/app'], function (myApp) {
                     return $.extend({}, obj);
                 }
             };
+
+            vm.configTabClicked = function (choice) {
+                vm.selectedConfigTab = choice;
+                vm.configTableEdit = false;
+                vm.overtimeSettingAdd = false;
+                vm.confirmDelete = false;
+
+                switch (choice) {
+                    case 'definition':
+                        vm.getConversationDefinition();
+                        break;
+                    case 'setting':
+                        vm.newOvertimeSetting = {};
+                        vm.getOvertimeSetting();
+                        break;
+                }
+            };
+
+            vm.configSubmitUpdate = function (choice) {
+                switch (choice) {
+                    case 'definition':
+                        updateConversationDefinition(vm.conversationDefinition);
+                        break;
+                    case 'setting':
+                        updateOvertimeSetting(vm.overtimeSetting);
+                        break;
+                }
+            };
+
+
+            function updateConversationDefinition(srcData) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        'conversationDefinition.totalSec': srcData.totalSec,
+                        'conversationDefinition.askingSentence': srcData.askingSentence,
+                        'conversationDefinition.replyingSentence': srcData.replyingSentence
+                    }
+                };
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    vm.loadPlatformData({loadAll: false});
+                    $scope.safeApply();
+                });
+            }
+            function updateOvertimeSetting(srcData) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {overtimeSetting: srcData}
+                };
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    vm.loadPlatformData({loadAll: false});
+                    $scope.safeApply();
+                });
+            }
+
+
+            vm.getConversationDefinition = function () {
+                vm.conversationDefinition = vm.conversationDefinition || {};
+
+                vm.conversationDefinition.totalSec = vm.selectedPlatform.data.conversationDefinition.totalSec;
+                vm.conversationDefinition.askingSentence = vm.selectedPlatform.data.conversationDefinition.askingSentence;
+                vm.conversationDefinition.replyingSentence = vm.selectedPlatform.data.conversationDefinition.replyingSentence;
+
+            };
+
+            vm.getOvertimeSetting = function () {
+                vm.overtimeSetting  = vm.overtimeSetting || {};
+                // initiate a basic setting if the setting is empty
+                if (!vm.selectedPlatform.data.overtimeSetting || vm.selectedPlatform.data.overtimeSetting.length === 0){
+
+                    let overtimeSetting=[{
+                        conversationInterval: 30,
+                        presetMark: 1,
+                        color: ""
+                    },
+                    {
+                        conversationInterval: 60,
+                        presetMark: 0,
+                        color: ""
+                    },
+                    {
+                        conversationInterval: 90,
+                        presetMark: -1.5,
+                        color: ""
+                    },
+                    {
+                        conversationInterval: 120,
+                        presetMark: -2,
+                        color: ""
+
+                    }];
+
+                    let sendData = {
+                        query: {_id: vm.selectedPlatform.id},
+                        updateData: {overtimeSetting: overtimeSetting}
+                    };
+                    socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                        vm.loadPlatformData({loadAll: false});
+                    });
+
+                    vm.overtimeSetting = overtimeSetting;
+                }
+                else{
+                   vm.overtimeSetting = vm.selectedPlatform.data.overtimeSetting;
+                }
+
+                vm.overtimeSetting.sort(function(a,b){
+                    return a.conversationInterval-b.conversationInterval;
+                });
+
+            };
+
+            vm.settingDeleteIndex = function (param){
+                // param[0] is the _id; param[1] is the $index
+                // just remove from the vm.overtimeSetting if it is not saving into the DB yet by using the $index
+                if (param) {
+                    if (param[0]) {
+                        vm.overtimeSetting.forEach((item, index) => {
+                            if (item._id === param[0]) {
+                                vm.overtimeSetting.splice(index, 1);
+                            }
+                        });
+                    }else{
+                        vm.overtimeSetting.splice(param[1], 1);
+                    }
+                }
+                else {
+                    socketService.showErrorMessage($translate("Can't get the to-be-deleted item"));
+                }
+            }
+
+
+
         };
-    qualityInspectionController.$inject = injectParams;
+        qualityInspectionController.$inject = injectParams;
         myApp.register.controller('qualityInspectionCtrl', qualityInspectionController);
     }
 );

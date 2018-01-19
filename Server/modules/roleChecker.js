@@ -608,6 +608,9 @@ var roleChecker = {
             Setting: {
                 Read: [],
                 queryByProposalDate: [],
+                Edit: ['updatePlatform'],
+                setting: [],
+                definition: []
             },
             Record: {
                 Read: [],
