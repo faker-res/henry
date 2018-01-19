@@ -256,11 +256,9 @@ define(['js/app'], function (myApp) {
                         ]
                     }]
 
-<<<<<<< HEAD
                 setTimeout(function(){
                     $scope.safeApply();
                 },0)
-=======
 
                 vm.conversationForm = [
                     {
@@ -363,7 +361,6 @@ define(['js/app'], function (myApp) {
                         ]
                     }]
 
->>>>>>> mark/mark_live801
                 // console.log('showlive800')
                 // socketService.$socket($scope.AppSocket, 'showLive800', {}, success);
                 //
