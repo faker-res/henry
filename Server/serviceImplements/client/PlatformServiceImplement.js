@@ -3,6 +3,8 @@ const PlatformService = require("./../../services/client/ClientServices").Platfo
 const dbPlatform = require('./../../db_modules/dbPlatform');
 const dbPlatformAnnouncement = require("../../db_modules/dbPlatformAnnouncement");
 const dbUtility = require('./../../modules/dbutility');
+const dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptionRecord');
+const constSystemParam = require('../../const/constSystemParam');
 
 var PlatformServiceImplement = function () {
     PlatformService.call(this);
@@ -41,6 +43,23 @@ var PlatformServiceImplement = function () {
         data = data || {};
         let isValidData = Boolean(data && data.platform && data.phone && data.captcha && data.random);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.playerPhoneChat, [data.platform, data.phone, data.captcha, data.random], isValidData, null, null, true);
+    };
+
+    this.searchConsumptionRecord.onRequest = function(wsFunc, conn, data){
+        var isValidData = Boolean(data && data.platformId);
+        data.startIndex = data.startIndex || 0;
+        data.requestCount = data.requestCount || constSystemParam.REPORT_MAX_RECORD_NUM;
+        if(data.requestCount > constSystemParam.REPORT_MAX_RECORD_NUM){
+            data.requestCount = constSystemParam.REPORT_MAX_RECORD_NUM;
+        }
+        if( !data.startTime || new Date(data.startTime).getTime() - new Date().getTime() > 24 * 60 * 1000 * 1000 ){
+            data.startTime =  new Date(new Date().getTime() - 24 * 60 * 1000 * 1000);
+        }
+        data.endTime = data.endTime || new Date();
+        WebSocketUtil.performAction(
+            conn, wsFunc, data, dbPlayerConsumptionRecord.searchPlatformConsumption,
+            [data.platformId, data.startTime, data.endTime, data.startIndex, data.requestCount], isValidData
+        );
     };
 
 };
