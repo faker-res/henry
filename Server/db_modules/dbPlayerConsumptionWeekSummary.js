@@ -447,9 +447,7 @@ var dbPlayerConsumptionWeekSummary = {
             function (data) {
                 if (data && data.platform && data.playerLevel) {
                     playerData = data;
-
                     if (playerData.permission && playerData.permission.banReward || !playerData.playerLevel.canApplyConsumptionReturn) {
-
                         deferred.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
