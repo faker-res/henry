@@ -17,6 +17,18 @@ define(['js/app'], function (myApp) {
                 APPEAL_COMPLETED: 1
             };
 
+            vm.constQualityInspectionStatus = {
+                1: "PENDING",
+                2: "COMPLETED_UNREAD",
+                3: "COMPLETED_READ",
+                4: "COMPLETED",
+                5: "APPEALING",
+                6: "APPEAL_COMPLETED",
+                7: "NOT_EVALUATED"
+            };
+
+            vm.unseenEvaluationSelectedRecord = [];
+
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
                 window.document.title = $translate("qualityInspection") + "->" + $translate(vm.qualityInspectionPageName);
@@ -428,7 +440,16 @@ define(['js/app'], function (myApp) {
                     vm.qaForm = "";
 
                     if(data && data.data && data.data.length > 0){
-                        //vm.qaForm = data.data;
+
+                        data.data.map(data => {
+                            if(data && data.status){
+                                data.status = vm.constQualityInspectionStatus[data.status];
+                            }
+
+                            return data;
+                        })
+                        vm.qaForm = data.data;
+
                         $scope.safeApply();
                         // setTimeout(function(){
                         //     $scope.safeApply();
@@ -436,6 +457,24 @@ define(['js/app'], function (myApp) {
                     }
                 });
             }
+
+            vm.changeEvaluationRecordStatus = function(){
+
+            }
+
+            vm.gatherCheckedRecord = function(){
+                // if(isCheck){
+                //     vm.unseenEvaluationSelectedRecord.push(messageId);
+                // }else{
+                //     let selectedRecordIndex = vm.unseenEvaluationSelectedRecord.indexOf(messageId);
+                //     if(selectedRecordIndex > 0){
+                //         vm.unseenEvaluationSelectedRecord.splice(selectedRecordIndex,1);
+                //     }
+                // }
+                console.log("AAAAAAAAAAAa");
+            }
+
+
 
             var _ = {
                 clone: function (obj) {

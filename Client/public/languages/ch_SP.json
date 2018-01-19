@@ -3086,5 +3086,14 @@
   "APPEAL_START_DATE": "(申诉)开始日期",
   "APPEAL_END_DATE": "(申诉)结束日期",
   "APPEALING": "申诉中",
-  "APPEAL_COMPLETED": "申诉结案"
+  "APPEAL_COMPLETED": "申诉结案",
+  "PENDINGTOPROCESS": "待处理",
+  "COMPLETED_UNREAD": "已完成(未读)",
+  "COMPLETED_READ": "已完成(已读)",
+  "COMPLETED": "已完成(免读)",
+  "APPEALING": "申诉中",
+  "APPEAL_COMPLETED": "申诉结案",
+  "NOT_EVALUATED": "不评估(无效)",
+  "SEEN": "已读",
+  "I_WANT_TO_APPEAL": "我要申诉"
 }
