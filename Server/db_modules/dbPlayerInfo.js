@@ -7727,7 +7727,7 @@ let dbPlayerInfo = {
                                             };
                                             newProposal.inputDevice = dbUtility.getInputDevice(userAgent,false);
 
-                                            if (bForce) {
+                                            if (bForce && player.platform.useProviderGroup) {
                                                 dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id).catch(errorUtils.reportError);
                                             }
 
