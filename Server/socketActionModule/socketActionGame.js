@@ -163,7 +163,7 @@ function socketActionGame(socketIO, socket) {
         modifyGamePassword: function modifyGamePassword(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.providerId && data.newPassword);
-            let argArr = [data.playerId, data.providerId, data.newPassword];
+            let argArr = [data.playerId, data.providerId, data.newPassword, data.creator];
             socketUtil.emitter(self.socket, dbGame.modifyGamePassword, argArr, actionName, isValidData);
         }
     };

@@ -31,7 +31,7 @@
                     label.control-label {{"CURRENT_TELEPHONE" | translate}}
                     input.form-control(type="text", placeholder="{{'MOBILE' | translate}}", ng-model="modifyCritical.phoneNumber", disabled)
                 div.form-group.col-md-7
-                    label.control-label {{"VERIFY_TELEPHONE" | translate}}
+                    label.control-label {{"verify old telephone * part is match" | translate}}
                     input.form-control(type="text", placeholder="{{'VERIFY_TELEPHONE' | translate}}", ng-model="modifyCritical.verifyPhoneNumber")
                     p
                     button.btn.btn-primary.common-button(ng-disabled='!modifyCritical.verifyPhoneNumber', ng-click="verifyPlayerPhoneNumber()") {{"VERIFY" | translate}}

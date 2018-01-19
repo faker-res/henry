@@ -6,9 +6,13 @@ module.exports = new dbGameFunc();
 
 var dbconfig = require('./../modules/dbproperties');
 var dbPlatformGameStatus = require('./../db_modules/dbPlatformGameStatus');
+var dbProposal = require('./../db_modules/dbProposal');
 var constSystemParam = require('./../const/constSystemParam');
 var constServerCode = require('./../const/constServerCode');
 var constGameStatus = require('../const/constGameStatus');
+var constProposalEntryType = require('../const/constProposalEntryType');
+var constProposalUserType = require('../const/constProposalUserType');
+var constProposalType = require('../const/constProposalType');
 var cpmsAPI = require("./../externalAPI/cpmsAPI");
 var Q = require("q");
 
@@ -534,7 +538,7 @@ var dbGame = {
         );
     },
 
-    modifyGamePassword: function(playerId, providerId, newPassword) {
+    modifyGamePassword: function(playerId, providerId, newPassword, creator) {
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).lean().then(
@@ -546,7 +550,32 @@ var dbGame = {
                         providerId: providerId,
                         newPassword: newPassword
                     };
-                    return cpmsAPI.player_modifyGamePassword(requestData);
+
+                    let proposalData = {
+                        creator: creator? creator :
+                            {
+                                type: 'player',
+                                name: playerData.name,
+                                id: playerData._id
+                            },
+                        data: {
+                            _id:playerData._id,
+                            playerId: playerData.playerId,
+                            platformId: playerData.platform,
+                            isIgnoreAudit: true,
+                            updateGamePassword: true,
+                            remark: '修改供应商密码'
+
+                        },
+                        entryType: creator ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                        userType: constProposalUserType.PLAYERS,
+                    };
+                    return dbProposal.createProposalWithTypeName(playerData.platform,constProposalType.UPDATE_PLAYER_INFO,proposalData).then(
+                        () => {
+                            return cpmsAPI.player_modifyGamePassword(requestData);
+                        }
+                    )
+
                 }
                 else{
                     return Q.reject({name: "DataError", message: "Cannot find player"});

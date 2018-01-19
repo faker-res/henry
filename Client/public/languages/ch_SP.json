@@ -2749,6 +2749,7 @@
   "CONTENT_CHANGED":"更改内容",
   "CHANGED_VALUE":"更改值",
   "UNCHANGED":"(无更改)",
+  "CHANGED":"(有更改)",
   "SMS_EXPIRED_TIME": "配置短信过期时间（分钟）",
   "INPUT_DEVICE":"入口",
   "BACKSTAGE": "后台",
@@ -3087,5 +3088,8 @@
   "CONVERSATION_START_DATE": "(对话)开始日期",
   "CONVERSATION_END_DATE": "(对话)结束日期",
   "APPEAL_START_DATE": "(申诉)开始日期",
-  "APPEAL_END_DATE": "(申诉)结束日期"
+  "APPEAL_END_DATE": "(申诉)结束日期",
+  "verify old telephone * part is match":"验证旧手机号码 * 号部分是否相符",
+  "WEBSITE_PASS": "网站密码",
+  "GAME_PASS": "供应商密码"
 }
