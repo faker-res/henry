@@ -15,7 +15,12 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data);
             socketUtil.emitter(self.socket, dbQualityInspection.connectMysql, [], actionName, isDataValid);
         },
-
+        searchLive800: function searchLive800(data){
+            var actionName = arguments.callee.name;
+            data = true;
+            var isDataValid = Boolean(data);
+            socketUtil.emitter(self.socket, dbQualityInspection.searchLive800, [], actionName, isDataValid);
+        }
     };
 
     socketActionQualityInspection.actions = this.actions;
