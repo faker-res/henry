@@ -33,6 +33,8 @@ var playerCreditTransferLogSchema = new Schema({
     data: JSON,
     //status
     status: {type: String, index: true},
+    // is the transfer repaired?
+    isRepaired: {type: Boolean, default: false},
     //if this log has been used
     bUsed: {type: Boolean}
 });

@@ -34,6 +34,7 @@ const constSystemParam = require("../const/constSystemParam.js");
 const constServerCode = require("../const/constServerCode.js");
 const constPlayerTopUpType = require("../const/constPlayerTopUpType");
 const constMaxDateTime = require("../const/constMaxDateTime");
+const constPlayerCreditTransferStatus = require("../const/constPlayerCreditTransferStatus");
 let rsaCrypto = require("../modules/rsaCrypto");
 
 var proposal = {
@@ -131,6 +132,33 @@ var proposal = {
             () => {
                 return proposal.createProposalWithTypeNameWithProcessInfo(platformId, typeName, proposalData)
             })
+    },
+
+    applyRepairCreditTransfer: function (platformId, proposalData) {
+        function isRepairableTransfer(transferId) {
+            return dbconfig.collection_playerCreditTransferLog.find({
+                transferId,
+                isRepaired: {$ne: true},
+                status: {$in: [constPlayerCreditTransferStatus.FAIL, constPlayerCreditTransferStatus.TIMEOUT]}
+            }, {_id: 1}).limit(1).lean().then(
+                log => {
+                    return Boolean(log && log[0]);
+                }
+            );
+        }
+
+        return isRepairableTransfer(proposalData.data.transferId).then(
+            isRepairable => {
+                if (!isRepairable) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "This transfer is not repairable."
+                    });
+                }
+
+                return proposal.createProposalWithTypeNameWithProcessInfo(platformId, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, proposalData);
+            }
+        );
     },
 
     createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
@@ -307,15 +335,6 @@ var proposal = {
                                 });
                             }
                             else {
-
-                                if (proposalData.data.isIgnoreAudit){
-                                    proposalData.creator = {
-                                        type: 'player',
-                                        name: proposalData.data.playerName || "",
-                                        id: proposalData.data.playerId || ""
-                                    };
-                                }
-
                                 var proposalProm = proposal.createProposal(proposalData);
                                 var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
                                 return Q.all([proposalProm, platProm, data[0].expirationDuration]);
@@ -446,7 +465,7 @@ var proposal = {
         updateData['data.remarks'] = remarks;
         return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate({_id: ObjectId(id)}, updateData, {new: true}).exec();
     },
-    updateTopupProposal: function (proposalId, status, requestId, orderStatus) {
+    updateTopupProposal: function (proposalId, status, requestId, orderStatus, remark) {
         var proposalObj = null;
         var type = constPlayerTopUpType.ONLINE;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
@@ -495,9 +514,9 @@ var proposal = {
         ).then(
             data => {
                 if (status == constProposalStatus.SUCCESS) {
-                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true);
+                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true, remark);
                 } else if (status == constProposalStatus.FAIL) {
-                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false);
+                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark);
                 }
                 else {
                     //update proposal for experiation

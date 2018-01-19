@@ -418,7 +418,20 @@ var proposalExecutor = {
              * execution function for fix player credit transfer
              */
             executeFixPlayerCreditTransfer: function (proposalData, deferred) {
-                proposalExecutor.executions.executeUpdatePlayerCredit(proposalData, deferred, true);
+                isTransferIdRepaired(proposalData.data.transferId).then(
+                    isRepaired => {
+                        if (!isRepaired) {
+                            setTransferIdAsRepaired(proposalData.data.transferId).catch(errorUtils.reportError);
+                            proposalExecutor.executions.executeUpdatePlayerCredit(proposalData, deferred, true);
+                        }
+                        else {
+                            deferred.reject({name: "DataError", message: "This transfer has been repaired."});
+                        }
+                    },
+                    err => {
+                        deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error(err)});
+                    }
+                );
             },
 
             /**
@@ -576,6 +589,8 @@ var proposalExecutor = {
                                 delete playerUpdate.playerId;
                                 delete playerUpdate._id;
                                 delete playerUpdate.name;
+                                if(playerUpdate.updateGamePassword || playerUpdate.updatePassword)
+                                    delete playerUpdate.remark;
 
                                 proms.push(
                                     dbconfig.collection_players.findOneAndUpdate(
@@ -2009,7 +2024,7 @@ var proposalExecutor = {
                         type: constRewardType.PLAYER_PROMO_CODE_REWARD,
                         rewardType: constRewardType.PLAYER_PROMO_CODE_REWARD,
                         platformId: proposalData.data.platformId,
-                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        requiredUnlockAmount: proposalData.data.spendingAmount - proposalData.data.applyAmount,
                         currentAmount: proposalData.data.rewardAmount,
                         initAmount: proposalData.data.rewardAmount,
                         eventId: proposalData.data.eventId,
@@ -3255,6 +3270,18 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
             } else {
                 return Q.reject(error);
             }
+        }
+    );
+}
+
+function setTransferIdAsRepaired(transferId) {
+    return dbconfig.collection_playerCreditTransferLog.update({transferId}, {isRepaired: true}, {multi: true});
+}
+
+function isTransferIdRepaired(transferId) {
+    return dbconfig.collection_playerCreditTransferLog.find({transferId, isRepaired: true}, {_id: 1}).limit(1).lean().then(
+        log => {
+            return Boolean(log && log[0]);
         }
     );
 }

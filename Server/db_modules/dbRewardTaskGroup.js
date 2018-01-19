@@ -231,19 +231,21 @@ let dbRewardTaskGroup = {
         return Promise.all(promsArr);
     },
 
-    checkPlayerHasAvailRTG: (playerData) => {
-        return dbconfig.collection_rewardTaskGroup.findOne({
-            platformId: playerData.platform,
-            playerId: playerData._id,
-            status: {$in: [constRewardTaskStatus.STARTED]}
-        }).lean().then(
-            RTG => {
-                if (RTG) {
-
-                }
+    unlockPlayerRewardTask: (playerObjId) => {
+        return dbconfig.collection_rewardTaskGroup.find(
+            {
+                playerId: ObjectId(playerObjId),
+                status: constRewardTaskStatus.STARTED
             }
-        )
-    }
+        ).lean().then(
+            rewardTaskGroups => {
+                return dbRewardTaskGroup.performUnlockPlatformProviderGroup(rewardTaskGroups);
+            }
+        );
+    },
+
+
+
 };
 
 module.exports = dbRewardTaskGroup;

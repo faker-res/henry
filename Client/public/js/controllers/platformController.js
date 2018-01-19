@@ -3023,6 +3023,7 @@ define(['js/app'], function (myApp) {
                             return;
                         }
 
+                        vm.linkedPlayerTransfer = playerTransfer;
                         vm.linkedPlayerTransferId = playerTransfer._id;
                         vm.creditChange.finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount
                             + vm.selectedThisPlayer.validCredit).toFixed(2);
@@ -4265,7 +4266,8 @@ define(['js/app'], function (myApp) {
                                 remark: vm.creditChange.remark,
                                 adminName: authService.adminName
                             }
-                        }
+                        };
+
                         if (vm.linkedPlayerTransferId) {
                             sendData.data.transferId = playerTransfer.transferId;
                             //if reward task is still there fix locked amount otherwise fix valid amount
@@ -7179,7 +7181,7 @@ define(['js/app'], function (myApp) {
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
                     Object.keys(newPlayerData).forEach(function (key) {
                         if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "smsSetting" || key == "bankCardGroup" || key == "alipayGroup" || key == "wechatPayGroup" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName" || key == "DOB") {
+                            if (key == "smsSetting" || key == "bankCardGroup" || key == "alipayGroup" || key == "wechatPayGroup" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName") {
                                 //do nothing
                             } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                                 //do nothing
@@ -7650,7 +7652,8 @@ define(['js/app'], function (myApp) {
                 let queryObj = {
                     playerId: vm.isOneSelectedPlayer()._id,
                     platform: vm.isOneSelectedPlayer().platform,
-                    newPassword: vm.customNewPassword
+                    newPassword: vm.customNewPassword,
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                 };
 
                 if (vm.resetPartnerNewPassword) {
@@ -8538,6 +8541,7 @@ define(['js/app'], function (myApp) {
                                     }
                                 })
 
+                                vm.linkedPlayerTransfer = playerTransfer;
                                 vm.linkedPlayerTransferId = playerTransfer._id;
                                 let finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount + vm.selectedSinglePlayer.validCredit).toFixed(2);
                                 let finalLockedAmount = parseFloat(playerTransfer.lockedAmount).toFixed(2);
@@ -8753,7 +8757,8 @@ define(['js/app'], function (myApp) {
                 let sendObj = {
                     playerId: vm.isOneSelectedPlayer().playerId,
                     providerId: vm.playerModifyGamePassword.provider,
-                    newPassword: vm.playerModifyGamePassword.newPassword
+                    newPassword: vm.playerModifyGamePassword.newPassword,
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                 };
 
                 socketService.$socket($scope.AppSocket, 'modifyGamePassword', sendObj, data => {
@@ -10172,6 +10177,10 @@ define(['js/app'], function (myApp) {
                         item.realName$ = item.data.realName ? item.data.realName : $translate('UNCHANGED');
                         item.referralName$ = item.data.referralName ? item.data.referralName : $translate('UNCHANGED');
                         item.partnerName$ = item.data.partnerName ? item.data.partnerName : $translate('UNCHANGED');
+                        item.DOB$ = item.data.DOB ? item.data.DOB : $translate('UNCHANGED');
+                        item.gender$ = item.data.gender ? item.data.gender : $translate('UNCHANGED');
+                        item.updatePassword$ = item.data.updatePassword ? $translate('CHANGED') : $translate('UNCHANGED');
+                        item.updateGamePassword$ = item.data.updateGamePassword ? $translate('CHANGED') : $translate('UNCHANGED');
                         return item;
                     })
                     vm.playerInfoHistoryCount = data.data.data.length;
@@ -10208,6 +10217,10 @@ define(['js/app'], function (myApp) {
                         {title: $translate('PLAYER_LEVEL'), data: "playerLevel$"},
                         {title: $translate('PARTNER'), data: "partnerName$"},
                         {title: $translate('REFERRAL'), data: "referralName$"},
+                        {title: $translate('DOB'), data: "DOB$"},
+                        {title: $translate('GENDER'), data: "gender$"},
+                        {title: $translate('WEBSITE_PASS'), data: "updatePassword$"},
+                        {title: $translate('GAME_PASS'), data: "updateGamePassword$"},
                         {
                             "title": $translate('STATUS'),
                             "data": 'process',
