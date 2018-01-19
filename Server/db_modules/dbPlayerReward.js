@@ -2626,13 +2626,13 @@ let dbPlayerReward = {
                     platformObj = playerData.platform;
 
                     //check if player is valid for reward
-                    if (playerObj.permission.PlayerLimitedOfferReward === false) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_NO_PERMISSION,
-                            name: "DataError",
-                            message: "Reward not applicable"
-                        });
-                    }
+                    // if (playerObj.permission.PlayerLimitedOfferReward === false) {
+                    //     return Q.reject({
+                    //         status: constServerCode.PLAYER_NO_PERMISSION,
+                    //         name: "DataError",
+                    //         message: "Reward not applicable"
+                    //     });
+                    // }
 
                     return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFERS_REWARD}).lean();
                 } else {
@@ -2655,13 +2655,14 @@ let dbPlayerReward = {
                         if (String(f._id) == String(limitedOfferObjId)) {
                             eventObj = e;
                             limitedOfferObj = f;
-
-                            if (dbPlayerReward.isRewardEventForbidden(playerObj, eventObj._id)) {
-                                return Q.reject({name: "DataError", message: "Player is forbidden for this reward."});
-                            }
                         }
-                    })
+                    });
                 });
+
+                if (dbPlayerReward.isRewardEventForbidden(playerObj, eventObj._id)) {
+                    return Q.reject({name: "DataError", message: "Player is forbidden for this reward."});
+                }
+
                 return dbConfig.collection_playerLevel.find({
                     platform: platformObj._id
                 }).sort({value: 1}).lean();
