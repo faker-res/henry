@@ -329,7 +329,21 @@ angular.module('myApp.directives', [])
             }
         };
     })
+    .directive('conversationform', function(){
+        return {
+            retrict: 'EA',
+            replace: true,
+            controllerAs:'vm',
+            translude: true,
+            scope: {
+                cform:'='
+            },
+            template: $('#conversationForm').html(),
+            link:function(scope, element, attr){
 
+            }
+        };
+    })
     .directive('qaform', function(){
         return {
             retrict: 'EA',
@@ -337,11 +351,10 @@ angular.module('myApp.directives', [])
             controllerAs:'vm',
             translude: true,
             scope: {
-                qaform:'='
+                qform:'='
             },
             template: $('#QAForm').html(),
             link:function(scope, element, attr){
-
             }
         };
     })
