@@ -2660,7 +2660,7 @@ let dbPlayerReward = {
                 });
 
                 if (dbPlayerReward.isRewardEventForbidden(playerObj, eventObj._id)) {
-                    return Q.reject({name: "DataError", message: "Player is forbidden for this reward."});
+                    return Q.reject({name: "DataError", message: "Player does not have permission for this limited offer. Please contact cs for more detail."});
                 }
 
                 return dbConfig.collection_playerLevel.find({
