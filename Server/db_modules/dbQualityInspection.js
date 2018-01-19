@@ -26,19 +26,18 @@ var dbQualityInspection = {
         // connection.end();
     },
     searchLive800: function(){
+        var deferred = Q.defer();
         var connection = dbQualityInspection.connectMysql();
         connection.connect();
-
         connection.query("SELECT * FROM chat_content WHERE store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:10:00' AS DATETIME);", function (error, results, fields) {
             console.log('yeah');
             if (error) throw error;
             console.log('The solution is: ', results);
-            return results;
+            // return results;
+            deferred.resolve(results);
+            connection.end();
         });
-
-
-
-        connection.end();
+        return deferred.promise;
     },
 
     getUnreadEvaluationRecord: function(startTime, endTime){
@@ -49,7 +48,6 @@ var dbQualityInspection = {
             },
             status: constQualityInspectionStatus.COMPLETED_UNREAD
         }
-
         return dbconfig.collection_qualityInspection.find(query).lean();
     }
 
