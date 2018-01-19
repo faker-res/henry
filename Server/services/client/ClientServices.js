@@ -110,7 +110,8 @@
                 "getPlatformAnnouncements",
                 "getConfig",
                 "getLiveStream",
-                "playerPhoneChat"
+                "playerPhoneChat",
+                "searchConsumptionRecord"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
