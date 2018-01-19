@@ -445,11 +445,45 @@ define(['js/app'], function (myApp) {
                     endTime: endTime
                 }
 
+                    vm.qaForm = [
+                        {
+                            messageId: 331,
+                            status: '已完成（已读）',
+                            qualityAssessor: 'QC-ALLEN',
+                            fpmsAcc: 'ishtar',
+                            processTime: '2018-1-15 19:33:51',
+                            createTime: '2018-1-15 16:33:51',
+                            appealReason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
+                            conversation: [
+                                {
+                                    'time': '2018-1-15 16:33:51',
+                                    'roles': '客服',
+                                    'createTime': '2018-1-15 16:33:51',
+                                    'timeoutRate': -2,
+                                    'inspectionRate': 0,
+                                    'review': '答非所问'
+                                },
+                                {
+                                    'roles': 'Guest',
+                                    'createTime': '2018-1-15 16:33:51',
+                                },
+                                {
+                                    'time': '2018-1-15 16:33:51',
+                                    'roles': '客服',
+                                    'createTime': '2018-1-15 16:33:51',
+                                    'timeoutRate': -2,
+                                    'inspectionRate': 0,
+                                    'review': '答非所问'
+                                },
+                            ]
+                        }
+                        ]
+
                 socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecord', sendData, function (data) {
-                    vm.qaForm = "";
+                    //vm.qaForm = "";
 
                     if(data && data.data && data.data.length > 0){
-                        vm.qaForm = data.data;
+                        //vm.qaForm = data.data;
                         $scope.safeApply();
                         // setTimeout(function(){
                         //     $scope.safeApply();
