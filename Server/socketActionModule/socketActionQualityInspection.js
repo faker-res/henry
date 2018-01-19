@@ -16,6 +16,13 @@ function socketActionQualityInspection(socketIO, socket) {
             socketUtil.emitter(self.socket, dbQualityInspection.connectMysql, [], actionName, isDataValid);
         },
 
+        getUnreadEvaluationRecord: function getUnreadEvaluationRecord(data){
+            var actionName = arguments.callee.name;
+            //data = true;
+            var isDataValid = Boolean(data.createTime);
+            socketUtil.emitter(self.socket, dbQualityInspection.getUnreadEvaluationRecord, [data.createTime], actionName, isDataValid);
+        },
+
     };
 
     socketActionQualityInspection.actions = this.actions;

@@ -12,6 +12,11 @@ define(['js/app'], function (myApp) {
             // For debugging:
             window.VM = vm;
 
+            vm.evaluationAppealStatus = {
+                APPEALING: 1,
+                APPEAL_COMPLETED: 1
+            };
+
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
                 window.document.title = $translate("qualityInspection") + "->" + $translate(vm.qualityInspectionPageName);
@@ -47,6 +52,10 @@ define(['js/app'], function (myApp) {
                     if (storedPlatform) {
                         vm.searchAndSelectPlatform(storedPlatform, option);
                     }
+
+                    vm.initUnreadEvaluation();
+                    vm.initReadEvaluation();
+                    vm.initAppealEvaluation();
                 }, function (err) {
                     vm.showPlatformSpin = false;
                 });
@@ -99,7 +108,6 @@ define(['js/app'], function (myApp) {
                 }
 
                 // Initial Loading
-                vm.evaluationTab = 'unreadEvaluation';
 
                 $scope.safeApply();
             };
@@ -151,6 +159,78 @@ define(['js/app'], function (myApp) {
             if (!$scope.AppSocket) {
                 eventName = "socketConnected";
                 $scope.$emit('childControllerLoaded', 'qualityInspectionControllerLoaded');
+            }
+
+            vm.initUnreadEvaluation = function(){
+                vm.evaluationTab = 'unreadEvaluation';
+
+                $('#unreadEvaluationStartDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $('#unreadEvaluationEndDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+            }
+
+            vm.initReadEvaluation = function(){
+                $('#readEvaluationStartDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $('#readEvaluationEndDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+            }
+
+            vm.initAppealEvaluation = function(){
+                $('#conversationStartDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $('#conversationEndDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $('#appealEvaluationStartDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $('#appealEvaluationEndDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+            }
+
+            vm.getUnreadEvaluationRecord = function() {
+                var startTime = $('#unreadEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#unreadEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
+
+                let sendData = {
+                    createTime: {
+                        $gte: startTime,
+                        $lte: endTime
+                    }
+                }
+
+                socketService.$socket($scope.AppSocket, 'vertificationSMSQuery', sendQuery, function (data) {
+
+                });
             }
 
             var _ = {
