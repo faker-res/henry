@@ -3023,6 +3023,7 @@ define(['js/app'], function (myApp) {
                             return;
                         }
 
+                        vm.linkedPlayerTransfer = playerTransfer;
                         vm.linkedPlayerTransferId = playerTransfer._id;
                         vm.creditChange.finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount
                             + vm.selectedThisPlayer.validCredit).toFixed(2);
@@ -4265,7 +4266,8 @@ define(['js/app'], function (myApp) {
                                 remark: vm.creditChange.remark,
                                 adminName: authService.adminName
                             }
-                        }
+                        };
+
                         if (vm.linkedPlayerTransferId) {
                             sendData.data.transferId = playerTransfer.transferId;
                             //if reward task is still there fix locked amount otherwise fix valid amount
@@ -8538,6 +8540,7 @@ define(['js/app'], function (myApp) {
                                     }
                                 })
 
+                                vm.linkedPlayerTransfer = playerTransfer;
                                 vm.linkedPlayerTransferId = playerTransfer._id;
                                 let finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount + vm.selectedSinglePlayer.validCredit).toFixed(2);
                                 let finalLockedAmount = parseFloat(playerTransfer.lockedAmount).toFixed(2);

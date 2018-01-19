@@ -2037,7 +2037,7 @@ include modalGameCreditLog
                                     label.control-label {{'REMARKS' | translate}}
                                 .col-md-12.textareaDetail
                                     textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
-                            button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
+                            button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId || (vm.linkedPlayerTransfer.status != 2 && vm.linkedPlayerTransfer.status != 5)', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
 #modalProviderExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
         .modal-content
