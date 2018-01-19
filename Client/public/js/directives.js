@@ -330,6 +330,21 @@ angular.module('myApp.directives', [])
         };
     })
 
+    .directive('qaform', function(){
+        return {
+            retrict: 'EA',
+            replace: true,
+            controllerAs:'vm',
+            translude: true,
+            scope: {
+                qaform:'='
+            },
+            template: $('#QAForm').html(),
+            link:function(scope, element, attr){
+
+            }
+        };
+    })
     // sheetjs.com js-xlsx - spreadsheet parser and writer
     .directive('fileread', [function () {
         return {
