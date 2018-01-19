@@ -55,10 +55,14 @@ var PlatformServiceImplement = function () {
         if( !data.startTime || new Date(data.startTime).getTime() - new Date().getTime() > 24 * 60 * 1000 * 1000 ){
             data.startTime =  new Date(new Date().getTime() - 24 * 60 * 1000 * 1000);
         }
+        data.minBonusAmount = data.minBonusAmount || 0;
+        if(data.minBonusAmount < 0){
+            data.minBonusAmount = 0;
+        }
         data.endTime = data.endTime || new Date();
         WebSocketUtil.performAction(
             conn, wsFunc, data, dbPlayerConsumptionRecord.searchPlatformConsumption,
-            [data.platformId, data.startTime, data.endTime, data.startIndex, data.requestCount], isValidData, null, null, true
+            [data.platformId, data.startTime, data.endTime, data.startIndex, data.requestCount, data.minBonusAmount, data.minAmount, data.minValidAmount], isValidData, null, null, true
         );
     };
 

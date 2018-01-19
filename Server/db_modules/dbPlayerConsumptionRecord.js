@@ -1087,14 +1087,21 @@ var dbPlayerConsumptionRecord = {
         return deferred.promise;
     },
 
-    searchPlatformConsumption: function(platformId, startTime, endTime, startIndex, requestCount){
+    searchPlatformConsumption: function(platformId, startTime, endTime, startIndex, requestCount, minBonusAmount, minAmount, minValidAmount){
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if( platformData ){
                     let queryObj = {
                         platformId: platformData._id,
                         createTime: {$gte: startTime, $lt: endTime}
+                        bonusAmount: {$gte: minBonusAmount}
                     };
+                    if(minAmount != null){
+                        queryObj.amount = {$gte: minAmount};
+                    }
+                    if(minValidAmount != null){
+                        queryObj.validAmount = {$gte: minValidAmount};
+                    }
                     return dbconfig.collection_playerConsumptionRecord.find(queryObj).sort({createTime: 1}).skip(startIndex).limit(requestCount).lean().populate({
                         path: "gameId",
                         model: dbconfig.collection_game
