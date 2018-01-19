@@ -28,14 +28,16 @@ var dbQualityInspection = {
         connection.end();
     },
 
-    getUnreadEvaluationRecord: function(createTime){
+    getUnreadEvaluationRecord: function(startTime, endTime){
         let query ={
-            createTime: createTime,
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
+            },
             status: constQualityInspectionStatus.COMPLETED_UNREAD
         }
-        return dbconfig.collection_qualityInspection.find({query}).lean().then({
 
-        })
+        return dbconfig.collection_qualityInspection.find(query).lean();
     }
 
 };

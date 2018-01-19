@@ -19,8 +19,8 @@ function socketActionQualityInspection(socketIO, socket) {
         getUnreadEvaluationRecord: function getUnreadEvaluationRecord(data){
             var actionName = arguments.callee.name;
             //data = true;
-            var isDataValid = Boolean(data.createTime);
-            socketUtil.emitter(self.socket, dbQualityInspection.getUnreadEvaluationRecord, [data.createTime], actionName, isDataValid);
+            var isDataValid = Boolean(data.startTime, data.endTime);
+            socketUtil.emitter(self.socket, dbQualityInspection.getUnreadEvaluationRecord, [data.startTime, data.endTime], actionName, isDataValid);
         },
 
     };

@@ -6,15 +6,16 @@ var qualityInspectionSchema = new Schema({
     status:{type: Number, default: 1}, //1 = pending, 2=completed(unread), 3=completed(read), 4=completed, 5=appealing, 6=appeal completed, 7=not evaluated(invalid)
     qualityAssessor:{type: String, required: true},
     fpmsAcc:{type: String, required: true},
-    process_time:{type: Date, default: Date.now, index: true},
-    appeal_reason: {type: String},
+    processTime:{type: Date, default: Date.now, index: true},
+    createTime:{type: Date, default: Date.now, index: true},
+    appealReason: {type: String},
     conversation:[
         {
             time:{type: String, required: true},
             roles:{type: Number, default: 1}, //1 = customer services, 2=user
-            create_time:{type: Date, default: Date.now, index: true},
-            timeout_rate:{type: Number, default: 0},
-            inspection_rate:{type: Number, default: 0},
+            createTime:{type: Date, default: Date.now, index: true},
+            timeoutRate:{type: Number, default: 0},
+            inspectionRate:{type: Number, default: 0},
             review:{type: String}
         }
     ]

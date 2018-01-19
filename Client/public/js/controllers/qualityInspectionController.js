@@ -146,8 +146,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.showLive800 = function(){
-
-
                 vm.qaForm = [
                     {
                         messageId: 331,
@@ -248,6 +246,7 @@ define(['js/app'], function (myApp) {
                         }
                         ]
                     }]
+
                 setTimeout(function(){
                     $scope.safeApply();
                 },0)
@@ -275,11 +274,15 @@ define(['js/app'], function (myApp) {
                     pick12HourFormat: true
                 });
 
+                $("#unreadEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
                 $('#unreadEvaluationEndDatetimePicker').datetimepicker({
                     language: 'en',
                     format: 'dd/MM/yyyy hh:mm:ss',
                     pick12HourFormat: true
                 });
+
+                $("#unreadEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
             }
 
             vm.initReadEvaluation = function(){
@@ -327,14 +330,20 @@ define(['js/app'], function (myApp) {
                 var endTime = $('#unreadEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
                 let sendData = {
-                    createTime: {
-                        $gte: startTime,
-                        $lte: endTime
-                    }
+                    startTime: startTime,
+                    endTime: endTime
                 }
 
-                socketService.$socket($scope.AppSocket, 'vertificationSMSQuery', sendQuery, function (data) {
+                socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecord', sendData, function (data) {
+                    vm.qaForm = "";
 
+                    if(data && data.data && data.data.length > 0){
+                        vm.qaForm = data.data;
+                        $scope.safeApply();
+                        // setTimeout(function(){
+                        //     $scope.safeApply();
+                        // },100)
+                    }
                 });
             }
 
