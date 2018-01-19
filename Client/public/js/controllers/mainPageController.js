@@ -661,14 +661,9 @@ define(['js/app'], function (myApp) {
             };
             vm.reArrangeTXT = function(arr){
                 let result = '';
+                let delimiter = ',';
                 if(arr.length >0 ){
-                    arr.forEach(function(val, index){
-                        if(index == arr.length){
-                            result += val;
-                        }else{
-                            result += val+','
-                        }
-                    })
+                    result = arr.join(delimiter);
                 }
                 return result;
             };
@@ -695,23 +690,37 @@ define(['js/app'], function (myApp) {
                     live800AccTXT: vm.reArrangeTXT(vm.curUser.live800Acc),
                 };
                 console.log("vm.newAdmin", vm.newAdmin);
+                console.log("vm.updateAdminLive800",vm.updateAdminLive800);
             };
+
             vm.submitEditUser = function () {
                 var adminId = vm.curUser._id;
                 vm.reArrangeArr(vm.updateAdminLive800.live800CompanyIdTXT ,  'live800CompanyId', vm.newAdmin,);
                 vm.reArrangeArr(vm.updateAdminLive800.live800AccTXT , 'live800Acc', vm.newAdmin);
 
-                socketService.$socket($scope.AppSocket, 'updateAdmin', {
-                    query: {_id: vm.curUser._id},
-                    updateData: vm.newAdmin
-                }, success, null, true);
+                if((vm.curUser.live800Acc != vm.newAdmin.live800Acc) && vm.newAdmin.live800Acc != '') {
+                    socketService.$socket($scope.AppSocket, 'checkLive800AccValidity', {live800Acc: vm.newAdmin.live800Acc}, function(data){
+                        console.log('data',data);
+                        if (data && !data.data) {
+                            alert('Live800 Account already exist');
+                            return;
+                        }
+                        else {
+                            socketService.$socket($scope.AppSocket, 'updateAdmin', {
+                                query: {_id: vm.curUser._id},
+                                updateData: vm.newAdmin
+                            }, success, null, true);
+                        }
+                    });
+                }
+
                 function success(data) {
                     //vm.getAllDepartmentData();
                     vm.getDepartmentUsersData();
                     console.log("edit ok");
                     $scope.safeApply();
                 }
-            }
+            };
 
             vm.deleteUsers = function () {
                 var userIds = [];
