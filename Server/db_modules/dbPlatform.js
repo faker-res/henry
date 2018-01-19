@@ -268,7 +268,6 @@ var dbPlatform = {
         );
     },
     getPlatformSetting: function (query) {
-        console.log("AAAAAAAAAAAAAAAAAAAAAAA",query);
         return dbconfig.collection_platform.find(query);
     },
 

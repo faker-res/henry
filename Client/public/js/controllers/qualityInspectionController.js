@@ -225,7 +225,6 @@ define(['js/app'], function (myApp) {
 
             vm.getConversationDefinition = function () {
                 vm.conversationDefinition = vm.conversationDefinition || {};
-
                 vm.conversationDefinition.totalSec = vm.selectedPlatform.data.conversationDefinition.totalSec;
                 vm.conversationDefinition.askingSentence = vm.selectedPlatform.data.conversationDefinition.askingSentence;
                 vm.conversationDefinition.replyingSentence = vm.selectedPlatform.data.conversationDefinition.replyingSentence;
