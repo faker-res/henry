@@ -7632,14 +7632,13 @@ let dbPlayerInfo = {
             ).then(
                 RTGs => {
                     if (!RTGs) {
-                        // if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
-                        //     || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
-                        //     return Q.reject({
-                        //         status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
-                        //         name: "DataError",
-                        //         errorMessage: "Player does not have valid payment information"
-                        //     });
-                        // }
+                        if (!player.bankName || !player.bankAccountName || !player.bankAccount ) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+                                name: "DataError",
+                                errorMessage: "Player does not have valid payment information"
+                            });
+                        }
                         let todayTime = dbUtility.getTodaySGTime();
                         let creditProm = Q.resolve();
 
