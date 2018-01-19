@@ -155,106 +155,6 @@ define(['js/app'], function (myApp) {
                 }
             }
             vm.showLive800 = function(){
-                vm.qaForm = [
-                    {
-                        messageId: 331,
-                        status: '已完成（已读）',
-                        qualityAssessor: 'QC-ALLEN',
-                        fpmsAcc: 'ishtar',
-                        process_time: '2018-1-15 19:33:51',
-                        created_time: '2018-1-15 16:33:51',
-                        appeal_reason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
-                        conversation: [
-                            {
-                                'time': '2018-1-15 16:33:51',
-                                'roles': '客服',
-                                'create_time': '2018-1-15 16:33:51',
-                                'timeout_rate': -2,
-                                'inspection_rate': 0,
-                                'review': '答非所问'
-                            },
-                            {
-                                'roles': 'Guest',
-                                'create_time': '2018-1-15 16:33:51',
-                            },
-                            {
-                                'time': '2018-1-15 16:33:51',
-                                'roles': '客服',
-                                'create_time': '2018-1-15 16:33:51',
-                                'timeout_rate': -2,
-                                'inspection_rate': 0,
-                                'review': '答非所问'
-                            },
-                        ]
-                    },
-                    {
-                        messageId: 332,
-                        status: '已完成（已读）',
-                        qualityAssessor: 'QC-ALLEN',
-                        fpmsAcc: 'ishtar',
-                        process_time: '2018-1-15 19:33:51',
-                        created_time: '2018-1-15 16:33:51',
-                        appeal_reason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
-                        conversation: [
-                            {
-                                'time': '2018-1-15 16:33:51',
-                                'roles': '客服',
-                                'create_time': '2018-1-15 16:33:51',
-                                'timeout_rate': -2,
-                                'inspection_rate': 0,
-                                'review': '答非所问'
-                            },
-                            {
-                                'roles': 'Guest',
-                                'create_time': '2018-1-15 16:33:51',
-                            },
-                            {
-                                'time': '2018-1-15 16:33:51',
-                                'roles': '客服',
-                                'create_time': '2018-1-15 16:33:51',
-                                'timeout_rate': -2,
-                                'inspection_rate': 0,
-                                'review': '答非所问'
-                            },
-                        ]
-                    },
-                    {
-                        messageId: 333,
-                        status: '已完成（已读）',
-                        qualityAssessor: 'QC-ALLEN',
-                        fpmsAcc: 'ishtar',
-                        process_time: '2018-1-15 19:33:51',
-                        created_time: '2018-1-15 16:33:51',
-                        appeal_reason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
-                        conversation: [{
-                            'time': '2018-1-15 16:33:51',
-                            'roles': '客服',
-                            'create_time': '2018-1-15 16:33:51',
-                            'timeout_rate': -2,
-                            'inspection_rate': 0,
-                            'review': '答非所问'
-                        }]
-                    },
-                    {
-                        messageId: 334,
-                        status: '已完成（已读）',
-                        qualityAssessor: 'QC-ALLEN',
-                        fpmsAcc: 'ishtar',
-                        process_time: '2018-1-15 19:33:51',
-                        created_time: '2018-1-15 16:33:51',
-                        appeal_reason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
-                        conversation: [{
-                            'date': '2018-1-15 16:33:51', 'rate': 5, conversation: [{
-                                'time': '2018-1-15 16:33:51',
-                                'roles': '客服',
-                                'create_time': '2018-1-15 16:33:51',
-                                'timeout_rate': -2,
-                                'inspection_rate': 0,
-                                'review': '答非所问'
-                            }]
-                        }
-                        ]
-                    }]
 
                 setTimeout(function(){
                     $scope.safeApply();
@@ -476,11 +376,42 @@ define(['js/app'], function (myApp) {
                                     'review': '答非所问'
                                 },
                             ]
+                        },
+                        {
+                            messageId: 331,
+                            status: '已完成（已读）',
+                            qualityAssessor: 'QC-ALLEN',
+                            fpmsAcc: 'ishtar',
+                            processTime: '2018-1-15 19:33:51',
+                            createTime: '2018-1-15 16:33:51',
+                            appealReason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
+                            conversation: [
+                                {
+                                    'time': '2018-1-15 16:33:51',
+                                    'roles': '客服',
+                                    'createTime': '2018-1-15 16:33:51',
+                                    'timeoutRate': -2,
+                                    'inspectionRate': 0,
+                                    'review': '答非所问'
+                                },
+                                {
+                                    'roles': 'Guest',
+                                    'createTime': '2018-1-15 16:33:51',
+                                },
+                                {
+                                    'time': '2018-1-15 16:33:51',
+                                    'roles': '客服',
+                                    'createTime': '2018-1-15 16:33:51',
+                                    'timeoutRate': -2,
+                                    'inspectionRate': 0,
+                                    'review': '答非所问'
+                                },
+                            ]
                         }
-                        ]
+                    ]
 
                 socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecord', sendData, function (data) {
-                    //vm.qaForm = "";
+                    vm.qaForm = "";
 
                     if(data && data.data && data.data.length > 0){
                         //vm.qaForm = data.data;
@@ -498,7 +429,8 @@ define(['js/app'], function (myApp) {
                 }
             };
         };
-    qualityInspectionController.$inject = injectParams;
-        myApp.register.controller('qualityInspectionCtrl', qualityInspectionController);
-    }
+
+            qualityInspectionController.$inject = injectParams;
+            myApp.register.controller('qualityInspectionCtrl', qualityInspectionController);
+        }
 );
