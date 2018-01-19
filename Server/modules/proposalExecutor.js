@@ -589,6 +589,8 @@ var proposalExecutor = {
                                 delete playerUpdate.playerId;
                                 delete playerUpdate._id;
                                 delete playerUpdate.name;
+                                if(playerUpdate.updateGamePassword || playerUpdate.updatePassword)
+                                    delete playerUpdate.remark;
 
                                 proms.push(
                                     dbconfig.collection_players.findOneAndUpdate(
