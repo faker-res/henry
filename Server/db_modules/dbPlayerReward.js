@@ -317,15 +317,19 @@ let dbPlayerReward = {
         let list = [];
         let Open = [];
         let get = [];
+        let giveup = [];
+        let bonusList = [];
         let canApply = false;
         let isRewardAmountDynamic = false;
+        let currentTime = new Date();
 
         console.log('playerId',playerId);
         console.log('rewardCode',rewardCode);
         console.log('platformId',platformId);
 
-        function addParamToOpen(selectedParam, status) {
-            if (!selectedParam) {
+        function addParamToOpen(openData, status) {
+            console.log('EVENT111111======', event);
+            if (!openData) {
                 return false;
             }
 
@@ -337,24 +341,29 @@ let dbPlayerReward = {
                 console.log('status 2====');
             }
 
-            let openItem = {
-                minDeposit: selectedParam.minTopUpAmount,
-                timeLeft: 200,
-                status,
-                condition: {
-                    availableDeposit: 100,
-                    availableDepositTimes: player.name
-                }
-            };
+            // let openItem = {
+            //     startTime: openData.startTime,
+            //     endTime: openData.endTime,
+            //     minDeposit: openData.minTopUpAmount,
+            //     timeLeft: openData.timeLeft,
+            //     status,
+            //     condition: {
+            //         availableDeposit: 100,
+            //         availableDepositTimes: player.name
+            //     }
+            // };
+
+            let openItem = openData;
+            openItem.status = status;
 
             if (isRewardAmountDynamic) {
-                openItem.promoRate = (selectedParam.rewardPercentage * 100) + "%";
-                openItem.promoLimit = selectedParam.maxRewardInSingleTopUp;
-                openItem.betTimes = selectedParam.spendingTimes;
+                openItem.promoRate = (openData.rewardPercentage * 100) + "%";
+                openItem.promoLimit = openData.maxRewardInSingleTopUp;
+                openItem.betTimes = openData.spendingTimes;
             }
             else {
-                openItem.promoAmount = selectedParam.rewardAmount;
-                openItem.betTimes = selectedParam.spendingTimesOnReward;
+                openItem.promoAmount = openData.rewardAmount;
+                openItem.betTimes = openData.spendingTimesOnReward;
             }
 
             Open.push(openItem);
@@ -391,6 +400,56 @@ let dbPlayerReward = {
             get.push(getItem);
         }
 
+        function addParamToGiveup(selectedParam, status) {
+            if (!selectedParam) {
+                return false;
+            }
+
+            if (status !== 2) {
+                console.log('ERROR status 2====');
+            }
+
+            let giveupItem = {
+                minDeposit: selectedParam.minTopUpAmount,
+                status,
+                condition: {
+                    availableDeposit: 100,
+                    availableDepositTimes: player.name
+                }
+            };
+
+            if (isRewardAmountDynamic) {
+                giveupItem.promoRate = (selectedParam.rewardPercentage * 100) + "%";
+                giveupItem.promoLimit = selectedParam.maxRewardInSingleTopUp;
+                giveupItem.betTimes = selectedParam.spendingTimes;
+            }
+            else {
+                giveupItem.promoAmount = selectedParam.rewardAmount;
+                giveupItem.betTimes = selectedParam.spendingTimesOnReward;
+            }
+
+            giveup.push(giveupItem);
+        }
+
+        // display all players who applied for random reward within reward interval period
+        function addParamToBonusList(bonusListRewardProposals) {
+            console.log('BONUS====');
+            if (!bonusListRewardProposals) {
+                return false;
+            }
+
+            for (let z = 0; z < bonusListRewardProposals.length; z++) {
+                console.log('bonusListRewardProposals.data.playerName',bonusListRewardProposals[z].data.playerName);
+                console.log('bonusListRewardProposals.data.rewardAmount',bonusListRewardProposals[z].data.rewardAmount);
+                console.log('bonusListRewardProposals.settleTime',bonusListRewardProposals[z].settleTime);
+                bonusList[z] = {
+                    accountNo: bonusListRewardProposals[z].data.playerName,
+                    bonus: bonusListRewardProposals[z].data.rewardAmount,
+                    time: bonusListRewardProposals[z].settleTime
+                };
+            }
+        }
+
         if (playerId) {
             console.log('HERE===playerID');
             let playerProm = dbConfig.collection_players.findOne({playerId})
@@ -422,11 +481,10 @@ let dbPlayerReward = {
             return dbRewardEvent.getPlatformRewardEventWithTypeName(platform._id, constRewardType.PLAYER_RANDOM_REWARD_GROUP, rewardCode);
         }).then(eventData => {
             console.log('eventData',eventData);
-            console.log('player',player);
-            console.log('platform',platform);
-            console.log('playerLevel',playerLevel);
+            // console.log('player',player);
+            // console.log('platform',platform);
+            // console.log('playerLevel',playerLevel);
             event = eventData;
-            let currentTime = new Date();
             if (!event) {
                 return Promise.reject({
                     status: constServerCode.REWARD_EVENT_INVALID,
@@ -447,53 +505,59 @@ let dbPlayerReward = {
             console.log('intervalTime',intervalTime);
 
             let similarRewardProposalProm = Promise.resolve([]);
-            let lastTopUpProm = Promise.resolve([]);
+            let similarTopUpProm = Promise.resolve([]);
             let similarConsumptionProposalProm = Promise.resolve([]);
+            let bonusListRewardProposalProm = Promise.resolve([]);
 
             if (!player) {
-                return Promise.all([similarRewardProposalProm, lastTopUpProm]);
+                return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm]);
             }
 
+            // queries
             let rewardProposalQuery = {
                 "data.platformObjId": platform._id,
                 "data.playerObjId": player._id,
                 "data.eventId": event._id,
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
             };
-            console.log('rewardProposalQuery', rewardProposalQuery);
-
-            let lastTopUpQuery = {playerId: player._id};
-
+            let topUpRecordQuery = {playerId: player._id};
             let consumptionProposalQuery = {playerId: player._id};
+            let bonusListRewardProposalQuery = {
+                "data.platformObjId": platform._id,
+                "data.eventId": event._id,
+                status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+            };
 
+            // check query is within reward interval period
             if (intervalTime) {
                 rewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
-                lastTopUpQuery.settlementTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+                topUpRecordQuery.settlementTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
                 consumptionProposalQuery.insertTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+                bonusListRewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
             similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).sort({createTime: -1}).lean();
-
-            lastTopUpProm = dbConfig.collection_playerTopUpRecord.find(lastTopUpQuery).sort({createTime: -1}).lean();
-
+            similarTopUpProm = dbConfig.collection_playerTopUpRecord.find(topUpRecordQuery).sort({createTime: -1}).lean();
             similarConsumptionProposalProm = dbConfig.collection_playerConsumptionRecord.find(consumptionProposalQuery).sort({createTime: -1}).lean();
+            bonusListRewardProposalProm = dbConfig.collection_proposal.find(bonusListRewardProposalQuery).sort({createTime: -1}).lean();
 
-            return Promise.all([similarRewardProposalProm, lastTopUpProm, similarConsumptionProposalProm]);
+            return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm]);
         }).then(data => {
             console.log('data', data);
-            if (!data || !data[0] || !data[1]) {
+            if (!data || !data[0] || !data[1] || !data[2] || !data[3]) {
                 return Promise.reject({
                     status: constServerCode.DOCUMENT_NOT_FOUND,
                     message: "Error in finding proposal"
                 });
             }
             let rewardProposals = data[0];
-            // let lastTopUp = data[1][0];
-            let lastTopUp = data[1];
+            let topUpRecords = data[1];
             let consumptionProposals = data[2];
+            let bonusListRewardProposals = data[3];
             console.log('rewardProposals', rewardProposals);
-            console.log('lastTopUp', lastTopUp);
+            console.log('topUpRecords', topUpRecords);
             console.log('consumptionProposals', consumptionProposals);
+            // console.log('bonusListRewardProposals', bonusListRewardProposals);
 
             // big big null check
             if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
@@ -507,17 +571,22 @@ let dbPlayerReward = {
             let isReachCountLimit = event.param && event.param.countInRewardInterval && rewardProposals.length > event.param.countInRewardInterval;
             isRewardAmountDynamic = event.condition.isDynamicRewardAmount || isRewardAmountDynamic;
             let paramOfLevel = event.param.rewardParam[0].value;
+            let selectedParam = null;
 
             console.log('isReachCountLimit', isReachCountLimit);
             console.log('event.param.countInRewardInterval', event.param.countInRewardInterval);
             console.log('event.condition.isPlayerLevelDiff', event.condition.isPlayerLevelDiff);
 
+            // find param for matching player level
             if (event.condition.isPlayerLevelDiff && player) {
                 let rewardParam = event.param.rewardParam.filter(e => e.levelId == String(player.playerLevel._id));
                 if (rewardParam && rewardParam[0] && rewardParam[0].value) {
                     paramOfLevel = rewardParam[0].value;
                 }
                 console.log('rewardParam', rewardParam);
+            } else {
+                selectedParam = paramOfLevel[0];
+                console.log('selectedParam', selectedParam);
             }
 
             if (event.param.isSteppingReward) {
@@ -532,7 +601,7 @@ let dbPlayerReward = {
                 let nextRewardParamIndex = Math.min(list.length, paramOfLevel.length - 1);
                 let nextRewardParam = paramOfLevel[nextRewardParamIndex];
 
-                if (!isReachCountLimit && lastTopUp && lastTopUp.amount >= nextRewardParam.minTopUpAmount && !checkTopupRecordIsDirtyForReward(event, {selectedTopup: lastTopUp})) {
+                if (!isReachCountLimit && topUpRecords && topUpRecords.amount >= nextRewardParam.minTopUpAmount && !checkTopupRecordIsDirtyForReward(event, {selectedTopup: topUpRecords})) {
                     canApply = true;
                     addParamToOpen(nextRewardParam, 1); // applicable
                 }
@@ -545,10 +614,10 @@ let dbPlayerReward = {
             else {
                 console.log('NO--STEPPING=====');
                 let applicableParamIndex = -1;
-                if (!isReachCountLimit && lastTopUp && lastTopUp.amount) {
+                if (!isReachCountLimit && topUpRecords && topUpRecords.amount) {
                     for (let i = 0; i < paramOfLevel.length; i++) {
                         let selectedParam = paramOfLevel[i];
-                        if (selectedParam.minTopUpAmount <= lastTopUp.amount) {
+                        if (selectedParam.minTopUpAmount <= topUpRecords.amount) {
                             canApply = true;
                             applicableParamIndex = i;
                         }
@@ -560,21 +629,170 @@ let dbPlayerReward = {
                 for (let i = 0; i < paramOfLevel.length; i++) {
                     let selectedParam = paramOfLevel[i];
                     let status = applicableParamIndex === i ? 1 : 0; // applicable : not applicable
-                    addParamToOpen(selectedParam, status);
-                    addParamToGet(selectedParam, status);
+                    // addParamToOpen(selectedParam, status);
+                    // addParamToGet(selectedParam, status);
                 }
+            }
+
+            console.log('selectedParam=======', selectedParam);
+            console.log('event.condition.rewardAppearPeriod',event.condition.rewardAppearPeriod);
+            if (event.condition.rewardAppearPeriod) {
+                // let isValid = false;
+                let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
+                console.log('todayWeekOfDay',todayWeekOfDay);
+                let dayOfHour = moment(new Date()).tz('Asia/Singapore').hours();
+                console.log('dayOfHour',dayOfHour);
+
+                let openData, getData, giveupData;
+                let totalValidTopup = 0;
+                let totalValidConsumption = 0;
+                let openID = 0;
+
+                // find availableDeposit // total top up amount that is valid
+                for (let x = 0; x < topUpRecords.length; x++) {
+                    if (topUpRecords[x].amount >= selectedParam.requiredTopUpAmount) {
+                        totalValidTopup += topUpRecords[x].amount;
+                    }
+                }
+                console.log('topUpRecords.length',topUpRecords.length);
+
+                // find availableBetAmount // total consumption amount that is valid
+                for (let y = 0; y < consumptionProposals.length; y++) {
+                    if (consumptionProposals[y].amount >= selectedParam.requiredConsumptionAmount) {
+                        totalValidConsumption += consumptionProposals[y].amount;
+                    }
+                }
+                console.log('consumptionProposals.length',consumptionProposals.length);
+
+                event.condition.rewardAppearPeriod.forEach(appearPeriod => {
+                    console.log('appearPeriod',appearPeriod);
+
+                    if (appearPeriod.startDate <= todayWeekOfDay && appearPeriod.startTime <= dayOfHour &&
+                        appearPeriod.endDate >= todayWeekOfDay && appearPeriod.endTime > dayOfHour
+                    ) {
+                        console.log('TRUE1');
+                        // isValid = true;
+                    }
+                    console.log('TRUE2');
+
+                    // status 0
+                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime >= dayOfHour) {
+                        openID++;
+                        console.log('openID11',openID);
+
+                        console.log('status 0',appearPeriod);
+                        let countdownToStartTime = appearPeriod.startTime - currentTime;
+                        console.log('countdownToStartTime',countdownToStartTime);
+                        openData = {
+                            id: openID,
+                            startTime: appearPeriod.startTime,
+                            endTime: appearPeriod.endTime,
+                            timeLeft: countdownToStartTime, //todo: in seconds
+                            condition: {
+                                availableDeposit: totalValidTopup,
+                                availableDepositTimes: topUpRecords.length, //todo: find for unused topup
+                                requestDeposit: selectedParam.requiredTopUpAmount,
+                                betSource: event.condition.consumptionProvider,
+                                availableBetAmount: totalValidConsumption,
+                                requestBetAmount: selectedParam.requiredConsumptionAmount,
+                                availableChances: selectedParam.numberParticipation - rewardProposals.length,
+                                usedChances: rewardProposals.length,
+                                totalChances: selectedParam.numberParticipation,
+                                grade: playerLevel._id,
+                                depositDevice: event.condition.userAgent,
+                                depositType: event.condition.topupType,
+                                onlineTopupType: event.condition.onlineTopUpType,
+                                bankCardType: event.condition.bankCardType
+                            },
+                            bonusCondition: {
+                                bet: selectedParam.spendingTimesOnReward,
+                                lockedGroup: 100
+                            }
+                        };
+                        addParamToOpen(openData, 0);
+                    }
+
+                    // let rewardProposals = data[0];
+                    // let topUpRecords = data[1];
+                    // let consumptionProposals = data[2];
+                    // let bonusListRewardProposals = data[3];
+
+                    // status 1
+                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime <= dayOfHour) {
+                        openID++;
+                        console.log('openID22',openID);
+
+                        console.log('status 1',appearPeriod)
+                        openData = {
+                            id: openID,
+                            startTime: appearPeriod.startTime,
+                            endTime: appearPeriod.endTime,
+                            condition: {
+                                availableDeposit: totalValidTopup,
+                                availableDepositTimes: topUpRecords.length, //todo: find for unused topup
+                                requestDeposit: selectedParam.requiredTopUpAmount,
+                                betSource: event.condition.consumptionProvider,
+                                availableBetAmount: totalValidConsumption,
+                                requestBetAmount: selectedParam.requiredConsumptionAmount,
+                                availableChances: selectedParam.numberParticipation - rewardProposals.length,
+                                usedChances: rewardProposals.length,
+                                totalChances: selectedParam.numberParticipation,
+                                grade: playerLevel._id,
+                                depositDevice: event.condition.userAgent,
+                                depositType: event.condition.topupType,
+                                onlineTopupType: event.condition.onlineTopUpType,
+                                bankCardType: event.condition.bankCardType
+                            },
+                            bonusCondition: {
+                                bet: selectedParam.spendingTimesOnReward,
+                                lockedGroup: 100
+                            }
+                        };
+                        addParamToOpen(openData, 1);
+                    }
+
+                    // status 2
+                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.endTime <= dayOfHour) {
+                        console.log('status 2',appearPeriod);
+                        getData = {
+                            startTime: appearPeriod.startTime,
+                            endTime: appearPeriod.endTime
+                        };
+                        giveupData = {
+                            startTime: appearPeriod.startTime,
+                            endTime: appearPeriod.endTime
+                        };
+
+                        addParamToGet(getData, 2);
+                        addParamToGiveup(giveupData, 3);
+                    }
+                    console.log('TRUE3');
+                });
+
+                // if (!isValid) {
+                //     return Q.reject({
+                //         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                //         name: "DataError",
+                //         message: "The period of the reward has not yet opened"
+                //     });
+                // }
+            }
+
+            if (bonusListRewardProposals) {
+                addParamToBonusList(bonusListRewardProposals);
             }
 
             let outputObject = {
                 startTime: intervalTime.startTime,
                 endTime: intervalTime.endTime,
-                list: list,
                 open: Open,
-                get: get
+                get: get,
+                giveup: giveup,
+                bonusList: bonusList
             };
 
             if (canApply) {
-                outputObject.topUpRecordId = lastTopUp._id;
+                outputObject.topUpRecordId = topUpRecords._id;
             }
 
             if (event.param.countInRewardInterval) {
@@ -585,319 +803,6 @@ let dbPlayerReward = {
             return outputObject;
         });
     },
-
-        /*
-        return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
-            platformData => {
-                if (platformData) {
-                    return dbConfig.collection_players.findOne({playerId: playerId, platform: platformData._id}).lean().then(
-                        playerData => {
-                            if (playerData) {
-                                return dbRewardEvent.getPlatformRewardEventWithTypeName(platformData._id, constRewardType.PLAYER_RANDOM_REWARD_GROUP, rewardCode).then(
-                                    rewardData => {
-                                        if (rewardData) {
-                                            console.log('rewardData',rewardData);
-                                            let status;
-                                            let timeNow = new Date();
-                                            let intervalTime = getIntervalPeriodFromEvent(rewardData);
-                                            console.log('timeNow',timeNow);
-                                            console.log('intervalTime',intervalTime);
-
-                                            // check if current time is within reward event period
-                                            if (timeNow >= intervalTime.startTime && timeNow < intervalTime.endTime) {
-                                                console.log('NOW=====');
-
-                                            } else {
-                                                console.log('NEXT=====');
-                                            }
-
-
-                                            if (!rewardData) {
-                                                return Promise.reject({
-                                                    status: constServerCode.REWARD_EVENT_INVALID,
-                                                    name: "DataError",
-                                                    message: "Error in getting rewardEvent"
-                                                });
-                                            }
-
-                                            if (rewardData.validStartTime && rewardData.validStartTime > timeNow || rewardData.validEndTime && rewardData.validEndTime < timeNow) {
-                                                return Promise.reject({
-                                                    status: constServerCode.REWARD_EVENT_INVALID,
-                                                    name: "DataError",
-                                                    message: "This reward event is not valid anymore"
-                                                });
-                                            }
-
-
-                                            if (rewardData.condition.rewardAppearPeriod) {
-                                                let isValid = false;
-                                                let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
-                                                console.log('todayWeekOfDay',todayWeekOfDay);
-                                                let dayOfHour = moment(new Date()).tz('Asia/Singapore').hours();
-                                                console.log('dayOfHour',dayOfHour);
-
-                                                rewardData.condition.rewardAppearPeriod.forEach(appearPeriod => {
-                                                    console.log('appearPeriod',appearPeriod);
-
-                                                    if (appearPeriod.startDate <= todayWeekOfDay && appearPeriod.startTime <= dayOfHour &&
-                                                        appearPeriod.endDate >= todayWeekOfDay && appearPeriod.endTime > dayOfHour
-                                                    ) {
-                                                        console.log('TRUE1');
-                                                        isValid = true;
-                                                    }
-                                                    console.log('TRUE2');
-                                                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime >= dayOfHour) {
-                                                        console.log('status 0',appearPeriod);
-                                                    }
-
-                                                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime <= dayOfHour) {
-                                                        console.log('status 1',appearPeriod);
-                                                    }
-
-                                                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.endTime <= dayOfHour) {
-                                                        console.log('status 2',appearPeriod);
-                                                    }
-                                                    console.log('TRUE3');
-                                                });
-
-                                                if (!isValid) {
-                                                    return Q.reject({
-                                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                                        name: "DataError",
-                                                        message: "The period of the reward has not yet opened"
-                                                    });
-                                                }
-                                            }
-
-                                            let outputResult = {
-                                                "data": {
-                                                    "open":[//只显示周期内正在开始的以及尚未开始的,只有status=0或status=1的
-                                                        {
-                                                            "id":"001",// 001 开始，代表周期内的场次编号，方便前端展示给玩家辨识
-                                                            "startTime":"12:00", // 该场的开始时间
-                                                            "endTime":"12:10", // 该场的结束时间
-                                                            "timeLeft":"200", // 距离开场，剩馀的秒数
-                                                            "status":0, // 只会有 0,1 , status:0:场次关闭（有下一场的倒数计时）,1:场次开放（不管玩家是否曾经领取）
-                                                            "condition":{
-                                                                "availableDeposit":"100",//周期内，单笔存款满足系统需求，且尚未使用的总和（分子)
-                                                                "availableDepositTimes":"2", // 周期内，单笔存款满足需求，且尚未使用的总次数。
-                                                                "requestDeposit":"200",//周期内，系统要求的单笔存款金额 (分母)，FPMS 有配置栏位
-                                                                "betSource":"所有平台", // 有效投注额的来源大厅，如果是全部，即显示 " 所有平台"
-                                                                "availableBetAmount":2000,//周期内，仍可被计算的投注额(分子)
-                                                                "requestBetAmount":3000,//周期内，系统要求达到的流水(分母)，FPMS 有配置栏位
-                                                                "availableChances":2,//周期内，玩家符合条件且尚未使用的次数(分子)
-                                                                "usedChances":"1",// 周期内，已经使用过的次数
-                                                                "totalChances":"3",//周期内可参加次数(分母)
-                                                                "grade":"lv3.抚府",//玩家等级
-                                                                "depositDevice":"手机",//存款来源装置，可从 FPMS 功能『存款装置』获得
-                                                                "depositType":"在线充值,个人微信",//存款类型，可从FPMS获得
-                                                                "onlineTopupType":"微信扫码,快捷支付",//在线充值类型，可从 fpms 获得
-                                                                "bankCardType":"中国银行,农业银行"//银行卡类型
-                                                            },
-                                                            "bonusCondition":{
-                                                                "bet":6,//流水倍数
-                                                                "lockedGroup":"百家乐（真人）", // 优惠设定的锁大厅组
-                                                            }
-                                                        }
-                                                    ],
-                                                    "get":[//已领取,跟open的报文差不多,没有了timeLeft,也没有一些是否可信条件的字段(分子),增加了amountList
-                                                        {
-                                                            "id":"001",// 001 开始，代表周期内的场次编号，方便前端展示给玩家辨识
-                                                            "startTime":"12:00", // 该场的开始时间
-                                                            "endTime":"12:10", // 该场的结束时间
-                                                            "status":2, //2:已领取
-                                                            "amountList":[100,200,300],//表示用户领取的金额,用户有3次机会,分别中了100,200,300奖金
-                                                            "condition":{
-                                                                "availableDepositTimes":"2", // 周期内，单笔存款满足需求，且尚未使用的总次数。
-                                                                "requestDeposit":"200",//周期内，系统要求的单笔存款金额 (分母)，FPMS 有配置栏位
-                                                                "betSource":"所有平台", // 有效投注额的来源大厅，如果是全部，即显示 " 所有平台"
-                                                                "requestBetAmount":3000,//周期内，系统要求达到的流水(分母)，FPMS 有配置栏位
-                                                                "grade":"lv3.抚府",//玩家等级
-                                                                "depositDevice":"手机",//存款来源装置，可从 FPMS 功能『存款装置』获得
-                                                                "depositType":"在线充值,个人微信",//存款类型，可从FPMS获得
-                                                                "onlineTopupType":"微信扫码,快捷支付",//在线充值类型，可从 fpms 获得
-                                                                "bankCardType":"中国银行,农业银行"//银行卡类型
-                                                            },
-                                                            "bonusCondition":{
-                                                                "bet":6,//流水倍数
-                                                                "lockedGroup":"百家乐（真人）", // 优惠设定的锁大厅组
-                                                            }
-                                                        }
-                                                    ],
-                                                    "giveup":[//跟get字段差不多,没有了amountList,
-                                                        {
-                                                            "id":"001",// 001 开始，代表周期内的场次编号，方便前端展示给玩家辨识
-                                                            "startTime":"12:00", // 该场的开始时间
-                                                            "endTime":"12:10", // 该场的结束时间
-                                                            "status":3, //已结束
-                                                            "condition":{
-                                                                "availableDepositTimes":"2", // 周期内，单笔存款满足需求，且尚未使用的总次数。
-                                                                "requestDeposit":"200",//周期内，系统要求的单笔存款金额 (分母)，FPMS 有配置栏位
-                                                                "betSource":"所有平台", // 有效投注额的来源大厅，如果是全部，即显示 " 所有平台"
-                                                                "requestBetAmount":3000,//周期内，系统要求达到的流水(分母)，FPMS 有配置栏位
-                                                                "grade":"lv3.抚府",//玩家等级
-                                                                "depositDevice":"手机",//存款来源装置，可从 FPMS 功能『存款装置』获得
-                                                                "depositType":"在线充值,个人微信",//存款类型，可从FPMS获得
-                                                                "onlineTopupType":"微信扫码,快捷支付",//在线充值类型，可从 fpms 获得
-                                                                "bankCardType":"中国银行,农业银行"//银行卡类型
-                                                            },
-                                                            "bonusCondition":{
-                                                                "bet":6,//流水倍数
-                                                                "lockedGroup":"百家乐（真人）", // 优惠设定的锁大厅组
-                                                            }
-                                                        }
-                                                    ],
-                                                    "bonusList":[//名单
-                                                        {
-                                                            "accountNo":"ke***enken",
-                                                            "bonus":110,
-                                                            "time":"2018-01-16T05:10:11.551Z"
-                                                        }
-                                                    ]
-                                                }
-                                            };
-
-
-                                            let outputObject = {
-                                                "today":[//只显示今天正在开始的以及即将开始的,只有status=0或status=1的
-                                                    {
-                                                        "id": rewardData._id,//奖励编号
-                                                        "startTime": rewardData.validStartTime,
-                                                        "endTime": rewardData.validEndTime,
-                                                        "timeLeft": Math.abs(parseInt((rewardData.validEndTime - timeNow) / 1000)) + " seconds",
-                                                        "status": 0,
-                                                        "desc": "status:0:初始,1:时间到了,可以开始游戏,2:已结束",
-                                                        "condition": {
-                                                            "currentDeposit": playerData.validCredit,//当前存款(分子)
-                                                            "deposit": rewardData.param.rewardParam[0].value[0].requiredTopUpAmount,//需要达到的存款(分母)
-                                                            "providerGroup": rewardData.condition.consumptionProvider,
-                                                            "providers": "所有平台",
-                                                            "currentBetAmount": playerData.dailyConsumptionSum,//当前流水(分子)
-                                                            "betAmount": rewardData.param.rewardParam[0].value[0].requiredConsumptionAmount,//需要达到的流水(分母)
-                                                            "currentTimes": 2,//用户可用的当前次数(分子)
-                                                            "times": rewardData.param.rewardParam[0].value[0].numberParticipation,//总次数(分母)
-                                                            "grade": playerData.playerLevel,
-                                                            "device": playerData.userAgent[0].device,
-                                                            "depositType": rewardData.topupType,
-                                                            "onlineType": rewardData.onlineTopUpType,
-                                                            "cardType": rewardData.bankCardType
-                                                        },
-                                                        "bonusCondition": {
-                                                            "bet": rewardData.param.rewardParam[0].value[0].spendingTimesOnReward,//流水倍数
-                                                            "providerGroup": rewardData.condition.consumptionProvider,
-                                                            "providers": "所有平台"
-                                                        }
-                                                    },
-                                                    {
-                                                        "id": "2",//奖励编号
-                                                        "startTime": "12:00",
-                                                        "endTime": "12:10",
-                                                        "status": 1,
-                                                        "condition":{
-                                                            "currentDeposit": "100",
-                                                            "deposit": "200",
-                                                            "providerGroup": "百家乐（真人）",
-                                                            "providers": "所有平台",
-                                                            "currentBetAmount": 2000,
-                                                            "betAmount": 3000,
-                                                            "currentTimes": 2,
-                                                            "times": 3,
-                                                            "grade": "lv3.抚府",
-                                                            "device": "手机",
-                                                            "depositType": "在线充值,个人微信",
-                                                            "onlineType": "微信扫码,快捷支付",
-                                                            "cardType": "中国银行,农业银行"
-                                                        },
-                                                        "bonusCondition":{
-                                                            "bet": 6,
-                                                            "providerGroup": "百家乐（真人）",
-                                                            "providers": "所有平台"
-                                                        }
-                                                    }
-                                                ],
-                                                "get":[//已领取
-                                                    {
-                                                        "id":"3",//奖励编号
-                                                        "startTime":"12:00",
-                                                        "endTime":"12:10",
-                                                        "timeLeft":"200",
-                                                        "status":2,//已领取,当此状态为2 时有字段amountList
-                                                        "amountList":[100,200,300],//已领取的金额列表,
-                                                        "desc":"status:0:初始,1:可以开始游戏,2:已结束",
-                                                        "condition":{
-                                                            "deposit":"200",
-                                                            "providerGroup":"百家乐（真人）",
-                                                            "providers":"所有平台",
-                                                            "betAmount":3000,
-                                                            "times":3,
-                                                            "grade":"lv3.抚府",
-                                                            "device":"手机",
-                                                            "depositType":"在线充值,个人微信",
-                                                            "onlineType":"微信扫码,快捷支付",
-                                                            "cardType":"中国银行,农业银行"
-                                                        },
-                                                        "bonusCondition":{
-                                                            "bet":6,
-                                                            "providerGroup":"百家乐（真人）",
-                                                            "providers":"所有平台"
-                                                        }
-                                                    }
-                                                ],
-                                                "end":[
-                                                    {
-                                                        "id":"4",//奖励编号
-                                                        "startTime":"12:00",
-                                                        "endTime":"12:10",
-                                                        "timeLeft":"200",
-                                                        "status":3,
-                                                        "condition":{
-                                                            "deposit":"200",
-                                                            "providerGroup":"百家乐（真人）",
-                                                            "providers":"所有平台",
-                                                            "betAmount":3000,
-                                                            "times":3,
-                                                            "grade":"lv3.抚府",
-                                                            "device":"手机",
-                                                            "depositType":"在线充值,个人微信",
-                                                            "onlineType":"微信扫码,快捷支付",
-                                                            "cardType":"中国银行,农业银行"
-                                                        },
-                                                        "bonusCondition":{
-                                                            "bet":6,
-                                                            "providerGroup":"百家乐（真人）",
-                                                            "providers":"所有平台"
-                                                        }
-                                                    }
-                                                ],
-                                                "bonusList":[//名单
-                                                    {
-                                                        "accountNo":"ke***enken",
-                                                        "bonus":110,
-                                                        "time":"2018-01-16T05:10:11.551Z"
-                                                    }
-                                                ]
-                                            };
-                                            return outputResult;
-                                        }
-                                        else {
-                                            return Q.reject({name: "DataError", message: "Cannot find reward event"});
-                                        }
-                                    });
-                            }
-                            else {
-                                return Q.reject({name: "DataError", message: "Cannot find player"});
-                            }
-                        }
-                    );
-                }
-                else {
-                    return Q.reject({name: "DataError", message: "Cannot find platform"});
-                }
-            }
-        );
-    },
-    */
-
 
     getPlayerConsecutiveRewardDetail: (playerId, code, isApply, platform, applyTargetTime) => {
         // reward event code is an optional value, getting the latest relevant event by default
