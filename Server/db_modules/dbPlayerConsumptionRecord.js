@@ -1093,7 +1093,7 @@ var dbPlayerConsumptionRecord = {
                 if( platformData ){
                     let queryObj = {
                         platformId: platformData._id,
-                        createTime: {$gte: startTime, $lt: endTime}
+                        createTime: {$gte: startTime, $lt: endTime},
                         bonusAmount: {$gte: minBonusAmount}
                     };
                     if(minAmount != null){
