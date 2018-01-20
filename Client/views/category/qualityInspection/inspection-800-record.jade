@@ -68,7 +68,7 @@
     div.col-md-1(style='display:inline-block;padding-left:5px;background-color:red') 申诉内容
 
 .row
-    conversationform(ng-repeat='conversationform in vm.conversationForm', cform = 'conversationform')
+    conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)')
 
 
 
@@ -76,7 +76,8 @@
     div.row(style='border:2px solid #CECECE;box-shadow: 2px black')
         div.col-md-1(style='display:inline-block;padding-left:5px;')
             input.form-control(type="checkbox", value="{{cform.messageId}}")
-        div.col-md-1(style='display:inline-block;padding-left:5px;', ng-click="rateIt(cform.messageId)") {{cform.status}}
+        //div.col-md-1(style='display:inline-block;padding-left:5px;', ng-click="rateIt(cform.messageId)") {{cform.status}}
+        div.col-md-1(style='display:inline-block;padding-left:5px;', ng-click="rateconversation(cform)") {{cform.status}}
         div.col-md-7(style='display:inline-block;padding-left:5px;')
             div(style="text-align:center;color:red") **** 新的对话开始 ****
             div.row(ng-repeat='convert in cform.conversation')

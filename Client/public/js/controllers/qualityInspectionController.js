@@ -178,7 +178,7 @@ define(['js/app'], function (myApp) {
 
                         live800Chat.operator_id = item.operator_id;
                         live800Chat.operator_name = item.operator_name;
-                        
+
                         let content = $.parseHTML(item.content);
                         let contentArr = [];
                         $.each(content, function(i, el){
@@ -214,8 +214,8 @@ define(['js/app'], function (myApp) {
                 }
             }
             vm.rateconversation = function(msgId){
-                // vm.rateMsgId = msgId;
-                // alert(vm.rateMsgId);
+                vm.rateMsgId = msgId;
+                alert('example: '+vm.rateMsgId);
             }
             vm.showLive800 = function(){
                 setTimeout(function(){
