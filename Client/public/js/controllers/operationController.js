@@ -42,7 +42,8 @@ define(['js/app'], function (myApp) {
             UNDETERMINED: "Undetermined",
             AUTOAUDIT: "AutoAudit",
             RECOVER: "Recover",
-            MANUAL: "Manual"
+            MANUAL: "Manual",
+            APPROVED: "Approved"
         };
         vm.depositMethodList = {
             Online: 1,
@@ -393,9 +394,9 @@ define(['js/app'], function (myApp) {
                 vm.proposalStatusSelected.forEach(
                     status => {
                         selectedStatus.push(status);
-                        if (status == "Success") {
-                            selectedStatus.push("Approved");
-                        }
+                        // if (status == "Success") {
+                        //     selectedStatus.push("Approved");
+                        // }
                         if (status == "Fail") {
                             selectedStatus.push("Rejected");
                         }
