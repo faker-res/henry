@@ -48,6 +48,9 @@
         //.inlineBlk(style="width:200px;")
                 label.control-label {{'CREDIBILITY' | translate}}
                 select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.playerFeedbackQuery.credibilityRemarks')
+
+
+
 .row(style='background-color:#337ab7;')
     div.col-md-1(style='display:inline-block;padding-left:5px;')
     div.col-md-1(style='display:inline-block;padding-left:5px;') 评估状态
@@ -63,4 +66,32 @@
     div.col-md-1(style='display:inline-block;padding-left:5px;') 质检评估员
     div.col-md-1(style='display:inline-block;padding-left:5px;') 评估时间
     div.col-md-1(style='display:inline-block;padding-left:5px;background-color:red') 申诉内容
-        
+
+.row
+    conversationform(ng-repeat='conversationform in vm.conversationForm', cform = 'conversationform')
+
+
+
+#conversationForm
+    div.row(style='border:2px solid #CECECE;box-shadow: 2px black')
+        div.col-md-1(style='display:inline-block;padding-left:5px;')
+            input.form-control(type="checkbox", value="{{cform.messageId}}")
+        div.col-md-1(style='display:inline-block;padding-left:5px;', ng-click="rateIt(cform.messageId)") {{cform.status}}
+        div.col-md-7(style='display:inline-block;padding-left:5px;')
+            div(style="text-align:center;color:red") **** 新的对话开始 ****
+            div.row(ng-repeat='convert in cform.conversation')
+                div(style="width:10%;display:inline-block") {{cform.fpmsAcc}}
+                div(style="width:10%;display:inline-block") {{convert.roleName}}
+                div(style="width:10%;display:inline-block") {{convert.create_time}}
+                div(style="width:40%;display:inline-block;padding:5px;") {{convert.content}}
+                div(style="width:10%;display:inline-block")
+                    input.form-control(type="number",value="{{convert.timeout_rate}}",DISABLED)
+                div(style="width:10%;display:inline-block")
+                    input.form-control(ng-if='rateMsgId==cform.messageId',type="number",value="{{convert.inspection_rate}}")
+                div(style="width:10%;display:inline-block")
+                    input.form-control(ng-if='rateMsgId==cform.messageId',type="number",value="{{convert.review}}")
+            div(style="text-align:center;color:red") 結束對話:访客关闭对话 (2018-01-15 17:09:05)
+        div.col-md-1(style='display:inline-block;padding-left:5px;') {{cform.qualityAssessor}}
+        div.col-md-1(style='display:inline-block;padding-left:5px;') {{cform.process_time}}
+        div.col-md-1(style='display:inline-block;padding-left:5px;')
+            input.form-control(type="textarea", value="{{cform.appeal_reason}}", DISABLED)
