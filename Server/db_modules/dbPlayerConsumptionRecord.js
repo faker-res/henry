@@ -201,7 +201,7 @@ var dbPlayerConsumptionRecord = {
         return playerProm.then(
             playerData => {
                 if (playerData !== 'noData') {
-                    if(playerData){
+                    if (playerData) {
                         matchObj.playerId = playerData._id;
                     }
                     else {
@@ -391,7 +391,10 @@ var dbPlayerConsumptionRecord = {
                         data => {
                             if (data && data.length > 0) {
                                 let rewardTime = new Date(data[0].createTime);
-                                return dbconfig.collection_playerTopUpRecord.find({playerId: record.playerId, createTime: {$gte: rewardTime}}).sort({createTime: 1}).limit(1).lean().then(
+                                return dbconfig.collection_playerTopUpRecord.find({
+                                    playerId: record.playerId,
+                                    createTime: {$gte: rewardTime}
+                                }).sort({createTime: 1}).limit(1).lean().then(
                                     tRecord => {
                                         let topUpTime = new Date();
                                         if (tRecord && tRecord.length > 0) {
@@ -424,10 +427,10 @@ var dbPlayerConsumptionRecord = {
             function (bDirty) {
                 if (!bDirty) {
                     //update consumption summary record
-                    let recordDateNoon = new Date(moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate().getTime() + 12*60*60*1000);
+                    let recordDateNoon = new Date(moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate().getTime() + 12 * 60 * 60 * 1000);
                     let summaryDay = recordDateNoon;
-                    if( record.createTime.getTime() < recordDateNoon.getTime() ){
-                        summaryDay = new Date(recordDateNoon.getTime() - 24*60*60*1000);
+                    if (record.createTime.getTime() < recordDateNoon.getTime()) {
+                        summaryDay = new Date(recordDateNoon.getTime() - 24 * 60 * 60 * 1000);
                     }
                     var query = {
                         playerId: record.playerId,
@@ -446,7 +449,7 @@ var dbPlayerConsumptionRecord = {
                     return record;
                 }
             },
-            function (error){
+            function (error) {
                 deferred.reject({name: "DBError", message: "Error checking player reward task", error: error});
             }
         ).then(
@@ -458,7 +461,7 @@ var dbPlayerConsumptionRecord = {
                         {
                             $inc: {
                                 consumptionSum: record.validAmount,
-                                dailyConsumptionSum: isSameDay? record.validAmount:0,
+                                dailyConsumptionSum: isSameDay ? record.validAmount : 0,
                                 weeklyConsumptionSum: record.validAmount,
                                 pastMonthConsumptionSum: record.validAmount,
                                 consumptionTimes: 1,
@@ -581,7 +584,7 @@ var dbPlayerConsumptionRecord = {
                     {
                         $inc: {
                             consumptionSum: record.validAmount,
-                            dailyConsumptionSum: isSameDay? record.validAmount:0,
+                            dailyConsumptionSum: isSameDay ? record.validAmount : 0,
                             weeklyConsumptionSum: record.validAmount,
                             pastMonthConsumptionSum: record.validAmount,
                             consumptionTimes: 1
@@ -1084,6 +1087,49 @@ var dbPlayerConsumptionRecord = {
         return deferred.promise;
     },
 
+    searchPlatformConsumption: function(platformId, startTime, endTime, startIndex, requestCount, minBonusAmount, minAmount, minValidAmount){
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if( platformData ){
+                    let queryObj = {
+                        platformId: platformData._id,
+                        createTime: {$gte: startTime, $lt: endTime},
+                        bonusAmount: {$gte: minBonusAmount}
+                    };
+                    if(minAmount != null){
+                        queryObj.amount = {$gte: minAmount};
+                    }
+                    if(minValidAmount != null){
+                        queryObj.validAmount = {$gte: minValidAmount};
+                    }
+                    return dbconfig.collection_playerConsumptionRecord.find(queryObj).sort({createTime: 1}).skip(startIndex).limit(requestCount).lean().populate({
+                        path: "gameId",
+                        model: dbconfig.collection_game
+                    }).populate({
+                        path: "providerId",
+                        model: dbconfig.collection_gameProvider
+                    }).populate({
+                        path: "playerId",
+                        model: dbconfig.collection_players
+                    });
+                }
+            }
+        ).then(
+            recordData => {
+                if(recordData && recordData.length > 0){
+                    recordData.forEach(
+                        record => {
+                            record.providerId = record.providerId.providerId;
+                            record.playerName = dbUtility.encodePlayerName(record.playerId.name);
+                            delete record.playerId;
+                        }
+                    );
+                }
+                return recordData;
+            }
+        );
+    },
+
     /**
      * search consumption record
      * @param {Date} startTime
@@ -1160,10 +1206,7 @@ var dbPlayerConsumptionRecord = {
         startTime = startTime || new Date(0);
         endTime = endTime || new Date();
         var query = {
-            $and: [
-                {createTime: {$gte: new Date(startTime)}},
-                {createTime: {$lt: new Date(endTime)}}
-            ]
+            createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
         };
         if (playerObjId) {
             query.playerId = playerObjId;
@@ -1919,7 +1962,7 @@ var dbPlayerConsumptionRecord = {
             }
         })
     },
-    getProviderLatestTimeRecord: function(providerId,platformObjId) {
+    getProviderLatestTimeRecord: function (providerId, platformObjId) {
         let platform;
 
         let gameProviderProm = dbconfig.collection_gameProvider.findOne({providerId: providerId}).lean();
@@ -1937,18 +1980,18 @@ var dbPlayerConsumptionRecord = {
 
                 var currentDate = new Date();
                 var latestCreateTime = new Date(lastestConsumptionRecord.createTime);
-                var difference = currentDate - latestCreateTime ;
+                var difference = currentDate - latestCreateTime;
                 var resultInMinutes = Math.round(difference / 60000);
-                var recordStatus = {createTime: latestCreateTime, delayStatusColor:"rgb(255,255,255)" };
+                var recordStatus = {createTime: latestCreateTime, delayStatusColor: "rgb(255,255,255)"};
 
-                if(platform){
+                if (platform) {
                     let consumptionTimeConfig = platform.consumptionTimeConfig;
-                    if(consumptionTimeConfig && consumptionTimeConfig.length > 0){
-                        consumptionTimeConfig = consumptionTimeConfig.sort(function(configA, configB){
+                    if (consumptionTimeConfig && consumptionTimeConfig.length > 0) {
+                        consumptionTimeConfig = consumptionTimeConfig.sort(function (configA, configB) {
                             return configA.duration - configB.duration;
                         });
 
-                        for(let i =0; i < consumptionTimeConfig.length; i ++) {
+                        for (let i = 0; i < consumptionTimeConfig.length; i++) {
                             recordStatus.delayStatusColor = consumptionTimeConfig[i].color;
                             if (resultInMinutes <= consumptionTimeConfig[i].duration) break;
                         }
@@ -1996,7 +2039,7 @@ var dbPlayerConsumptionRecord = {
             },
             {
                 $group: {
-                    _id:null,
+                    _id: null,
                     total_amount: {$sum: "$amount"},
                     validAmount: {$sum: "$validAmount"},
                     bonusAmount: {$sum: "$bonusAmount"}

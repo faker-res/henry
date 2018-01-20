@@ -1498,9 +1498,10 @@ let dbPlayerInfo = {
      * @param {objectId} platform - player's platform
      * @param {boolean} resetPartnerPassword - reset partner password also if true
      */
-    resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword, dontReturnPassword) {
+    resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword, dontReturnPassword, creator) {
         let deferred = Q.defer();
         let playerObj;
+
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
             if (err) {
                 deferred.reject({
@@ -1546,12 +1547,35 @@ let dbPlayerInfo = {
                     }
                 ).then(
                     data => {
-                        SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
-                        let messageData = {
-                            data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                        let proposalData = {
+                            creator: creator? creator :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerObj._id
+                                },
+                            data: {
+                                _id:playerObj._id,
+                                playerId: playerObj.playerId,
+                                platformId: playerObj.platform,
+                                isIgnoreAudit: true,
+                                updatePassword: true,
+                                remark: '修改密码'
+
+                            },
+                            entryType: creator ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                            userType: constProposalUserType.PLAYERS,
                         };
-                        messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
-                        return deferred.resolve(dontReturnPassword ? "" : newPassword);
+                        dbProposal.createProposalWithTypeName(playerObj.platform,constProposalType.UPDATE_PLAYER_INFO,proposalData).then(
+                            () => {
+                                SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+                                let messageData = {
+                                    data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                                };
+                                messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
+                                return deferred.resolve(dontReturnPassword ? "" : newPassword);
+                            }
+                        )
                     },
                     error => deferred.reject({
                         name: "DBError",
@@ -1652,16 +1676,39 @@ let dbPlayerInfo = {
                             }
                             // player.password = hash;
                             // next();
+
                             dbconfig.collection_players.findOneAndUpdate(
                                 {_id: playerObj._id, platform: playerObj.platform}, {password: hash}
                             ).then(
                                 () => {
-                                    SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
-                                    let messageData = {
-                                        data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                                    let proposalData = {
+                                        creator:
+                                            {
+                                                type: 'player',
+                                                name: playerObj.name,
+                                                id: playerObj._id
+                                            },
+                                        data: {
+                                            _id:playerObj._id,
+                                            playerId: playerObj.playerId,
+                                            platformId: playerObj.platform,
+                                            isIgnoreAudit: true,
+                                            updatePassword: true,
+                                            remark: '修改密码'
+                                        },
+                                        entryType: constProposalEntryType.CLIENT,
+                                        userType: constProposalUserType.PLAYERS,
                                     };
-                                    messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
-                                    deferred.resolve();
+                                    dbProposal.createProposalWithTypeName(playerObj.platform,constProposalType.UPDATE_PLAYER_INFO,proposalData).then(
+                                        () => {
+                                            SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+                                            let messageData = {
+                                                data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                                            };
+                                            messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
+                                            deferred.resolve();
+                                        }
+                                    )
                                 }, deferred.reject
                             );
                         });
@@ -1802,6 +1849,7 @@ let dbPlayerInfo = {
                 // If user modified their own, no proposal needed
                 if (!skipProposal) {
                     dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {
+                        creator: {type: "player", name: playerObj.name, id: playerObj._id},
                         data: updateData,
                         inputDevice: inputDeviceData
                     }, smsLogData);
@@ -7561,11 +7609,19 @@ let dbPlayerInfo = {
                         player = playerData;
 
                         if (player.platform && player.platform.useProviderGroup) {
-                            return dbconfig.collection_rewardTaskGroup.findOne({
-                                platformId: playerData.platform,
-                                playerId: playerData._id,
-                                status: {$in: [constRewardTaskStatus.STARTED]}
-                            }).lean();
+                            let unlockAllGroups = Promise.resolve(true);
+                            if (bForce) {
+                                unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id).catch(errorUtils.reportError);
+                            }
+                            return unlockAllGroups.then(
+                                () => {
+                                    return dbconfig.collection_rewardTaskGroup.findOne({
+                                        platformId: playerData.platform,
+                                        playerId: playerData._id,
+                                        status: {$in: [constRewardTaskStatus.STARTED]}
+                                    }).lean();
+                                }
+                            );
                         } else {
                             return false;
                         }
@@ -7576,14 +7632,13 @@ let dbPlayerInfo = {
             ).then(
                 RTGs => {
                     if (!RTGs) {
-                        // if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
-                        //     || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
-                        //     return Q.reject({
-                        //         status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
-                        //         name: "DataError",
-                        //         errorMessage: "Player does not have valid payment information"
-                        //     });
-                        // }
+                        if (!player.bankName || !player.bankAccountName || !player.bankAccount ) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+                                name: "DataError",
+                                errorMessage: "Player does not have valid payment information"
+                            });
+                        }
                         let todayTime = dbUtility.getTodaySGTime();
                         let creditProm = Q.resolve();
 
@@ -7727,6 +7782,7 @@ let dbPlayerInfo = {
                                                 userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                                             };
                                             newProposal.inputDevice = dbUtility.getInputDevice(userAgent,false);
+
                                             return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
                                         }
                                     });
@@ -7992,7 +8048,7 @@ let dbPlayerInfo = {
     /*
      * update top up proposal
      */
-    updatePlayerTopupProposal: function (proposalId, bSuccess) {
+    updatePlayerTopupProposal: function (proposalId, bSuccess, remark) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType}).then(
                 data => {
@@ -8015,7 +8071,8 @@ let dbPlayerInfo = {
                                             {_id: data._id, createTime: data.createTime},
                                             {
                                                 status: status,
-                                                "data.lastSettleTime": lastSettleTime
+                                                "data.lastSettleTime": lastSettleTime,
+                                                "data.remark": remark
                                             }
                                         )
                                     );

@@ -232,6 +232,7 @@ var simplifiedChinese = {
     "WithdrawSuccess": "提款（成功）",
     "WithdrawCancel": "提款（取消）",
     "There are available reward task group to complete": "流水尚未达到提款要求，请继续投注。",
+    "Player does not have permission for this limited offer. Please contact cs for more detail.": "玩家无参加秒杀礼包的权限，详情请联系客服。",
     "PlayerLimitedOfferRewardSuccess": "秒杀礼包（成功）",
     "UpdateBankInfoSuccess": "编辑玩家银行资料（成功）",
     "UpdatePhoneInfoSuccess": "编辑玩家电话资料（成功）",
@@ -243,7 +244,8 @@ var simplifiedChinese = {
     "PlayerConsumptionRewardGroupSuccess": "投注额优惠（组）（成功）",
     "PlayerFreeTrialRewardGroupSuccess": "免费体验金（组）（成功）",
     "PlayerRegisterIntentionSuccess": "玩家注册意象（手动、成功）",
-    "PlayerPromoCodeRewardSuccess": "优惠代码（成功）"
+    "PlayerPromoCodeRewardSuccess": "优惠代码（成功）",
+    "Player do not have permission to apply consumption return": "您的洗码功能暂时无法使用，详情请联系客服。"
     //todo::add missing messages here
 
     /*
