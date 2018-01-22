@@ -548,8 +548,12 @@ let dbPlayerReward = {
                         console.log('openID11',openID);
 
                         console.log('status 0',appearPeriod);
-                        let countdownToStartTime = appearPeriod.startTime - currentTime;
+                        let startTimeInt = parseInt(appearPeriod.startTime);
+                        let startTimeSetHours = currentTime.setHours(startTimeInt,0,0);
+                        let countdownToStartTime = parseInt((startTimeSetHours - new Date().getTime()) / 1000);
+
                         console.log('countdownToStartTime',countdownToStartTime);
+                        console.log('currentTime',currentTime);
                         openData = {
                             id: openID,
                             startTime: appearPeriod.startTime,
