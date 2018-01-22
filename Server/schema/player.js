@@ -123,7 +123,7 @@ var playerSchema = new Schema({
     permission: {
         _id: false,
         applyBonus: {type: Boolean, default: true},
-        advanceConsumptionReward: {type: Boolean, default: true},
+        // advanceConsumptionReward: {type: Boolean, default: true},
         transactionReward: {type: Boolean, default: true},
         topupOnline: {type: Boolean, default: true},
         topupManual: {type: Boolean, default: true},

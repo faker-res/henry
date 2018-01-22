@@ -62,6 +62,11 @@ function socketActionPlatform(socketIO, socket) {
             var isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPlatform.updatePlatform, [data.query, data.updateData], actionName, isValidData);
         },
+        getPlatformSetting: function getPlatformSetting(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && (data.name || data._id));
+            socketUtil.emitter(self.socket, dbPlatform.getPlatformSetting, [data], actionName, isValidData);
+        },
         /**
          * Delete a platform
          * @param {json} data - objectId of platform

@@ -489,6 +489,13 @@ var dbPlayerConsumptionWeekSummary = {
                         platform: playerData.platform._id
                     }, {isConsumptionReturn: true}).then(
                         updatePlayer => {
+                            if (playerData.forbidRewardEvents.includes(eventData._id.toString())) {
+                                deferred.reject({
+                                    status: constServerCode.PLAYER_NO_PERMISSION,
+                                    name: "DataError",
+                                    errorMessage: "Player do not have permission to apply consumption return"
+                                });
+                            }
                             if (!updatePlayer.isConsumptionReturn || bAdmin) {
                                 let proms = [];
                                 for (let eventData of eventsData) {
