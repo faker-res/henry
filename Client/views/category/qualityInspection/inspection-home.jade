@@ -12,7 +12,7 @@
                                 text.span {{"INSPECTION PARAMETER" | translate}}
                         li(ng-show="checkViewPermission('QualityInspection', 'Record', 'Read')")
                             //a.common-tab(data-toggle="tab", href="#Feedback", ng-click="vm.submitPlayerFeedbackQuery();vm.platformPageName='Feedback';vm.updatePageTile();")
-                            a.common-tab(data-toggle="tab", href="#Record", ng-click="vm.qualityInspectionPageName='800 RECORD';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#Record", ng-click="vm.qualityInspectionPageName='800 RECORD';vm.updatePageTile();vm.showLive800()")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"800 RECORD" | translate}}
                         li(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'Read')")

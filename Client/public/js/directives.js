@@ -329,7 +329,40 @@ angular.module('myApp.directives', [])
             }
         };
     })
+    .directive('conversationform', function(){
+        return {
+            retrict: 'EA',
+            replace: true,
+            controllerAs:'vm',
+            translude: true,
+            scope: {
+                cform:'=',
+                rateconversation:"&"
+            },
+            template: $('#conversationForm').html(),
+            link:function(scope, element, attr){
+                scope.rateIt = function(id){
+                    scope.rateMsgId = id;
+                }
 
+            }
+        };
+    })
+    .directive('qaform', function(){
+        return {
+            retrict: 'EA',
+            replace: true,
+            controllerAs:'vm',
+            transclude: true,
+            scope: {
+                qform:'='
+            },
+            template: $('#QAForm').html(),
+            link:function(scope, element, attr){
+                console.log(attr);
+           }
+        };
+    })
     // sheetjs.com js-xlsx - spreadsheet parser and writer
     .directive('fileread', [function () {
         return {

@@ -12,6 +12,39 @@ define(['js/app'], function (myApp) {
             // For debugging:
             window.VM = vm;
 
+            vm.evaluationAppealStatus = {
+                APPEALING: 1,
+                APPEAL_COMPLETED: 1
+            };
+
+            vm.constQualityInspectionStatus = {
+                1: "PENDING",
+                2: "COMPLETED_UNREAD",
+                3: "COMPLETED_READ",
+                4: "COMPLETED",
+                5: "APPEALING",
+                6: "APPEAL_COMPLETED",
+                7: "NOT_EVALUATED"
+            };
+
+            vm.unseenEvaluationSelectedRecord = [];
+
+            vm.roleType = {
+                1: '客服',
+                2: '访客',
+                3: 'System'
+            }
+            vm.conversationStatus = {
+                1: 'pending',
+                2: 'completed(unread)',
+                3: 'completed(read)',
+                4: 'completed',
+                5: 'appealing',
+                6: 'appeal completed',
+                7: 'not evaluated(invalid)'
+            }
+            vm.rateMsgId = null;
+
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
                 window.document.title = $translate("qualityInspection") + "->" + $translate(vm.qualityInspectionPageName);
@@ -47,6 +80,10 @@ define(['js/app'], function (myApp) {
                     if (storedPlatform) {
                         vm.searchAndSelectPlatform(storedPlatform, option);
                     }
+
+                    vm.initUnreadEvaluation();
+                    vm.initReadEvaluation();
+                    vm.initAppealEvaluation();
                 }, function (err) {
                     vm.showPlatformSpin = false;
                 });
@@ -156,11 +193,358 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+
+            vm.searchLive800 = function(){
+                socketService.$socket($scope.AppSocket, 'searchLive800', {}, success);
+
+                function success(data) {
+                    console.log(data);
+                    vm.conversationForm = [];
+                    data.data.forEach(item=>{
+                        console.log(item);
+                        let live800Chat = {conversation:[]};
+                        live800Chat.messageId = item.msg_id;
+                        live800Chat.status = vm.conversationStatus[1];
+                        live800Chat.qualityAssessor = '';
+                        live800Chat.fpmsAcc = item.operator_name;
+                        live800Chat.process_time = null;
+                        live800Chat.appeal_reason = '';
+
+                        live800Chat.operator_id = item.operator_id;
+                        live800Chat.operator_name = item.operator_name;
+
+                        let content = $.parseHTML(item.content);
+                        let contentArr = [];
+                        $.each(content, function(i, el){
+                            let type;
+                            if(el.localName=='i'){
+                                type = 1;
+                            }else if(el.localName=='he'){
+                                type = 2;
+                            }else{
+                                type = 3;
+                            }
+                            let dialog = {
+                                'time':el['attributes'][0] ?el['attributes'][0].value:'' ,
+                                'roles':type,
+                                'roleName':vm.roleType[type],
+                                'create_time':el['attributes'][0] ?el['attributes'][0].value:'' ,
+                                'timeout_rate':0,
+                                'inspection_rate':0,
+                                'review':'',
+                                'content':el.innerHTML ? el.innerHTML :''
+                            }
+                            contentArr.push(dialog);
+                            live800Chat.conversation.push(dialog);
+
+                        })
+                        //item.contents = contentArr;
+
+                        vm.conversationForm.push(live800Chat);
+
+                    })
+                    console.log(vm.conversationForm);
+                    // $scope.safeApply();
+                }
+            }
+            vm.rateconversation = function(msgId){
+                vm.rateMsgId = msgId;
+                alert('example: '+vm.rateMsgId);
+            }
+            vm.showLive800 = function(){
+                setTimeout(function(){
+                    $scope.safeApply();
+                },0)
+
+                // vm.conversationForm = [
+                //     {
+                //         messageId: 331,
+                //         status: '已完成（已读）',
+                //         qualityAssessor: 'QC-ALLEN',
+                //         fpmsAcc: 'ishtar',
+                //         process_time: '2018-1-15 19:33:51',
+                //         created_time: '2018-1-15 16:33:51',
+                //         appeal_reason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
+                //         conversation: [
+                //             {
+                //                 'time': '2018-1-15 16:33:51',
+                //                 'roles': '客服',
+                //                 'create_time': '2018-1-15 16:33:51',
+                //                 'timeout_rate': -2,
+                //                 'inspection_rate': 0,
+                //                 'review': '答非所问'
+                //             },
+                //             {
+                //                 'roles': 'Guest',
+                //                 'create_time': '2018-1-15 16:33:51',
+                //             },
+                //             {
+                //                 'time': '2018-1-15 16:33:51',
+                //                 'roles': '客服',
+                //                 'create_time': '2018-1-15 16:33:51',
+                //                 'timeout_rate': -2,
+                //                 'inspection_rate': 0,
+                //                 'review': '答非所问'
+                //             },
+                //         ]
+                //     },
+                //     {
+                //         messageId: 332,
+                //         status: '已完成（已读）',
+                //         qualityAssessor: 'QC-ALLEN',
+                //         fpmsAcc: 'ishtar',
+                //         process_time: '2018-1-15 19:33:51',
+                //         created_time: '2018-1-15 16:33:51',
+                //         appeal_reason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
+                //         conversation: [
+                //             {
+                //                 'time': '2018-1-15 16:33:51',
+                //                 'roles': '客服',
+                //                 'create_time': '2018-1-15 16:33:51',
+                //                 'timeout_rate': -2,
+                //                 'inspection_rate': 0,
+                //                 'review': '答非所问'
+                //             },
+                //             {
+                //                 'roles': 'Guest',
+                //                 'create_time': '2018-1-15 16:33:51',
+                //             },
+                //             {
+                //                 'time': '2018-1-15 16:33:51',
+                //                 'roles': '客服',
+                //                 'create_time': '2018-1-15 16:33:51',
+                //                 'timeout_rate': -2,
+                //                 'inspection_rate': 0,
+                //                 'review': '答非所问'
+                //             },
+                //         ]
+                //     },
+                //     {
+                //         messageId: 333,
+                //         status: '已完成（已读）',
+                //         qualityAssessor: 'QC-ALLEN',
+                //         fpmsAcc: 'ishtar',
+                //         process_time: '2018-1-15 19:33:51',
+                //         created_time: '2018-1-15 16:33:51',
+                //         appeal_reason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
+                //         conversation: [{
+                //             'time': '2018-1-15 16:33:51',
+                //             'roles': '客服',
+                //             'create_time': '2018-1-15 16:33:51',
+                //             'timeout_rate': -2,
+                //             'inspection_rate': 0,
+                //             'review': '答非所问'
+                //         }]
+                //     },
+                //     {
+                //         messageId: 334,
+                //         status: '已完成（已读）',
+                //         qualityAssessor: 'QC-ALLEN',
+                //         fpmsAcc: 'ishtar',
+                //         process_time: '2018-1-15 19:33:51',
+                //         created_time: '2018-1-15 16:33:51',
+                //         appeal_reason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
+                //         conversation: [{
+                //             'date': '2018-1-15 16:33:51', 'rate': 5, conversation: [{
+                //                 'time': '2018-1-15 16:33:51',
+                //                 'roles': '客服',
+                //                 'create_time': '2018-1-15 16:33:51',
+                //                 'timeout_rate': -2,
+                //                 'inspection_rate': 0,
+                //                 'review': '答非所问'
+                //             }]
+                //         }
+                //         ]
+                //     }]
+
+                // console.log('showlive800')
+                // socketService.$socket($scope.AppSocket, 'showLive800', {}, success);
+                //
+                // function success(data) {
+                //     console.log(data);
+                //     $scope.safeApply();
+                // }
+            }
+
             var eventName = "$viewContentLoaded";
             if (!$scope.AppSocket) {
                 eventName = "socketConnected";
                 $scope.$emit('childControllerLoaded', 'qualityInspectionControllerLoaded');
             }
+
+            vm.initUnreadEvaluation = function(){
+                vm.evaluationTab = 'unreadEvaluation';
+
+                $('#unreadEvaluationStartDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $("#unreadEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                $('#unreadEvaluationEndDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $("#unreadEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+            }
+
+            vm.initReadEvaluation = function(){
+                $('#readEvaluationStartDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $('#readEvaluationEndDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+            }
+
+            vm.initAppealEvaluation = function(){
+                $('#conversationStartDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $('#conversationEndDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $('#appealEvaluationStartDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $('#appealEvaluationEndDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+            }
+
+            vm.getUnreadEvaluationRecord = function() {
+                var startTime = $('#unreadEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#unreadEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
+
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime
+                }
+
+                    vm.qaForm = [
+                        {
+                            messageId: 331,
+                            status: '已完成（已读）',
+                            qualityAssessor: 'QC-ALLEN',
+                            fpmsAcc: 'ishtar',
+                            processTime: '2018-1-15 19:33:51',
+                            createTime: '2018-1-15 16:33:51',
+                            appealReason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
+                            conversation: [
+                                {
+                                    'time': '2018-1-15 16:33:51',
+                                    'roles': '客服',
+                                    'createTime': '2018-1-15 16:33:51',
+                                    'timeoutRate': -2,
+                                    'inspectionRate': 0,
+                                    'review': '答非所问'
+                                },
+                                {
+                                    'roles': 'Guest',
+                                    'createTime': '2018-1-15 16:33:51',
+                                },
+                                {
+                                    'time': '2018-1-15 16:33:51',
+                                    'roles': '客服',
+                                    'createTime': '2018-1-15 16:33:51',
+                                    'timeoutRate': -2,
+                                    'inspectionRate': 0,
+                                    'review': '答非所问'
+                                },
+                            ]
+                        },
+                        {
+                            messageId: 331,
+                            status: '已完成（已读）',
+                            qualityAssessor: 'QC-ALLEN',
+                            fpmsAcc: 'ishtar',
+                            processTime: '2018-1-15 19:33:51',
+                            createTime: '2018-1-15 16:33:51',
+                            appealReason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
+                            conversation: [
+                                {
+                                    'time': '2018-1-15 16:33:51',
+                                    'roles': '客服',
+                                    'createTime': '2018-1-15 16:33:51',
+                                    'timeoutRate': -2,
+                                    'inspectionRate': 0,
+                                    'review': '答非所问'
+                                },
+                                {
+                                    'roles': 'Guest',
+                                    'createTime': '2018-1-15 16:33:51',
+                                },
+                                {
+                                    'time': '2018-1-15 16:33:51',
+                                    'roles': '客服',
+                                    'createTime': '2018-1-15 16:33:51',
+                                    'timeoutRate': -2,
+                                    'inspectionRate': 0,
+                                    'review': '答非所问'
+                                },
+                            ]
+                        }
+                    ]
+
+                socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecord', sendData, function (data) {
+                    vm.qaForm = "";
+
+                    if(data && data.data && data.data.length > 0){
+
+                        data.data.map(data => {
+                            if(data && data.status){
+                                data.status = vm.constQualityInspectionStatus[data.status];
+                            }
+
+                            return data;
+                        })
+                        vm.qaForm = data.data;
+
+                        $scope.safeApply();
+                        // setTimeout(function(){
+                        //     $scope.safeApply();
+                        // },100)
+                    }
+                });
+            }
+
+            vm.changeEvaluationRecordStatus = function(){
+
+            }
+
+            vm.gatherCheckedRecord = function(){
+                // if(isCheck){
+                //     vm.unseenEvaluationSelectedRecord.push(messageId);
+                // }else{
+                //     let selectedRecordIndex = vm.unseenEvaluationSelectedRecord.indexOf(messageId);
+                //     if(selectedRecordIndex > 0){
+                //         vm.unseenEvaluationSelectedRecord.splice(selectedRecordIndex,1);
+                //     }
+                // }
+                console.log("AAAAAAAAAAAa");
+            }
+
+
 
             var _ = {
                 clone: function (obj) {
@@ -300,7 +684,8 @@ define(['js/app'], function (myApp) {
 
 
         };
-        qualityInspectionController.$inject = injectParams;
-        myApp.register.controller('qualityInspectionCtrl', qualityInspectionController);
-    }
+
+            qualityInspectionController.$inject = injectParams;
+            myApp.register.controller('qualityInspectionCtrl', qualityInspectionController);
+        }
 );

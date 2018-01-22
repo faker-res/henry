@@ -659,6 +659,24 @@ define(['js/app'], function (myApp) {
                 }
                 else return false;
             };
+            vm.reArrangeTXT = function(arr){
+                let result = '';
+                if(arr.length >0 ){
+                    arr.forEach(function(val, index){
+                        if(index == arr.length){
+                            result += val;
+                        }else{
+                            result += val+','
+                        }
+                    })
+                }
+                return result;
+            };
+
+            vm.reArrangeArr = function(oriTXT, targetField, targetArr){
+                let convertArr = oriTXT.split(',');
+                targetArr[targetField] = convertArr;
+            };
 
             vm.editUserDialog = function () {
                 vm.pageTag = 'updateAdmin';
@@ -668,12 +686,20 @@ define(['js/app'], function (myApp) {
                     firstName: vm.curUser.firstName,
                     lastName: vm.curUser.lastName,
                     did: vm.curUser.did,
-                    callerId: vm.curUser.callerId
+                    callerId: vm.curUser.callerId,
+                    live800CompanyId:vm.curUser.live800CompanyId,
+                    live800Acc: vm.curUser.live800Acc
+                };
+                vm.updateAdminLive800 = {
+                    live800CompanyIdTXT: vm.reArrangeTXT(vm.curUser.live800CompanyId),
+                    live800AccTXT: vm.reArrangeTXT(vm.curUser.live800Acc),
                 };
                 console.log("vm.newAdmin", vm.newAdmin);
             };
             vm.submitEditUser = function () {
                 var adminId = vm.curUser._id;
+                vm.reArrangeArr(vm.updateAdminLive800.live800CompanyIdTXT ,  'live800CompanyId', vm.newAdmin,);
+                vm.reArrangeArr(vm.updateAdminLive800.live800AccTXT , 'live800Acc', vm.newAdmin);
 
                 socketService.$socket($scope.AppSocket, 'updateAdmin', {
                     query: {_id: vm.curUser._id},

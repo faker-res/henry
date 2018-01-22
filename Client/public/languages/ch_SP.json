@@ -3104,5 +3104,16 @@
   "Can't get the to-be-deleted item": "获取需删除的资料失败",
   "verify old telephone * part is match":"验证旧手机号码 * 号部分是否相符",
   "WEBSITE_PASS": "网站密码",
-  "GAME_PASS": "供应商密码"
+  "GAME_PASS": "供应商密码",
+  "APPEALING": "申诉中",
+  "APPEAL_COMPLETED": "申诉结案",
+  "PENDINGTOPROCESS": "待处理",
+  "COMPLETED_UNREAD": "已完成(未读)",
+  "COMPLETED_READ": "已完成(已读)",
+  "COMPLETED": "已完成(免读)",
+  "APPEALING": "申诉中",
+  "APPEAL_COMPLETED": "申诉结案",
+  "NOT_EVALUATED": "不评估(无效)",
+  "SEEN": "已读",
+  "I_WANT_TO_APPEAL": "我要申诉"
 }
