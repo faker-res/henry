@@ -104,6 +104,8 @@ var dbQualityInspection = {
         return dbconfig.collection_qualityInspection.find(query).lean();
     },
     rateCSConversation: function (data , adminName) {
+        var deferred = Q.defer();
+
         console.log(data);
         return dbconfig.collection_qualityInspection.find({messageId: data.messageId}).then(qaData => {
             console.log(qaData);
@@ -112,9 +114,11 @@ var dbQualityInspection = {
             if (qaData.length == 0) {
                 data.qualityAssessor = adminName;
                 return dbconfig.collection_qualityInspection(data).save();
+            }else{
+                deferred.reject({name: "DBError", message: "It's Exist"})
             }
         })
-
+        return deferred.promise;
     }
 // ×ValidationError: fpmsAcc: Path `fpmsAcc` is required., qualityAssessor: Path `qualityAssessor` is required., messageId: Path `messageId` is required.
 
