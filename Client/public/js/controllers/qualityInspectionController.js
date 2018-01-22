@@ -27,7 +27,7 @@ define(['js/app'], function (myApp) {
                 7: "NOT_EVALUATED"
             };
 
-            vm.unseenEvaluationSelectedRecord = [];
+            vm.unreadEvaluationSelectedRecord = [];
 
             vm.roleType = {
                 1: '客服',
@@ -44,6 +44,8 @@ define(['js/app'], function (myApp) {
                 7: 'not evaluated(invalid)'
             }
             vm.rateMsgId = null;
+
+            vm.isChecked;
 
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
@@ -84,6 +86,7 @@ define(['js/app'], function (myApp) {
                     vm.initUnreadEvaluation();
                     vm.initReadEvaluation();
                     vm.initAppealEvaluation();
+                    vm.initWorkloadProgress();
                 }, function (err) {
                     vm.showPlatformSpin = false;
                 });
@@ -379,11 +382,15 @@ define(['js/app'], function (myApp) {
                     pick12HourFormat: true
                 });
 
+                $("#readEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
                 $('#readEvaluationEndDatetimePicker').datetimepicker({
                     language: 'en',
                     format: 'dd/MM/yyyy hh:mm:ss',
                     pick12HourFormat: true
                 });
+
+                $("#readEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
             }
 
             vm.initAppealEvaluation = function(){
@@ -393,11 +400,15 @@ define(['js/app'], function (myApp) {
                     pick12HourFormat: true
                 });
 
+                $("#conversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
                 $('#conversationEndDatetimePicker').datetimepicker({
                     language: 'en',
                     format: 'dd/MM/yyyy hh:mm:ss',
                     pick12HourFormat: true
                 });
+
+                $("#conversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
 
                 $('#appealEvaluationStartDatetimePicker').datetimepicker({
                     language: 'en',
@@ -405,13 +416,39 @@ define(['js/app'], function (myApp) {
                     pick12HourFormat: true
                 });
 
+                $("#appealEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
                 $('#appealEvaluationEndDatetimePicker').datetimepicker({
                     language: 'en',
                     format: 'dd/MM/yyyy hh:mm:ss',
                     pick12HourFormat: true
                 });
+
+                $("#appealEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
             }
 
+            vm.initWorkloadProgress = function(){
+                vm.inspectionReportTab = 'workloadReport';
+
+                $('#reportConversationStartDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $("#reportConversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                $('#reportConversationEndDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+
+                $("#reportConversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+            }
+
+
+            //////////////////////////////////////////////////////////Start of Evaluation Tab///////////////////////////////////////////////////////////////////
             vm.getUnreadEvaluationRecord = function() {
                 var startTime = $('#unreadEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#unreadEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
@@ -421,73 +458,72 @@ define(['js/app'], function (myApp) {
                     endTime: endTime
                 }
 
-                    vm.qaForm = [
-                        {
-                            messageId: 331,
-                            status: '已完成（已读）',
-                            qualityAssessor: 'QC-ALLEN',
-                            fpmsAcc: 'ishtar',
-                            processTime: '2018-1-15 19:33:51',
-                            createTime: '2018-1-15 16:33:51',
-                            appealReason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
-                            conversation: [
-                                {
-                                    'time': '2018-1-15 16:33:51',
-                                    'roles': '客服',
-                                    'createTime': '2018-1-15 16:33:51',
-                                    'timeoutRate': -2,
-                                    'inspectionRate': 0,
-                                    'review': '答非所问'
-                                },
-                                {
-                                    'roles': 'Guest',
-                                    'createTime': '2018-1-15 16:33:51',
-                                },
-                                {
-                                    'time': '2018-1-15 16:33:51',
-                                    'roles': '客服',
-                                    'createTime': '2018-1-15 16:33:51',
-                                    'timeoutRate': -2,
-                                    'inspectionRate': 0,
-                                    'review': '答非所问'
-                                },
-                            ]
-                        },
-                        {
-                            messageId: 331,
-                            status: '已完成（已读）',
-                            qualityAssessor: 'QC-ALLEN',
-                            fpmsAcc: 'ishtar',
-                            processTime: '2018-1-15 19:33:51',
-                            createTime: '2018-1-15 16:33:51',
-                            appealReason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
-                            conversation: [
-                                {
-                                    'time': '2018-1-15 16:33:51',
-                                    'roles': '客服',
-                                    'createTime': '2018-1-15 16:33:51',
-                                    'timeoutRate': -2,
-                                    'inspectionRate': 0,
-                                    'review': '答非所问'
-                                },
-                                {
-                                    'roles': 'Guest',
-                                    'createTime': '2018-1-15 16:33:51',
-                                },
-                                {
-                                    'time': '2018-1-15 16:33:51',
-                                    'roles': '客服',
-                                    'createTime': '2018-1-15 16:33:51',
-                                    'timeoutRate': -2,
-                                    'inspectionRate': 0,
-                                    'review': '答非所问'
-                                },
-                            ]
-                        }
-                    ]
+                    // vm.qaForm = [
+                    //     {
+                    //         messageId: 331,
+                    //         status: '已完成（已读）',
+                    //         qualityAssessor: 'QC-ALLEN',
+                    //         fpmsAcc: 'ishtar',
+                    //         processTime: '2018-1-15 19:33:51',
+                    //         createTime: '2018-1-15 16:33:51',
+                    //         appealReason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
+                    //         conversation: [
+                    //             {
+                    //                 'time': '2018-1-15 16:33:51',
+                    //                 'roles': '客服',
+                    //                 'createTime': '2018-1-15 16:33:51',
+                    //                 'timeoutRate': -2,
+                    //                 'inspectionRate': 0,
+                    //                 'review': '答非所问'
+                    //             },
+                    //             {
+                    //                 'roles': 'Guest',
+                    //                 'createTime': '2018-1-15 16:33:51',
+                    //             },
+                    //             {
+                    //                 'time': '2018-1-15 16:33:51',
+                    //                 'roles': '客服',
+                    //                 'createTime': '2018-1-15 16:33:51',
+                    //                 'timeoutRate': -2,
+                    //                 'inspectionRate': 0,
+                    //                 'review': '答非所问'
+                    //             },
+                    //         ]
+                    //     },
+                    //     {
+                    //         messageId: 332,
+                    //         status: '已完成（已读）',
+                    //         qualityAssessor: 'QC-ALLEN',
+                    //         fpmsAcc: 'ishtar',
+                    //         processTime: '2018-1-15 19:33:51',
+                    //         createTime: '2018-1-15 16:33:51',
+                    //         appealReason: '当时因为客服精神病发作，所以语无伦次，盼重清量刑',
+                    //         conversation: [
+                    //             {
+                    //                 'time': '2018-1-15 16:33:51',
+                    //                 'roles': '客服',
+                    //                 'createTime': '2018-1-15 16:33:51',
+                    //                 'timeoutRate': -2,
+                    //                 'inspectionRate': 0,
+                    //                 'review': '答非所问'
+                    //             },
+                    //             {
+                    //                 'roles': 'Guest',
+                    //                 'createTime': '2018-1-15 16:33:51',
+                    //             },
+                    //             {
+                    //                 'time': '2018-1-15 16:33:51',
+                    //                 'roles': '客服',
+                    //                 'createTime': '2018-1-15 16:33:51',
+                    //                 'timeoutRate': -2,
+                    //                 'inspectionRate': 0,
+                    //                 'review': '答非所问'
+                    //             },
+                    //         ]
+                    //     }
+                    // ]
 
                 socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecord', sendData, function (data) {
-                    vm.qaForm = "";
 
                     if(data && data.data && data.data.length > 0){
 
@@ -498,33 +534,161 @@ define(['js/app'], function (myApp) {
 
                             return data;
                         })
-                        vm.qaForm = data.data;
-
+                        vm.unreadEvaluationTable = data.data;
+                        vm.unreadEvaluationTable.appealReasonFreeze = false;
                         $scope.safeApply();
-                        // setTimeout(function(){
-                        //     $scope.safeApply();
-                        // },100)
+                    }else{
+                        vm.unreadEvaluationTable = "";
+                        $scope.safeApply();
                     }
                 });
             }
 
-            vm.changeEvaluationRecordStatus = function(){
+            vm.getReadEvaluationRecord = function() {
+                var startTime = $('#readEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#readEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime
+                }
+
+                socketService.$socket($scope.AppSocket, 'getReadEvaluationRecord', sendData, function (data) {
+                    if(data && data.data && data.data.length > 0){
+
+                        data.data.map(data => {
+                            if(data && data.status){
+                                data.status = vm.constQualityInspectionStatus[data.status];
+                            }
+
+                            return data;
+                        })
+                        vm.readEvaluationTable = data.data;
+                        vm.readEvaluationTable.appealReasonFreeze = false;
+                        $scope.safeApply();
+
+                    }else{
+                        vm.readEvaluationTable = "";
+                        $scope.safeApply();
+                    }
+                });
             }
 
-            vm.gatherCheckedRecord = function(){
-                // if(isCheck){
-                //     vm.unseenEvaluationSelectedRecord.push(messageId);
-                // }else{
-                //     let selectedRecordIndex = vm.unseenEvaluationSelectedRecord.indexOf(messageId);
-                //     if(selectedRecordIndex > 0){
-                //         vm.unseenEvaluationSelectedRecord.splice(selectedRecordIndex,1);
-                //     }
-                // }
-                console.log("AAAAAAAAAAAa");
+            vm.getAppealEvaluationRecordByConversationDate = function(){
+                var startTime = $('#conversationStartDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#conversationEndDatetimePicker').data('datetimepicker').getLocalDate();
+
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime,
+                    status: vm.appealStatus
+                }
+
+                socketService.$socket($scope.AppSocket, 'getAppealEvaluationRecordByConversationDate', sendData, function (data) {
+                    if(data && data.data && data.data.length > 0){
+
+                        data.data.map(data => {
+                            if(data && data.status){
+                                data.status = vm.constQualityInspectionStatus[data.status];
+                            }
+
+                            return data;
+                        })
+                        vm.appealEvaluationTable = data.data;
+                        vm.appealEvaluationTable.appealReasonFreeze = false;
+                        $scope.safeApply();
+
+                    }else{
+                        vm.appealEvaluationTable = "";
+                        $scope.safeApply();
+                    }
+                });
+            }
+
+            vm.getAppealEvaluationRecordByAppealDate = function(){
+                var startTime = $('#appealEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#appealEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
+
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime,
+                    status: vm.appealStatus
+                }
+
+                socketService.$socket($scope.AppSocket, 'getAppealEvaluationRecordByAppealDate', sendData, function (data) {
+                    if(data && data.data && data.data.length > 0){
+
+                        data.data.map(data => {
+                            if(data && data.status){
+                                data.status = vm.constQualityInspectionStatus[data.status];
+                            }
+
+                            return data;
+                        })
+                        vm.appealEvaluationTable = data.data;
+                        vm.appealEvaluationTable.appealReasonFreeze = false;
+                        $scope.safeApply();
+
+                    }else{
+                        vm.appealEvaluationTable = "";
+                        $scope.safeApply();
+                    }
+                });
+            }
+
+            vm.gatherCheckedRecord = function(isChecked, messageId, appealReason){
+                if(isChecked){
+                    let arrObj = {
+                        messageId: messageId,
+                        appealReason: appealReason ? appealReason : ""
+                    }
+                    vm.unreadEvaluationSelectedRecord.push(arrObj);
+                }else{
+                    //let selectedRecordIndex = vm.unreadEvaluationSelectedRecord.indexOf(messageId);
+                    let selectedRecordIndex = vm.unreadEvaluationSelectedRecord.findIndex(u => u.messageId == messageId);
+                    if(selectedRecordIndex >= 0){
+                        vm.unreadEvaluationSelectedRecord.splice(selectedRecordIndex,1);
+                    }
+                }
+            }
+
+            vm.markEvaluationRecordAsRead = function(){
+                if(vm.unreadEvaluationSelectedRecord && vm.unreadEvaluationSelectedRecord.length > 0){
+                    let sendData = {
+                        messageId: vm.unreadEvaluationSelectedRecord,
+                        status: vm.constQualityInspectionStatus.COMPLETED_UNREAD
+                    }
+
+                    socketService.$socket($scope.AppSocket, 'markEvaluationRecordAsRead', sendData, function (data) {
+                        if(data){
+                            vm.getUnreadEvaluationRecord();
+                        }
+                    });
+
+                }
+            }
+
+            vm.appealEvaluation = function() {
+                if(vm.unreadEvaluationSelectedRecord && vm.unreadEvaluationSelectedRecord.length > 0) {
+                    let sendData = {
+                        appealDetailArr: vm.unreadEvaluationSelectedRecord
+                    }
+
+                    socketService.$socket($scope.AppSocket, 'appealEvaluation', sendData, function (data) {
+                        if(data){
+                            vm.getUnreadEvaluationRecord();
+                        }
+                    });
+                }
             }
 
 
+            //////////////////////////////////////////////////////////End of Evaluation Tab///////////////////////////////////////////////////////////////////
+
+            //////////////////////////////////////////////////////////Start of Report Tab///////////////////////////////////////////////////////////////////
+            vm.getWorkloadReport = function() {
+
+            }
 
             var _ = {
                 clone: function (obj) {

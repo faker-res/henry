@@ -3094,6 +3094,19 @@
   "APPEALING": "申诉中",
   "APPEAL_COMPLETED": "申诉结案",
   "NOT_EVALUATED": "不评估(无效)",
-  "SEEN": "已读",
-  "I_WANT_TO_APPEAL": "我要申诉"
+  "MARK_AS_READ": "已读",
+  "I_WANT_TO_APPEAL": "我要申诉",
+  "SEARCH_BY_CONVERSATION_DATE":"搜寻对话时间",
+  "SEARCH_BY_APPEAL_DATE": "搜寻申诉时间",
+  "WORKLOAD REPORT": "工作量报表",
+  "EVALUATION PROGRESS": "评估进度",
+  "QC_ACCOUNT": "QC账号",
+  "YEAR - MONTH": "年,月份",
+  "PRODUCT(DEPARTMENT)": "产品(部门)",
+  "COMPLETED_UNREAD_QUANTITY": "已完成(未读)数量",
+  "COMPLETED_READ_QUANTITY": "已完成(已读)数量",
+  "COMPLETED_QUANTITY": "已完成(免读)数量",
+  "APPEALING_QUANTITY": "申诉中数量",
+  "APPEAL_COMPLETED_QUANTITY": "申诉结案数量",
+  "PRODUCT_NAME": "产品名称"
 }

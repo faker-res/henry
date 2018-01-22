@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var qualityInspectionSchema = new Schema({
-    messageId: {type: Schema.Types.ObjectId, required: true, index: true},
+    messageId: {type: Number, required: true},
     status:{type: Number, default: 1}, //1 = pending, 2=completed(unread), 3=completed(read), 4=completed, 5=appealing, 6=appeal completed, 7=not evaluated(invalid)
     qualityAssessor:{type: String, required: true},
     fpmsAcc:{type: String, required: true},

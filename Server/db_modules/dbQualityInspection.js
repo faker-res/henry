@@ -49,7 +49,110 @@ var dbQualityInspection = {
             status: constQualityInspectionStatus.COMPLETED_UNREAD
         }
         return dbconfig.collection_qualityInspection.find(query).lean();
-    }
+    },
+
+    getReadEvaluationRecord: function(startTime, endTime){
+        let query ={
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
+            },
+            status: constQualityInspectionStatus.COMPLETED_READ
+        }
+        return dbconfig.collection_qualityInspection.find(query).lean();
+    },
+
+    getAppealEvaluationRecordByConversationDate: function(startTime, endTime, status){
+
+
+        let query ={
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
+            }
+            //status: constQualityInspectionStatus.COMPLETED_READ
+        }
+
+        if(status != "all"){
+            query.status = status;
+        }
+        else{
+            query.status = {$in: [constQualityInspectionStatus.APPEALING, constQualityInspectionStatus.APPEAL_COMPLETED]};
+        }
+
+        return dbconfig.collection_qualityInspection.find(query).lean();
+    },
+
+    getAppealEvaluationRecordByAppealDate: function(startTime, endTime, status){
+
+        let query ={
+            processTime: {
+                $gte: startTime,
+                $lt: endTime
+            }
+            //status: constQualityInspectionStatus.COMPLETED_READ
+        }
+
+        if(status != "all"){
+            query.status = status;
+        }
+        else{
+            query.status = {$in: [constQualityInspectionStatus.APPEALING, constQualityInspectionStatus.APPEAL_COMPLETED]};
+        }
+
+        return dbconfig.collection_qualityInspection.find(query).lean();
+    },
+
+    markEvaluationRecordAsRead: function(appealRecordArr, status){
+        if(appealRecordArr && appealRecordArr.length > 0){
+            let messageIdArr = [];
+
+            appealRecordArr.forEach(a => {
+                messageIdArr.push(a.messageId);
+            })
+
+            let query ={
+                messageId: {$in: messageIdArr},
+                status: constQualityInspectionStatus.COMPLETED_UNREAD
+            }
+
+            let updateData = {
+                status: constQualityInspectionStatus.COMPLETED_READ
+            }
+
+            return dbconfig.collection_qualityInspection.findOneAndUpdate(query,updateData);
+        }
+
+    },
+
+    appealEvaluation: function(appealRecordArr){
+        if(appealRecordArr && appealRecordArr.length > 0){
+
+            return appealRecordArr.forEach(a => {
+                let query ={
+                    //messageId: appealRecordArr.messageId ? ,
+                    status: constQualityInspectionStatus.COMPLETED_UNREAD
+                }
+
+                if(a.messageId){
+                    query.messageId = a.messageId;
+                }
+
+                let updateData = {
+                    status: constQualityInspectionStatus.APPEALING
+                }
+
+                if(a.appealReason){
+                    updateData.appealReason = a.appealReason;
+                }
+
+
+                return dbconfig.collection_qualityInspection.findOneAndUpdate(query,updateData).exec();
+            });
+
+        }
+
+    },
 
 };
 
