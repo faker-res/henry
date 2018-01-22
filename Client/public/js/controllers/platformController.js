@@ -4615,7 +4615,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight",
                             render: function (data, type, row) {
-                                let value = (Math.floor( data * 100 ) / 100).toFixed(2);
+                                let value = (Math.floor( data * 10 ) / 10).toFixed(1);
                                 return value;
                             }
                         },
