@@ -2024,12 +2024,13 @@ var proposalExecutor = {
                         type: constRewardType.PLAYER_PROMO_CODE_REWARD,
                         rewardType: constRewardType.PLAYER_PROMO_CODE_REWARD,
                         platformId: proposalData.data.platformId,
-                        requiredUnlockAmount: proposalData.data.spendingAmount - proposalData.data.applyAmount,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
                         currentAmount: proposalData.data.rewardAmount,
                         initAmount: proposalData.data.rewardAmount,
                         eventId: proposalData.data.eventId,
                         useLockedCredit: proposalData.data.useLockedCredit,
-                        useConsumption: Boolean(proposalData.data.useConsumption)
+                        useConsumption: Boolean(proposalData.data.useConsumption),
+                        applyAmount: proposalData.data.applyAmount
                     };
 
                     // Target providers or providerGroup
@@ -3074,7 +3075,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         })
                     );
                     sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
-                    if (proposalData.data.isDynamicRewardAmount) {
+                    if (proposalData.data.isDynamicRewardAmount || proposalData.data.promoCode) {
                         dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(() =>{
                             dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                         }).catch(
