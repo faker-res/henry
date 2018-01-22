@@ -320,12 +320,7 @@ let dbPlayerReward = {
         let bonusList = [];
         let currentTime = new Date();
 
-        console.log('playerId',playerId);
-        console.log('rewardCode',rewardCode);
-        console.log('platformId',platformId);
-
         function addParamToOpen(openData) {
-            console.log('OPEN====');
             if (!openData) {
                 return false;
             }
@@ -334,7 +329,6 @@ let dbPlayerReward = {
         }
 
         function addParamToGet(getData) {
-            console.log('GET====');
             if (!getData) {
                 return false;
             }
@@ -343,7 +337,6 @@ let dbPlayerReward = {
         }
 
         function addParamToGiveup(giveupData) {
-            console.log('GIVEUP====');
             if (!giveupData) {
                 return false;
             }
@@ -353,7 +346,6 @@ let dbPlayerReward = {
 
         // display all players who applied for random reward within reward interval period
         function addParamToBonusList(bonusListRewardProposals) {
-            console.log('BONUS====');
             if (!bonusListRewardProposals) {
                 return false;
             }
@@ -368,7 +360,6 @@ let dbPlayerReward = {
         }
 
         if (playerId) {
-            console.log('HERE===playerID');
             let playerProm = dbConfig.collection_players.findOne({playerId})
                 .populate({path: "playerLevel", model: dbConfig.collection_playerLevel})
                 .populate({path: "platform", model: dbConfig.collection_platform})
@@ -394,10 +385,8 @@ let dbPlayerReward = {
         }
 
         return firstProm.then(() => {
-            console.log('FIRSTPROM=====');
             return dbRewardEvent.getPlatformRewardEventWithTypeName(platform._id, constRewardType.PLAYER_RANDOM_REWARD_GROUP, rewardCode);
         }).then(eventData => {
-            console.log('eventData',eventData);
             event = eventData;
             if (!event) {
                 return Promise.reject({
@@ -416,7 +405,6 @@ let dbPlayerReward = {
             }
 
             intervalTime = getIntervalPeriodFromEvent(event);
-            console.log('intervalTime',intervalTime);
 
             let similarRewardProposalProm = Promise.resolve([]);
             let similarTopUpProm = Promise.resolve([]);
@@ -457,7 +445,6 @@ let dbPlayerReward = {
 
             return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm]);
         }).then(data => {
-            console.log('data', data);
             if (!data || !data[0] || !data[1] || !data[2] || !data[3]) {
                 return Promise.reject({
                     status: constServerCode.DOCUMENT_NOT_FOUND,
@@ -468,9 +455,6 @@ let dbPlayerReward = {
             let topUpRecords = data[1];
             let consumptionProposals = data[2];
             let bonusListRewardProposals = data[3];
-            console.log('rewardProposals', rewardProposals);
-            console.log('topUpRecords', topUpRecords);
-            console.log('consumptionProposals', consumptionProposals);
 
             // big big null check
             if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
@@ -484,27 +468,19 @@ let dbPlayerReward = {
             let paramOfLevel = event.param.rewardParam[0].value;
             let selectedParam = null;
 
-            console.log('event.condition.isPlayerLevelDiff', event.condition.isPlayerLevelDiff);
-
             // find param for matching player level
             if (event.condition.isPlayerLevelDiff && player) {
                 let rewardParam = event.param.rewardParam.filter(e => e.levelId == String(player.playerLevel._id));
                 if (rewardParam && rewardParam[0] && rewardParam[0].value) {
                     paramOfLevel = rewardParam[0].value;
                 }
-                console.log('rewardParam', rewardParam);
             } else {
                 selectedParam = paramOfLevel[0];
-                console.log('selectedParam', selectedParam);
             }
 
-            console.log('selectedParam=======', selectedParam);
-            console.log('event.condition.rewardAppearPeriod',event.condition.rewardAppearPeriod);
             if (event.condition.rewardAppearPeriod) {
                 let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
-                console.log('todayWeekOfDay',todayWeekOfDay);
                 let dayOfHour = moment(new Date()).tz('Asia/Singapore').hours();
-                console.log('dayOfHour',dayOfHour);
 
                 let openData, getData, giveupData;
                 let totalValidTopup = 0;
@@ -520,7 +496,6 @@ let dbPlayerReward = {
                         totalValidTopup += topUpRecords[x].amount;
                     }
                 }
-                console.log('topUpRecords.length',topUpRecords.length);
 
                 // find availableBetAmount // total consumption amount that is valid
                 for (let y = 0; y < consumptionProposals.length; y++) {
@@ -528,32 +503,22 @@ let dbPlayerReward = {
                         totalValidConsumption += consumptionProposals[y].amount;
                     }
                 }
-                console.log('consumptionProposals.length',consumptionProposals.length);
 
                 // find amountList // list of reward amount that has applied
                 for (let z = 0; z < rewardProposals.length; z++) {
                     let listAmount = rewardProposals[z].data.rewardAmount;
-                    console.log('rewardProposals[z].data.rewardAmount',rewardProposals[z].data.rewardAmount);
                     listValidRewardAmount.push(listAmount);
                 }
-                console.log('rewardProposals.length',rewardProposals.length);
 
                 event.condition.rewardAppearPeriod.forEach(appearPeriod => {
-                    console.log('appearPeriod',appearPeriod);
-                    console.log('TRUE1');
 
                     // status 0 - reward event not yet started, countdown to start time
                     if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime > dayOfHour && appearPeriod.endTime > dayOfHour) {
                         openID++;
-                        console.log('openID11',openID);
-
-                        console.log('status 0',appearPeriod);
                         let startTimeInt = parseInt(appearPeriod.startTime);
                         let startTimeSetHours = currentTime.setHours(startTimeInt,0,0);
                         let countdownToStartTime = parseInt((startTimeSetHours - new Date().getTime()) / 1000);
 
-                        console.log('countdownToStartTime',countdownToStartTime);
-                        console.log('currentTime',currentTime);
                         openData = {
                             id: openID,
                             startTime: appearPeriod.startTime,
@@ -587,9 +552,7 @@ let dbPlayerReward = {
                     // status 1 - reward event started
                     if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime <= dayOfHour && appearPeriod.endTime > dayOfHour) {
                         openID++;
-                        console.log('openID22',openID);
 
-                        console.log('status 1',appearPeriod);
                         openData = {
                             id: openID,
                             startTime: appearPeriod.startTime,
@@ -623,7 +586,6 @@ let dbPlayerReward = {
                     if (appearPeriod.startDate == todayWeekOfDay) {
                         getID++;
 
-                        console.log('status 2',appearPeriod);
                         getData = {
                             id: getID,
                             startTime: appearPeriod.startTime,
@@ -653,7 +615,6 @@ let dbPlayerReward = {
                     if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime < dayOfHour && appearPeriod.endTime < dayOfHour) {
                         giveupID++;
 
-                        console.log('status 3',appearPeriod);
                         giveupData = {
                             id: giveupID,
                             startTime: appearPeriod.startTime,
@@ -677,7 +638,6 @@ let dbPlayerReward = {
                         };
                         addParamToGiveup(giveupData);
                     }
-                    console.log('TRUE2');
                 });
             }
 
