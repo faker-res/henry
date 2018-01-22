@@ -1147,7 +1147,7 @@
                                         input.form-control(type='text' ng-if='vm.configTableEdit' ng-model='v.smsName')
                                         span(ng-if='!vm.configTableEdit') {{v.smsName}}
                                     td
-                                        div(ng-repeat='(ii, vv) in vm.smsGroups | filter: {smsParentSmsId: v.smsId}')
+                                        div(ng-repeat='(ii, vv) in vm.smsGroups | filter: vm.filterSmsSettingGroup(v.smsId)')
                                             span {{ vv.smsName | translate}}
                                             i.fa.fa-minus.fa-lg(ng-if='vm.configTableEdit' ng-click='vm.removeSmsSettingFromGroup(vv);')
                                     td

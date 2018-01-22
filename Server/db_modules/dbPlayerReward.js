@@ -484,6 +484,7 @@ let dbPlayerReward = {
 
                 let openData, getData, giveupData;
                 let totalValidTopup = 0;
+                let totalAvailableTopup = 0;
                 let totalValidConsumption = 0;
                 let listValidRewardAmount = [];
                 let openID = 0;
@@ -491,9 +492,16 @@ let dbPlayerReward = {
                 let giveupID = 0;
 
                 // find availableDeposit // total top up amount that is valid
+                for (let w = 0; w < topUpRecords.length; w++) {
+                    if (topUpRecords[w].amount >= selectedParam.requiredTopUpAmount) {
+                        totalValidTopup += topUpRecords[w].amount;
+                    }
+                }
+
+                // find availableDepositTimes // total number of valid top up that is still unused or available to apply reward
                 for (let x = 0; x < topUpRecords.length; x++) {
-                    if (topUpRecords[x].amount >= selectedParam.requiredTopUpAmount) {
-                        totalValidTopup += topUpRecords[x].amount;
+                    if (topUpRecords[x].amount >= selectedParam.requiredTopUpAmount && topUpRecords[x].bDirty === false) {
+                        totalAvailableTopup++;
                     }
                 }
 
@@ -527,7 +535,7 @@ let dbPlayerReward = {
                             status: 0,
                             condition: {
                                 availableDeposit: totalValidTopup,
-                                availableDepositTimes: topUpRecords.length,
+                                availableDepositTimes: totalAvailableTopup,
                                 requestDeposit: selectedParam.requiredTopUpAmount,
                                 betSource: event.condition.consumptionProvider,
                                 availableBetAmount: totalValidConsumption,
@@ -560,7 +568,7 @@ let dbPlayerReward = {
                             status: 1,
                             condition: {
                                 availableDeposit: totalValidTopup,
-                                availableDepositTimes: topUpRecords.length,
+                                availableDepositTimes: totalAvailableTopup,
                                 requestDeposit: selectedParam.requiredTopUpAmount,
                                 betSource: event.condition.consumptionProvider,
                                 availableBetAmount: totalValidConsumption,
@@ -593,7 +601,7 @@ let dbPlayerReward = {
                             status: 2,
                             amountList: listValidRewardAmount,
                             condition: {
-                                availableDepositTimes: topUpRecords.length,
+                                availableDepositTimes: totalAvailableTopup,
                                 requestDeposit: selectedParam.requiredTopUpAmount,
                                 betSource: event.condition.consumptionProvider,
                                 requestBetAmount: selectedParam.requiredConsumptionAmount,
@@ -621,7 +629,7 @@ let dbPlayerReward = {
                             endTime: appearPeriod.endTime,
                             status: 3,
                             condition: {
-                                availableDepositTimes: topUpRecords.length,
+                                availableDepositTimes: totalAvailableTopup,
                                 requestDeposit: selectedParam.requiredTopUpAmount,
                                 betSource: event.condition.consumptionProvider,
                                 requestBetAmount: selectedParam.requiredConsumptionAmount,

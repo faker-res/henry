@@ -16034,6 +16034,12 @@ define(['js/app'], function (myApp) {
                 vm.noGroupSmsSetting.splice(index, 1);
             }
 
+            vm.filterSmsSettingGroup = (parentSmsId) => {
+                return (smsSettingGroup) => {
+                    return smsSettingGroup.smsParentSmsId == parentSmsId;
+                }
+            };
+
             vm.addNewSmsGroup = () => {
                 socketService.$socket($scope.AppSocket, 'addNewSmsGroup', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
                     vm.smsGroups.push(data.data)
