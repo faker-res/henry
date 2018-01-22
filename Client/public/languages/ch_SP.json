@@ -1206,6 +1206,7 @@
   "MISCELLANEOUS_REPORT": "其他报表",
   "CREDIT_CHANGE_REPORT": "额度更改报表",
   "TransferIn": "转入",
+  "TransferInFailed": "转入超时",
   "transferId": "转账ID",
   "TransferOut": "转出",
   "transferIn": "转入",
