@@ -4346,12 +4346,12 @@ define(['js/app'], function (myApp) {
                         item.bonusAmount$ = item.bonusAmount.toFixed(2);
                         item.commissionAmount$ = item.commissionAmount.toFixed(2);
                         item.canConsumptionReturn$ = Boolean(!item.bDirty) ? $translate('ABLE') : $translate('UNABLE');
-                        item.roundResult$ = "";
-                        item.roundId$ = "";
-                        item.matchId$ = "";
-                        item.gameType$ = "";
-                        item.betType$ = "";
-                        item.remark$ = "";
+                        item.roundResult$ = item.result || "";
+                        item.roundId$ = item.playNo || "";
+                        item.matchId$ = item.roundNo || "";
+                        item.gameType$ = item.cpGameType || item.gameId.name || "";
+                        item.betType$ = item.betType ||"";
+                        item.remark$ = item.playDetail || "";
 
                         return item;
                     }) : [];
@@ -4359,18 +4359,19 @@ define(['js/app'], function (myApp) {
                     var summary = data.data.summary || {};
                     var tableOptions = {
                         data: tableData,
-                        "order": vm.expenseQuery.aaSorting || [[9, 'desc']],
+                        "order": vm.expenseQuery.aaSorting || [[8, 'desc']],
                     };
 
                     vm.commonProviderGameTableOptions = {
                         columnDefs: [
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [9]},
-                            // {'sortCol': 'playerId', bSortable: true, 'aTargets': [2]},
-                            // {'sortCol': 'validAmount', bSortable: true, 'aTargets': [5]},
-                            // {'sortCol': 'amount', bSortable: true, 'aTargets': [6]},
-                            // {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
-                            // {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
-                            {targets: '_all', bSortable: false, defaultContent: ' '}
+                            {'sortCol': 'orderNo', bSortable: true, 'aTargets': [0]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
+                            {'sortCol': 'providerId', bSortable: true, 'aTargets': [2]},
+                            {'sortCol': 'gameId', bSortable: true, 'aTargets': [3]},
+                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
+                            {'sortCol': 'amount', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [6]},
+                            {targets: '_all', defaultContent: ' ', bSortable: false}
                         ],
                         columns: [
                             {title: $translate('orderId'), data: "orderNo"},
@@ -4380,8 +4381,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('ROUND_ID'), data: "roundId$"},
                             {title: $translate('MATCH_ID'), data: "matchId$"},
                             {title: $translate('GAME_TYPE'), data: "gameType$"},
-                            {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
-                            {title: $translate('BET_TYPE'), data: "betType$"},
+                            {title: $translate('BET_TYPE'), data: "betType$", sClass: 'sumText'},
                             {title: $translate('BET_TIME'), data: "createTime$"},
                             {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'sumFloat textRight'},
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
@@ -9498,9 +9498,9 @@ define(['js/app'], function (myApp) {
                             // record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
                             record.bDirty$ = record.bDirty ? $translate('UNABLE') : $translate('ABLE');
                             record.roundResult$ = record.result || "";
-                            record.roundId$ = record.roundNo || "";
-                            record.matchId$ = record.playNo || "";
-                            record.gameType$ = record.cpGameType || "";
+                            record.roundId$ = record.playNo || "";
+                            record.matchId$ = record.roundNo || "";
+                            record.gameType$ = record.cpGameType || record.gameId.name || "";
                             record.betType$ = record.betType ||"";
                             record.remark$ = record.playDetail || "";
                             return record
@@ -9534,8 +9534,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('ROUND_ID'), data: "roundId$"},
                             {title: $translate('MATCH_ID'), data: "matchId$"},
                             {title: $translate('GAME_TYPE'), data: "gameType$"},
-                            {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
-                            {title: $translate('BET_TYPE'), data: "betType$"},
+                            {title: $translate('BET_TYPE'), data: "betType$", sClass: 'sumText'},
                             {title: $translate('BET_TIME'), data: "createTime$"},
                             {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
                             {
